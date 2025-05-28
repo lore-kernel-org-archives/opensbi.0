@@ -4,84 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2A057C54ED1
-	for <opensbi@archiver.kernel.org>; Wed, 28 May 2025 03:15:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8F04EC3ABB2
+	for <opensbi@archiver.kernel.org>; Wed, 28 May 2025 04:20:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=leWMSshSgakAVLVxDY7qNVz3/2OCy+0Nm441YpqTwFI=; b=wo+RdNoKkeV4dY
-	JrEXH5Q8MshD+TDTiek7vRMk2E6i7PqvsEZRKUJ8sD4wRaiDFt6NWfJnHdGpnPSPZBnuCUTkQQGty
-	oUcWFOFw1/UU98UDR9sJiF1XmcD9VqP8gqC+N8rl4ZgW9d5FEJVvB8IFezBoZ/ek4FWfcHDL/uwXl
-	EV+yktX9Y122JrXGpQwaWUdySNVJ4weqOUyH2hPBh8qjoLZSZ23pQAMeJGDBiEb4u+9E6ICoHINUT
-	TqMSfC17Y8s5rjMUAwAEj2s4DH34sYstT9HrEjvNhZSWCGAjEkD7SKryZKe5PoI4ql8OW9Lg71WTZ
-	F0GslK40GY0eDJhYFF0w==;
+	List-Owner; bh=WS94XpoKzxu+wx7bvI5d+HS9I9VtSxgWnwRBv3YsLHY=; b=Lqui8ybhEhRUsW
+	3nIHgzz9ko33Fyc7/2XZ69Ehjku17zPCkts1JYNE00F+nme7GpwTNZlPL+ymFyPvWwjdHOP7PVIi6
+	z5geaLGhL6yUQg4koVGqqUoihrKxixpjeUwTXk5Q2mMCPHG8nll86x/EYB+ERgL1fQWnkar0O4koU
+	rLdxUtuLdL3dGl8nzwiKNfv6+Uu8IRB9r6/D6IETPWmINqaRIchEjQAbV8d9VCpJ7pLWT2lwUODB1
+	yZg4yMorcBps0DdZRJ65XT1ltKa67W/pxQEsUGzytAhRG/JcJqy7KEW3GXnGI/RCLI4S8F/iob40j
+	aW73/wvwqwYQlYhfOVlg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uK7GM-0000000C1zr-3mC7;
-	Wed, 28 May 2025 03:15:30 +0000
-Received: from mail-pf1-x433.google.com ([2607:f8b0:4864:20::433])
+	id 1uK8Gc-0000000C89Q-1svx;
+	Wed, 28 May 2025 04:19:50 +0000
+Received: from mail-qt1-x835.google.com ([2607:f8b0:4864:20::835])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uK7GJ-0000000C1zT-16uW
+	id 1uK8ES-0000000C7em-3V2o
 	for opensbi@lists.infradead.org;
-	Wed, 28 May 2025 03:15:29 +0000
-Received: by mail-pf1-x433.google.com with SMTP id d2e1a72fcca58-736c277331eso347212b3a.1
-        for <opensbi@lists.infradead.org>; Tue, 27 May 2025 20:15:26 -0700 (PDT)
+	Wed, 28 May 2025 04:17:38 +0000
+Received: by mail-qt1-x835.google.com with SMTP id d75a77b69052e-4768f90bf36so34578831cf.0
+        for <opensbi@lists.infradead.org>; Tue, 27 May 2025 21:17:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20230601.gappssmtp.com; s=20230601; t=1748402126; x=1749006926; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=y+UevJuumGiYLwUrPjqUNAAVegOQINUprV9GiaBrA3g=;
-        b=QGoKj98G7EJrGVft9Z4thVSjA/n+xc/NM8dyvhSQV+Eu0iRtTAhQbFIfNZ5pQIOFqa
-         xAEyDNfilV2BUtT8s/I7NtldVshDA3bmcPrdeR4gXvjb+YmmJPgYIvaqxMSC3fYC7hkI
-         3vjfkpD8qdccpwQQid5pCOrkDuaGDn5c17P8DKrGCHjsG/T2hTnRNstkA7BuICuI930B
-         YZp1J9fPg16xt3XfzCgoEa3TAudfVLgOB7JeEHLkT3Xkr1yBHykyxiks/pUI1Dj4or4Q
-         Q9Swu69q7Kyjbm2EeuEQD0EJS5oHoWhaed/VSjAvVQYMy+bDB0Y8N7zHRG16Cgy6KkMN
-         BuWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748402126; x=1749006926;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=ventanamicro.com; s=google; t=1748405855; x=1749010655; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=y+UevJuumGiYLwUrPjqUNAAVegOQINUprV9GiaBrA3g=;
-        b=Hf6fnmEAbPg7WbMBfYgJ9DkMvAgXZ9WOookn+eNa8vUQUVuBaw6FHnyvcyRxNOfSva
-         1ZB169q3lkiXWuwp3SNJEpB/ygSiL+V8yoa4qBIBA+G2xw1XQUb73R66pxWvAD61meA9
-         dcjPIlLogT5vlB55Hp8hsVHUygNYq6lcdNc8WllJcXLkkZSNUjSAxF/UqHkkOjCgdHs9
-         DHLu4xTrEzh74F3WpGpqSmRv6kiUD4hkF6ZGcjyy2OrZSvEpBxOjjucH3E9O+yP/bASi
-         uYgUbq16squMrJuThnRvaqevUcvrLA+rc7F85QDj2+yR0EcyRbkCSeeWG/UoJuYp0dDy
-         6Pig==
-X-Gm-Message-State: AOJu0YzIuCtFykGEl49EaUAg6UNZImPBTuOlMddXAgaKgORtddZ+yTRI
-	snUEtgKFEUIatRC9YiDiFMOjn2fbRCpuTN7A/GZuWitmcc7JN6+DHVNy5C+O1f2gPC5bjp2kkjj
-	VYRjdMgk=
-X-Gm-Gg: ASbGncvKISnqY606wi16JUSv6IoKPjUrZpcQT6Ij1kCmDaYV8aZ+OgVq8klpmty0Kx1
-	vMvzNXoB6r5U6SJvTNWb67fULCjc0CJ2NZqwfTbjVtf49oLBYSVWxkpicDSj8c78Im/9juQDNja
-	M/KpfAUfbCe6oKSYi/nkOLd/UR/+WSQUcFWTcSinypi2Z44hJVIe9Lt8LWQ/5nM7mYUyAdIbGhV
-	W447nb50TYd3RqNLX4/V+6vviDtidpZ88QOsRGSTU/g7qsGntWSJln+YsBYg24BGnQsgwzHTZoi
-	j4IvIoPEtz0GFgUMNcKBqXhdipN8F75I12ZoVXzpIw==
-X-Google-Smtp-Source: AGHT+IG8fg0xX4MaHQ+SMseRp03MRjOZ1ORtwN/0HEJVu1wG2TPLGwylTEj8qFsH6TWPloU1JX4RMg==
-X-Received: by 2002:a05:6a20:d818:b0:1ee:ab52:b8cc with SMTP id adf61e73a8af0-218ccd97137mr4706036637.21.1748402125876;
-        Tue, 27 May 2025 20:15:25 -0700 (PDT)
-Received: from ghost ([50.145.13.30])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b2d99eb6372sm212276a12.58.2025.05.27.20.15.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 May 2025 20:15:25 -0700 (PDT)
-Date: Tue, 27 May 2025 20:15:23 -0700
-From: Charlie Jenkins <charlie@rivosinc.com>
-To: Jesse Taube <jesse@rivosinc.com>
-Cc: opensbi@lists.infradead.org,
-	Himanshu Chauhan <hchauhan@ventanamicro.com>,
-	Anup Patel <anup@brainfault.org>
-Subject: Re: [PATCH] lib: sbi: dbtr: Fix shared memory layout
-Message-ID: <aDZ_y3vX31nCLa30@ghost>
-References: <20250527182713.527202-1-jesse@rivosinc.com>
+        bh=YXYIDuAG5wfjDu7mC14zHcT+5czVzA7ics2Qv6pWY2s=;
+        b=gn4Eso++iUlYbspyzIcfOZ8anMtVhiAn4ZDrYkc4dlvhO333l5MbjL3Mj1ExHUFI+w
+         g6zbTaNwFWe5xqdXYDfpXGFpH2vCzEsSqIuDO3eJi2Vk2h2MEQ34myC3L4aUlznB7D7M
+         i4SHScI3P//M+EH9PTOcixm3cvZvnA+FSJIIhIHT4q4z1h8lmONrtNh7T2Q7OGwjYzgs
+         kmgNZuC3DOAF0+C4wfvNROCX616GcCwxFd8l1WbrI38rU2EjlacQ0+aRerPvB7Z8I/j1
+         4AlilEMMC/wJNmJXtpHKoV92etZqNc+BXiTM8cobL8tJAaCjFMSHGEbmNYjmXsX5mRMR
+         7XCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1748405855; x=1749010655;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=YXYIDuAG5wfjDu7mC14zHcT+5czVzA7ics2Qv6pWY2s=;
+        b=Tm+Wm9VXFSHGLYW4O3jeNRQyve4/9imp8IK5Y6+hLJUBBZIjYQvpZiMSgOlgqdMF6X
+         gZMcnpPgNx/b693DvkH2nKEBUH1uk7Uzh0W4H19j2n6m185I8k02f2FiwEa2/alUuufF
+         XkCE5cmV0MQ3JNQf/2RSWlcupEWykVZf7dXeIwmZiOsVMbrIiWPvSwwPnWMpkWr2r38s
+         b2nFl0vmGxy2aqe62Sa3OJ7R5Q4XumuAs3WUxT8Gv9w+rubDfWU2AGYwC599muyuf9Ik
+         xDfHMaUl0B3wwX0H+ZH4lBNSzKwxhmM7mhchWYuJHA+X6EdixjSexDoJJSCR/MTGsZsu
+         FRcg==
+X-Forwarded-Encrypted: i=1; AJvYcCWxBZCvGAodGUgyZZ9aWSOp6mh6yGjtoSnovKRmLGhQbX74nCN14aijwfJV8W65Uboz8IEz2DwE@lists.infradead.org
+X-Gm-Message-State: AOJu0Yz5/iUhVsrDuMSH01M8TN7m5O5RCFbCC15pQs+OMWxBJA4Tv3WN
+	7sekHr4qx+qRRE7aybIzksPbUXk/WGtk+fSXDNDmfvretUohL4GEZtyVxWDxJT15mBo0Ug//nR8
+	0YJ+lZy99+Z+MdJmQD8z4PoB+BQrn65R1F0Sp3ppNsbn5CNvPM+JP
+X-Gm-Gg: ASbGnctm8fNYI4j85lEL9fajAY+aNWHfO5Ee2gaqJ8xfmoYZy/G0ccnSDeDiCzrFIpv
+	UR0nUf5c29+1khC5wDo9K5WCgUzJhcCdS/teJrYpdOFjAsxLUiXxXg4uZ8bvrDGiDVV+OZ+6T2q
+	6LmWL/EhwvS5Yv2hw+M+cUAyPc8190L7QlX7ZL9d3lMUe3nO+n4nFlwRtQP0oYbw/mHA==
+X-Google-Smtp-Source: AGHT+IGGHa4aeMS5G1WZkuQpUp+K8F5v/+gXgnFqMjhm1/BDl8fnubHZCscwM5pNP/GJM8KCi1Ds88bhMHNTcL+IRP4=
+X-Received: by 2002:ac8:57c8:0:b0:4a2:719b:122e with SMTP id
+ d75a77b69052e-4a2719b1290mr121603201cf.18.1748405855189; Tue, 27 May 2025
+ 21:17:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20250527182713.527202-1-jesse@rivosinc.com>
+References: <20250527182713.527202-1-jesse@rivosinc.com> <aDZ_y3vX31nCLa30@ghost>
+In-Reply-To: <aDZ_y3vX31nCLa30@ghost>
+From: Himanshu Chauhan <hchauhan@ventanamicro.com>
+Date: Wed, 28 May 2025 09:47:20 +0530
+X-Gm-Features: AX0GCFudHRDWCo6SPVcb4G72eTR8eyzHNICnv6VEVHV6DIipXbpbSiBojh_AuI8
+Message-ID: <CAPd4WezB2yMpftQ8H_VsSHCvvJZTHuEqnQ+wyRwgHLqBRTNprw@mail.gmail.com>
+Subject: Re: [PATCH] lib: sbi: dbtr: Fix shared memory layout
+To: Charlie Jenkins <charlie@rivosinc.com>
+Cc: Jesse Taube <jesse@rivosinc.com>, opensbi@lists.infradead.org, 
+	Anup Patel <anup@brainfault.org>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250527_201527_572019_96D0647E 
-X-CRM114-Status: GOOD (  17.02  )
+X-CRM114-CacheID: sfid-20250527_211736_871937_C9E5F5A5 
+X-CRM114-Status: GOOD (  18.66  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -93,60 +89,42 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Tue, May 27, 2025 at 11:27:13AM -0700, Jesse Taube wrote:
-> The existing sbi_dbtr_shmem_entry has a size of 5 * XLEN with the final
-> entry being idx. This is in contrast to the SBI v3.0-rc7 Chapter 19.
-> Debug Triggers Extension [0] where idx and trig_state share the same
-> offset (0) in shared memory, with a total size of 4 * XLEN for all the
-> SBI calls.
-> 
-> Add union to match memory layout described in SBI.
-> 
-> [0] https://github.com/riscv-non-isa/riscv-sbi-doc/tree/v3.0-rc7/src/ext-debug-triggers.adoc
-> 
-> Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
-> Signed-off-by: Jesse Taube <jesse@rivosinc.com>
-
-Thanks!
-
-This will need to be reflected in the linux patch as well.
-
-Tested-by: Charlie Jenkins <charlie@rivosinc.com>
-Reviewed-by: Charlie Jenkins <charlie@rivosinc.com>
-
-[1] https://lore.kernel.org/all/20240222125059.13331-3-hchauhan@ventanamicro.com/
-
-> ---
->  include/sbi/sbi_dbtr.h | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/sbi/sbi_dbtr.h b/include/sbi/sbi_dbtr.h
-> index a8b3a02..8cb776c 100644
-> --- a/include/sbi/sbi_dbtr.h
-> +++ b/include/sbi/sbi_dbtr.h
-> @@ -91,8 +91,10 @@ struct sbi_dbtr_hart_triggers_state {
->  
->  /** SBI shared mem messages layout */
->  struct sbi_dbtr_shmem_entry {
-> -	struct sbi_dbtr_data_msg data;
-> -	struct sbi_dbtr_id_msg id;
-> +	union {
-> +		struct sbi_dbtr_data_msg data;
-> +		struct sbi_dbtr_id_msg id;
-> +	};
->  };
->  
->  #define SBI_DBTR_SHMEM_ALIGN_MASK	((__riscv_xlen / 8) - 1)
-> -- 
-> 2.43.0
-> 
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+VGhhbmtzISBJIHdpbGwgdGFrZSBjYXJlIG9mIHRoYXQuCgpPbiBXZWQsIE1heSAyOCwgMjAyNSBh
+dCA4OjQ14oCvQU0gQ2hhcmxpZSBKZW5raW5zIDxjaGFybGllQHJpdm9zaW5jLmNvbT4gd3JvdGU6
+Cj4KPiBPbiBUdWUsIE1heSAyNywgMjAyNSBhdCAxMToyNzoxM0FNIC0wNzAwLCBKZXNzZSBUYXVi
+ZSB3cm90ZToKPiA+IFRoZSBleGlzdGluZyBzYmlfZGJ0cl9zaG1lbV9lbnRyeSBoYXMgYSBzaXpl
+IG9mIDUgKiBYTEVOIHdpdGggdGhlIGZpbmFsCj4gPiBlbnRyeSBiZWluZyBpZHguIFRoaXMgaXMg
+aW4gY29udHJhc3QgdG8gdGhlIFNCSSB2My4wLXJjNyBDaGFwdGVyIDE5Lgo+ID4gRGVidWcgVHJp
+Z2dlcnMgRXh0ZW5zaW9uIFswXSB3aGVyZSBpZHggYW5kIHRyaWdfc3RhdGUgc2hhcmUgdGhlIHNh
+bWUKPiA+IG9mZnNldCAoMCkgaW4gc2hhcmVkIG1lbW9yeSwgd2l0aCBhIHRvdGFsIHNpemUgb2Yg
+NCAqIFhMRU4gZm9yIGFsbCB0aGUKPiA+IFNCSSBjYWxscy4KPiA+Cj4gPiBBZGQgdW5pb24gdG8g
+bWF0Y2ggbWVtb3J5IGxheW91dCBkZXNjcmliZWQgaW4gU0JJLgo+ID4KPiA+IFswXSBodHRwczov
+L2dpdGh1Yi5jb20vcmlzY3Ytbm9uLWlzYS9yaXNjdi1zYmktZG9jL3RyZWUvdjMuMC1yYzcvc3Jj
+L2V4dC1kZWJ1Zy10cmlnZ2Vycy5hZG9jCj4gPgo+ID4gRml4ZXM6IDk3ZjIzNGYxNWM5NiAoImxp
+Yjogc2JpOiBJbnRyb2R1Y2UgdGhlIFNCSSBkZWJ1ZyB0cmlnZ2VycyBleHRlbnNpb24gc3VwcG9y
+dCIpCj4gPiBTaWduZWQtb2ZmLWJ5OiBKZXNzZSBUYXViZSA8amVzc2VAcml2b3NpbmMuY29tPgo+
+Cj4gVGhhbmtzIQo+Cj4gVGhpcyB3aWxsIG5lZWQgdG8gYmUgcmVmbGVjdGVkIGluIHRoZSBsaW51
+eCBwYXRjaCBhcyB3ZWxsLgo+Cj4gVGVzdGVkLWJ5OiBDaGFybGllIEplbmtpbnMgPGNoYXJsaWVA
+cml2b3NpbmMuY29tPgo+IFJldmlld2VkLWJ5OiBDaGFybGllIEplbmtpbnMgPGNoYXJsaWVAcml2
+b3NpbmMuY29tPgo+Cj4gWzFdIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2FsbC8yMDI0MDIyMjEy
+NTA1OS4xMzMzMS0zLWhjaGF1aGFuQHZlbnRhbmFtaWNyby5jb20vCj4KPiA+IC0tLQo+ID4gIGlu
+Y2x1ZGUvc2JpL3NiaV9kYnRyLmggfCA2ICsrKystLQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCA0IGlu
+c2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gPgo+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUv
+c2JpL3NiaV9kYnRyLmggYi9pbmNsdWRlL3NiaS9zYmlfZGJ0ci5oCj4gPiBpbmRleCBhOGIzYTAy
+Li44Y2I3NzZjIDEwMDY0NAo+ID4gLS0tIGEvaW5jbHVkZS9zYmkvc2JpX2RidHIuaAo+ID4gKysr
+IGIvaW5jbHVkZS9zYmkvc2JpX2RidHIuaAo+ID4gQEAgLTkxLDggKzkxLDEwIEBAIHN0cnVjdCBz
+YmlfZGJ0cl9oYXJ0X3RyaWdnZXJzX3N0YXRlIHsKPiA+Cj4gPiAgLyoqIFNCSSBzaGFyZWQgbWVt
+IG1lc3NhZ2VzIGxheW91dCAqLwo+ID4gIHN0cnVjdCBzYmlfZGJ0cl9zaG1lbV9lbnRyeSB7Cj4g
+PiAtICAgICBzdHJ1Y3Qgc2JpX2RidHJfZGF0YV9tc2cgZGF0YTsKPiA+IC0gICAgIHN0cnVjdCBz
+YmlfZGJ0cl9pZF9tc2cgaWQ7Cj4gPiArICAgICB1bmlvbiB7Cj4gPiArICAgICAgICAgICAgIHN0
+cnVjdCBzYmlfZGJ0cl9kYXRhX21zZyBkYXRhOwo+ID4gKyAgICAgICAgICAgICBzdHJ1Y3Qgc2Jp
+X2RidHJfaWRfbXNnIGlkOwo+ID4gKyAgICAgfTsKPiA+ICB9Owo+ID4KPiA+ICAjZGVmaW5lIFNC
+SV9EQlRSX1NITUVNX0FMSUdOX01BU0sgICAgKChfX3Jpc2N2X3hsZW4gLyA4KSAtIDEpCj4gPiAt
+LQo+ID4gMi40My4wCj4gPgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMu
+aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L29wZW5zYmkK
