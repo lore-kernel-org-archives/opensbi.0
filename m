@@ -4,93 +4,59 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B5B20C5B552
-	for <opensbi@archiver.kernel.org>; Mon,  9 Jun 2025 23:09:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id F1D8DC677C4
+	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:26:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Cc:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Owner;
-	bh=2V/avdP5dEN3xivn7+M+FrZ4DgVx0hxk3VS48pKyZUQ=; b=Fk2WGIg5iQZhFRSNwHNAjyaAFk
-	3gSWX1rYMsKmBwc3OWg8gaWJfOuOEsL5nbG/PjpwYYGjaE8bEIj1S/NukgiH5Gfs1r/PN91oJJNf2
-	XzpDY08OOL7sUheJLdGqL4ysYQKzyQOPP1NND44u7vjPulJkmMT3ieyECj9Wwlt+uGZnFEV5zkdUj
-	lYKMrB/h9uBgEPaX2YpmtSW9lbvbIi9BiWxKEdxOtl1ICTDYt/BOmYndQmgcJXGSY5+wRWK1CVgzm
-	A8TGCWHwFseMCKmlt+s/jk/fTHtg6TiUJVj56AxrMJc2pTYOYU4NjoyRujOtKFNRfs9Ise3Nzmc+/
-	6TCnB/rA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=8Sr0h5ooOTIqfA0isiG40RBdu1IpV9VWWL/LilNcZVY=; b=GCXwqc4CmHmZdO
+	MVXa0s5pljSGLKJT6JGnkztRM7TgvPoxsqXKTB/SJrg/SyKGkm1uHy+/88PrSA5EhB2JU+zJf0G7y
+	3p6xp5r+c7bdabhvEEGGiKXicbSnJh1zLF/nDFgUb6cJu7XajJE22oyZHyZbubP+lWzW+huN+82Sr
+	mO/i61JD4M4OSTXd2ErJMNCO665u0X3LDA8Lj2hhAKRj4lQB8pVkytQlvKThVKSIvZ/OlL74myRSX
+	UIewkDrhPlDlZh+wqhr63lWUtrXz/kFpBowgawqXONxELDuuaSc20fVbABswxykZVr5Flb2Bj3bhq
+	U/xNcuJ6FtorvTc/umZw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uOlcg-00000005QDj-0WhW;
-	Mon, 09 Jun 2025 23:09:46 +0000
-Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uOlce-00000005QDQ-2ug2
-	for opensbi@bombadil.infradead.org;
-	Mon, 09 Jun 2025 23:09:44 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-	:To:Subject:Message-ID:Date:From:In-Reply-To:References:MIME-Version:Sender:
-	Reply-To:Cc:Content-ID:Content-Description;
-	bh=m7W8szO//zDzhBhYgLCrpR6jY+WOXvSIWny+9NgxWUk=; b=RaRw0vtU1SN9D2gitICh7Syukh
-	W2Y8xKzkucix/nu5rp55kXCnK0U7gO8E54eXSJ9+7YMrcWDkt/3UQFR4Wsd6tFV5RP3jmmOnfvKuq
-	v0vAvNw0KdC2u85xRi00sMr0FnkTw4n7QVq5pW2YLTbTY2asuLQvdnNB4AZhJ7qz/Oe/xqtBjPyu1
-	K8at9LrGido68g4rKpN08U6YVewazLlWpNsJs3QJNaahcfBMyXOYQ5PgWIQEvoFRfRjD5QA8TmXb2
-	/SvRetXyBCHXeeolVgDtzWYdJMHyZe5iey4Igh8lGQHJvFa1xYxqIry9r+CtQPYABCVmBINQKAw/G
-	PAHqKbxQ==;
-Received: from mail-lj1-x229.google.com ([2a00:1450:4864:20::229])
-	by desiato.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uOlcV-00000001hCQ-3pFn
+	id 1uPNL4-0000000ANke-0frb;
+	Wed, 11 Jun 2025 15:26:06 +0000
+Received: from m16.mail.126.com ([220.197.31.7])
+	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uPKK5-00000009oys-40WA
 	for opensbi@lists.infradead.org;
-	Mon, 09 Jun 2025 23:09:39 +0000
-Received: by mail-lj1-x229.google.com with SMTP id 38308e7fff4ca-3105ef2a071so51825861fa.1
-        for <opensbi@lists.infradead.org>; Mon, 09 Jun 2025 16:09:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=atishpatra.org; s=google; t=1749510570; x=1750115370; darn=lists.infradead.org;
-        h=content-transfer-encoding:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=m7W8szO//zDzhBhYgLCrpR6jY+WOXvSIWny+9NgxWUk=;
-        b=pVZSe9L3YuH9Ua2J22a4Xlyj3DoFLcgmSfBlU9Eofvz2bcUhyNYQC1sk1OUXSuysmU
-         CY1Y89P6DHzVTIbt0wYPzkN3zOa0SL3IsLi8vqh0v4JxMjHZfvoq7Dz6yVmmZ+z+suVW
-         /5tZHgSvR+EXViw5xsFtBT+GcPky9DI6CROpw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749510570; x=1750115370;
-        h=content-transfer-encoding:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=m7W8szO//zDzhBhYgLCrpR6jY+WOXvSIWny+9NgxWUk=;
-        b=GALGUJH7sG9jq52CManCI30/jS5UZoOtO3y/efI0gqPgLdM7nPJ1BHSEy0V6bjzBW6
-         M8EP/3YZ10HT3JkbNq6KeBU7ie83vpB1nPW8rM/dSDUEwAnm6PCcLJzPFnmVJ/2ICgVr
-         yH+BmNWKtTHMA7uz/bAM3CFgF/4j2Xa7NCmsTfG+dZ7tuyUo4Y6uUx3LiNuRddnEKKU8
-         TUgQG63N4orb+2XdN66Ojh0xjXk4QX1k/91SKrZj3PU0EFu7SuQRFVeHsmCrVy9phlMc
-         1uU4LGcGQUhAu8U0LFNn8CjncQrMw4Vrrq5dzkmssBDnry8Kiij/8g+svKeS8V8/JvRs
-         jNLg==
-X-Gm-Message-State: AOJu0Yz5ZQOFgIVpuWuJlL+aWHiy1w9GZDCExMYxM1xazxSnUw/A9Mnh
-	UjtRiPbqvcqwwy1jepP/yLjytvUulnGbzI7rKNz2UVbNtZqjsyFvbbxHF0gMcMpHyrfuA/u0oXG
-	rzBGP10FC3B1NB+83aId3tlRSQO2fMclKdgWfmwlSq5YPAMOY1/OR1w==
-X-Gm-Gg: ASbGnctIXnvunS+JU9Z5iN1i/E9Lr3nv3QACC24t5OZWcrlxmj08Q6axu2G7M4SlfLg
-	x3uer4DTdjJm5AbXXOFQcCgHPFImhghz4g1yA1Pjzsf1i+tiVlwVYH0lB6s3Gu3P9GIwSbpKbAy
-	0qpYo8qmRz4j/OpXc2mdT/n88cgdrlAjukQyFih9JB
-X-Google-Smtp-Source: AGHT+IEWMMff+VYQVsGpjnaXm/Rn+Jul0YvV4ACZEai3Uq0Vho3uDx8M4RM6ygBBdbc10Ja/CaIYRVTgzwggqMG9dMg=
-X-Received: by 2002:a2e:8645:0:b0:32a:6c16:d3a5 with SMTP id
- 38308e7fff4ca-32adfd369bcmr31191401fa.3.1749510569768; Mon, 09 Jun 2025
- 16:09:29 -0700 (PDT)
+	Wed, 11 Jun 2025 12:12:55 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Qn
+	8JIRJGPupChrNWGRoRGHIjcwiccKL2cOOeZ0bexO0=; b=iE2D/fg5Rk7zfyJeip
+	+bltFjiEJ3YNNmuplT2Ku013O0q3RWo0NLt1CSgp3HgxV2qNmfNawsZisao4tSR+
+	7Wov4wM55XiXkBv6Mq07LJSq/vHEw+CahFqoS4WwYOZkJSFw6pw0vZ5nQc7UQ50Y
+	knEhBFmPgQkV2plK6dJ2NOQp8=
+Received: from T490.lan (unknown [])
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wDHn7e3ckloWd4vAA--.63780S3;
+	Wed, 11 Jun 2025 20:12:41 +0800 (CST)
+From: Xiang W <wxjstz@126.com>
+To: opensbi@lists.infradead.org
+Cc: Xiang W <wxjstz@126.com>,
+	anup@brainfault.org
+Subject: [PATCH 01/12] lib: sbi: Add coldboot parameters to some initialization functions
+Date: Wed, 11 Jun 2025 20:12:18 +0800
+Message-ID: <20250611121236.937455-2-wxjstz@126.com>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250611121236.937455-1-wxjstz@126.com>
+References: <20250611121236.937455-1-wxjstz@126.com>
 MIME-Version: 1.0
-References: <CAOnJCUJz6p6b0WK_7=qowe8_pCHnv5WJXNYMa-uzFy0PHc7Dvg@mail.gmail.com>
-In-Reply-To: <CAOnJCUJz6p6b0WK_7=qowe8_pCHnv5WJXNYMa-uzFy0PHc7Dvg@mail.gmail.com>
-From: Atish Patra <atishp@atishpatra.org>
-Date: Mon, 9 Jun 2025 16:09:18 -0700
-X-Gm-Features: AX0GCFvzzx0sgQlTBgQqz1aYTf9FCOEcA5zF6GsJeLGQOky_JUzsDZRXZjmq3RA
-Message-ID: <CAOnJCUJ-VusA8E4-ABvXPZOReD3nq6_jvqNF5bscfDY89_BoRw@mail.gmail.com>
-Subject: Re: Public Review : RISC-V Supervisor Binary Interface (SBI) version v3.0
-To: OpenSBI <opensbi@lists.infradead.org>, 
-	linux-riscv <linux-riscv@lists.infradead.org>, 
-	"open list:KERNEL VIRTUAL MACHINE FOR RISC-V (KVM/riscv)" <kvm-riscv@lists.infradead.org>, isa-dev@groups.riscv.org, 
-	"open list:RISC-V" <qemu-riscv@nongnu.org>
+X-CM-TRANSID: _____wDHn7e3ckloWd4vAA--.63780S3
+X-Coremail-Antispam: 1Uf129KBjvJXoW3WrWxWw4fGw1fAw1fWFWUXFb_yoW7Xw45pF
+	98tFnFyr40q34xt3srAw4UXr4xK3y0g3W7GrW5C3s2qw40yF1Fgr18Jw1YvF4DGF4Iya1j
+	yanFvrW8CF4avrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0z_E_MkUUUUU=
+X-Originating-IP: [153.35.240.84]
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbiFxhpOmhJa81c4QAAsm
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250610_000938_092185_03804152 
-X-CRM114-Status: GOOD (  13.73  )
+X-CRM114-CacheID: sfid-20250611_051254_377298_21EFFFDF 
+X-CRM114-Status: GOOD (  12.66  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,43 +68,161 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SGkgQWxsLApUaGUgcmV2aWV3IHBlcmlvZCBpcyBub3cgb2ZmaWNpYWxseSBjbG9zZWQuIFdlIGFw
-cHJlY2lhdGUgeW91cgpwYXJ0aWNpcGF0aW9uIGluIHRoZSByZXZpZXcgcHJvY2Vzcy4KClJlZ2Fy
-ZHMsCkF0aXNoCk9uIGJlaGFsZiBvZiBQUlMgVEcKCk9uIEZyaSwgTWF5IDksIDIwMjUgYXQgNToy
-N+KAr1BNIEF0aXNoIFBhdHJhIDxhdGlzaHBAYXRpc2hwYXRyYS5vcmc+IHdyb3RlOgo+Cj4gV2Ug
-YXJlIGV4Y2l0ZWQgdG8gYW5ub3VuY2UgdGhlIHB1YmxpYyByZXZpZXcgb2YgdGhlIFJJU0MtViBT
-dXBlcnZpc29yCj4gQmluYXJ5IEludGVyZmFjZSAoU0JJKSB2ZXJzaW9uIDMuMC4gVGhpcyAzMC1k
-YXkgcmV2aWV3IHBlcmlvZCBiZWdpbnMKPiB0b2RheSwgOSBNYXkgMjAyNSwgYW5kIGNvbmNsdWRl
-cyBvbiA4IEp1bmUgMjAyNS4KPgo+IFNwZWNpZmljYXRpb24gRGV0YWlsczoKPgo+IERvd25sb2Fk
-YWJsZSBQREYgVmVyc2lvbjoKPiBodHRwczovL2dpdGh1Yi5jb20vcmlzY3Ytbm9uLWlzYS9yaXNj
-di1zYmktZG9jL3JlbGVhc2VzL2Rvd25sb2FkL3YzLjAtcmM3L3Jpc2N2LXNiaS5wZGYKPiBTb3Vy
-Y2UgQ29kZTogaHR0cHM6Ly9naXRodWIuY29tL3Jpc2N2LW5vbi1pc2EvcmlzY3Ytc2JpLWRvYwo+
-Cj4gSG93IHRvIEdpdmUgRmVlZGJhY2s6Cj4gRW1haWwgeW91ciBjb21tZW50cyB0byBvbmUgb2Yg
-dGhlIGZvbGxvd2luZyBtYWlsaW5nIGxpc3RzOgo+Cj4gcHVibGljIGlzYS1kZXYgbWFpbGluZyBs
-aXN0KGlzYS1kZXZAZ3JvdXBzLnJpc2N2Lm9yZykKPiBQUlMgbWFpbGluZyBsaXN0ICh0ZWNoLXBy
-c0BsaXN0cy5yaXNjdi5vcmcpLgo+IE9wZW4gYW4gSXNzdWUgb3IgUHVsbCBSZXF1ZXN0IHRvIFNC
-SSBHaXRIdWIgcmVwb3NpdG9yeS4KPgo+IFJldmlldyBhbmQgUmF0aWZpY2F0aW9uIFByb2Nlc3M6
-Cj4KPiBEdXJpbmcgdGhlIHJldmlldyBwZXJpb2QsIHdlIHdpbGwgY29sbGVjdCBhbGwgZmVlZGJh
-Y2sgKGNvbW1lbnRzLAo+IGNvcnJlY3Rpb25zLCBhbmQgc3VnZ2VzdGlvbnMpIGZvciBjb25zaWRl
-cmF0aW9uIGJ5IHRoZSBQbGF0Zm9ybQo+IFJ1bnRpbWUgU2VydmljZXMgVGFzayBHcm91cCAoUFJT
-IFRHKS4gTWlub3IgY29ycmVjdGlvbnMgYW5kCj4gbm9uLWNvbnRyb3ZlcnNpYWwgY2hhbmdlcyB3
-aWxsIGJlIGluY29ycG9yYXRlZCBpbnRvIHRoZSBzcGVjaWZpY2F0aW9uCj4gZGlyZWN0bHkuIEFu
-eSB1bnJlc29sdmVkIGlzc3VlcyBvciBwcm9wb3NlZCBtb2RpZmljYXRpb25zIHdpbGwgYmUKPiBk
-ZXRhaWxlZCBpbiB0aGUgcHVibGljIHJldmlldyBzdW1tYXJ5IHJlcG9ydC4gQXNzdW1pbmcgbm8g
-aXNzdWVzCj4gbmVjZXNzaXRhdGUgaW5jb21wYXRpYmxlIGNoYW5nZXMgdG8gdGhlIHNwZWNpZmlj
-YXRpb24gdW5kZXIgcmV2aWV3LAo+IHRoZSBQUlMgVEcgd2lsbCBwcm9wb3NlIHRoYXQgdGhlIHVw
-ZGF0ZWQgc3BlY2lmaWNhdGlvbnMgYmUgcmF0aWZpZWQgYnkKPiBib3RoIHRoZSBSSVNDLVYgVGVj
-aG5pY2FsIFN0ZWVyaW5nIENvbW1pdHRlZSBhbmQgdGhlIFJJU0MtViBCb2FyZCBvZgo+IERpcmVj
-dG9ycy4KPgo+IFdlIGV4dGVuZCBvdXIgZ3JhdGl0dWRlIHRvIGFsbCBjb250cmlidXRvcnMgZm9y
-IHRoZWlyIGRlZGljYXRlZCBlZmZvcnRzLgo+Cj4gQ29udGFjdCwKPiBUYXNrIEdyb3VwOiBodHRw
-czovL2xpc3RzLnJpc2N2Lm9yZy9nL3RlY2gtcHJzCj4gVGFzayBHcm91cCBDaGFpcjogQXRpc2gg
-UGF0cmEgKGF0aXNocEByaXZvc2luYy5jb20pCj4gVGFzayBHcm91cCBWaWNlLWNoYWlyOiBTdW5p
-bCBWIEwgKHN1bmlsdmxAdmVudGFuYW1pY3JvLmNvbSkKPgo+Cj4gUmVnYXJkcywKPiBBdGlzaAo+
-IE9uIGJlaGFsZiBvZiBQUlMgVEcKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxp
-c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9vcGVuc2JpCg==
+To reduce the difference between init_coldboot/init_warm_startup,
+add cold_boot parameters to some initialization functions.
+
+Signed-off-by: Xiang W <wxjstz@126.com>
+---
+ include/sbi/sbi_domain.h      | 2 +-
+ include/sbi/sbi_double_trap.h | 2 +-
+ include/sbi/sbi_mpxy.h        | 2 +-
+ lib/sbi/sbi_domain.c          | 9 +++++++--
+ lib/sbi/sbi_double_trap.c     | 6 ++++--
+ lib/sbi/sbi_init.c            | 6 +++---
+ lib/sbi/sbi_mpxy.c            | 4 +++-
+ 7 files changed, 20 insertions(+), 11 deletions(-)
+
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index e9cff0b1..af25196b 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -311,7 +311,7 @@ int sbi_domain_root_add_memrange(unsigned long addr, unsigned long size,
+ int sbi_domain_startup(struct sbi_scratch *scratch, u32 cold_hartid);
+ 
+ /** Finalize domain tables */
+-int sbi_domain_finalize(struct sbi_scratch *scratch);
++int sbi_domain_finalize(struct sbi_scratch *scratch, bool cold_boot);
+ 
+ /** Initialize domains */
+ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid);
+diff --git a/include/sbi/sbi_double_trap.h b/include/sbi/sbi_double_trap.h
+index c3d64dfd..1c9f6472 100644
+--- a/include/sbi/sbi_double_trap.h
++++ b/include/sbi/sbi_double_trap.h
+@@ -15,6 +15,6 @@
+ 
+ int sbi_double_trap_handler(struct sbi_trap_context *tcntx);
+ 
+-void sbi_double_trap_init(struct sbi_scratch *scratch);
++void sbi_double_trap_init(struct sbi_scratch *scratch, bool cold_boot);
+ 
+ #endif
+diff --git a/include/sbi/sbi_mpxy.h b/include/sbi/sbi_mpxy.h
+index 9da2791e..9145816c 100644
+--- a/include/sbi/sbi_mpxy.h
++++ b/include/sbi/sbi_mpxy.h
+@@ -148,7 +148,7 @@ struct sbi_mpxy_channel {
+ int sbi_mpxy_register_channel(struct sbi_mpxy_channel *channel);
+ 
+ /** Initialize Message proxy subsystem */
+-int sbi_mpxy_init(struct sbi_scratch *scratch);
++int sbi_mpxy_init(struct sbi_scratch *scratch, bool cold_boot);
+ 
+ /** Check if some Message proxy channel is available */
+ bool sbi_mpxy_channel_available(void);
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 461c7e53..c4d16f1b 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -742,15 +742,20 @@ int sbi_domain_startup(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	return 0;
+ }
+ 
+-int sbi_domain_finalize(struct sbi_scratch *scratch)
++int sbi_domain_finalize(struct sbi_scratch *scratch, bool cold_boot)
+ {
+ 	int rc;
+-	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++	const struct sbi_platform *plat;
++
++	if (!cold_boot)
++		return 0;
+ 
+ 	/* Sanity checks */
+ 	if (domain_finalized)
+ 		return SBI_EINVAL;
+ 
++	plat = sbi_platform_ptr(scratch);
++
+ 	/* Initialize and populate domains for the platform */
+ 	rc = sbi_platform_domains_init(plat);
+ 	if (rc) {
+diff --git a/lib/sbi/sbi_double_trap.c b/lib/sbi/sbi_double_trap.c
+index d0ddb493..0e3951b8 100644
+--- a/lib/sbi/sbi_double_trap.c
++++ b/lib/sbi/sbi_double_trap.c
+@@ -30,8 +30,10 @@ int sbi_double_trap_handler(struct sbi_trap_context *tcntx)
+ 	return sbi_sse_inject_event(SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP);
+ }
+ 
+-void sbi_double_trap_init(struct sbi_scratch *scratch)
++void sbi_double_trap_init(struct sbi_scratch *scratch, bool cold_boot)
+ {
++	if (!cold_boot)
++		return;
+ 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSDBLTRP))
+ 		sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP, NULL);
+-}
+\ No newline at end of file
++}
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 62c32682..a227cb53 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -280,7 +280,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 
+ 	sbi_boot_print_banner(scratch);
+ 
+-	sbi_double_trap_init(scratch);
++	sbi_double_trap_init(scratch, true);
+ 
+ 	rc = sbi_irqchip_init(scratch, true);
+ 	if (rc) {
+@@ -313,7 +313,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 		sbi_hart_hang();
+ 	}
+ 
+-	rc = sbi_mpxy_init(scratch);
++	rc = sbi_mpxy_init(scratch, true);
+ 	if (rc) {
+ 		sbi_printf("%s: mpxy init failed (error %d)\n", __func__, rc);
+ 		sbi_hart_hang();
+@@ -324,7 +324,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	 * Note: Finalize domains before HART PMP configuration so
+ 	 * that we use correct domain for configuring PMP.
+ 	 */
+-	rc = sbi_domain_finalize(scratch);
++	rc = sbi_domain_finalize(scratch, true);
+ 	if (rc) {
+ 		sbi_printf("%s: domain finalize failed (error %d)\n",
+ 			   __func__, rc);
+diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
+index 681cfbe9..761d81e0 100644
+--- a/lib/sbi/sbi_mpxy.c
++++ b/lib/sbi/sbi_mpxy.c
+@@ -306,9 +306,11 @@ static struct mpxy_state *sbi_domain_get_mpxy_state(struct sbi_domain *dom,
+ 	return dom_hartindex_to_mpxy_state_table[hartindex];
+ }
+ 
+-int sbi_mpxy_init(struct sbi_scratch *scratch)
++int sbi_mpxy_init(struct sbi_scratch *scratch, bool cold_boot)
+ {
+ 	int ret;
++	if (!cold_boot)
++		return 0;
+ 
+ 	/**
+ 	 * Allocate per-domain and per-hart MPXY state data.
+-- 
+2.47.2
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
