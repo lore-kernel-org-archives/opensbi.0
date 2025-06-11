@@ -4,74 +4,74 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B05C1C71133
-	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:26:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1DB33C7113D
+	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=YUuHWIl75ZNk0v+45KjUnyHd7RMBiLlXibFI5/2taqk=; b=nWiKDdv3+IuUXf
-	fMqezHxrhOzhqQ1dzrLBOqsoHcPJcC4xVhz9KEIsCKx/VCQthgfM6N3AsLhdV6ZlsNXI7zWpnPKZo
-	Kox7cLEFtKh9xeH0xc87DHzkQp3NV46F6q2DY8RfuUr/qy+/dKongeIUFt/sjmpCn0SdMZB/O7FpF
-	YwM7mFnm2e8hVQXAUI5mN56b9pd51tw0EPRbphqmPQ4MXvj2zdxMmO/9QczX5GK6nvAjIiO/SlJh6
-	ewIMoRFkbzxH8FBqGsRTd6HFf8Dfbjq1N/uc4i3/ZJiPDZ4Jv65rEqu+AHiDMhsC3QyFq/3Z3KrBR
-	l1q52LoQ2n3gIVTX/Qrw==;
+	List-Owner; bh=pt38jbIt4A2nxX9Hq6WuN+Iwy7Dgw9Rp3Q3DZMfKlOM=; b=SJ88Up4YhG863D
+	W93fsK4Hu40+XFSQxK80sz0Ykasin1VDBmS8weqiAB73n+bqSNM017aTyWsp15Yin/EMqwHVx55lm
+	9QqacpN5KeVkEsjH4CN7ISTSjfRC7vuDe/NpB14Ks0Iml1MQzvGHP6PIANDtIYSNNX3Ux/+f/OuTr
+	i86noeVm2ogm864GMqhSG44yBfzhvx3XGDUQ0ZGga/NzTBiW0OFZy8OqoXVxhqvOrqQbuS1lgZarN
+	RDol13pFnUrLKDHnzHYrnrL6d4nx042Qdv/wzUMIYqXVEJy1FtWFJeLrE9q3hsVapNPRrNaC2vs+G
+	isSyQ1JOtoI5E8dU+46Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPNL5-0000000ANlc-42ch;
+	id 1uPNL5-0000000ANlE-28Rl;
 	Wed, 11 Jun 2025 15:26:07 +0000
 Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPKKE-00000009p1L-1luo
+	id 1uPKKD-00000009p0u-0Rwa
 	for opensbi@bombadil.infradead.org;
-	Wed, 11 Jun 2025 12:13:02 +0000
+	Wed, 11 Jun 2025 12:13:01 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
 	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=slTeuN2hWZWuRQVhC1EC7U0KOgVH/XLIAdE810AoPEU=; b=Zr1qBwJ1MxO74LOcpLQx8LXvsS
-	tnReWVIk/lk2Qy2l2CDqsC/JW0F7+NxLmL8TljU021lw1JljQq6+nh4Mj6oRvBiVtbT9gHmHQ8ico
-	WePDxcnPfltFpTCHZ5T0B3Rgo7flRQ1lYaZCy23Du35pMxzizk3vpVq6IjrPsLLDUVjvNpjRHeGDH
-	YoiGJfUHZGncsTrWkmjbdQGZLmsvj4qE/FInnMCwsgjQuqCKWGwj4m8Oey9mhG+t/63G3KppZpueM
-	geKOnym09vFypZjo9daYa3JRVE+l4RAWZkwsY1EfSpRB6kul0mrUByzDDPWX5/lY+mPQItoExG3zm
-	JzJxy3OA==;
+	bh=dWa81jDHFtIhrTH7PJUwqAx3cUZokMyGYYqtcva2fxc=; b=UOmWGeQbNDoIcJ66W1q8qGuj3Q
+	aCRyMGvlWVNVJC1F8INVj7KBWEn+NKs9D8PghtnubgQotP2ZfiFlZ4vf1vb4fRBpzEZXCuxG9fUkC
+	YIsgme7vOIs4w1rOTjCIywjvnccoliUOHDehNwN7YQD2/4yDewD2VIA8ZFjXQNbM13tFxayqTzynf
+	5wCRyUJhGay1FUN1j1QdHtGroIWFfR4aFQ0/dwF+k2JDAbHB/w4JDgxSF11hDun/vJd5qOxBhbgzl
+	AYATX00hVY2Dy1UrSLBF/k/uFtZ6phHPpBF3tO0fU+2yRo6ScA72FQ7yJRJ2sAxxJbi2zWlnurJIo
+	F/yJh2pA==;
 Received: from m16.mail.126.com ([117.135.210.6])
 	by desiato.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPKKA-00000002NeX-22lx
+	id 1uPKKA-00000002NeU-2D0g
 	for opensbi@lists.infradead.org;
-	Wed, 11 Jun 2025 12:13:02 +0000
+	Wed, 11 Jun 2025 12:13:00 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=sl
-	TeuN2hWZWuRQVhC1EC7U0KOgVH/XLIAdE810AoPEU=; b=hssceDvTFaLz+gXqjK
-	0XctEDNsKqtISmRUWQz9SawQySQ8DElF/nGn7zXiEnO0eUV4syky2VVtsItmG+bs
-	ZTIrwaOJnTNzSiN7SD8Myek5jnWZAryfJJXf0q9RNl/3gtNB7VRI8xNNDliLEUhk
-	hf6XdRb7eZC8qOweDHPOkO9P8=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=dW
+	a81jDHFtIhrTH7PJUwqAx3cUZokMyGYYqtcva2fxc=; b=O41ESFwMPiZt+pzayZ
+	rpnXZlqTW5htaUNoG92JVX9uNCq8HNL1Zf/AlzntxN7MneDaOmrQ7oxH3bafIg+t
+	iSky2wzGCtFBTrKH7aQ9Z82D9cRRlb7NA1mMH1UhNMSkK2YWawaozbWrEs88MyIO
+	E0I23/gR7Vq82A4syCuP7T1Mw=
 Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wDHn7e3ckloWd4vAA--.63780S5;
-	Wed, 11 Jun 2025 20:12:41 +0800 (CST)
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wDHn7e3ckloWd4vAA--.63780S6;
+	Wed, 11 Jun 2025 20:12:42 +0800 (CST)
 From: Xiang W <wxjstz@126.com>
 To: opensbi@lists.infradead.org
 Cc: Xiang W <wxjstz@126.com>,
 	anup@brainfault.org
-Subject: [PATCH 03/12] lib: sbi: Implement synchronisation and wait between multiple HARTs
-Date: Wed, 11 Jun 2025 20:12:20 +0800
-Message-ID: <20250611121236.937455-4-wxjstz@126.com>
+Subject: [PATCH 04/12] lib: sbi: Remove wait_for_coldboot and wake_coldboot_harts
+Date: Wed, 11 Jun 2025 20:12:21 +0800
+Message-ID: <20250611121236.937455-5-wxjstz@126.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250611121236.937455-1-wxjstz@126.com>
 References: <20250611121236.937455-1-wxjstz@126.com>
 MIME-Version: 1.0
-X-CM-TRANSID: _____wDHn7e3ckloWd4vAA--.63780S5
-X-Coremail-Antispam: 1Uf129KBjvJXoWxXF4fGr4rAw43KrWxKw4fAFb_yoW5ur4kpF
-	4jkF95Jr4vg3Wxt3srC3y5Jr4fGFW0kasrJry7Xr1fZrs2yFs0qayj9w1rtF98KrZ7XFy0
-	vrWY9Fy3CF15ZrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zR9SdgUUUUU=
+X-CM-TRANSID: _____wDHn7e3ckloWd4vAA--.63780S6
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJF18trWkZFW3XFyxKw18AFb_yoW8tF43pF
+	W5KFy2yFsYvFW0q3srJ3yUWr13C3y8tr17Gry7t34rJF4UAFn8XF17Gw1Fv3s8GrWxA3Z7
+	ZrWqvFyxGa18Xr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pEwZ2xUUUUU=
 X-Originating-IP: [153.35.240.84]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi1wdpOmhJZ0iZCwAAsf
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5A1pOmhJaY15wQAAsH
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250611_131259_085810_DD25DCEA 
-X-CRM114-Status: UNSURE (   6.54  )
+X-CRM114-CacheID: sfid-20250611_131259_056758_1DCDE801 
+X-CRM114-Status: UNSURE (   8.43  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -89,116 +89,69 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Implemented sbi_sync_and_wait_all_harts to synchronize and wait for
-all HARTs to complete their tasks before proceeding.
-
-Introduced sbi_wait_for_boot_hart_first and
-sbi_signal_boot_hart_first_done to ensure that the coldboot HART
-completes its initialization before other HARTs start executing.
-
-Added sbi_wait_for_non_boot_harts and sbi_signal_non_boot_harts_done
-to coordinate the execution of non-coldboot HARTs, ensuring they finish
-their tasks before the coldboot HART continues.
+Remove wait_for_coldboot and wake_coldboot_harts and use more
+general methods instead.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- include/sbi/sbi_hart.h |  6 ++++
- lib/sbi/sbi_hart.c     | 62 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
+ lib/sbi/sbi_init.c | 22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index dfbe8e4c..b7664dfa 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -12,6 +12,7 @@
- 
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_bitops.h>
-+#include <sbi/riscv_atomic.h>
- 
- /** Possible privileged specification versions of a hart */
- enum sbi_hart_priv_versions {
-@@ -167,5 +168,10 @@ void __attribute__((noreturn))
- sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
- 		     unsigned long next_addr, unsigned long next_mode,
- 		     bool next_virt);
-+void sbi_wait_for_boot_hart_first(bool cold_boot, atomic_t *a);
-+void sbi_signal_boot_hart_first_done(bool cold_boot, atomic_t *a);
-+void sbi_wait_for_non_boot_harts(bool cold_boot, atomic_t *a);
-+void sbi_signal_non_boot_harts_done(bool cold_boot, atomic_t *a);
-+void sbi_sync_and_wait_all_harts(atomic_t *a);
- 
- #endif
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 74ccdd84..04f04721 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -1135,3 +1135,65 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
- 	__asm__ __volatile__("mret" : : "r"(a0), "r"(a1));
- 	__builtin_unreachable();
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index a8983f4d..8405fcf3 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -197,21 +197,6 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+ 	sbi_hart_delegation_dump(scratch, "Boot HART ", "           ");
  }
-+
-+void sbi_wait_for_boot_hart_first(bool cold_boot, atomic_t *a)
-+{
-+	if (cold_boot)
-+		return;
-+	while (!atomic_read(a))
-+		cpu_relax();
-+}
-+
-+void sbi_signal_boot_hart_first_done(bool cold_boot, atomic_t *a)
-+{
-+	if (!cold_boot)
-+		return;
-+	atomic_write(a, 1);
-+}
-+
-+void sbi_wait_for_non_boot_harts(bool cold_boot, atomic_t *a)
-+{
-+	long val;
-+	u32 hart_count;
-+	if (!cold_boot)
-+		return;
-+
-+	hart_count = sbi_platform_hart_count(sbi_platform_thishart_ptr());
-+	do {
-+		val = atomic_read(a);
-+		if (val >= hart_count)
-+			return;
-+	} while(atomic_cmpxchg(a, val, val + 1) != val);
-+
-+	while (atomic_read(a) < hart_count)
-+		cpu_relax();
-+}
-+
-+void sbi_signal_non_boot_harts_done(bool cold_boot, atomic_t *a)
-+{
-+	long val;
-+	u32 hart_count;
-+	if (cold_boot)
-+		return;
-+
-+	hart_count = sbi_platform_hart_count(sbi_platform_thishart_ptr());
-+	do {
-+		val = atomic_read(a);
-+		if (val >= hart_count)
-+			return;
-+	} while (atomic_cmpxchg(a, val, val + 1) != val);
-+}
-+
-+void sbi_sync_and_wait_all_harts(atomic_t *a)
-+{
-+	long val;
-+	u32 hart_count = sbi_platform_hart_count(sbi_platform_thishart_ptr());
-+	do {
-+		val = atomic_read(a);
-+		if (val >= hart_count)
-+			return;
-+	} while (atomic_cmpxchg(a, val, val + 1) != val);
-+
-+	while (atomic_read(a) < hart_count)
-+		cpu_relax();
-+}
+ 
+-static unsigned long coldboot_done;
+-
+-static void wait_for_coldboot(struct sbi_scratch *scratch)
+-{
+-	/* Wait for coldboot to finish */
+-	while (!__smp_load_acquire(&coldboot_done))
+-		cpu_relax();
+-}
+-
+-static void wake_coldboot_harts(struct sbi_scratch *scratch)
+-{
+-	/* Mark coldboot done */
+-	__smp_store_release(&coldboot_done, 1);
+-}
+-
+ static void __noreturn init_warm_resume(struct sbi_scratch *scratch, u32 hartid)
+ {
+ 	int rc;
+@@ -238,7 +223,9 @@ static void __noreturn init_startup(struct sbi_scratch *scratch, u32 hartid, boo
+ 	int hstate;
+ 	unsigned long *count;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
+ 
++	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
+ 	if (cold_boot) {
+ 		/* Note: This has to be first thing in coldboot init sequence */
+ 		rc = sbi_scratch_init(scratch);
+@@ -258,8 +245,6 @@ static void __noreturn init_startup(struct sbi_scratch *scratch, u32 hartid, boo
+ 		entry_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
+ 		init_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
+ 	} else {
+-		wait_for_coldboot(scratch);
+-
+ 		hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
+ 		if (hstate < 0)
+ 			sbi_hart_hang();
+@@ -284,8 +269,7 @@ static void __noreturn init_startup(struct sbi_scratch *scratch, u32 hartid, boo
+ 	 * have these HARTs busy spin in wait_for_coldboot() until coldboot
+ 	 * path is completed.
+ 	 */
+-	if (cold_boot)
+-		wake_coldboot_harts(scratch);
++	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
+ 
+ 	rc = sbi_platform_early_init(plat, cold_boot);
+ 	if (rc)
 -- 
 2.47.2
 
