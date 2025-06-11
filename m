@@ -4,74 +4,59 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 41F0DC71141
-	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:26:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id BED09C677C4
+	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:26:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=goxNbpWpSRB5wvmlq2bSR6u9ymZo4+5nKruOoeMHHxs=; b=BsZp13tFQBZLNV
-	4jvsgOvEY5I2l0zR73Po/xA12DeU8bjAsbxLYTHCZW3sofDSsuz47n0bOaVvUwgSrbavd50PDbFEd
-	edl4NEvetUVB5wiiXp1g/ybrBhOjo3D2o2ejuFFNORBUsxCSBG8X94c6z8SXoDXTLZeYBPP0a4LpB
-	rc9mb+LVYNn5ybYIGMDT/JE8Y1FwZsO0Cgu/pogt8xJveVO2vKhFP3qz91x2+CQ9EQDXIqmp49omv
-	rPwcaHSiyNN6xV264erhL3fUbtobsyQIVL1EF/jLMPQ50I0Af2NudRrB9RGTyzVY0EQUqC1WownPP
-	FGzrHLgwdnzwaSRxFoiA==;
+	List-Owner; bh=2+HtKi1tz30dvMML/BVaoJVbEw6lLSondDGlafyTLvI=; b=uRRvdMME/by5iP
+	ZqSVq8AH/mykvS7EMIWHR7NBJb40CfAhfZZV09399edY2XwhBNbxnWCSdKR56qXZx8b18vdfK6uST
+	DCt2A1OeEvFgrfFSMWRuPoPhw7Z2a+VHCDUV5Dc18MZSjn73RuOHCtkMWeHAwy2T5CCveC2Dev6WS
+	ICbC8k+KD/6c10SSN8vOZ6l0hb6fcQtZR/owGJcCKgCyIOHXhGF+Wcw0Ialzvbtb4/4NbDeXxwBmn
+	DphQwA5+KP+HcK89FzzMVuO5QKNs50oKeCd3X2sBXun5xOhTLQY2aXJFNsY0/k/wKcW8ylPH6Zi28
+	84J2qF5Uivte/F2YBYNw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPNL7-0000000ANmk-1NUv;
-	Wed, 11 Jun 2025 15:26:09 +0000
-Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPKKG-00000009p1m-2Ud1
-	for opensbi@bombadil.infradead.org;
-	Wed, 11 Jun 2025 12:13:04 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
-	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=3qQzkNBDjQjS2uyA2HkSpMsYcWXFPmbNrdO8S/0iLYk=; b=geNurkgmRnnedTOUx/8dXqx8ls
-	E8P2RxPnOSrK6bm0ZmNjkl8maZ1VoEr2OVuSvRhL+3tvd1pFlw8fOoJF/0+XEtwkHeqw8Eh8AUz6d
-	HN4v1rChDCdX3RRrruGIq0rYO/E6Z6UI3EX/Poh0kyq7DCX5lxxMS1ElANg2MYc7r3wed2FamA0f9
-	PC8JEBL1eY23Q7WAfbwNTJi+7THTqLGNIYjgORtlXTtgkBFAUnjwCIXxioMHlkY3e2IUxZ63VfpP4
-	s6bNwWjWK7QWrmoQwvoH7C7lYCRrjmsWr4QIj8j1GaEYi8rJR0GDyHkBP1AaUvLNtbtZvCSVDARLD
-	osXtUgBw==;
+	id 1uPNLA-0000000ANrH-3byk;
+	Wed, 11 Jun 2025 15:26:12 +0000
 Received: from m16.mail.126.com ([117.135.210.6])
-	by desiato.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPKKE-00000002NeZ-1bl3
+	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uPKN9-00000009pL9-2BFi
 	for opensbi@lists.infradead.org;
-	Wed, 11 Jun 2025 12:13:04 +0000
+	Wed, 11 Jun 2025 12:16:04 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=3q
-	QzkNBDjQjS2uyA2HkSpMsYcWXFPmbNrdO8S/0iLYk=; b=YQd71dLlC9MZJpR8Q8
-	HOE8+DEFhnHRfUORu+xgq9Nf6I/QGfjC1na8TiCs4EC812SiNUBgbPTYkJmh9X5E
-	JgrFNBk/OrBQBINhUC9s3R3ECqcchOveg5Y3mjG1KYeQzSKCv+KWEatWYe0SuZRC
-	xpcPTZT3JJoXIwGN8MEx6fpGg=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=SU
+	actXgMv5hWnBCAPNZdTJfRmM0tTCOfJvpZvL+Vc+w=; b=kyqnf8Ir0MXFnWQFqy
+	alVbKawPcGO0cbgv9ARbWV0kA/Y/vZkgIBWVu6MsVXLNShlb/X1gZfWBb5Ht5SDg
+	389g6rxpqeR9EAI2nJqHy3yhBbWDS0DHropf9DyEX6AFRywc4YtyUUx+1yGjk2rw
+	K3mZGXOdyKG0IYe/nCukEGxQ4=
 Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wDHn7e3ckloWd4vAA--.63780S4;
-	Wed, 11 Jun 2025 20:12:41 +0800 (CST)
+	by gzga-smtp-mtada-g1-0 (Coremail) with SMTP id _____wDnj7B7c0lozRcuAA--.48444S2;
+	Wed, 11 Jun 2025 20:15:56 +0800 (CST)
 From: Xiang W <wxjstz@126.com>
 To: opensbi@lists.infradead.org
 Cc: Xiang W <wxjstz@126.com>,
 	anup@brainfault.org
-Subject: [PATCH 02/12] lib: sbi: Optimise the boot sequence
-Date: Wed, 11 Jun 2025 20:12:19 +0800
-Message-ID: <20250611121236.937455-3-wxjstz@126.com>
+Subject: [PATCH 11/12] lib: sbi: Fix dtbr initialization
+Date: Wed, 11 Jun 2025 20:15:24 +0800
+Message-ID: <20250611121551.937889-1-wxjstz@126.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250611121236.937455-1-wxjstz@126.com>
 References: <20250611121236.937455-1-wxjstz@126.com>
 MIME-Version: 1.0
-X-CM-TRANSID: _____wDHn7e3ckloWd4vAA--.63780S4
-X-Coremail-Antispam: 1Uf129KBjvJXoWfXr17GF4xJryruFWrWrykKrg_yoWDKrykpF
-	y5KF9FyrWvv3ykK3srGa1Uur1fGFWkKwn7Gry7Ary8ZayDAF15Gr12kw1avayDKrWFya43
-	ArZIvFy8GF1UZaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0ziySoJUUUUU=
+X-CM-TRANSID: _____wDnj7B7c0lozRcuAA--.48444S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxZw43Ww1ktF45Xr45trWDArb_yoW5Ww4kpr
+	ZagasxKrs2qryvyrZrta18Xw1fWw1xJw47J39FkFySyF1DZr1rGr13Ka4Yqwn3CrWFyay2
+	9w4vyrZ8Ca17ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pRqsjbUUUUU=
 X-Originating-IP: [153.35.240.84]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5AZpOmhJaY15twAAs6
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5A5pOmhJaY2DkAAAsv
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250611_131302_950380_B3E6B7AC 
-X-CRM114-Status: GOOD (  14.76  )
+X-CRM114-CacheID: sfid-20250611_051603_893467_7D8D7B5B 
+X-CRM114-Status: GOOD (  13.69  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -88,409 +73,97 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Originally init_coldboot/init_warm_startup were very similar, and
-adding new code needed to be consistent in order. Now merge
-init_coldboot/init_warm_startup and rename to init_startup.
+Previously, dbtr initialization and extension registration were
+performed only on the coldboot HART, resulting in extension
+registration only depending on whether the coldboot HART supports
+dbtr. Now that the boot sequence has been corrected, dtbr extensions
+can be registered even if some cores support dtbr.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_init.c | 275 ++++++++++++++++-----------------------------
- 1 file changed, 96 insertions(+), 179 deletions(-)
+ lib/sbi/sbi_dbtr.c       | 29 ++++++++++++++++++++++++-----
+ lib/sbi/sbi_ecall_dbtr.c |  2 +-
+ 2 files changed, 25 insertions(+), 6 deletions(-)
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index a227cb53..a8983f4d 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -212,42 +212,69 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch)
- 	__smp_store_release(&coldboot_done, 1);
- }
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index bdfbcde9..de459880 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -23,6 +23,8 @@
+ /** Offset of pointer to HART's debug triggers info in scratch space */
+ static unsigned long hart_state_ptr_offset;
  
-+static void __noreturn init_warm_resume(struct sbi_scratch *scratch, u32 hartid)
-+{
-+	int rc;
++static bool has_dtbr_triggers;
 +
-+	sbi_hsm_hart_resume_start(scratch);
+ #define dbtr_get_hart_state_ptr(__scratch)				\
+ 	sbi_scratch_read_type((__scratch), void *, hart_state_ptr_offset)
+ 
+@@ -138,12 +140,10 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+ 	struct sbi_trap_info trap = {0};
+ 	unsigned long tdata1;
+ 	unsigned long val;
+-	int i;
++	int i, ret = SBI_SUCCESS;
+ 	struct sbi_dbtr_hart_triggers_state *hart_state = NULL;
+ 	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
+-
+-	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
+-		return SBI_SUCCESS;
++	static atomic_t sync_b = ATOMIC_INITIALIZER(0);
+ 
+ 	sbi_wait_for_boot_hart_first(coldboot, &sync_a);
+ 	if (coldboot) {
+@@ -153,6 +153,9 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+ 	}
+ 	sbi_signal_boot_hart_first_done(coldboot, &sync_a);
+ 
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
++		goto _exit;
 +
-+	rc = sbi_hart_reinit(scratch);
-+	if (rc)
-+		sbi_hart_hang();
+ 	hart_state = dbtr_get_hart_state_ptr(scratch);
+ 	if (!hart_state) {
+ 		hart_state = sbi_zalloc(sizeof(*hart_state));
+@@ -215,10 +218,26 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
+ 
+ 	hart_state->probed = 1;
+ 
++	if (hart_state->total_trigs > 0)
++		has_dtbr_triggers = true;
 +
-+	rc = sbi_hart_pmp_configure(scratch);
-+	if (rc)
-+		sbi_hart_hang();
+  _probed:
+ 	hart_state->available_trigs = hart_state->total_trigs;
++_exit:
+ 
+-	return SBI_SUCCESS;
++	/*
++	 * Wait for all HARTs to complete sbi_dbtr_init to
++	 * ensure that the following code can determine whether
++	 * dtbr is supported
++	 */
++	sbi_sync_and_wait_all_harts(&sync_b);
 +
-+	sbi_hsm_hart_resume_finish(scratch, hartid);
++	return ret;
 +}
 +
- static unsigned long entry_count_offset;
- static unsigned long init_count_offset;
++int sbi_dbtr_supported(void)
++{
++	return has_dtbr_triggers;
+ }
  
--static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-+static void __noreturn init_startup(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
+ int sbi_dbtr_get_total_triggers(void)
+diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
+index 9c496c42..f5639141 100644
+--- a/lib/sbi/sbi_ecall_dbtr.c
++++ b/lib/sbi/sbi_ecall_dbtr.c
+@@ -59,7 +59,7 @@ struct sbi_ecall_extension ecall_dbtr;
+ 
+ static int sbi_ecall_dbtr_register_extensions(void)
  {
- 	int rc;
-+	int hstate;
- 	unsigned long *count;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+-	if (sbi_dbtr_get_total_triggers() == 0)
++	if (!sbi_dbtr_supported())
+ 		return 0;
  
--	/* Note: This has to be first thing in coldboot init sequence */
--	rc = sbi_scratch_init(scratch);
--	if (rc)
--		sbi_hart_hang();
-+	if (cold_boot) {
-+		/* Note: This has to be first thing in coldboot init sequence */
-+		rc = sbi_scratch_init(scratch);
-+		if (rc)
-+			sbi_hart_hang();
- 
--	/* Note: This has to be second thing in coldboot init sequence */
--	rc = sbi_heap_init(scratch);
--	if (rc)
--		sbi_hart_hang();
-+		/* Note: This has to be second thing in coldboot init sequence */
-+		rc = sbi_heap_init(scratch);
-+		if (rc)
-+			sbi_hart_hang();
- 
--	/* Note: This has to be the third thing in coldboot init sequence */
--	rc = sbi_domain_init(scratch, hartid);
--	if (rc)
--		sbi_hart_hang();
-+		/* Note: This has to be the third thing in coldboot init sequence */
-+		rc = sbi_domain_init(scratch, hartid);
-+		if (rc)
-+			sbi_hart_hang();
- 
--	entry_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
--	if (!entry_count_offset)
--		sbi_hart_hang();
-+		entry_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
-+		init_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
-+	} else {
-+		wait_for_coldboot(scratch);
- 
--	init_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__);
--	if (!init_count_offset)
-+		hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
-+		if (hstate < 0)
-+			sbi_hart_hang();
-+		if (hstate == SBI_HSM_STATE_SUSPENDED)
-+			init_warm_resume(scratch, hartid);
-+		sbi_ipi_raw_clear();
-+	}
-+
-+	if (!entry_count_offset || !init_count_offset)
- 		sbi_hart_hang();
- 
- 	count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
- 	(*count)++;
- 
--	rc = sbi_hsm_init(scratch, true);
-+	rc = sbi_hsm_init(scratch, cold_boot);
- 	if (rc)
- 		sbi_hart_hang();
- 
-@@ -257,63 +284,65 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	 * have these HARTs busy spin in wait_for_coldboot() until coldboot
- 	 * path is completed.
- 	 */
--	wake_coldboot_harts(scratch);
-+	if (cold_boot)
-+		wake_coldboot_harts(scratch);
- 
--	rc = sbi_platform_early_init(plat, true);
-+	rc = sbi_platform_early_init(plat, cold_boot);
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_hart_init(scratch, true);
-+	rc = sbi_hart_init(scratch, cold_boot);
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_pmu_init(scratch, true);
-+	rc = sbi_pmu_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: pmu init failed (error %d)\n",
- 			   __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	rc = sbi_dbtr_init(scratch, true);
-+	rc = sbi_dbtr_init(scratch, cold_boot);
- 	if (rc)
- 		sbi_hart_hang();
- 
--	sbi_boot_print_banner(scratch);
-+	if (cold_boot)
-+		sbi_boot_print_banner(scratch);
- 
--	sbi_double_trap_init(scratch, true);
-+	sbi_double_trap_init(scratch, cold_boot);
- 
--	rc = sbi_irqchip_init(scratch, true);
-+	rc = sbi_irqchip_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: irqchip init failed (error %d)\n",
- 			   __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	rc = sbi_ipi_init(scratch, true);
-+	rc = sbi_ipi_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: ipi init failed (error %d)\n", __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	rc = sbi_tlb_init(scratch, true);
-+	rc = sbi_tlb_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: tlb init failed (error %d)\n", __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	rc = sbi_timer_init(scratch, true);
-+	rc = sbi_timer_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: timer init failed (error %d)\n", __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	rc = sbi_fwft_init(scratch, true);
-+	rc = sbi_fwft_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: fwft init failed (error %d)\n", __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	rc = sbi_mpxy_init(scratch, true);
-+	rc = sbi_mpxy_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: mpxy init failed (error %d)\n", __func__, rc);
- 		sbi_hart_hang();
-@@ -324,7 +353,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	 * Note: Finalize domains before HART PMP configuration so
- 	 * that we use correct domain for configuring PMP.
- 	 */
--	rc = sbi_domain_finalize(scratch, true);
-+	rc = sbi_domain_finalize(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: domain finalize failed (error %d)\n",
- 			   __func__, rc);
-@@ -336,7 +365,7 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	 * domains so that it sees correct domain assignment and PMP
- 	 * configuration for FDT fixups.
- 	 */
--	rc = sbi_platform_final_init(plat, true);
-+	rc = sbi_platform_final_init(plat, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: platform final init failed (error %d)\n",
- 			   __func__, rc);
-@@ -347,40 +376,42 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	 * Note: SSE events callbacks can be registered by other drivers so
- 	 * sbi_sse_init() needs to be called after all drivers have been probed.
- 	 */
--	rc = sbi_sse_init(scratch, true);
-+	rc = sbi_sse_init(scratch, cold_boot);
- 	if (rc) {
- 		sbi_printf("%s: sse init failed (error %d)\n", __func__, rc);
- 		sbi_hart_hang();
- 	}
- 
--	/*
--	 * Note: Ecall initialization should be after platform final
--	 * initialization so that all available platform devices are
--	 * already registered.
--	 */
--	rc = sbi_ecall_init();
--	if (rc) {
--		sbi_printf("%s: ecall init failed (error %d)\n", __func__, rc);
--		sbi_hart_hang();
--	}
--
--	sbi_boot_print_general(scratch);
--
--	sbi_boot_print_domains(scratch);
--
--	sbi_boot_print_hart(scratch, hartid);
--
--	run_all_tests();
--
--	/*
--	 * Note: Startup domains after all initialization are done
--	 * otherwise boot HART of non-root domain can crash.
--	 */
--	rc = sbi_domain_startup(scratch, hartid);
--	if (rc) {
--		sbi_printf("%s: domain startup failed (error %d)\n",
--			   __func__, rc);
--		sbi_hart_hang();
-+	if (cold_boot) {
-+		/*
-+		* Note: Ecall initialization should be after platform final
-+		* initialization so that all available platform devices are
-+		* already registered.
-+		*/
-+		rc = sbi_ecall_init();
-+		if (rc) {
-+			sbi_printf("%s: ecall init failed (error %d)\n", __func__, rc);
-+			sbi_hart_hang();
-+		}
-+
-+		sbi_boot_print_general(scratch);
-+
-+		sbi_boot_print_domains(scratch);
-+
-+		sbi_boot_print_hart(scratch, hartid);
-+
-+		run_all_tests();
-+
-+		/*
-+		* Note: Startup domains after all initialization are done
-+		* otherwise boot HART of non-root domain can crash.
-+		*/
-+		rc = sbi_domain_startup(scratch, hartid);
-+		if (rc) {
-+			sbi_printf("%s: domain startup failed (error %d)\n",
-+				__func__, rc);
-+			sbi_hart_hang();
-+		}
- 	}
- 
- 	/*
-@@ -400,118 +431,6 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_hsm_hart_start_finish(scratch, hartid);
- }
- 
--static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
--					 u32 hartid)
--{
--	int rc;
--	unsigned long *count;
--	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
--
--	if (!entry_count_offset || !init_count_offset)
--		sbi_hart_hang();
--
--	count = sbi_scratch_offset_ptr(scratch, entry_count_offset);
--	(*count)++;
--
--	/* Note: This has to be first thing in warmboot init sequence */
--	rc = sbi_hsm_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_platform_early_init(plat, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_hart_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_pmu_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_dbtr_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_irqchip_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_ipi_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_tlb_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_timer_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_fwft_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_platform_final_init(plat, false);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_sse_init(scratch, false);
--	if (rc)
--		sbi_hart_hang();
--
--	/*
--	 * Configure PMP at last because if SMEPMP is detected,
--	 * M-mode access to the S/U space will be rescinded.
--	 */
--	rc = sbi_hart_pmp_configure(scratch);
--	if (rc)
--		sbi_hart_hang();
--
--	count = sbi_scratch_offset_ptr(scratch, init_count_offset);
--	(*count)++;
--
--	sbi_hsm_hart_start_finish(scratch, hartid);
--}
--
--static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
--					u32 hartid)
--{
--	int rc;
--
--	sbi_hsm_hart_resume_start(scratch);
--
--	rc = sbi_hart_reinit(scratch);
--	if (rc)
--		sbi_hart_hang();
--
--	rc = sbi_hart_pmp_configure(scratch);
--	if (rc)
--		sbi_hart_hang();
--
--	sbi_hsm_hart_resume_finish(scratch, hartid);
--}
--
--static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
--{
--	int hstate;
--
--	wait_for_coldboot(scratch);
--
--	hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
--	if (hstate < 0)
--		sbi_hart_hang();
--
--	if (hstate == SBI_HSM_STATE_SUSPENDED) {
--		init_warm_resume(scratch, hartid);
--	} else {
--		sbi_ipi_raw_clear();
--		init_warm_startup(scratch, hartid);
--	}
--}
--
- static atomic_t coldboot_lottery = ATOMIC_INITIALIZER(0);
- 
- /**
-@@ -573,10 +492,8 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
- 	if (sbi_platform_nascent_init(plat))
- 		sbi_hart_hang();
- 
--	if (coldboot)
--		init_coldboot(scratch, hartid);
--	else
--		init_warmboot(scratch, hartid);
-+
-+	init_startup(scratch, hartid, coldboot);
- }
- 
- unsigned long sbi_entry_count(u32 hartindex)
+ 	return sbi_ecall_register_extension(&ecall_dbtr);
 -- 
 2.47.2
 
