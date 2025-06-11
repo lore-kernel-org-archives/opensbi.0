@@ -4,59 +4,60 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id BED09C677C4
-	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:26:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9C176C71133
+	for <opensbi@archiver.kernel.org>; Wed, 11 Jun 2025 15:28:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=2+HtKi1tz30dvMML/BVaoJVbEw6lLSondDGlafyTLvI=; b=uRRvdMME/by5iP
-	ZqSVq8AH/mykvS7EMIWHR7NBJb40CfAhfZZV09399edY2XwhBNbxnWCSdKR56qXZx8b18vdfK6uST
-	DCt2A1OeEvFgrfFSMWRuPoPhw7Z2a+VHCDUV5Dc18MZSjn73RuOHCtkMWeHAwy2T5CCveC2Dev6WS
-	ICbC8k+KD/6c10SSN8vOZ6l0hb6fcQtZR/owGJcCKgCyIOHXhGF+Wcw0Ialzvbtb4/4NbDeXxwBmn
-	DphQwA5+KP+HcK89FzzMVuO5QKNs50oKeCd3X2sBXun5xOhTLQY2aXJFNsY0/k/wKcW8ylPH6Zi28
-	84J2qF5Uivte/F2YBYNw==;
+	List-Owner; bh=qWpFip0GSf3HCFX3MpKteegrNtWm1f7IViU6gIyEbjg=; b=gEXW2vDhBwky6n
+	6cfBBpFCS2+LOqfb/9s7LhMUzfhk1Ae61vucv5Q1IRmKGry6fJFIU5gBa2NqwegkWb3kuToUZQB0C
+	eCZTgK7syjXY6I+X1QCfFDvpUlkhQiV3tmP6RJIfN+RtqEtdvpOPsdvDzU2j3BuTvzU8WuBAVISYb
+	f+9N7aLjAZF5QQR58Xe+MJPpMpGHdiAT/GYZWYwfTGJ2AvIIP/WdpLDgf3OodAmdCpU2LstCXrlpg
+	mWSbOlixoBxqs8Vp2ZGwMT7n+6UuQfDl2XTzE1ES9S7+v4elXoz+VOnoqg6Ky8b7kYehXH/DPH0fb
+	VfHpfS7MEZfBx2a2TwNw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPNLA-0000000ANrH-3byk;
-	Wed, 11 Jun 2025 15:26:12 +0000
-Received: from m16.mail.126.com ([117.135.210.6])
+	id 1uPNNC-0000000AOlo-1483;
+	Wed, 11 Jun 2025 15:28:18 +0000
+Received: from m16.mail.126.com ([220.197.31.9])
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uPKN9-00000009pL9-2BFi
+	id 1uPKNQ-00000009pOB-0hdN
 	for opensbi@lists.infradead.org;
-	Wed, 11 Jun 2025 12:16:04 +0000
+	Wed, 11 Jun 2025 12:16:21 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=SU
-	actXgMv5hWnBCAPNZdTJfRmM0tTCOfJvpZvL+Vc+w=; b=kyqnf8Ir0MXFnWQFqy
-	alVbKawPcGO0cbgv9ARbWV0kA/Y/vZkgIBWVu6MsVXLNShlb/X1gZfWBb5Ht5SDg
-	389g6rxpqeR9EAI2nJqHy3yhBbWDS0DHropf9DyEX6AFRywc4YtyUUx+1yGjk2rw
-	K3mZGXOdyKG0IYe/nCukEGxQ4=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=tV
+	cml+KA4M1xR5reuNcXpIQztikwBC1SJu0okn3XgQU=; b=JzpMjPe+z6wQqPqoES
+	oTbZmmqjNE39DmzkUoOD2dQDXnlqMFPSkKatwpeUrNZaZ6EwRjpcNM+tHEdB6wW4
+	X+RIaHmQFerSm7wxc8pYr/TZnjAkUgTwjBOXScs4vvicBgM9btjUt5QWSRtwifDJ
+	mj89CokiiKMTY+ssOuYMoEze0=
 Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g1-0 (Coremail) with SMTP id _____wDnj7B7c0lozRcuAA--.48444S2;
-	Wed, 11 Jun 2025 20:15:56 +0800 (CST)
+	by gzsmtp4 (Coremail) with SMTP id PykvCgDnZ1KNc0lo+7EtAA--.29653S2;
+	Wed, 11 Jun 2025 20:16:13 +0800 (CST)
 From: Xiang W <wxjstz@126.com>
 To: opensbi@lists.infradead.org
 Cc: Xiang W <wxjstz@126.com>,
 	anup@brainfault.org
-Subject: [PATCH 11/12] lib: sbi: Fix dtbr initialization
-Date: Wed, 11 Jun 2025 20:15:24 +0800
-Message-ID: <20250611121551.937889-1-wxjstz@126.com>
+Subject: [PATCH 12/12] lib: sbi: Remove cold_boot from sbi_double_trap_init
+Date: Wed, 11 Jun 2025 20:16:02 +0800
+Message-ID: <20250611121610.938004-1-wxjstz@126.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250611121236.937455-1-wxjstz@126.com>
 References: <20250611121236.937455-1-wxjstz@126.com>
 MIME-Version: 1.0
-X-CM-TRANSID: _____wDnj7B7c0lozRcuAA--.48444S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxZw43Ww1ktF45Xr45trWDArb_yoW5Ww4kpr
-	ZagasxKrs2qryvyrZrta18Xw1fWw1xJw47J39FkFySyF1DZr1rGr13Ka4Yqwn3CrWFyay2
-	9w4vyrZ8Ca17ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pRqsjbUUUUU=
+X-CM-TRANSID: PykvCgDnZ1KNc0lo+7EtAA--.29653S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7KF17Kw1fKF1kZF4rWF15urg_yoW8ZFWrpF
+	y7KF17Gr40qr97XrykAa1UXr48C3y0gwn3GrW5Cw1vqw4kua4Fqr1UAw1jyr4DGr4Sya42
+	9w4vvr4UKF4avw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pRg_-9UUUUU=
 X-Originating-IP: [153.35.240.84]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5A5pOmhJaY2DkAAAsv
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbiFwtpOmhJa81dBAACsT
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250611_051603_893467_7D8D7B5B 
-X-CRM114-Status: GOOD (  13.69  )
+X-CRM114-CacheID: sfid-20250611_051620_514713_06201C6F 
+X-CRM114-Status: UNSURE (   8.51  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -73,97 +74,62 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Previously, dbtr initialization and extension registration were
-performed only on the coldboot HART, resulting in extension
-registration only depending on whether the coldboot HART supports
-dbtr. Now that the boot sequence has been corrected, dtbr extensions
-can be registered even if some cores support dtbr.
+As long as there is a HART supporting Ssdbltrp, sse event must to
+be registered. So remove cold_boot from sbi_double_trap_init.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_dbtr.c       | 29 ++++++++++++++++++++++++-----
- lib/sbi/sbi_ecall_dbtr.c |  2 +-
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ include/sbi/sbi_double_trap.h | 2 +-
+ lib/sbi/sbi_double_trap.c     | 9 ++++++---
+ lib/sbi/sbi_init.c            | 2 +-
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index bdfbcde9..de459880 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -23,6 +23,8 @@
- /** Offset of pointer to HART's debug triggers info in scratch space */
- static unsigned long hart_state_ptr_offset;
+diff --git a/include/sbi/sbi_double_trap.h b/include/sbi/sbi_double_trap.h
+index 1c9f6472..c3d64dfd 100644
+--- a/include/sbi/sbi_double_trap.h
++++ b/include/sbi/sbi_double_trap.h
+@@ -15,6 +15,6 @@
  
-+static bool has_dtbr_triggers;
-+
- #define dbtr_get_hart_state_ptr(__scratch)				\
- 	sbi_scratch_read_type((__scratch), void *, hart_state_ptr_offset)
+ int sbi_double_trap_handler(struct sbi_trap_context *tcntx);
  
-@@ -138,12 +140,10 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 	struct sbi_trap_info trap = {0};
- 	unsigned long tdata1;
- 	unsigned long val;
--	int i;
-+	int i, ret = SBI_SUCCESS;
- 	struct sbi_dbtr_hart_triggers_state *hart_state = NULL;
- 	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
--
--	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
--		return SBI_SUCCESS;
-+	static atomic_t sync_b = ATOMIC_INITIALIZER(0);
+-void sbi_double_trap_init(struct sbi_scratch *scratch, bool cold_boot);
++void sbi_double_trap_init(struct sbi_scratch *scratch);
  
- 	sbi_wait_for_boot_hart_first(coldboot, &sync_a);
- 	if (coldboot) {
-@@ -153,6 +153,9 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 	}
- 	sbi_signal_boot_hart_first_done(coldboot, &sync_a);
- 
-+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
-+		goto _exit;
-+
- 	hart_state = dbtr_get_hart_state_ptr(scratch);
- 	if (!hart_state) {
- 		hart_state = sbi_zalloc(sizeof(*hart_state));
-@@ -215,10 +218,26 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 
- 	hart_state->probed = 1;
- 
-+	if (hart_state->total_trigs > 0)
-+		has_dtbr_triggers = true;
-+
-  _probed:
- 	hart_state->available_trigs = hart_state->total_trigs;
-+_exit:
- 
--	return SBI_SUCCESS;
-+	/*
-+	 * Wait for all HARTs to complete sbi_dbtr_init to
-+	 * ensure that the following code can determine whether
-+	 * dtbr is supported
-+	 */
-+	sbi_sync_and_wait_all_harts(&sync_b);
-+
-+	return ret;
-+}
-+
-+int sbi_dbtr_supported(void)
-+{
-+	return has_dtbr_triggers;
+ #endif
+diff --git a/lib/sbi/sbi_double_trap.c b/lib/sbi/sbi_double_trap.c
+index 0e3951b8..301a4d2f 100644
+--- a/lib/sbi/sbi_double_trap.c
++++ b/lib/sbi/sbi_double_trap.c
+@@ -30,10 +30,13 @@ int sbi_double_trap_handler(struct sbi_trap_context *tcntx)
+ 	return sbi_sse_inject_event(SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP);
  }
  
- int sbi_dbtr_get_total_triggers(void)
-diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
-index 9c496c42..f5639141 100644
---- a/lib/sbi/sbi_ecall_dbtr.c
-+++ b/lib/sbi/sbi_ecall_dbtr.c
-@@ -59,7 +59,7 @@ struct sbi_ecall_extension ecall_dbtr;
- 
- static int sbi_ecall_dbtr_register_extensions(void)
+-void sbi_double_trap_init(struct sbi_scratch *scratch, bool cold_boot)
++void sbi_double_trap_init(struct sbi_scratch *scratch)
  {
--	if (sbi_dbtr_get_total_triggers() == 0)
-+	if (!sbi_dbtr_supported())
- 		return 0;
+-	if (!cold_boot)
+-		return;
++	/*
++	 * As long as there is a HART supporting Ssdbltrp,
++	 * sse event must to be registered.
++	 * This function need run all HARTs
++	 */
+ 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSDBLTRP))
+ 		sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_DOUBLE_TRAP, NULL);
+ }
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 73d35933..41f96bc5 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -294,7 +294,7 @@ static void __noreturn init_startup(struct sbi_scratch *scratch, u32 hartid, boo
+ 	if (cold_boot)
+ 		sbi_boot_print_banner(scratch);
  
- 	return sbi_ecall_register_extension(&ecall_dbtr);
+-	sbi_double_trap_init(scratch, cold_boot);
++	sbi_double_trap_init(scratch);
+ 
+ 	rc = sbi_irqchip_init(scratch, cold_boot);
+ 	if (rc) {
 -- 
 2.47.2
 
