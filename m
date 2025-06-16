@@ -4,73 +4,79 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 06C38C71135
-	for <opensbi@archiver.kernel.org>; Mon, 16 Jun 2025 05:58:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 35FE9C7115A
+	for <opensbi@archiver.kernel.org>; Mon, 16 Jun 2025 06:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:To:Subject:Message-ID:Date:From:
-	MIME-Version:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:
-	References:List-Owner; bh=rFcIPp0LoEJZ7QMoHq9gxItMGXgw9E3V42mKckQimAQ=; b=Iax
-	uLpyQ8igDOoiqK5ZASl8kE1e6EX51aT4vGJR0hPXy+IsJ+i2tTL58nv4axYkzRF3xt0FxMwHuYYCA
-	XYKBhcOssFDdC+MAIZFTvLBgPlLZu/hZDnHl253qerHJ4z4pzfRRhDI4sIxtZXqVQavLpSyRbyaT9
-	CFiOs/xtIUiudanbEpqgIS7Z4uwxD9bQPflD7qFVw4eKu/Q76vb9SKOMsogQdz8qgw4etwuvE1W6t
-	5S5+eEOEC+A5GifQJ/CiN4Oo75kCdXrgRIgyxnq73CSZgV4ygFBJ5QmgdgX8ASbEKOA5l9jPnWdwn
-	BeIuXMnR6XgdTetsj5hZbpdR8BNjE0g==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=egTnSp6uliMmdSXIrLYmtCjWepHSyI0HMbAtibXiFog=; b=ytctXUWQZe9Y6C
+	baj5QbTE3afDXKG08MMZ4wNxaeqWMIO++GDviNoQAm73eGBvvlvdpQ3M1AW4tY0PAlor5V4ti+6l0
+	lYpoHP79531Wvf+3NvtN/Dyg3enqWCI3uvvhqoHU/RM9uAd2wCbw8U4Akyq37BV0wemTxx3kXP9i/
+	KKSJf0TmqGrPPH8ijDx3kJ9jUKSEno30vJm/wJDCr694u1Efgqdnxa0cyuZjRcAZqYPDId5g/XzFe
+	Rdfo/e/4sjl2DixInFBkT4tpU8tnIRWVx4WmBc4gHDt7ezG+Bu0iaQof1a6ohJIWRqIakKTB7LojH
+	joilp9tlUjbiqs+y8eOg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uR2qt-00000003Sri-2wG8;
-	Mon, 16 Jun 2025 05:57:51 +0000
-Received: from mail-oo1-xc41.google.com ([2607:f8b0:4864:20::c41])
+	id 1uR2uL-00000003T6l-0cYD;
+	Mon, 16 Jun 2025 06:01:25 +0000
+Received: from mail-il1-x133.google.com ([2607:f8b0:4864:20::133])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uR2pw-00000003SnN-01OL
+	id 1uR1ia-00000003Mkv-2HpF
 	for opensbi@lists.infradead.org;
-	Mon, 16 Jun 2025 05:56:53 +0000
-Received: by mail-oo1-xc41.google.com with SMTP id 006d021491bc7-605fda00c30so2543750eaf.1
-        for <opensbi@lists.infradead.org>; Sun, 15 Jun 2025 22:56:51 -0700 (PDT)
+	Mon, 16 Jun 2025 04:45:13 +0000
+Received: by mail-il1-x133.google.com with SMTP id e9e14a558f8ab-3ddd68aeb4fso38516785ab.2
+        for <opensbi@lists.infradead.org>; Sun, 15 Jun 2025 21:45:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1750053410; x=1750658210; darn=lists.infradead.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=ILlAt/UYmTtbZVdeMQWMu3oWvvH73NGuyc7AuMxiZyI=;
-        b=VAVF5m2vixJ6imEfQMXTSM2Ylu8g8MHDrrbPdzqdGzX3H5VWTXgOqf6DeF74QJ5nbU
-         Ian0CUAO4up8xHQGecqQ8S070cKZEH1yQuPk7y3Ek8bamEVKQfilkciRj60REn4VujKA
-         P2hoxXbJtaxHXP36dLDMWjKhD/oYom3UfFOwk+qRzHU9rUcJjUWs3rzYmy1rx9boo1bE
-         L1JTRYkBqdYpAhuvIH7U7EaE5N7rvL0YBwWQhv8BZkycfqL2knWf67icofSF5/M7afwl
-         D1DK6sBM0eotV/wJMp0G+BtVbVXa/bdbdLiWoG8GMOTj8XOLxek22JEQkd6FwcjCiDUD
-         GSzg==
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1750049111; x=1750653911; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=6Eqd0PC1NvGYRhBEPLueWKgdwS7lr5t2ed1cA12kJEY=;
+        b=v27iXjYf5bOivopqBvvOWGbRsR6327ZRZztH8g4A7SF6QUjxXzCwIBApRAkrXi7fKi
+         VZ3LNW7XlKv1ql1wSnIGA1qYYn6do2HyLmOuEu/Ah7aryEUrcaSqJqhXzhPtf6y9WKb6
+         Ymch4LN/fw/Geru1ohgeu9DOi7lQIdXwitG8/2vOQuuEcKRYMQ6O5AQDDJmnOm1iGm2P
+         NoNcHQd9tYq2WTiRKAgpqwQxnx3wlFlCKQY+4Mj7BxNZbyUsVVzbc/jzJNvvTGW1XODV
+         X7J++O6aRKow2sAVObCkXtY0UG8v51qhd9QzoiyVpULgd7xRJERCA06u7pdVtAGQFAye
+         eefA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750053410; x=1750658210;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ILlAt/UYmTtbZVdeMQWMu3oWvvH73NGuyc7AuMxiZyI=;
-        b=Lt8bfo9CbZYqfGTV5dsT7wD64XMGmBBS4NZzWRVXu/0RzGuadmqZNiMHwG62+/qbBl
-         BKLdf8ewgLda17u/58dPzVLhsskGBKrJXb1g6xgyiM5DuoZ2EXYzugGjeN5nI21DEa9K
-         5RiD27rxwazNqYJTa8q3SZIgC7++s5zuzDxdKCvA4tsPnfSLw/HZLNyivJfoeu0HGhA8
-         JNjLT3ptFUYzfAL3c2Bn10hq4jv3TT2eYTMdu13O0RV2fCijqyAiS8wtduLJLaY+jGy1
-         K0F42PX7HIPGCXOdKPeGxU12lCVPkE72FJZr4Gmg1z/tyiEbF95dg9vsbHRUeGBdp7A1
-         5gjQ==
-X-Gm-Message-State: AOJu0YyfY4+0NMN9J1W5rVjB6jJkrzjSaOj56XstlWSpmyfklM6KTw6t
-	p9HGa0LR8+JBeGLv/U45dOqMffWHWy2BHn2PaTL0tzPD5X/y5g2JbbgPujKtv9qvVX5NRPmCb19
-	K+2PKYlj/RzD3BYiovYn2aj5flui2s2a0Jp9Vqrk=
-X-Gm-Gg: ASbGnctNcC5gblyA4TVRcXUjqH5Be62du3aE5zj/suHY9KlVwuoRgsEVsVFLHNQgY+e
-	cb59LnOH+Djw1InEE0SUVUHf5SbZWd7JrbPR3QjJVB774pcUCb6IbGcX04wZHadjoJsyoXZjglp
-	2vg7j/vhVmKNuUilHv1HsQoiETb/uhpmiDu0mvJ7jqVPs=
-X-Google-Smtp-Source: AGHT+IHGHZ+dNyLFgrHWd1F9Z4q/WMGHpdaajVglI+SGC1QRhozxn4KBbjUAPKlW34aogyl6d0dTQyjUq6UvdBn3soM=
-X-Received: by 2002:a05:6820:1628:b0:60b:ca08:a73c with SMTP id
- 006d021491bc7-61110f9a33bmr4865432eaf.6.1750053410562; Sun, 15 Jun 2025
- 22:56:50 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1750049111; x=1750653911;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=6Eqd0PC1NvGYRhBEPLueWKgdwS7lr5t2ed1cA12kJEY=;
+        b=gTqtLARzCW0AAIzNE4EVWqkt1nnLWgiyW5lwEpjcctOLEdVFHIheTqBEF2EQlZpaPj
+         7wq2/x11Yc5FRwuWRKlggYL6ElzkVve9hQq88d98hJKQUkRjToinXHL3gkEDSHEuAEQp
+         h7rE46Iy+ukFxrZsFND/UyKdd34F6B6lPCdPdH0gAe87TlZvSjJVmya0cF3OPK7wQ3y7
+         qotCrGfy+n59JI/kqJ6CGtxDjysc4FX/a6x8K/ogZlCjIa/TpQlpUH5+Pzyw88rluwg9
+         kCInwYGLWYUMqgx1Q6L9LU9ELhCmpL6Ge9XDjj5yG4Q8iwFXzBODhsM04igbYbgkMk66
+         tN8w==
+X-Gm-Message-State: AOJu0YzfTzMSY8wIWIqxCSO99XNam+XqC8n0Xi9Pwdi4bDYlJ4awp6vn
+	G6Fk06bhA+qH1zVMaUBZY2+4/Qw6UMLh/oCMynuiFsvrfWeIUAZl8qzcFPqvEy7cZULofw5g2z1
+	FT6R749lKWzGUqxyHN3KBlwo1Z50Mi4erzxmQ6bUDbA==
+X-Gm-Gg: ASbGncuNBkRAxL28MYq+fIvRPA+rPX2WvIrwiUvZjYMax9ZxKN7i07izgsqpaL405Wb
+	uSMdFG2o16rUFEENcRAUQyAvoF5KyHDGlFVRXjtg5gkydzRLWyZvYC5PqwCfcgfoMyVJsB7BdUJ
+	Nur2iKKJlXE0+PWH8UxZDZ7juj83G6L0UGpe9vMYT1s/qlMw==
+X-Google-Smtp-Source: AGHT+IHIFl24CLgWaJNwHEwsZ+1UA9qtXObyHi+p2DHqXRPR4i8qokBoqFlIrBfe2SxQunuYLY4oga4b4x3BD+jiRcY=
+X-Received: by 2002:a05:6e02:330e:b0:3dd:cdf2:fea4 with SMTP id
+ e9e14a558f8ab-3de07cc010amr81041595ab.14.1750049111656; Sun, 15 Jun 2025
+ 21:45:11 -0700 (PDT)
 MIME-Version: 1.0
-From: Neo <neopimail@gmail.com>
-Date: Mon, 16 Jun 2025 13:56:38 +0800
-X-Gm-Features: AX0GCFt00VKLLLMwhVS2mocfMw7Kni-b4cqaFCN3Q9MNZIpujpgcMr40YiUU67Q
-Message-ID: <CAFPVDjSstmSEeF=YLzVrV2mUSAU1UVO4_zu4RyUzgvE1g_awYQ@mail.gmail.com>
-Subject: [PATCH] platform: generic: Add support for UltraRISC DP1000 SoC platform
-To: opensbi@lists.infradead.org
+References: <20250604135225.842241-1-jesse@rivosinc.com>
+In-Reply-To: <20250604135225.842241-1-jesse@rivosinc.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 16 Jun 2025 10:15:00 +0530
+X-Gm-Features: AX0GCFv4HFKdLqbcIa32YO34Pyk13YOlKTjOiXUaM1VWW1sNJlFDrn9gIuipqYY
+Message-ID: <CAAhSdy2nDZdto+3eqZ3yrDaKDMV1dn0z2YnfvDDNbz_ZrZ08Sw@mail.gmail.com>
+Subject: Re: [PATCH v2] lib: sbi: dbtr: Fix shared memory layout
+To: Jesse Taube <jesse@rivosinc.com>
+Cc: opensbi@lists.infradead.org, Himanshu Chauhan <hchauhan@ventanamicro.com>, 
+	Charlie Jenkins <charlie@rivosinc.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250615_225652_060301_91B0CC04 
-X-CRM114-Status: GOOD (  14.11  )
+X-CRM114-CacheID: sfid-20250615_214512_703073_4D0C3482 
+X-CRM114-Status: GOOD (  16.52  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -82,100 +88,57 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This patch adds initial platform support for the UltraRISC DP1000 SoC
-to OpenSBI.
-
-The UltraRISC DP1000 is a multi-core RISC-V 64-bit SoC developed by
-UltraRISC Technology (Shanghai) Co., Ltd.
-
-We intend to upstream DP1000 support to align with OpenSBI's mission
-of supporting diverse RISC-V platforms and to simplify support for
-Linux and U-Boot on UltraRISC hardware.
-
-Signed-off-by: Yi Pei <neopimail@gmail.com>
----
-platform/generic/Kconfig | 4 ++++
-platform/generic/configs/defconfig | 1 +
-platform/generic/ultrarisc/dp1000.c | 17 +++++++++++++++++
-platform/generic/ultrarisc/objects.mk | 8 ++++++++
-4 files changed, 36 insertions(+)
-create mode 100644 platform/generic/ultrarisc/dp1000.c
-create mode 100644 platform/generic/ultrarisc/objects.mk
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 688da3f4..54f1674d 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -68,6 +68,10 @@ config PLATFORM_THEAD
-select THEAD_C9XX_PMU
-default n
-+config PLATFORM_ULTRARISC_DP1000
-+ bool "UltraRISC DP1000 support"
-+ default n
-+
-source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
-source "$(OPENSBI_SRC_DIR)/platform/generic/thead/Kconfig"
-diff --git a/platform/generic/configs/defconfig
-b/platform/generic/configs/defconfig
-index bb260626..717906ef 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -6,6 +6,7 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
-CONFIG_PLATFORM_SOPHGO_SG2042=y
-CONFIG_PLATFORM_STARFIVE_JH7110=y
-CONFIG_PLATFORM_THEAD=y
-+CONFIG_PLATFORM_ULTRARISC_DP1000=y
-CONFIG_FDT_CPPC=y
-CONFIG_FDT_CPPC_RPMI=y
-CONFIG_FDT_GPIO=y
-diff --git a/platform/generic/ultrarisc/dp1000.c
-b/platform/generic/ultrarisc/dp1000.c
-new file mode 100644
-index 00000000..f21b2875
---- /dev/null
-+++ b/platform/generic/ultrarisc/dp1000.c
-@@ -0,0 +1,17 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * Copyright (C) 2025 UltraRISC,Inc
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+static const struct fdt_match ultrarisc_dp1000_match[] = {
-+ {.compatible = "ultrarisc,dp1000"},
-+ {},
-+};
-+
-+const struct platform_override ultrarisc_dp1000 = {
-+ .match_table = ultrarisc_dp1000_match,
-+};
-diff --git a/platform/generic/ultrarisc/objects.mk
-b/platform/generic/ultrarisc/objects.mk
-new file mode 100644
-index 00000000..71e66f35
---- /dev/null
-+++ b/platform/generic/ultrarisc/objects.mk
-@@ -0,0 +1,8 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (C) 2025 UltraRISC,Inc
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_ULTRARISC_DP1000)
-+= ultrarisc_dp1000
-+platform-objs-$(CONFIG_PLATFORM_ULTRARISC_DP1000) += ultrarisc/dp1000.o
--- 
-2.34.1
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gV2VkLCBKdW4gNCwgMjAyNSBhdCA3OjIy4oCvUE0gSmVzc2UgVGF1YmUgPGplc3NlQHJpdm9z
+aW5jLmNvbT4gd3JvdGU6Cj4KPiBUaGUgZXhpc3Rpbmcgc2JpX2RidHJfc2htZW1fZW50cnkgaGFz
+IGEgc2l6ZSBvZiA1ICogWExFTiB3aXRoIHRoZSBmaW5hbAo+IGVudHJ5IGJlaW5nIGlkeC4gVGhp
+cyBpcyBpbiBjb250cmFzdCB0byB0aGUgU0JJIHYzLjAtcmM3IENoYXB0ZXIgMTkuCj4gRGVidWcg
+VHJpZ2dlcnMgRXh0ZW5zaW9uIFswXSB3aGVyZSBpZHggYW5kIHRyaWdfc3RhdGUgc2hhcmUgdGhl
+IHNhbWUKPiBvZmZzZXQgKDApIGluIHNoYXJlZCBtZW1vcnksIHdpdGggYSB0b3RhbCBzaXplIG9m
+IDQgKiBYTEVOIGZvciBhbGwgdGhlCj4gU0JJIGNhbGxzLgo+Cj4gUmVwbGFjZSBzdHJ1Y3Qgd2l0
+aCB1bmlvbiB0byBtYXRjaCBtZW1vcnkgbGF5b3V0IGRlc2NyaWJlZCBpbiBTQkkuCj4KPiBbMF0g
+aHR0cHM6Ly9naXRodWIuY29tL3Jpc2N2LW5vbi1pc2EvcmlzY3Ytc2JpLWRvYy90cmVlL3YzLjAt
+cmM3L3NyYy9leHQtZGVidWctdHJpZ2dlcnMuYWRvYwo+Cj4gRml4ZXM6IDk3ZjIzNGYxNWM5NiAo
+ImxpYjogc2JpOiBJbnRyb2R1Y2UgdGhlIFNCSSBkZWJ1ZyB0cmlnZ2VycyBleHRlbnNpb24gc3Vw
+cG9ydCIpCj4gU2lnbmVkLW9mZi1ieTogSmVzc2UgVGF1YmUgPGplc3NlQHJpdm9zaW5jLmNvbT4K
+CkFwcGxpZWQgdGhpcyBwYXRjaCB0byB0aGUgcmlzY3Yvb3BlbnNiaSByZXBvLgoKVGhhbmtzLApB
+bnVwCgo+IC0tLQo+IFYxIC0+IFYyOgo+ICAtIFJlbW92ZSBhbm9ueW1vdXMgdW5pb24KPiAgLSBS
+ZXBsYWNlIHN0cnVjdCB3aXRoIHVuaW9uCj4gIC0gVXBkYXRlIGNvbW1pdCBkZXNjcmlwdGlvbgo+
+IC0tLQo+ICBpbmNsdWRlL3NiaS9zYmlfZGJ0ci5oIHwgMiArLQo+ICBsaWIvc2JpL3NiaV9kYnRy
+LmMgICAgIHwgNiArKystLS0KPiAgMiBmaWxlcyBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDQg
+ZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmkvc2JpX2RidHIuaCBiL2lu
+Y2x1ZGUvc2JpL3NiaV9kYnRyLmgKPiBpbmRleCBhOGIzYTAyLi45Yjg3OTY4IDEwMDY0NAo+IC0t
+LSBhL2luY2x1ZGUvc2JpL3NiaV9kYnRyLmgKPiArKysgYi9pbmNsdWRlL3NiaS9zYmlfZGJ0ci5o
+Cj4gQEAgLTkwLDcgKzkwLDcgQEAgc3RydWN0IHNiaV9kYnRyX2hhcnRfdHJpZ2dlcnNfc3RhdGUg
+ewo+ICAgICAgICAgfXdoaWxlICgwKTsKPgo+ICAvKiogU0JJIHNoYXJlZCBtZW0gbWVzc2FnZXMg
+bGF5b3V0ICovCj4gLXN0cnVjdCBzYmlfZGJ0cl9zaG1lbV9lbnRyeSB7Cj4gK3VuaW9uIHNiaV9k
+YnRyX3NobWVtX2VudHJ5IHsKPiAgICAgICAgIHN0cnVjdCBzYmlfZGJ0cl9kYXRhX21zZyBkYXRh
+Owo+ICAgICAgICAgc3RydWN0IHNiaV9kYnRyX2lkX21zZyBpZDsKPiAgfTsKPiBkaWZmIC0tZ2l0
+IGEvbGliL3NiaS9zYmlfZGJ0ci5jIGIvbGliL3NiaS9zYmlfZGJ0ci5jCj4gaW5kZXggZjBlOTEy
+OC4uY2ZiNmIyYSAxMDA2NDQKPiAtLS0gYS9saWIvc2JpL3NiaV9kYnRyLmMKPiArKysgYi9saWIv
+c2JpL3NiaV9kYnRyLmMKPiBAQCAtNTA2LDcgKzUwNiw3IEBAIGludCBzYmlfZGJ0cl9yZWFkX3Ry
+aWcodW5zaWduZWQgbG9uZyBzbW9kZSwKPiAgewo+ICAgICAgICAgc3RydWN0IHNiaV9kYnRyX2Rh
+dGFfbXNnICp4bWl0Owo+ICAgICAgICAgc3RydWN0IHNiaV9kYnRyX3RyaWdnZXIgKnRyaWc7Cj4g
+LSAgICAgICBzdHJ1Y3Qgc2JpX2RidHJfc2htZW1fZW50cnkgKmVudHJ5Owo+ICsgICAgICAgdW5p
+b24gc2JpX2RidHJfc2htZW1fZW50cnkgKmVudHJ5Owo+ICAgICAgICAgdm9pZCAqc2htZW1fYmFz
+ZSA9IE5VTEw7Cj4gICAgICAgICBzdHJ1Y3Qgc2JpX2RidHJfaGFydF90cmlnZ2Vyc19zdGF0ZSAq
+aHMgPSBOVUxMOwo+Cj4gQEAgLTU0MSw3ICs1NDEsNyBAQCBpbnQgc2JpX2RidHJfaW5zdGFsbF90
+cmlnKHVuc2lnbmVkIGxvbmcgc21vZGUsCj4gICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNp
+Z25lZCBsb25nIHRyaWdfY291bnQsIHVuc2lnbmVkIGxvbmcgKm91dCkKPiAgewo+ICAgICAgICAg
+dm9pZCAqc2htZW1fYmFzZSA9IE5VTEw7Cj4gLSAgICAgICBzdHJ1Y3Qgc2JpX2RidHJfc2htZW1f
+ZW50cnkgKmVudHJ5Owo+ICsgICAgICAgdW5pb24gc2JpX2RidHJfc2htZW1fZW50cnkgKmVudHJ5
+Owo+ICAgICAgICAgc3RydWN0IHNiaV9kYnRyX2RhdGFfbXNnICpyZWN2Owo+ICAgICAgICAgc3Ry
+dWN0IHNiaV9kYnRyX2lkX21zZyAqeG1pdDsKPiAgICAgICAgIHVuc2lnbmVkIGxvbmcgY3RybDsK
+PiBAQCAtNjU5LDcgKzY1OSw3IEBAIGludCBzYmlfZGJ0cl91cGRhdGVfdHJpZyh1bnNpZ25lZCBs
+b25nIHNtb2RlLAo+ICAgICAgICAgc3RydWN0IHNiaV9kYnRyX2RhdGFfbXNnICpyZWN2Owo+ICAg
+ICAgICAgdW5zaWduZWQgbG9uZyB1aWR4ID0gMDsKPiAgICAgICAgIHN0cnVjdCBzYmlfZGJ0cl90
+cmlnZ2VyICp0cmlnOwo+IC0gICAgICAgc3RydWN0IHNiaV9kYnRyX3NobWVtX2VudHJ5ICplbnRy
+eTsKPiArICAgICAgIHVuaW9uIHNiaV9kYnRyX3NobWVtX2VudHJ5ICplbnRyeTsKPiAgICAgICAg
+IHZvaWQgKnNobWVtX2Jhc2UgPSBOVUxMOwo+ICAgICAgICAgc3RydWN0IHNiaV9kYnRyX2hhcnRf
+dHJpZ2dlcnNfc3RhdGUgKmhzID0gTlVMTDsKPgo+IC0tCj4gMi40My4wCj4KCi0tIApvcGVuc2Jp
+IG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
+ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
