@@ -4,83 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 337E4C71155
-	for <opensbi@archiver.kernel.org>; Wed, 18 Jun 2025 03:03:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 07531C71157
+	for <opensbi@archiver.kernel.org>; Wed, 18 Jun 2025 05:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:List-Subscribe:List-Help:
-	List-Post:List-Archive:List-Unsubscribe:List-Id:Message-Id:Date:Subject:Cc:To
-	:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=dEOETk4Mp80C6eDtLZrcbepCR9DYEYal+1hIQjCNMus=; b=qclNR9lekvWAAi
-	fTBcN/0rN+MYYjRx8ornu4trHBj5V3fWvNVi5eIliQlscRYQEh5i7vvgXbvxFV14D+wi/nZqpu6ca
-	BU6RB3U8RGdD7o+gB3WdjIyVv4oNqG2SfoRm8k8/DOeLlskhaF8yiff+D/DThCqasZx2a1itKwv4v
-	nFpDU8cCP3pSAekLsiM3VwaYjgMkipBvGzgpA8CZ9hGImkV1GoyJsVkeypa3CGsLB5xaFioWECis1
-	6lD5weIhlRTlITCQ65KMSLhldHZdvgIue/KsnouhzpcidoEaByDuveLeCFUEcU68fVUTsJUDkNgoK
-	i8P+DzvMPIeO0z47NkvA==;
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=aaSD1DmPafu21xhvStxX+xm4h7X1HllApMXEbW5RD8E=; b=aenNgLeXbPIR/u
+	DLwhepuqFzWt0UIdjsQKRm/pM0xs6afKrVwMJk8e+gCG4HuJT865mwcghkCVRwoNkkftL71NrGevA
+	OT2zYnd1rhlu+I2OUNO/yPtDliS1FPi7WeG7EDdPdv3aeBnfgwaCTvR4C9zAnrMJ1JjQnsMBrE5eW
+	HpRX32IHBU1s8fABSsMNfu+hCdNUkSJC1yjtzglSK5pYEsXRpc6Eqx/6Qh5twatcr3pxcBr9bkIXC
+	DCmGSOr0sluVK9SaVQ+T4GbM2yfppE+H4HGnUXAHAYI8JGn7k1bjgmNqepZqmQDsYoXCpmU8dowiJ
+	pWMAWmXHiVzVbk0eVw4A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uRj5U-00000008rup-4BGn;
-	Wed, 18 Jun 2025 03:03:44 +0000
-Received: from mail-qv1-xf2e.google.com ([2607:f8b0:4864:20::f2e])
+	id 1uRlW1-000000096Gc-482N;
+	Wed, 18 Jun 2025 05:39:17 +0000
+Received: from mail-pg1-x530.google.com ([2607:f8b0:4864:20::530])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uRiwY-00000008rJ4-1jOU
+	id 1uRlVz-000000096Fc-2YDJ
 	for opensbi@lists.infradead.org;
-	Wed, 18 Jun 2025 02:54:31 +0000
-Received: by mail-qv1-xf2e.google.com with SMTP id 6a1803df08f44-6fae04a3795so68367686d6.3
-        for <opensbi@lists.infradead.org>; Tue, 17 Jun 2025 19:54:29 -0700 (PDT)
+	Wed, 18 Jun 2025 05:39:16 +0000
+Received: by mail-pg1-x530.google.com with SMTP id 41be03b00d2f7-b31c6c9959cso779953a12.1
+        for <opensbi@lists.infradead.org>; Tue, 17 Jun 2025 22:39:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1750215269; x=1750820069; darn=lists.infradead.org;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=ventanamicro.com; s=google; t=1750225155; x=1750829955; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=A1tVvnbjtsexocNqbLVb9+4PMccWrl4Rg/u9Pfcgznw=;
-        b=WwhGfFJyzG9OVKhBEUgs4hyjAjcMSU3MdqaN/fDk1YrpYjlIwJw3DbG5N3P3zM8lpm
-         FnRkCW2ostWnerzDGeRjbNaia3fnC5svqYwenUTWOm5Iyboq11aymfBN48JC+6xLTOyz
-         YbArlGGUzmQ85DJ00dkqvTg5iJqoXQKsdSe87ihKR9hHtqp0AT9cXPCPfsBCtzbQZL0L
-         U+yeJO6Qg4s2hm7OGFAQFdw9KZlW47CP8p/7kHXOP0gIZv4x8tRYGaGLEhU9oxfeTWTc
-         M/T4KIfV2kQvy1kgItjbX/F0FIIvCe+qdFaVn7+rju8DeWKD+ZZBJYsh0OTJAuYwa0rg
-         G+ig==
+        bh=7YkTqfHd2BlKwPZ+djoI7rS0sW5hrNgjp2fQacIOxis=;
+        b=BEPO1xk/1ZaoAl89UGj0hv7esixiqkJSk4NnB1MD53luX9hW2ctoldwMS/sxgtW9qm
+         1OpXi+iSMXnKcji6d1vXep6nCxI+bEp9ag8i17CGkqSs9nKqi8h1LwxmAL+1PQLJ3UuW
+         8ueK9U0UwKhqF9G2jAAPPeoxxXiYG39IPLVWvz0+iZKT/Q0nv62XK8dZoFdbEdXfQv5k
+         t/hr0TyLC9z4V1PRpQ09svGpMk4txKREJKTEUMwGE0kxShmnTgrdJBeSZg/9rJOdJb02
+         HyuEDLagY01URNm3XpfYhhxl2vJJBYqYuhOqzEhTom5Y1suI9VabQ0uIyibgiSwthIE5
+         HtPw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750215269; x=1750820069;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1750225155; x=1750829955;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=A1tVvnbjtsexocNqbLVb9+4PMccWrl4Rg/u9Pfcgznw=;
-        b=raSdYNAEsl72eEy+BEWW6hgDjZH6YqalUVKRM5/EoKySesjVLa8yOPV8JJbFoDzsCO
-         /qiIi7mxoFmFY57+Dzav4MHf5puljzXsr4V44vQgSTffT23smM2C63QEioIm8xb2i0Lt
-         6/zfODLf8Vkh0x9OTZuzLOzoxp+Sj0ks7neuSap9xjbdbrgilZEqy7ofdu2swF24rkWy
-         LuatdNyfR9nPXMcVYneeAsNQd+H3IIVyuLSaAtzpDWsIk9weiXEW4ZsRUtc9hHjsc3EO
-         ENkqpaDX6144883JGjwvs9b3TB9axbyqWYcw267m479yL2T3edkNQGfVttCLTRJDyeKG
-         aV0w==
-X-Gm-Message-State: AOJu0YyZZJhTmNOvqJmoqR5tZT6EHUw9VgdWJgelex1oJG8t6ZCuidpg
-	AzEzNOn5j/Nblxi4SN/ptv7RhTVNuAtFSO8rhwQY8B8nXBrnrjFodPb1tQR9mmOT97J+HNfMwhK
-	kaJsv0M2ArGjgFAUCd0BjfHcIpKtdn/Q21/214QA87Fu7uTkjUpjSoFOLmo/SRV6Q9I4ZpFltrW
-	iZj06tTYClrMl0NWY99kdC+s7kV/j1sT3psQiiZ0r+LPtWl0feIYipmSWA
-X-Gm-Gg: ASbGncvX3aU7H1STXLJwr7ChGfL1NEQ+8YyPIAHksaRqVZsPK1NqDnpw4vEwM3loMOZ
-	HWEwWC+jGhWhsoLdyJu3IffGLvdalxvs25/LaIv+SU4F+BkzFOLYf20Ju5RkvwCq5VDqZ3eTJqj
-	QkzHjMF373k4G8RpMzX3GVltKoRluHYFwR1bVVucbn1tnNEeFqmTugso0hsMyMByjRnCM4oTbPN
-	ZiqyOG8a1twexumdAoYInLVEcO/Qsd8qwsult0JJbIamIzYUq/JnGING4EETt5+sTMFz+a6NVtd
-	A/9OKauM/I8PxCiM5s5AfqDSwvpIHRJz1oekQN0A1N4GN5/wW6FSDgC/xyKp9ALM3ElYIbhvQKX
-	s6OIU555E5ZO+YD5ZhbnC7dTCxvo=
-X-Google-Smtp-Source: AGHT+IGrEfffpHO5hJgDVj0xWWquGYIa7CicqIBDs50RtdfLIBS9Tw+WoR4r7QCMSBfWApchSB7xzQ==
-X-Received: by 2002:ad4:5b83:0:b0:6eb:2fd4:30a7 with SMTP id 6a1803df08f44-6fb4777724cmr240550426d6.33.1750215268697;
-        Tue, 17 Jun 2025 19:54:28 -0700 (PDT)
-Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6fb35c31566sm68562536d6.61.2025.06.17.19.54.26
+        bh=7YkTqfHd2BlKwPZ+djoI7rS0sW5hrNgjp2fQacIOxis=;
+        b=K8C5HHXNRcGd+o8w9L2WUOKWz/l/7pVSksyB3mmkLSurV+09RTd4+cvc8l5xee7TLj
+         kHFo+B7uztK+EMFp5p+5ElujLavjoh9JK1tKuEKf8jxyf0VdVPM7ErAr5m3thy2Pr8oP
+         r5kLRrp2K5NSvYXd4AnTbiv8HE7hsaTQI9bbNLpsxLElWjarw/GRntryb5xxfgeKKOWy
+         yoS7vWr1GklFMzIqcq87hTCgJAS/IQOBdXtnq33jaAIRwA50LIOkxIqipbN+P9fcddgL
+         YqgpKC/b4KYEavuD+6T7O74XZYVrQ21UkPVena1iB5PhyGNDz+OLiHucYVm5gKj8PL9U
+         92zg==
+X-Gm-Message-State: AOJu0YyFMK5i8C1qWntKekpY9f4x3VOOen7PtFq3euX1/O2rVmFSwZMX
+	vCb1T6W3n90YnSy1x4k8xqb5lC4U471Uf3paoynckz4fu3xPRBnq1muaco5k31oarHJGbF5Yy5f
+	LgINqhPQ=
+X-Gm-Gg: ASbGncueGd6oRroZeQGO/pQawDXfLD666jqhfynrBmunsgbj2/x7JgqW3APaNOlxxO1
+	Xa1qV+istspM5qCTOj14zQoGGKcXdwTBNElLYcoyNgzkdE3dWfjJ7j6tQaWTbjY/pZA725Rm7+6
+	+7OY0HEFFMErEj0bcRRNBOffC8pxi9tg+YKR41FZFVF2tmxxqLqUBkotP6c3Mqp5ymiybcD9IC6
+	IVTdvp96/F4Df34uzVIVYfDYcv06Tz/RKN4wHyXB/cQ0ejcsLAOaLdFbcqsGbih9CRkeihHWN3B
+	NoRiC3T5FTzEmscO3kpi+NiF2fK+68EQqonHJ72a4j/OmaqWT4wJ7A9TKNHaZHl3BTzRSH6fC6t
+	o6jGUuz0slks=
+X-Google-Smtp-Source: AGHT+IGZxPLN6J1DtyE0MDGPwR8BQZBUFUDvgXrYBCe5wtaXK0ohZpmKqCed7I5qYmQFYMT9qXnpWg==
+X-Received: by 2002:a17:90b:380c:b0:312:639:a064 with SMTP id 98e67ed59e1d1-313f1e2b0a3mr25072983a91.28.1750225154592;
+        Tue, 17 Jun 2025 22:39:14 -0700 (PDT)
+Received: from rpathak-ThinkPad-T490.. ([2402:e280:3e81:5eb:e7f2:d849:97c7:f37f])
+        by smtp.googlemail.com with ESMTPSA id 98e67ed59e1d1-313c19b84e5sm13272553a91.2.2025.06.17.22.39.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Jun 2025 19:54:28 -0700 (PDT)
-From: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+        Tue, 17 Jun 2025 22:39:14 -0700 (PDT)
+From: Rahul Pathak <rpathak@ventanamicro.com>
 To: opensbi@lists.infradead.org
-Cc: greentime.hu@sifive.com,
-	vincent.chen@sifive.com,
-	anup@brainfault.org,
-	Yong-Xuan Wang <yongxuan.wang@sifive.com>
-Subject: [PATCH 1/1] lib: sbi_list: add a helper for safe list iteration
-Date: Wed, 18 Jun 2025 10:54:16 +0800
-Message-Id: <20250618025416.5331-1-yongxuan.wang@sifive.com>
-X-Mailer: git-send-email 2.17.1
+Cc: rpathak@ventanamicro.com,
+	rahul@summations.net
+Subject: [PATCH 2/2] lib: rpmi: Make RPMI drivers as non-experimental
+Date: Wed, 18 Jun 2025 11:08:54 +0530
+Message-ID: <20250618053854.2577299-2-rpathak@ventanamicro.com>
+X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20250618053854.2577299-1-rpathak@ventanamicro.com>
+References: <20250618053854.2577299-1-rpathak@ventanamicro.com>
+MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250617_195430_473611_86369054 
-X-CRM114-Status: UNSURE (   8.70  )
+X-CRM114-CacheID: sfid-20250617_223915_650695_E2BF9212 
+X-CRM114-Status: UNSURE (   9.09  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -93,43 +95,99 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Some use cases require iterating safe against removal of list entry.
+As RPMI v1.0 specification is frozen, disable the
+experimental tag for such RPMI drivers.
 
-Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
 ---
- include/sbi/sbi_list.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ lib/utils/cppc/fdt_cppc_rpmi.c             | 1 -
+ lib/utils/hsm/fdt_hsm_rpmi.c               | 1 -
+ lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 1 -
+ lib/utils/mpxy/fdt_mpxy_rpmi_clock.c       | 1 -
+ lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c      | 1 -
+ lib/utils/reset/fdt_reset_rpmi.c           | 1 -
+ lib/utils/suspend/fdt_suspend_rpmi.c       | 1 -
+ 7 files changed, 7 deletions(-)
 
-diff --git a/include/sbi/sbi_list.h b/include/sbi/sbi_list.h
-index 9e56c526faf2..be69fc4314e0 100644
---- a/include/sbi/sbi_list.h
-+++ b/include/sbi/sbi_list.h
-@@ -160,4 +160,17 @@ static inline void sbi_list_del_init(struct sbi_dlist *entry)
- 	     &pos->member != (head); 	\
- 	     pos = sbi_list_entry(pos->member.next, typeof(*pos), member))
- 
-+/**
-+ * Iterate over list of given type safe against removal of list entry
-+ * @param pos the type * to use as a loop cursor.
-+ * @param n another type * to use as temporary storage.
-+ * @param head the head for your list.
-+ * @param member the name of the list_struct within the struct.
-+ */
-+#define sbi_list_for_each_entry_safe(pos, n, head, member) \
-+	for (pos = sbi_list_entry((head)->next, typeof(*pos), member),	\
-+	     n = sbi_list_entry(pos->member.next, typeof(*pos), member);	\
-+	     &pos->member != (head);	\
-+	     pos = n, n = sbi_list_entry(pos->member.next, typeof(*pos), member))
-+
- #endif
+diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
+index efcea652f1d6..7bd3b0f90d6a 100644
+--- a/lib/utils/cppc/fdt_cppc_rpmi.c
++++ b/lib/utils/cppc/fdt_cppc_rpmi.c
+@@ -370,5 +370,4 @@ static const struct fdt_match rpmi_cppc_match[] = {
+ const struct fdt_driver fdt_cppc_rpmi = {
+ 	.match_table = rpmi_cppc_match,
+ 	.init = rpmi_cppc_cold_init,
+-	.experimental = true,
+ };
+diff --git a/lib/utils/hsm/fdt_hsm_rpmi.c b/lib/utils/hsm/fdt_hsm_rpmi.c
+index cc78436f9a4a..06e4b17976aa 100644
+--- a/lib/utils/hsm/fdt_hsm_rpmi.c
++++ b/lib/utils/hsm/fdt_hsm_rpmi.c
+@@ -359,5 +359,4 @@ static const struct fdt_match rpmi_hsm_match[] = {
+ const struct fdt_driver fdt_hsm_rpmi = {
+ 	.match_table = rpmi_hsm_match,
+ 	.init = rpmi_hsm_cold_init,
+-	.experimental = true,
+ };
+diff --git a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
+index fdb04915ba70..521e06735873 100644
+--- a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
++++ b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
+@@ -819,7 +819,6 @@ struct fdt_mailbox fdt_mailbox_rpmi_shmem = {
+ 	.driver = {
+ 		.match_table = rpmi_shmem_mbox_match,
+ 		.init = rpmi_shmem_mbox_init,
+-		.experimental = true,
+ 	},
+ 	.xlate = fdt_mailbox_simple_xlate,
+ };
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_clock.c b/lib/utils/mpxy/fdt_mpxy_rpmi_clock.c
+index 7d2b4a20c934..585c2bf348d5 100644
+--- a/lib/utils/mpxy/fdt_mpxy_rpmi_clock.c
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_clock.c
+@@ -83,5 +83,4 @@ static const struct fdt_match clock_match[] = {
+ const struct fdt_driver fdt_mpxy_rpmi_clock = {
+ 	.match_table = clock_match,
+ 	.init = mpxy_rpmi_mbox_init,
+-	.experimental = true,
+ };
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
+index b4bab85aeb95..94a5af8cf04d 100644
+--- a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
+@@ -205,5 +205,4 @@ static const struct fdt_match sysmsi_match[] = {
+ const struct fdt_driver fdt_mpxy_rpmi_sysmsi = {
+ 	.match_table = sysmsi_match,
+ 	.init = mpxy_rpmi_mbox_init,
+-	.experimental = true,
+ };
+diff --git a/lib/utils/reset/fdt_reset_rpmi.c b/lib/utils/reset/fdt_reset_rpmi.c
+index 81b21d0f5dd9..edc53932ccc0 100644
+--- a/lib/utils/reset/fdt_reset_rpmi.c
++++ b/lib/utils/reset/fdt_reset_rpmi.c
+@@ -138,5 +138,4 @@ static const struct fdt_match rpmi_reset_match[] = {
+ const struct fdt_driver fdt_reset_rpmi = {
+ 	.match_table = rpmi_reset_match,
+ 	.init = rpmi_reset_init,
+-	.experimental = true,
+ };
+diff --git a/lib/utils/suspend/fdt_suspend_rpmi.c b/lib/utils/suspend/fdt_suspend_rpmi.c
+index f9baa23c9168..055ab2ff8bb2 100644
+--- a/lib/utils/suspend/fdt_suspend_rpmi.c
++++ b/lib/utils/suspend/fdt_suspend_rpmi.c
+@@ -135,5 +135,4 @@ static const struct fdt_match rpmi_suspend_match[] = {
+ const struct fdt_driver fdt_suspend_rpmi = {
+ 	.match_table = rpmi_suspend_match,
+ 	.init = rpmi_suspend_init,
+-	.experimental = true,
+ };
 -- 
-2.17.1
+2.48.1
 
 
 -- 
