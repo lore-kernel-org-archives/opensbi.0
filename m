@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 20EFAC7EE2E
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B3A83C7EE30
 	for <opensbi@archiver.kernel.org>; Sat, 21 Jun 2025 04:37:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,51 +12,52 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=8CJejDUDP6DXRU6qvvAsaIxFcOD/YSRL0YaMa5VQh/s=; b=W6rygrNpTxDjxf
-	uyiEnluDURsnDrnxkL/wfiz6ismYcSDU8Kvzp8twGIMdaWt1ySTEm1yqtVJaGr59Xw2kxzrs2P7KD
-	40RxYehnfhYgqh+4YRfXTuOTq3zUEnjvrwTBwXFR7xkxt4vG2s/VuNnmQ/CKuQ8Pz0s+97+V9WNcj
-	nre/szqYIFtnAHaBLUfBks48BmUUup34tMTO1rwbVeg79NydPCnOBzhg22A4nb64b3Q6/MUsT1rCi
-	3gx+9YHCpbmktt9AtgAI0sV44Pd2bqbpPDLTs0OF6WFdqEv2Tku6+pC+qSAnB7WlwSZ9pFtld1x8Z
-	osfX/WC1ryVk5XDsPSMw==;
+	List-Owner; bh=KZCEUc1ChMGzjC2fV9Vje9hIbTcj01lk8uAZneEgtO4=; b=yXVABCFO6kfAK2
+	+hJu6U30lQEeBQdIRWhUuIVNTD1+Mue0yhmEU4fOQKIvyJKfb1482YKfFj87elQGpJ0/7X8/OM3hj
+	LR3fEfaZdCbwlJ9RY9zKFGBEaHLrr8jZqNNDCVXtSkwigSC8D1IRIb3R6rpfWBrlg+J6QhiGnqCHy
+	0efiFK8u45g7bPB7/JuCttTo6D/qRb3nwjF14Af27dpph3NbTmG2iCu58oUIne571Aq5SaiX62/gl
+	UGbQXbuizgF9tZzaNJkw9tKWX0eRL+MRfU3kd5LYHTE9U5qEZoEjrNm95nv2YF8HB/e6SZuaaSjDb
+	CDNewaPklRSkClEJ46jA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uSpym-0000000H61r-19Xf;
-	Sat, 21 Jun 2025 04:37:24 +0000
-Received: from m16.mail.126.com ([220.197.31.8])
+	id 1uSpyk-0000000H60Z-3BM4;
+	Sat, 21 Jun 2025 04:37:22 +0000
+Received: from m16.mail.126.com ([117.135.210.9])
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uSplw-0000000H55b-0xpW
+	id 1uSplr-0000000H54J-0pFd
 	for opensbi@lists.infradead.org;
-	Sat, 21 Jun 2025 04:24:09 +0000
+	Sat, 21 Jun 2025 04:24:04 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Ur
-	fhRGzf6I0XbkY9A3Jnv0p+mWgQzhxNJUyWUz/hk2s=; b=iT/WjsO0WQ8bOcJlYl
-	CPcqRYys4h3nzFm9lhR40nBDXlkQ4Z/qIRLBWFXFqVGoWfmbPwPhSMk9BiNyoycu
-	2irHX+CwZ7Eq/RUH2H5/sdmrIFJUDHRIfDaboqXK1yeHsJz3vPEbtVbKshNd0Qfi
-	qX4Z8uVLAsNEl7TZc89DVkiUE=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=9x
+	a8X4CJZ9PTuHOrduoOvfU8miI5f2loTOd4pZ+jZTg=; b=BMXbHTU2dMG9SJuzv5
+	vcX3rt34lFv0pMR9o6uyDQ+ot27y2LmvwshKdcP8q1XzFwIWo4wGq2oZUc4wpcYt
+	iQ+Ljow9UbPSqid5/KUS2vkk5ZBHZJUNkRYwxLPzFjeeKMIpNgupPsaWDJQxdkJ7
+	cwjV69NAeue0aFIq4YHyfEnLw=
 Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wD3362pM1Zozz3yAA--.37963S10;
-	Sat, 21 Jun 2025 12:23:12 +0800 (CST)
+	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wD3362pM1Zozz3yAA--.37963S4;
+	Sat, 21 Jun 2025 12:23:08 +0800 (CST)
 From: Xiang W <wxjstz@126.com>
 To: opensbi@lists.infradead.org
 Cc: Xiang W <wxjstz@126.com>,
 	anup@brainfault.org
-Subject: [PATCH v2 8/9] lib: sbi: Fix dtbr initialization
-Date: Sat, 21 Jun 2025 12:22:56 +0800
-Message-ID: <20250621042302.160802-9-wxjstz@126.com>
+Subject: [PATCH v2 2/9] lib: sbi: Remove wait_for_coldboot and wake_coldboot_harts
+Date: Sat, 21 Jun 2025 12:22:50 +0800
+Message-ID: <20250621042302.160802-3-wxjstz@126.com>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250621042302.160802-1-wxjstz@126.com>
 References: <20250621042302.160802-1-wxjstz@126.com>
 MIME-Version: 1.0
-X-CM-TRANSID: _____wD3362pM1Zozz3yAA--.37963S10
-X-Coremail-Antispam: 1Uf129KBjvJXoWxZw43Ww1ktF45Xr45trWDArb_yoW5Ww4kpr
-	ZagasxKrs2qryvyrZrta18Xw1fWw1xJw47J39FkFySyF1DZr1rGr13Ka4Yq3Z3CFWFyay2
-	9w4vyrZ8Ca17ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0p_g4fiUUUUU=
+X-CM-TRANSID: _____wD3362pM1Zozz3yAA--.37963S4
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJF18tF18CFy8WryDCFyDWrg_yoW8Zr4rpF
+	W3GF13KFs2qFWvg3srJ3yUWr1Yk3y8t347tr9rK34rJF4UCFn8XF1UGwnYyrZ8GrWkAa1k
+	ArWDtFyxGF48Xr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0z_l1vDUUUUU=
 X-Originating-IP: [2408:823c:b211:38d5:8750:6ca9:3f88:f953]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5BlzOmhWMwUHoQAAsa
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi1xxzOmhWM5sAzAABsZ
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250620_212408_583336_D924BED2 
-X-CRM114-Status: GOOD (  13.73  )
+X-CRM114-CacheID: sfid-20250620_212403_635074_967BEC2E 
+X-CRM114-Status: UNSURE (   7.65  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -73,97 +74,63 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Previously, dbtr initialization and extension registration were
-performed only on the coldboot HART, resulting in extension
-registration only depending on whether the coldboot HART supports
-dbtr. Now that the boot sequence has been corrected, dtbr extensions
-can be registered even if some cores support dtbr.
+Remove wait_for_coldboot and wake_coldboot_harts and use more
+general methods instead.
 
 Signed-off-by: Xiang W <wxjstz@126.com>
 ---
- lib/sbi/sbi_dbtr.c       | 29 ++++++++++++++++++++++++-----
- lib/sbi/sbi_ecall_dbtr.c |  2 +-
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ lib/sbi/sbi_init.c | 23 +++++------------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index dcf24ce5..5cfc64e4 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -23,6 +23,8 @@
- /** Offset of pointer to HART's debug triggers info in scratch space */
- static unsigned long hart_state_ptr_offset;
- 
-+static bool has_dtbr_triggers;
-+
- #define dbtr_get_hart_state_ptr(__scratch)				\
- 	sbi_scratch_read_type((__scratch), void *, hart_state_ptr_offset)
- 
-@@ -138,12 +140,10 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 	struct sbi_trap_info trap = {0};
- 	unsigned long tdata1;
- 	unsigned long val;
--	int i;
-+	int i, ret = SBI_SUCCESS;
- 	struct sbi_dbtr_hart_triggers_state *hart_state = NULL;
- 	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
--
--	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
--		return SBI_SUCCESS;
-+	static atomic_t sync_b = ATOMIC_INITIALIZER(0);
- 
- 	sbi_wait_for_boot_hart_first(coldboot, &sync_a);
- 	if (coldboot) {
-@@ -153,6 +153,9 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 	}
- 	sbi_signal_boot_hart_first_done(coldboot, &sync_a);
- 
-+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
-+		goto _exit;
-+
- 	hart_state = dbtr_get_hart_state_ptr(scratch);
- 	if (!hart_state) {
- 		hart_state = sbi_zalloc(sizeof(*hart_state));
-@@ -215,10 +218,26 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 
- 	hart_state->probed = 1;
- 
-+	if (hart_state->total_trigs > 0)
-+		has_dtbr_triggers = true;
-+
-  _probed:
- 	hart_state->available_trigs = hart_state->total_trigs;
-+_exit:
- 
--	return SBI_SUCCESS;
-+	/*
-+	 * Wait for all HARTs to complete sbi_dbtr_init to
-+	 * ensure that the following code can determine whether
-+	 * dtbr is supported
-+	 */
-+	sbi_sync_and_wait_all_harts(&sync_b);
-+
-+	return ret;
-+}
-+
-+int sbi_dbtr_supported(void)
-+{
-+	return has_dtbr_triggers;
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 84a63748..4c55b3dc 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -197,20 +197,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+ 	sbi_hart_delegation_dump(scratch, "Boot HART ", "           ");
  }
  
- int sbi_dbtr_get_total_triggers(void)
-diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
-index 40a437ee..b11490b8 100644
---- a/lib/sbi/sbi_ecall_dbtr.c
-+++ b/lib/sbi/sbi_ecall_dbtr.c
-@@ -59,7 +59,7 @@ struct sbi_ecall_extension ecall_dbtr;
+-static unsigned long coldboot_done;
+-
+-static void wait_for_coldboot(struct sbi_scratch *scratch)
+-{
+-	/* Wait for coldboot to finish */
+-	while (!__smp_load_acquire(&coldboot_done))
+-		cpu_relax();
+-}
+-
+-static void wake_coldboot_harts(struct sbi_scratch *scratch)
+-{
+-	/* Mark coldboot done */
+-	__smp_store_release(&coldboot_done, 1);
+-}
++static atomic_t coldboot_done;
  
- static int sbi_ecall_dbtr_register_extensions(void)
+ static unsigned long entry_count_offset;
+ static unsigned long init_count_offset;
+@@ -254,10 +241,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	/*
+ 	 * All non-coldboot HARTs do HSM initialization (i.e. enter HSM state
+ 	 * machine) at the start of the warmboot path so it is wasteful to
+-	 * have these HARTs busy spin in wait_for_coldboot() until coldboot
+-	 * path is completed.
++	 * have these HARTs busy spin in sbi_wait_for_boot_hart_first() until
++	 * coldboot path is completed.
+ 	 */
+-	wake_coldboot_harts(scratch);
++	sbi_signal_boot_hart_first_done(true, &coldboot_done);
+ 
+ 	rc = sbi_platform_early_init(plat, true);
+ 	if (rc)
+@@ -498,7 +485,7 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
  {
--	if (sbi_dbtr_get_total_triggers() == 0)
-+	if (!sbi_dbtr_supported())
- 		return 0;
+ 	int hstate;
  
- 	return sbi_ecall_register_extension(&ecall_dbtr);
+-	wait_for_coldboot(scratch);
++	sbi_wait_for_boot_hart_first(false, &coldboot_done);
+ 
+ 	hstate = sbi_hsm_hart_get_state(sbi_domain_thishart_ptr(), hartid);
+ 	if (hstate < 0)
 -- 
 2.47.2
 
