@@ -4,59 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 69C7FC7115C
-	for <opensbi@archiver.kernel.org>; Sat, 21 Jun 2025 04:37:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 62E2EC77B7C
+	for <opensbi@archiver.kernel.org>; Tue, 24 Jun 2025 03:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Ns8JLGK1A/+nZed88ox42xEDFj+UGxYDjq7Yx84TeR4=; b=h4LHS+r8y8xcY2
-	z7VPZIHnqYu1cSpbT1herhXZpvlVbyNSucyS4AmwOwcedD8JEbYUpsc3/DQ81fJNy0VnOLcr27oMF
-	LV51e3MgLRfeQ5N+NipSTZWCno2dBkiTYarAfzVqF5fm9kSrNK4ee3jUuGQDj3UdVUmaE7BUeP6K8
-	guFd8B2+39OiZO8+fcCo1p+2DJN3KiXu/8yu55IhHK4fzk1aduaMu/Ypf27NLbbB6ijWqOTIVRsER
-	iQO97bYywbteueX2VMNFiotw4LR8KYVYug6U07mY2/3yP/PWEHCZp24XkfMlM9srQrMP1Ybgn/5J6
-	pvzqaj42IRp/iIp+NFSg==;
+	List-Owner; bh=Qe2p6Xkovun/SrQatgbP3CzoRnhciKIyLSwATNPN6+E=; b=XYNL76P11i7Eun
+	ypN1cXRKuXnPm6hH3KHsO2YrmiBtPAsg6pFUQBU5KhzPWjVMe1w9dJhsWbtVqiD4uN/2rZX1zjdit
+	+G0iwRLFu3wO+lLgOWDsY6DBiOaSeIfKYJZ84jJrDhi4QYT/p2T1P6GLFxrMfiMcW7GS2lTf5U5L7
+	zcbHVhgZF7zBoGMsChY2Nch7/gdPJQrZjx70SSG3y2RZ4xujkOqKNm7kQjVbMU+y+LS3hUeGHcH+V
+	uphJkkZeYtv0VKbFzCNFe5CWNnaxyuXQLc9vM92lIYDS+yTzeVXmBT8UtEqTyROxI/ZeyvY8guG3N
+	GgpPSUJZxn3FNobI+wTQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uSpyi-0000000H5yq-2xes;
-	Sat, 21 Jun 2025 04:37:20 +0000
-Received: from m16.mail.126.com ([117.135.210.6])
-	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uSpl9-0000000H4zm-3Fvo
+	id 1uTu8F-00000004X5d-3kSA;
+	Tue, 24 Jun 2025 03:15:35 +0000
+Received: from mail-il1-x12a.google.com ([2607:f8b0:4864:20::12a])
+	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uTu8C-00000004X4p-1tGm
 	for opensbi@lists.infradead.org;
-	Sat, 21 Jun 2025 04:23:21 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Ca
-	RP0zwbISiu1XBalqyCZbJKfsdzg/KvHTsbclw1qVQ=; b=dsXIwHF198uTlr39OR
-	zsk9c7IhWrdA01SyhUUBVhOTHCLFQOAwB4HVqkwm2jomYECZb1mDjZnCXn7/vmd4
-	ePMnnu6dULZjTqwhlEXl22i/+/BfnqKm/CiAQao+ReHYLgtsGSZfXSgu8vHjAVqb
-	ZeQwgemcA8V8H92Bkc2SULmj0=
-Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wD3362pM1Zozz3yAA--.37963S5;
-	Sat, 21 Jun 2025 12:23:09 +0800 (CST)
-From: Xiang W <wxjstz@126.com>
-To: opensbi@lists.infradead.org
-Cc: Xiang W <wxjstz@126.com>,
-	anup@brainfault.org
-Subject: [PATCH v2 3/9] lib: sbi: Add wait operations in some initialization functions
-Date: Sat, 21 Jun 2025 12:22:51 +0800
-Message-ID: <20250621042302.160802-4-wxjstz@126.com>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250621042302.160802-1-wxjstz@126.com>
-References: <20250621042302.160802-1-wxjstz@126.com>
+	Tue, 24 Jun 2025 03:15:33 +0000
+Received: by mail-il1-x12a.google.com with SMTP id e9e14a558f8ab-3dddbe5f8aaso16339905ab.0
+        for <opensbi@lists.infradead.org>; Mon, 23 Jun 2025 20:15:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1750734931; x=1751339731; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fyT4OZR1IuX9yXyI1he4KRgzIpRYyLYntzAjLt06yrM=;
+        b=PZ7gEH4VZe71ExZvw3BpyFp2RiIAMEYRxP+/f5pADfN+w6e7N0xqi8e1K33ykGHBrx
+         GghE5MZsMEi6B/t48vywznkJC6kCKny5gXB/0nJY1qyqh5XRPlXwAPD5sMSS0qT8e9/B
+         otohPxe2pFANmB7DaYO8IOnOdI4gU57CflzS/YgRnuA192Q8H6LMjvatEia8mtwnqGoU
+         CM8Za5KavSRNSxOA9DRM1OSyYFnjw46ZnXq9OhdW5MF5kyttK4KjJFNr2imNl4jB1qo1
+         88xstV4EZCbC5wNQvE8Z9Ml8pWy2XLeJphxrWSHy+h6/13fqDlZSkCEs69jzwNEv1ASA
+         3nzQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1750734931; x=1751339731;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fyT4OZR1IuX9yXyI1he4KRgzIpRYyLYntzAjLt06yrM=;
+        b=BrrUjTVntKQnoEFP2RRB+DvelHjtIcL5hYYLuB+XJasKRaHFo5yiJOl2zsBruzzdHC
+         5VsyBzyY0vqFYRju41B94b253OD/qouXoDuvI/P06pUHiRfFHglKthEdlkTCye4j9H9K
+         X2KNNF8vCLl7iXOP/YINAT1ei0zywTVq/BmL94jsWsTzYpBWsY74Yyoe7UdNPa6ohrmf
+         hLQfYSlQChYJ6Pmm/0W76l5tPq68PFMlEwPPu8nZL3rU+oxsdrc3eQ0DXGuTyK2C4Mrm
+         yd81EnAw5QGbyJUXpLy2SY34mxj+a6vX5fHKZneog8FfEA17PgtaDabC7euq760kzn8O
+         CzXg==
+X-Gm-Message-State: AOJu0YxgFXlhyDQiszgZA1iyDvAxMxKjujjgTNoNJyNRZqiY/qRGvqoA
+	aoYWlYUoFR9hvDHqGWHTgVwLBuLB4DhGe2f3QsMZ7o+np5cwbee8cM5PbdfhgOdYU3kyaMH0Pdw
+	vpp5JFWUFK52dVDfva6BN0Q0FjFn+SC1fJ9FAmQ+rbQ==
+X-Gm-Gg: ASbGncvTEIub1OFFCRmXlaftXIJSzrBfFUUdhaYDEruZtXudwOmwjAkySOJ3v0jEJzo
+	8RYniUF2c+PuG6MwX8CFog7rSc8DyD4hkdUbpUONHk1eh6ihFkOCzrkjLdu/Co2N9fKqz3VpQYo
+	Ihpy5op2J+BUM3vaOMMtbp3vj07o/s9IXOI09GnbkFupcylXYOokdcHe1Ej4iYqwEMjfeE0HyVZ
+	A==
+X-Google-Smtp-Source: AGHT+IF6LsZ4g+eXdZL77w7J9vrQIh/e9fx1oLjD/V21C0MRWqQSEjSn0IgL/2S/oIF9mGBnFJ4/Zz/1KE04l2qcWCQ=
+X-Received: by 2002:a05:6e02:349d:b0:3dd:e6b2:1078 with SMTP id
+ e9e14a558f8ab-3df28919297mr22558175ab.6.1750734930966; Mon, 23 Jun 2025
+ 20:15:30 -0700 (PDT)
 MIME-Version: 1.0
-X-CM-TRANSID: _____wD3362pM1Zozz3yAA--.37963S5
-X-Coremail-Antispam: 1Uf129KBjvJXoWxKFWxZr18WF1UWFyUZF4fKrg_yoW3Cw1kpF
-	y5KF9rJr4vqry8K3srXa1DZrs3Gw10v3y7Gry2y34SyF48Ar1rXry2kF1Yva9xGrWUAa12
-	y3yv9ryfCF15Zr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07U0hFxUUUUU=
-X-Originating-IP: [2408:823c:b211:38d5:8750:6ca9:3f88:f953]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5BZzOmhWMwUHdwAAsD
+References: <20250618053854.2577299-1-rpathak@ventanamicro.com>
+In-Reply-To: <20250618053854.2577299-1-rpathak@ventanamicro.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 24 Jun 2025 08:45:19 +0530
+X-Gm-Features: AX0GCFu8h2rf4M9SMHOpyG0vkQYHVPk4g6r4jOa2__bArX4YZ2PHvrvb0GRBZfI
+Message-ID: <CAAhSdy1Bukigk4n9tJ0Ls+rGXjROnC9S12pjTx=1SYkvCOxKeQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] lib: utils: Add Implementation ID and Version as RPMI
+ MPXY attributes
+To: Rahul Pathak <rpathak@ventanamicro.com>
+Cc: opensbi@lists.infradead.org, rahul@summations.net
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250620_212320_185033_E48DFE01 
-X-CRM114-Status: GOOD (  11.90  )
+X-CRM114-CacheID: sfid-20250623_201532_736900_EFC0E88D 
+X-CRM114-Status: GOOD (  22.84  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -68,243 +89,105 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Many initialization functions need to wait for coldboot HART to
-complete some initialization work before other HART can continue
-to execute. This patch adds wait operations to these functions.
-
-Signed-off-by: Xiang W <wxjstz@126.com>
----
- lib/sbi/sbi_dbtr.c    | 3 +++
- lib/sbi/sbi_fwft.c    | 3 +++
- lib/sbi/sbi_hart.c    | 3 +++
- lib/sbi/sbi_ipi.c     | 3 +++
- lib/sbi/sbi_irqchip.c | 5 ++++-
- lib/sbi/sbi_pmu.c     | 3 +++
- lib/sbi/sbi_sse.c     | 3 +++
- lib/sbi/sbi_timer.c   | 3 +++
- lib/sbi/sbi_tlb.c     | 3 +++
- 9 files changed, 28 insertions(+), 1 deletion(-)
-
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index a832c7f1..dcf24ce5 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -140,15 +140,18 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot)
- 	unsigned long val;
- 	int i;
- 	struct sbi_dbtr_hart_triggers_state *hart_state = NULL;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
- 	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SDTRIG))
- 		return SBI_SUCCESS;
- 
-+	sbi_wait_for_boot_hart_first(coldboot, &sync_a);
- 	if (coldboot) {
- 		hart_state_ptr_offset = sbi_scratch_alloc_type_offset(void *);
- 		if (!hart_state_ptr_offset)
- 			return SBI_ENOMEM;
- 	}
-+	sbi_signal_boot_hart_first_done(coldboot, &sync_a);
- 
- 	hart_state = dbtr_get_hart_state_ptr(scratch);
- 	if (!hart_state) {
-diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-index a2aefb9a..612d2f2b 100644
---- a/lib/sbi/sbi_fwft.c
-+++ b/lib/sbi/sbi_fwft.c
-@@ -406,12 +406,15 @@ int sbi_fwft_init(struct sbi_scratch *scratch, bool cold_boot)
- {
- 	int i;
- 	struct fwft_hart_state *fhs;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		fwft_ptr_offset = sbi_scratch_alloc_type_offset(void *);
- 		if (!fwft_ptr_offset)
- 			return SBI_ENOMEM;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	fhs = fwft_get_hart_state_ptr(scratch);
- 	if (!fhs) {
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 61d3b26b..86eedce3 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -1047,6 +1047,7 @@ int sbi_hart_reinit(struct sbi_scratch *scratch)
- int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- {
- 	int rc;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
- 	/*
- 	 * Clear mip CSR before proceeding with init to avoid any spurious
-@@ -1054,6 +1055,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- 	 */
- 	csr_write(CSR_MIP, 0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		if (misa_extension('H'))
- 			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
-@@ -1063,6 +1065,7 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
- 		if (!hart_features_offset)
- 			return SBI_ENOMEM;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	rc = hart_detect_features(scratch);
- 	if (rc)
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 2de459b0..8aeb1e8b 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -317,7 +317,9 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- {
- 	int ret;
- 	struct sbi_ipi_data *ipi_data;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		ipi_data_off = sbi_scratch_alloc_offset(sizeof(*ipi_data));
- 		if (!ipi_data_off)
-@@ -342,6 +344,7 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- 		    SBI_IPI_EVENT_MAX <= ipi_halt_event)
- 			return SBI_ENOSPC;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	ipi_data = sbi_scratch_offset_ptr(scratch, ipi_data_off);
- 	ipi_data->ipi_type = 0x00;
-diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
-index 0594e05a..18818c22 100644
---- a/lib/sbi/sbi_irqchip.c
-+++ b/lib/sbi/sbi_irqchip.c
-@@ -6,7 +6,7 @@
-  * Authors:
-  *   Anup Patel <apatel@ventanamicro.com>
-  */
--
-+#include <sbi/sbi_hart.h>
- #include <sbi/sbi_irqchip.h>
- #include <sbi/sbi_list.h>
- #include <sbi/sbi_platform.h>
-@@ -38,12 +38,15 @@ int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot)
- 	int rc;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	struct sbi_irqchip_device *dev;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		rc = sbi_platform_irqchip_init(plat);
- 		if (rc)
- 			return rc;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	sbi_list_for_each_entry(dev, &irqchip_list, node) {
- 		if (!dev->warm_init)
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 07a5c544..842858da 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -1150,7 +1150,9 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 	struct sbi_pmu_hart_state *phs;
- 	const struct sbi_platform *plat;
- 	int rc;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		hw_event_map = sbi_calloc(sizeof(*hw_event_map),
- 					  SBI_PMU_HW_EVENT_MAX);
-@@ -1185,6 +1187,7 @@ int sbi_pmu_init(struct sbi_scratch *scratch, bool cold_boot)
- 		if (sbi_pmu_irq_bit() >= 0)
- 			sbi_sse_add_event(SBI_SSE_EVENT_LOCAL_PMU_OVERFLOW, &pmu_sse_cb_ops);
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	phs = pmu_get_hart_state_ptr(scratch);
- 	if (!phs) {
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 986b7701..63572633 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -1214,7 +1214,9 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
- 	void *sse_inject_mem;
- 	struct sse_hart_state *shs;
- 	struct sbi_fifo *sse_inject_q;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		sse_event_count_init();
- 
-@@ -1249,6 +1251,7 @@ int sbi_sse_init(struct sbi_scratch *scratch, bool cold_boot)
- 		}
- 		sse_ipi_inject_event = ret;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	shs = sse_get_hart_state_ptr(scratch);
- 	if (!shs) {
-diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
-index 4088a597..d14e53ab 100644
---- a/lib/sbi/sbi_timer.c
-+++ b/lib/sbi/sbi_timer.c
-@@ -179,7 +179,9 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
- 	u64 *time_delta;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	int ret;
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		time_delta_off = sbi_scratch_alloc_offset(sizeof(*time_delta));
- 		if (!time_delta_off)
-@@ -195,6 +197,7 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
- 		if (!time_delta_off)
- 			return SBI_ENOMEM;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	time_delta = sbi_scratch_offset_ptr(scratch, time_delta_off);
- 	*time_delta = 0;
-diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
-index 01b31f4e..69cc2dfd 100644
---- a/lib/sbi/sbi_tlb.c
-+++ b/lib/sbi/sbi_tlb.c
-@@ -419,7 +419,9 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
- 	atomic_t *tlb_sync;
- 	struct sbi_fifo *tlb_q;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-+	static atomic_t sync_a = ATOMIC_INITIALIZER(0);
- 
-+	sbi_wait_for_boot_hart_first(cold_boot, &sync_a);
- 	if (cold_boot) {
- 		tlb_sync_off = sbi_scratch_alloc_offset(sizeof(*tlb_sync));
- 		if (!tlb_sync_off)
-@@ -452,6 +454,7 @@ int sbi_tlb_init(struct sbi_scratch *scratch, bool cold_boot)
- 		if (SBI_IPI_EVENT_MAX <= tlb_event)
- 			return SBI_ENOSPC;
- 	}
-+	sbi_signal_boot_hart_first_done(cold_boot, &sync_a);
- 
- 	tlb_sync = sbi_scratch_offset_ptr(scratch, tlb_sync_off);
- 	tlb_q = sbi_scratch_offset_ptr(scratch, tlb_fifo_off);
--- 
-2.47.2
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gV2VkLCBKdW4gMTgsIDIwMjUgYXQgMTE6MDnigK9BTSBSYWh1bCBQYXRoYWsgPHJwYXRoYWtA
+dmVudGFuYW1pY3JvLmNvbT4gd3JvdGU6Cj4KPiBUaGUgbGF0ZXN0IGZyb3plbiBSUE1JIHNwZWMg
+aGFzIGFkZGVkIEltcGxlbWVudGF0aW9uIElECj4gYW5kIEltcGxlbWVudGF0aW9uIFZlcnNpb24g
+YXMgbWVzc2FnZSBwcm90b2NvbCBzcGVjaWZpYwo+IG1weHkgYXR0cmlidXRlcy4gQWRkIHN1cHBv
+cnQgZm9yIHRoZXNlLgo+Cj4gU2lnbmVkLW9mZi1ieTogUmFodWwgUGF0aGFrIDxycGF0aGFrQHZl
+bnRhbmFtaWNyby5jb20+CgpBcHBsaWVkIHRoaXMgcGF0Y2ggdG8gdGhlIHJpc2N2L29wZW5zYmkg
+cmVwby4KClRoYW5rcywKQW51cAoKPiAtLS0KPiAgaW5jbHVkZS9zYmlfdXRpbHMvbWFpbGJveC9y
+cG1pX21zZ3Byb3QuaCAgICB8ICAyICsrCj4gIGluY2x1ZGUvc2JpX3V0aWxzL21weHkvZmR0X21w
+eHlfcnBtaV9tYm94LmggfCAgOCArKysrKysrLQo+ICBsaWIvdXRpbHMvbWFpbGJveC9mZHRfbWFp
+bGJveF9ycG1pX3NobWVtLmMgIHwgIDYgKysrKysrCj4gIGxpYi91dGlscy9tcHh5L2ZkdF9tcHh5
+X3JwbWlfbWJveC5jICAgICAgICAgfCAxNSArKysrKysrKysrKysrKysKPiAgNCBmaWxlcyBjaGFu
+Z2VkLCAzMCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCj4KPiBkaWZmIC0tZ2l0IGEvaW5j
+bHVkZS9zYmlfdXRpbHMvbWFpbGJveC9ycG1pX21zZ3Byb3QuaCBiL2luY2x1ZGUvc2JpX3V0aWxz
+L21haWxib3gvcnBtaV9tc2dwcm90LmgKPiBpbmRleCBlMzE3YmEwOTdjMTcuLmM3OTA3MGE2ZjEy
+MSAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL3NiaV91dGlscy9tYWlsYm94L3JwbWlfbXNncHJvdC5o
+Cj4gKysrIGIvaW5jbHVkZS9zYmlfdXRpbHMvbWFpbGJveC9ycG1pX21zZ3Byb3QuaAo+IEBAIC0x
+OTgsNiArMTk4LDggQEAgZW51bSBycG1pX2NoYW5uZWxfYXR0cmlidXRlX2lkIHsKPiAgICAgICAg
+IFJQTUlfQ0hBTk5FTF9BVFRSX1JYX1RJTUVPVVQsCj4gICAgICAgICBSUE1JX0NIQU5ORUxfQVRU
+Ul9TRVJWSUNFR1JPVVBfSUQsCj4gICAgICAgICBSUE1JX0NIQU5ORUxfQVRUUl9TRVJWSUNFR1JP
+VVBfVkVSU0lPTiwKPiArICAgICAgIFJQTUlfQ0hBTk5FTF9BVFRSX0lNUExfSUQsCj4gKyAgICAg
+ICBSUE1JX0NIQU5ORUxfQVRUUl9JTVBMX1ZFUlNJT04sCj4gICAgICAgICBSUE1JX0NIQU5ORUxf
+QVRUUl9NQVgsCj4gIH07Cj4KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmlfdXRpbHMvbXB4eS9m
+ZHRfbXB4eV9ycG1pX21ib3guaCBiL2luY2x1ZGUvc2JpX3V0aWxzL21weHkvZmR0X21weHlfcnBt
+aV9tYm94LmgKPiBpbmRleCAwNjhhMWE1NTdmZTIuLjNhMWMxMTc3NDg1MSAxMDA2NDQKPiAtLS0g
+YS9pbmNsdWRlL3NiaV91dGlscy9tcHh5L2ZkdF9tcHh5X3JwbWlfbWJveC5oCj4gKysrIGIvaW5j
+bHVkZS9zYmlfdXRpbHMvbXB4eS9mZHRfbXB4eV9ycG1pX21ib3guaAo+IEBAIC0yMiw3ICsyMiw5
+IEBACj4gIGVudW0gbXB4eV9tc2dwcm90X3JwbWlfYXR0cl9pZCB7Cj4gICAgICAgICBNUFhZX01T
+R1BST1RfUlBNSV9BVFRSX1NFUlZJQ0VHUk9VUF9JRCA9IFNCSV9NUFhZX0FUVFJfTVNHUFJPVE9f
+QVRUUl9TVEFSVCwKPiAgICAgICAgIE1QWFlfTVNHUFJPVF9SUE1JX0FUVFJfU0VSVklDRUdST1VQ
+X1ZFUlNJT04sCj4gLSAgICAgICBNUFhZX01TR1BST1RfUlBNSV9BVFRSX01BWF9JRCwKPiArICAg
+ICAgIE1QWFlfTVNHUFJPVF9SUE1JX0FUVFJfSU1QTF9JRCwKPiArICAgICAgIE1QWFlfTVNHUFJP
+VF9SUE1JX0FUVFJfSU1QTF9WRVJTSU9OLAo+ICsgICAgICAgTVBYWV9NU0dQUk9UX1JQTUlfQVRU
+Ul9NQVhfSUQKPiAgfTsKPgo+ICAvKioKPiBAQCAtMzMsNiArMzUsOCBAQCBlbnVtIG1weHlfbXNn
+cHJvdF9ycG1pX2F0dHJfaWQgewo+ICBzdHJ1Y3QgbXB4eV9ycG1pX2NoYW5uZWxfYXR0cnMgewo+
+ICAgICAgICAgdTMyIHNlcnZpY2VncnBfaWQ7Cj4gICAgICAgICB1MzIgc2VydmljZWdycF92ZXI7
+Cj4gKyAgICAgICB1MzIgaW1wbF9pZDsKPiArICAgICAgIHUzMiBpbXBsX3ZlcjsKPiAgfTsKPgo+
+ICAvKiogTWFrZSBzdXJlIGFsbCBhdHRyaWJ1dGVzIGFyZSBwYWNrZWQgZm9yIGRpcmVjdCBtZW1j
+cHkgKi8KPiBAQCAtNDUsNiArNDksOCBAQCBzdHJ1Y3QgbXB4eV9ycG1pX2NoYW5uZWxfYXR0cnMg
+ewo+Cj4gIGFzc2VydF9maWVsZF9vZmZzZXQoc2VydmljZWdycF9pZCwgTVBYWV9NU0dQUk9UX1JQ
+TUlfQVRUUl9TRVJWSUNFR1JPVVBfSUQpOwo+ICBhc3NlcnRfZmllbGRfb2Zmc2V0KHNlcnZpY2Vn
+cnBfdmVyLCBNUFhZX01TR1BST1RfUlBNSV9BVFRSX1NFUlZJQ0VHUk9VUF9WRVJTSU9OKTsKPiAr
+YXNzZXJ0X2ZpZWxkX29mZnNldChpbXBsX2lkLCBNUFhZX01TR1BST1RfUlBNSV9BVFRSX0lNUExf
+SUQpOwo+ICthc3NlcnRfZmllbGRfb2Zmc2V0KGltcGxfdmVyLCBNUFhZX01TR1BST1RfUlBNSV9B
+VFRSX0lNUExfVkVSU0lPTik7Cj4KPiAgLyoqIE1QWFkgUlBNSSBzZXJ2aWNlIGRhdGEgZm9yIGVh
+Y2ggc2VydmljZSBncm91cCAqLwo+ICBzdHJ1Y3QgbXB4eV9ycG1pX3NlcnZpY2VfZGF0YSB7Cj4g
+ZGlmZiAtLWdpdCBhL2xpYi91dGlscy9tYWlsYm94L2ZkdF9tYWlsYm94X3JwbWlfc2htZW0uYyBi
+L2xpYi91dGlscy9tYWlsYm94L2ZkdF9tYWlsYm94X3JwbWlfc2htZW0uYwo+IGluZGV4IGFhZDY4
+YjVhOTk2Yi4uZmRiMDQ5MTViYTcwIDEwMDY0NAo+IC0tLSBhL2xpYi91dGlscy9tYWlsYm94L2Zk
+dF9tYWlsYm94X3JwbWlfc2htZW0uYwo+ICsrKyBiL2xpYi91dGlscy9tYWlsYm94L2ZkdF9tYWls
+Ym94X3JwbWlfc2htZW0uYwo+IEBAIC01MjMsNiArNTIzLDEyIEBAIHN0YXRpYyBpbnQgcnBtaV9z
+aG1lbV9tYm94X2dldF9hdHRyaWJ1dGUoc3RydWN0IG1ib3hfY2hhbiAqY2hhbiwKPiAgICAgICAg
+IGNhc2UgUlBNSV9DSEFOTkVMX0FUVFJfU0VSVklDRUdST1VQX1ZFUlNJT046Cj4gICAgICAgICAg
+ICAgICAgICooKHUzMiAqKW91dF92YWx1ZSkgPSBzcnZncnBfY2hhbi0+c2VydmljZWdyb3VwX3Zl
+cnNpb247Cj4gICAgICAgICAgICAgICAgIGJyZWFrOwo+ICsgICAgICAgY2FzZSBSUE1JX0NIQU5O
+RUxfQVRUUl9JTVBMX0lEOgo+ICsgICAgICAgICAgICAgICAqKCh1MzIgKilvdXRfdmFsdWUpID0g
+bWN0bC0+aW1wbF9pZDsKPiArICAgICAgICAgICAgICAgYnJlYWs7Cj4gKyAgICAgICBjYXNlIFJQ
+TUlfQ0hBTk5FTF9BVFRSX0lNUExfVkVSU0lPTjoKPiArICAgICAgICAgICAgICAgKigodTMyICop
+b3V0X3ZhbHVlKSA9IG1jdGwtPmltcGxfdmVyc2lvbjsKPiArICAgICAgICAgICAgICAgYnJlYWs7
+Cj4gICAgICAgICBkZWZhdWx0Ogo+ICAgICAgICAgICAgICAgICByZXR1cm4gU0JJX0VOT1RTVVBQ
+Owo+ICAgICAgICAgfQo+IGRpZmYgLS1naXQgYS9saWIvdXRpbHMvbXB4eS9mZHRfbXB4eV9ycG1p
+X21ib3guYyBiL2xpYi91dGlscy9tcHh5L2ZkdF9tcHh5X3JwbWlfbWJveC5jCj4gaW5kZXggNDhk
+ZmU0NzYyNzk5Li44NGI3YTY3ZGM3YTQgMTAwNjQ0Cj4gLS0tIGEvbGliL3V0aWxzL21weHkvZmR0
+X21weHlfcnBtaV9tYm94LmMKPiArKysgYi9saWIvdXRpbHMvbXB4eS9mZHRfbXB4eV9ycG1pX21i
+b3guYwo+IEBAIC0yMTMsNiArMjEzLDcgQEAgc3RhdGljIGludCBtcHh5X21ib3hfc2VuZF9tZXNz
+YWdlX3dpdGhvdXRyZXNwKHN0cnVjdCBzYmlfbXB4eV9jaGFubmVsICpjaGFubmVsLAo+ICBpbnQg
+bXB4eV9ycG1pX21ib3hfaW5pdChjb25zdCB2b2lkICpmZHQsIGludCBub2Rlb2ZmLCBjb25zdCBz
+dHJ1Y3QgZmR0X21hdGNoICptYXRjaCkKPiAgewo+ICAgICAgICAgdTMyIGNoYW5uZWxfaWQsIHNl
+cnZpY2VncnBfdmVyLCBwcm9fdmVyLCBtYXhfZGF0YV9sZW4sIHR4X3RvdXQsIHJ4X3RvdXQ7Cj4g
+KyAgICAgICB1MzIgaW1wbF9pZCwgaW1wbF92ZXI7Cj4gICAgICAgICBjb25zdCBzdHJ1Y3QgbXB4
+eV9ycG1pX21ib3hfZGF0YSAqZGF0YSA9IG1hdGNoLT5kYXRhOwo+ICAgICAgICAgc3RydWN0IG1w
+eHlfcnBtaV9tYm94ICpybWI7Cj4gICAgICAgICBzdHJ1Y3QgbWJveF9jaGFuICpjaGFuOwo+IEBA
+IC0yNzAsNiArMjcxLDE4IEBAIGludCBtcHh5X3JwbWlfbWJveF9pbml0KGNvbnN0IHZvaWQgKmZk
+dCwgaW50IG5vZGVvZmYsIGNvbnN0IHN0cnVjdCBmZHRfbWF0Y2ggKm1hCj4gICAgICAgICBpZiAo
+cmMpCj4gICAgICAgICAgICAgICAgIGdvdG8gZmFpbF9mcmVlX2NoYW47Cj4KPiArICAgICAgIC8q
+IEdldCBjaGFubmVsIGltcGxlbWVudGF0aW9uIGlkICovCj4gKyAgICAgICByYyA9IG1ib3hfY2hh
+bl9nZXRfYXR0cmlidXRlKGNoYW4sIFJQTUlfQ0hBTk5FTF9BVFRSX0lNUExfSUQsCj4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICZpbXBsX2lkKTsKPiArICAgICAgIGlmIChy
+YykKPiArICAgICAgICAgICAgICAgZ290byBmYWlsX2ZyZWVfY2hhbjsKPiArCj4gKyAgICAgICAv
+KiBHZXQgY2hhbm5lbCBpbXBsZW1lbnRhdGlvbiB2ZXJzaW9uICovCj4gKyAgICAgICByYyA9IG1i
+b3hfY2hhbl9nZXRfYXR0cmlidXRlKGNoYW4sIFJQTUlfQ0hBTk5FTF9BVFRSX0lNUExfVkVSU0lP
+TiwKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgJmltcGxfdmVyKTsKPiAr
+ICAgICAgIGlmIChyYykKPiArICAgICAgICAgICAgICAgZ290byBmYWlsX2ZyZWVfY2hhbjsKPiAr
+Cj4gICAgICAgICAvKgo+ICAgICAgICAgICogVGhlICJyaXNjdixzYmktbXB4eS1jaGFubmVsLWlk
+IiBEVCBwcm9wZXJ0eSBpcyBtYW5kYXRvcnkKPiAgICAgICAgICAqIGZvciBNUFhZIFJQTUkgbWFp
+bGJveCBjbGllbnQgZHJpdmVyIHNvIGlmIHRoaXMgaXMgbm90Cj4gQEAgLTMxNiw2ICszMjksOCBA
+QCBpbnQgbXB4eV9ycG1pX21ib3hfaW5pdChjb25zdCB2b2lkICpmZHQsIGludCBub2Rlb2ZmLCBj
+b25zdCBzdHJ1Y3QgZmR0X21hdGNoICptYQo+ICAgICAgICAgLyogUlBNSSBzZXJ2aWNlIGdyb3Vw
+IGF0dHJpYnV0ZXMgKi8KPiAgICAgICAgIHJtYi0+bXNncHJvdF9hdHRycy5zZXJ2aWNlZ3JwX2lk
+ID0gZGF0YS0+c2VydmljZWdycF9pZDsKPiAgICAgICAgIHJtYi0+bXNncHJvdF9hdHRycy5zZXJ2
+aWNlZ3JwX3ZlciA9IHNlcnZpY2VncnBfdmVyOwo+ICsgICAgICAgcm1iLT5tc2dwcm90X2F0dHJz
+LmltcGxfaWQgPSBpbXBsX2lkOwo+ICsgICAgICAgcm1iLT5tc2dwcm90X2F0dHJzLmltcGxfdmVy
+ID0gaW1wbF92ZXI7Cj4KPiAgICAgICAgIHJtYi0+bWJveF9kYXRhID0gZGF0YTsKPiAgICAgICAg
+IHJtYi0+Y2hhbiA9IGNoYW47Cj4gLS0KPiAyLjQ4LjEKPgo+Cj4gLS0KPiBvcGVuc2JpIG1haWxp
+bmcgbGlzdAo+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5pbmZy
+YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQoKLS0gCm9wZW5zYmkgbWFpbGluZyBs
+aXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
