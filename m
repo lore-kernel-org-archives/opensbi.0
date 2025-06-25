@@ -4,56 +4,103 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 64770C77B7C
-	for <opensbi@archiver.kernel.org>; Wed, 25 Jun 2025 03:16:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id D4DC0C77B7C
+	for <opensbi@archiver.kernel.org>; Wed, 25 Jun 2025 05:32:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:CC:To:From:Reply-To:Content-ID:Content-Description:
+	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=53LqWBtnTq4syKTuxOEoE9Jf59TiuZkQ5JOyanbk3EE=; b=ThU0ghkiLSwAzI
-	frKQIlzHzDBk8c2txjNC1Q0WwydZ8hhaGzEOpUMn/28c031BK2KFj2zIEogL8oeous/kk9eJEzYIr
-	gHzr+RPtGkr87vffKzZc11FppIEWsciybObBhnEXIEufUXc+mGgthWI44rgSvbKyHVh/kzVID4ZwF
-	HqBryY5O9kkaOP9OiFCd9gKe5K2jkHYcn4aPWCwS8aJK4BsuHcyyuWFdUoFxRFgJUtB87aVhHPNZZ
-	CsjQLF/4jmeeRINLy3lRIweq1o7RF0tOBZgs1z43Kb1Dvbk4/9idlXEZZQM2lF8FQ4toRwo1Apt1b
-	nJIf7COe8MGvndCjNdEQ==;
+	List-Owner; bh=T6Jt+1Jkr0YjYVit1pYcufwHYVA+9nD+E7kYrAaCkeY=; b=Kdes6TsFzdgwrD
+	LVSEJoU2AqMbIEH37rJj/SjRNvMtmvbRLQJYmfwRyIU/zHhDbBmkWzr/+vbvoSonSOTAO40HDp/Vh
+	Ax7oR2IDYYzYTmDoTCG4M/pbEJEopTgPEhvnZCA5VsvF9K4dUntpctGskJreKNjmHd7VWU2vC4Igg
+	VyCIukD8won4kJ0r9fP0c5igK98gOLtlrmFcgwjH50aFO9LVAOWnZuAlsB3F3f1c462ZXgs3zzATJ
+	nLarP8GqcvTSaNyx7EV8coxExOu7f2TZLxIwV4XO+jPkUJnb8ThFQju6yb2tYGu+HpLqfDfZHZvqY
+	JJNtUOVfNie5BZojoFLA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uUGcr-00000007OQZ-0liv;
-	Wed, 25 Jun 2025 03:16:41 +0000
-Received: from 60-248-80-70.hinet-ip.hinet.net ([60.248.80.70] helo=Atcsqr.andestech.com)
-	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uUGcn-00000007OP3-3bpk
+	id 1uUIk2-00000007aWj-2u54;
+	Wed, 25 Jun 2025 05:32:14 +0000
+Received: from m16.mail.126.com ([117.135.210.6])
+	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uUIk0-00000007aW1-1GM2
 	for opensbi@lists.infradead.org;
-	Wed, 25 Jun 2025 03:16:39 +0000
-Received: from mail.andestech.com (ATCPCS31.andestech.com [10.0.1.89])
-	by Atcsqr.andestech.com with ESMTPS id 55P3GOWQ013576
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 25 Jun 2025 11:16:24 +0800 (+08)
-	(envelope-from alvinga@andestech.com)
-Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS31.andestech.com
- (10.0.1.89) with Microsoft SMTP Server id 14.3.498.0; Wed, 25 Jun 2025
- 11:16:21 +0800
-From: Alvin Chang <alvinga@andestech.com>
-To: <opensbi@lists.infradead.org>
-CC: <anup@brainfault.org>, <peter.lin@sifive.com>,
-        Alvin Chang
-	<alvinga@andestech.com>
-Subject: [PATCH v2 2/2] firmware: Initial compiler built-in stack protector support
-Date: Wed, 25 Jun 2025 11:16:13 +0800
-Message-ID: <20250625031613.1375191-3-alvinga@andestech.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250625031613.1375191-1-alvinga@andestech.com>
+	Wed, 25 Jun 2025 05:32:14 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
+	MIME-Version; bh=2Dm5MXYp8aEsfDUWs7o0/lNAxISf7bFQHdeMSlIKQX0=;
+	b=VW5vzMvOa1eGY0UBvKPwHIWHDFBXvY4BehYv2PuA3XgY3ET5qGP9qs5E8G0i5L
+	70PZfbc6rb81qyFD4yiG0vq0x7GQYNBhI9ere7dpBE0vYgsDvsGvykHDfYBSozE9
+	MBfe4cFLiK/Um13xPqs3FNCRXsHYvfgClSNSRwJFmQohk=
+Received: from [127.0.0.1] (unknown [])
+	by gzga-smtp-mtada-g1-0 (Coremail) with SMTP id _____wDnP_zNiVtozZShAQ--.2896S2;
+	Wed, 25 Jun 2025 13:31:59 +0800 (CST)
+Message-ID: <da9ed4eb25f8ac587c5d366178ef7377b352fa4f.camel@126.com>
+Subject: Re: [PATCH v2 2/2] firmware: Initial compiler built-in stack
+ protector support
+From: Xiang W <wxjstz@126.com>
+To: Alvin Chang <alvinga@andestech.com>, opensbi@lists.infradead.org
+Cc: anup@brainfault.org, peter.lin@sifive.com
+Date: Wed, 25 Jun 2025 13:31:56 +0800
+In-Reply-To: <20250625031613.1375191-3-alvinga@andestech.com>
 References: <20250625031613.1375191-1-alvinga@andestech.com>
+	 <20250625031613.1375191-3-alvinga@andestech.com>
+Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
+ keydata=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
+User-Agent: Evolution 3.56.1-1 
 MIME-Version: 1.0
-X-Originating-IP: [10.0.15.183]
-X-DKIM-Results: atcpcs31.andestech.com; dkim=none;
-X-DNSRBL: 
-X-MAIL: Atcsqr.andestech.com 55P3GOWQ013576
+X-CM-TRANSID: _____wDnP_zNiVtozZShAQ--.2896S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxZw45Cw1UJw4UGF4ktF4kXrb_yoWrtryrpa
+	s7CFy3KFWUJw1ftrZxJr15urWrJw4kt3y2kwnrJw1DAwn5u3s7ZFZrta1vqF1kAr9Iyw4U
+	u3WjgrnFka9Fq37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRiXocUUUUU=
+X-Originating-IP: [2408:823c:b211:38d5:8750:6ca9:3f88:f953]
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbiFwV3OmhbgEKL0QAAs0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250624_201638_410283_B19A849C 
-X-CRM114-Status: GOOD (  13.65  )
+X-CRM114-CacheID: sfid-20250624_223212_740891_B27EB10B 
+X-CRM114-Status: GOOD (  19.04  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -65,148 +112,91 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add __stack_chk_fail() and __stack_chk_guard variable which are used by
-compiler built-in stack protector.
-
-This patch just try to support stack-protector so the value of the stack
-guard variable is simply fixed for now. It could be improved by
-deriving from a random number generator, such as Zkr extension or any
-platform-specific random number sources.
-
-Introduce three configurations for the stack protector:
-1. CONFIG_STACK_PROTECTOR to enable the stack protector feature by
-   providing "-fstack-protector" compiler flag
-2. CONFIG_STACK_PROTECTOR_STRONG to provide "-fstack-protector-strong"
-3. CONFIG_STACK_PROTECTOR_ALL to provide "-fstack-protector-all"
-
-Instead of fixing the compiler flag of stack-protector feature as
-"-fstack-protector", we derive it from the introduced Kconfig
-configurations. The compiler flag "stack-protector-cflags-y" is defined
-as Makefile "immediately expanded variables" with ":=". Thus, the
-stronger configuration of the stack protector can overwrite the
-preceding one.
-
-Signed-off-by: Alvin Chang <alvinga@andestech.com>
----
- firmware/Kconfig              | 27 +++++++++++++++++++++++++++
- firmware/fw_base.S            | 17 +++++++++++++++++
- firmware/objects.mk           |  9 +++++++++
- firmware/payloads/test_head.S | 17 +++++++++++++++++
- 4 files changed, 70 insertions(+)
-
-diff --git a/firmware/Kconfig b/firmware/Kconfig
-index d6e0506..c1fee19 100644
---- a/firmware/Kconfig
-+++ b/firmware/Kconfig
-@@ -1 +1,28 @@
- # SPDX-License-Identifier: BSD-2-Clause
-+
-+menu "Stack Protector Support"
-+
-+config STACK_PROTECTOR
-+	bool "Stack Protector buffer overflow detection"
-+	default n
-+	help
-+	  This option turns on the "stack-protector" compiler feature.
-+
-+config STACK_PROTECTOR_STRONG
-+	bool "Strong Stack Protector"
-+	depends on STACK_PROTECTOR
-+	default n
-+	help
-+	  Turn on the "stack-protector" with "-fstack-protector-strong" option.
-+	  Like -fstack-protector but includes additional functions to be
-+	  protected.
-+
-+config STACK_PROTECTOR_ALL
-+	bool "Almighty Stack Protector"
-+	depends on STACK_PROTECTOR
-+	default n
-+	help
-+	  Turn on the "stack-protector" with "-fstack-protector-all" option.
-+	  Like -fstack-protector except that all functions are protected.
-+
-+endmenu
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 2498797..9dc73d0 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -736,6 +736,23 @@ _reset_regs:
- 
- 	ret
- 
-+	/* This will be called when the stack corruption is detected */
-+	.section .text
-+	.align 3
-+	.globl __stack_chk_fail
-+	.type __stack_chk_fail, %function
-+__stack_chk_fail:
-+	wfi
-+	j	__stack_chk_fail
-+
-+	/* Initial value of the stack guard variable */
-+	.section .data
-+	.align 3
-+	.globl __stack_chk_guard
-+	.type __stack_chk_guard, %object
-+__stack_chk_guard:
-+	RISCV_PTR	0x95B5FF5A
-+
- #ifdef FW_FDT_PATH
- 	.section .rodata
- 	.align 4
-diff --git a/firmware/objects.mk b/firmware/objects.mk
-index a90485d..bfec467 100644
---- a/firmware/objects.mk
-+++ b/firmware/objects.mk
-@@ -66,3 +66,12 @@ endif
- ifdef FW_OPTIONS
- firmware-genflags-y += -DFW_OPTIONS=$(FW_OPTIONS)
- endif
-+
-+ifeq ($(CONFIG_STACK_PROTECTOR),y)
-+stack-protector-cflags-$(CONFIG_STACK_PROTECTOR) := -fstack-protector
-+stack-protector-cflags-$(CONFIG_STACK_PROTECTOR_STRONG) := -fstack-protector-strong
-+stack-protector-cflags-$(CONFIG_STACK_PROTECTOR_ALL) := -fstack-protector-all
-+else
-+stack-protector-cflags-y := -fno-stack-protector
-+endif
-+firmware-cflags-y += $(stack-protector-cflags-y)
-diff --git a/firmware/payloads/test_head.S b/firmware/payloads/test_head.S
-index 7d25e07..b5fd46b 100644
---- a/firmware/payloads/test_head.S
-+++ b/firmware/payloads/test_head.S
-@@ -97,3 +97,20 @@ _boot_a0:
- 	RISCV_PTR	0
- _boot_a1:
- 	RISCV_PTR	0
-+
-+	/* This will be called when the stack corruption is detected */
-+	.section .text
-+	.align 3
-+	.globl __stack_chk_fail
-+	.type __stack_chk_fail, %function
-+__stack_chk_fail:
-+	wfi
-+	j	__stack_chk_fail
-+
-+	/* Initial value of the stack guard variable */
-+	.section .data
-+	.align 3
-+	.globl __stack_chk_guard
-+	.type __stack_chk_guard, %object
-+__stack_chk_guard:
-+	RISCV_PTR	0x95B5FF5A
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+5ZyoIDIwMjUtMDYtMjXkuInnmoQgMTE6MTYgKzA4MDDvvIxBbHZpbiBDaGFuZ+WGmemBk++8mgo+
+IEFkZCBfX3N0YWNrX2Noa19mYWlsKCkgYW5kIF9fc3RhY2tfY2hrX2d1YXJkIHZhcmlhYmxlIHdo
+aWNoIGFyZSB1c2VkIGJ5Cj4gY29tcGlsZXIgYnVpbHQtaW4gc3RhY2sgcHJvdGVjdG9yLgo+IAo+
+IFRoaXMgcGF0Y2gganVzdCB0cnkgdG8gc3VwcG9ydCBzdGFjay1wcm90ZWN0b3Igc28gdGhlIHZh
+bHVlIG9mIHRoZSBzdGFjawo+IGd1YXJkIHZhcmlhYmxlIGlzIHNpbXBseSBmaXhlZCBmb3Igbm93
+LiBJdCBjb3VsZCBiZSBpbXByb3ZlZCBieQo+IGRlcml2aW5nIGZyb20gYSByYW5kb20gbnVtYmVy
+IGdlbmVyYXRvciwgc3VjaCBhcyBaa3IgZXh0ZW5zaW9uIG9yIGFueQo+IHBsYXRmb3JtLXNwZWNp
+ZmljIHJhbmRvbSBudW1iZXIgc291cmNlcy4KPiAKPiBJbnRyb2R1Y2UgdGhyZWUgY29uZmlndXJh
+dGlvbnMgZm9yIHRoZSBzdGFjayBwcm90ZWN0b3I6Cj4gMS4gQ09ORklHX1NUQUNLX1BST1RFQ1RP
+UiB0byBlbmFibGUgdGhlIHN0YWNrIHByb3RlY3RvciBmZWF0dXJlIGJ5Cj4gwqDCoCBwcm92aWRp
+bmcgIi1mc3RhY2stcHJvdGVjdG9yIiBjb21waWxlciBmbGFnCj4gMi4gQ09ORklHX1NUQUNLX1BS
+T1RFQ1RPUl9TVFJPTkcgdG8gcHJvdmlkZSAiLWZzdGFjay1wcm90ZWN0b3Itc3Ryb25nIgo+IDMu
+IENPTkZJR19TVEFDS19QUk9URUNUT1JfQUxMIHRvIHByb3ZpZGUgIi1mc3RhY2stcHJvdGVjdG9y
+LWFsbCIKPiAKPiBJbnN0ZWFkIG9mIGZpeGluZyB0aGUgY29tcGlsZXIgZmxhZyBvZiBzdGFjay1w
+cm90ZWN0b3IgZmVhdHVyZSBhcwo+ICItZnN0YWNrLXByb3RlY3RvciIsIHdlIGRlcml2ZSBpdCBm
+cm9tIHRoZSBpbnRyb2R1Y2VkIEtjb25maWcKPiBjb25maWd1cmF0aW9ucy4gVGhlIGNvbXBpbGVy
+IGZsYWcgInN0YWNrLXByb3RlY3Rvci1jZmxhZ3MteSIgaXMgZGVmaW5lZAo+IGFzIE1ha2VmaWxl
+ICJpbW1lZGlhdGVseSBleHBhbmRlZCB2YXJpYWJsZXMiIHdpdGggIjo9Ii4gVGh1cywgdGhlCj4g
+c3Ryb25nZXIgY29uZmlndXJhdGlvbiBvZiB0aGUgc3RhY2sgcHJvdGVjdG9yIGNhbiBvdmVyd3Jp
+dGUgdGhlCj4gcHJlY2VkaW5nIG9uZS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBBbHZpbiBDaGFuZyA8
+YWx2aW5nYUBhbmRlc3RlY2guY29tPgo+IC0tLQo+IMKgZmlybXdhcmUvS2NvbmZpZ8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgIHwgMjcgKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gwqBm
+aXJtd2FyZS9md19iYXNlLlPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHwgMTcgKysrKysrKysrKysr
+KysrKysKPiDCoGZpcm13YXJlL29iamVjdHMubWvCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqAgOSAr
+KysrKysrKysKPiDCoGZpcm13YXJlL3BheWxvYWRzL3Rlc3RfaGVhZC5TIHwgMTcgKysrKysrKysr
+KysrKysrKysKPiDCoDQgZmlsZXMgY2hhbmdlZCwgNzAgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYg
+LS1naXQgYS9maXJtd2FyZS9LY29uZmlnIGIvZmlybXdhcmUvS2NvbmZpZwo+IGluZGV4IGQ2ZTA1
+MDYuLmMxZmVlMTkgMTAwNjQ0Cj4gLS0tIGEvZmlybXdhcmUvS2NvbmZpZwo+ICsrKyBiL2Zpcm13
+YXJlL0tjb25maWcKPiBAQCAtMSArMSwyOCBAQAo+IMKgIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmll
+cjogQlNELTItQ2xhdXNlCj4gKwo+ICttZW51ICJTdGFjayBQcm90ZWN0b3IgU3VwcG9ydCIKPiAr
+Cj4gK2NvbmZpZyBTVEFDS19QUk9URUNUT1IKPiArCWJvb2wgIlN0YWNrIFByb3RlY3RvciBidWZm
+ZXIgb3ZlcmZsb3cgZGV0ZWN0aW9uIgo+ICsJZGVmYXVsdCBuCj4gKwloZWxwCj4gKwnCoCBUaGlz
+IG9wdGlvbiB0dXJucyBvbiB0aGUgInN0YWNrLXByb3RlY3RvciIgY29tcGlsZXIgZmVhdHVyZS4K
+PiArCj4gK2NvbmZpZyBTVEFDS19QUk9URUNUT1JfU1RST05HCj4gKwlib29sICJTdHJvbmcgU3Rh
+Y2sgUHJvdGVjdG9yIgo+ICsJZGVwZW5kcyBvbiBTVEFDS19QUk9URUNUT1IKPiArCWRlZmF1bHQg
+bgo+ICsJaGVscAo+ICsJwqAgVHVybiBvbiB0aGUgInN0YWNrLXByb3RlY3RvciIgd2l0aCAiLWZz
+dGFjay1wcm90ZWN0b3Itc3Ryb25nIiBvcHRpb24uCj4gKwnCoCBMaWtlIC1mc3RhY2stcHJvdGVj
+dG9yIGJ1dCBpbmNsdWRlcyBhZGRpdGlvbmFsIGZ1bmN0aW9ucyB0byBiZQo+ICsJwqAgcHJvdGVj
+dGVkLgo+ICsKPiArY29uZmlnIFNUQUNLX1BST1RFQ1RPUl9BTEwKPiArCWJvb2wgIkFsbWlnaHR5
+IFN0YWNrIFByb3RlY3RvciIKPiArCWRlcGVuZHMgb24gU1RBQ0tfUFJPVEVDVE9SCj4gKwlkZWZh
+dWx0IG4KPiArCWhlbHAKPiArCcKgIFR1cm4gb24gdGhlICJzdGFjay1wcm90ZWN0b3IiIHdpdGgg
+Ii1mc3RhY2stcHJvdGVjdG9yLWFsbCIgb3B0aW9uLgo+ICsJwqAgTGlrZSAtZnN0YWNrLXByb3Rl
+Y3RvciBleGNlcHQgdGhhdCBhbGwgZnVuY3Rpb25zIGFyZSBwcm90ZWN0ZWQuCj4gKwo+ICtlbmRt
+ZW51Cj4gZGlmZiAtLWdpdCBhL2Zpcm13YXJlL2Z3X2Jhc2UuUyBiL2Zpcm13YXJlL2Z3X2Jhc2Uu
+Uwo+IGluZGV4IDI0OTg3OTcuLjlkYzczZDAgMTAwNjQ0Cj4gLS0tIGEvZmlybXdhcmUvZndfYmFz
+ZS5TCj4gKysrIGIvZmlybXdhcmUvZndfYmFzZS5TCj4gQEAgLTczNiw2ICs3MzYsMjMgQEAgX3Jl
+c2V0X3JlZ3M6Cj4gwqAKPiDCoAlyZXQKPiDCoAo+ICsJLyogVGhpcyB3aWxsIGJlIGNhbGxlZCB3
+aGVuIHRoZSBzdGFjayBjb3JydXB0aW9uIGlzIGRldGVjdGVkICovCj4gKwkuc2VjdGlvbiAudGV4
+dAo+ICsJLmFsaWduIDMKPiArCS5nbG9ibCBfX3N0YWNrX2Noa19mYWlsCj4gKwkudHlwZSBfX3N0
+YWNrX2Noa19mYWlsLCAlZnVuY3Rpb24KClRoZSBmdW5jdGlvbiBjYW4gYmUgcmVtb3ZlZCB0byBj
+cmVhdGUgYW4gYWxpYXMsIGFzIHNob3duIGJlbG93OgoKPiArX19zdGFja19jaGtfZmFpbDoKPiAr
+CXdmaQo+ICsJaglfX3N0YWNrX2Noa19mYWlsCgoJLmVxdSAgX19zdGFja19jaGtfZmFpbCwgX3N0
+YXJ0X2hhbmcKClJlZ2FyZHMsClhpYW5nIFcKPiArCj4gKwkvKiBJbml0aWFsIHZhbHVlIG9mIHRo
+ZSBzdGFjayBndWFyZCB2YXJpYWJsZSAqLwo+ICsJLnNlY3Rpb24gLmRhdGEKPiArCS5hbGlnbiAz
+Cj4gKwkuZ2xvYmwgX19zdGFja19jaGtfZ3VhcmQKPiArCS50eXBlIF9fc3RhY2tfY2hrX2d1YXJk
+LCAlb2JqZWN0Cj4gK19fc3RhY2tfY2hrX2d1YXJkOgo+ICsJUklTQ1ZfUFRSCTB4OTVCNUZGNUEK
+PiArCj4gwqAjaWZkZWYgRldfRkRUX1BBVEgKPiDCoAkuc2VjdGlvbiAucm9kYXRhCj4gwqAJLmFs
+aWduIDQKPiBkaWZmIC0tZ2l0IGEvZmlybXdhcmUvb2JqZWN0cy5tayBiL2Zpcm13YXJlL29iamVj
+dHMubWsKPiBpbmRleCBhOTA0ODVkLi5iZmVjNDY3IDEwMDY0NAo+IC0tLSBhL2Zpcm13YXJlL29i
+amVjdHMubWsKPiArKysgYi9maXJtd2FyZS9vYmplY3RzLm1rCj4gQEAgLTY2LDMgKzY2LDEyIEBA
+IGVuZGlmCj4gwqBpZmRlZiBGV19PUFRJT05TCj4gwqBmaXJtd2FyZS1nZW5mbGFncy15ICs9IC1E
+RldfT1BUSU9OUz0kKEZXX09QVElPTlMpCj4gwqBlbmRpZgo+ICsKPiAraWZlcSAoJChDT05GSUdf
+U1RBQ0tfUFJPVEVDVE9SKSx5KQo+ICtzdGFjay1wcm90ZWN0b3ItY2ZsYWdzLSQoQ09ORklHX1NU
+QUNLX1BST1RFQ1RPUikgOj0gLWZzdGFjay1wcm90ZWN0b3IKPiArc3RhY2stcHJvdGVjdG9yLWNm
+bGFncy0kKENPTkZJR19TVEFDS19QUk9URUNUT1JfU1RST05HKSA6PSAtZnN0YWNrLXByb3RlY3Rv
+ci1zdHJvbmcKPiArc3RhY2stcHJvdGVjdG9yLWNmbGFncy0kKENPTkZJR19TVEFDS19QUk9URUNU
+T1JfQUxMKSA6PSAtZnN0YWNrLXByb3RlY3Rvci1hbGwKPiArZWxzZQo+ICtzdGFjay1wcm90ZWN0
+b3ItY2ZsYWdzLXkgOj0gLWZuby1zdGFjay1wcm90ZWN0b3IKPiArZW5kaWYKPiArZmlybXdhcmUt
+Y2ZsYWdzLXkgKz0gJChzdGFjay1wcm90ZWN0b3ItY2ZsYWdzLXkpCj4gZGlmZiAtLWdpdCBhL2Zp
+cm13YXJlL3BheWxvYWRzL3Rlc3RfaGVhZC5TIGIvZmlybXdhcmUvcGF5bG9hZHMvdGVzdF9oZWFk
+LlMKPiBpbmRleCA3ZDI1ZTA3Li5iNWZkNDZiIDEwMDY0NAo+IC0tLSBhL2Zpcm13YXJlL3BheWxv
+YWRzL3Rlc3RfaGVhZC5TCj4gKysrIGIvZmlybXdhcmUvcGF5bG9hZHMvdGVzdF9oZWFkLlMKPiBA
+QCAtOTcsMyArOTcsMjAgQEAgX2Jvb3RfYTA6Cj4gwqAJUklTQ1ZfUFRSCTAKPiDCoF9ib290X2Ex
+Ogo+IMKgCVJJU0NWX1BUUgkwCj4gKwo+ICsJLyogVGhpcyB3aWxsIGJlIGNhbGxlZCB3aGVuIHRo
+ZSBzdGFjayBjb3JydXB0aW9uIGlzIGRldGVjdGVkICovCj4gKwkuc2VjdGlvbiAudGV4dAo+ICsJ
+LmFsaWduIDMKPiArCS5nbG9ibCBfX3N0YWNrX2Noa19mYWlsCj4gKwkudHlwZSBfX3N0YWNrX2No
+a19mYWlsLCAlZnVuY3Rpb24KPiArX19zdGFja19jaGtfZmFpbDoKPiArCXdmaQo+ICsJaglfX3N0
+YWNrX2Noa19mYWlsCj4gKwo+ICsJLyogSW5pdGlhbCB2YWx1ZSBvZiB0aGUgc3RhY2sgZ3VhcmQg
+dmFyaWFibGUgKi8KPiArCS5zZWN0aW9uIC5kYXRhCj4gKwkuYWxpZ24gMwo+ICsJLmdsb2JsIF9f
+c3RhY2tfY2hrX2d1YXJkCj4gKwkudHlwZSBfX3N0YWNrX2Noa19ndWFyZCwgJW9iamVjdAo+ICtf
+X3N0YWNrX2Noa19ndWFyZDoKPiArCVJJU0NWX1BUUgkweDk1QjVGRjVBCj4gLS0gCj4gMi40My4w
+Cj4gCgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9y
+ZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
