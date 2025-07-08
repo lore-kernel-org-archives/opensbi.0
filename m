@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2DCE3C8303C
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A3654C83F0F
 	for <opensbi@archiver.kernel.org>; Tue,  8 Jul 2025 07:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -13,73 +13,73 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	In-Reply-To:Message-Id:Date:Subject:To:From:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Owner;
-	bh=mx8CqNeTbJWnKFL46/r91liyQEFV+fLwoaFfRgdGZIk=; b=fd381mrUOnjI0FmqC5VUx2jevV
-	ntYh/QrQ3jDWSlOIR/Evw5Ve9kOuBAPttjKHeh43yelgHfWVByz8TYYti6Bv4W7pr3ajKqKDgA5+K
-	hAW7H7i+0kSHcjR8CBpW3XHHkEQXyi8u8uSXHvPK1VijLSwJ9K73o9nr9vVyNv9awUgo6CuXneQ7G
-	sJbYF+QJNh9UABXstl7SiDGO1MCpl+MUwht/aDqpNJ0HR1UpLbQ/lmHNfR2HkNlwLtZJfw/w2y+GN
-	xBO3tVsN5hLLvyDrn9Qgy0WexZxYupWQyjp+gzScOYa9s2N1VZSuLOsp8TmFfUSyLJkTEDrmqWMiT
-	BlGY9dIQ==;
+	bh=ebz9SWlijl7pS7ZwjyCLJmP7mjLd6jsDINK6josvrRY=; b=BtkBHPZ2axxVCj1wiVJuRuSXSm
+	ME+Coi8MYLGAYbGuQ17EEIXseAkB0LCKlan2OCp1kcR77HF1JQZLtUhWDXYZxp5NVic2IHuT+itCJ
+	4wV16PIT2HF8OtRN16oIotjH0IGUCxQ8mO87/p4g+YW9FsnGZKO/Q0trBjtzHk29QdxV/SufmFZ1h
+	n73kPxS6NbDnq2ziJzH+Rlm/190BrImREcxmC3d8r6vjVte8Yj8bUI/K03mOJXOc3qn2X4cC937if
+	xT1UxEm74E5X/mFKlANqka5Nq7okxaBQn3nK3mH8UD0lL0xOwnf3HCPN1aYpSyMyeclRzj1HPGSPS
+	dMz/2Ukw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uZ3Ea-00000004fQm-0Zbm;
+	id 1uZ3Ea-00000004fRb-395n;
 	Tue, 08 Jul 2025 07:59:24 +0000
-Received: from mail-qv1-xf2a.google.com ([2607:f8b0:4864:20::f2a])
+Received: from mail-qv1-xf29.google.com ([2607:f8b0:4864:20::f29])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uZ35e-00000004dO3-3D2p
+	id 1uZ35h-00000004dPX-1cBw
 	for opensbi@lists.infradead.org;
-	Tue, 08 Jul 2025 07:50:12 +0000
-Received: by mail-qv1-xf2a.google.com with SMTP id 6a1803df08f44-6fac7147cb8so75505976d6.1
-        for <opensbi@lists.infradead.org>; Tue, 08 Jul 2025 00:50:10 -0700 (PDT)
+	Tue, 08 Jul 2025 07:50:14 +0000
+Received: by mail-qv1-xf29.google.com with SMTP id 6a1803df08f44-6fada2dd785so62622366d6.2
+        for <opensbi@lists.infradead.org>; Tue, 08 Jul 2025 00:50:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1751961010; x=1752565810; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1751961012; x=1752565812; darn=lists.infradead.org;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=2RLdXbTXfjA6lX7cveWs0mcaNbEwoCCgxcUOQFjoD/0=;
-        b=XhkA7wZtqagJz4QJ2WrkHM6fy7y96maLiiERG0nLr7ow5pX4qJ4bmcY2s0cSjUCYa+
-         l+pLkTw2VKO9S4brw4Y/ihFMfRcSn0eBVOAPBJSKfIgUznw2VANLVbKolgrgIoaiLhIr
-         uFWIP23crxHJMa23pSn7Wq8y7VVAWxAvaxqd6Ipx4hA/yjA1j1FxeTVpkmGG8zzBEdaA
-         I/LWNHl6v9E+iKlNE8+j9/jgY33YQBWuCGr8CO8ABuypl23Bt0U4MbIOKU+5ePfB1hSo
-         mt7+9q2zLgkNBiaF76o4i8gTsHHzpfQ2VAEUi3DvStgg9lk/Mz7zz0+1GyXQweE+kWG1
-         3SJg==
+        bh=/q/SggIZrVmmm8A91IDs+DygwgJiblBxUZCHXjzVMMA=;
+        b=EZGtZOJ8rNfDtWaH7CRxgQqiOvnQ7uwdxzSE4Qcj5yEaQQWHlWELOJJaLQnMzcp4pA
+         GDbJcs2ZZheM20wwuM0YmJt/G/1IOvi4C5k4CUr8Ul70o0pwZc9XZ4Kv1cVgKwuYMgJb
+         bO3Fy+jG/T1uAXrsanGKwu5FGOkMlbOYuZLlAbZv444wpWl/qCpGnw8tPGEl4uy4QanG
+         nhOcBg1J86li6pehr1d9+SjmRAdaVe6tVbCKqowerOKbFd+4UbmAdaP9+d9ylMTiQs1V
+         MDUBJhRE4m4hsK8YTFp2Sx+imJVTbDLjRy9QgKwMrAYiXTRX2HKmaLyrks0QjUCXkySk
+         lH4w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751961010; x=1752565810;
+        d=1e100.net; s=20230601; t=1751961012; x=1752565812;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=2RLdXbTXfjA6lX7cveWs0mcaNbEwoCCgxcUOQFjoD/0=;
-        b=K6M0VXZGuOBzu61O/3R092GiGELfAssQ3b8bMtAf1Enj8mTjeqWPveVYvuQOHBGRTZ
-         YX9a2w6TBAqeEMcMX1wlmHRuPBEpb8U0gH0n2RJ16h2dPbZvBanO00bxpWWZwCAaXX9V
-         NszJz5hy65nwLyY1IgZZNojdizOBsyjeokRlPfdp8ievrpUZPBDscJJItCx2BS9rsKIh
-         q7SQwPHR3ng/1p2VaUhvLFJb1fOhl5fqquXYU2Cg8cMeIU6EZiPkc9NmHTGdga8x3OXW
-         mfi7goxlxBKBgveSzOdkEb/0EgdDtoBS7v6ldw0oV1lM6isr5SR6sRmY0uZdRLPnAW9y
-         Yzsg==
-X-Gm-Message-State: AOJu0YxJ+FkIUbJL4fouirZbP2VrVF0LhZBi8SE6FKt1XPH1cuntqfha
-	Nb8DLuuzDOOQBLcvqRvkfAzUH5INu8n5ZJucU7Pi+rbCKpt30cGlSgFdWEF4SCdgB9oWjtUmFVy
-	GDMM3zNyz4kyAFxeEDUShrgAlNTfXHc9CtcCRQJEPK/SpQFnR/Ol8xlHJ4pOj962KPg4DUjn0rd
-	s26dArHD28qNxmTf66qMpxnREBvhhX0mv2EtwPkmtevbn44g==
-X-Gm-Gg: ASbGncvyIjulx7xJaOqsXGJgKHUFnukak4970ZGf1+E2vXyWumn5neZEnXw+r7EkcHU
-	dVxlyU78OFrEC6QF2tKE2hUmUgleLMjqKDUnzZHxBeYTFMdJjzzJD/bDFlIlwZI6fpFNMFkCqUC
-	hKtFxLd2K0Dc2I+oCPveHzoYzwbOCMgWgeyNTqWyJiZw1bLpz0lvmBDdHNYKoxCv5A//HV12N28
-	w+SiARVh3yEvLWd/bmfA5X9h2FJehzNOpp4GmdUusFe6QOasETBELt6zyL7+UW3LYaemMh/s0bU
-	w1Zfb5JdIi7FjPOHmdaTrKjS2LtmeJKk/qSjI1X9+EXg5bqmjdFVummmbMDqFg8E0kMy4y4RhfA
-	g8+LoDboH
-X-Google-Smtp-Source: AGHT+IEf2zuqJmOF+KsK8ARX4I8KUBc11Dy4+57NmIo1Avbg3qNf0pCv9eSO6ufSFFQl7HXJQMdMww==
-X-Received: by 2002:a05:6214:5709:b0:6fa:b03f:8a39 with SMTP id 6a1803df08f44-7047cf66994mr38756876d6.35.1751961009662;
-        Tue, 08 Jul 2025 00:50:09 -0700 (PDT)
+        bh=/q/SggIZrVmmm8A91IDs+DygwgJiblBxUZCHXjzVMMA=;
+        b=PdQUpO5FP8t+FZz2LhyXarAQzps7IHZ6+k3f0Vv8662qih4B4Ol1gcFprSatspBszE
+         sDsLWAhF4i/LJfLgG/oI9rIhHbcRo8g9kex0oBKVc/8qUambpoLgtFp9unlvS/v+a6yU
+         T8vZyPLdhMPEkALjLj0IzzoHChcYaHmBYR/WdAoQnJmIrFLCm5XJ+RXr6okXcqbohwGV
+         MUslta29/BdICJOB6zOs3yXJ716kUjEzuQBX+24jRjb1joDhoszBa7PEwcal4EgU/d57
+         vGulcDcztM087SrSTzl3FpCDcJUM6+nN0yCva2lftKXLgoMZ3wCJo4NY3MGVTIAyXgNq
+         gYVA==
+X-Gm-Message-State: AOJu0YwML5kXf4iyyo5VvvIzQpqHZMDAjefJ5KaGvRIYGWXJQg8kM3rE
+	Rs0CAmkBg0is1SdQVPd/HtKiWKtav5KAI/TKdW++knqryYFGcodjXO/wLTp1jct1SkV7kVFDYOk
+	QlT6kvhLVYLBQr7LlZj+bc/y8hhHQ/ZlCCqKNvlS32tQgSZawOWe4IXOAzjC2L9cGL8aGhU7xg4
+	2cagMdyaGp2b3fNhrRHo/FKAg8ZIhlh/6VJ/IyslAiT8wC+g==
+X-Gm-Gg: ASbGncuSDKv78TteQIgFGvBZwtzGZ8M08np3aiIC8bL0IQ+cZs3b1jluXFfoNlUmbQh
+	upS8sVcy+qQGJWHVqwllxhkgdlGb7gU8yeAXvjxlaOiPGoi0AtnZhp3CJodiMqwj64MxF/HxYUb
+	pFSRdoTZuAtL2MsWCoKTdl9q8fko/BC/i5MuzkhgnQjKBfJ5EAlcxw/Xunqu5km3TOwReHrKjSF
+	iSPnkdJdndExCs+toD+gs5pcNGghuTXyYYiEVifiS8meSTRNmth5fj2tkwwA8xjupJLl8bfwGwz
+	LLV6OMh5yUcuCNnnphG7EY7BbdPXw6DzZYRVVTJBOXqe72sNpKVJs1GD44Uwvz8bRv1aRwD6BKL
+	TUctXD8Sc5kB3WrLa028=
+X-Google-Smtp-Source: AGHT+IEop/Eq6T9PB2b8V+0Qq9nm7LZ8PzJe0xaGiZeNPi9QLZFZuZpIBzw7TfgIKyJxC+LUvgTgNA==
+X-Received: by 2002:a05:620a:29ca:b0:7d2:1684:2429 with SMTP id af79cd13be357-7d5dccf4a7emr1817983185a.31.1751961011889;
+        Tue, 08 Jul 2025 00:50:11 -0700 (PDT)
 Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-702c4d5a94dsm72382876d6.82.2025.07.08.00.50.07
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-702c4d5a94dsm72382876d6.82.2025.07.08.00.50.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Jul 2025 00:50:09 -0700 (PDT)
+        Tue, 08 Jul 2025 00:50:11 -0700 (PDT)
 From: Nick Hu <nick.hu@sifive.com>
 To: opensbi@lists.infradead.org
-Subject: [PATCH v3 07/12] lib: sbi: Add SiFive proprietary xsfcease
-Date: Tue,  8 Jul 2025 15:49:35 +0800
-Message-Id: <20250708074940.10904-8-nick.hu@sifive.com>
+Subject: [PATCH v3 08/12] lib: utils/ipi: Exposing the ACLINT IPI device
+Date: Tue,  8 Jul 2025 15:49:36 +0800
+Message-Id: <20250708074940.10904-9-nick.hu@sifive.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250708074940.10904-1-nick.hu@sifive.com>
 References: <20250708074940.10904-1-nick.hu@sifive.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250708_005010_799633_26A74F30 
-X-CRM114-Status: UNSURE (   8.98  )
+X-CRM114-CacheID: sfid-20250708_005013_421197_C6ED79F9 
+X-CRM114-Status: UNSURE (   9.59  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -99,41 +99,44 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Using ISA string "xsfcease" to detect the support of the custom
-instruction "CEASE".
+Exposing the ACLINT IPI device so the other driver can send the CLINT
+IPI on the platform with IMSIC.
 
 Signed-off-by: Nick Hu <nick.hu@sifive.com>
 Reviewed-by: Cyan Yang <cyan.yang@sifive.com>
 ---
- include/sbi/sbi_hart.h | 2 ++
- lib/sbi/sbi_hart.c     | 1 +
- 2 files changed, 3 insertions(+)
+ include/sbi_utils/ipi/aclint_mswi.h | 1 +
+ lib/utils/ipi/aclint_mswi.c         | 5 +++++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 567e0130..db6f4adb 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -83,6 +83,8 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_SSSTATEEN,
- 	/** Hart has Xsfcflushdlone extension */
- 	SBI_HART_EXT_XSF_CFLUSH_D_L1,
-+	/** Hart has Xsfcease extension */
-+	SBI_HART_EXT_XSF_CEASE,
- 
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index e91e1123..c9036084 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -716,6 +716,7 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(ssctr, SBI_HART_EXT_SSCTR),
- 	__SBI_HART_EXT_DATA(ssstateen, SBI_HART_EXT_SSSTATEEN),
- 	__SBI_HART_EXT_DATA(xsfcflushdlone, SBI_HART_EXT_XSF_CFLUSH_D_L1),
-+	__SBI_HART_EXT_DATA(xsfcease, SBI_HART_EXT_XSF_CEASE),
+diff --git a/include/sbi_utils/ipi/aclint_mswi.h b/include/sbi_utils/ipi/aclint_mswi.h
+index 4b8249f2..311228eb 100644
+--- a/include/sbi_utils/ipi/aclint_mswi.h
++++ b/include/sbi_utils/ipi/aclint_mswi.h
+@@ -26,6 +26,7 @@ struct aclint_mswi_data {
+ 	u32 hart_count;
  };
  
- _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
++struct sbi_ipi_device *aclint_mswi_get(void);
+ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi);
+ 
+ #endif
+diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
+index 9e55078a..a4173b7c 100644
+--- a/lib/utils/ipi/aclint_mswi.c
++++ b/lib/utils/ipi/aclint_mswi.c
+@@ -66,6 +66,11 @@ static struct sbi_ipi_device aclint_mswi = {
+ 	.ipi_clear = mswi_ipi_clear
+ };
+ 
++struct sbi_ipi_device *aclint_mswi_get(void)
++{
++	return &aclint_mswi;
++}
++
+ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
+ {
+ 	u32 i;
 -- 
 2.17.1
 
