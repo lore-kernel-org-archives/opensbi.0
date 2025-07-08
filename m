@@ -4,101 +4,79 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4FAEBC8303C
-	for <opensbi@archiver.kernel.org>; Mon,  7 Jul 2025 15:52:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AD99DC83F10
+	for <opensbi@archiver.kernel.org>; Tue,  8 Jul 2025 07:57:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Date:To:From:Subject:Message-ID:Reply-To:Cc:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=h1MLVF1tJ93HccRXVieqCWGU9DZdlNPTiEqsGb3GtVs=; b=c96lnEogi2YEQZ
-	vh/QvX2pcGuiRSY1J1dt+PBnCSoYPnxd2yUeioY1bbB6FBjOJud62Y+2phY8PKlolli0Gy4/NKnWx
-	cDVT59Q6p+m2ltgNqrtSC70a1r1g5k8Z638ol3uoyrAAEHlvIILlZiC6WAbOCbYByF0MgyY+GYkm3
-	8ChhKXqGAPbGc4edkg00RK0rYp9Lc81NmkLIIHO6OKwDOQ4C+HfqPudAJEMocUXP9jYYstoG33lYJ
-	fqKxX5IU7ceKnmrcxkCIIy4xnXNbd6xGri/1TdCjpJMv+Bi6eBNdZavvKyLX/guDa4trvgSpLML4M
-	xmjjgvERdtYpE2HrKKdw==;
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Cc:List-Subscribe:
+	List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:Message-Id:Date:
+	Subject:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:
+	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:
+	References:List-Owner; bh=ioFkHVfFI+DOtuxEi+l3s7/wzZvJI7Hxxdda8KPIylA=; b=d9w
+	PCBQJmvWFF5kzpqhn0AAWLNeSHrxkbedqt8wY+NbXbCe+LNkJWcgQt4v6pcpN5zw/aDg7NFse/Rta
+	0A236XZ2MmxUa8i+DSt5ihl5L04fvihX7oE9Kd1JuK31uHWPspB5VAFlZj+GtrkJN3GmU9CxFW4MC
+	fj01aBkvGI8a+06WWdS8xJmdGTLfIgXTyh4QXk/U4ny22ymUvZjP5rdmU8k8pHwm4F81XvC5t4+JU
+	jxSzILUt3c7eCV2RFgFOmhSy2jbtMI5OYOa50xVlBoJVOchmaWtMuPDD7qbXtXzOulG4snM6mdIbc
+	/TImBABsv8PsCyTyiTpGtbTx8HspvPw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uYo8U-00000002vf4-1xgm;
-	Mon, 07 Jul 2025 15:52:06 +0000
-Received: from m16.mail.126.com ([117.135.210.7])
-	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uYnzm-00000002uEb-3zfM
+	id 1uZ3CF-00000004eoy-0ojV;
+	Tue, 08 Jul 2025 07:56:59 +0000
+Received: from mail-qv1-xf35.google.com ([2607:f8b0:4864:20::f35])
+	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1uZ35P-00000004dHG-2nb2
 	for opensbi@lists.infradead.org;
-	Mon, 07 Jul 2025 15:43:09 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
-	MIME-Version; bh=ayzV6A46btxaMMSYbv01Z5nQRUVN3nuOo+jygKl5aa4=;
-	b=okKh2JaHGYKknnqvlX9t2GPW5rj1wJ9pAxBFAO5mGdaPGygDxjclqMq9q6VIVJ
-	GJ3QKec932fsHMcw6t+6VvKUewF8Ntr3nKywhtAgNn5XdVnMWne5nKvkUt22N6BO
-	7oEjq/gUy++EA5Xb1kQ8DpyfG0mmHAWIZ4fRZsBfRgvpg=
-Received: from [127.0.0.1] (unknown [])
-	by gzga-smtp-mtada-g1-0 (Coremail) with SMTP id _____wDnl+jl6mtoFe8IAA--.28468S2;
-	Mon, 07 Jul 2025 23:42:30 +0800 (CST)
-Message-ID: <de389e7561ea7ecabfadc0949916fde5763f8afe.camel@126.com>
-Subject: Re: [PATCH] include: sbi: fix swap errors with newer gcc
- -Werror=sequence-point
-From: Xiang W <wxjstz@126.com>
-To: Ben Dooks <ben.dooks@codethink.co.uk>, opensbi@lists.infradead.org
-Date: Mon, 07 Jul 2025 23:42:29 +0800
-In-Reply-To: <20250704122938.897832-1-ben.dooks@codethink.co.uk>
-References: <20250704122938.897832-1-ben.dooks@codethink.co.uk>
-Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
- keydata=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
-User-Agent: Evolution 3.56.1-1 
-MIME-Version: 1.0
-X-CM-TRANSID: _____wDnl+jl6mtoFe8IAA--.28468S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7ArW7AFyDWF1xXFWxXr1UJrb_yoW8Kr1UpF
-	n8ZF1UKr4kGF42yw12y340vr12kr40y3W7GF95urnI9ryDJ34kGr1DWr15A3yUJrZ3uFyf
-	trn2v34jqFy3Xw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0ziXAw3UUUUU=
-X-Originating-IP: [153.35.240.253]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi1wODOmhr4H19VAAAsa
+	Tue, 08 Jul 2025 07:49:57 +0000
+Received: by mail-qv1-xf35.google.com with SMTP id 6a1803df08f44-6facacf521eso43508666d6.3
+        for <opensbi@lists.infradead.org>; Tue, 08 Jul 2025 00:49:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1751960994; x=1752565794; darn=lists.infradead.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=BAF2eNStoSVJNPocnNYOfz3u0kI+EQ9EUeZaskiNp5w=;
+        b=SNzJzFFckwnmm+atpvZHb1V+GAE65E71qbDm2uPNwlaVUQp7B9RohvUc3dW7smbpTD
+         mHU58qg85O5lDlrwW4HO6786JZnSuiCeLV81VUKCGgQ12JL3WYwpbRsaLKQigJQ+Nu3g
+         uORWIjHUBScmXxiTRULMjm81fhKmiFNQiALC6tfJqYNuAuEtVOsRZ8W6UhP7N0ghtje0
+         slRUBDZyn9mXeCW5zK+8lmY1M7LKgEIG2bx7IosL1tpzJSWqmrFrLvURJe9EsaBor0eV
+         bknI2lu8VOfLtgXS3qWESkmespiuUOXIAl91PPLW1RbQbCCrZdthwoyo7AIfLX3ToUFt
+         cHAA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751960994; x=1752565794;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=BAF2eNStoSVJNPocnNYOfz3u0kI+EQ9EUeZaskiNp5w=;
+        b=X++eNZ6jOCx3IHx790S2NKFCNUnbIZMq2VixJkuEDv93m20k0jtw3Ylq31eKyHBsyt
+         WccnnHFXLXAI9CccvvapUEEgvvSE+0NqIp0CTYi8ixj3gVcOTBDdA/RSK5kXaIg9htsf
+         sfejHGAqJOKAIZbvPB1XFXiBlUxIhE1FhzHEzSswED/ilgRP4rIqHAL4Kj3t4JHb4oDR
+         u5UMuGmM1NV4CoCpKCodSZvBqtHjV0SAKZtaNSoJlZwLkY9P2C10J13XyBRCbQ+zPmN5
+         SeoQSkCLCBByEL2o6rXKOd0KtRku/robegnFExR00bPbk8ulvjcMx4dYT/hLZS2a+3ic
+         CabQ==
+X-Gm-Message-State: AOJu0YxoOzhAvvDh1MW5OUMvm6nvGgmn4Tqge+UNNbBq6cBJA/x74npl
+	WNf8yot2e3H40mt2KRYW6eDStHb6lfutScKzQKUw38sYhLV4mUGQJgspBo5m7PjpjokXc/D6go1
+	7X0zCzan4W5822uK6sbI4Lqcv4r+d+lWP4DoSoTuMB90dWWLayAvJlruKg9kBAuHHVm6p7Aas8i
+	pWicFxmebJlddZEw6cGzDrEVApHpz51rRcHySQjN1bIQKYFg==
+X-Gm-Gg: ASbGncsWcDqvcEOU/kFHfcZ/dffFRu7CpRgjMKDBcnZmBP2K95j7Y8gJ7eor7WjOm0A
+	GHIE3yQF4B0c6btV3rb2ldqHtJCVqxehRwogEP7WWltM+ajkwVVFv/g7hlSnXm/CoN8kf2gJ1AP
+	vpi/Q7yRWPk2RSyZnByLk8wTeyjoSZ658YqnIIyGXU6IJVDJ1KcrE5GfPOiTpwSa53fjghxk404
+	75PvlGwaqT3mw5O9JdhEdNyCGXluUgTC/uR3oc4Kt8Sw64eTY9mVMbeYGE8dUI50U6mLprOZKn+
+	flXWgeWYob0FiWt0vcv1hHG+YrCbxEZCyL3keTIsbs9McffzBaYrVYmgJQ/jEmT2RDxeriufGHg
+	VJMQPv5lj
+X-Google-Smtp-Source: AGHT+IGx7Ho7LDM8Isl27HLuE81/hxcqev/shZkATEIzsKpFyStkEpt7GsDwdQZiAZgQLNxKrDTnQg==
+X-Received: by 2002:ad4:5ce8:0:b0:701:775:70c9 with SMTP id 6a1803df08f44-7047db20954mr25974416d6.41.1751960993741;
+        Tue, 08 Jul 2025 00:49:53 -0700 (PDT)
+Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-702c4d5a94dsm72382876d6.82.2025.07.08.00.49.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 08 Jul 2025 00:49:53 -0700 (PDT)
+From: Nick Hu <nick.hu@sifive.com>
+To: opensbi@lists.infradead.org
+Subject: [PATCH v3 00/12] Add SiFive TMC0 and SMC0 driver
+Date: Tue,  8 Jul 2025 15:49:28 +0800
+Message-Id: <20250708074940.10904-1-nick.hu@sifive.com>
+X-Mailer: git-send-email 2.17.1
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250707_084307_374736_F86C6128 
-X-CRM114-Status: GOOD (  11.58  )
+X-CRM114-CacheID: sfid-20250708_004955_747321_8F3F3995 
+X-CRM114-Status: GOOD (  12.83  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -110,54 +88,103 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Cc: vincent.chen@sifive.com, anup@brainfault.org, Nick Hu <nick.hu@sifive.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-5ZyoIDIwMjUtMDctMDTkupTnmoQgMTM6MjkgKzAxMDDvvIxCZW4gRG9va3PlhpnpgZPvvJoKPiBU
-aGUgQlNXQVB4eCgpIG1hY3JvcyBhcmUgbm93IHRocm93aW5nIHRoZSBmb2xsb3dpbmcgd2Fybmlu
-Z3Mgd2l0aAo+IG5ld2VyIGdjYyB2ZXJzaW9ucy4gVGhpcyBpcyBkdWUgdG8gdGhyb3dpbmcgYW4g
-YXJndW1lbnQgaW4gdGhhdCBtYXkKPiBiZSBldmFsdWF0ZWQgbW9yZSB0aGFuIG9uZSAoSSB0aGlu
-aykgYW5kIHRoZXJlZm9yZSB0aGluZ3MgbGlrZSB0aGUKPiBleGFtcGxlIGJlbG93IHNob3VsZCBi
-ZSBhdm9pZGVkLgo+IAo+IEZpeCBieSBtYWtpbmcgYSBzZXQgb2YgQlNXQVB4eCgpIHdyYXBwZXJz
-IHdoaWNoIHNwZWNpZmljYWxseSBvbmx0Cj4gZXZhbHVhdGUgJ3gnIG9uY2UuCj4gCj4gSW4gZmls
-ZSBpbmNsdWRlZCBsaWIvc2JpL3NiaV9tcHh5LmM6MjE6Cj4gbGliL3NiaS9zYmlfbXB4eS5jOiBJ
-biBmdW5jdGlvbiDigJhzYmlfbXB4eV93cml0ZV9hdHRyc+KAmToKPiBpYi9zYmkvc2JpX21weHku
-Yzo2MzI6NjM6IGVycm9yOiBvcGVyYXRpb24gb24g4oCYbWVtX2lkeOKAmSBtYXkgYmUgdW5kZWZp
-bmVkIFstV2Vycm9yPXNlcXVlbmNlLXBvaW50XQo+IMKgIDYzMiB8wqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGF0dHJfdmFsID0gbGUzMl90b19jcHUobWVt
-X3B0clttZW1faWR4KytdKTsKPiDCoMKgwqDCoMKgIHzCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB+fn5+fn5+Xn4KPiAKPiBTaWduZWQtb2ZmLWJ5
-OiBCZW4gRG9va3MgPGJlbi5kb29rc0Bjb2RldGhpbmsuY28udWs+Ckxvb2sgZ29vZCB0byBtZS4K
-ClJldmlld2VkLWJ5OiBYaWFuZyBXIDx3eGpzdHpAMTI2LmNvbT4KPiAtLS0KPiDCoGluY2x1ZGUv
-c2JpL3NiaV9ieXRlb3JkZXIuaCB8IDEwICsrKysrKystLS0KPiDCoDEgZmlsZSBjaGFuZ2VkLCA3
-IGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUv
-c2JpL3NiaV9ieXRlb3JkZXIuaCBiL2luY2x1ZGUvc2JpL3NiaV9ieXRlb3JkZXIuaAo+IGluZGV4
-IDJiNDk4MWUuLmVkN2NhZDEgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9zYmkvc2JpX2J5dGVvcmRl
-ci5oCj4gKysrIGIvaW5jbHVkZS9zYmkvc2JpX2J5dGVvcmRlci5oCj4gQEAgLTE0LDEzICsxNCwx
-MyBAQAo+IMKgIyBkZWZpbmUgX2NvbnZfY2FzdCh0eXBlLCB2YWwpICgodHlwZSkodmFsKSkKPiDC
-oCNlbmRpZgo+IMKgCj4gLSNkZWZpbmUgQlNXQVAxNih4KQkoKCgoeCkgJiAweDAwZmYpIDw8IDgp
-IHwgXAo+ICsjZGVmaW5lIF9fQlNXQVAxNih4KQkoKCgoeCkgJiAweDAwZmYpIDw8IDgpIHwgXAo+
-IMKgCQkJICgoKHgpICYgMHhmZjAwKSA+PiA4KSkKPiAtI2RlZmluZSBCU1dBUDMyKHgpCSgoKCh4
-KSAmIDB4MDAwMDAwZmYpIDw8IDI0KSB8IFwKPiArI2RlZmluZSBfX0JTV0FQMzIoeCkJKCgoKHgp
-ICYgMHgwMDAwMDBmZikgPDwgMjQpIHwgXAo+IMKgCQkJICgoKHgpICYgMHgwMDAwZmYwMCkgPDwg
-OCkgfCBcCj4gwqAJCQkgKCgoeCkgJiAweDAwZmYwMDAwKSA+PiA4KSB8IFwKPiDCoAkJCSAoKCh4
-KSAmIDB4ZmYwMDAwMDApID4+IDI0KSkKPiAtI2RlZmluZSBCU1dBUDY0KHgpCSgoKCh4KSAmIDB4
-MDAwMDAwMDAwMDAwMDBmZlVMTCkgPDwgNTYpIHwgXAo+ICsjZGVmaW5lIF9fQlNXQVA2NCh4KQko
-KCgoeCkgJiAweDAwMDAwMDAwMDAwMDAwZmZVTEwpIDw8IDU2KSB8IFwKPiDCoAkJCSAoKCh4KSAm
-IDB4MDAwMDAwMDAwMDAwZmYwMFVMTCkgPDwgNDApIHwgXAo+IMKgCQkJICgoKHgpICYgMHgwMDAw
-MDAwMDAwZmYwMDAwVUxMKSA8PCAyNCkgfCBcCj4gwqAJCQkgKCgoeCkgJiAweDAwMDAwMDAwZmYw
-MDAwMDBVTEwpIDw8IDgpIHwgXAo+IEBAIC0yOSw2ICsyOSwxMCBAQAo+IMKgCQkJICgoKHgpICYg
-MHgwMGZmMDAwMDAwMDAwMDAwVUxMKSA+PiA0MCkgfCBcCj4gwqAJCQkgKCgoeCkgJiAweGZmMDAw
-MDAwMDAwMDAwMDBVTEwpID4+IDU2KSkKPiDCoAo+ICsjZGVmaW5lIEJTV0FQNjQoeCkgKHsgdWlu
-dDY0X3QgX3N2ID0gKHgpOyBfX0JTV0FQNjQoX3N2KTsgfSkKPiArI2RlZmluZSBCU1dBUDMyKHgp
-ICh7IHVpbnQzMl90IF9zdiA9ICh4KTsgX19CU1dBUDMyKF9zdik7IH0pCj4gKyNkZWZpbmUgQlNX
-QVAxNih4KSAoeyB1aW50MTZfdCBfc3YgPSAoeCk7IF9fQlNXQVAxNihfc3YpOyB9KQo+ICsKPiDC
-oCNpZiBfX0JZVEVfT1JERVJfXyA9PSBfX09SREVSX0xJVFRMRV9FTkRJQU5fX8KgIC8qIENQVShs
-aXR0bGUtZW5kaWFuKSAqLwo+IMKgI2RlZmluZSBjcHVfdG9fYmUxNih4KQkJX2NvbnZfY2FzdCh1
-aW50MTZfdCwgQlNXQVAxNih4KSkKPiDCoCNkZWZpbmUgY3B1X3RvX2JlMzIoeCkJCV9jb252X2Nh
-c3QodWludDMyX3QsIEJTV0FQMzIoeCkpCj4gLS0gCj4gMi4zNy4yLjM1Mi5nM2M0NDQzNzY0Mwo+
-IAoKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcK
-aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+The previous version can be found in [1].
+
+SiFive TMC0 and SMC0 are the power controllers that controls the Tile and
+CoreComplex power domain. Add the drivers to support the power
+management features such as HSM STOP and System Suspend.
+
+Some features, such as power management, may require flushing the entire
+cache before entering a non-retention power state. To support this, a
+simple cache framework is introduced to allow the external CMO to
+perform a full cache flush.
+
+Changes in v3:
+- Add the SiFive TMC and SMC driver
+
+Changes in v2:
+- Since the platform override hooks was deprecated, use the fdt_driver
+for initializing the sifive_dev_platform.
+
+Links:
+- [1] https://lore.kernel.org/opensbi/20250424034003.28522-1-nick.hu@sifive.com/
+
+Nick Hu (10):
+  lib: utils: Add cache flush library
+  lib: utils: Add FDT cache library
+  lib: utils/cache: Add fdt cmo helpers
+  lib: sbi: Add SiFive proprietary xsfcflushdlone
+  lib: sbi: Add SiFive proprietary xsfcease
+  lib: utils/ipi: Exposing the ACLINT IPI device
+  lib: utils/irqchip: Add APLIC restore function
+  platform: sifive: Add SiFive TMC0 driver
+  lib: utils/timer: Expose timer update function
+  platform: sifive: Add SiFive SMC0 driver
+
+Vincent Chen (2):
+  utils: cache: Add SiFive ccache controller
+  platform: generic: Add SiFive development platform
+
+ include/sbi/sbi_hart.h                        |   4 +
+ include/sbi_utils/cache/cache.h               |  69 +++
+ include/sbi_utils/cache/fdt_cache.h           |  34 ++
+ include/sbi_utils/cache/fdt_cmo_helper.h      |  34 ++
+ include/sbi_utils/ipi/aclint_mswi.h           |   1 +
+ include/sbi_utils/irqchip/aplic.h             |   3 +
+ include/sbi_utils/timer/aclint_mtimer.h       |   5 +
+ lib/sbi/sbi_hart.c                            |   2 +
+ lib/utils/Kconfig                             |   2 +
+ lib/utils/cache/Kconfig                       |  23 +
+ lib/utils/cache/cache.c                       |  46 ++
+ lib/utils/cache/fdt_cache.c                   |  87 ++++
+ lib/utils/cache/fdt_cache_drivers.carray      |   3 +
+ lib/utils/cache/fdt_cmo_helper.c              | 112 +++++
+ lib/utils/cache/fdt_sifive_ccache.c           | 175 +++++++
+ lib/utils/cache/objects.mk                    |  14 +
+ lib/utils/ipi/aclint_mswi.c                   |   5 +
+ lib/utils/irqchip/aplic.c                     | 160 +++---
+ lib/utils/timer/aclint_mtimer.c               |  28 +-
+ platform/generic/Kconfig                      |   8 +
+ platform/generic/configs/defconfig            |   3 +
+ platform/generic/include/sifive/sifive_inst.h |  20 +
+ platform/generic/include/sifive/sifive_smc0.h |  13 +
+ platform/generic/include/sifive/sifive_tmc0.h |  15 +
+ platform/generic/sifive/Kconfig               |  10 +
+ platform/generic/sifive/objects.mk            |   7 +
+ .../pmdomain/fdt_pmdomain_sifive_smc0.c       | 322 ++++++++++++
+ .../pmdomain/fdt_pmdomain_sifive_tmc0.c       | 459 ++++++++++++++++++
+ platform/generic/sifive/sifive_dev_platform.c |  62 +++
+ 29 files changed, 1652 insertions(+), 74 deletions(-)
+ create mode 100644 include/sbi_utils/cache/cache.h
+ create mode 100644 include/sbi_utils/cache/fdt_cache.h
+ create mode 100644 include/sbi_utils/cache/fdt_cmo_helper.h
+ create mode 100644 lib/utils/cache/Kconfig
+ create mode 100644 lib/utils/cache/cache.c
+ create mode 100644 lib/utils/cache/fdt_cache.c
+ create mode 100644 lib/utils/cache/fdt_cache_drivers.carray
+ create mode 100644 lib/utils/cache/fdt_cmo_helper.c
+ create mode 100644 lib/utils/cache/fdt_sifive_ccache.c
+ create mode 100644 lib/utils/cache/objects.mk
+ create mode 100644 platform/generic/include/sifive/sifive_inst.h
+ create mode 100644 platform/generic/include/sifive/sifive_smc0.h
+ create mode 100644 platform/generic/include/sifive/sifive_tmc0.h
+ create mode 100644 platform/generic/sifive/Kconfig
+ create mode 100644 platform/generic/sifive/pmdomain/fdt_pmdomain_sifive_smc0.c
+ create mode 100644 platform/generic/sifive/pmdomain/fdt_pmdomain_sifive_tmc0.c
+ create mode 100644 platform/generic/sifive/sifive_dev_platform.c
+
+-- 
+2.17.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
