@@ -4,8 +4,8 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 53679C83F15
-	for <opensbi@archiver.kernel.org>; Tue,  8 Jul 2025 07:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 16891C83F17
+	for <opensbi@archiver.kernel.org>; Tue,  8 Jul 2025 07:59:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:MIME-Version:Cc:List-Subscribe:
@@ -13,73 +13,73 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	In-Reply-To:Message-Id:Date:Subject:To:From:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Owner;
-	bh=x2K2kQIigFLW6994+gtHsHkPVAHFL8yC440FGtaIHpU=; b=a+56eVK20vPTWH04TMJVrr/VIh
-	o1bSmvDhLG57PZqJUzMvVCBxT02PCWKcLQVbJebD/KH6HYYwWnpxEo/54gWARBra/x/PNqvXRogSo
-	wkFts2KwrEaexLA5mpGQB3dCyFp49BhXD1+x0WT1JlSbs2utl4r0vqaNaqJvjfZ8k7OCngmSq2wVD
-	QFNDnX2KVRoWJ3g2UDWnh/O2tczg/huECoDTys231H9P/wsJd/QV88X8F3dMm6HxjFN1dCefxwbCO
-	XSqKVeLyNUtFAt6BFM/76mjJzI+Wv6+aGrbjgGDkqsCzX0TgGlyr7CoK73RoKwFGUv9FKKPfaHH3Z
-	uS0xjsLw==;
+	bh=l4zsMLfjFgQ15WNBv25HUhruNuAEnvr1/UtpTbWcm0Q=; b=pR1zUNBo8hsuNffcoc0tnu7fZ9
+	O3dumjjHAHGxnKcQMs7dy5peA68Qo+G+aEL/c1QYZkCKfs8TGxk420M+7cgxp/62kgxyx5D9a9oeF
+	5KY7WqjzeY+v84ea5jO8KTAn1C8eh92Z0aI11lWpOR6mBo5b+E3gp2y/qESG85Hs5Oq1685jGIYAJ
+	dzEJdSL60lrfiXSy0eKyMpZZzZo+r2EGWOhuq5Ejf7s/mUQoPt4nVBzrLBJR4xOKsP77AHuI62LDl
+	+SiwNbk3slFICd/RlY/YykA7/hyvTti4Yd2PyJhRkdjkwBOtxl3PBzhnK2PBFe+1rK2uHJHTQFOaC
+	WikV/drg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uZ3Eb-00000004fSS-1xoK;
-	Tue, 08 Jul 2025 07:59:25 +0000
-Received: from mail-qv1-xf36.google.com ([2607:f8b0:4864:20::f36])
+	id 1uZ3Ec-00000004fUh-45Wr;
+	Tue, 08 Jul 2025 07:59:26 +0000
+Received: from mail-qv1-xf2d.google.com ([2607:f8b0:4864:20::f2d])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uZ35j-00000004dQf-2EmF
+	id 1uZ35n-00000004dT9-3gjJ
 	for opensbi@lists.infradead.org;
-	Tue, 08 Jul 2025 07:50:16 +0000
-Received: by mail-qv1-xf36.google.com with SMTP id 6a1803df08f44-6facf4d8e9eso44034306d6.1
-        for <opensbi@lists.infradead.org>; Tue, 08 Jul 2025 00:50:15 -0700 (PDT)
+	Tue, 08 Jul 2025 07:50:22 +0000
+Received: by mail-qv1-xf2d.google.com with SMTP id 6a1803df08f44-6f8aa9e6ffdso40175516d6.3
+        for <opensbi@lists.infradead.org>; Tue, 08 Jul 2025 00:50:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1751961014; x=1752565814; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1751961018; x=1752565818; darn=lists.infradead.org;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=tQjfVILwCaNXB3Ehaj4l+o3Kj/rYAyKc19X6dOd7fcA=;
-        b=NsNCg90WORYBMhUtFzJtMsnrTDw7qqrINlW0UZVoHmSPj4kjq4ec4PGCqgnnixP2M5
-         ZR/Hx2kBMMMfUGhUJtiZ3ZxZgnPuZwQeY/prQdsT1U4Hf5YGlkw1dD9c5qJU4BmOosys
-         RFRdC9whRNwHL1LRi5Do9uWW4kS72Yb80bP7iRC/X42V36d1gcH/bW6Jci+tScXlHwlk
-         XmrEDedsg6++D0B9IoycOX6EQRJMjhrxxlAbL8XO7c0TKnUIF82cZJ1zIGSzqNMMLani
-         Jx1qomonNKDbWD++2kNGUIdPFutWyl2BLSFkv7jeJDJPXx596SzqE+OEeY4fvd4M73MX
-         pdSw==
+        bh=1yFhSo7nzd49HB3Q9uUKkz7c1jtcbSi+3K1Vem5C3x8=;
+        b=cluOYB+qgJmrfoQuypQ7fkUgw5zCKaRfUhGa49+IIEvVqtE26cgoUIXSCm+kErIILx
+         EyTF1MzQ+3OdE9656lsrAZNcvsIRZo0qrgGfn+srGpGynMrCO7aJDwwTveqQQhvPL7Cc
+         G4LpQ/vN1aLLGUnT0KUfwOVAOWPBUehTP6J7Ghl6B7K4I1xBRSBw99AOLQW1B8Onk0t/
+         cIjy+7IzUidUqGHNITHaPwk/uRgD5iSC+8eP+EuUoJUZjSvGt63BSPKuAIwv58H0x1Ak
+         O0J/Vosle5n65Ede3o1539p49nJNSAM7DzI8VPE8BDYI93WxbmgZY7gNIGWNzQ6q7qfv
+         ZnZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751961014; x=1752565814;
+        d=1e100.net; s=20230601; t=1751961018; x=1752565818;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=tQjfVILwCaNXB3Ehaj4l+o3Kj/rYAyKc19X6dOd7fcA=;
-        b=FZ0BMLiSKASK7l9hfJAJ7+wBCBwuSwL5ZTk2KL8rAF8Z+cHjOBCAOsVbkxECuRrRqn
-         UBBAUbIGqPLwqhrd+PnscBMqRVimbDAmqj9gH5cLfx6iH165D4kzUnkkLd8NLZztXFTg
-         hjeYIMql6VVtqAWR/G9Y0z7FGKAhmHHWu+vRpD2gYvk0eso8/+UeHptenyjUrxg+cD2B
-         fyqVjz+5hSbt2cfPMyZguI1SvvHhGEQMhfJ+h0fJBOhgOWIzyg/npfsiADKm93fShZ9e
-         JNF30y6JLUbJyQfDIVcYYv3skhLuh8i9ErNKS9e/BDES4qZRaNQDvgg09WMg6McIhoom
-         NDNw==
-X-Gm-Message-State: AOJu0Yx0ub5aZo+mNZwxMtpIcSLyGj353T7qwjIbYWFMOS0SwDWMI6cX
-	qp99FNN7Y7Jibv+81qdSYhigvBOh/9870jrsrTHG0R/e1ux6YnQnEqUQG/GQ7fPOpHY2beSgvCS
-	RQ9yZCqGNbaoSQIvTxyhSxI7NS+VxfEKb1pP6Uv7P4n0Irhz/GxnSzBSFHU6ttCCbQcHZEvRqTq
-	FodP2N1qzUVCS73DmCaKG8fC7FlkiypMBdklsvfAd/ZZqCfQ==
-X-Gm-Gg: ASbGncvqM9gzxoFbSVVrEYvk2Z5WOVHE8mMqgT75ad6SIPfRPM7zx/1zHgtneFQfLau
-	bNeptCkm0gjvpz1dapsPh9TcSOBkhlgZkKWishmZ3CkCVIuIyBBap9Y9wh9GDC9yZ2xNdD1JCNc
-	Ia0d7vyEFo1u3UKbvUgrUU1bs88bEpYSsDldHQ/dHoEIIjeGkP2I39cLnebslDHqT5hX6kbGkEj
-	K3YUQNPH6XS/SIoOCfQ00WHqDJPtNS8JBaqj8BK76GVcBf3my0CTy6tAelKx0VpziiQAJLEE9nB
-	zxcb1u/EpvD5+Zh6nbC3aNEHsOzqa5rwckN9zsVcXzLTUl0jgVWLHSikrvziapr9VXhhdA/OY5r
-	Kx4bNsBiZ
-X-Google-Smtp-Source: AGHT+IEw7NaL11BUVzPHUzsx3jVgiZrMjxP1DfsT7w6Zr3Zk4Q07VobCOap8hMccpp3Xzqkh8Ec3yA==
-X-Received: by 2002:a05:6214:4404:b0:704:761c:d021 with SMTP id 6a1803df08f44-704761cd033mr92055176d6.12.1751961014093;
-        Tue, 08 Jul 2025 00:50:14 -0700 (PDT)
+        bh=1yFhSo7nzd49HB3Q9uUKkz7c1jtcbSi+3K1Vem5C3x8=;
+        b=fjNaKWwZLfo5sWg7UvFHR0bALMIu5s8Fk6NCKUrhF6OFqhTyyVUcLpP21dh2yGVR6j
+         zPT/stYbS4v49nr8ktxpA0DJmK8ICEytpMoRQfooChH5SDEYOuHHXm0ZH6UbqL3pHz+0
+         fC2B/4KwBt0u93WD6awiq3OYpWWeALegtPiDmCxd7bCOmmZqffSkOp6fbJglR6ObAIoh
+         HwPUd9snBenByKAuYr5NLerBblsj1Zznh05JIeV0RRHFsA6Ln+st7KqcduYoOq71i3Y1
+         ZcuT1ff31mZIDc2IjT/Lp2HfjdrE44Tja3Lm6519qGmwDZhm4jZ5I+1TJDlZHH8eGEAg
+         aCYQ==
+X-Gm-Message-State: AOJu0YwbbvqnxHENUpCHHnwKrYOePRXjMdet6FiP1EbuLB1HaVGxUlfP
+	2ZNslcI3nu616/ce89kdelq9KSHqK/SazoLIjLo4kxmWc/WU4FwTTG+bCGIEWtOLLJMCOwBTViI
+	WDEhWeSztRhqxstMWg4ciZjgj2ewFeBCbDtxeTrkIognl3pohbtR0XtYZIocCBuDjOcwaU/4goq
+	tZ84Yi1UK+c2ALl47gxl7+4PRPO+9NKU7qyb8v3bVUwnyJWQ==
+X-Gm-Gg: ASbGncuafN7fPaipQ7adTpNYYzixGqQByoT4CwuiZW8Kum9L20IBso3HVSPMy2UaIyW
+	blo7hiMrVSXFfh706p0QJRC3LUNmv4VDWrQddYFuETNlEXwZM0Tk6vDmibRPLVSuxVxXHEvH+Wh
+	7+QpxwHId6MPEesgYZYH1aZsYbtoB1LG05Gajwr34yx2ch3JPG3fwk89S/Sy0tgP/vldxnn+Ob2
+	xSWpC1oRLAusUlP12Ji0k+At5TU9UxKVpmdx7P5OtjwXUBup0Zr3lWNKC6HI2Z/SckWyudRLGR3
+	UDGUB8AjgttUDfU62lfSncq56tzpGBijptD/J7e5d9JJfHvWZ3CT8GDZCKzJL/XIKGZUiHx8ggU
+	cD1n4RO3O
+X-Google-Smtp-Source: AGHT+IHyAn92t+KmxPr9jYef3hpruSZJ/Jx3IDJuNSzCHamaBgLr4kMSR/52+Uw4V8kZBlGoxNby9Q==
+X-Received: by 2002:a05:6214:468c:b0:6fd:5cf4:cbb0 with SMTP id 6a1803df08f44-7047dada2b7mr32995366d6.25.1751961018529;
+        Tue, 08 Jul 2025 00:50:18 -0700 (PDT)
 Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-702c4d5a94dsm72382876d6.82.2025.07.08.00.50.12
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-702c4d5a94dsm72382876d6.82.2025.07.08.00.50.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Jul 2025 00:50:13 -0700 (PDT)
+        Tue, 08 Jul 2025 00:50:18 -0700 (PDT)
 From: Nick Hu <nick.hu@sifive.com>
 To: opensbi@lists.infradead.org
-Subject: [PATCH v3 09/12] lib: utils/irqchip: Add APLIC restore function
-Date: Tue,  8 Jul 2025 15:49:37 +0800
-Message-Id: <20250708074940.10904-10-nick.hu@sifive.com>
+Subject: [PATCH v3 11/12] lib: utils/timer: Expose timer update function
+Date: Tue,  8 Jul 2025 15:49:39 +0800
+Message-Id: <20250708074940.10904-12-nick.hu@sifive.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250708074940.10904-1-nick.hu@sifive.com>
 References: <20250708074940.10904-1-nick.hu@sifive.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250708_005015_571433_94D6A90D 
-X-CRM114-Status: GOOD (  21.10  )
+X-CRM114-CacheID: sfid-20250708_005020_973986_CBDBC4D8 
+X-CRM114-Status: GOOD (  12.44  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,239 +98,86 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Since the APLIC may enter a reset state upon system wake-up from a
-platform low power state, adding a restore function to reinitialize
-the APLIC.
+Exposing the ACLINT timer update APIs so the user can update the mtimer
+after waking up from the non-retentive suspend.
 
 Signed-off-by: Nick Hu <nick.hu@sifive.com>
-Reviewed-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
 Reviewed-by: Cyan Yang <cyan.yang@sifive.com>
 ---
- include/sbi_utils/irqchip/aplic.h |   3 +
- lib/utils/irqchip/aplic.c         | 160 +++++++++++++++++-------------
- 2 files changed, 96 insertions(+), 67 deletions(-)
+ include/sbi_utils/timer/aclint_mtimer.h |  5 +++++
+ lib/utils/timer/aclint_mtimer.c         | 28 ++++++++++++++++++-------
+ 2 files changed, 26 insertions(+), 7 deletions(-)
 
-diff --git a/include/sbi_utils/irqchip/aplic.h b/include/sbi_utils/irqchip/aplic.h
-index e31f48a4..ca606d06 100644
---- a/include/sbi_utils/irqchip/aplic.h
-+++ b/include/sbi_utils/irqchip/aplic.h
-@@ -33,6 +33,7 @@ struct aplic_delegate_data {
- struct aplic_data {
- 	/* Private members */
- 	struct sbi_irqchip_device irqchip;
-+	struct sbi_dlist node;
- 	/* Public members */
- 	unsigned long addr;
- 	unsigned long size;
-@@ -48,4 +49,6 @@ struct aplic_data {
+diff --git a/include/sbi_utils/timer/aclint_mtimer.h b/include/sbi_utils/timer/aclint_mtimer.h
+index a245e13e..f8d2e5b4 100644
+--- a/include/sbi_utils/timer/aclint_mtimer.h
++++ b/include/sbi_utils/timer/aclint_mtimer.h
+@@ -42,6 +42,11 @@ struct aclint_mtimer_data {
+ 	void (*time_wr)(bool timecmp, u64 value, volatile u64 *addr);
+ };
  
- int aplic_cold_irqchip_init(struct aplic_data *aplic);
- 
-+void aplic_restore(void);
++struct aclint_mtimer_data *aclint_get_mtimer_data(void);
 +
- #endif
-diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index 72906d5d..68f5d107 100644
---- a/lib/utils/irqchip/aplic.c
-+++ b/lib/utils/irqchip/aplic.c
-@@ -115,6 +115,88 @@
- #define APLIC_DISABLE_ITHRESHOLD	1
- #define APLIC_ENABLE_ITHRESHOLD		0
- 
-+static SBI_LIST_HEAD(aplic_list);
-+static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
-+				void *msicfgaddr, void *msicfgaddrH);
++void aclint_mtimer_update(struct aclint_mtimer_data *mt,
++			  struct aclint_mtimer_data *ref);
 +
-+static void aplic_init(struct aplic_data *aplic)
+ void aclint_mtimer_sync(struct aclint_mtimer_data *mt);
+ 
+ void aclint_mtimer_set_reference(struct aclint_mtimer_data *mt,
+diff --git a/lib/utils/timer/aclint_mtimer.c b/lib/utils/timer/aclint_mtimer.c
+index 3db3c3be..fd6189aa 100644
+--- a/lib/utils/timer/aclint_mtimer.c
++++ b/lib/utils/timer/aclint_mtimer.c
+@@ -109,28 +109,42 @@ static struct sbi_timer_device mtimer = {
+ 	.timer_event_stop = mtimer_event_stop
+ };
+ 
+-void aclint_mtimer_sync(struct aclint_mtimer_data *mt)
++struct aclint_mtimer_data *aclint_get_mtimer_data(void)
 +{
-+	u32 i, j, tmp;
-+	struct aplic_delegate_data *deleg;
-+
-+	/* Set domain configuration to 0 */
-+	writel(0, (void *)(aplic->addr + APLIC_DOMAINCFG));
-+
-+	/* Disable all interrupts */
-+	for (i = 0; i <= aplic->num_source; i += 32)
-+		writel(-1U, (void *)(aplic->addr + APLIC_CLRIE_BASE +
-+				     (i / 32) * sizeof(u32)));
-+
-+	/* Set interrupt type and priority for all interrupts */
-+	for (i = 1; i <= aplic->num_source; i++) {
-+		/* Set IRQ source configuration to 0 */
-+		writel(0, (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
-+			  (i - 1) * sizeof(u32)));
-+		/* Set IRQ target hart index and priority to 1 */
-+		writel(APLIC_DEFAULT_PRIORITY, (void *)(aplic->addr +
-+						APLIC_TARGET_BASE +
-+						(i - 1) * sizeof(u32)));
-+	}
-+
-+	/* Configure IRQ delegation */
-+	for (i = 0; i < APLIC_MAX_DELEGATE; i++) {
-+		deleg = &aplic->delegate[i];
-+		if (!deleg->first_irq || !deleg->last_irq)
-+			continue;
-+		if (aplic->num_source < deleg->first_irq ||
-+		    aplic->num_source < deleg->last_irq)
-+			continue;
-+		if (deleg->child_index > APLIC_SOURCECFG_CHILDIDX_MASK)
-+			continue;
-+		if (deleg->first_irq > deleg->last_irq) {
-+			tmp = deleg->first_irq;
-+			deleg->first_irq = deleg->last_irq;
-+			deleg->last_irq = tmp;
-+		}
-+		for (j = deleg->first_irq; j <= deleg->last_irq; j++)
-+			writel(APLIC_SOURCECFG_D | deleg->child_index,
-+			       (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
-+			       (j - 1) * sizeof(u32)));
-+	}
-+
-+	/* Default initialization of IDC structures */
-+	for (i = 0; i < aplic->num_idc; i++) {
-+		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
-+				   i * APLIC_IDC_SIZE + APLIC_IDC_IDELIVERY));
-+		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
-+				   i * APLIC_IDC_SIZE + APLIC_IDC_IFORCE));
-+		writel(APLIC_DISABLE_ITHRESHOLD, (void *)(aplic->addr +
-+						  APLIC_IDC_BASE +
-+						  (i * APLIC_IDC_SIZE) +
-+						  APLIC_IDC_ITHRESHOLD));
-+	}
-+
-+	/* MSI configuration */
-+	if (aplic->targets_mmode && aplic->has_msicfg_mmode) {
-+		aplic_writel_msicfg(&aplic->msicfg_mmode,
-+				    (void *)(aplic->addr + APLIC_MMSICFGADDR),
-+				    (void *)(aplic->addr + APLIC_MMSICFGADDRH));
-+	}
-+	if (aplic->targets_mmode && aplic->has_msicfg_smode) {
-+		aplic_writel_msicfg(&aplic->msicfg_smode,
-+				    (void *)(aplic->addr + APLIC_SMSICFGADDR),
-+				    (void *)(aplic->addr + APLIC_SMSICFGADDRH));
-+	}
++	return mtimer_get_hart_data_ptr(sbi_scratch_thishart_ptr());
 +}
 +
-+void aplic_restore(void)
-+{
-+	struct aplic_data *aplic;
-+
-+	sbi_list_for_each_entry(aplic, &aplic_list, node)
-+		aplic_init(aplic);
++void aclint_mtimer_update(struct aclint_mtimer_data *mt,
++			  struct aclint_mtimer_data *ref)
+ {
+ 	u64 v1, v2, mv, delta;
+ 	u64 *mt_time_val, *ref_time_val;
+-	struct aclint_mtimer_data *reference;
+ 
+-	/* Sync-up non-shared MTIME if reference is available */
+-	if (mt->has_shared_mtime || !mt->time_delta_reference)
++	if (!mt || !ref || !mt->time_rd || !mt->time_wr || !ref->time_rd)
+ 		return;
+ 
+-	reference = mt->time_delta_reference;
+ 	mt_time_val = (void *)mt->mtime_addr;
+-	ref_time_val = (void *)reference->mtime_addr;
++	ref_time_val = (void *)ref->mtime_addr;
+ 	if (!atomic_raw_xchg_ulong(&mt->time_delta_computed, 1)) {
+ 		v1 = mt->time_rd(mt_time_val);
+-		mv = reference->time_rd(ref_time_val);
++		mv = ref->time_rd(ref_time_val);
+ 		v2 = mt->time_rd(mt_time_val);
+ 		delta = mv - ((v1 / 2) + (v2 / 2));
+ 		mt->time_wr(false, mt->time_rd(mt_time_val) + delta,
+ 			    mt_time_val);
+ 	}
 +}
+ 
++void aclint_mtimer_sync(struct aclint_mtimer_data *mt)
++{
++	struct aclint_mtimer_data *reference;
 +
- static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
- 				void *msicfgaddr, void *msicfgaddrH)
- {
-@@ -168,9 +250,8 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
- int aplic_cold_irqchip_init(struct aplic_data *aplic)
- {
- 	int rc;
--	u32 i, j, tmp;
- 	struct aplic_delegate_data *deleg;
--	u32 first_deleg_irq, last_deleg_irq;
-+	u32 first_deleg_irq, last_deleg_irq, i;
- 
- 	/* Sanity checks */
- 	if (!aplic ||
-@@ -188,81 +269,23 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 			return rc;
- 	}
- 
--	/* Set domain configuration to 0 */
--	writel(0, (void *)(aplic->addr + APLIC_DOMAINCFG));
--
--	/* Disable all interrupts */
--	for (i = 0; i <= aplic->num_source; i += 32)
--		writel(-1U, (void *)(aplic->addr + APLIC_CLRIE_BASE +
--				     (i / 32) * sizeof(u32)));
--
--	/* Set interrupt type and priority for all interrupts */
--	for (i = 1; i <= aplic->num_source; i++) {
--		/* Set IRQ source configuration to 0 */
--		writel(0, (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
--			  (i - 1) * sizeof(u32)));
--		/* Set IRQ target hart index and priority to 1 */
--		writel(APLIC_DEFAULT_PRIORITY, (void *)(aplic->addr +
--						APLIC_TARGET_BASE +
--						(i - 1) * sizeof(u32)));
--	}
-+	/* Init the APLIC registers */
-+	aplic_init(aplic);
- 
--	/* Configure IRQ delegation */
-+	/*
-+	 * Add APLIC region to the root domain if:
-+	 * 1) It targets M-mode of any HART directly or via MSIs
-+	 * 2) All interrupts are delegated to some child APLIC
-+	 */
- 	first_deleg_irq = -1U;
- 	last_deleg_irq = 0;
- 	for (i = 0; i < APLIC_MAX_DELEGATE; i++) {
- 		deleg = &aplic->delegate[i];
--		if (!deleg->first_irq || !deleg->last_irq)
--			continue;
--		if (aplic->num_source < deleg->first_irq ||
--		    aplic->num_source < deleg->last_irq)
--			continue;
--		if (APLIC_SOURCECFG_CHILDIDX_MASK < deleg->child_index)
--			continue;
--		if (deleg->first_irq > deleg->last_irq) {
--			tmp = deleg->first_irq;
--			deleg->first_irq = deleg->last_irq;
--			deleg->last_irq = tmp;
--		}
- 		if (deleg->first_irq < first_deleg_irq)
- 			first_deleg_irq = deleg->first_irq;
- 		if (last_deleg_irq < deleg->last_irq)
- 			last_deleg_irq = deleg->last_irq;
--		for (j = deleg->first_irq; j <= deleg->last_irq; j++)
--			writel(APLIC_SOURCECFG_D | deleg->child_index,
--				(void *)(aplic->addr + APLIC_SOURCECFG_BASE +
--				(j - 1) * sizeof(u32)));
--	}
--
--	/* Default initialization of IDC structures */
--	for (i = 0; i < aplic->num_idc; i++) {
--		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
--			  i * APLIC_IDC_SIZE + APLIC_IDC_IDELIVERY));
--		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
--			  i * APLIC_IDC_SIZE + APLIC_IDC_IFORCE));
--		writel(APLIC_DISABLE_ITHRESHOLD, (void *)(aplic->addr +
--						  APLIC_IDC_BASE +
--						  (i * APLIC_IDC_SIZE) +
--						  APLIC_IDC_ITHRESHOLD));
--	}
--
--	/* MSI configuration */
--	if (aplic->targets_mmode && aplic->has_msicfg_mmode) {
--		aplic_writel_msicfg(&aplic->msicfg_mmode,
--				(void *)(aplic->addr + APLIC_MMSICFGADDR),
--				(void *)(aplic->addr + APLIC_MMSICFGADDRH));
--	}
--	if (aplic->targets_mmode && aplic->has_msicfg_smode) {
--		aplic_writel_msicfg(&aplic->msicfg_smode,
--				(void *)(aplic->addr + APLIC_SMSICFGADDR),
--				(void *)(aplic->addr + APLIC_SMSICFGADDRH));
- 	}
--
--	/*
--	 * Add APLIC region to the root domain if:
--	 * 1) It targets M-mode of any HART directly or via MSIs
--	 * 2) All interrupts are delegated to some child APLIC
--	 */
- 	if (aplic->targets_mmode ||
- 	    ((first_deleg_irq < last_deleg_irq) &&
- 	    (last_deleg_irq == aplic->num_source) &&
-@@ -278,5 +301,8 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 	/* Register irqchip device */
- 	sbi_irqchip_add_device(&aplic->irqchip);
- 
-+	/* Attach to the aplic list */
-+	sbi_list_add_tail(&aplic->node, &aplic_list);
++	/* Sync-up non-shared MTIME if reference is available */
++	if (mt->has_shared_mtime || !mt->time_delta_reference)
++		return;
 +
- 	return 0;
++	reference = mt->time_delta_reference;
++	aclint_mtimer_update(mt, reference);
  }
+ 
+ void aclint_mtimer_set_reference(struct aclint_mtimer_data *mt,
 -- 
 2.17.1
 
