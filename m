@@ -4,86 +4,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 309CDC83F17
-	for <opensbi@archiver.kernel.org>; Wed,  9 Jul 2025 23:29:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E1E0BC83F10
+	for <opensbi@archiver.kernel.org>; Wed,  9 Jul 2025 23:29:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=f0lBLNp6KFl8KCvq1q2raY6EEhBH3+b2Y9iYHpMTkwI=; b=fysKqba2Cqwyod
-	JH04+Zlk9G+HGD8rj+ZhrGRMBwM97hAKbO1C/pliKu79HSucsnugqE5A30OZrATmGp5ZYT0magjd9
-	Ay7uDEnssWpS1gvZ4qzoKz5bE+1NAIfCZW0FF2zG2mMLt23Xr0mPGIztzbF5b7z3eMF8wDxTK2nt0
-	k5UoYU1/p25sk3AAV3/CAtIdj8udRFHZZoR3rBU+Ub5eMFbQh0SCKZzXTC8yZbITU+r+65Ix2Hsc3
-	EybGqbJksgLRVMtkfNJ/Nivq4amCsYxuwHpimkwSTAzdcWYmeWq64Ddz3aup9NDoio/Yq9ogB4fRu
-	3tf/xEyeOPR7KCrhFN+A==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=fswOfIvRwwU3+m1QNbvNdi+qhgocpGcmsF8ff+gjcfw=; b=eRXKmQC7/pjliB
+	B0JNbn0qi8/Yc3hW2SS2PCBIdUgD7cC8GAXg9VE+yJrS9eTS8VITTZVmMCyHRsSfQvT7eubG4fwZ/
+	0EoMGOdwmqZS1fmpWNjQIxUc3wI2ydaPaVuLHrJCVvRF7UHsOTlcwBmm2w/wVguT+v2PlCLWIQAs/
+	m3KZQ9+ianQjgVbRSqsN+iz8X4ERzzUiZwj6qHJ6U/hEQc9ihyF82QbdoTlZ+DnBiJQ3acERFfw0i
+	nh6JC8C96K/XaMSxJf53rNmmdJ0QEVLVNpNi64heKDrN/hfCdjX6/g/4B3Y4xykPAUKiMCUeNbU9V
+	0gfnqKuTuZGZ2dlPm4IQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uZeEW-0000000AFlM-24wC;
+	id 1uZeEW-0000000AFlA-0FFx;
 	Wed, 09 Jul 2025 23:29:48 +0000
-Received: from mail-wr1-x42f.google.com ([2a00:1450:4864:20::42f])
+Received: from mail-wr1-x436.google.com ([2a00:1450:4864:20::436])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uZeET-0000000AFk5-3xmM
+	id 1uZeET-0000000AFk4-2rQL
 	for opensbi@lists.infradead.org;
-	Wed, 09 Jul 2025 23:29:47 +0000
-Received: by mail-wr1-x42f.google.com with SMTP id ffacd0b85a97d-3a4e742dc97so996697f8f.0
+	Wed, 09 Jul 2025 23:29:46 +0000
+Received: by mail-wr1-x436.google.com with SMTP id ffacd0b85a97d-3a522224582so205066f8f.3
         for <opensbi@lists.infradead.org>; Wed, 09 Jul 2025 16:29:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=jrtc27.com; s=gmail.jrtc27.user; t=1752103784; x=1752708584; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5WuapQexztaWffQypchZ4YvY06QFYdz2y+TfuHMzTeo=;
-        b=RzR0kFpDxlWzK35pbdt47YCbZTG+adeCZ2IsOE1vx7fq88xfJGmVBamhvAkXdJYMit
-         dDBK+eD1r4E/TmaOHyOa8qcsaPvd5YAutg38jATi8HxZ6yma7tsOOdzNzwhavTGkoaL2
-         PpbDny2HB0C09FLOmK9n1Fc6mou4/Oj2ySZNJjfQ1vhIxuTj7a9tfi5GLW59Op0ReAWv
-         Xjct1v3+0OiaXhcRS9geAbA6E7xX+WM3Q6saAZoObtNY226293SBWxH1kEQp5D79r3tI
-         qyt1GjxZg+NIuvx0JRtpJTXNjuZjfBWSvqsQlLJizu07wsrtRUMXUOTiFK3KxlKyf4dr
-         2kTQ==
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=CZb5i1oVtdWT2hDK07ItvW/eexLfD8+JD69V4tTuETg=;
+        b=XedePTCJSK6e0d85uacNZlKMaXVkykY61SkZF8MWKHhLHlQN9970mTA9cMpE4EAns9
+         3w+osNElgUGy6M+x7vXTwpDyf5zopkN1PB8viYX1A6ZgfjxVJK0aRmliORvDPXT/m/Tk
+         RPnWLxoTiYWmf8gAoAlZHjFe9OgBuvv480XaA9yWHKxrhvb4LxXkXYN44dXSLAjhSjHt
+         4jFnDRu2SJ0ri6TtFjp2QuM0N6Oz5SpF8qqvHNF1w0vXIsiH+zfVF6FSrxthAAURN4Dx
+         cgf4HDFZRjH0d+MuSpnRm9qscoGXInIWGRRgfuGv/1N7iJlJm7wtwZkGJ0bC+Wl9rVwT
+         lAVg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20230601; t=1752103784; x=1752708584;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=5WuapQexztaWffQypchZ4YvY06QFYdz2y+TfuHMzTeo=;
-        b=RqfyPmYPRInWan2e6EXf+IBge6Z+DjXBDe2EyL1pLMMP7BJIv2s7jmrqJ3PeYvwzah
-         hckI8Ph/wg+VwLLBfFjspI2xGm1kSdf9VwkwxVdWINBAPgNjYPLN04aqgkNCRR+K4lLs
-         eVm5IYufZqlnF78Q1fJqZqY6XZZQqxxgFIkC4OL6LkEm8FvuWhxibvnkbl6AsndIBjr/
-         DSy19nci/QeDJHzu0875qa8UvnheI9HfvPqS330Nk/+4s1F/32nbVzihZJdwMtEY1I2F
-         bg9IcfBZt4jkj8LwbGm5Lgy0gHLkkQI7CUQHw8lzzLMr3G3sx2e6G+gxus4MZnYoIizf
-         z3Lw==
-X-Gm-Message-State: AOJu0Yyy8X7vZ131DsudDfXmWG0kTpe+OOdAV6mUEQ1j7HPu3KSIsk5q
-	tiPTe9k0rZQcDNc0fZMx7mTvwpuYpLopB/Wy/VVc2ih0J1RJhQY7dTE8kVgH1+hgXaXCICeOoGU
-	a34Sl
-X-Gm-Gg: ASbGnct3xKX8LCg9AB4w5nS7CxLMQ/N1V5tAV73onDVfDtRs6MneZ9ni1fZz+XwKgkJ
-	3SmM594tFdCIboX2UC7upUKJpXF71aIyobYKQq07YRdSWywPMUwc2BXdDMqkEdrcJBklvVV4gnc
-	33Bkw13ThuM94HGNtukkBZoC/FeGM8vAiPFeR2nNBO6U3oYo3XV8fcBfCRXbT9t+XlAkuGWBdYb
-	W1kZJJuc10nBSyjy8T+epDVNzqNujOgyxy2F3Jgfp9PArN/MN+AoOEgXLNrGMrcTeP657aEsKzX
-	/uW/gcxUPz9o2OIgLHtbArAZ2AGfCvVRREel+CMGHOPRZrLNgde2nhrvQQer7/h8/pnMrWXJDKF
-	ez1meUjkkRKXDDAJMYHjLIZYGgiPdfDFAVxNq6stymzGad6MyrQzQ8BW1VQ==
-X-Google-Smtp-Source: AGHT+IG6xMi/vNsdJJMkMsLc4CRNt3SlanpJzTjvOOqhshuOBnkQrYnMf9KO6INwcYxb6hvfzwoNXQ==
-X-Received: by 2002:a05:6000:642:b0:3a4:da0e:517a with SMTP id ffacd0b85a97d-3b5e7f34e49mr1139288f8f.23.1752103784421;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=CZb5i1oVtdWT2hDK07ItvW/eexLfD8+JD69V4tTuETg=;
+        b=u7UpFBGdGk7DOGxSrNiEezRrXKRhof6O2SoIlwZj5Dey8KkkOR+MGRJdSIKvhrvFit
+         DWSR15TeNYkTyFc0yK0IJ4SZVlJCK/qiyRvHFkM+WjYKIUOjnAmOL2p138UT7xhaiGbp
+         bclUmwzXv0cP1wt05DV8pLIN7L/FgZtsohKqCP5A5INU2znH4RZgZ59rCVE3mV6A4ih0
+         H6zQZRPWMr2mN0xFGyxK5R8wXr++Bcv4QRsg7kEaapPsPW/Tl1FEDBXzuGAu2KxZh7Hf
+         vRg8kafU9iN2i6WkU7SHt+mQzqn5erGO32rUQ2HXjWtykUQvFyzewUCJeZERdtnuRpnG
+         LcbQ==
+X-Gm-Message-State: AOJu0Yw+5Ot2dp5pGCQKESRZP7Nb0AImisg7rlcA5MTRakVIcB4HLEjB
+	/5FM75nqE89k3nIzJ8AA83JL5qbk7YPHzhoMK6rz37M0pZsVRjtO5YArHGEbVe2m5J+ROdJpyTu
+	s1Dyu
+X-Gm-Gg: ASbGncs0F5kNLdkGz2PN6nxawFceFyiBNo9uiKbY4uOQP/LmN7OWKRK4LfVqTthvafT
+	PNmcpqYWRprl3tC5H/rJ5fUAVfGh2S1KDuiyubN5Df5/0LLluclMRirMq9wxYnULkRxQFIIdf5n
+	GneBVlqdx7vMW7HHAZpnO3Q+9NehH0pCO+8cEseB0hRfvo1XReB/EJnOC6fruy/d1mepcm6yqgH
+	M79a/ewUiAHDwAGd26xGnY1UWYMU2YKA+0DR5w3pAhMg5fgjdzAhWcnQSrTyM4zcTIHG30WMzRJ
+	LtsGYu9ZUnlWy+iR7iSCF2+qvIOpJW5HERiE7GAacYpzm12QChkaOua0KRzgRMD1Q9netpIW3tN
+	iC2fAgznZYK5CltJZ9ysb6+1mG7Dl96HwJ6RtxrYL7OOpcOM=
+X-Google-Smtp-Source: AGHT+IE9evNrgJ+EMR/Km9bn6TepRKWOwsWaCfyHGDjPvIuFgjiMfO9CocuADcZr3K/O6vThoQwhrA==
+X-Received: by 2002:a05:6000:230b:b0:3a5:8a68:b82d with SMTP id ffacd0b85a97d-3b5e452ed33mr4037539f8f.43.1752103784082;
         Wed, 09 Jul 2025 16:29:44 -0700 (PDT)
 Received: from Jessicas-MacBook-Pro.localdomain ([131.111.5.201])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-454d511bafdsm42014145e9.34.2025.07.09.16.29.42
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3b5e8e0d872sm220660f8f.60.2025.07.09.16.29.42
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 09 Jul 2025 16:29:42 -0700 (PDT)
+        Wed, 09 Jul 2025 16:29:43 -0700 (PDT)
 Received: by Jessicas-MacBook-Pro.localdomain (Postfix, from userid 501)
-	id D4C60E7BE922; Thu, 10 Jul 2025 00:29:41 +0100 (BST)
+	id D02DBE7BE920; Thu, 10 Jul 2025 00:29:41 +0100 (BST)
 From: Jessica Clarke <jrtc27@jrtc27.com>
 To: opensbi@lists.infradead.org
 Cc: Jessica Clarke <jrtc27@jrtc27.com>
-Subject: [PATCH 2/3] firmware: Replace sole uses of REGBYTES with __SIZEOF_LONG__
-Date: Thu, 10 Jul 2025 00:29:29 +0100
-Message-ID: <20250709232932.37622-2-jrtc27@jrtc27.com>
+Subject: [PATCH 1/3] include: sbi: Use array for struct sbi_trap_regs and GET/SET macros
+Date: Thu, 10 Jul 2025 00:29:28 +0100
+Message-ID: <20250709232932.37622-1-jrtc27@jrtc27.com>
 X-Mailer: git-send-email 2.47.0
-In-Reply-To: <20250709232932.37622-1-jrtc27@jrtc27.com>
-References: <20250709232932.37622-1-jrtc27@jrtc27.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250709_162945_981062_15BEF773 
-X-CRM114-Status: GOOD (  13.75  )
+X-CRM114-CacheID: sfid-20250709_162945_726589_F7B89704 
+X-CRM114-Status: GOOD (  12.12  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -100,47 +97,234 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This code has nothing to do with the ISA's registers, it's about the
-format of ELF relocations. As such, __SIZEOF_LONG__, being a language /
-ABI-level property, is a more appropriate constant to use. This also
-makes it easier to support CHERI, where general-purpose registers are
-extended to be capabilities, not just integers, and so the register size
-is not the same as the machine word size. This also happens to make it
-more correct for RV64ILP32, where the registers are 64-bit integers but
-the ABI is 32-bit (both for long and for the ELF format), though
-properly supporting that ABI is not part of the motivation here, just a
-consequence of improving the code for CHERI.
+Rather than hand-rolling scaled pointer arithmetic with casts and
+shifts, let the compiler do so by indexing an array of GPRs, taking
+advantage of the language's type system to scale based on whatever type
+the register happens to be. This makes it easier to support CHERI where
+the registers are capabilities, not plain integers, and so this pointer
+arithmetic would need to change (and currently REGBYTES is both the size
+of a register and the size of an integer word upstream).
 
 Signed-off-by: Jessica Clarke <jrtc27@jrtc27.com>
 ---
- firmware/fw_base.S | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/sbi/riscv_encoding.h |  25 ++----
+ include/sbi/sbi_trap.h       | 148 ++++++++++++++++++++---------------
+ 2 files changed, 92 insertions(+), 81 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 2498797..aa8e264 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -80,17 +80,17 @@ _sc_fail:
- 	lla	t1, __rel_dyn_end
- 	beq	t0, t1, _relocate_done
- 2:
--	REG_L	t5, REGBYTES(t0)	/* t5 <-- relocation info:type */
-+	REG_L	t5, __SIZEOF_LONG__(t0)	/* t5 <-- relocation info:type */
- 	li	t3, R_RISCV_RELATIVE	/* reloc type R_RISCV_RELATIVE */
- 	bne	t5, t3, 3f
- 	REG_L	t3, 0(t0)
--	REG_L	t5, (REGBYTES * 2)(t0)	/* t5 <-- addend */
-+	REG_L	t5, (__SIZEOF_LONG__ * 2)(t0)	/* t5 <-- addend */
- 	add	t5, t5, t2
- 	add	t3, t3, t2
- 	REG_S	t5, 0(t3)		/* store runtime address to the GOT entry */
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index e1256e3..f4df1ae 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -1291,6 +1291,8 @@
+ #define SHIFT_FUNCT3			12
  
- 3:
--	addi	t0, t0, (REGBYTES * 3)
-+	addi	t0, t0, (__SIZEOF_LONG__ * 3)
- 	blt	t0, t1, 2b
- _relocate_done:
- 	/* At this point we are running from link address */
+ #define MASK_RS1			0xf8000
++#define MASK_RS2			0x1f00000
++#define MASK_RD				0xf80
+ 
+ #define MASK_CSR			0xfff00000
+ #define SHIFT_CSR			20
+@@ -1356,28 +1358,17 @@
+ #define SHIFT_RIGHT(x, y)		\
+ 	((y) < 0 ? ((x) << -(y)) : ((x) >> (y)))
+ 
+-#define REG_MASK			\
+-	((1 << (5 + LOG_REGBYTES)) - (1 << LOG_REGBYTES))
+-
+-#define REG_OFFSET(insn, pos)		\
+-	(SHIFT_RIGHT((insn), (pos) - LOG_REGBYTES) & REG_MASK)
+-
+-#define REG_PTR(insn, pos, regs)	\
+-	(ulong *)((ulong)(regs) + REG_OFFSET(insn, pos))
+-
+ #define GET_FUNC3(insn)			((insn & MASK_FUNCT3) >> SHIFT_FUNCT3)
+ #define GET_RM(insn)			GET_FUNC3(insn)
+-#define GET_RS1_NUM(insn)		((insn & MASK_RS1) >> 15)
++#define GET_RS1_NUM(insn)		((insn & MASK_RS1) >> SH_RS1)
++#define GET_RS2_NUM(insn)		((insn & MASK_RS2) >> SH_RS2)
++#define GET_RS1S_NUM(insn)		RVC_RS1S(insn)
++#define GET_RS2S_NUM(insn)		RVC_RS2S(insn)
++#define GET_RS2C_NUM(insn)		RVC_RS2(insn)
++#define GET_RD_NUM(insn)		((insn & MASK_RD) >> SH_RD)
+ #define GET_CSR_NUM(insn)		((insn & MASK_CSR) >> SHIFT_CSR)
+ #define GET_AQRL(insn)			((insn & MASK_AQRL) >> SHIFT_AQRL)
+ 
+-#define GET_RS1(insn, regs)		(*REG_PTR(insn, SH_RS1, regs))
+-#define GET_RS2(insn, regs)		(*REG_PTR(insn, SH_RS2, regs))
+-#define GET_RS1S(insn, regs)		(*REG_PTR(RVC_RS1S(insn), 0, regs))
+-#define GET_RS2S(insn, regs)		(*REG_PTR(RVC_RS2S(insn), 0, regs))
+-#define GET_RS2C(insn, regs)		(*REG_PTR(insn, SH_RS2C, regs))
+-#define GET_SP(regs)			(*REG_PTR(2, 0, regs))
+-#define SET_RD(insn, regs, val)		(*REG_PTR(insn, SH_RD, regs) = (val))
+ #define IMM_I(insn)			((s32)(insn) >> 20)
+ #define IMM_S(insn)			(((s32)(insn) >> 25 << 5) | \
+ 					 (s32)(((insn) >> 7) & 0x1f))
+diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
+index 5eec4da..731a0c9 100644
+--- a/include/sbi/sbi_trap.h
++++ b/include/sbi/sbi_trap.h
+@@ -127,70 +127,75 @@
+ 
+ /** Representation of register state at time of trap/interrupt */
+ struct sbi_trap_regs {
+-	/** zero register state */
+-	unsigned long zero;
+-	/** ra register state */
+-	unsigned long ra;
+-	/** sp register state */
+-	unsigned long sp;
+-	/** gp register state */
+-	unsigned long gp;
+-	/** tp register state */
+-	unsigned long tp;
+-	/** t0 register state */
+-	unsigned long t0;
+-	/** t1 register state */
+-	unsigned long t1;
+-	/** t2 register state */
+-	unsigned long t2;
+-	/** s0 register state */
+-	unsigned long s0;
+-	/** s1 register state */
+-	unsigned long s1;
+-	/** a0 register state */
+-	unsigned long a0;
+-	/** a1 register state */
+-	unsigned long a1;
+-	/** a2 register state */
+-	unsigned long a2;
+-	/** a3 register state */
+-	unsigned long a3;
+-	/** a4 register state */
+-	unsigned long a4;
+-	/** a5 register state */
+-	unsigned long a5;
+-	/** a6 register state */
+-	unsigned long a6;
+-	/** a7 register state */
+-	unsigned long a7;
+-	/** s2 register state */
+-	unsigned long s2;
+-	/** s3 register state */
+-	unsigned long s3;
+-	/** s4 register state */
+-	unsigned long s4;
+-	/** s5 register state */
+-	unsigned long s5;
+-	/** s6 register state */
+-	unsigned long s6;
+-	/** s7 register state */
+-	unsigned long s7;
+-	/** s8 register state */
+-	unsigned long s8;
+-	/** s9 register state */
+-	unsigned long s9;
+-	/** s10 register state */
+-	unsigned long s10;
+-	/** s11 register state */
+-	unsigned long s11;
+-	/** t3 register state */
+-	unsigned long t3;
+-	/** t4 register state */
+-	unsigned long t4;
+-	/** t5 register state */
+-	unsigned long t5;
+-	/** t6 register state */
+-	unsigned long t6;
++	union {
++		unsigned long gprs[32];
++		struct {
++			/** zero register state */
++			unsigned long zero;
++			/** ra register state */
++			unsigned long ra;
++			/** sp register state */
++			unsigned long sp;
++			/** gp register state */
++			unsigned long gp;
++			/** tp register state */
++			unsigned long tp;
++			/** t0 register state */
++			unsigned long t0;
++			/** t1 register state */
++			unsigned long t1;
++			/** t2 register state */
++			unsigned long t2;
++			/** s0 register state */
++			unsigned long s0;
++			/** s1 register state */
++			unsigned long s1;
++			/** a0 register state */
++			unsigned long a0;
++			/** a1 register state */
++			unsigned long a1;
++			/** a2 register state */
++			unsigned long a2;
++			/** a3 register state */
++			unsigned long a3;
++			/** a4 register state */
++			unsigned long a4;
++			/** a5 register state */
++			unsigned long a5;
++			/** a6 register state */
++			unsigned long a6;
++			/** a7 register state */
++			unsigned long a7;
++			/** s2 register state */
++			unsigned long s2;
++			/** s3 register state */
++			unsigned long s3;
++			/** s4 register state */
++			unsigned long s4;
++			/** s5 register state */
++			unsigned long s5;
++			/** s6 register state */
++			unsigned long s6;
++			/** s7 register state */
++			unsigned long s7;
++			/** s8 register state */
++			unsigned long s8;
++			/** s9 register state */
++			unsigned long s9;
++			/** s10 register state */
++			unsigned long s10;
++			/** s11 register state */
++			unsigned long s11;
++			/** t3 register state */
++			unsigned long t3;
++			/** t4 register state */
++			unsigned long t4;
++			/** t5 register state */
++			unsigned long t5;
++			/** t6 register state */
++			unsigned long t6;
++		};
++	};
+ 	/** mepc register state */
+ 	unsigned long mepc;
+ 	/** mstatus register state */
+@@ -199,6 +204,21 @@ struct sbi_trap_regs {
+ 	unsigned long mstatusH;
+ };
+ 
++_Static_assert(
++	sizeof(((struct sbi_trap_regs *)0)->gprs) ==
++	offsetof(struct sbi_trap_regs, t6) +
++	sizeof(((struct sbi_trap_regs *)0)->t6),
++	"struct sbi_trap_regs's layout differs between gprs and named members");
++
++#define REG_VAL(idx, regs)		((regs)->gprs[(idx)])
++
++#define GET_RS1(insn, regs)		REG_VAL(GET_RS1_NUM(insn), regs)
++#define GET_RS2(insn, regs)		REG_VAL(GET_RS2_NUM(insn), regs)
++#define GET_RS1S(insn, regs)		REG_VAL(GET_RS1S_NUM(insn), regs)
++#define GET_RS2S(insn, regs)		REG_VAL(GET_RS2S_NUM(insn), regs)
++#define GET_RS2C(insn, regs)		REG_VAL(GET_RS2C_NUM(insn), regs)
++#define SET_RD(insn, regs, val)		(REG_VAL(GET_RD_NUM(insn), regs) = (val))
++
+ /** Representation of trap details */
+ struct sbi_trap_info {
+ 	/** cause Trap exception cause */
 -- 
 2.34.1
 
