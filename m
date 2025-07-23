@@ -4,79 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 82157C83F17
-	for <opensbi@archiver.kernel.org>; Wed, 23 Jul 2025 20:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 52438C83F1A
+	for <opensbi@archiver.kernel.org>; Wed, 23 Jul 2025 20:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=6yY+yi7c+UMVC+eZYP87VPl+080krWq3I7DWz27oBiQ=; b=wjy5B7M1IwwSYL
-	XFrBHd1U8diV4O+kjAabTui7m7g0K6XHC/skRlKtj76OPUuvhzUlW0l535d5ZwHcSeAwdsX6Kzopk
-	m9xLE6SlywKPo9J8+zF+t6wZPrC6XOb9v4ncWr4OFQ2auJrKTR2WDMfUZem2IkqRc6HBvjv42RXc/
-	9zF498woldZxmYwtvLq4TyD5YXiYM7N4SIg4Tla9iShvImz/nqqtCxxEYXLge5ZI7xo/EAnh4jsaV
-	X0qlB0qe1eZDZF0Lfo/AH5KSvBQ7D3UyKLE5utdPtHnwouWoQd/DaX/OnGfokaJLP/O0reoPEHrHA
-	tqlpsEAc0sFbRL9FNaRw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=5cDUwg8BnZbWvzZnyYsXOWna+T7DqAT06yeTjQnauZM=; b=bLM8Vs4AHQgbfd
+	0lzG7YA6RmfnBTw5Jvs7/u6+FwL53PBINhVPr/7AKPJC7i7rpMrEDmGakB7avf2dpXR/8zIsNXMz4
+	agJGdr0Psj0EWnaloAASQpjrcVzeZL7KrLEUHtrt7DEFZ2vshSdFNcKlVtUwJwHRy0Se4tZDw8DXe
+	ZFApHOYgDuWBuLZbIO5gnCLo11PEKGkUkMvEVxGfVB6KFzXhcnAz6b8LrKpfMK0v5Bv4xg0PkjK9F
+	hxEE0CZ8RdcoDd4vW+taydjyWlSGKVePo25343lbt/q8rZEQdoloj4GUvURctD1lDUYNb1+IWqM49
+	DdAWC7yY45Vx9u0UNcxA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uegDe-00000005v0k-2Zef;
-	Wed, 23 Jul 2025 20:37:42 +0000
-Received: from mail-lf1-x12e.google.com ([2a00:1450:4864:20::12e])
+	id 1uegGL-00000005vUD-11Em;
+	Wed, 23 Jul 2025 20:40:29 +0000
+Received: from mail-pl1-x634.google.com ([2607:f8b0:4864:20::634])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uegDc-00000005v0J-3FYl
+	id 1uegGI-00000005vTQ-3tXz
 	for opensbi@lists.infradead.org;
-	Wed, 23 Jul 2025 20:37:41 +0000
-Received: by mail-lf1-x12e.google.com with SMTP id 2adb3069b0e04-553ba7f11cbso275599e87.1
-        for <opensbi@lists.infradead.org>; Wed, 23 Jul 2025 13:37:40 -0700 (PDT)
+	Wed, 23 Jul 2025 20:40:27 +0000
+Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-2350b1b9129so1763045ad.0
+        for <opensbi@lists.infradead.org>; Wed, 23 Jul 2025 13:40:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1753303059; x=1753907859; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AdgGnhJvkJHkesTD7wDqhnZoso3WgmSEgu8z8UunXms=;
-        b=CactLLHzG2LxgoSAWcpz3/snXpOmFUNK8TbnVsJrFuHiwztKlXMQrAWafi0vVaWCMm
-         327RttnKtBznXxVfww5MeXbtzR3KCVDcCsAG/AReuOb6Kht+7kBorcm9cu4zF1XWu0du
-         vWmnKZc9h2hnhW9BaheI9LrnH8+PIUhz98QC7IvZDmYMaojkAcm2BgjA7CovNHz4U/KG
-         fsfjHuZsd+eLJPVEF5e/pFS8ZgRixBrb+jFcy25xL6y7DOOV91kvUTirK9qv0M0xSLaS
-         C9362LOwlJ/yIBCJpxpS3J3zba+eMST3hrVMGafVgylp3HABp2t32ygXCLdmlT3/sJDP
-         kLLw==
+        d=gmail.com; s=20230601; t=1753303225; x=1753908025; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=eutMZ1NPGVsA/LXIPzKiJVin94bLdmM4zmRyn1y3AzE=;
+        b=NXY60NyYFp5RwBTO47p9x1NRhgIgRfRtRbmvhp7OPvKo45IZU+GZ+MA4ieZsJ/FtUQ
+         kKanwO8o245heouv6MI0jnCOBCNE4YpW+UAO2LiIt356rENcPxxSYwaCe6kCkVDCewFQ
+         hp7q3FnqM2oa8SQWqWIwX/yEP7nqBf78+wk3S331QEleSWv4ybSay5bohYhDXKvQ3Vtx
+         6J2m1zTg5gwROwi4ISyXRaFMljFtfWUJUEWOyFS++8ds/vfo0qQvhn3NdcTAdYNVCJef
+         dlDrghNw6/g7pm5oQI0GnS5IP6XdvZfoNS+21xxsSBU3fn0h5WAxzBo5cQZOZsvBTp99
+         BLSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753303059; x=1753907859;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=AdgGnhJvkJHkesTD7wDqhnZoso3WgmSEgu8z8UunXms=;
-        b=IGO6jSw5PTadjM3ZKw6SK14pzPBsdGxK6p7DE5xdQy9Gi2YzrcSEj17TR5KildUeOY
-         6wnr6PZnkzAs2cH4VUPi0XX9u27XRuZW9sGBpHlx6cYL0iy4GAyj69ekQFTAo8CIPQXl
-         1uon/JrwGCgrCazAxNGGbSDd1Nq6+ANZvM35S3a0gXbzXffZyUVgklryrBxr6HSiGdWR
-         CHX8sAZNS48bScD7ue5YqSSphqjvvw4H+JuO20wzj5HoBmo++Q360jMuDd/9vRGsObP5
-         oWALbfM0lxepNnVLAJL9dRo63Yf61nAhvLVfql2vrpBn3ACvumN1wThul2O4xHl4wFMf
-         2APg==
-X-Gm-Message-State: AOJu0Yycz/DjYq449oSniGOuipVmONhAItF5Nm6NgPQ8aZsWKlloCSny
-	abSsMtvaQxfbuCuqLDr44zyLmHAt71kWP+RvFjOYytNqS43eM/UCIi99iM2MJpkdFC1M+KusHwM
-	5jOgKOf5pwBHpV6ojOglJY06IAyAYaTQ=
-X-Gm-Gg: ASbGncvZLYfDpvZMdlebg/wC73vAyrJxL1tZGnX4ObOfWocvVtiR3eZZJuxaoGzt5Do
-	WOfVTtG3P9MD1MphNEFYftY1h/z0ifUnAV0KCdp4VJpzny9oZBKbBdPcEcgmv/IuZxKPX3uhVZD
-	4cqR7e2Yyjw+1JTjdfoeg0AEVJYoQ186ubyMu0ReV1daRyFCHxlH74R2UiWPmk90pcR4fBWf/vn
-	GfNHaOF
-X-Google-Smtp-Source: AGHT+IHcf6MrksmKYjQLC0ufDSQpAdPIe7nFZjN1hDSXRaBR8oDT5+6cC8MXM/PGA5xEJXY4kavIO8PFJVdrfvaq6OI=
-X-Received: by 2002:a05:6512:2508:b0:553:ad48:3f2b with SMTP id
- 2adb3069b0e04-55a5134563cmr1148471e87.2.1753303058668; Wed, 23 Jul 2025
- 13:37:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <20250722230414.6815-1-cfu@mips.com> <7b16297c-3b48-425e-a7bb-176440d21f29@sifive.com>
-In-Reply-To: <7b16297c-3b48-425e-a7bb-176440d21f29@sifive.com>
+        d=1e100.net; s=20230601; t=1753303225; x=1753908025;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=eutMZ1NPGVsA/LXIPzKiJVin94bLdmM4zmRyn1y3AzE=;
+        b=pfbugcCIlwDG/ln/yunBA39JKi0mUQTrPo2lF6bVyfMN1HOwhBalz8TgdkLZ9/lRug
+         gwjAcHYVJ/IsgzqePQWayNLl4Oc1JEG9v5K2OPBRKe54/tmVwUdxNz042KDaglL2QpBW
+         DGEDVbB1G56EMVlG8mkZ93fLfzesz8PC5NrsZXcdMApDE8tfL/mfomZJZ6gtT3z7g/F+
+         gzZUHqc5l9+8+VKt0GJWvT1BA+h3ILB0LoKwcQAFpMXTsKpwAyHhiaSrCAyA2Nm5CIHS
+         zQJ0pij/fXL9/ELgAkn4kso8RhGEjDZQo9LTEIHf0yr6+wKt0IAcRRPNOy0af/pFUWg+
+         ZYTg==
+X-Gm-Message-State: AOJu0YwwtqsL89Jk1C4vjeAtpmsOfGhRIHSJMGu70qX/CoBG6VLbtFBX
+	ClcVLsa/gEDJOgb/EXe/XzfESc8jYKY2FwcSgb592DEVVk/74mPhVLqB5TcwuEfv
+X-Gm-Gg: ASbGncsled7gCm/Gx/ChDNg4m1vy+HVfFd9m+JC6xB0u8s5jCRSjMD5wC7QU4i4bAAC
+	IdUKBSY2Z6mfhrGi/SxP9iGfoWmlFJWqpX6rsTwYvrC2gVZWymn9SIPw8LoCAWKYtb/yeF4GUF5
+	jjomjEP6bZTrBvlenMxNWwDJlClzVq9HkbNK/rGT/PsyFT9Cwt35EKCLlmTw68MM7+J1HzMXTum
+	2Cvp5Cli5vm2faXDgOvkj/iVI8GQKWuoPifl2kazXoIc+v4aaAXkb7YJTn0xwJGAvNP/6HZEMCR
+	YyYzpmpcgZxyFr/BJOf+hNQNwo2Ap2F5tGF7+zKnSGDL3Pt8EdUPy8W0HdNJARLvCidqujtkUXM
+	067rnAKrT8T0jYI5ahhLx0S5/TMVVAz85k8xP
+X-Google-Smtp-Source: AGHT+IE4azOs/MICASHahGYa0WCOzcTOHmgtN3GQzgjWP68OOKLuhZ+m6QT489Dg7Q3WRRc4vzQlhw==
+X-Received: by 2002:a17:903:2cd:b0:235:e1d6:f98b with SMTP id d9443c01a7336-23f9818e959mr75074935ad.22.1753303225433;
+        Wed, 23 Jul 2025 13:40:25 -0700 (PDT)
+Received: from localhost.localdomain ([50.175.154.178])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23e3b6b4c81sm102398255ad.114.2025.07.23.13.40.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Jul 2025 13:40:24 -0700 (PDT)
 From: Chao-ying Fu <icebergfu@gmail.com>
-Date: Wed, 23 Jul 2025 13:37:26 -0700
-X-Gm-Features: Ac12FXzHLN-Mz6okyppKCUFk32OaGmzhjERngkp-hENZ27-dkkCMkKKtLFZw5Kw
-Message-ID: <CAM1rFzExBcwtSm+dMCn3byBZ9-Yza+SbPzmMX_Hd3DU7U+gW2A@mail.gmail.com>
-Subject: Re: [PATCH v2] generic: mips: support harts to boot from mips_warm_boot
-To: Samuel Holland <samuel.holland@sifive.com>
-Cc: opensbi@lists.infradead.org, Chao-ying Fu <cfu@mips.com>
+X-Google-Original-From: Chao-ying Fu <cfu@mips.com>
+To: opensbi@lists.infradead.org
+Cc: Chao-ying Fu <cfu@mips.com>
+Subject: [PATCH v3] generic: mips: support harts to boot from mips_warm_boot
+Date: Wed, 23 Jul 2025 13:40:10 -0700
+Message-ID: <20250723204010.9927-1-cfu@mips.com>
+X-Mailer: git-send-email 2.47.1
+MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250723_133740_810267_27E24A92 
-X-CRM114-Status: GOOD (  15.17  )
+X-CRM114-CacheID: sfid-20250723_134026_963949_3B6F7044 
+X-CRM114-Status: GOOD (  15.47  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -88,33 +90,88 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVHVlLCBKdWwgMjIsIDIwMjUgYXQgNToxOOKAr1BNIFNhbXVlbCBIb2xsYW5kCjxzYW11ZWwu
-aG9sbGFuZEBzaWZpdmUuY29tPiB3cm90ZToKPgo+IEhpIENoYW8teWluZywKPgo+IE9uIDIwMjUt
-MDctMjIgNjowNCBQTSwgQ2hhby15aW5nIEZ1IHdyb3RlOgo+ID4gV2UgcHJvZ3JhbSByZXNldCBi
-YXNlIGZvciBoYXJ0cyAob3RoZXIgdGhhbiBoYXJ0IDApIHRvIGJvb3QgYXQKPiA+IG1pcHNfd2Fy
-bV9ib290IHRoYXQganVtcHMgdG8gX3N0YXJ0X3dhcm0uIFRoaXMgaGVscHMgdG8gc2tpcCBzb21l
-IGNvZGUKPiA+IHNlcXVlbmNlIHRvIHNwZWVkIHVwLgo+ID4KPiA+IFNpZ25lZC1vZmYtYnk6IENo
-YW8teWluZyBGdSA8Y2Z1QG1pcHMuY29tPgo+ID4gLS0tCj4gPiAgcGxhdGZvcm0vZ2VuZXJpYy9t
-aXBzL3A4NzAwLmMgfCAxNyArKysrKysrKysrKysrKysrKwo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAx
-NyBpbnNlcnRpb25zKCspCj4gPgo+ID4gZGlmZiAtLWdpdCBhL3BsYXRmb3JtL2dlbmVyaWMvbWlw
-cy9wODcwMC5jIGIvcGxhdGZvcm0vZ2VuZXJpYy9taXBzL3A4NzAwLmMKPiA+IGluZGV4IDg4OGE0
-NWMuLjhjOTNlYmYgMTAwNjQ0Cj4gPiAtLS0gYS9wbGF0Zm9ybS9nZW5lcmljL21pcHMvcDg3MDAu
-Ywo+ID4gKysrIGIvcGxhdGZvcm0vZ2VuZXJpYy9taXBzL3A4NzAwLmMKPiA+IEBAIC0xNDAsNiAr
-MTQwLDIwIEBAIHN0YXRpYyB2b2lkIHBvd2VyX3VwX290aGVyX2NsdXN0ZXIodTMyIGhhcnRpZCkK
-PiA+ICB9Cj4gPiAgI2VuZGlmCj4gPgo+ID4gK3N0YXRpYyB2b2lkIF9fYXR0cmlidXRlX18oKG5h
-a2VkLG5vX2luc3RydW1lbnRfZnVuY3Rpb24sYWxpZ25lZCg0MDk2KSkpCj4KPiBQbGVhc2UgZm9s
-bG93IEplc3MncyBzdWdnZXN0aW9uIGFuZCB1c2UgYW4gYXNzZW1ibHkgZmlsZSBsaWtlIHdlIGFs
-cmVhZHkgZG8gZm9yCj4gcGxhdGZvcm0vZ2VuZXJpYy9hbmRlcy9zbGVlcC5TLiBUaGlzIHdpbGwg
-YmUgbW9yZSByZWxpYWJsZSB0aGFuIGZvcmV2ZXIgZmlnaHRpbmcKPiB0aGUgY29tcGlsZXIgdG8g
-a2VlcCBpdCBmcm9tIGluc2VydGluZyBhbnkgaW5zdHJ1Y3Rpb25zIG9uIGl0cyBvd24uIChBcmUg
-eW91Cj4gX3N1cmVfIHRoYXQgdGhpcyBsaXN0IG9mIGF0dHJpYnV0ZXMgY292ZXJzIGV2ZXJ5IHRv
-b2xjaGFpbiBhbmQgY29uZmlndXJhdGlvbj8pCj4KSGkgU2FtLAoKICBPay4gSSB3aWxsIGNoYW5n
-ZSB0byB1c2UgYW4gYXNzZW1ibHkgZmlsZSBhbmQgc2VuZCBvdXQgdjMgc29vbiwKc2ltaWxhciB0
-byBzbGVlcC5TLgogIFRoYW5rcyBhIGxvdCEKClJlZ2FyZHMsCkNoYW8teWluZwoKLS0gCm9wZW5z
-YmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMu
-aW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+We program reset base for harts (other than hart 0) to boot at
+mips_warm_boot that jumps to _start_warm. This helps to skip some code
+sequence to speed up.
+
+Signed-off-by: Chao-ying Fu <cfu@mips.com>
+---
+ platform/generic/mips/mips_warm_boot.S | 20 ++++++++++++++++++++
+ platform/generic/mips/objects.mk       |  2 +-
+ platform/generic/mips/p8700.c          |  5 +++++
+ 3 files changed, 26 insertions(+), 1 deletion(-)
+ create mode 100644 platform/generic/mips/mips_warm_boot.S
+
+diff --git a/platform/generic/mips/mips_warm_boot.S b/platform/generic/mips/mips_warm_boot.S
+new file mode 100644
+index 0000000..25cdb83
+--- /dev/null
++++ b/platform/generic/mips/mips_warm_boot.S
+@@ -0,0 +1,20 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 MIPS
++ *
++ */
++	.text
++	.align	12
++	.globl	mips_warm_boot
++mips_warm_boot:
++	j	_start_warm
++	.align	2
++nmi_vector:
++	j	_start_warm
++	.align	2
++cacheerr_vector:
++	j	_start_warm
++	.align	2
++debugexc_vector:
++	j	_start_warm
+diff --git a/platform/generic/mips/objects.mk b/platform/generic/mips/objects.mk
+index bbbc15a..a08c4c6 100644
+--- a/platform/generic/mips/objects.mk
++++ b/platform/generic/mips/objects.mk
+@@ -4,5 +4,5 @@
+ 
+ ifeq ($(PLATFORM_RISCV_XLEN), 64)
+ carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700) += mips_p8700
+-platform-objs-$(CONFIG_PLATFORM_MIPS_P8700) += mips/p8700.o
++platform-objs-$(CONFIG_PLATFORM_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
+ endif
+diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
+index 888a45c..d3e015b 100644
+--- a/platform/generic/mips/p8700.c
++++ b/platform/generic/mips/p8700.c
+@@ -16,6 +16,8 @@
+ #include <mips/p8700.h>
+ #include <mips/mips-cm.h>
+ 
++extern void mips_warm_boot(void);
++
+ static unsigned long mips_csr_read_num(int csr_num)
+ {
+ #define switchcase_csr_read(__csr_num, __val)		\
+@@ -150,6 +152,9 @@ static int mips_hart_start(u32 hartid, ulong saddr)
+ 	if (hartid == 0)
+ 		return SBI_ENOTSUPP;
+ 
++	/* Change reset base to mips_warm_boot */
++	write_gcr_co_reset_base(hartid, (unsigned long)mips_warm_boot, local_p);
++
+ 	if (cpu_hart(hartid) == 0) {
+ 		/* Ensure its coherency is disabled */
+ 		write_gcr_co_coherence(hartid, 0, local_p);
+-- 
+2.47.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
