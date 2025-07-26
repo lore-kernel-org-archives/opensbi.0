@@ -4,52 +4,79 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3E06AC87FCD
-	for <opensbi@archiver.kernel.org>; Fri, 25 Jul 2025 09:15:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C89D1C87FCA
+	for <opensbi@archiver.kernel.org>; Sat, 26 Jul 2025 03:24:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:From:Date:Subject:Mime-Version:To:
-	Message-Id:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From
-	:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=hJMqsmx6TZ+W/pkZtQR3G/KW7Ltkc3PhBAfpFqNpTic=; b=aA6+ytr/wb7EWi
-	N+VUYe2WU68T1qIkxYRJgb88UYnJ3xwflX0139eCxBwVaVp8Ya9uKMArTZ1nyc+nEAvueQbrXIhlT
-	5sP6Z488UP7ffFQXlkO7fo3Ooc8JoXzKx4vjMuINlKj6GskKx4ML8rZ1bwqZRk2e7c/y8GsbGvPck
-	gui+eu/ev935fwuKske7oqc4DdkWkoCUpplQQdU9+HurIsMMcYM0pvqpGkBI7au5xibvUIAd5ldzJ
-	rkJzOnnl/5533gHTVxeUwZd/SresDGSxksjsStib7cbwfUVjo2Qpbma5NFUryA7zPmTMLyP6o+1X8
-	q5IRYkpaMpjKuKDRqGdQ==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=L8cBUNhnHMOfNlbCtNw3w31GdW6y0qArLq1oCQ37OMg=; b=2KGx7M7YI0lAA+
+	Qg82bMdZMYgtWsTiIsdvhTxiqaAIKf8TpnUwhV4B4z4OPVeD5lZGib4odVr4O7+Z9MSJ8TEIrOu4d
+	nEeDKsvJYJ/dhJXsBdv7R7Iyja1N8jDzL/K8JRKG6sjJo03K5qWyMNW/vs3rBmIYMxOTYTjrHhWN+
+	6bv3aRh2RmV4ABYU5gyrclA7PKCM/r1RE9VvRsOe9WD3WSBLUhc7jHnPUBnHvYdp+2yvI6CN+BOKs
+	mwGHWjw+gmKlTlsqHIJ4mMF4kiXbwzFBjIAkUAkKZ4AWmmOCXFjFbxMIEEdHSpyv28VIFtUvWaxBe
+	8d/F1sJ6ApfEhDKQHG3A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1ufEWK-00000009RF0-3UlO;
-	Fri, 25 Jul 2025 09:15:16 +0000
-Received: from sg-1-37.ptr.blmpb.com ([118.26.132.37])
+	id 1ufVVk-0000000B4mq-3i5M;
+	Sat, 26 Jul 2025 03:23:48 +0000
+Received: from mail-yw1-x1132.google.com ([2607:f8b0:4864:20::1132])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1ufEWH-00000009REM-1jtG
+	id 1ufVVh-0000000B4mO-1fzU
 	for opensbi@lists.infradead.org;
-	Fri, 25 Jul 2025 09:15:15 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=s1; d=nzhnb-com.20200927.dkim.feishu.cn; t=1753434901;
-  h=from:subject:mime-version:from:date:message-id:subject:to:cc:
- reply-to:content-type:mime-version:in-reply-to:message-id;
- bh=C6ejhh0JpgzqxC3B34PFlOWPhAFYwOH7moyMrnxaC1I=;
- b=CY3fVdWiTOZRRnEJkHey1yceaL9sFXSf4sRSuXZGpgk8JvqIygddBEDH611bmDA2PcEZke
- unuWNq7CYWd+f5GxY/ERpvJ5uHhm88hGnuY1GZQYPELRxw7gVeRlsNdmqdaiHzxCIrzaGN
- 1kCeHUbx1e2nA09D2jzw+oaQ4npmRoKAJD0vBUUNGKwtJEQQC24G9v+ML4AgyeAO0AHKx1
- ZDqjk/30NhyBRhV7f2tkQUd3I1t2abQH/mC6SKlaqB4SQV4Su7jahEBVwh8lIbdtda63JB
- si8VWFHVVhKphiV9O/8paKJRlNG5Q8L3cIQ5ER5Bpo+3izR3ENDUxtzpzgRdiw==
-Message-Id: <20250725091453.188077-1-zhihong@nzhnb.com>
-X-Lms-Return-Path: <lba+268834b12+c51f9b+lists.infradead.org+zhihong@nzhnb.com>
-To: <opensbi@lists.infradead.org>
-Mime-Version: 1.0
-Received: from ubuntu.. ([101.52.204.106]) by smtp.feishu.cn with ESMTPS; Fri, 25 Jul 2025 17:14:58 +0800
-Subject: [PATCH] lib: utils: Add PSCI implementation support
-Date: Fri, 25 Jul 2025 17:14:53 +0800
-X-Original-From: Niu Zhihong <zhihong@nzhnb.com>
-From: "Niu Zhihong" <zhihong@nzhnb.com>
-X-Mailer: git-send-email 2.45.2
+	Sat, 26 Jul 2025 03:23:47 +0000
+Received: by mail-yw1-x1132.google.com with SMTP id 00721157ae682-7086dcab64bso25402317b3.1
+        for <opensbi@lists.infradead.org>; Fri, 25 Jul 2025 20:23:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=summations-net.20230601.gappssmtp.com; s=20230601; t=1753500224; x=1754105024; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=6mF/KJ8FqTNWuINdMqPrluUNUMxligaZnKgvA788SN4=;
+        b=Qr03e2jXO9LgBIVLXKHoIlIeFnXT1QyrXUSWo9sKQ2KvMqMAeQHsHj/Nfg8cvBvV7B
+         nTxWjxoNNQJS28GlmLWZDTyoo28bEbqv5AVsPB7Ryd1iOdj+azDFzcrlGIqiiCykjir0
+         x1b/Q1NYVll0O+mErsjtQ3+6VsxigqVmLM61fUxTsJV3jDgvi2z1Nf/SQJda7n/oDLjQ
+         mQKJKynHka/K/RFYJuSquMdjBnd8miHbzAEIvydYZMSZLMi+6PJsmeamVW+z8b9XqPpj
+         slTAtPDnPiCAofCImj9/GwcF9kpRGMxe3ZYR/ZHJokD6LvtIw3aatc0FzZwwiwv/JBeG
+         Eq6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1753500224; x=1754105024;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=6mF/KJ8FqTNWuINdMqPrluUNUMxligaZnKgvA788SN4=;
+        b=BBxMT3b5DNz44LkVDM3LOUGS0frANoGrjWkZjpkD7KogCkoKkj9l2Pbay6t48L47Yp
+         Vg0SymTGJpc9DMHOXiTDwp6E/y4Mt3pfs0oU0D7fVA9g3iGb5c77YX9fcbvBvUjBeRA4
+         oaPfv9rQAGpTrRsXHmvUu5QEaqzc8zv4smFaCVZL9LzTtSEQieAkXSSPFc2fsVlsP39P
+         zUxHXqnNMZZc96Nrj6TiWXpk0HqWVNBPF9bHg0v+Y9g0n4lwv8S5hbjHnbabGVanFl6x
+         GdsjHa2JycT7SdupNfyF0/JnHeosuTjfrSj5yyYr+qQKgpEvU7O3F61IUgu8+WFT5XhU
+         aNeQ==
+X-Gm-Message-State: AOJu0Yw/6fgkVoQ+AuVUTReTWOAsXvhsxK6lqR+Q261PcCjDiXujns0w
+	+1xe4g87iQ8gI6y0KFegQc5vF9YXGD7n05DyOZSX46M12RoOHaYS4bvLqMVPU+kws1CA7tq+44d
+	9x7177QSC68dN76WbCA3WX2szKmtE7zBRwqzUS9WJ6aReT1ep253fsqg5lV4=
+X-Gm-Gg: ASbGnctToLy5xRAwsE/1e6T+OQHQwhWhYvvorg5jeGIit/RiHB7P/PHXAaUx6hLv3Qa
+	MYooDBoTE3Y1R+PqnvhzXvjEKi0ydtpFyj8rsZN/BrFgA7Kapfy9DW2zjwNAcRg+7oDjKFNCAB7
+	NhIWLU6Mpa8QKdz7rRkIvUO5p1JoJl2tB/MnF1B8Bncc2Vco5xAJWWq0uLTyks040mzLc4iIRKo
+	rvVfRXsLhw6CKoROlxDa0rZnQQZpNvFqcOBPfs=
+X-Google-Smtp-Source: AGHT+IFBOH8ah7Uj1jzlZyECg0sl9/2LJnv5kCaQ8U3Fte0lUf2kpHn+zPP6BJ+kqLzs2X67M1amEqUoWbhPECjIsI0=
+X-Received: by 2002:a05:690c:3507:b0:70e:2d77:3cfe with SMTP id
+ 00721157ae682-719e329a926mr63516867b3.2.1753500223429; Fri, 25 Jul 2025
+ 20:23:43 -0700 (PDT)
+MIME-Version: 1.0
+References: <20250725091453.188077-1-zhihong@nzhnb.com>
+In-Reply-To: <20250725091453.188077-1-zhihong@nzhnb.com>
+From: Rahul Pathak <rahul@summations.net>
+Date: Sat, 26 Jul 2025 08:53:32 +0530
+X-Gm-Features: Ac12FXzcctXai9N15h18S5ezq6hGCpxuV4a6Iu6AGjFVfCsv-SX85Ee8UjpAppY
+Message-ID: <CABdD5xn_YEKceXEhr78zCP_ENni-5bSE-cFaQ4tWi0Mmy--K5A@mail.gmail.com>
+Subject: Re: [PATCH] lib: utils: Add PSCI implementation support
+To: Niu Zhihong <zhihong@nzhnb.com>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250725_021513_856736_D38CE0EF 
-X-CRM114-Status: GOOD (  26.49  )
+X-CRM114-CacheID: sfid-20250725_202345_696926_03F14BF5 
+X-CRM114-Status: GOOD (  35.94  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -61,778 +88,503 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This patch adds Power State Coordination Interface (PSCI) support to OpenSBI.
-PSCI provides a standard interface for power management operations such as
-CPU power on/off, system suspend/resume, and system reset.
-
-The implementation includes:
-- PSCI version information and feature detection
-- CPU power management (on/off/suspend)
-- System power management (reset/off)
-- Affinity level management
-- PSCI library utilities and helper functions
-
-This follows the PSCI specification version 1.3 and provides a foundation
-for platform-specific power management implementations.
-
-Signed-off-by: Niu Zhihong <zhihong@nzhnb.com>
----
-diff --git a/include/sbi_utils/psci/psci.h b/include/sbi_utils/psci/psci.h
-new file mode 100644
-index 0000000..f063ec2
---- /dev/null
-+++ b/include/sbi_utils/psci/psci.h
-@@ -0,0 +1,222 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ *
-+ * See PSCI specification (Version 1.3 issue F.b) for more details.
-+ */
-+
-+#ifndef __PSCI_H__
-+#define __PSCI_H__
-+
-+#include <stdint.h>
-+#include <stddef.h>
-+
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_hart.h>
-+
-+#define psci_assert(cond)                                                   \
-+	do {                                                                \
-+		if (!(cond)) {                                              \
-+			sbi_printf("%s:%d, invalid psci state\n", __func__, \
-+				   __LINE__);                               \
-+			sbi_hart_hang();                                    \
-+		}                                                           \
-+	} while (0)
-+
-+/* Version 1.1 */
-+#define PSCI_MAJOR_VER (1 << 16)
-+#define PSCI_MINOR_VER 1
-+
-+#define PSCI_E_SUCCESS 0
-+#define PSCI_E_NOT_SUPPORTED -1
-+#define PSCI_E_INVALID_PARAMS -2
-+#define PSCI_E_DENIED -3
-+#define PSCI_E_ALREADY_ON -4
-+#define PSCI_E_ON_PENDING -5
-+#define PSCI_E_INTERN_FAIL -6
-+#define PSCI_E_NOT_PRESENT -7
-+#define PSCI_E_DISABLED -8
-+#define PSCI_E_INVALID_ADDRESS -9
-+
-+/* PSCI function IDs */
-+#define PSCI_FN_VERSION 0x84000000
-+#define PSCI_FN_CPU_SUSPEND_SMC32 0x84000001
-+#define PSCI_FN_CPU_SUSPEND_SMC64 0xC4000001
-+#define PSCI_FN_CPU_OFF 0x84000002
-+#define PSCI_FN_CPU_ON_SMC32 0x84000003
-+#define PSCI_FN_CPU_ON_SMC64 0xC4000003
-+#define PSCI_FN_AFFINITY_INFO_SMC32 0x84000004
-+#define PSCI_FN_AFFINITY_INFO_SMC64 0xC4000004
-+#define PSCI_FN_SYSTEM_OFF 0x84000008
-+#define PSCI_FN_SYSTEM_RESET 0x84000009
-+#define PSCI_FN_PSCI_FEATURES 0x8400000A
-+#define PSCI_FN_SYSTEM_OFF2_SMC32 0x84000015
-+#define PSCI_FN_SYSTEM_OFF2_SMC64 0xC4000015
-+
-+/* SMCCC function IDs */
-+#define SMCCC_VERSION 0x80000000
-+
-+/* PSCI AFFINITY_INFO return values */
-+#define PSCI_AFFINITY_STATE_ON 0
-+#define PSCI_AFFINITY_STATE_OFF 1
-+#define PSCI_AFFINITY_STATE_ON_PENDING 2
-+
-+/* PSCI power state TYPEs */
-+#define PSCI_PSTATE_TYPE_STANDBY 0x0
-+#define PSCI_PSTATE_TYPE_POWERDOWN 0x1
-+
-+/* PSCI power state IDs */
-+#define PSCI_PSTATE_ID_RUN 0x0
-+#define PSCI_PSTATE_ID_STANDBY 0x1
-+#define PSCI_PSTATE_ID_RETENTION 0x2
-+#define PSCI_PSTATE_ID_POWERDOWN 0x3
-+
-+/**
-+ * Description:
-+ * Return the version of PSCI implemented. This function allows a caller
-+ * to ascertain the current version of the PSCI interface.
-+ * 
-+ * Return Value:
-+ * uint32_t - 31-bit unsigned integer containing version information:
-+ * - Bits[31:16]: Major Version (upper 15 bits)
-+ * - Bits[15:0]:  Minor Version (lower 16 bits)
-+ * 
-+ * Current Implementation:
-+ * - Major Version: 1 (PSCI_MAJOR_VER)
-+ * - Minor Version: 1 (PSCI_MINOR_VER)
-+ * - Combined Version: 0x00010001
-+ */
-+uint32_t psci_version();
-+
-+/**
-+ * Description:
-+ * Suspend execution on a core or higher-level topology node. This call is
-+ * intended for use in idle subsystems where the core is expected to return
-+ * to execution through a wakeup event.
-+ * 
-+ * Parameters:
-+ * - power_state: Describes the target power state for suspension
-+ *   - uint32 value defining the power state characteristics
-+ *   - Extended StateID format:
-+ *     - Bit[31]: Reserved, must be zero
-+ *     - Bit[30]: StateType
-+ *       - PSCI_PSTATE_TYPE_STANDBY (0): Standby or retention state (no core context lost)
-+ *       - PSCI_PSTATE_TYPE_POWERDOWN (1): Powerdown state (core context lost, entry_point_address and context_id valid)
-+ *     - Bits[29:28]: Reserved, must be zero
-+ *     - Bits[27:0]: StateID (platform-specific state identifier)
-+ *         - PSCI_PSTATE_ID_RUN (0x0): Normal running state
-+ *         - PSCI_PSTATE_ID_STANDBY (0x1): Standby state (quick wake-up)
-+ *         - PSCI_PSTATE_ID_RETENTION (0x2): Retention state (context preserved)
-+ *         - PSCI_PSTATE_ID_POWERDOWN (0x3): Powerdown state (context lost)
-+ *   - Format is determined by PSCI_FEATURES bit[1] for CPU_SUSPEND
-+ *
-+ * - entry_point_address: Resume execution address after wakeup
-+ *   - Only valid for powerdown states; ignored for standby states
-+ * 
-+ * - context_id: Context value for powerdown states
-+ *   - Only valid for powerdown states; ignored for standby states
-+ * 
-+ * Return Value:
-+ * intptr_t - Result of the CPU_SUSPEND operation:
-+ * - PSCI_E_SUCCESS: Operation completed successfully
-+ * - PSCI_E_INVALID_PARAMS: Invalid parameters provided
-+ * - PSCI_E_INVALID_ADDRESS: Invalid entry point address
-+ * - PSCI_E_DENIED: Operation denied (only in OS-initiated mode)
-+ */
-+intptr_t psci_cpu_suspend(uint32_t power_state, uintptr_t entry_point_address,
-+			  uintptr_t context_id);
-+
-+/**
-+ * Description:
-+ * Power down the calling core. This call is intended for use in hotplug.
-+ * A core that is powered down by CPU_OFF can only be powered up again
-+ * in response to a CPU_ON call.
-+ * 
-+ * Return Value:
-+ * int32_t - Result of the CPU_OFF operation:
-+ * - Does not return when successful (core is powered down)
-+ * - PSCI_E_DENIED: Operation denied (only possible return value on failure)
-+ */
-+int32_t psci_cpu_off();
-+
-+/**
-+ * Description:
-+ * Power up a core. This call is used to power up cores that either:
-+ * - Have not yet been booted into the calling supervisory software
-+ * - Have been previously powered down with a CPU_OFF call
-+ * 
-+ * Parameters:
-+ * - target_cpu: Target CPU to power on
-+ *   - In OpenSBI implementation: this corresponds to hartid
-+ * 
-+ * - entry_point_address: Physical address where core should start execution
-+ * 
-+ * - context_id: Context value passed to the target core
-+ * 
-+ * Return Value:
-+ * intptr_t - Result of the CPU_ON operation:
-+ * - PSCI_E_SUCCESS: Operation completed successfully
-+ * - PSCI_E_INVALID_PARAMS: Invalid parameters provided
-+ * - PSCI_E_INVALID_ADDRESS: Invalid entry point address
-+ * - PSCI_E_ALREADY_ON: Target CPU is already powered on
-+ * - PSCI_E_ON_PENDING: Target CPU is already being powered on
-+ * - PSCI_E_INTERN_FAIL: Internal failure occurred
-+ * - PSCI_E_DENIED: Operation denied
-+ */
-+intptr_t psci_cpu_on(uintptr_t target_cpu, uintptr_t entry_point_address,
-+		     uintptr_t context_id);
-+
-+/**
-+ * Description:
-+ * Enable the caller to request status of an affinity instance.
-+ * 
-+ * Parameters:
-+ * - target_affinity: Target affinity instance to query
-+ *   - In OpenSBI implementation: this corresponds to hartid
-+ * 
-+ * - lowest_affinity_level: 
-+ *   - From PSCI version 1.0 onwards, AFFINITY_INFO is no longer required to
-+ *     support affinity levels higher than 0.
-+ *
-+ * Return Value:
-+ * intptr_t - Status of the affinity instance:
-+ * - PSCI_AFFINITY_STATE_ON (0): At least one core in the affinity instance is ON
-+ * - PSCI_AFFINITY_STATE_OFF (1): Affinity instance is OFF
-+ * - PSCI_AFFINITY_STATE_ON_PENDING (2): Affinity instance is transitioning to ON state
-+ * - PSCI_E_INVALID_PARAMS: Invalid parameters provided
-+ */
-+intptr_t psci_affinity_info(uintptr_t target_affinity,
-+			    uint32_t lowest_affinity_level);
-+
-+/**
-+ * Description:
-+ * Shut down the system.
-+ */
-+void psci_system_off();
-+
-+/**
-+ * Description:
-+ * Reset the system.
-+ */
-+void psci_system_reset();
-+
-+/**
-+ * Description:
-+ * Query API that allows discovering whether SMCCC_VERSION or a specific PSCI 
-+ * function is implemented and its features. This function is introduced in 
-+ * PSCI 1.0 specification.
-+ * 
-+ * Parameters:
-+ * - psci_func_id: Function ID of PSCI Function or SMCCC_VERSION
-+ * 
-+ * Return values:
-+ * - PSCI_E_NOT_SUPPORTED: if the function identified by psci_func_id is not 
-+ *   implemented or is an invalid function ID
-+ * - Feature flags (int32): A set of feature flags associated with the 
-+ *   implemented function indicated by psci_func_id. Feature flags are specific 
-+ *   to each function. Format:
-+ *   - Bit[31] is zero
-+ *   - Bits[30:0] represent the feature flags
-+ */
-+int32_t psci_features(uint32_t psci_func_id);
-+
-+#endif /* __PSCI_H__ */
-diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
-index 901ba56..5dada1e 100644
---- a/lib/utils/Kconfig
-+++ b/lib/utils/Kconfig
-@@ -34,4 +34,6 @@ source "$(OPENSBI_SRC_DIR)/lib/utils/timer/Kconfig"
- 
- source "$(OPENSBI_SRC_DIR)/lib/utils/mpxy/Kconfig"
- 
-+source "$(OPENSBI_SRC_DIR)/lib/utils/psci/Kconfig"
-+
- endmenu
-diff --git a/lib/utils/psci/Kconfig b/lib/utils/psci/Kconfig
-new file mode 100644
-index 0000000..f818cf7
---- /dev/null
-+++ b/lib/utils/psci/Kconfig
-@@ -0,0 +1,10 @@
-+# SPDX-License-Identifier: BSD-2-Clause
-+# Copyright The OpenSBI Contributors
-+
-+menu "Arm Power State Coordination Interface Support"
-+
-+config ARM_PSCI
-+	bool "Support PSCI protocol"
-+	default n
-+
-+endmenu
-diff --git a/lib/utils/psci/objects.mk b/lib/utils/psci/objects.mk
-new file mode 100644
-index 0000000..558dcae
---- /dev/null
-+++ b/lib/utils/psci/objects.mk
-@@ -0,0 +1,19 @@
-+#
-+# Copyright The OpenSBI Contributors
-+#
-+
-+libsbiutils-objs-${CONFIG_ARM_PSCI} += psci/psci_version.o
-+
-+libsbiutils-objs-${CONFIG_ARM_PSCI} += psci/psci_cpu_suspend.o
-+
-+libsbiutils-objs-$(CONFIG_ARM_PSCI) += psci/psci_cpu_off.o
-+
-+libsbiutils-objs-$(CONFIG_ARM_PSCI) += psci/psci_cpu_on.o
-+
-+libsbiutils-objs-${CONFIG_ARM_PSCI} += psci/psci_affinity_info.o
-+
-+libsbiutils-objs-${CONFIG_ARM_PSCI} += psci/psci_system_off.o
-+
-+libsbiutils-objs-${CONFIG_ARM_PSCI} += psci/psci_system_reset.o
-+
-+libsbiutils-objs-${CONFIG_ARM_PSCI} += psci/psci_features.o
-diff --git a/lib/utils/psci/psci_affinity_info.c b/lib/utils/psci/psci_affinity_info.c
-new file mode 100644
-index 0000000..e9b795f
---- /dev/null
-+++ b/lib/utils/psci/psci_affinity_info.c
-@@ -0,0 +1,72 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_ecall_interface.h>
-+
-+intptr_t psci_affinity_info(uintptr_t target_affinity,
-+			    uint32_t lowest_affinity_level)
-+{
-+	struct sbi_scratch *scratch  = sbi_scratch_thishart_ptr();
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	uint32_t target_hartid	     = (uint32_t)target_affinity;
-+	int hart_state;
-+
-+	/* Validate that we have a valid scratch area and domain */
-+	if (!scratch || !dom)
-+		return PSCI_E_INTERN_FAIL;
-+
-+	/* 
-+	 * PSCI v1.0+ allows implementations to only support level 0 (individual cores)
-+	 * For now, we only support querying individual hart/core state (level 0)
-+	 */
-+	if (lowest_affinity_level > 0)
-+		return PSCI_E_INVALID_PARAMS;
-+
-+	/* Check if target_affinity describes a valid hartid */
-+	if (!sbi_hartid_valid(target_hartid))
-+		return PSCI_E_INVALID_PARAMS;
-+
-+	/* Check if the target hart is assigned to the current domain */
-+	if (!sbi_domain_is_assigned_hart(
-+		    dom, sbi_hartid_to_hartindex(target_hartid)))
-+		return PSCI_E_INVALID_PARAMS;
-+
-+	/* Get the current state of the target hart */
-+	hart_state = sbi_hsm_hart_get_state(dom, target_hartid);
-+	if (hart_state < 0)
-+		return PSCI_E_INVALID_PARAMS;
-+
-+	/* Map SBI HSM states to PSCI affinity states */
-+	switch (hart_state) {
-+	case SBI_HSM_STATE_STARTED:
-+	case SBI_HSM_STATE_SUSPENDED:
-+	case SBI_HSM_STATE_RESUME_PENDING:
-+		/*
-+		 * PSCI ON: At least one core in the affinity instance is ON
-+		 */
-+		return PSCI_AFFINITY_STATE_ON;
-+
-+	case SBI_HSM_STATE_STOPPED:
-+		/*
-+		 * PSCI OFF: All cores in the affinity instance are OFF
-+		 */
-+		return PSCI_AFFINITY_STATE_OFF;
-+
-+	case SBI_HSM_STATE_START_PENDING:
-+	case SBI_HSM_STATE_STOP_PENDING:
-+	case SBI_HSM_STATE_SUSPEND_PENDING:
-+		/*
-+		 * PSCI ON_PENDING: The affinity instance is transitioning to an ON state
-+		 */
-+		return PSCI_AFFINITY_STATE_ON_PENDING;
-+
-+	default:
-+		/* Invalid or unknown state */
-+		return PSCI_E_INTERN_FAIL;
-+	}
-+}
-diff --git a/lib/utils/psci/psci_cpu_off.c b/lib/utils/psci/psci_cpu_off.c
-new file mode 100644
-index 0000000..3e1940a
---- /dev/null
-+++ b/lib/utils/psci/psci_cpu_off.c
-@@ -0,0 +1,30 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_domain.h>
-+
-+int32_t psci_cpu_off()
-+{
-+	struct sbi_scratch *scratch  = sbi_scratch_thishart_ptr();
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	int ret;
-+
-+	/* Validate that we have a valid scratch area */
-+	psci_assert(scratch != NULL);
-+	psci_assert(dom != NULL);
-+
-+	ret = sbi_hsm_hart_stop(scratch, true);
-+
-+	/* We should never reach here if the hart stop succeeds */
-+	if (ret != 0) {
-+		return PSCI_E_DENIED;
-+	}
-+
-+	/* This point should never be reached */
-+	psci_assert(0);
-+	return PSCI_E_DENIED;
-+}
-diff --git a/lib/utils/psci/psci_cpu_on.c b/lib/utils/psci/psci_cpu_on.c
-new file mode 100644
-index 0000000..17e5e1b
---- /dev/null
-+++ b/lib/utils/psci/psci_cpu_on.c
-@@ -0,0 +1,89 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+
-+intptr_t psci_cpu_on(uintptr_t target_cpu, uintptr_t entry_point_address,
-+		     uintptr_t context_id)
-+{
-+	struct sbi_scratch *scratch  = sbi_scratch_thishart_ptr();
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	struct sbi_scratch *remote_scratch;
-+	uint32_t target_hartid = (uint32_t)target_cpu;
-+	int hart_state;
-+	int ret;
-+
-+	/* Validate that we have a valid scratch area and domain */
-+	psci_assert(scratch != NULL);
-+	psci_assert(dom != NULL);
-+
-+	/* Check if target_cpu describes a valid MPIDR/hartid */
-+	if (!sbi_hartid_valid(target_hartid)) {
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+
-+	/* Get scratch pointer for target hart */
-+	remote_scratch = sbi_hartid_to_scratch(target_hartid);
-+	if (!remote_scratch) {
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+
-+	/* Check if the entry point address is valid for the caller's domain */
-+	if (!sbi_domain_check_addr(dom, entry_point_address, PRV_S,
-+				   SBI_DOMAIN_EXECUTE)) {
-+		return PSCI_E_INVALID_ADDRESS;
-+	}
-+
-+	/* Get current state of the target hart */
-+	hart_state = sbi_hsm_hart_get_state(dom, target_hartid);
-+
-+	switch (hart_state) {
-+	case SBI_HSM_STATE_STARTED:
-+		/* Hart is already running */
-+		return PSCI_E_ALREADY_ON;
-+
-+	case SBI_HSM_STATE_START_PENDING:
-+		/* Hart start is already pending */
-+		return PSCI_E_ON_PENDING;
-+
-+	case SBI_HSM_STATE_STOPPED:
-+		/* Hart is stopped, we can start it */
-+		break;
-+
-+	default:
-+		/* Invalid state or other error */
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+
-+	/* 
-+	 * Start the target hart
-+	 * - target_hartid: the hart to start
-+	 * - entry_point_address: where the hart should start execution
-+	 * - PRV_S: start in supervisor mode
-+	 * - context_id: passed as argument to the started hart
-+	 */
-+	ret = sbi_hsm_hart_start(remote_scratch, dom, target_hartid,
-+				 entry_point_address, PRV_S, context_id);
-+
-+	/* Convert SBI error codes to PSCI error codes */
-+	switch (ret) {
-+	case SBI_SUCCESS:
-+		return PSCI_E_SUCCESS;
-+	case SBI_ERR_INVALID_PARAM:
-+		return PSCI_E_INVALID_PARAMS;
-+	case SBI_ERR_INVALID_ADDRESS:
-+		return PSCI_E_INVALID_ADDRESS;
-+	case SBI_ERR_ALREADY_STARTED:
-+		return PSCI_E_ALREADY_ON;
-+	case SBI_ERR_DENIED:
-+		return PSCI_E_DENIED;
-+	default:
-+		return PSCI_E_INTERN_FAIL;
-+	}
-+}
-diff --git a/lib/utils/psci/psci_cpu_suspend.c b/lib/utils/psci/psci_cpu_suspend.c
-new file mode 100644
-index 0000000..16b0e5c
---- /dev/null
-+++ b/lib/utils/psci/psci_cpu_suspend.c
-@@ -0,0 +1,151 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+
-+/* PSCI power state TYPEs */
-+#define PSCI_PSTATE_TYPE_SHIFT 30
-+#define PSCI_PSTATE_TYPE_MASK 0x1
-+
-+/* PSCI power state StateID */
-+#define PSCI_PSTATE_ID_SHIFT 0
-+#define PSCI_PSTATE_ID_MASK 0x0FFFFFFF
-+
-+/* Helper macros for power state */
-+#define psci_get_pstate_type(pstate) \
-+	(((pstate) >> PSCI_PSTATE_TYPE_SHIFT) & PSCI_PSTATE_TYPE_MASK)
-+#define psci_get_pstate_id(pstate) \
-+	(((pstate) >> PSCI_PSTATE_ID_SHIFT) & PSCI_PSTATE_ID_MASK)
-+
-+intptr_t psci_cpu_suspend(uint32_t power_state, uintptr_t entry_point_address,
-+			  uintptr_t context_id)
-+{
-+	struct sbi_scratch *scratch  = sbi_scratch_thishart_ptr();
-+	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	uint32_t pstate_type, pstate_id, suspend_type;
-+	int ret;
-+
-+	/* Validate runtime environment */
-+	psci_assert(scratch != NULL);
-+	psci_assert(dom != NULL);
-+
-+	/* Validate power state format - check reserved bits */
-+	if (power_state & 0x80000000) { /* Bit[31] must be zero */
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+	if (power_state & 0x30000000) { /* Bits[29:28] must be zero */
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+
-+	/* Extract StateType and StateID from power_state */
-+	pstate_type = psci_get_pstate_type(power_state);
-+	pstate_id   = psci_get_pstate_id(power_state);
-+
-+	/* Validate StateID values */
-+	if (pstate_id > PSCI_PSTATE_ID_POWERDOWN) {
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+
-+	/*
-+	 * Handle different suspend types based on PSCI specification:
-+	 * - STANDBY: Retention state, context preserved, quick wake-up
-+	 * - POWERDOWN: Context lost, requires entry_point_address and context_id
-+	 * 
-+	 * StateID provides platform-specific power state information:
-+	 * - PSCI_PSTATE_ID_RUN (0x0): Normal running state (invalid for suspend)
-+	 * - PSCI_PSTATE_ID_STANDBY (0x1): Standby state (quick wake-up)
-+	 * - PSCI_PSTATE_ID_RETENTION (0x2): Retention state (context preserved)
-+	 * - PSCI_PSTATE_ID_POWERDOWN (0x3): Powerdown state (context lost)
-+	 */
-+	if (pstate_type == PSCI_PSTATE_TYPE_STANDBY) {
-+		/*
-+		 * Standby/Retention suspend:
-+		 * - Core context is preserved
-+		 * - entry_point_address and context_id are ignored
-+		 * - Use retentive suspend mode
-+		 * - Valid StateIDs: STANDBY, RETENTION
-+		 */
-+		if (pstate_id != PSCI_PSTATE_ID_STANDBY &&
-+		    pstate_id != PSCI_PSTATE_ID_RETENTION) {
-+			return PSCI_E_INVALID_PARAMS;
-+		}
-+
-+		suspend_type = SBI_HSM_SUSPEND_RET_DEFAULT;
-+
-+		/* For standby, entry_point_address is ignored but we use current context */
-+		entry_point_address = 0; /* Will be ignored by SBI HSM */
-+		context_id	    = 0; /* Will be ignored by SBI HSM */
-+
-+	} else if (pstate_type == PSCI_PSTATE_TYPE_POWERDOWN) {
-+		/*
-+		 * Powerdown suspend:
-+		 * - Core context will be lost
-+		 * - entry_point_address must be valid and accessible
-+		 * - context_id will be passed to resumed execution
-+		 * - Use non-retentive suspend mode
-+		 * - Valid StateID: POWERDOWN
-+		 */
-+		if (pstate_id != PSCI_PSTATE_ID_POWERDOWN) {
-+			return PSCI_E_INVALID_PARAMS;
-+		}
-+
-+		suspend_type = SBI_HSM_SUSPEND_NON_RET_DEFAULT;
-+
-+		/* Validate entry point address for powerdown states */
-+		if (!entry_point_address) {
-+			return PSCI_E_INVALID_ADDRESS;
-+		}
-+
-+		/* Verify entry point is within caller's domain and executable */
-+		if (!sbi_domain_check_addr(dom, entry_point_address, PRV_S,
-+					   SBI_DOMAIN_EXECUTE)) {
-+			return PSCI_E_INVALID_ADDRESS;
-+		}
-+
-+	} else {
-+		/* Invalid StateType - only STANDBY(0) and POWERDOWN(1) are valid */
-+		return PSCI_E_INVALID_PARAMS;
-+	}
-+
-+	/*
-+	 * Initiate hart suspension through SBI HSM:
-+	 * - suspend_type: SBI_HSM_SUSPEND_RET_DEFAULT or SBI_HSM_SUSPEND_NON_RET_DEFAULT
-+	 * - entry_point_address: Resume address (powerdown) or 0 (standby)
-+	 * - PRV_S: Resume in supervisor privilege mode
-+	 * - context_id: Context value passed to resumed execution
-+	 */
-+	ret = sbi_hsm_hart_suspend(scratch, suspend_type, entry_point_address,
-+				   PRV_S, context_id);
-+
-+	/*
-+	 * Handle return values:
-+	 * 
-+	 * For STANDBY (retentive) suspend:
-+	 * - Normal return with PSCI_E_SUCCESS indicates successful wake-up
-+	 * 
-+	 * For POWERDOWN (non-retentive) suspend:
-+	 * - Should NOT return here on success (execution resumes at entry_point_address)
-+	 * - If we return here, it indicates suspend was rejected, downgraded, or failed
-+	 */
-+	switch (ret) {
-+	case SBI_SUCCESS:
-+		/* Success - either completed standby or failed powerdown */
-+		return PSCI_E_SUCCESS;
-+	case SBI_ERR_INVALID_PARAM:
-+		return PSCI_E_INVALID_PARAMS;
-+	case SBI_ERR_INVALID_ADDRESS:
-+		return PSCI_E_INVALID_ADDRESS;
-+	case SBI_ERR_DENIED:
-+		return PSCI_E_DENIED;
-+	case SBI_ERR_NOT_SUPPORTED:
-+		return PSCI_E_NOT_SUPPORTED;
-+	default:
-+		return PSCI_E_INTERN_FAIL;
-+	}
-+}
-diff --git a/lib/utils/psci/psci_features.c b/lib/utils/psci/psci_features.c
-new file mode 100644
-index 0000000..120cbc3
---- /dev/null
-+++ b/lib/utils/psci/psci_features.c
-@@ -0,0 +1,28 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+
-+int32_t psci_features(uint32_t psci_func_id)
-+{
-+	switch (psci_func_id) {
-+	case PSCI_FN_VERSION:
-+	case PSCI_FN_PSCI_FEATURES:
-+	case PSCI_FN_CPU_OFF:
-+	case PSCI_FN_CPU_ON_SMC32:
-+	case PSCI_FN_CPU_ON_SMC64:
-+	case PSCI_FN_AFFINITY_INFO_SMC32:
-+	case PSCI_FN_AFFINITY_INFO_SMC64:
-+	case PSCI_FN_SYSTEM_OFF:
-+	case PSCI_FN_SYSTEM_RESET:
-+		return 0;
-+
-+	case PSCI_FN_CPU_SUSPEND_SMC32:
-+	case PSCI_FN_CPU_SUSPEND_SMC64:
-+		return 1;
-+
-+	default:
-+		return PSCI_E_NOT_SUPPORTED;
-+	}
-+}
-diff --git a/lib/utils/psci/psci_system_off.c b/lib/utils/psci/psci_system_off.c
-new file mode 100644
-index 0000000..a2c1058
---- /dev/null
-+++ b/lib/utils/psci/psci_system_off.c
-@@ -0,0 +1,16 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/sbi_ecall_interface.h>
-+
-+void __noreturn psci_system_off()
-+{
-+	sbi_system_reset(SBI_SRST_RESET_TYPE_SHUTDOWN,
-+			 SBI_SRST_RESET_REASON_NONE);
-+
-+	/* We should never reach this point */
-+	psci_assert(0);
-+}
-diff --git a/lib/utils/psci/psci_system_reset.c b/lib/utils/psci/psci_system_reset.c
-new file mode 100644
-index 0000000..6800322
---- /dev/null
-+++ b/lib/utils/psci/psci_system_reset.c
-@@ -0,0 +1,16 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/sbi_ecall_interface.h>
-+
-+void __noreturn psci_system_reset()
-+{
-+	sbi_system_reset(SBI_SRST_RESET_TYPE_COLD_REBOOT,
-+			 SBI_SRST_RESET_REASON_NONE);
-+
-+	/* We should never reach this point */
-+	psci_assert(0);
-+}
-diff --git a/lib/utils/psci/psci_version.c b/lib/utils/psci/psci_version.c
-new file mode 100644
-index 0000000..1dbadf6
---- /dev/null
-+++ b/lib/utils/psci/psci_version.c
-@@ -0,0 +1,10 @@
-+/*
-+ * Copyright The OpenSBI Contributors
-+ */
-+
-+#include <sbi_utils/psci/psci.h>
-+
-+uint32_t psci_version(void)
-+{
-+	return PSCI_MAJOR_VER | PSCI_MINOR_VER;
-+}
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index c7a6531..dbb4039 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -58,3 +58,4 @@ CONFIG_FDT_MPXY=y
- CONFIG_FDT_MPXY_RPMI_MBOX=y
- CONFIG_FDT_MPXY_RPMI_CLOCK=y
- CONFIG_FDT_MPXY_RPMI_SYSMSI=y
-+CONFIG_ARM_PSCI=y
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+V2h5PyBQU0NJIGlzIHNwZWNpZmljIHRvIEFSTS4gV2hhdCBpcyB0aGUgcHVycG9zZSBmb3IgdGhp
+cyBzdXBwb3J0PwoKU0JJIGludGVyZmFjZSBhbHJlYWR5IGhhcyBzdXBwb3J0IGZvciB0aGUgQ1BV
+IHBvd2VyIG9uL29mZiwgc3lzdGVtCnN1c3BlbmQvcmVzdW1lCmFuZCBzeXN0ZW0gcmVzZXQuCgpP
+biBGcmksIEp1bCAyNSwgMjAyNSBhdCAyOjQ14oCvUE0gTml1IFpoaWhvbmcgPHpoaWhvbmdAbnpo
+bmIuY29tPiB3cm90ZToKPgo+IFRoaXMgcGF0Y2ggYWRkcyBQb3dlciBTdGF0ZSBDb29yZGluYXRp
+b24gSW50ZXJmYWNlIChQU0NJKSBzdXBwb3J0IHRvIE9wZW5TQkkuCj4gUFNDSSBwcm92aWRlcyBh
+IHN0YW5kYXJkIGludGVyZmFjZSBmb3IgcG93ZXIgbWFuYWdlbWVudCBvcGVyYXRpb25zIHN1Y2gg
+YXMKPiBDUFUgcG93ZXIgb24vb2ZmLCBzeXN0ZW0gc3VzcGVuZC9yZXN1bWUsIGFuZCBzeXN0ZW0g
+cmVzZXQuCj4KPiBUaGUgaW1wbGVtZW50YXRpb24gaW5jbHVkZXM6Cj4gLSBQU0NJIHZlcnNpb24g
+aW5mb3JtYXRpb24gYW5kIGZlYXR1cmUgZGV0ZWN0aW9uCj4gLSBDUFUgcG93ZXIgbWFuYWdlbWVu
+dCAob24vb2ZmL3N1c3BlbmQpCj4gLSBTeXN0ZW0gcG93ZXIgbWFuYWdlbWVudCAocmVzZXQvb2Zm
+KQo+IC0gQWZmaW5pdHkgbGV2ZWwgbWFuYWdlbWVudAo+IC0gUFNDSSBsaWJyYXJ5IHV0aWxpdGll
+cyBhbmQgaGVscGVyIGZ1bmN0aW9ucwo+Cj4gVGhpcyBmb2xsb3dzIHRoZSBQU0NJIHNwZWNpZmlj
+YXRpb24gdmVyc2lvbiAxLjMgYW5kIHByb3ZpZGVzIGEgZm91bmRhdGlvbgo+IGZvciBwbGF0Zm9y
+bS1zcGVjaWZpYyBwb3dlciBtYW5hZ2VtZW50IGltcGxlbWVudGF0aW9ucy4KPgo+IFNpZ25lZC1v
+ZmYtYnk6IE5pdSBaaGlob25nIDx6aGlob25nQG56aG5iLmNvbT4KPiAtLS0KPiBkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9zYmlfdXRpbHMvcHNjaS9wc2NpLmggYi9pbmNsdWRlL3NiaV91dGlscy9wc2Np
+L3BzY2kuaAo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4gaW5kZXggMDAwMDAwMC4uZjA2M2VjMgo+
+IC0tLSAvZGV2L251bGwKPiArKysgYi9pbmNsdWRlL3NiaV91dGlscy9wc2NpL3BzY2kuaAo+IEBA
+IC0wLDAgKzEsMjIyIEBACj4gKy8qCj4gKyAqIENvcHlyaWdodCBUaGUgT3BlblNCSSBDb250cmli
+dXRvcnMKPiArICoKPiArICogU2VlIFBTQ0kgc3BlY2lmaWNhdGlvbiAoVmVyc2lvbiAxLjMgaXNz
+dWUgRi5iKSBmb3IgbW9yZSBkZXRhaWxzLgo+ICsgKi8KPiArCj4gKyNpZm5kZWYgX19QU0NJX0hf
+Xwo+ICsjZGVmaW5lIF9fUFNDSV9IX18KPiArCj4gKyNpbmNsdWRlIDxzdGRpbnQuaD4KPiArI2lu
+Y2x1ZGUgPHN0ZGRlZi5oPgo+ICsKPiArI2luY2x1ZGUgPHNiaS9zYmlfY29uc29sZS5oPgo+ICsj
+aW5jbHVkZSA8c2JpL3NiaV9oYXJ0Lmg+Cj4gKwo+ICsjZGVmaW5lIHBzY2lfYXNzZXJ0KGNvbmQp
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+ICsg
+ICAgICAgZG8geyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBcCj4gKyAgICAgICAgICAgICAgIGlmICghKGNvbmQpKSB7ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiArICAgICAgICAgICAg
+ICAgICAgICAgICBzYmlfcHJpbnRmKCIlczolZCwgaW52YWxpZCBwc2NpIHN0YXRlXG4iLCBfX2Z1
+bmNfXywgXAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgX19MSU5FX18pOyAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gKyAgICAgICAgICAgICAgICAgICAgICAg
+c2JpX2hhcnRfaGFuZygpOyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAr
+ICAgICAgICAgICAgICAgfSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgXAo+ICsgICAgICAgfSB3aGlsZSAoMCkKPiArCj4gKy8qIFZlcnNp
+b24gMS4xICovCj4gKyNkZWZpbmUgUFNDSV9NQUpPUl9WRVIgKDEgPDwgMTYpCj4gKyNkZWZpbmUg
+UFNDSV9NSU5PUl9WRVIgMQo+ICsKPiArI2RlZmluZSBQU0NJX0VfU1VDQ0VTUyAwCj4gKyNkZWZp
+bmUgUFNDSV9FX05PVF9TVVBQT1JURUQgLTEKPiArI2RlZmluZSBQU0NJX0VfSU5WQUxJRF9QQVJB
+TVMgLTIKPiArI2RlZmluZSBQU0NJX0VfREVOSUVEIC0zCj4gKyNkZWZpbmUgUFNDSV9FX0FMUkVB
+RFlfT04gLTQKPiArI2RlZmluZSBQU0NJX0VfT05fUEVORElORyAtNQo+ICsjZGVmaW5lIFBTQ0lf
+RV9JTlRFUk5fRkFJTCAtNgo+ICsjZGVmaW5lIFBTQ0lfRV9OT1RfUFJFU0VOVCAtNwo+ICsjZGVm
+aW5lIFBTQ0lfRV9ESVNBQkxFRCAtOAo+ICsjZGVmaW5lIFBTQ0lfRV9JTlZBTElEX0FERFJFU1Mg
+LTkKPiArCj4gKy8qIFBTQ0kgZnVuY3Rpb24gSURzICovCj4gKyNkZWZpbmUgUFNDSV9GTl9WRVJT
+SU9OIDB4ODQwMDAwMDAKPiArI2RlZmluZSBQU0NJX0ZOX0NQVV9TVVNQRU5EX1NNQzMyIDB4ODQw
+MDAwMDEKPiArI2RlZmluZSBQU0NJX0ZOX0NQVV9TVVNQRU5EX1NNQzY0IDB4QzQwMDAwMDEKPiAr
+I2RlZmluZSBQU0NJX0ZOX0NQVV9PRkYgMHg4NDAwMDAwMgo+ICsjZGVmaW5lIFBTQ0lfRk5fQ1BV
+X09OX1NNQzMyIDB4ODQwMDAwMDMKPiArI2RlZmluZSBQU0NJX0ZOX0NQVV9PTl9TTUM2NCAweEM0
+MDAwMDAzCj4gKyNkZWZpbmUgUFNDSV9GTl9BRkZJTklUWV9JTkZPX1NNQzMyIDB4ODQwMDAwMDQK
+PiArI2RlZmluZSBQU0NJX0ZOX0FGRklOSVRZX0lORk9fU01DNjQgMHhDNDAwMDAwNAo+ICsjZGVm
+aW5lIFBTQ0lfRk5fU1lTVEVNX09GRiAweDg0MDAwMDA4Cj4gKyNkZWZpbmUgUFNDSV9GTl9TWVNU
+RU1fUkVTRVQgMHg4NDAwMDAwOQo+ICsjZGVmaW5lIFBTQ0lfRk5fUFNDSV9GRUFUVVJFUyAweDg0
+MDAwMDBBCj4gKyNkZWZpbmUgUFNDSV9GTl9TWVNURU1fT0ZGMl9TTUMzMiAweDg0MDAwMDE1Cj4g
+KyNkZWZpbmUgUFNDSV9GTl9TWVNURU1fT0ZGMl9TTUM2NCAweEM0MDAwMDE1Cj4gKwo+ICsvKiBT
+TUNDQyBmdW5jdGlvbiBJRHMgKi8KPiArI2RlZmluZSBTTUNDQ19WRVJTSU9OIDB4ODAwMDAwMDAK
+PiArCj4gKy8qIFBTQ0kgQUZGSU5JVFlfSU5GTyByZXR1cm4gdmFsdWVzICovCj4gKyNkZWZpbmUg
+UFNDSV9BRkZJTklUWV9TVEFURV9PTiAwCj4gKyNkZWZpbmUgUFNDSV9BRkZJTklUWV9TVEFURV9P
+RkYgMQo+ICsjZGVmaW5lIFBTQ0lfQUZGSU5JVFlfU1RBVEVfT05fUEVORElORyAyCj4gKwo+ICsv
+KiBQU0NJIHBvd2VyIHN0YXRlIFRZUEVzICovCj4gKyNkZWZpbmUgUFNDSV9QU1RBVEVfVFlQRV9T
+VEFOREJZIDB4MAo+ICsjZGVmaW5lIFBTQ0lfUFNUQVRFX1RZUEVfUE9XRVJET1dOIDB4MQo+ICsK
+PiArLyogUFNDSSBwb3dlciBzdGF0ZSBJRHMgKi8KPiArI2RlZmluZSBQU0NJX1BTVEFURV9JRF9S
+VU4gMHgwCj4gKyNkZWZpbmUgUFNDSV9QU1RBVEVfSURfU1RBTkRCWSAweDEKPiArI2RlZmluZSBQ
+U0NJX1BTVEFURV9JRF9SRVRFTlRJT04gMHgyCj4gKyNkZWZpbmUgUFNDSV9QU1RBVEVfSURfUE9X
+RVJET1dOIDB4Mwo+ICsKPiArLyoqCj4gKyAqIERlc2NyaXB0aW9uOgo+ICsgKiBSZXR1cm4gdGhl
+IHZlcnNpb24gb2YgUFNDSSBpbXBsZW1lbnRlZC4gVGhpcyBmdW5jdGlvbiBhbGxvd3MgYSBjYWxs
+ZXIKPiArICogdG8gYXNjZXJ0YWluIHRoZSBjdXJyZW50IHZlcnNpb24gb2YgdGhlIFBTQ0kgaW50
+ZXJmYWNlLgo+ICsgKgo+ICsgKiBSZXR1cm4gVmFsdWU6Cj4gKyAqIHVpbnQzMl90IC0gMzEtYml0
+IHVuc2lnbmVkIGludGVnZXIgY29udGFpbmluZyB2ZXJzaW9uIGluZm9ybWF0aW9uOgo+ICsgKiAt
+IEJpdHNbMzE6MTZdOiBNYWpvciBWZXJzaW9uICh1cHBlciAxNSBiaXRzKQo+ICsgKiAtIEJpdHNb
+MTU6MF06ICBNaW5vciBWZXJzaW9uIChsb3dlciAxNiBiaXRzKQo+ICsgKgo+ICsgKiBDdXJyZW50
+IEltcGxlbWVudGF0aW9uOgo+ICsgKiAtIE1ham9yIFZlcnNpb246IDEgKFBTQ0lfTUFKT1JfVkVS
+KQo+ICsgKiAtIE1pbm9yIFZlcnNpb246IDEgKFBTQ0lfTUlOT1JfVkVSKQo+ICsgKiAtIENvbWJp
+bmVkIFZlcnNpb246IDB4MDAwMTAwMDEKPiArICovCj4gK3VpbnQzMl90IHBzY2lfdmVyc2lvbigp
+Owo+ICsKPiArLyoqCj4gKyAqIERlc2NyaXB0aW9uOgo+ICsgKiBTdXNwZW5kIGV4ZWN1dGlvbiBv
+biBhIGNvcmUgb3IgaGlnaGVyLWxldmVsIHRvcG9sb2d5IG5vZGUuIFRoaXMgY2FsbCBpcwo+ICsg
+KiBpbnRlbmRlZCBmb3IgdXNlIGluIGlkbGUgc3Vic3lzdGVtcyB3aGVyZSB0aGUgY29yZSBpcyBl
+eHBlY3RlZCB0byByZXR1cm4KPiArICogdG8gZXhlY3V0aW9uIHRocm91Z2ggYSB3YWtldXAgZXZl
+bnQuCj4gKyAqCj4gKyAqIFBhcmFtZXRlcnM6Cj4gKyAqIC0gcG93ZXJfc3RhdGU6IERlc2NyaWJl
+cyB0aGUgdGFyZ2V0IHBvd2VyIHN0YXRlIGZvciBzdXNwZW5zaW9uCj4gKyAqICAgLSB1aW50MzIg
+dmFsdWUgZGVmaW5pbmcgdGhlIHBvd2VyIHN0YXRlIGNoYXJhY3RlcmlzdGljcwo+ICsgKiAgIC0g
+RXh0ZW5kZWQgU3RhdGVJRCBmb3JtYXQ6Cj4gKyAqICAgICAtIEJpdFszMV06IFJlc2VydmVkLCBt
+dXN0IGJlIHplcm8KPiArICogICAgIC0gQml0WzMwXTogU3RhdGVUeXBlCj4gKyAqICAgICAgIC0g
+UFNDSV9QU1RBVEVfVFlQRV9TVEFOREJZICgwKTogU3RhbmRieSBvciByZXRlbnRpb24gc3RhdGUg
+KG5vIGNvcmUgY29udGV4dCBsb3N0KQo+ICsgKiAgICAgICAtIFBTQ0lfUFNUQVRFX1RZUEVfUE9X
+RVJET1dOICgxKTogUG93ZXJkb3duIHN0YXRlIChjb3JlIGNvbnRleHQgbG9zdCwgZW50cnlfcG9p
+bnRfYWRkcmVzcyBhbmQgY29udGV4dF9pZCB2YWxpZCkKPiArICogICAgIC0gQml0c1syOToyOF06
+IFJlc2VydmVkLCBtdXN0IGJlIHplcm8KPiArICogICAgIC0gQml0c1syNzowXTogU3RhdGVJRCAo
+cGxhdGZvcm0tc3BlY2lmaWMgc3RhdGUgaWRlbnRpZmllcikKPiArICogICAgICAgICAtIFBTQ0lf
+UFNUQVRFX0lEX1JVTiAoMHgwKTogTm9ybWFsIHJ1bm5pbmcgc3RhdGUKPiArICogICAgICAgICAt
+IFBTQ0lfUFNUQVRFX0lEX1NUQU5EQlkgKDB4MSk6IFN0YW5kYnkgc3RhdGUgKHF1aWNrIHdha2Ut
+dXApCj4gKyAqICAgICAgICAgLSBQU0NJX1BTVEFURV9JRF9SRVRFTlRJT04gKDB4Mik6IFJldGVu
+dGlvbiBzdGF0ZSAoY29udGV4dCBwcmVzZXJ2ZWQpCj4gKyAqICAgICAgICAgLSBQU0NJX1BTVEFU
+RV9JRF9QT1dFUkRPV04gKDB4Myk6IFBvd2VyZG93biBzdGF0ZSAoY29udGV4dCBsb3N0KQo+ICsg
+KiAgIC0gRm9ybWF0IGlzIGRldGVybWluZWQgYnkgUFNDSV9GRUFUVVJFUyBiaXRbMV0gZm9yIENQ
+VV9TVVNQRU5ECj4gKyAqCj4gKyAqIC0gZW50cnlfcG9pbnRfYWRkcmVzczogUmVzdW1lIGV4ZWN1
+dGlvbiBhZGRyZXNzIGFmdGVyIHdha2V1cAo+ICsgKiAgIC0gT25seSB2YWxpZCBmb3IgcG93ZXJk
+b3duIHN0YXRlczsgaWdub3JlZCBmb3Igc3RhbmRieSBzdGF0ZXMKPiArICoKPiArICogLSBjb250
+ZXh0X2lkOiBDb250ZXh0IHZhbHVlIGZvciBwb3dlcmRvd24gc3RhdGVzCj4gKyAqICAgLSBPbmx5
+IHZhbGlkIGZvciBwb3dlcmRvd24gc3RhdGVzOyBpZ25vcmVkIGZvciBzdGFuZGJ5IHN0YXRlcwo+
+ICsgKgo+ICsgKiBSZXR1cm4gVmFsdWU6Cj4gKyAqIGludHB0cl90IC0gUmVzdWx0IG9mIHRoZSBD
+UFVfU1VTUEVORCBvcGVyYXRpb246Cj4gKyAqIC0gUFNDSV9FX1NVQ0NFU1M6IE9wZXJhdGlvbiBj
+b21wbGV0ZWQgc3VjY2Vzc2Z1bGx5Cj4gKyAqIC0gUFNDSV9FX0lOVkFMSURfUEFSQU1TOiBJbnZh
+bGlkIHBhcmFtZXRlcnMgcHJvdmlkZWQKPiArICogLSBQU0NJX0VfSU5WQUxJRF9BRERSRVNTOiBJ
+bnZhbGlkIGVudHJ5IHBvaW50IGFkZHJlc3MKPiArICogLSBQU0NJX0VfREVOSUVEOiBPcGVyYXRp
+b24gZGVuaWVkIChvbmx5IGluIE9TLWluaXRpYXRlZCBtb2RlKQo+ICsgKi8KPiAraW50cHRyX3Qg
+cHNjaV9jcHVfc3VzcGVuZCh1aW50MzJfdCBwb3dlcl9zdGF0ZSwgdWludHB0cl90IGVudHJ5X3Bv
+aW50X2FkZHJlc3MsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICB1aW50cHRyX3QgY29udGV4
+dF9pZCk7Cj4gKwo+ICsvKioKPiArICogRGVzY3JpcHRpb246Cj4gKyAqIFBvd2VyIGRvd24gdGhl
+IGNhbGxpbmcgY29yZS4gVGhpcyBjYWxsIGlzIGludGVuZGVkIGZvciB1c2UgaW4gaG90cGx1Zy4K
+PiArICogQSBjb3JlIHRoYXQgaXMgcG93ZXJlZCBkb3duIGJ5IENQVV9PRkYgY2FuIG9ubHkgYmUg
+cG93ZXJlZCB1cCBhZ2Fpbgo+ICsgKiBpbiByZXNwb25zZSB0byBhIENQVV9PTiBjYWxsLgo+ICsg
+Kgo+ICsgKiBSZXR1cm4gVmFsdWU6Cj4gKyAqIGludDMyX3QgLSBSZXN1bHQgb2YgdGhlIENQVV9P
+RkYgb3BlcmF0aW9uOgo+ICsgKiAtIERvZXMgbm90IHJldHVybiB3aGVuIHN1Y2Nlc3NmdWwgKGNv
+cmUgaXMgcG93ZXJlZCBkb3duKQo+ICsgKiAtIFBTQ0lfRV9ERU5JRUQ6IE9wZXJhdGlvbiBkZW5p
+ZWQgKG9ubHkgcG9zc2libGUgcmV0dXJuIHZhbHVlIG9uIGZhaWx1cmUpCj4gKyAqLwo+ICtpbnQz
+Ml90IHBzY2lfY3B1X29mZigpOwo+ICsKPiArLyoqCj4gKyAqIERlc2NyaXB0aW9uOgo+ICsgKiBQ
+b3dlciB1cCBhIGNvcmUuIFRoaXMgY2FsbCBpcyB1c2VkIHRvIHBvd2VyIHVwIGNvcmVzIHRoYXQg
+ZWl0aGVyOgo+ICsgKiAtIEhhdmUgbm90IHlldCBiZWVuIGJvb3RlZCBpbnRvIHRoZSBjYWxsaW5n
+IHN1cGVydmlzb3J5IHNvZnR3YXJlCj4gKyAqIC0gSGF2ZSBiZWVuIHByZXZpb3VzbHkgcG93ZXJl
+ZCBkb3duIHdpdGggYSBDUFVfT0ZGIGNhbGwKPiArICoKPiArICogUGFyYW1ldGVyczoKPiArICog
+LSB0YXJnZXRfY3B1OiBUYXJnZXQgQ1BVIHRvIHBvd2VyIG9uCj4gKyAqICAgLSBJbiBPcGVuU0JJ
+IGltcGxlbWVudGF0aW9uOiB0aGlzIGNvcnJlc3BvbmRzIHRvIGhhcnRpZAo+ICsgKgo+ICsgKiAt
+IGVudHJ5X3BvaW50X2FkZHJlc3M6IFBoeXNpY2FsIGFkZHJlc3Mgd2hlcmUgY29yZSBzaG91bGQg
+c3RhcnQgZXhlY3V0aW9uCj4gKyAqCj4gKyAqIC0gY29udGV4dF9pZDogQ29udGV4dCB2YWx1ZSBw
+YXNzZWQgdG8gdGhlIHRhcmdldCBjb3JlCj4gKyAqCj4gKyAqIFJldHVybiBWYWx1ZToKPiArICog
+aW50cHRyX3QgLSBSZXN1bHQgb2YgdGhlIENQVV9PTiBvcGVyYXRpb246Cj4gKyAqIC0gUFNDSV9F
+X1NVQ0NFU1M6IE9wZXJhdGlvbiBjb21wbGV0ZWQgc3VjY2Vzc2Z1bGx5Cj4gKyAqIC0gUFNDSV9F
+X0lOVkFMSURfUEFSQU1TOiBJbnZhbGlkIHBhcmFtZXRlcnMgcHJvdmlkZWQKPiArICogLSBQU0NJ
+X0VfSU5WQUxJRF9BRERSRVNTOiBJbnZhbGlkIGVudHJ5IHBvaW50IGFkZHJlc3MKPiArICogLSBQ
+U0NJX0VfQUxSRUFEWV9PTjogVGFyZ2V0IENQVSBpcyBhbHJlYWR5IHBvd2VyZWQgb24KPiArICog
+LSBQU0NJX0VfT05fUEVORElORzogVGFyZ2V0IENQVSBpcyBhbHJlYWR5IGJlaW5nIHBvd2VyZWQg
+b24KPiArICogLSBQU0NJX0VfSU5URVJOX0ZBSUw6IEludGVybmFsIGZhaWx1cmUgb2NjdXJyZWQK
+PiArICogLSBQU0NJX0VfREVOSUVEOiBPcGVyYXRpb24gZGVuaWVkCj4gKyAqLwo+ICtpbnRwdHJf
+dCBwc2NpX2NwdV9vbih1aW50cHRyX3QgdGFyZ2V0X2NwdSwgdWludHB0cl90IGVudHJ5X3BvaW50
+X2FkZHJlc3MsCj4gKyAgICAgICAgICAgICAgICAgICAgdWludHB0cl90IGNvbnRleHRfaWQpOwo+
+ICsKPiArLyoqCj4gKyAqIERlc2NyaXB0aW9uOgo+ICsgKiBFbmFibGUgdGhlIGNhbGxlciB0byBy
+ZXF1ZXN0IHN0YXR1cyBvZiBhbiBhZmZpbml0eSBpbnN0YW5jZS4KPiArICoKPiArICogUGFyYW1l
+dGVyczoKPiArICogLSB0YXJnZXRfYWZmaW5pdHk6IFRhcmdldCBhZmZpbml0eSBpbnN0YW5jZSB0
+byBxdWVyeQo+ICsgKiAgIC0gSW4gT3BlblNCSSBpbXBsZW1lbnRhdGlvbjogdGhpcyBjb3JyZXNw
+b25kcyB0byBoYXJ0aWQKPiArICoKPiArICogLSBsb3dlc3RfYWZmaW5pdHlfbGV2ZWw6Cj4gKyAq
+ICAgLSBGcm9tIFBTQ0kgdmVyc2lvbiAxLjAgb253YXJkcywgQUZGSU5JVFlfSU5GTyBpcyBubyBs
+b25nZXIgcmVxdWlyZWQgdG8KPiArICogICAgIHN1cHBvcnQgYWZmaW5pdHkgbGV2ZWxzIGhpZ2hl
+ciB0aGFuIDAuCj4gKyAqCj4gKyAqIFJldHVybiBWYWx1ZToKPiArICogaW50cHRyX3QgLSBTdGF0
+dXMgb2YgdGhlIGFmZmluaXR5IGluc3RhbmNlOgo+ICsgKiAtIFBTQ0lfQUZGSU5JVFlfU1RBVEVf
+T04gKDApOiBBdCBsZWFzdCBvbmUgY29yZSBpbiB0aGUgYWZmaW5pdHkgaW5zdGFuY2UgaXMgT04K
+PiArICogLSBQU0NJX0FGRklOSVRZX1NUQVRFX09GRiAoMSk6IEFmZmluaXR5IGluc3RhbmNlIGlz
+IE9GRgo+ICsgKiAtIFBTQ0lfQUZGSU5JVFlfU1RBVEVfT05fUEVORElORyAoMik6IEFmZmluaXR5
+IGluc3RhbmNlIGlzIHRyYW5zaXRpb25pbmcgdG8gT04gc3RhdGUKPiArICogLSBQU0NJX0VfSU5W
+QUxJRF9QQVJBTVM6IEludmFsaWQgcGFyYW1ldGVycyBwcm92aWRlZAo+ICsgKi8KPiAraW50cHRy
+X3QgcHNjaV9hZmZpbml0eV9pbmZvKHVpbnRwdHJfdCB0YXJnZXRfYWZmaW5pdHksCj4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIHVpbnQzMl90IGxvd2VzdF9hZmZpbml0eV9sZXZlbCk7Cj4g
+Kwo+ICsvKioKPiArICogRGVzY3JpcHRpb246Cj4gKyAqIFNodXQgZG93biB0aGUgc3lzdGVtLgo+
+ICsgKi8KPiArdm9pZCBwc2NpX3N5c3RlbV9vZmYoKTsKPiArCj4gKy8qKgo+ICsgKiBEZXNjcmlw
+dGlvbjoKPiArICogUmVzZXQgdGhlIHN5c3RlbS4KPiArICovCj4gK3ZvaWQgcHNjaV9zeXN0ZW1f
+cmVzZXQoKTsKPiArCj4gKy8qKgo+ICsgKiBEZXNjcmlwdGlvbjoKPiArICogUXVlcnkgQVBJIHRo
+YXQgYWxsb3dzIGRpc2NvdmVyaW5nIHdoZXRoZXIgU01DQ0NfVkVSU0lPTiBvciBhIHNwZWNpZmlj
+IFBTQ0kKPiArICogZnVuY3Rpb24gaXMgaW1wbGVtZW50ZWQgYW5kIGl0cyBmZWF0dXJlcy4gVGhp
+cyBmdW5jdGlvbiBpcyBpbnRyb2R1Y2VkIGluCj4gKyAqIFBTQ0kgMS4wIHNwZWNpZmljYXRpb24u
+Cj4gKyAqCj4gKyAqIFBhcmFtZXRlcnM6Cj4gKyAqIC0gcHNjaV9mdW5jX2lkOiBGdW5jdGlvbiBJ
+RCBvZiBQU0NJIEZ1bmN0aW9uIG9yIFNNQ0NDX1ZFUlNJT04KPiArICoKPiArICogUmV0dXJuIHZh
+bHVlczoKPiArICogLSBQU0NJX0VfTk9UX1NVUFBPUlRFRDogaWYgdGhlIGZ1bmN0aW9uIGlkZW50
+aWZpZWQgYnkgcHNjaV9mdW5jX2lkIGlzIG5vdAo+ICsgKiAgIGltcGxlbWVudGVkIG9yIGlzIGFu
+IGludmFsaWQgZnVuY3Rpb24gSUQKPiArICogLSBGZWF0dXJlIGZsYWdzIChpbnQzMik6IEEgc2V0
+IG9mIGZlYXR1cmUgZmxhZ3MgYXNzb2NpYXRlZCB3aXRoIHRoZQo+ICsgKiAgIGltcGxlbWVudGVk
+IGZ1bmN0aW9uIGluZGljYXRlZCBieSBwc2NpX2Z1bmNfaWQuIEZlYXR1cmUgZmxhZ3MgYXJlIHNw
+ZWNpZmljCj4gKyAqICAgdG8gZWFjaCBmdW5jdGlvbi4gRm9ybWF0Ogo+ICsgKiAgIC0gQml0WzMx
+XSBpcyB6ZXJvCj4gKyAqICAgLSBCaXRzWzMwOjBdIHJlcHJlc2VudCB0aGUgZmVhdHVyZSBmbGFn
+cwo+ICsgKi8KPiAraW50MzJfdCBwc2NpX2ZlYXR1cmVzKHVpbnQzMl90IHBzY2lfZnVuY19pZCk7
+Cj4gKwo+ICsjZW5kaWYgLyogX19QU0NJX0hfXyAqLwo+IGRpZmYgLS1naXQgYS9saWIvdXRpbHMv
+S2NvbmZpZyBiL2xpYi91dGlscy9LY29uZmlnCj4gaW5kZXggOTAxYmE1Ni4uNWRhZGExZSAxMDA2
+NDQKPiAtLS0gYS9saWIvdXRpbHMvS2NvbmZpZwo+ICsrKyBiL2xpYi91dGlscy9LY29uZmlnCj4g
+QEAgLTM0LDQgKzM0LDYgQEAgc291cmNlICIkKE9QRU5TQklfU1JDX0RJUikvbGliL3V0aWxzL3Rp
+bWVyL0tjb25maWciCj4KPiAgc291cmNlICIkKE9QRU5TQklfU1JDX0RJUikvbGliL3V0aWxzL21w
+eHkvS2NvbmZpZyIKPgo+ICtzb3VyY2UgIiQoT1BFTlNCSV9TUkNfRElSKS9saWIvdXRpbHMvcHNj
+aS9LY29uZmlnIgo+ICsKPiAgZW5kbWVudQo+IGRpZmYgLS1naXQgYS9saWIvdXRpbHMvcHNjaS9L
+Y29uZmlnIGIvbGliL3V0aWxzL3BzY2kvS2NvbmZpZwo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4g
+aW5kZXggMDAwMDAwMC4uZjgxOGNmNwo+IC0tLSAvZGV2L251bGwKPiArKysgYi9saWIvdXRpbHMv
+cHNjaS9LY29uZmlnCj4gQEAgLTAsMCArMSwxMCBAQAo+ICsjIFNQRFgtTGljZW5zZS1JZGVudGlm
+aWVyOiBCU0QtMi1DbGF1c2UKPiArIyBDb3B5cmlnaHQgVGhlIE9wZW5TQkkgQ29udHJpYnV0b3Jz
+Cj4gKwo+ICttZW51ICJBcm0gUG93ZXIgU3RhdGUgQ29vcmRpbmF0aW9uIEludGVyZmFjZSBTdXBw
+b3J0Igo+ICsKPiArY29uZmlnIEFSTV9QU0NJCj4gKyAgICAgICBib29sICJTdXBwb3J0IFBTQ0kg
+cHJvdG9jb2wiCj4gKyAgICAgICBkZWZhdWx0IG4KPiArCj4gK2VuZG1lbnUKPiBkaWZmIC0tZ2l0
+IGEvbGliL3V0aWxzL3BzY2kvb2JqZWN0cy5tayBiL2xpYi91dGlscy9wc2NpL29iamVjdHMubWsK
+PiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAwMDAuLjU1OGRjYWUKPiAtLS0gL2Rl
+di9udWxsCj4gKysrIGIvbGliL3V0aWxzL3BzY2kvb2JqZWN0cy5tawo+IEBAIC0wLDAgKzEsMTkg
+QEAKPiArIwo+ICsjIENvcHlyaWdodCBUaGUgT3BlblNCSSBDb250cmlidXRvcnMKPiArIwo+ICsK
+PiArbGlic2JpdXRpbHMtb2Jqcy0ke0NPTkZJR19BUk1fUFNDSX0gKz0gcHNjaS9wc2NpX3ZlcnNp
+b24ubwo+ICsKPiArbGlic2JpdXRpbHMtb2Jqcy0ke0NPTkZJR19BUk1fUFNDSX0gKz0gcHNjaS9w
+c2NpX2NwdV9zdXNwZW5kLm8KPiArCj4gK2xpYnNiaXV0aWxzLW9ianMtJChDT05GSUdfQVJNX1BT
+Q0kpICs9IHBzY2kvcHNjaV9jcHVfb2ZmLm8KPiArCj4gK2xpYnNiaXV0aWxzLW9ianMtJChDT05G
+SUdfQVJNX1BTQ0kpICs9IHBzY2kvcHNjaV9jcHVfb24ubwo+ICsKPiArbGlic2JpdXRpbHMtb2Jq
+cy0ke0NPTkZJR19BUk1fUFNDSX0gKz0gcHNjaS9wc2NpX2FmZmluaXR5X2luZm8ubwo+ICsKPiAr
+bGlic2JpdXRpbHMtb2Jqcy0ke0NPTkZJR19BUk1fUFNDSX0gKz0gcHNjaS9wc2NpX3N5c3RlbV9v
+ZmYubwo+ICsKPiArbGlic2JpdXRpbHMtb2Jqcy0ke0NPTkZJR19BUk1fUFNDSX0gKz0gcHNjaS9w
+c2NpX3N5c3RlbV9yZXNldC5vCj4gKwo+ICtsaWJzYml1dGlscy1vYmpzLSR7Q09ORklHX0FSTV9Q
+U0NJfSArPSBwc2NpL3BzY2lfZmVhdHVyZXMubwo+IGRpZmYgLS1naXQgYS9saWIvdXRpbHMvcHNj
+aS9wc2NpX2FmZmluaXR5X2luZm8uYyBiL2xpYi91dGlscy9wc2NpL3BzY2lfYWZmaW5pdHlfaW5m
+by5jCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiBpbmRleCAwMDAwMDAwLi5lOWI3OTVmCj4gLS0t
+IC9kZXYvbnVsbAo+ICsrKyBiL2xpYi91dGlscy9wc2NpL3BzY2lfYWZmaW5pdHlfaW5mby5jCj4g
+QEAgLTAsMCArMSw3MiBAQAo+ICsvKgo+ICsgKiBDb3B5cmlnaHQgVGhlIE9wZW5TQkkgQ29udHJp
+YnV0b3JzCj4gKyAqLwo+ICsKPiArI2luY2x1ZGUgPHNiaV91dGlscy9wc2NpL3BzY2kuaD4KPiAr
+I2luY2x1ZGUgPHNiaS9zYmlfaHNtLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX3NjcmF0Y2guaD4K
+PiArI2luY2x1ZGUgPHNiaS9zYmlfZG9tYWluLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX2VjYWxs
+X2ludGVyZmFjZS5oPgo+ICsKPiAraW50cHRyX3QgcHNjaV9hZmZpbml0eV9pbmZvKHVpbnRwdHJf
+dCB0YXJnZXRfYWZmaW5pdHksCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgIHVpbnQzMl90
+IGxvd2VzdF9hZmZpbml0eV9sZXZlbCkKPiArewo+ICsgICAgICAgc3RydWN0IHNiaV9zY3JhdGNo
+ICpzY3JhdGNoICA9IHNiaV9zY3JhdGNoX3RoaXNoYXJ0X3B0cigpOwo+ICsgICAgICAgY29uc3Qg
+c3RydWN0IHNiaV9kb21haW4gKmRvbSA9IHNiaV9kb21haW5fdGhpc2hhcnRfcHRyKCk7Cj4gKyAg
+ICAgICB1aW50MzJfdCB0YXJnZXRfaGFydGlkICAgICAgID0gKHVpbnQzMl90KXRhcmdldF9hZmZp
+bml0eTsKPiArICAgICAgIGludCBoYXJ0X3N0YXRlOwo+ICsKPiArICAgICAgIC8qIFZhbGlkYXRl
+IHRoYXQgd2UgaGF2ZSBhIHZhbGlkIHNjcmF0Y2ggYXJlYSBhbmQgZG9tYWluICovCj4gKyAgICAg
+ICBpZiAoIXNjcmF0Y2ggfHwgIWRvbSkKPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9J
+TlRFUk5fRkFJTDsKPiArCj4gKyAgICAgICAvKgo+ICsgICAgICAgICogUFNDSSB2MS4wKyBhbGxv
+d3MgaW1wbGVtZW50YXRpb25zIHRvIG9ubHkgc3VwcG9ydCBsZXZlbCAwIChpbmRpdmlkdWFsIGNv
+cmVzKQo+ICsgICAgICAgICogRm9yIG5vdywgd2Ugb25seSBzdXBwb3J0IHF1ZXJ5aW5nIGluZGl2
+aWR1YWwgaGFydC9jb3JlIHN0YXRlIChsZXZlbCAwKQo+ICsgICAgICAgICovCj4gKyAgICAgICBp
+ZiAobG93ZXN0X2FmZmluaXR5X2xldmVsID4gMCkKPiArICAgICAgICAgICAgICAgcmV0dXJuIFBT
+Q0lfRV9JTlZBTElEX1BBUkFNUzsKPiArCj4gKyAgICAgICAvKiBDaGVjayBpZiB0YXJnZXRfYWZm
+aW5pdHkgZGVzY3JpYmVzIGEgdmFsaWQgaGFydGlkICovCj4gKyAgICAgICBpZiAoIXNiaV9oYXJ0
+aWRfdmFsaWQodGFyZ2V0X2hhcnRpZCkpCj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0Vf
+SU5WQUxJRF9QQVJBTVM7Cj4gKwo+ICsgICAgICAgLyogQ2hlY2sgaWYgdGhlIHRhcmdldCBoYXJ0
+IGlzIGFzc2lnbmVkIHRvIHRoZSBjdXJyZW50IGRvbWFpbiAqLwo+ICsgICAgICAgaWYgKCFzYmlf
+ZG9tYWluX2lzX2Fzc2lnbmVkX2hhcnQoCj4gKyAgICAgICAgICAgICAgICAgICBkb20sIHNiaV9o
+YXJ0aWRfdG9faGFydGluZGV4KHRhcmdldF9oYXJ0aWQpKSkKPiArICAgICAgICAgICAgICAgcmV0
+dXJuIFBTQ0lfRV9JTlZBTElEX1BBUkFNUzsKPiArCj4gKyAgICAgICAvKiBHZXQgdGhlIGN1cnJl
+bnQgc3RhdGUgb2YgdGhlIHRhcmdldCBoYXJ0ICovCj4gKyAgICAgICBoYXJ0X3N0YXRlID0gc2Jp
+X2hzbV9oYXJ0X2dldF9zdGF0ZShkb20sIHRhcmdldF9oYXJ0aWQpOwo+ICsgICAgICAgaWYgKGhh
+cnRfc3RhdGUgPCAwKQo+ICsgICAgICAgICAgICAgICByZXR1cm4gUFNDSV9FX0lOVkFMSURfUEFS
+QU1TOwo+ICsKPiArICAgICAgIC8qIE1hcCBTQkkgSFNNIHN0YXRlcyB0byBQU0NJIGFmZmluaXR5
+IHN0YXRlcyAqLwo+ICsgICAgICAgc3dpdGNoIChoYXJ0X3N0YXRlKSB7Cj4gKyAgICAgICBjYXNl
+IFNCSV9IU01fU1RBVEVfU1RBUlRFRDoKPiArICAgICAgIGNhc2UgU0JJX0hTTV9TVEFURV9TVVNQ
+RU5ERUQ6Cj4gKyAgICAgICBjYXNlIFNCSV9IU01fU1RBVEVfUkVTVU1FX1BFTkRJTkc6Cj4gKyAg
+ICAgICAgICAgICAgIC8qCj4gKyAgICAgICAgICAgICAgICAqIFBTQ0kgT046IEF0IGxlYXN0IG9u
+ZSBjb3JlIGluIHRoZSBhZmZpbml0eSBpbnN0YW5jZSBpcyBPTgo+ICsgICAgICAgICAgICAgICAg
+Ki8KPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfQUZGSU5JVFlfU1RBVEVfT047Cj4gKwo+
+ICsgICAgICAgY2FzZSBTQklfSFNNX1NUQVRFX1NUT1BQRUQ6Cj4gKyAgICAgICAgICAgICAgIC8q
+Cj4gKyAgICAgICAgICAgICAgICAqIFBTQ0kgT0ZGOiBBbGwgY29yZXMgaW4gdGhlIGFmZmluaXR5
+IGluc3RhbmNlIGFyZSBPRkYKPiArICAgICAgICAgICAgICAgICovCj4gKyAgICAgICAgICAgICAg
+IHJldHVybiBQU0NJX0FGRklOSVRZX1NUQVRFX09GRjsKPiArCj4gKyAgICAgICBjYXNlIFNCSV9I
+U01fU1RBVEVfU1RBUlRfUEVORElORzoKPiArICAgICAgIGNhc2UgU0JJX0hTTV9TVEFURV9TVE9Q
+X1BFTkRJTkc6Cj4gKyAgICAgICBjYXNlIFNCSV9IU01fU1RBVEVfU1VTUEVORF9QRU5ESU5HOgo+
+ICsgICAgICAgICAgICAgICAvKgo+ICsgICAgICAgICAgICAgICAgKiBQU0NJIE9OX1BFTkRJTkc6
+IFRoZSBhZmZpbml0eSBpbnN0YW5jZSBpcyB0cmFuc2l0aW9uaW5nIHRvIGFuIE9OIHN0YXRlCj4g
+KyAgICAgICAgICAgICAgICAqLwo+ICsgICAgICAgICAgICAgICByZXR1cm4gUFNDSV9BRkZJTklU
+WV9TVEFURV9PTl9QRU5ESU5HOwo+ICsKPiArICAgICAgIGRlZmF1bHQ6Cj4gKyAgICAgICAgICAg
+ICAgIC8qIEludmFsaWQgb3IgdW5rbm93biBzdGF0ZSAqLwo+ICsgICAgICAgICAgICAgICByZXR1
+cm4gUFNDSV9FX0lOVEVSTl9GQUlMOwo+ICsgICAgICAgfQo+ICt9Cj4gZGlmZiAtLWdpdCBhL2xp
+Yi91dGlscy9wc2NpL3BzY2lfY3B1X29mZi5jIGIvbGliL3V0aWxzL3BzY2kvcHNjaV9jcHVfb2Zm
+LmMKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAwMDAuLjNlMTk0MGEKPiAtLS0g
+L2Rldi9udWxsCj4gKysrIGIvbGliL3V0aWxzL3BzY2kvcHNjaV9jcHVfb2ZmLmMKPiBAQCAtMCww
+ICsxLDMwIEBACj4gKy8qCj4gKyAqIENvcHlyaWdodCBUaGUgT3BlblNCSSBDb250cmlidXRvcnMK
+PiArICovCj4gKwo+ICsjaW5jbHVkZSA8c2JpX3V0aWxzL3BzY2kvcHNjaS5oPgo+ICsjaW5jbHVk
+ZSA8c2JpL3NiaV9oc20uaD4KPiArI2luY2x1ZGUgPHNiaS9zYmlfc2NyYXRjaC5oPgo+ICsjaW5j
+bHVkZSA8c2JpL3NiaV9kb21haW4uaD4KPiArCj4gK2ludDMyX3QgcHNjaV9jcHVfb2ZmKCkKPiAr
+ewo+ICsgICAgICAgc3RydWN0IHNiaV9zY3JhdGNoICpzY3JhdGNoICA9IHNiaV9zY3JhdGNoX3Ro
+aXNoYXJ0X3B0cigpOwo+ICsgICAgICAgY29uc3Qgc3RydWN0IHNiaV9kb21haW4gKmRvbSA9IHNi
+aV9kb21haW5fdGhpc2hhcnRfcHRyKCk7Cj4gKyAgICAgICBpbnQgcmV0Owo+ICsKPiArICAgICAg
+IC8qIFZhbGlkYXRlIHRoYXQgd2UgaGF2ZSBhIHZhbGlkIHNjcmF0Y2ggYXJlYSAqLwo+ICsgICAg
+ICAgcHNjaV9hc3NlcnQoc2NyYXRjaCAhPSBOVUxMKTsKPiArICAgICAgIHBzY2lfYXNzZXJ0KGRv
+bSAhPSBOVUxMKTsKPiArCj4gKyAgICAgICByZXQgPSBzYmlfaHNtX2hhcnRfc3RvcChzY3JhdGNo
+LCB0cnVlKTsKPiArCj4gKyAgICAgICAvKiBXZSBzaG91bGQgbmV2ZXIgcmVhY2ggaGVyZSBpZiB0
+aGUgaGFydCBzdG9wIHN1Y2NlZWRzICovCj4gKyAgICAgICBpZiAocmV0ICE9IDApIHsKPiArICAg
+ICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9ERU5JRUQ7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAg
+ICAgLyogVGhpcyBwb2ludCBzaG91bGQgbmV2ZXIgYmUgcmVhY2hlZCAqLwo+ICsgICAgICAgcHNj
+aV9hc3NlcnQoMCk7Cj4gKyAgICAgICByZXR1cm4gUFNDSV9FX0RFTklFRDsKPiArfQo+IGRpZmYg
+LS1naXQgYS9saWIvdXRpbHMvcHNjaS9wc2NpX2NwdV9vbi5jIGIvbGliL3V0aWxzL3BzY2kvcHNj
+aV9jcHVfb24uYwo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4gaW5kZXggMDAwMDAwMC4uMTdlNWUx
+Ygo+IC0tLSAvZGV2L251bGwKPiArKysgYi9saWIvdXRpbHMvcHNjaS9wc2NpX2NwdV9vbi5jCj4g
+QEAgLTAsMCArMSw4OSBAQAo+ICsvKgo+ICsgKiBDb3B5cmlnaHQgVGhlIE9wZW5TQkkgQ29udHJp
+YnV0b3JzCj4gKyAqLwo+ICsKPiArI2luY2x1ZGUgPHNiaV91dGlscy9wc2NpL3BzY2kuaD4KPiAr
+I2luY2x1ZGUgPHNiaS9zYmlfaHNtLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX3NjcmF0Y2guaD4K
+PiArI2luY2x1ZGUgPHNiaS9zYmlfZG9tYWluLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX2VjYWxs
+X2ludGVyZmFjZS5oPgo+ICsjaW5jbHVkZSA8c2JpL3NiaV9lcnJvci5oPgo+ICsKPiAraW50cHRy
+X3QgcHNjaV9jcHVfb24odWludHB0cl90IHRhcmdldF9jcHUsIHVpbnRwdHJfdCBlbnRyeV9wb2lu
+dF9hZGRyZXNzLAo+ICsgICAgICAgICAgICAgICAgICAgIHVpbnRwdHJfdCBjb250ZXh0X2lkKQo+
+ICt7Cj4gKyAgICAgICBzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2ggID0gc2JpX3NjcmF0Y2hf
+dGhpc2hhcnRfcHRyKCk7Cj4gKyAgICAgICBjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbiAqZG9tID0g
+c2JpX2RvbWFpbl90aGlzaGFydF9wdHIoKTsKPiArICAgICAgIHN0cnVjdCBzYmlfc2NyYXRjaCAq
+cmVtb3RlX3NjcmF0Y2g7Cj4gKyAgICAgICB1aW50MzJfdCB0YXJnZXRfaGFydGlkID0gKHVpbnQz
+Ml90KXRhcmdldF9jcHU7Cj4gKyAgICAgICBpbnQgaGFydF9zdGF0ZTsKPiArICAgICAgIGludCBy
+ZXQ7Cj4gKwo+ICsgICAgICAgLyogVmFsaWRhdGUgdGhhdCB3ZSBoYXZlIGEgdmFsaWQgc2NyYXRj
+aCBhcmVhIGFuZCBkb21haW4gKi8KPiArICAgICAgIHBzY2lfYXNzZXJ0KHNjcmF0Y2ggIT0gTlVM
+TCk7Cj4gKyAgICAgICBwc2NpX2Fzc2VydChkb20gIT0gTlVMTCk7Cj4gKwo+ICsgICAgICAgLyog
+Q2hlY2sgaWYgdGFyZ2V0X2NwdSBkZXNjcmliZXMgYSB2YWxpZCBNUElEUi9oYXJ0aWQgKi8KPiAr
+ICAgICAgIGlmICghc2JpX2hhcnRpZF92YWxpZCh0YXJnZXRfaGFydGlkKSkgewo+ICsgICAgICAg
+ICAgICAgICByZXR1cm4gUFNDSV9FX0lOVkFMSURfUEFSQU1TOwo+ICsgICAgICAgfQo+ICsKPiAr
+ICAgICAgIC8qIEdldCBzY3JhdGNoIHBvaW50ZXIgZm9yIHRhcmdldCBoYXJ0ICovCj4gKyAgICAg
+ICByZW1vdGVfc2NyYXRjaCA9IHNiaV9oYXJ0aWRfdG9fc2NyYXRjaCh0YXJnZXRfaGFydGlkKTsK
+PiArICAgICAgIGlmICghcmVtb3RlX3NjcmF0Y2gpIHsKPiArICAgICAgICAgICAgICAgcmV0dXJu
+IFBTQ0lfRV9JTlZBTElEX1BBUkFNUzsKPiArICAgICAgIH0KPiArCj4gKyAgICAgICAvKiBDaGVj
+ayBpZiB0aGUgZW50cnkgcG9pbnQgYWRkcmVzcyBpcyB2YWxpZCBmb3IgdGhlIGNhbGxlcidzIGRv
+bWFpbiAqLwo+ICsgICAgICAgaWYgKCFzYmlfZG9tYWluX2NoZWNrX2FkZHIoZG9tLCBlbnRyeV9w
+b2ludF9hZGRyZXNzLCBQUlZfUywKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IFNCSV9ET01BSU5fRVhFQ1VURSkpIHsKPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9J
+TlZBTElEX0FERFJFU1M7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAgLyogR2V0IGN1cnJlbnQg
+c3RhdGUgb2YgdGhlIHRhcmdldCBoYXJ0ICovCj4gKyAgICAgICBoYXJ0X3N0YXRlID0gc2JpX2hz
+bV9oYXJ0X2dldF9zdGF0ZShkb20sIHRhcmdldF9oYXJ0aWQpOwo+ICsKPiArICAgICAgIHN3aXRj
+aCAoaGFydF9zdGF0ZSkgewo+ICsgICAgICAgY2FzZSBTQklfSFNNX1NUQVRFX1NUQVJURUQ6Cj4g
+KyAgICAgICAgICAgICAgIC8qIEhhcnQgaXMgYWxyZWFkeSBydW5uaW5nICovCj4gKyAgICAgICAg
+ICAgICAgIHJldHVybiBQU0NJX0VfQUxSRUFEWV9PTjsKPiArCj4gKyAgICAgICBjYXNlIFNCSV9I
+U01fU1RBVEVfU1RBUlRfUEVORElORzoKPiArICAgICAgICAgICAgICAgLyogSGFydCBzdGFydCBp
+cyBhbHJlYWR5IHBlbmRpbmcgKi8KPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9PTl9Q
+RU5ESU5HOwo+ICsKPiArICAgICAgIGNhc2UgU0JJX0hTTV9TVEFURV9TVE9QUEVEOgo+ICsgICAg
+ICAgICAgICAgICAvKiBIYXJ0IGlzIHN0b3BwZWQsIHdlIGNhbiBzdGFydCBpdCAqLwo+ICsgICAg
+ICAgICAgICAgICBicmVhazsKPiArCj4gKyAgICAgICBkZWZhdWx0Ogo+ICsgICAgICAgICAgICAg
+ICAvKiBJbnZhbGlkIHN0YXRlIG9yIG90aGVyIGVycm9yICovCj4gKyAgICAgICAgICAgICAgIHJl
+dHVybiBQU0NJX0VfSU5WQUxJRF9QQVJBTVM7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAgLyoK
+PiArICAgICAgICAqIFN0YXJ0IHRoZSB0YXJnZXQgaGFydAo+ICsgICAgICAgICogLSB0YXJnZXRf
+aGFydGlkOiB0aGUgaGFydCB0byBzdGFydAo+ICsgICAgICAgICogLSBlbnRyeV9wb2ludF9hZGRy
+ZXNzOiB3aGVyZSB0aGUgaGFydCBzaG91bGQgc3RhcnQgZXhlY3V0aW9uCj4gKyAgICAgICAgKiAt
+IFBSVl9TOiBzdGFydCBpbiBzdXBlcnZpc29yIG1vZGUKPiArICAgICAgICAqIC0gY29udGV4dF9p
+ZDogcGFzc2VkIGFzIGFyZ3VtZW50IHRvIHRoZSBzdGFydGVkIGhhcnQKPiArICAgICAgICAqLwo+
+ICsgICAgICAgcmV0ID0gc2JpX2hzbV9oYXJ0X3N0YXJ0KHJlbW90ZV9zY3JhdGNoLCBkb20sIHRh
+cmdldF9oYXJ0aWQsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW50cnlfcG9p
+bnRfYWRkcmVzcywgUFJWX1MsIGNvbnRleHRfaWQpOwo+ICsKPiArICAgICAgIC8qIENvbnZlcnQg
+U0JJIGVycm9yIGNvZGVzIHRvIFBTQ0kgZXJyb3IgY29kZXMgKi8KPiArICAgICAgIHN3aXRjaCAo
+cmV0KSB7Cj4gKyAgICAgICBjYXNlIFNCSV9TVUNDRVNTOgo+ICsgICAgICAgICAgICAgICByZXR1
+cm4gUFNDSV9FX1NVQ0NFU1M7Cj4gKyAgICAgICBjYXNlIFNCSV9FUlJfSU5WQUxJRF9QQVJBTToK
+PiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9JTlZBTElEX1BBUkFNUzsKPiArICAgICAg
+IGNhc2UgU0JJX0VSUl9JTlZBTElEX0FERFJFU1M6Cj4gKyAgICAgICAgICAgICAgIHJldHVybiBQ
+U0NJX0VfSU5WQUxJRF9BRERSRVNTOwo+ICsgICAgICAgY2FzZSBTQklfRVJSX0FMUkVBRFlfU1RB
+UlRFRDoKPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9BTFJFQURZX09OOwo+ICsgICAg
+ICAgY2FzZSBTQklfRVJSX0RFTklFRDoKPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9E
+RU5JRUQ7Cj4gKyAgICAgICBkZWZhdWx0Ogo+ICsgICAgICAgICAgICAgICByZXR1cm4gUFNDSV9F
+X0lOVEVSTl9GQUlMOwo+ICsgICAgICAgfQo+ICt9Cj4gZGlmZiAtLWdpdCBhL2xpYi91dGlscy9w
+c2NpL3BzY2lfY3B1X3N1c3BlbmQuYyBiL2xpYi91dGlscy9wc2NpL3BzY2lfY3B1X3N1c3BlbmQu
+Ywo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4gaW5kZXggMDAwMDAwMC4uMTZiMGU1Ywo+IC0tLSAv
+ZGV2L251bGwKPiArKysgYi9saWIvdXRpbHMvcHNjaS9wc2NpX2NwdV9zdXNwZW5kLmMKPiBAQCAt
+MCwwICsxLDE1MSBAQAo+ICsvKgo+ICsgKiBDb3B5cmlnaHQgVGhlIE9wZW5TQkkgQ29udHJpYnV0
+b3JzCj4gKyAqLwo+ICsKPiArI2luY2x1ZGUgPHNiaV91dGlscy9wc2NpL3BzY2kuaD4KPiArI2lu
+Y2x1ZGUgPHNiaS9zYmlfaHNtLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX3NjcmF0Y2guaD4KPiAr
+I2luY2x1ZGUgPHNiaS9zYmlfZG9tYWluLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX2VjYWxsX2lu
+dGVyZmFjZS5oPgo+ICsjaW5jbHVkZSA8c2JpL3NiaV9lcnJvci5oPgo+ICsKPiArLyogUFNDSSBw
+b3dlciBzdGF0ZSBUWVBFcyAqLwo+ICsjZGVmaW5lIFBTQ0lfUFNUQVRFX1RZUEVfU0hJRlQgMzAK
+PiArI2RlZmluZSBQU0NJX1BTVEFURV9UWVBFX01BU0sgMHgxCj4gKwo+ICsvKiBQU0NJIHBvd2Vy
+IHN0YXRlIFN0YXRlSUQgKi8KPiArI2RlZmluZSBQU0NJX1BTVEFURV9JRF9TSElGVCAwCj4gKyNk
+ZWZpbmUgUFNDSV9QU1RBVEVfSURfTUFTSyAweDBGRkZGRkZGCj4gKwo+ICsvKiBIZWxwZXIgbWFj
+cm9zIGZvciBwb3dlciBzdGF0ZSAqLwo+ICsjZGVmaW5lIHBzY2lfZ2V0X3BzdGF0ZV90eXBlKHBz
+dGF0ZSkgXAo+ICsgICAgICAgKCgocHN0YXRlKSA+PiBQU0NJX1BTVEFURV9UWVBFX1NISUZUKSAm
+IFBTQ0lfUFNUQVRFX1RZUEVfTUFTSykKPiArI2RlZmluZSBwc2NpX2dldF9wc3RhdGVfaWQocHN0
+YXRlKSBcCj4gKyAgICAgICAoKChwc3RhdGUpID4+IFBTQ0lfUFNUQVRFX0lEX1NISUZUKSAmIFBT
+Q0lfUFNUQVRFX0lEX01BU0spCj4gKwo+ICtpbnRwdHJfdCBwc2NpX2NwdV9zdXNwZW5kKHVpbnQz
+Ml90IHBvd2VyX3N0YXRlLCB1aW50cHRyX3QgZW50cnlfcG9pbnRfYWRkcmVzcywKPiArICAgICAg
+ICAgICAgICAgICAgICAgICAgIHVpbnRwdHJfdCBjb250ZXh0X2lkKQo+ICt7Cj4gKyAgICAgICBz
+dHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2ggID0gc2JpX3NjcmF0Y2hfdGhpc2hhcnRfcHRyKCk7
+Cj4gKyAgICAgICBjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbiAqZG9tID0gc2JpX2RvbWFpbl90aGlz
+aGFydF9wdHIoKTsKPiArICAgICAgIHVpbnQzMl90IHBzdGF0ZV90eXBlLCBwc3RhdGVfaWQsIHN1
+c3BlbmRfdHlwZTsKPiArICAgICAgIGludCByZXQ7Cj4gKwo+ICsgICAgICAgLyogVmFsaWRhdGUg
+cnVudGltZSBlbnZpcm9ubWVudCAqLwo+ICsgICAgICAgcHNjaV9hc3NlcnQoc2NyYXRjaCAhPSBO
+VUxMKTsKPiArICAgICAgIHBzY2lfYXNzZXJ0KGRvbSAhPSBOVUxMKTsKPiArCj4gKyAgICAgICAv
+KiBWYWxpZGF0ZSBwb3dlciBzdGF0ZSBmb3JtYXQgLSBjaGVjayByZXNlcnZlZCBiaXRzICovCj4g
+KyAgICAgICBpZiAocG93ZXJfc3RhdGUgJiAweDgwMDAwMDAwKSB7IC8qIEJpdFszMV0gbXVzdCBi
+ZSB6ZXJvICovCj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0VfSU5WQUxJRF9QQVJBTVM7
+Cj4gKyAgICAgICB9Cj4gKyAgICAgICBpZiAocG93ZXJfc3RhdGUgJiAweDMwMDAwMDAwKSB7IC8q
+IEJpdHNbMjk6MjhdIG11c3QgYmUgemVybyAqLwo+ICsgICAgICAgICAgICAgICByZXR1cm4gUFND
+SV9FX0lOVkFMSURfUEFSQU1TOwo+ICsgICAgICAgfQo+ICsKPiArICAgICAgIC8qIEV4dHJhY3Qg
+U3RhdGVUeXBlIGFuZCBTdGF0ZUlEIGZyb20gcG93ZXJfc3RhdGUgKi8KPiArICAgICAgIHBzdGF0
+ZV90eXBlID0gcHNjaV9nZXRfcHN0YXRlX3R5cGUocG93ZXJfc3RhdGUpOwo+ICsgICAgICAgcHN0
+YXRlX2lkICAgPSBwc2NpX2dldF9wc3RhdGVfaWQocG93ZXJfc3RhdGUpOwo+ICsKPiArICAgICAg
+IC8qIFZhbGlkYXRlIFN0YXRlSUQgdmFsdWVzICovCj4gKyAgICAgICBpZiAocHN0YXRlX2lkID4g
+UFNDSV9QU1RBVEVfSURfUE9XRVJET1dOKSB7Cj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJ
+X0VfSU5WQUxJRF9QQVJBTVM7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAgLyoKPiArICAgICAg
+ICAqIEhhbmRsZSBkaWZmZXJlbnQgc3VzcGVuZCB0eXBlcyBiYXNlZCBvbiBQU0NJIHNwZWNpZmlj
+YXRpb246Cj4gKyAgICAgICAgKiAtIFNUQU5EQlk6IFJldGVudGlvbiBzdGF0ZSwgY29udGV4dCBw
+cmVzZXJ2ZWQsIHF1aWNrIHdha2UtdXAKPiArICAgICAgICAqIC0gUE9XRVJET1dOOiBDb250ZXh0
+IGxvc3QsIHJlcXVpcmVzIGVudHJ5X3BvaW50X2FkZHJlc3MgYW5kIGNvbnRleHRfaWQKPiArICAg
+ICAgICAqCj4gKyAgICAgICAgKiBTdGF0ZUlEIHByb3ZpZGVzIHBsYXRmb3JtLXNwZWNpZmljIHBv
+d2VyIHN0YXRlIGluZm9ybWF0aW9uOgo+ICsgICAgICAgICogLSBQU0NJX1BTVEFURV9JRF9SVU4g
+KDB4MCk6IE5vcm1hbCBydW5uaW5nIHN0YXRlIChpbnZhbGlkIGZvciBzdXNwZW5kKQo+ICsgICAg
+ICAgICogLSBQU0NJX1BTVEFURV9JRF9TVEFOREJZICgweDEpOiBTdGFuZGJ5IHN0YXRlIChxdWlj
+ayB3YWtlLXVwKQo+ICsgICAgICAgICogLSBQU0NJX1BTVEFURV9JRF9SRVRFTlRJT04gKDB4Mik6
+IFJldGVudGlvbiBzdGF0ZSAoY29udGV4dCBwcmVzZXJ2ZWQpCj4gKyAgICAgICAgKiAtIFBTQ0lf
+UFNUQVRFX0lEX1BPV0VSRE9XTiAoMHgzKTogUG93ZXJkb3duIHN0YXRlIChjb250ZXh0IGxvc3Qp
+Cj4gKyAgICAgICAgKi8KPiArICAgICAgIGlmIChwc3RhdGVfdHlwZSA9PSBQU0NJX1BTVEFURV9U
+WVBFX1NUQU5EQlkpIHsKPiArICAgICAgICAgICAgICAgLyoKPiArICAgICAgICAgICAgICAgICog
+U3RhbmRieS9SZXRlbnRpb24gc3VzcGVuZDoKPiArICAgICAgICAgICAgICAgICogLSBDb3JlIGNv
+bnRleHQgaXMgcHJlc2VydmVkCj4gKyAgICAgICAgICAgICAgICAqIC0gZW50cnlfcG9pbnRfYWRk
+cmVzcyBhbmQgY29udGV4dF9pZCBhcmUgaWdub3JlZAo+ICsgICAgICAgICAgICAgICAgKiAtIFVz
+ZSByZXRlbnRpdmUgc3VzcGVuZCBtb2RlCj4gKyAgICAgICAgICAgICAgICAqIC0gVmFsaWQgU3Rh
+dGVJRHM6IFNUQU5EQlksIFJFVEVOVElPTgo+ICsgICAgICAgICAgICAgICAgKi8KPiArICAgICAg
+ICAgICAgICAgaWYgKHBzdGF0ZV9pZCAhPSBQU0NJX1BTVEFURV9JRF9TVEFOREJZICYmCj4gKyAg
+ICAgICAgICAgICAgICAgICBwc3RhdGVfaWQgIT0gUFNDSV9QU1RBVEVfSURfUkVURU5USU9OKSB7
+Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9JTlZBTElEX1BBUkFNUzsK
+PiArICAgICAgICAgICAgICAgfQo+ICsKPiArICAgICAgICAgICAgICAgc3VzcGVuZF90eXBlID0g
+U0JJX0hTTV9TVVNQRU5EX1JFVF9ERUZBVUxUOwo+ICsKPiArICAgICAgICAgICAgICAgLyogRm9y
+IHN0YW5kYnksIGVudHJ5X3BvaW50X2FkZHJlc3MgaXMgaWdub3JlZCBidXQgd2UgdXNlIGN1cnJl
+bnQgY29udGV4dCAqLwo+ICsgICAgICAgICAgICAgICBlbnRyeV9wb2ludF9hZGRyZXNzID0gMDsg
+LyogV2lsbCBiZSBpZ25vcmVkIGJ5IFNCSSBIU00gKi8KPiArICAgICAgICAgICAgICAgY29udGV4
+dF9pZCAgICAgICAgICA9IDA7IC8qIFdpbGwgYmUgaWdub3JlZCBieSBTQkkgSFNNICovCj4gKwo+
+ICsgICAgICAgfSBlbHNlIGlmIChwc3RhdGVfdHlwZSA9PSBQU0NJX1BTVEFURV9UWVBFX1BPV0VS
+RE9XTikgewo+ICsgICAgICAgICAgICAgICAvKgo+ICsgICAgICAgICAgICAgICAgKiBQb3dlcmRv
+d24gc3VzcGVuZDoKPiArICAgICAgICAgICAgICAgICogLSBDb3JlIGNvbnRleHQgd2lsbCBiZSBs
+b3N0Cj4gKyAgICAgICAgICAgICAgICAqIC0gZW50cnlfcG9pbnRfYWRkcmVzcyBtdXN0IGJlIHZh
+bGlkIGFuZCBhY2Nlc3NpYmxlCj4gKyAgICAgICAgICAgICAgICAqIC0gY29udGV4dF9pZCB3aWxs
+IGJlIHBhc3NlZCB0byByZXN1bWVkIGV4ZWN1dGlvbgo+ICsgICAgICAgICAgICAgICAgKiAtIFVz
+ZSBub24tcmV0ZW50aXZlIHN1c3BlbmQgbW9kZQo+ICsgICAgICAgICAgICAgICAgKiAtIFZhbGlk
+IFN0YXRlSUQ6IFBPV0VSRE9XTgo+ICsgICAgICAgICAgICAgICAgKi8KPiArICAgICAgICAgICAg
+ICAgaWYgKHBzdGF0ZV9pZCAhPSBQU0NJX1BTVEFURV9JRF9QT1dFUkRPV04pIHsKPiArICAgICAg
+ICAgICAgICAgICAgICAgICByZXR1cm4gUFNDSV9FX0lOVkFMSURfUEFSQU1TOwo+ICsgICAgICAg
+ICAgICAgICB9Cj4gKwo+ICsgICAgICAgICAgICAgICBzdXNwZW5kX3R5cGUgPSBTQklfSFNNX1NV
+U1BFTkRfTk9OX1JFVF9ERUZBVUxUOwo+ICsKPiArICAgICAgICAgICAgICAgLyogVmFsaWRhdGUg
+ZW50cnkgcG9pbnQgYWRkcmVzcyBmb3IgcG93ZXJkb3duIHN0YXRlcyAqLwo+ICsgICAgICAgICAg
+ICAgICBpZiAoIWVudHJ5X3BvaW50X2FkZHJlc3MpIHsKPiArICAgICAgICAgICAgICAgICAgICAg
+ICByZXR1cm4gUFNDSV9FX0lOVkFMSURfQUREUkVTUzsKPiArICAgICAgICAgICAgICAgfQo+ICsK
+PiArICAgICAgICAgICAgICAgLyogVmVyaWZ5IGVudHJ5IHBvaW50IGlzIHdpdGhpbiBjYWxsZXIn
+cyBkb21haW4gYW5kIGV4ZWN1dGFibGUgKi8KPiArICAgICAgICAgICAgICAgaWYgKCFzYmlfZG9t
+YWluX2NoZWNrX2FkZHIoZG9tLCBlbnRyeV9wb2ludF9hZGRyZXNzLCBQUlZfUywKPiArICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU0JJX0RPTUFJTl9FWEVDVVRFKSkg
+ewo+ICsgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0VfSU5WQUxJRF9BRERSRVNT
+Owo+ICsgICAgICAgICAgICAgICB9Cj4gKwo+ICsgICAgICAgfSBlbHNlIHsKPiArICAgICAgICAg
+ICAgICAgLyogSW52YWxpZCBTdGF0ZVR5cGUgLSBvbmx5IFNUQU5EQlkoMCkgYW5kIFBPV0VSRE9X
+TigxKSBhcmUgdmFsaWQgKi8KPiArICAgICAgICAgICAgICAgcmV0dXJuIFBTQ0lfRV9JTlZBTElE
+X1BBUkFNUzsKPiArICAgICAgIH0KPiArCj4gKyAgICAgICAvKgo+ICsgICAgICAgICogSW5pdGlh
+dGUgaGFydCBzdXNwZW5zaW9uIHRocm91Z2ggU0JJIEhTTToKPiArICAgICAgICAqIC0gc3VzcGVu
+ZF90eXBlOiBTQklfSFNNX1NVU1BFTkRfUkVUX0RFRkFVTFQgb3IgU0JJX0hTTV9TVVNQRU5EX05P
+Tl9SRVRfREVGQVVMVAo+ICsgICAgICAgICogLSBlbnRyeV9wb2ludF9hZGRyZXNzOiBSZXN1bWUg
+YWRkcmVzcyAocG93ZXJkb3duKSBvciAwIChzdGFuZGJ5KQo+ICsgICAgICAgICogLSBQUlZfUzog
+UmVzdW1lIGluIHN1cGVydmlzb3IgcHJpdmlsZWdlIG1vZGUKPiArICAgICAgICAqIC0gY29udGV4
+dF9pZDogQ29udGV4dCB2YWx1ZSBwYXNzZWQgdG8gcmVzdW1lZCBleGVjdXRpb24KPiArICAgICAg
+ICAqLwo+ICsgICAgICAgcmV0ID0gc2JpX2hzbV9oYXJ0X3N1c3BlbmQoc2NyYXRjaCwgc3VzcGVu
+ZF90eXBlLCBlbnRyeV9wb2ludF9hZGRyZXNzLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgUFJWX1MsIGNvbnRleHRfaWQpOwo+ICsKPiArICAgICAgIC8qCj4gKyAgICAgICAg
+KiBIYW5kbGUgcmV0dXJuIHZhbHVlczoKPiArICAgICAgICAqCj4gKyAgICAgICAgKiBGb3IgU1RB
+TkRCWSAocmV0ZW50aXZlKSBzdXNwZW5kOgo+ICsgICAgICAgICogLSBOb3JtYWwgcmV0dXJuIHdp
+dGggUFNDSV9FX1NVQ0NFU1MgaW5kaWNhdGVzIHN1Y2Nlc3NmdWwgd2FrZS11cAo+ICsgICAgICAg
+ICoKPiArICAgICAgICAqIEZvciBQT1dFUkRPV04gKG5vbi1yZXRlbnRpdmUpIHN1c3BlbmQ6Cj4g
+KyAgICAgICAgKiAtIFNob3VsZCBOT1QgcmV0dXJuIGhlcmUgb24gc3VjY2VzcyAoZXhlY3V0aW9u
+IHJlc3VtZXMgYXQgZW50cnlfcG9pbnRfYWRkcmVzcykKPiArICAgICAgICAqIC0gSWYgd2UgcmV0
+dXJuIGhlcmUsIGl0IGluZGljYXRlcyBzdXNwZW5kIHdhcyByZWplY3RlZCwgZG93bmdyYWRlZCwg
+b3IgZmFpbGVkCj4gKyAgICAgICAgKi8KPiArICAgICAgIHN3aXRjaCAocmV0KSB7Cj4gKyAgICAg
+ICBjYXNlIFNCSV9TVUNDRVNTOgo+ICsgICAgICAgICAgICAgICAvKiBTdWNjZXNzIC0gZWl0aGVy
+IGNvbXBsZXRlZCBzdGFuZGJ5IG9yIGZhaWxlZCBwb3dlcmRvd24gKi8KPiArICAgICAgICAgICAg
+ICAgcmV0dXJuIFBTQ0lfRV9TVUNDRVNTOwo+ICsgICAgICAgY2FzZSBTQklfRVJSX0lOVkFMSURf
+UEFSQU06Cj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0VfSU5WQUxJRF9QQVJBTVM7Cj4g
+KyAgICAgICBjYXNlIFNCSV9FUlJfSU5WQUxJRF9BRERSRVNTOgo+ICsgICAgICAgICAgICAgICBy
+ZXR1cm4gUFNDSV9FX0lOVkFMSURfQUREUkVTUzsKPiArICAgICAgIGNhc2UgU0JJX0VSUl9ERU5J
+RUQ6Cj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0VfREVOSUVEOwo+ICsgICAgICAgY2Fz
+ZSBTQklfRVJSX05PVF9TVVBQT1JURUQ6Cj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0Vf
+Tk9UX1NVUFBPUlRFRDsKPiArICAgICAgIGRlZmF1bHQ6Cj4gKyAgICAgICAgICAgICAgIHJldHVy
+biBQU0NJX0VfSU5URVJOX0ZBSUw7Cj4gKyAgICAgICB9Cj4gK30KPiBkaWZmIC0tZ2l0IGEvbGli
+L3V0aWxzL3BzY2kvcHNjaV9mZWF0dXJlcy5jIGIvbGliL3V0aWxzL3BzY2kvcHNjaV9mZWF0dXJl
+cy5jCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiBpbmRleCAwMDAwMDAwLi4xMjBjYmMzCj4gLS0t
+IC9kZXYvbnVsbAo+ICsrKyBiL2xpYi91dGlscy9wc2NpL3BzY2lfZmVhdHVyZXMuYwo+IEBAIC0w
+LDAgKzEsMjggQEAKPiArLyoKPiArICogQ29weXJpZ2h0IFRoZSBPcGVuU0JJIENvbnRyaWJ1dG9y
+cwo+ICsgKi8KPiArCj4gKyNpbmNsdWRlIDxzYmlfdXRpbHMvcHNjaS9wc2NpLmg+Cj4gKwo+ICtp
+bnQzMl90IHBzY2lfZmVhdHVyZXModWludDMyX3QgcHNjaV9mdW5jX2lkKQo+ICt7Cj4gKyAgICAg
+ICBzd2l0Y2ggKHBzY2lfZnVuY19pZCkgewo+ICsgICAgICAgY2FzZSBQU0NJX0ZOX1ZFUlNJT046
+Cj4gKyAgICAgICBjYXNlIFBTQ0lfRk5fUFNDSV9GRUFUVVJFUzoKPiArICAgICAgIGNhc2UgUFND
+SV9GTl9DUFVfT0ZGOgo+ICsgICAgICAgY2FzZSBQU0NJX0ZOX0NQVV9PTl9TTUMzMjoKPiArICAg
+ICAgIGNhc2UgUFNDSV9GTl9DUFVfT05fU01DNjQ6Cj4gKyAgICAgICBjYXNlIFBTQ0lfRk5fQUZG
+SU5JVFlfSU5GT19TTUMzMjoKPiArICAgICAgIGNhc2UgUFNDSV9GTl9BRkZJTklUWV9JTkZPX1NN
+QzY0Ogo+ICsgICAgICAgY2FzZSBQU0NJX0ZOX1NZU1RFTV9PRkY6Cj4gKyAgICAgICBjYXNlIFBT
+Q0lfRk5fU1lTVEVNX1JFU0VUOgo+ICsgICAgICAgICAgICAgICByZXR1cm4gMDsKPiArCj4gKyAg
+ICAgICBjYXNlIFBTQ0lfRk5fQ1BVX1NVU1BFTkRfU01DMzI6Cj4gKyAgICAgICBjYXNlIFBTQ0lf
+Rk5fQ1BVX1NVU1BFTkRfU01DNjQ6Cj4gKyAgICAgICAgICAgICAgIHJldHVybiAxOwo+ICsKPiAr
+ICAgICAgIGRlZmF1bHQ6Cj4gKyAgICAgICAgICAgICAgIHJldHVybiBQU0NJX0VfTk9UX1NVUFBP
+UlRFRDsKPiArICAgICAgIH0KPiArfQo+IGRpZmYgLS1naXQgYS9saWIvdXRpbHMvcHNjaS9wc2Np
+X3N5c3RlbV9vZmYuYyBiL2xpYi91dGlscy9wc2NpL3BzY2lfc3lzdGVtX29mZi5jCj4gbmV3IGZp
+bGUgbW9kZSAxMDA2NDQKPiBpbmRleCAwMDAwMDAwLi5hMmMxMDU4Cj4gLS0tIC9kZXYvbnVsbAo+
+ICsrKyBiL2xpYi91dGlscy9wc2NpL3BzY2lfc3lzdGVtX29mZi5jCj4gQEAgLTAsMCArMSwxNiBA
+QAo+ICsvKgo+ICsgKiBDb3B5cmlnaHQgVGhlIE9wZW5TQkkgQ29udHJpYnV0b3JzCj4gKyAqLwo+
+ICsKPiArI2luY2x1ZGUgPHNiaV91dGlscy9wc2NpL3BzY2kuaD4KPiArI2luY2x1ZGUgPHNiaS9z
+Ymlfc3lzdGVtLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX2VjYWxsX2ludGVyZmFjZS5oPgo+ICsK
+PiArdm9pZCBfX25vcmV0dXJuIHBzY2lfc3lzdGVtX29mZigpCj4gK3sKPiArICAgICAgIHNiaV9z
+eXN0ZW1fcmVzZXQoU0JJX1NSU1RfUkVTRVRfVFlQRV9TSFVURE9XTiwKPiArICAgICAgICAgICAg
+ICAgICAgICAgICAgU0JJX1NSU1RfUkVTRVRfUkVBU09OX05PTkUpOwo+ICsKPiArICAgICAgIC8q
+IFdlIHNob3VsZCBuZXZlciByZWFjaCB0aGlzIHBvaW50ICovCj4gKyAgICAgICBwc2NpX2Fzc2Vy
+dCgwKTsKPiArfQo+IGRpZmYgLS1naXQgYS9saWIvdXRpbHMvcHNjaS9wc2NpX3N5c3RlbV9yZXNl
+dC5jIGIvbGliL3V0aWxzL3BzY2kvcHNjaV9zeXN0ZW1fcmVzZXQuYwo+IG5ldyBmaWxlIG1vZGUg
+MTAwNjQ0Cj4gaW5kZXggMDAwMDAwMC4uNjgwMDMyMgo+IC0tLSAvZGV2L251bGwKPiArKysgYi9s
+aWIvdXRpbHMvcHNjaS9wc2NpX3N5c3RlbV9yZXNldC5jCj4gQEAgLTAsMCArMSwxNiBAQAo+ICsv
+Kgo+ICsgKiBDb3B5cmlnaHQgVGhlIE9wZW5TQkkgQ29udHJpYnV0b3JzCj4gKyAqLwo+ICsKPiAr
+I2luY2x1ZGUgPHNiaV91dGlscy9wc2NpL3BzY2kuaD4KPiArI2luY2x1ZGUgPHNiaS9zYmlfc3lz
+dGVtLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2JpX2VjYWxsX2ludGVyZmFjZS5oPgo+ICsKPiArdm9p
+ZCBfX25vcmV0dXJuIHBzY2lfc3lzdGVtX3Jlc2V0KCkKPiArewo+ICsgICAgICAgc2JpX3N5c3Rl
+bV9yZXNldChTQklfU1JTVF9SRVNFVF9UWVBFX0NPTERfUkVCT09ULAo+ICsgICAgICAgICAgICAg
+ICAgICAgICAgICBTQklfU1JTVF9SRVNFVF9SRUFTT05fTk9ORSk7Cj4gKwo+ICsgICAgICAgLyog
+V2Ugc2hvdWxkIG5ldmVyIHJlYWNoIHRoaXMgcG9pbnQgKi8KPiArICAgICAgIHBzY2lfYXNzZXJ0
+KDApOwo+ICt9Cj4gZGlmZiAtLWdpdCBhL2xpYi91dGlscy9wc2NpL3BzY2lfdmVyc2lvbi5jIGIv
+bGliL3V0aWxzL3BzY2kvcHNjaV92ZXJzaW9uLmMKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGlu
+ZGV4IDAwMDAwMDAuLjFkYmFkZjYKPiAtLS0gL2Rldi9udWxsCj4gKysrIGIvbGliL3V0aWxzL3Bz
+Y2kvcHNjaV92ZXJzaW9uLmMKPiBAQCAtMCwwICsxLDEwIEBACj4gKy8qCj4gKyAqIENvcHlyaWdo
+dCBUaGUgT3BlblNCSSBDb250cmlidXRvcnMKPiArICovCj4gKwo+ICsjaW5jbHVkZSA8c2JpX3V0
+aWxzL3BzY2kvcHNjaS5oPgo+ICsKPiArdWludDMyX3QgcHNjaV92ZXJzaW9uKHZvaWQpCj4gK3sK
+PiArICAgICAgIHJldHVybiBQU0NJX01BSk9SX1ZFUiB8IFBTQ0lfTUlOT1JfVkVSOwo+ICt9Cj4g
+ZGlmZiAtLWdpdCBhL3BsYXRmb3JtL2dlbmVyaWMvY29uZmlncy9kZWZjb25maWcgYi9wbGF0Zm9y
+bS9nZW5lcmljL2NvbmZpZ3MvZGVmY29uZmlnCj4gaW5kZXggYzdhNjUzMS4uZGJiNDAzOSAxMDA2
+NDQKPiAtLS0gYS9wbGF0Zm9ybS9nZW5lcmljL2NvbmZpZ3MvZGVmY29uZmlnCj4gKysrIGIvcGxh
+dGZvcm0vZ2VuZXJpYy9jb25maWdzL2RlZmNvbmZpZwo+IEBAIC01OCwzICs1OCw0IEBAIENPTkZJ
+R19GRFRfTVBYWT15Cj4gIENPTkZJR19GRFRfTVBYWV9SUE1JX01CT1g9eQo+ICBDT05GSUdfRkRU
+X01QWFlfUlBNSV9DTE9DSz15Cj4gIENPTkZJR19GRFRfTVBYWV9SUE1JX1NZU01TST15Cj4gK0NP
+TkZJR19BUk1fUFNDST15Cj4KPiAtLQo+IG9wZW5zYmkgbWFpbGluZyBsaXN0Cj4gb3BlbnNiaUBs
+aXN0cy5pbmZyYWRlYWQub3JnCj4gaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9vcGVuc2JpCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5p
+bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
+b3BlbnNiaQo=
