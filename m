@@ -4,105 +4,61 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 636F4C87FCE
-	for <opensbi@archiver.kernel.org>; Mon, 28 Jul 2025 07:28:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A3DFCC83F26
+	for <opensbi@archiver.kernel.org>; Mon, 28 Jul 2025 08:01:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=fzZHuRzgCcstdkaQF2G7qK0Yq7cR7GAR7+x6Z5aNDRo=; b=TO6BizKZZGHyX6
-	ImRmo60V0rx/ULX3lJtL7wnD1wg4zWqRvwQhkBCN60+4gchyeIzudwkOXw2af4Ox3YHp2FTTDmee3
-	lLHxXLxuob3rz0TTA+KaHKB+f1o0k+hasji07VTll0S5oSh9OWx6uCXovOKVAcroz9ld+iUQElUIc
-	iN1hDa2P/qPF79eCkZMgCGHmACCTCT04ruTiHKOIDmWhTJXUCj8Aoc3yuInU/wVMjtaY1CcvVKW/1
-	Ul/OI/9XsgH91Jf9W1EkfU/tLF35lnYwt8Jy4Lnm9clzZfUx+/q+nDfqtwLa/cFWuGo26OI3lXpe+
-	1IWnqimAOaBB2bBMgxzA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=eNvwxoFpln0HrX1qgmY+lvZeKxEWUp62w1IYuAWnpy8=; b=hltYZZUXnRtjIb
+	tVGh5SUabl+w4y4MjADZbBVfce7QLf18FmnjJJ3v+8UxneS7134fQBZEFcEmmhNmC5ZsEWshtMFz2
+	RvTLgJrN2pTmy94xnA+FaDUJ47c2plACr/dbSd0es71E9EqoSHEpbFRaPcLHVFMGzF+820/nCV+0r
+	UMJIf/76bhZKvbm32DfURhQMgTgX6D77D4/J8EfXc5czgl8vCnE0ntso++loQoqUhs1OJZSrHauHm
+	BxXCk1MLd4ZZOsMVIXUyxbg4qQXwCvRbz1T1bDoi1H6l4vCYv8WwITRGpBcuV3Q3cPLAh3q9kMfZw
+	jlGNzf6xlozUv9hIdKfQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1ugIHO-0000000DrdW-06xB;
-	Mon, 28 Jul 2025 07:28:14 +0000
+	id 1ugInw-0000000DvHY-3GDl;
+	Mon, 28 Jul 2025 08:01:52 +0000
 Received: from m16.mail.126.com ([117.135.210.8])
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1ugHsM-0000000Doib-2jMM
+	id 1ugIWi-0000000DtCH-37AO
 	for opensbi@lists.infradead.org;
-	Mon, 28 Jul 2025 07:02:24 +0000
+	Mon, 28 Jul 2025 07:44:06 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
-	MIME-Version; bh=E9loAwAVQDtUuChI7SGmSj5CY6ALRZDY6qwbZDEphNQ=;
-	b=OEGcEi3LO+Hv+NuGMln0lMmiS6z5PJRQGnqOsCBVCVGg24BbnNkx/eRvJSE6Cm
-	4Xta65Z1WLeOX0nRh7jD8d8oAVhRtTxXrhHJ7OXHp/8zkcotWsV/99g915CBIP+N
-	COZeqUbpYIbP9rlEwrav4trsuy3LhzsJyxfSMnsz/ZAiQ=
-Received: from [127.0.0.1] (unknown [])
-	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wD3PxxjIIdo7aMWAw--.8937S2;
-	Mon, 28 Jul 2025 15:01:55 +0800 (CST)
-Message-ID: <b2363cfd71e26656b6160ba05fa151ebbf4cadfc.camel@126.com>
-Subject: Re: [PATCH] Fix license to compatible BSD-2-Clause
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Dv
+	faAo4agHlBK6s7xV50MfcIFee4oD/y9coNy17PkqE=; b=PC8n52t7l//v0X55VC
+	Q3FxvwWDxKxavcAIgOfj04YCHUFlYyD+wmb19OIdmcRLqw+ue7sty2DtajI/143y
+	GRVbDTY814vlcN2mqlhAMNsq5IQHU1MBVuggyHoWIdKwpBIrFgKAI1lL3ight/7k
+	PEFMbi/Y3ZObhm/d4P2PejGok=
+Received: from T490.lan (unknown [])
+	by gzga-smtp-mtada-g1-4 (Coremail) with SMTP id _____wDnN+UpKodophI_Aw--.11026S2;
+	Mon, 28 Jul 2025 15:43:39 +0800 (CST)
 From: Xiang W <wxjstz@126.com>
 To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org, Lad Prabhakar
- <prabhakar.mahadev-lad.rj@bp.renesas.com>,  Yu Chien Peter Lin
- <peterlin@andestech.com>, Hui Min Mina Chou <minachou@andestech.com>,
- Jessica Clarke	 <jrtc27@jrtc27.com>, Ben Zong-You
- =?Big5?Q?Xie=28=C1=C2=A9v=AF=A7=29?=	 <ben717@andestech.com>
-Date: Mon, 28 Jul 2025 15:01:54 +0800
-In-Reply-To: <20250728052713.361094-1-wxjstz@126.com>
-References: <20250728052713.361094-1-wxjstz@126.com>
-Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
- keydata=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
-User-Agent: Evolution 3.56.1-1 
+Cc: Xiang W <wxjstz@126.com>,
+	Anup Patel <anup@brainfault.org>,
+	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+	Ben Zong-You Xie <ben717@andestech.com>,
+	Hui Min Mina Chou <minachou@andestech.com>,
+	Jessica Clarke <jrtc27@jrtc27.com>
+Subject: [PATCH v2] Fix license to compatible BSD-2-Clause
+Date: Mon, 28 Jul 2025 15:38:10 +0800
+Message-ID: <20250728074334.372355-1-wxjstz@126.com>
+X-Mailer: git-send-email 2.47.2
 MIME-Version: 1.0
-X-CM-TRANSID: _____wD3PxxjIIdo7aMWAw--.8937S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxGw18AryxZrWfZFy5AryUAwb_yoW5GFWrpF
-	ykKryrKF47W348Kw4xG3W7ZrsrAw4Sgr4DKr15Zry8Zr9xXr48Krs0qFy5GFyDur4vqa15
-	tFn2grW2ya17ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UwjjkUUUUU=
+X-CM-TRANSID: _____wDnN+UpKodophI_Aw--.11026S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxZFW7ZF4DGw1rJF47JFWfAFb_yoW5GFWkpF
+	ykKrWfKF4UWa48K3y8GFsrZrsxAa1a9rWDKr15u34xZr9rXr4vkrs0qFy5GFyDur40va1Y
+	qF1IgrW2ya1UZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRrnY7UUUUU=
 X-Originating-IP: [2408:823c:b211:b11:c2d3:3557:acc7:1751]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi1w+YOmiHFl+N8AAAsh
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbi5ByYOmiHHLDGbgAAsx
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250728_000223_106022_7CF0D99C 
-X-CRM114-Status: UNSURE (   9.52  )
+X-CRM114-CacheID: sfid-20250728_004405_134550_07A3E2DE 
+X-CRM114-Status: UNSURE (   7.33  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -115,56 +71,85 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-5ZyoIDIwMjUtMDctMjjkuIDnmoQgMTM6MjYgKzA4MDDvvIxYaWFuZyBX5YaZ6YGT77yaCj4gT3Bl
-bkJJIGlzIGEgQlNEIHByb2plY3QuIFdlIG5lZWQgdG8gbW9kaWZ5IHNvbWUgY29kZXMgdG8gY29t
-cGF0aWJsZQo+IHdpdGggQlNEIHByb3RvY29sLgo+IApXZWxjb21lIEJlbiBab25nLVlvdSBYaWUg
-ZnJvbSBBbmRlcyBUZWNobm9sb2d5LgoKUmVnYXJkcywKWGlhbmcgVwo+IFNpZ25lZC1vZmYtYnk6
-IFhpYW5nIFcgPHd4anN0ekAxMjYuY29tPgo+IC0tLQo+IMKgLmVkaXRvcmNvbmZpZ8KgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfCAyICst
-Cj4gwqBwbGF0Zm9ybS9nZW5lcmljL2FuZGVzL2FuZGVzX3BtYS5jwqDCoMKgwqDCoMKgwqDCoCB8
-IDIgKy0KPiDCoHBsYXRmb3JtL2dlbmVyaWMvaW5jbHVkZS9hbmRlcy9hbmRlcy5owqDCoMKgwqAg
-fCAyICstCj4gwqBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvYW5kZXMvYW5kZXNfcG1hLmggfCAy
-ICstCj4gwqBwbGF0Zm9ybS9nZW5lcmljL3JlbmVzYXMvcnpmaXZlL3J6Zml2ZS5jwqDCoCB8IDIg
-Ky0KPiDCoDUgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQo+
-IAo+IGRpZmYgLS1naXQgYS8uZWRpdG9yY29uZmlnIGIvLmVkaXRvcmNvbmZpZwo+IGluZGV4IGU2
-NmIxY2EzLi4yNmY5MDUzNCAxMDA2NDQKPiAtLS0gYS8uZWRpdG9yY29uZmlnCj4gKysrIGIvLmVk
-aXRvcmNvbmZpZwo+IEBAIC0xLDQgKzEsNCBAQAo+IC0jIFNQRFgtTGljZW5zZS1JZGVudGlmaWVy
-OiBHUEwtMi4wLW9ubHkKPiArIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTItQ2xhdXNl
-Cj4gwqAjIFNlZSBoZXJlIGZvciBtb3JlIGluZm9ybWF0aW9uIGFib3V0IHRoZSBmb3JtYXQgYW5k
-IGVkaXRvciBzdXBwb3J0Ogo+IMKgIyBodHRwczovL2VkaXRvcmNvbmZpZy5vcmcvCj4gwqAKPiBk
-aWZmIC0tZ2l0IGEvcGxhdGZvcm0vZ2VuZXJpYy9hbmRlcy9hbmRlc19wbWEuYyBiL3BsYXRmb3Jt
-L2dlbmVyaWMvYW5kZXMvYW5kZXNfcG1hLmMKPiBpbmRleCAwOWU1YTMwYy4uZWVlYjExMGUgMTAw
-NjQ0Cj4gLS0tIGEvcGxhdGZvcm0vZ2VuZXJpYy9hbmRlcy9hbmRlc19wbWEuYwo+ICsrKyBiL3Bs
-YXRmb3JtL2dlbmVyaWMvYW5kZXMvYW5kZXNfcG1hLmMKPiBAQCAtMSw0ICsxLDQgQEAKPiAtLy8g
-U1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAKPiArLy8gU1BEWC1MaWNlbnNlLUlkZW50
-aWZpZXI6IEJTRC0yLUNsYXVzZQo+IMKgLyoKPiDCoCAqIENvcHlyaWdodCAoQykgMjAyMyBSZW5l
-c2FzIEVsZWN0cm9uaWNzIENvcnAuCj4gwqAgKiBDb3B5cmlnaHQgKGMpIDIwMjQgQW5kZXMgVGVj
-aG5vbG9neSBDb3Jwb3JhdGlvbgo+IGRpZmYgLS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL2luY2x1
-ZGUvYW5kZXMvYW5kZXMuaCBiL3BsYXRmb3JtL2dlbmVyaWMvaW5jbHVkZS9hbmRlcy9hbmRlcy5o
-Cj4gaW5kZXggMzQwM2E1OGIuLmJmZWRmMDM0IDEwMDY0NAo+IC0tLSBhL3BsYXRmb3JtL2dlbmVy
-aWMvaW5jbHVkZS9hbmRlcy9hbmRlcy5oCj4gKysrIGIvcGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRl
-L2FuZGVzL2FuZGVzLmgKPiBAQCAtMSw0ICsxLDQgQEAKPiAtLyogU1BEWC1MaWNlbnNlLUlkZW50
-aWZpZXI6IEdQTC0yLjAgKi8KPiArLyogU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEJTRC0yLUNs
-YXVzZSAqLwo+IMKgLyoKPiDCoCAqIENvcHlyaWdodCAoQykgMjAyNCBBbmRlcyBUZWNobm9sb2d5
-IENvcnBvcmF0aW9uCj4gwqAgKi8KPiBkaWZmIC0tZ2l0IGEvcGxhdGZvcm0vZ2VuZXJpYy9pbmNs
-dWRlL2FuZGVzL2FuZGVzX3BtYS5oIGIvcGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL2FuZGVzL2Fu
-ZGVzX3BtYS5oCj4gaW5kZXggYmU2MTQ5NjQuLjRhNjZlMWI2IDEwMDY0NAo+IC0tLSBhL3BsYXRm
-b3JtL2dlbmVyaWMvaW5jbHVkZS9hbmRlcy9hbmRlc19wbWEuaAo+ICsrKyBiL3BsYXRmb3JtL2dl
-bmVyaWMvaW5jbHVkZS9hbmRlcy9hbmRlc19wbWEuaAo+IEBAIC0xLDQgKzEsNCBAQAo+IC0vKiBT
-UERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMCAqLwo+ICsvKiBTUERYLUxpY2Vuc2UtSWRl
-bnRpZmllcjogQlNELTItQ2xhdXNlICovCj4gwqAvKgo+IMKgICogQ29weXJpZ2h0IChDKSAyMDIz
-IFJlbmVzYXMgRWxlY3Ryb25pY3MgQ29ycC4KPiDCoCAqLwo+IGRpZmYgLS1naXQgYS9wbGF0Zm9y
-bS9nZW5lcmljL3JlbmVzYXMvcnpmaXZlL3J6Zml2ZS5jIGIvcGxhdGZvcm0vZ2VuZXJpYy9yZW5l
-c2FzL3J6Zml2ZS9yemZpdmUuYwo+IGluZGV4IDQ0ZGIzNjcxLi42YzNkYTA5NSAxMDA2NDQKPiAt
-LS0gYS9wbGF0Zm9ybS9nZW5lcmljL3JlbmVzYXMvcnpmaXZlL3J6Zml2ZS5jCj4gKysrIGIvcGxh
-dGZvcm0vZ2VuZXJpYy9yZW5lc2FzL3J6Zml2ZS9yemZpdmUuYwo+IEBAIC0xLDQgKzEsNCBAQAo+
-IC0vLyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMAo+ICsvLyBTUERYLUxpY2Vuc2Ut
-SWRlbnRpZmllcjogQlNELTItQ2xhdXNlCj4gwqAvKgo+IMKgICogQ29weXJpZ2h0IChDKSAyMDIy
-IFJlbmVzYXMgRWxlY3Ryb25pY3MgQ29ycC4KPiDCoCAqCj4gLS0gCj4gMi40Ny4yCj4gCgoKLS0g
-Cm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
-bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+OpenSBI is a BSD project. We need to modify some codes to compatible
+with BSD-2-Clause license.
+
+Signed-off-by: Xiang W <wxjstz@126.com>
+Reviewed-by: Ben Zong-You Xie <ben717@andestech.com>
+---
+v2 changes:
+- fix typo and reword
+
+Andes Technology agrees to change license.
+We also need the consent of Renesas Electronics Corp.
+
+ .editorconfig                              | 2 +-
+ platform/generic/andes/andes_pma.c         | 2 +-
+ platform/generic/include/andes/andes.h     | 2 +-
+ platform/generic/include/andes/andes_pma.h | 2 +-
+ platform/generic/renesas/rzfive/rzfive.c   | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/.editorconfig b/.editorconfig
+index e66b1ca3..26f90534 100644
+--- a/.editorconfig
++++ b/.editorconfig
+@@ -1,4 +1,4 @@
+-# SPDX-License-Identifier: GPL-2.0-only
++# SPDX-License-Identifier: BSD-2-Clause
+ # See here for more information about the format and editor support:
+ # https://editorconfig.org/
+ 
+diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
+index 09e5a30c..eeeb110e 100644
+--- a/platform/generic/andes/andes_pma.c
++++ b/platform/generic/andes/andes_pma.c
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: GPL-2.0
++// SPDX-License-Identifier: BSD-2-Clause
+ /*
+  * Copyright (C) 2023 Renesas Electronics Corp.
+  * Copyright (c) 2024 Andes Technology Corporation
+diff --git a/platform/generic/include/andes/andes.h b/platform/generic/include/andes/andes.h
+index 3403a58b..bfedf034 100644
+--- a/platform/generic/include/andes/andes.h
++++ b/platform/generic/include/andes/andes.h
+@@ -1,4 +1,4 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
++/* SPDX-License-Identifier: BSD-2-Clause */
+ /*
+  * Copyright (C) 2024 Andes Technology Corporation
+  */
+diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
+index be614964..4a66e1b6 100644
+--- a/platform/generic/include/andes/andes_pma.h
++++ b/platform/generic/include/andes/andes_pma.h
+@@ -1,4 +1,4 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
++/* SPDX-License-Identifier: BSD-2-Clause */
+ /*
+  * Copyright (C) 2023 Renesas Electronics Corp.
+  */
+diff --git a/platform/generic/renesas/rzfive/rzfive.c b/platform/generic/renesas/rzfive/rzfive.c
+index 44db3671..6c3da095 100644
+--- a/platform/generic/renesas/rzfive/rzfive.c
++++ b/platform/generic/renesas/rzfive/rzfive.c
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: GPL-2.0
++// SPDX-License-Identifier: BSD-2-Clause
+ /*
+  * Copyright (C) 2022 Renesas Electronics Corp.
+  *
+-- 
+2.47.2
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
