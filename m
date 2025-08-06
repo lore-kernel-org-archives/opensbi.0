@@ -4,66 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3EE11C87FCB
-	for <opensbi@archiver.kernel.org>; Wed,  6 Aug 2025 00:50:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 51B32C87FD1
+	for <opensbi@archiver.kernel.org>; Wed,  6 Aug 2025 01:09:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Subject:To:From:Mime-Version:Date:
-	Message-Id:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From
-	:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=J8GcytGx6MFVifZJzidUhgNN0iKYYNa4kdZ8lAtFbiM=; b=4V6jkj0Ouw8/yx
-	8s5AHAzLEMarIy5qn1O7FotbYlvKMXnjROsnH4WDSquprbaPjVklP8B2iF8rCeCGvzB/hdOTLpsRq
-	Nivohfj8dgg6YhGPIUB0b4tgoiEOm6s82hnkW5UAjekQIAAzBPJO+/9HnoJUsdBUYg7HR7mqS1Yo6
-	bWs7IZEDk5NSE3YDeU1L4nGR/gkA0NLKX3zGM64B6MZoR3aInKZT6ukAsAtnG+6gYTlQvhiB8t/ya
-	rs2d7WxCbWJo+uce63Ewut6gYgb0SSrc2VIyWm37ZWWUZb9fRtYY2nruH/yJpYk67CZYxpmAYbdsi
-	Zn3Og9CyB9kUccDajRYg==;
+	List-Archive:List-Unsubscribe:List-Id:Subject:Cc:To:From:Mime-Version:
+	References:In-Reply-To:Date:Message-Id:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Owner;
+	bh=S1vD687p/Gd+dMCFziHSmcEbx8gOHM59sT11jUBdFcw=; b=LEdT6wM8MrS6RytqBgXwgCggBU
+	Qg8PezQ3UXmYTDSPgSHNFktUZ9NrBks30Byh2EYJDKmtSlKhr1dtZpms7IZQldaFEUa25SYtxkDVe
+	LQJKn1f9lI+g8gcngw8d5zN+Ddorabpw5H3UxKna2hytvu/KhutwWhySpja8yhfBwF9HIXejKZ6PW
+	0wVQLtsU4pbz8ae8ApdX/NwMcGtrEq1d3O68N/lTgZut8fNp1X2k9aucOH5Y2x0E/5DLzo9AkyUX+
+	Q1hcAI4mG5xvgwtQQE84MHUCAn40bq8oNQVei9hR1/UR1e7y7EBtcQcG6qHLDNxFlk9vhEu+ZwM0t
+	QD8CeJrQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1ujSLz-0000000E55y-2SXl;
-	Wed, 06 Aug 2025 00:50:03 +0000
-Received: from mxhk.zte.com.cn ([160.30.148.35])
+	id 1ujSeV-0000000E6Cu-3Pqo;
+	Wed, 06 Aug 2025 01:09:11 +0000
+Received: from mxct.zte.com.cn ([183.62.165.209])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1ujSLw-0000000E55H-10NE
+	id 1ujScF-0000000E66G-2FTp
 	for opensbi@lists.infradead.org;
-	Wed, 06 Aug 2025 00:50:01 +0000
-Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
+	Wed, 06 Aug 2025 01:06:52 +0000
+Received: from mse-db.zte.com.cn (unknown [10.5.228.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4bxWsY5mbKz8Xs71
-	for <opensbi@lists.infradead.org>; Wed, 06 Aug 2025 08:49:53 +0800 (CST)
+	by mxct.zte.com.cn (FangMail) with ESMTPS id 4bxXF35w1lz5B13X
+	for <opensbi@lists.infradead.org>; Wed, 06 Aug 2025 09:06:47 +0800 (CST)
 Received: (from root@localhost)
-	by mse-fl2.zte.com.cn id 5760ns6g081356
-	for <opensbi@lists.infradead.org>; Wed, 6 Aug 2025 08:49:54 +0800 (+08)
+	by mse-db.zte.com.cn id 57616maD072614
+	for <opensbi@lists.infradead.org>; Wed, 6 Aug 2025 09:06:48 +0800 (+08)
 	(envelope-from wu.fei9@sanechips.com.cn)
-Message-Id: <202508060049.5760ns6g081356@mse-fl2.zte.com.cn>
-Received: from njy2app08.zte.com.cn ([10.40.13.206])
-	by mse-fl2.zte.com.cn with SMTP id 5760evIB068945
-	for <opensbi@lists.infradead.org>; Wed, 6 Aug 2025 08:41:22 +0800 (+08)
+Message-Id: <202508060106.57616maD072614@mse-db.zte.com.cn>
+Received: from njb2app06.zte.com.cn ([10.55.23.119])
+	by mse-fl2.zte.com.cn with SMTP id 576139om006645
+	for <opensbi@lists.infradead.org>; Wed, 6 Aug 2025 09:04:35 +0800 (+08)
 	(envelope-from wu.fei9@sanechips.com.cn)
-Received: from mapi (njy2app02[null])
+Received: from mapi (njy2app08[null])
 	by mapi (Zmail) with MAPI id mid204;
-	Wed, 6 Aug 2025 08:41:23 +0800 (CST)
-Date: Wed, 6 Aug 2025 08:41:23 +0800 (CST)
-X-Zmail-TransId: 2afa6892a4b3ffffffff86a-7692f
+	Wed, 6 Aug 2025 09:04:36 +0800 (CST)
+Date: Wed, 6 Aug 2025 09:04:36 +0800 (CST)
+X-Zmail-TransId: 2b006892aa247ea-9c889
 X-Mailer: Zmail v1.0
+In-Reply-To: <20250806084123476SCLxg-qQRa8CRuhuY-dwE@zte.com.cn>
+References: 20250806084123476SCLxg-qQRa8CRuhuY-dwE@zte.com.cn
 Mime-Version: 1.0
 From: <wu.fei9@sanechips.com.cn>
 To: <opensbi@lists.infradead.org>
-Subject: =?UTF-8?B?W1BBVENIIDAvM10gU3VwcG9ydCAxMDI0IGhhcnRz?=
-X-MAIL: mse-fl2.zte.com.cn 5760ns6g081356
-X-MSS: AUDITRELEASE@mse-fl2.zte.com.cn
+Cc: <wu.fei9@sanechips.com.cn>
+Subject: =?UTF-8?B?W1BBVENIIDMvM10gaW5jbHVkZTogc2JpOiBMaWZ0IHRoZSBtYXhpbXVtIGhhcnRzIHRvIDEwMjQ=?=
+X-MAIL: mse-db.zte.com.cn 57616maD072614
+X-MSS: AUDITRELEASE@mse-db.zte.com.cn
 X-TLS: YES
 X-SPF-DOMAIN: sanechips.com.cn
 X-ENVELOPE-SENDER: wu.fei9@sanechips.com.cn
 X-SPF: None
-X-SOURCE-IP: 10.5.228.133 unknown Wed, 06 Aug 2025 08:49:53 +0800
+X-SOURCE-IP: 10.5.228.131 unknown Wed, 06 Aug 2025 09:06:47 +0800
 X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6892A6B1.000/4bxWsY5mbKz8Xs71
+X-Fangmail-MID-QID: 6892AAA7.002/4bxXF35w1lz5B13X
+X-Bad-Reply: References and In-Reply-To but no 'Re:' in Subject.
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250805_175000_432100_0BFAA063 
-X-CRM114-Status: UNSURE (   5.38  )
+X-CRM114-CacheID: sfid-20250805_180651_756948_1BB44125 
+X-CRM114-Status: UNSURE (   7.78  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -81,23 +86,26 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-It is expected to have riscv server boards with many harts very soon,
-lift the maximum hart number from 128 to 1024. Also, more heap memory is
-added for housekeeping metadata or memory allocation cannot be satisfied
-at the end.
+It is expected to have riscv server boards with many cores very soon.
 
-Wu Fei (3):
-  lib: sbi: Print error message during warm boot
-  platform: generic: Extra memory for housekeeping
-  include: sbi: Lift the maximum harts to 1024
+Signed-off-by: Wu Fei <wu.fei9@sanechips.com.cn>
+---
+ include/sbi/sbi_hartmask.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- include/sbi/sbi_hartmask.h  |  2 +-
- include/sbi/sbi_heap.h      |  3 ++
- lib/sbi/sbi_heap.c          |  5 +++
- lib/sbi/sbi_init.c          | 65 +++++++++++++++++++++++++++++--------
- platform/generic/platform.c |  1 +
- 5 files changed, 62 insertions(+), 14 deletions(-)
+diff --git a/include/sbi/sbi_hartmask.h b/include/sbi/sbi_hartmask.h
+index 200ab6e..2f94f39 100644
+--- a/include/sbi/sbi_hartmask.h
++++ b/include/sbi/sbi_hartmask.h
+@@ -20,7 +20,7 @@
+  * also represents the maximum number of HART ids generic OpenSBI
+  * can handle.
+  */
+-#define SBI_HARTMASK_MAX_BITS          128
++#define SBI_HARTMASK_MAX_BITS          1024
 
+ /** Representation of hartmask */
+ struct sbi_hartmask {
 --
 2.43.0
 
