@@ -4,88 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 40D81CA0EE6
-	for <opensbi@archiver.kernel.org>; Thu, 14 Aug 2025 14:16:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8D21ECA0EDC
+	for <opensbi@archiver.kernel.org>; Thu, 14 Aug 2025 15:31:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=GSz3Tlj0x3cAQx1o0wjRxJZbgv+sDT/rA/VJtWLTMpI=; b=GcyPnZVL7jAkrf
-	nM7zHiBkwYcjkMFAsssntMDS/rdK9NtF7xleEpXK2XMIiaxEuLZ7X9wGOWop/PWdztsrnK0h7OYlu
-	xz+aJ3pmiTdGuK1ss4/pUkZHXhmCGewQi12mx+WdQV8y1NwEgLec+FXQgam64UO1pTKPd/9GKDVfU
-	zoSXWXR35wX8gYoIDeHatUnonq1C3n6NuemFHBrl7ENgDk1+/7VTaiQv0fIzOolVUt/cM1xGx10sk
-	3J37rZdG+A1s1FmQ38diZH0qkqcvM9WVE4WIAmMlC+u3fuT7DcyJ752NgKBUDpG1SbFAEqvj9ECIV
-	HVGjMgvwSo+/OBQvtDRg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:To
+	:From:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=UNOnFhAKoW/PVPVAUPkKLuMXu6mCpzE37PCqV6Ooi1A=; b=TCuxL/iA3VLdAj
+	JWDEDl5BW4p7VgIQW0RtS13l0BMhvseTUu6HmXTb3UB7U1LfVfYPgXFwmfCp+Jk8gnCAC9DKT1zcJ
+	Bi+MP6sDRPAlYg7YarkcuHKksO5YYcXJ60mRU9IVk1tMZxxmD2uRGFvQVKq7/TY0AlK05LuavVzkP
+	USp7DYygWZoaY+JiAkdqNg02MJhrzCkbYkIcxOnCvxXw0VdjQcOLgfArGoYY9n+X70rl7ZSIFKEAP
+	8wlaxwySwbL8Y7j6pPZgWz3uGlI/HEqDy4tL114JqQXKAzi20dAZNx8FCxuQCi/HzrEfJUPz8X4mS
+	GvhseV6EE11/19QQ3cLg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1umYlB-0000000HDFJ-0NeC;
-	Thu, 14 Aug 2025 14:16:53 +0000
-Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
+	id 1umZvU-0000000HRfc-3cwJ;
+	Thu, 14 Aug 2025 15:31:36 +0000
+Received: from 60-248-80-70.hinet-ip.hinet.net ([60.248.80.70] helo=Atcsqr.andestech.com)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1umVlz-0000000Gi2R-3xAq
+	id 1umVNt-0000000Gceh-0zNd
 	for opensbi@lists.infradead.org;
-	Thu, 14 Aug 2025 11:05:33 +0000
-Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-76e39ec6e05so131536b3a.2
-        for <opensbi@lists.infradead.org>; Thu, 14 Aug 2025 04:05:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1755169531; x=1755774331; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hyF/7/bnEyiACPbX1Py7iQexzKakAISTY0cy1aiwpnI=;
-        b=k2Da1/+H4viDBM4TUYigCsibK7wMYoPYpJOZ5eN+OxbX2eJO2BlbEu/5z6Nz2hLqLW
-         wU8qQ57BHVxfOpXbILKr4VqScO36Bl+3YF8mMN3JI8Wk7STIu2566OJdnxLdBO9o1+1t
-         1W2X54LiuA48GTK/tx7ErTjRDPsAwJGGO6aGziY07PZOHdkWiSNv/JOro1Ec3c4DjWk/
-         DMk8bJomeauuMOo9v45gEHE2AEsjlL6mvgBWg2gHf+SJ4h7MhX0waGsoF5c+qRAqoAVi
-         /1gDJC1edJAIR571K3lSAAZvV4DEVAdydD14QuIisL4tQnyFKHM24qFkKipwgk6+Y7Eu
-         lKTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755169531; x=1755774331;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=hyF/7/bnEyiACPbX1Py7iQexzKakAISTY0cy1aiwpnI=;
-        b=gAK5xcjeEWtGSP3bnmuZhj5lVe6mdbal2kj1SUufNodF7n2lMpW5rtBaEteYYtm3na
-         Lm7BoMUSbbJwYKhwrM0sgzgYv9ZsGnwdxdAUi9ZV2SO3gNfB9yw9A3CVma/LYfo1c23P
-         99evXWBDlVySRH2q4fCqtlXL9dwTslYGHIKxfusG4WFggmZ8ECpvMylgoMjvQqPaCyxZ
-         9pRePhWAnn+NbJOnuzCZ9tlu3wH98J9CLVjDZxsTKzmmzo9yyvmGd4mvqI8IGvfN8pKY
-         +9uSjsM8o546dwSknLBwkb6pEDhvngItEimNM5XYz5PoIUQGVoL9Or78AktCkBIzVzQb
-         o4cA==
-X-Gm-Message-State: AOJu0YyHp9bsBAAxplZpVrAJiHvHmKp7a7uOdtbyUq9PLh7Jny1b2qcU
-	Tw3eaMy/c+kQWO91Wio55/4hUzoPINImDBfyUql9SJi1GIv7rvy/z7a5tZnlVc8tBV+sSFfvtdZ
-	5jvEpgO8l3MeF8wNxuPLS5mw4RXm0X+ToKNIk3YQ55tF/NIiobEW+lQf124mlAinEgaDmVBuPMK
-	npKFG/EG/dX2LO2T3PdjM1IyJ1Pl+ibCJF76PQHPy/jmguOnZIxsAnJg==
-X-Gm-Gg: ASbGncuAGh74g5ZGnxGiCiF1Lbr/88RnelOxmqsgc1AFuMtQA0clh+Qx9qPAdO38UON
-	tKlJN8/y4T4aGcSqpvj/w5qRL50UpHdSTW0fVYlB5enX+KN09oO6YFGXhjf5d9+W9lM03p/qRxp
-	fUaItHICjNXc9AdixkQtHOmXXmzvsndgnHq8aezPl3XC14370DMqmwOF46j+4pJC+ku0YavJ+EZ
-	CrmVOeXrYS7gdIRq81dqiy00mzIBF6InS9QdteA7eV9Snw5GHlBRwfsUEdZMWPAtCvqeAwH6pvK
-	7iufMR96kKFnh9Nvt3CTf7Beoq4wjVLdfnMVk3AYZqBWiukFiiInEW4XnK+sie1YrxxTIp1uC7i
-	pJb7cz061cGGx2MtGAeUyamq7n+yVt1Th5ekYCrx8Hz3mEm4=
-X-Google-Smtp-Source: AGHT+IFvf8soeAHNI65B7z3R13g0ItEJhLFD/+pqH+4oDyXksLq0+ogBT5jKOlZSz4KG49JXotx6xA==
-X-Received: by 2002:a05:6a20:a122:b0:240:cd6:a922 with SMTP id adf61e73a8af0-240bd252517mr4081423637.37.1755169530747;
-        Thu, 14 Aug 2025 04:05:30 -0700 (PDT)
-Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b4683722179sm9624755a12.13.2025.08.14.04.05.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 Aug 2025 04:05:30 -0700 (PDT)
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-To: opensbi@lists.infradead.org
-Cc: zong.li@sifive.com,
-	greentime.hu@sifive.com,
-	alvinga@andestech.com,
-	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH 2/8] lib: sbi_domain: allow specifying inaccessible region
-Date: Thu, 14 Aug 2025 19:05:16 +0800
-Message-ID: <20250814110522.18809-3-peter.lin@sifive.com>
-X-Mailer: git-send-email 2.48.0
-In-Reply-To: <20250814110522.18809-1-peter.lin@sifive.com>
-References: <20250814110522.18809-1-peter.lin@sifive.com>
+	Thu, 14 Aug 2025 10:40:39 +0000
+Received: from mail.andestech.com (ATCPCS31.andestech.com [10.0.1.89])
+	by Atcsqr.andestech.com with ESMTPS id 57EAeQt2073588
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+	for <opensbi@lists.infradead.org>; Thu, 14 Aug 2025 18:40:26 +0800 (+08)
+	(envelope-from ben717@andestech.com)
+Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS31.andestech.com
+ (10.0.1.89) with Microsoft SMTP Server id 14.3.498.0; Thu, 14 Aug 2025
+ 18:40:26 +0800
+From: Ben Zong-You Xie <ben717@andestech.com>
+To: <opensbi@lists.infradead.org>
+Subject: [PATCH] platform: generic: andes: add QiLai SoC
+Date: Thu, 14 Aug 2025 18:40:24 +0800
+Message-ID: <20250814104024.3374698-1-ben717@andestech.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
+X-Originating-IP: [10.0.15.183]
+X-DKIM-Results: atcpcs31.andestech.com; dkim=none;
+X-DNSRBL: 
+X-MAIL: Atcsqr.andestech.com 57EAeQt2073588
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250814_040531_979631_8333B192 
-X-CRM114-Status: GOOD (  13.07  )
+X-CRM114-CacheID: sfid-20250814_034037_794660_A12B0F3B 
+X-CRM114-Status: GOOD (  14.86  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,44 +60,181 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-QWNjb3JkaW5nIHRvIHRoZSBSSVND4oCRViBQcml2aWxlZ2VkIFNwZWNpZmljYXRpb24sIFNtZVBN
-UApyZWdpb25zIHRoYXQgZ3JhbnQgbm8gYWNjZXNzIGluIGFueSBwcml2aWxlZ2UgbW9kZSBhcmUK
-dmFsaWQuIEFsbG93IHN1Y2ggcmVnaW9ucyB0byBiZSBzcGVjaWZpZWQuCgpTaWduZWQtb2ZmLWJ5
-OiBZdS1DaGllbiBQZXRlciBMaW4gPHBldGVyLmxpbkBzaWZpdmUuY29tPgotLS0KIGxpYi9zYmkv
-c2JpX2RvbWFpbi5jIHwgMTMgKysrKysrKysrKysrLQogbGliL3NiaS9zYmlfaGFydC5jICAgfCAg
-NCAtLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0p
-CgpkaWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlfZG9tYWluLmMgYi9saWIvc2JpL3NiaV9kb21haW4u
-YwppbmRleCAxZmE1NmI2YS4uZThhZGY2NmYgMTAwNjQ0Ci0tLSBhL2xpYi9zYmkvc2JpX2RvbWFp
-bi5jCisrKyBiL2xpYi9zYmkvc2JpX2RvbWFpbi5jCkBAIC0xMjYsNyArMTI2LDE4IEBAIHVuc2ln
-bmVkIGludCBzYmlfZG9tYWluX2dldF9zbWVwbXBfZmxhZ3Moc3RydWN0IHNiaV9kb21haW5fbWVt
-cmVnaW9uICpyZWcpCiB7CiAJdW5zaWduZWQgaW50IHBtcF9mbGFncyA9IDA7CiAKLQlpZiAoU0JJ
-X0RPTUFJTl9NRU1SRUdJT05fSVNfU0hBUkVEKHJlZy0+ZmxhZ3MpKSB7CisJaWYgKChyZWctPmZs
-YWdzICYgU0JJX0RPTUFJTl9NRU1SRUdJT05fQUNDRVNTX01BU0spID09IDApIHsKKwkJLyoKKwkJ
-ICogSW5hY2Nlc3NpYmxlIHJlZ2lvbiBmb3IgYW55IG1vZGVzCisJCSAqCisJCSAqIE5vdGUgdGhh
-dCBTbWVQTVAgY29uZmlndXJhdGlvbiBhbGxvd3MgdHdvIHNldHRpbmdzCisJCSAqIGZvciBzdWNo
-IHJlZ2lvbjoKKwkJICogLSBwbXBjZmcuTFJXWCA9IDAwMDAgKEluYWNjZXNzaWJsZSByZWdpb24p
-CisJCSAqIC0gcG1wY2ZnLkxSV1ggPSAxMDAwIChMb2NrZWQgaW5hY2Nlc3NpYmxlIHJlZ2lvbikK
-KwkJICogSGVyZSB3ZSB1c2UgdGhlIGZpcnN0IG9uZS4KKwkJICovCisJCXJldHVybiAwOworCX0g
-ZWxzZSBpZiAoU0JJX0RPTUFJTl9NRU1SRUdJT05fSVNfU0hBUkVEKHJlZy0+ZmxhZ3MpKSB7CiAJ
-CS8qIFJlYWQgb25seSBmb3IgYm90aCBNIGFuZCBTVSBtb2RlcyAqLwogCQlpZiAoU0JJX0RPTUFJ
-Tl9NRU1SRUdJT05fSVNfU1VSX01SKHJlZy0+ZmxhZ3MpKQogCQkJcG1wX2ZsYWdzID0gKFBNUF9M
-IHwgUE1QX1IgfCBQTVBfVyB8IFBNUF9YKTsKZGlmZiAtLWdpdCBhL2xpYi9zYmkvc2JpX2hhcnQu
-YyBiL2xpYi9zYmkvc2JpX2hhcnQuYwppbmRleCBjNWMzZWNiNC4uZWFiMjdmNDggMTAwNjQ0Ci0t
-LSBhL2xpYi9zYmkvc2JpX2hhcnQuYworKysgYi9saWIvc2JpL3NiaV9oYXJ0LmMKQEAgLTM1OCw4
-ICszNTgsNiBAQCBzdGF0aWMgaW50IHNiaV9oYXJ0X3NtZXBtcF9jb25maWd1cmUoc3RydWN0IHNi
-aV9zY3JhdGNoICpzY3JhdGNoLAogCQl9CiAKIAkJcG1wX2ZsYWdzID0gc2JpX2RvbWFpbl9nZXRf
-c21lcG1wX2ZsYWdzKHJlZyk7Ci0JCWlmICghcG1wX2ZsYWdzKQotCQkJcmV0dXJuIDA7CiAKIAkJ
-c2JpX2hhcnRfc21lcG1wX3NldChzY3JhdGNoLCBkb20sIHJlZywgcG1wX2lkeCsrLCBwbXBfZmxh
-Z3MsCiAJCQkJICAgIHBtcF9sb2cyZ3JhbiwgcG1wX2FkZHJfbWF4KTsKQEAgLTM4NCw4ICszODIs
-NiBAQCBzdGF0aWMgaW50IHNiaV9oYXJ0X3NtZXBtcF9jb25maWd1cmUoc3RydWN0IHNiaV9zY3Jh
-dGNoICpzY3JhdGNoLAogCQl9CiAKIAkJcG1wX2ZsYWdzID0gc2JpX2RvbWFpbl9nZXRfc21lcG1w
-X2ZsYWdzKHJlZyk7Ci0JCWlmICghcG1wX2ZsYWdzKQotCQkJcmV0dXJuIDA7CiAKIAkJc2JpX2hh
-cnRfc21lcG1wX3NldChzY3JhdGNoLCBkb20sIHJlZywgcG1wX2lkeCsrLCBwbXBfZmxhZ3MsCiAJ
-CQkJICAgIHBtcF9sb2cyZ3JhbiwgcG1wX2FkZHJfbWF4KTsKLS0gCjIuMzkuMwoKCi0tIApvcGVu
-c2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+Extend generic platform to support Andes QiLai SoC
+
+Signed-off-by: Ben Zong-You Xie <ben717@andestech.com>
+---
+ platform/generic/Kconfig                   |  7 +++
+ platform/generic/andes/objects.mk          |  2 +
+ platform/generic/andes/qilai.c             | 66 ++++++++++++++++++++++
+ platform/generic/configs/defconfig         |  1 +
+ platform/generic/include/andes/andes_pma.h |  1 +
+ platform/generic/include/andes/qilai.h     | 18 ++++++
+ 6 files changed, 95 insertions(+)
+ create mode 100644 platform/generic/andes/qilai.c
+ create mode 100644 platform/generic/include/andes/qilai.h
+
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index a24d6ab2fe46..e1d6be563aa7 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -36,6 +36,13 @@ config PLATFORM_ANDES_AE350
+ 	select ANDES_PMA
+ 	default n
+ 
++config PLATFORM_ANDES_QILAI
++	bool "Andes QiLai support"
++	select ANDES_PMU
++	select ANDES_PMA
++	select ANDES_SBI
++	default n
++
+ config PLATFORM_RENESAS_RZFIVE
+ 	bool "Renesas RZ/Five support"
+ 	select ANDES_PMA
+diff --git a/platform/generic/andes/objects.mk b/platform/generic/andes/objects.mk
+index 15e618529c44..132e20f2f16f 100644
+--- a/platform/generic/andes/objects.mk
++++ b/platform/generic/andes/objects.mk
+@@ -3,7 +3,9 @@
+ #
+ 
+ carray-platform_override_modules-$(CONFIG_PLATFORM_ANDES_AE350) += andes_ae350
++carray-platform_override_modules-$(CONFIG_PLATFORM_ANDES_QILAI) += andes_qilai
+ platform-objs-$(CONFIG_PLATFORM_ANDES_AE350) += andes/ae350.o andes/sleep.o
++platform-objs-$(CONFIG_PLATFORM_ANDES_QILAI) += andes/qilai.o
+ 
+ platform-objs-$(CONFIG_ANDES_PMA) += andes/andes_pma.o
+ platform-objs-$(CONFIG_ANDES_SBI) += andes/andes_sbi.o
+diff --git a/platform/generic/andes/qilai.c b/platform/generic/andes/qilai.c
+new file mode 100644
+index 000000000000..a73ba993215e
+--- /dev/null
++++ b/platform/generic/andes/qilai.c
+@@ -0,0 +1,66 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 Andes Technology Corporation
++ *
++ */
++
++#include <andes/andes_pma.h>
++#include <andes/andes_pmu.h>
++#include <andes/andes_sbi.h>
++#include <andes/qilai.h>
++#include <platform_override.h>
++#include <sbi/sbi_domain.h>
++#include <sbi_utils/fdt/fdt_driver.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++static int andes_qilai_final_init(bool cold_boot)
++{
++
++	int rc;
++
++	/*
++	 * Set the memory attribute for 3 PCIE endpoint regions,
++	 * and they are all non-idempotent and non-bufferable.
++	 */
++	rc = andes_sbi_set_pma(PCIE0_BASE, PCIE0_SIZE,
++			       ANDES_PMACFG_ETYP_NAPOT |
++			       ANDES_PMACFG_MTYP_DEV_NOBUF);
++	if (rc)
++		return rc;
++
++	rc = andes_sbi_set_pma(PCIE1_BASE, PCIE1_SIZE,
++			       ANDES_PMACFG_ETYP_NAPOT |
++			       ANDES_PMACFG_MTYP_DEV_NOBUF);
++	if (rc)
++		return rc;
++
++	rc = andes_sbi_set_pma(PCIE2_BASE, PCIE2_SIZE,
++			       ANDES_PMACFG_ETYP_NAPOT |
++			       ANDES_PMACFG_MTYP_DEV_NOBUF);
++	if (rc)
++		return rc;
++
++	return generic_final_init(cold_boot);
++}
++
++static int andes_qilai_platform_init(const void *fdt, int nodeoff,
++				     const struct fdt_match *match)
++{
++	generic_platform_ops.final_init	     = andes_qilai_final_init;
++	generic_platform_ops.extensions_init = andes_pmu_extensions_init;
++	generic_platform_ops.pmu_init	     = andes_pmu_init;
++	generic_platform_ops.vendor_ext_provider =
++		andes_sbi_vendor_ext_provider;
++	return 0;
++}
++
++static const struct fdt_match andes_qilai_match[] = {
++	{ .compatible = "andestech,qilai" },
++	{},
++};
++
++const struct fdt_driver andes_qilai = {
++	.match_table = andes_qilai_match,
++	.init	     = andes_qilai_platform_init,
++};
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index c7a6531e04bc..fc09edef8238 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -1,5 +1,6 @@
+ CONFIG_PLATFORM_ALLWINNER_D1=y
+ CONFIG_PLATFORM_ANDES_AE350=y
++CONFIG_PLATFORM_ANDES_QILAI=y
+ CONFIG_PLATFORM_RENESAS_RZFIVE=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
+diff --git a/platform/generic/include/andes/andes_pma.h b/platform/generic/include/andes/andes_pma.h
+index be6149640c04..5b0ed0acfda8 100644
+--- a/platform/generic/include/andes/andes_pma.h
++++ b/platform/generic/include/andes/andes_pma.h
+@@ -19,6 +19,7 @@
+ #define ANDES_PMACFG_ETYP_NAPOT			(3 << ANDES_PMACFG_ETYP_OFFSET)
+ 
+ #define ANDES_PMACFG_MTYP_OFFSET		2
++#define ANDES_PMACFG_MTYP_DEV_NOBUF		(0 << ANDES_PMACFG_MTYP_OFFSET)
+ /* Memory, Non-cacheable, Bufferable */
+ #define ANDES_PMACFG_MTYP_MEM_NON_CACHE_BUF	(3 << ANDES_PMACFG_MTYP_OFFSET)
+ 
+diff --git a/platform/generic/include/andes/qilai.h b/platform/generic/include/andes/qilai.h
+new file mode 100644
+index 000000000000..dfb0477fcb66
+--- /dev/null
++++ b/platform/generic/include/andes/qilai.h
+@@ -0,0 +1,18 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 Andes Technology Corporation
++ *
++ */
++
++#ifndef __QILAI_H__
++#define __QILAI_H__
++
++#define PCIE0_BASE 0x1000000000
++#define PCIE0_SIZE 0x800000000
++#define PCIE1_BASE 0x1800000000
++#define PCIE1_SIZE 0x800000000
++#define PCIE2_BASE 0x2000000000
++#define PCIE2_SIZE 0x2000000000
++
++#endif
+-- 
+2.34.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
