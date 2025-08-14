@@ -4,89 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A1831CA0EE4
-	for <opensbi@archiver.kernel.org>; Thu, 14 Aug 2025 15:37:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E789ECA0EE4
+	for <opensbi@archiver.kernel.org>; Thu, 14 Aug 2025 15:37:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=GxmmcbWDA3daJ9o1hoH4fNFgyvP7ViVN0fHnB/HygKs=; b=f5z4+K2xHfy/4a
-	585G/SyK8bZ4xYEwIyMT1P10pFitZat7AKnz+0YqkXnyBug9zmxp1pUkV4BlvIpOU+mrFNHrTtUAO
-	H/WdL1XeEQNL1vVlXkYGQooD0I4uXPCY/J2UOtrmrgsm9pp1FTxzp4vNZjdh4QmCrPzC8vyAbYIVs
-	ARiiuVLxrk8ZQfw8DdqiTjQ9yBNnJT7m19HlF7Ign6CdJhoupjwdhE+5ruMqgqhA5cG69p5ToRfPz
-	1Q7L5O1qajrLp4JWUUgPtT6210ra8RoiNQMZjmeoI99pyn2SIWrIxTG7SNIeHkJZ2Aov1tNnWR4ER
-	XoM4mvZlprR4I4qOnuAw==;
+	List-Owner; bh=Sn1BOxDIPv30lSUNWckVgMmHIwr2/pEfLxC4u0TOcYY=; b=Iav9E6AyyxaG8e
+	tpiYGcCvmi6+DEUbiFnkvkfkl4VMnkOwCMshhcXOJyMzkxPrMqbN8+ey9YAO5w5CuprgGYA8RkIlh
+	GZEdftBCrNShTFe7aABcWA+4/qL1KxOQdDjiQr1Nzga91Ke3k0Tt4OSI0fQ+oyFzdNwid7nTpSghu
+	ZpscDqIHtin5zkw/6VLJ/bMZIECyupDc3RrhbvUEIDxRfR0N6Kwp27GP9KW6IcqLWqOXCt/sW3x5G
+	S/60Pz7vHm/bCbZsqy8bkRxHBRFsqDkxMGOK0vSozg8lYnnVaF85MTWVDBr/BwY7qin8M9QVezuts
+	Soj9E00hzxAZz+blNLdA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uma10-0000000HTkE-00XN;
-	Thu, 14 Aug 2025 15:37:18 +0000
-Received: from mail-pf1-x42d.google.com ([2607:f8b0:4864:20::42d])
+	id 1uma11-0000000HTmr-18WB;
+	Thu, 14 Aug 2025 15:37:19 +0000
+Received: from mail-pl1-x636.google.com ([2607:f8b0:4864:20::636])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1umVm6-0000000Gi4N-0JOL
+	id 1umVm7-0000000Gi4k-33qE
 	for opensbi@lists.infradead.org;
-	Thu, 14 Aug 2025 11:05:39 +0000
-Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-76e2e8bb2e5so1057853b3a.1
-        for <opensbi@lists.infradead.org>; Thu, 14 Aug 2025 04:05:37 -0700 (PDT)
+	Thu, 14 Aug 2025 11:05:40 +0000
+Received: by mail-pl1-x636.google.com with SMTP id d9443c01a7336-24456f3f669so8912505ad.1
+        for <opensbi@lists.infradead.org>; Thu, 14 Aug 2025 04:05:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1755169537; x=1755774337; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1755169539; x=1755774339; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=BmBbDtrqZ60TDYlHd9HNZKQX9E7TuXFJMUIkqwZXkGk=;
-        b=nCQyx7rjff3ycS3HCBJmyqZOxBNCwMoDhI8+wq3bpsT1f3PXDFk4iLU5o/DC79LKdl
-         CCO3Api5/aL2JtBJsEIyQwq12FiLxR1sCXXKR1My57romJonaX34ZAMEbx1DB+Pm45sm
-         Pfl5V356TF9en4vl1WW4YVdXZTW5pW6e5AKMJEabn5t/JBs211mlvICWH1jkYa8oLDWD
-         Gx8mNGxB4qjvyFMujlfMA5fq9l19XUhqN5x+HM2N7KHIlwdtVqPo91WB2lalad1CuKlx
-         6hyYiQ5gCE1olu2b7/NngIIgL0igQr8m9sBs8By7qqU9lZ3uQf8D3OOAVFgBQSsIXK6y
-         OTRw==
+        bh=1P+WhGkozjN+uRpvhjzTmyP/23EnYYCc7/1jJtphSB0=;
+        b=FMpDcufoIWFs3+w0DDR+Q4EkRj8pT6r8vQ18uOnQ/dT1PZbe62v4n2GscYXSLwQDdm
+         z8hFVqYmoVU/EwTYUaYRW9Z7GVxlkjrkmzyLnGuYlpfEsfN3aR3Ir5nLVsSEp2QtzW0B
+         u5358FfdS6WvSkSv7L1pfRcbEzVY+cuEPl8GZC7jScqLBvYh4xfKXnwnuTl6ncc8HOI1
+         9X8P/SYQm7ID3SxaLWVoIfw4v53RYDg3jhdU1iaGvWufwfo3MBLd4cYkqzGSt6LwffrI
+         VcT/+MEKGUVQV450eHJbsVgtI73z8uVWTKZiU3t5VqZ3F5P158ph/7OTVyQKvrAOMAAk
+         W4yg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755169537; x=1755774337;
+        d=1e100.net; s=20230601; t=1755169539; x=1755774339;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=BmBbDtrqZ60TDYlHd9HNZKQX9E7TuXFJMUIkqwZXkGk=;
-        b=PhY9vQtczCeOMfaF7qwAtNNbzjc3R8nlN4h3jt4WpleYfllcuqrX8nl/I/bXGVBwZq
-         oBePY6UGFcRi4Xe8jTfxzFTbLkye4xmHVEnlD8DbpfbmwO+6hMDrlpdr0ysrJzdMbcWH
-         lGmJX7+cE+Z5LUr3YhWbHFPZELc7GusYNH8uqcx00FCaq12N3V2O3obPtVnidpMTXCHK
-         qoN/mik27dueoFvSoyr28rtzwSekMz77UQCQpsWoF9qe4cu0/4eqjIZ5qp7T/aabMxPx
-         ZxIKjd2BhAZHv1Izhblvrs0d18p2cMmjN/S3Iox0yYOumuYm0ye6skDbKmYn1lOGDzbn
-         P3pQ==
-X-Gm-Message-State: AOJu0YxGErAo+tFWKWLmEbC1L33HQYhuw4oJlWjyvfvo7wjSaSBCaGDu
-	FLN0qfwdqYN1tmL83oXdnAF03TAhX/olvNY+Eb0p9xP7KohhfRFlzeCnGohl18PxK9F7MdOMeSf
-	hZvxNIt+9Xq+oAoV31aww/dnmN3+L+NibLImU/0WvX/LmmqNRTQdCzfrh8NbY6UlRVjp6g7uQxR
-	bGJr5KyPUa6R00BkgPFg++1beV2mMmAgJXQ7nA1wnSlLjaLvQJKbQgng==
-X-Gm-Gg: ASbGncsOBIXJPWYpfevsv1yKTAACJNZQGZgf+Kvr1pGok6Wnuh21EbffWl26HBwWhzl
-	O8h58EJr4nwT52O/XzDtm8t6tIjRKYfAknyb9yYtmIOGBRRG0xPdWHx7i8GtSkWs7/0rikBVrWD
-	IxoUQDqVENSvxc+1cY2I61naB3v+U2IArq4JR/9LIMlaz/HeXOmSEBfyqIhOSDdlxAqKPwkqXUH
-	b5x72Pj3nAcSQU5zX5TzatDlMVMf8YXsvXWtGTamcAnio00UxTohMQYEBtx7JJf5tN1ilAUgWJ6
-	TpsIpXROz4e5+qVR4Paweyh/esIhYNtN/iCWwlZS1Ei5OsXKxA5SjDYoizAh6Y1GjbHX6ogzSp7
-	+nJRzlZ/2eFUPrxqzN++puGO70TgUH7qaVVLmw0AfJK5aJIA=
-X-Google-Smtp-Source: AGHT+IGIB3QH2QMmrsb3VPyH+TEYCmlhdlnqp0SbCz29osHvf+CKYJ9XBLHdqJCHCw2kEJw9QvZ69A==
-X-Received: by 2002:a05:6a20:549d:b0:23f:f431:9f77 with SMTP id adf61e73a8af0-240bd242329mr4137146637.22.1755169537032;
-        Thu, 14 Aug 2025 04:05:37 -0700 (PDT)
+        bh=1P+WhGkozjN+uRpvhjzTmyP/23EnYYCc7/1jJtphSB0=;
+        b=ogf7UYcomM9bRpUtaUnWiI/CRoE0B0tpyrvdHtCBc1BYsKs6oyh3GaCIcQ7tWmsHNk
+         pPtGs05KKgv/0KPBchHfJ0IyR5++xUKZs7xHimIxoXkWyZ/+qu4LNCbhA+hkYdT/UZpE
+         7Ql7ZZFCKOeDnnNkBaen5n0SfAfCHCZbFGjxUmATx2viPxRn6kWQGwgXnpKLu5Mv1nmb
+         Y/0NrOehNDl+MWOLFga51lWv4dQS5UMNK/3WRxFFLFr/iUVX64UTdFGJr/Q4vEZCzdSM
+         hezjFednf81OnF8kRWbDuNybXJtIt4JzOZDxWl5Ap4clCBKWvwsWzk8MOd4vCWrDgMdt
+         /m4w==
+X-Gm-Message-State: AOJu0YzktrMtxKgkbNWAbxs6G9hx80BAJSHZTwQ3VMGLKaH+fxKPy8KQ
+	9/qECWhYqcomwjMsJI6bE+c61iuVZExRKCNxzmzaTRbS4gnWG2gx4txfTvbtj9a7QWxOeqSaXjX
+	1Ud7DS5QZoar11ENrMsKao7bzlL5mTzPGh2UjjtovOCwVzUpyb6QG3jD0pHHuaZzJkmbmCEQLOY
+	O7K2fcmrYWb4brihw20o7452SNLdB6J+/BMVZHYlaMegEW0u//0rEocw==
+X-Gm-Gg: ASbGnctZQVCovKodTEaZpovuyJyOAHco+HHQJbEIexI0E2NxG7l6Upf79VNvcYk72WK
+	y/MTXcOPUucyIcSP+YM3PmXe1XZs/xhfmyilFwPI8xA75XBGAWlOowfeSdzcO6h37WTQhMD5DeI
+	6FNWpriBS5iM1i4WJZ8cHatQIyCyZPBrdXDO6yVl3L+5UbyoVuC5ehr+kS78Q6o9VoDaYnXwbcj
+	K2L/q1V2vR5h9miNvtU0vllYNQ/3EwwhfyEmJqhKWpuv7GQBAEMPJps6Wysz/kS8Vqo5zX4Dx1X
+	g5VREesUYkd18SSH95RTK/5mUwqoD4l/2eSi2M9sxDqVgDwfDyTTDY/FMBRjbzYwxMsAJdc0GuV
+	ExS1OeC/0RXFUah+k+hZP2tZ7o1Ok+V/t/gu8+Ci/ivbtbLw=
+X-Google-Smtp-Source: AGHT+IHotufFGXK68rgpy2moHtg0ULYu1yv4O4DkHfFakflbrP0iL3D+VufUuGNJk80KjUB1TMOd0A==
+X-Received: by 2002:a17:902:d490:b0:234:9dce:74e3 with SMTP id d9443c01a7336-2445948668fmr29692275ad.2.1755169538533;
+        Thu, 14 Aug 2025 04:05:38 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b4683722179sm9624755a12.13.2025.08.14.04.05.35
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b4683722179sm9624755a12.13.2025.08.14.04.05.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 Aug 2025 04:05:36 -0700 (PDT)
+        Thu, 14 Aug 2025 04:05:38 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
 	greentime.hu@sifive.com,
 	alvinga@andestech.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH 6/8] lib: sbi_domain: add SBI_DOMAIN_MEMREGION_FW memregion flag
-Date: Thu, 14 Aug 2025 19:05:20 +0800
-Message-ID: <20250814110522.18809-7-peter.lin@sifive.com>
+Subject: [PATCH 7/8] lib: sbi_domain: ensure consistent firmware PMP entries
+Date: Thu, 14 Aug 2025 19:05:21 +0800
+Message-ID: <20250814110522.18809-8-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20250814110522.18809-1-peter.lin@sifive.com>
 References: <20250814110522.18809-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250814_040538_111290_394B3167 
-X-CRM114-Status: UNSURE (   9.96  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20250814_040539_765486_F70E3C26 
+X-CRM114-Status: GOOD (  10.28  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,68 +97,45 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add a new memregion flag, SBI_DOMAIN_MEMREGION_FW and mark the
-code and data sections of firmware.
-
-Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
----
- include/sbi/sbi_domain.h | 1 +
- lib/sbi/sbi_domain.c     | 8 ++++++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 8a51f289..d71354c7 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -157,6 +157,7 @@ struct sbi_domain_memregion {
- 				 SBI_DOMAIN_MEMREGION_M_EXECUTABLE)
- 
- #define SBI_DOMAIN_MEMREGION_MMIO		(1UL << 31)
-+#define SBI_DOMAIN_MEMREGION_FW			(1UL << 32)
- 	unsigned long flags;
- };
- 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index d6566b12..ccfcc7f0 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -541,6 +541,8 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 		sbi_printf("M: ");
- 		if (reg->flags & SBI_DOMAIN_MEMREGION_MMIO)
- 			sbi_printf("%cI", (k++) ? ',' : '(');
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_FW)
-+			sbi_printf("%cF", (k++) ? ',' : '(');
- 		if (reg->flags & SBI_DOMAIN_MEMREGION_M_READABLE)
- 			sbi_printf("%cR", (k++) ? ',' : '(');
- 		if (reg->flags & SBI_DOMAIN_MEMREGION_M_WRITABLE)
-@@ -894,13 +896,15 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	/* Root domain firmware memory region */
- 	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
- 				  (SBI_DOMAIN_MEMREGION_M_READABLE |
--				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE),
-+				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
-+				   SBI_DOMAIN_MEMREGION_FW),
- 				  &root_memregs[root_memregs_count++]);
- 
- 	sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
- 				  (scratch->fw_size - scratch->fw_rw_offset),
- 				  (SBI_DOMAIN_MEMREGION_M_READABLE |
--				   SBI_DOMAIN_MEMREGION_M_WRITABLE),
-+				   SBI_DOMAIN_MEMREGION_M_WRITABLE |
-+				   SBI_DOMAIN_MEMREGION_FW),
- 				  &root_memregs[root_memregs_count++]);
- 
- 	root.fw_region_inited = true;
--- 
-2.39.3
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+Q3VycmVudGx5LCBkdXJpbmcgYSBkb21haW4gY29udGV4dCBzd2l0Y2gsIGFsbCBQTVAgZW50cmll
+cyDigJQgaW5jbHVkaW5nCnRob3NlIGdyYW50aW5nIFJXL1JYIHBlcm1pc3Npb25zIHRvIGZpcm13
+YXJlIGRhdGEgYW5kIGNvZGUgYXJlIGNsZWFyZWQKd2hpY2ggd2lsbCBsZWFkIHRvIGFjY2VzcyBm
+YXVsdHMuCgpUbyBjb25maWd1cmUgZmlybXdhcmUgUE1QIGVudHJpZXMgZGV0ZXJtaW5pc3RpY2Fs
+bHkgYWNyb3NzIHN3aXRjaGVzLApzb3J0IHJlZ2lvbnMgc28gdGhhdCBmaXJtd2FyZSByZWdpb25z
+IGNvbWUgYmVmb3JlIG90aGVycy4KClNpZ25lZC1vZmYtYnk6IFl1LUNoaWVuIFBldGVyIExpbiA8
+cGV0ZXIubGluQHNpZml2ZS5jb20+Ci0tLQogaW5jbHVkZS9zYmkvc2JpX2RvbWFpbi5oIHwgIDMg
+KysrCiBsaWIvc2JpL3NiaV9kb21haW4uYyAgICAgfCAxNCArKysrKysrKysrKysrKwogMiBmaWxl
+cyBjaGFuZ2VkLCAxNyBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmkvc2Jp
+X2RvbWFpbi5oIGIvaW5jbHVkZS9zYmkvc2JpX2RvbWFpbi5oCmluZGV4IGQ3MTM1NGM3Li4zMTIz
+NzQwMSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9zYmkvc2JpX2RvbWFpbi5oCisrKyBiL2luY2x1ZGUv
+c2JpL3NiaV9kb21haW4uaApAQCAtMTIxLDYgKzEyMSw5IEBAIHN0cnVjdCBzYmlfZG9tYWluX21l
+bXJlZ2lvbiB7CiAJCSgoX19mbGFncyAmIFNCSV9ET01BSU5fTUVNUkVHSU9OX1NVX0FDQ0VTU19N
+QVNLKSAgJiYJXAogCQkgIShfX2ZsYWdzICYgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9BQ0NFU1Nf
+TUFTSykpCiAKKyNkZWZpbmUgU0JJX0RPTUFJTl9NRU1SRUdJT05fSVNfRklSTVdBUkUoX19mbGFn
+cykJCQlcCisJCSgoX19mbGFncyAmIFNCSV9ET01BSU5fTUVNUkVHSU9OX0ZXKSA/IHRydWUgOiBm
+YWxzZSkJXAorCiAvKiogQml0IHRvIGNvbnRyb2wgaWYgcGVybWlzc2lvbnMgYXJlIGVuZm9yY2Vk
+IG9uIGFsbCBtb2RlcyAqLwogI2RlZmluZSBTQklfRE9NQUlOX01FTVJFR0lPTl9FTkZfUEVSTUlT
+U0lPTlMJKDFVTCA8PCA2KQogCmRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9kb21haW4uYyBiL2xp
+Yi9zYmkvc2JpX2RvbWFpbi5jCmluZGV4IGNjZmNjN2YwLi45ZTI4NGY0OSAxMDA2NDQKLS0tIGEv
+bGliL3NiaS9zYmlfZG9tYWluLmMKKysrIGIvbGliL3NiaS9zYmlfZG9tYWluLmMKQEAgLTI5NSw2
+ICsyOTUsMjAgQEAgc3RhdGljIGJvb2wgaXNfcmVnaW9uX2NvbXBhdGlibGUoY29uc3Qgc3RydWN0
+IHNiaV9kb21haW5fbWVtcmVnaW9uICpyZWdBLAogc3RhdGljIGJvb2wgaXNfcmVnaW9uX2JlZm9y
+ZShjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbl9tZW1yZWdpb24gKnJlZ0EsCiAJCQkgICAgIGNvbnN0
+IHN0cnVjdCBzYmlfZG9tYWluX21lbXJlZ2lvbiAqcmVnQikKIHsKKwkvKgorCSAqIEZpcm13YXJl
+IHJlZ2lvbnMgYXJlIHBsYWNlZCBiZWZvcmUgbm9u4oCRZmlybXdhcmUKKwkgKiByZWdpb25zLiBU
+aGlzIGVuc3VyZXMgZmlybXdhcmUgY29kZS9kYXRhIHJlbWFpbgorCSAqIGFjY2Vzc2libGUgd2hl
+biBTbWVQTVAgaXMgZW5hYmxlZC4gT3B0aW9uYWwgZm9yCisJICogcmVndWxhciBQTVAsIGJ1dCBz
+YWZlIHRvIGZvbGxvdyBjb25zaXN0ZW50bHkuCisJICovCisJaWYgKFNCSV9ET01BSU5fTUVNUkVH
+SU9OX0lTX0ZJUk1XQVJFKHJlZ0EtPmZsYWdzKSAmJgorCSAgICFTQklfRE9NQUlOX01FTVJFR0lP
+Tl9JU19GSVJNV0FSRShyZWdCLT5mbGFncykpCisJCXJldHVybiB0cnVlOworCWlmICghU0JJX0RP
+TUFJTl9NRU1SRUdJT05fSVNfRklSTVdBUkUocmVnQS0+ZmxhZ3MpICYmCisJICAgIFNCSV9ET01B
+SU5fTUVNUkVHSU9OX0lTX0ZJUk1XQVJFKHJlZ0ItPmZsYWdzKSkKKwkJcmV0dXJuIGZhbHNlOwor
+CisKIAlpZiAocmVnQS0+b3JkZXIgPCByZWdCLT5vcmRlcikKIAkJcmV0dXJuIHRydWU7CiAKLS0g
+CjIuMzkuMwoKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVh
+ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2Jp
+Cg==
