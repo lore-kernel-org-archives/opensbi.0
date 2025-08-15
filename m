@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 58CFFCA0EE4
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 81AD3CA0ED1
 	for <opensbi@archiver.kernel.org>; Fri, 15 Aug 2025 13:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,76 +12,76 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=94ba+Eu+8i/2FCWWWqIDlC2iGhViyDZTPpt5sSVqtqE=; b=1pB85h5bsVkTAJ
-	C4WQQ2MUu0HSveBFWzlVk7KrSfKs2T7lakl38onp1/9nbQRlfxXunLEGnt56O9Bt+17aVcioKJXPD
-	FoiPQljxKeiHZ/UiRkWoaaBQzQx/T6anuBs8xy//Bf7ntXO9H/lNUcVTLrV0bd3m2oVBVly4uH9Dw
-	mALjnfsP+sMKplRygbDPlEXel51Y554nNfkdQ91L+Rp/HMFUvWUQW24Rh5JdPn+eE9ai61x6rd3mA
-	FaTEUufmi0IHGrF0JvIPS3h3jJcdxVExGjgPJ3xrxkzfKb9aMWeudTHWEKfNSDfXMTNsWFWm12ouZ
-	MvoZCdhGIpRTU3MQTNjQ==;
+	List-Owner; bh=htswaVRdJ6dUm6Z2Z86Cq8E+K/R8pquALAzeszRw+t8=; b=Ywmti6ICpruSny
+	IGemZ6T51Ht/aF/KKT4YcfRbAlQTDweblNnAKgutd3ZSiV6BujQMCCtfCmQs0qKJhID8OKce4HHXT
+	adLuaxAQXAxS1HmR4R9Dx8Qp56TZRvTjFQBS7O/2QMA3zsKtH3tDILZjQLFjN9F7rMOhO8PY/5wpt
+	1VGy+Bk7NtYYjDu5WNqYmZ5D7iNTBARzz3R6jhIV8uHGSgNQLphfIhhrnSsWQyzR6TODV+4vzTyD1
+	EvQY1LuQXm04wGijT86Oe0oaEo2GmzSqcHayEiCNzV9Z/zWAMWVSoqpHWPiPxZJicXOG77x5k35WJ
+	7n/DSHqcWnpHI+8mZ7ig==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1umuGa-00000002YLt-1BLC;
+	id 1umuGa-00000002YN8-3huL;
 	Fri, 15 Aug 2025 13:14:44 +0000
-Received: from mail-pg1-x52d.google.com ([2607:f8b0:4864:20::52d])
+Received: from mail-pj1-x102b.google.com ([2607:f8b0:4864:20::102b])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1umrFf-000000028ka-1bdR
+	id 1umrFh-000000028l1-0GG5
 	for opensbi@lists.infradead.org;
-	Fri, 15 Aug 2025 10:01:36 +0000
-Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-b471740e488so1713767a12.1
-        for <opensbi@lists.infradead.org>; Fri, 15 Aug 2025 03:01:35 -0700 (PDT)
+	Fri, 15 Aug 2025 10:01:38 +0000
+Received: by mail-pj1-x102b.google.com with SMTP id 98e67ed59e1d1-323267872f3so1699439a91.1
+        for <opensbi@lists.infradead.org>; Fri, 15 Aug 2025 03:01:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1755252094; x=1755856894; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1755252096; x=1755856896; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=bQanBx8YQlMxUYNgOPeL+hXTtCWs5ci9hxpgdJsbbig=;
-        b=g7fLqEPI+KYmzt6QbISBG4Pj/npu/OS7OgqJvNFIzTbYgw1fCa7+TLrzIqFU1J/xJG
-         /GyYg3voVe2PnkSgqGW918KtaWn6KLmG0W6PJI+R81DvymwB9AXrjYnNXr2iIe3Ktzj9
-         r90DAQUKTLZpDrjD57DWWRMcb1VjfLwcq6rJG3k0j7iHpPF4DdHkT1zpzbzlxu0dOFHX
-         3z+JNUL5NTbcnq4p+JIGlEUrGVdEz8X2BqZoLQeF1SOEVH8Lt7wlvjuXZSl7i2f7Cg4T
-         RtZruP7cxrC4sPhIS0bCcj6t6RcWzZiCfK1dylkAxO0a1n2mN9708h8BMKc37pcme4eu
-         deCg==
+        bh=m2uxXxjyXD4MvUeb20uVTJ5G3CsFL/9+3oZihwjRojE=;
+        b=ZlTPMyioWLWNFRfun/LTy0YmMjIkGFT62ziECuSjg8qBvZyQ3hQcYVKTU02aR5VKUo
+         zN+cpj4AzrNe5bz7ozinwRFzlA+ZtL4kpGv5ikZnU3+rqyLAiY0m8gaqW2VPpQMSr2Pd
+         3rDSsDJrlGLntgkJp0NsfIMSvAVn6welrrQuwlJa7G2iAqcv8gIW4Dbu1Mw3Qg6ofBQc
+         5ovg/4+QSj1cFqUVUodD3gO/+8eyTmsd3GFmljzKAcajIAlsWkVtYPk6LQBa9EIclslD
+         B+5HtQRrh+8nINIUABUldMthssygN2goAl9VMPui4fk1IkZzLuds+6b51LaOKoBMtV3n
+         RN8Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755252094; x=1755856894;
+        d=1e100.net; s=20230601; t=1755252096; x=1755856896;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=bQanBx8YQlMxUYNgOPeL+hXTtCWs5ci9hxpgdJsbbig=;
-        b=GsDihzIGXEf5GtIaPd8KG5XtnoemHdKbVgoBFyJcKwwWm4gP+gUAKK+VGjjzNM02S8
-         s+E3QRZggDe6hPivpxH7fyi8BkdbZJ4Xb9vBG9PYXPvLHoLuuj9X4VzYN0dEofuKoArO
-         SCZDzqVWJfYjf934BCVOsEeJfbdz3hDX5Ejf31LP2SQltKiI6yUf19f7Pn7EHntum9Op
-         4It93g5Isu55nhyqL17J9gFQWumN6XfFajrNTsVauCLFs8Fb+wsUE7McIEHsXCOWM/d2
-         psy2n4EKTyfNUzW2bIOFCzhRt1W1dT41LqIW2RbKoWLUdDtnR4Li7fN6H7bDtAPgPTd6
-         p7bA==
-X-Gm-Message-State: AOJu0Yxf28en8nK396EhqUu/R/Esi95dFHckODrqq56ZzEZ42MkZCM5F
-	FQ7YjYMSrP3lU26lmfCc9zjPU3atod3qMbderrnYE36ad1tAyk+BF4pRH9evnhkMIi+UILwSnl2
-	+4AhJx+Ocysfc8bF195Agl72QyxhEGfrmopsmNgGigBp8Be1EjMWheCDRy7N0psa3KZ7DhvGFwk
-	UVhC0vJbjIgnAhMedTSdypamS9bD9+brxh4Q6vbot8F/udVUIZoaC6yA==
-X-Gm-Gg: ASbGncsgls7CjuU5LEA05PEeBtGMzOe2emVpTAGlL1umkiZdzq6p0Ik9FElbuIrekyf
-	cTx5F6OHBjHmyh/pYaWfpJx+N+L8Bik0DRI4UJ/yl674Kl2K0emqd8l/QZbzZQxcGH/esv0ma0p
-	6xUlM5wLKLj6S6M462GHUwnRnMT83aHyfuhp+uR+8x2mZu3/7ms0Q/Qm3p8JOu5dMvOQT4+kHhU
-	XZosfWFTv80zcf4ReeYdhfB9COmA3GHsf44h2FQDFd6RxSFZYe+q10SR70sY8vp11ZqiXzffMKj
-	rXtuJ/cusrhaRcxSjM1BXxQg30OSqS8KAz3LujoxyOKP4ZpwzJHLkraPIRJevKutfHQiETgP6SU
-	ilSo+nHpexMQTnBHXkH3jBbnd/8IYUx1kax8eT/7UgPMPO54=
-X-Google-Smtp-Source: AGHT+IHSDBSPEOQAenVfu/EaF5JjRDN9SReE2zo5AwuPh4pVfrrb8YkMjyQng9OrcIYJdht2o7qnUg==
-X-Received: by 2002:a17:902:e842:b0:235:ed01:18cd with SMTP id d9443c01a7336-2446d99e6acmr24779895ad.44.1755252094244;
-        Fri, 15 Aug 2025 03:01:34 -0700 (PDT)
+        bh=m2uxXxjyXD4MvUeb20uVTJ5G3CsFL/9+3oZihwjRojE=;
+        b=SWwLR2m/wzZ/UxOqaGayYkkd2C/dcz4BFu5bamamw9Y9zRFVeEXnCRf+VD9jqqFzsR
+         cdB5TmjKBjIFJA/oWfNMsqaloRYfym9p6A7oWzvwK5tJVbvJSGM9yMI9TteWBEnlBrkV
+         EXYhybw2LRqJxDOuB9K2S5m4sydcHO/nMFVk6k/f8rINiRj82S7kdI5tt3Z2q5z3Q1cc
+         h8ubtHSEDDRjVU+Jnou7EQVNQn1mVHcuVEr/zNSk9OlqCv2wYyml2Qd57zO9/MbOWWkM
+         4pAKg9KHJaVC/iSbJj0YDVBCFrBCFKd6F8SLGQTlERfJbalk2SZEhZCsQwwYXZeTAmcC
+         u/3Q==
+X-Gm-Message-State: AOJu0Yxt7hD1C9SgTxpbRVdvwRLtQG2f1zhdXtNNfUGOayVqkp8b9sMB
+	WME9swVnUu5C/pwzhsv498F2+a6ekGyVN6KkqjByj7IjCx/cPnAXD61TWsfYYzKiKkIqrzDKDmV
+	x4j+BEkmp1utmxxouJ2+cvg2TpkQzWQ3G8iZysqr/VVJfqdUopL0ew7fdDXWvf0VSZYNI3/6Uw1
+	imc4PBjiBEbyB+ctB1QHNyU31WmEM1C3lxrtCHLq/o5KhtN/DGHMlDmg==
+X-Gm-Gg: ASbGnctDPOSHjjek1SZkunydfj+8wQmeVnyCwEnwwnr0FThsbd+EdyOyhurDXmsozao
+	epkV/t4PAweZvdduK5ff53hvDn/pgqs/gjIX+oWewFxplRx43Ti2ouxO5ytBzKtFVPBiHQ+HFaI
+	uu7taydRoIS5I0j56gOt8mkF7OJtg7s2qfL2G8TryT+C8kzd4CvaFHnBmfsHcH32aZqK2SjyYhI
+	Hw1XjSDpmZaoBeLQ3dcfEHlkVEQoVzSuPyrOzUCTs00XXYBnOEbOURlXdsJ7TGsYFK1yNxupn1/
+	pyPaldv9TV17O775qtCSoC1FrDWMeT2S+mA/+6O5eY+U0DG3OpRQKOBICNJLlOXAhySnv4vJBDH
+	FTXK0MoBOXR+XYDZE30xlYejMh0SV0oiTze9bxWI/iTr4zvk=
+X-Google-Smtp-Source: AGHT+IGxCBgMlEreami9+qLQ1NRYima4orb+hoRpIzEShwLjBv9KVdIgV80SRnAjFC6kCoPgchvRKg==
+X-Received: by 2002:a17:90b:4b4f:b0:311:ef19:824d with SMTP id 98e67ed59e1d1-32342163f5cmr2488768a91.2.1755252095747;
+        Fri, 15 Aug 2025 03:01:35 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b472d5a7a40sm879220a12.9.2025.08.15.03.01.32
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b472d5a7a40sm879220a12.9.2025.08.15.03.01.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 Aug 2025 03:01:33 -0700 (PDT)
+        Fri, 15 Aug 2025 03:01:35 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
-Subject: [RFC PATCH 5/7] lib: sbi: riscv_asm: add reserved_pmp_alloc() to allocate a reserved PMP
-Date: Fri, 15 Aug 2025 18:01:13 +0800
-Message-ID: <20250815100116.27776-6-peter.lin@sifive.com>
+Subject: [RFC PATCH 6/7] lib: sbi: sbi_hart: extend PMP handling to support multiple reserved entries
+Date: Fri, 15 Aug 2025 18:01:14 +0800
+Message-ID: <20250815100116.27776-7-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20250815100116.27776-1-peter.lin@sifive.com>
 References: <20250815100116.27776-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250815_030135_423290_EB7F85A4 
-X-CRM114-Status: GOOD (  10.75  )
+X-CRM114-CacheID: sfid-20250815_030137_105623_AA75563C 
+X-CRM114-Status: GOOD (  21.69  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,61 +99,211 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add a function that allocates unused PMP entries from the high-priority
-reserved pool.
+Previously, OpenSBI supported only a single reserved PMP entry. This
+change adds support for multiple reserved PMP entries, configurable
+via the `reserved-pmp-count` DT property in the opensbi-config.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- include/sbi/riscv_asm.h |  2 ++
- lib/sbi/riscv_asm.c     | 25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+)
+ include/sbi/sbi_hart.h       | 15 ----------
+ lib/sbi/sbi_domain_context.c |  6 +++-
+ lib/sbi/sbi_hart.c           | 56 +++++++++++++++++++++++++++---------
+ 3 files changed, 47 insertions(+), 30 deletions(-)
 
-diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
-index ef48dc89..5fff2196 100644
---- a/include/sbi/riscv_asm.h
-+++ b/include/sbi/riscv_asm.h
-@@ -221,6 +221,8 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
- 	    unsigned long *log2len);
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 82b19dcf..86c2675b 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -101,21 +101,6 @@ enum sbi_hart_csrs {
+ 	SBI_HART_CSR_MAX,
+ };
  
-+int reserved_pmp_alloc(unsigned int *pmp_id);
+-/*
+- * Smepmp enforces access boundaries between M-mode and
+- * S/U-mode. When it is enabled, the PMPs are programmed
+- * such that M-mode doesn't have access to S/U-mode memory.
+- *
+- * To give M-mode R/W access to the shared memory between M and
+- * S/U-mode, first entry is reserved. It is disabled at boot.
+- * When shared memory access is required, the physical address
+- * should be programmed into the first PMP entry with R/W
+- * permissions to the M-mode. Once the work is done, it should be
+- * unmapped. sbi_hart_map_saddr/sbi_hart_unmap_saddr function
+- * pair should be used to map/unmap the shared memory.
+- */
+-#define SBI_SMEPMP_RESV_ENTRY		0
+-
+ struct sbi_hart_features {
+ 	bool detected;
+ 	int priv_version;
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index fb04d81d..a78bd28c 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -101,6 +101,7 @@ static void switch_to_next_domain_context(struct hart_context *ctx,
+ 	struct sbi_domain *current_dom = ctx->dom;
+ 	struct sbi_domain *target_dom = dom_ctx->dom;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+ 	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+ 
+ 	/* Assign current hart to target domain */
+@@ -115,7 +116,10 @@ static void switch_to_next_domain_context(struct hart_context *ctx,
+ 	spin_unlock(&target_dom->assigned_harts_lock);
+ 
+ 	/* Reconfigure PMP settings for the new domain */
+-	for (int i = 0; i < pmp_count; i++) {
++	for (int i = plat->reserved_pmp_count; i < pmp_count; i++) {
++		if (pmp_is_fw_region(i, current_dom))
++			continue;
 +
- #endif /* !__ASSEMBLER__ */
+ 		sbi_platform_pmp_disable(sbi_platform_thishart_ptr(), i);
+ 		pmp_disable(i);
+ 	}
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 6a2d7d6f..e8762084 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -17,6 +17,7 @@
+ #include <sbi/sbi_csr_detect.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
++#include <sbi/sbi_init.h>
+ #include <sbi/sbi_math.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_pmu.h>
+@@ -30,6 +31,7 @@ extern void __sbi_expected_trap_hext(void);
+ void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
  
- #endif
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index c7d75ac0..daa5087a 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -403,3 +403,28 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ static unsigned long hart_features_offset;
++static unsigned int saddr_pmp_id;
  
+ static void mstatus_init(struct sbi_scratch *scratch)
+ {
+@@ -393,6 +395,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 				     unsigned long pmp_addr_max)
+ {
+ 	struct sbi_domain_memregion *reg;
++	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	unsigned int pmp_idx, pmp_flags;
+ 
+@@ -402,16 +405,19 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 	 */
+ 	csr_set(CSR_MSECCFG, MSECCFG_RLB);
+ 
+-	/* Disable the reserved entry */
+-	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++	/* Disable the reserved entries */
++	for (int i = 0; i < plat->reserved_pmp_count; i++)
++		pmp_disable(i);
+ 
+ 	/* Program M-only regions when MML is not set. */
+ 	pmp_idx = 0;
+ 	sbi_domain_for_each_memregion(dom, reg) {
+ 		/* Skip reserved entry */
+-		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+-			pmp_idx++;
+-		if (pmp_count <= pmp_idx)
++		if (pmp_idx < plat->reserved_pmp_count)
++			pmp_idx += plat->reserved_pmp_count;
++		if (pmp_count <= pmp_idx) {
++			sbi_printf("%s: ERR: region %#lx cannot be protected - "
++				   "insufficient PMP entries\n", __func__, reg->base);
+ 			break;
+ 
+ 		/* Skip shared and SU-only regions */
+@@ -435,9 +441,11 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 	pmp_idx = 0;
+ 	sbi_domain_for_each_memregion(dom, reg) {
+ 		/* Skip reserved entry */
+-		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+-			pmp_idx++;
+-		if (pmp_count <= pmp_idx)
++		if (pmp_idx < plat->reserved_pmp_count)
++			pmp_idx += plat->reserved_pmp_count;
++		if (pmp_count <= pmp_idx) {
++			sbi_printf("%s: ERR: region %#lx cannot be protected - "
++				   "insufficient PMP entries\n", __func__, reg->base);
+ 			break;
+ 
+ 		/* Skip M-only regions */
+@@ -468,13 +476,19 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+ 				     unsigned long pmp_addr_max)
+ {
+ 	struct sbi_domain_memregion *reg;
++	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	unsigned int pmp_idx = 0;
+ 	unsigned int pmp_flags;
+ 	unsigned long pmp_addr;
+ 
+ 	sbi_domain_for_each_memregion(dom, reg) {
+-		if (pmp_count <= pmp_idx)
++		/* Skip reserved entry */
++		if (pmp_idx < plat->reserved_pmp_count)
++			pmp_idx += plat->reserved_pmp_count;
++		if (pmp_count <= pmp_idx) {
++			sbi_printf("%s: ERR: region %#lx cannot be protected - "
++				   "insufficient PMP entries\n", __func__, reg->base);
+ 			break;
+ 
+ 		pmp_flags = 0;
+@@ -510,6 +524,19 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
  	return 0;
  }
-+
-+/**
-+ * reserved_pmp_alloc() - Allocate an unused reserved PMP entry
-+ * @pmp_id: Pointer to store the allocated PMP entry ID
+ 
++/*
++ * Smepmp enforces access boundaries between M-mode and
++ * S/U-mode. When it is enabled, the PMPs are programmed
++ * such that M-mode doesn't have access to S/U-mode memory.
 + *
-+ * Returns: 0 on success, negative error code on failure
-+ *
-+ * The caller is responsible for configuring the allocated entry
-+ * using pmp_set() and pmp_disable().
++ * To give M-mode R/W access to the shared memory between M and
++ * S/U-mode, high-priority entry is reserved. It is disabled at boot.
++ * When shared memory access is required, the physical address
++ * should be programmed into the reserved PMP entry with R/W
++ * permissions to the M-mode. Once the work is done, it should be
++ * unmapped. sbi_hart_map_saddr/sbi_hart_unmap_saddr function
++ * pair should be used to map/unmap the shared memory.
 + */
-+int reserved_pmp_alloc(unsigned int *pmp_id)
-+{
-+	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
-+
-+	for (int n = 0; n < plat->reserved_pmp_count; n++) {
-+		if (is_pmp_entry_mapped(n))
-+			continue;
-+		*pmp_id = n;
-+		return SBI_SUCCESS;
+ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
+ {
+ 	/* shared R/W access for M and S/U mode */
+@@ -521,8 +548,9 @@ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
+ 	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+ 		return SBI_OK;
+ 
+-	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
++	if (reserved_pmp_alloc(&saddr_pmp_id)) {
+ 		return SBI_ENOSPC;
 +	}
-+
-+	sbi_printf("%s: Failed to allocate PMP entry. "
-+		   "Please increase reserved-pmp-count\n", __func__);
-+	return SBI_EFAIL;
-+}
+ 
+ 	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
+ 	     order <= __riscv_xlen; order++) {
+@@ -538,10 +566,10 @@ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
+ 		}
+ 	}
+ 
+-	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
++	sbi_platform_pmp_set(sbi_platform_ptr(scratch), saddr_pmp_id,
+ 			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
+ 			     pmp_flags, base, order);
+-	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
++	pmp_set(saddr_pmp_id, pmp_flags, base, order);
+ 
+ 	return SBI_OK;
+ }
+@@ -553,8 +581,8 @@ int sbi_hart_unmap_saddr(void)
+ 	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+ 		return SBI_OK;
+ 
+-	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
+-	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), saddr_pmp_id);
++	return pmp_disable(saddr_pmp_id);
+ }
+ 
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
 -- 
 2.48.0
 
