@@ -4,82 +4,102 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8E11DCA0EDC
-	for <opensbi@archiver.kernel.org>; Wed, 20 Aug 2025 03:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3B0C5CA0EE4
+	for <opensbi@archiver.kernel.org>; Wed, 20 Aug 2025 04:04:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:Cc:List-Subscribe:
-	List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:References:
-	In-Reply-To:Message-Id:Date:Subject:To:From:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Owner;
-	bh=VZQ/NzpIbKzqg1/pMQe3egHQZP+UQmpb0RNvHrL0fd8=; b=zvq0n4C9+mGUItX2n5/PvXu7QA
-	iiOr5PFByPZJgLqDmtWzg9S2Lt7bD4Gc/XqZNwnZ1RgoMm4Nb3xLf/5mT56U/QP7bcvN/iG0zT4rI
-	DFpTCDpzMaLVLkhNapvhqFPCzBGZm/HDdk/gZtbxxY4zjLKPW/j4WNrgVsU+7XRslykR4oVfx8doH
-	WZCiQxdTJBK0q9LlMP3btkLT7L+13MNXWa1nWC0VA8cOGSHeivmi+T05UMvhYE9zgqK7RFZLJ9ipA
-	F+3WwH3t41G22/gcMQCy4hE1eAUN0SaU6kasIyXETuhP8w6MXufkGXbSzLiRujJJQB7cxgwK1vx1Y
-	nYKSfPxQ==;
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=+mdm6hkDSKg/w90Fqzjbc2l3o7pKZatZ1M6G7GGSMoY=; b=SVrwxBLgSqJLPO
+	4X020adUxtwqQbO9KODYZ9ERc02T2qGK6v3wztL4rRYvViGs30czHzzCV7e6y4afCGKQZhQCfB4oO
+	tkEUKcqZG2onvQlEXLz2ocfdDBw8b85doMVdwyifq+L6Mt1iYJQFnSYpv50yPkwUir0h6jsl4tibP
+	PvwCw4ymX3jmBJQM6s9ISvayKTULpc9n02Cs3DVYmR4t5J0zIeiQURft4aRoF63f8BebQBvMrVfiR
+	W0FWycyJTsj3mP9w2oLDGJvNYr6n8VU/K/CZHEcJXomRLhhD9nUJ/UM++XWZl4xTlKoDVyh9qIQAB
+	VHdN6JUVYDpauK37ROQg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uoZbN-0000000CHTO-13gH;
-	Wed, 20 Aug 2025 03:35:05 +0000
-Received: from mail-pg1-x535.google.com ([2607:f8b0:4864:20::535])
+	id 1uoa3b-0000000CKJB-2kNS;
+	Wed, 20 Aug 2025 04:04:15 +0000
+Received: from m16.mail.126.com ([220.197.31.7])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uoZZg-0000000CHFL-3sDa
+	id 1uoa38-0000000CKHh-3k0V
 	for opensbi@lists.infradead.org;
-	Wed, 20 Aug 2025 03:33:22 +0000
-Received: by mail-pg1-x535.google.com with SMTP id 41be03b00d2f7-b474e8d6d04so1894330a12.0
-        for <opensbi@lists.infradead.org>; Tue, 19 Aug 2025 20:33:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1755660800; x=1756265600; darn=lists.infradead.org;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=RJl5oVmMgI5BGBsHlip9UaDowHA3DOHEeTDLQcDqJqg=;
-        b=QFrvEd8Qi67GMumW+Y45y0YmoXsfjVJ4yHmPxNPIs7Vz6gOkAI6rMQy5Bl6/0ifTxi
-         w6JRqRgPij8483qXzVSiKS3YBsWXe4NiLiDRlu6uLCdPlopFs2BbSx7rvLvGa8omNT4c
-         fdxyt95zpqABJBeLw3oagRrTddBpajCD+B7FpQvzD/lBa2Swomjldb/8MUMCEURIqNDP
-         9vcyI3Xjesjv7gTjByqXWFmVIz4muJei/+Uph+iSvLmNnLizOmKudjTGROUKetLzbeqM
-         pVYLUtfqlcQYFtGyto6/WI/m7PhpNuTphKG+CXXdrbnM8j2VozN49f8UE3pcVa4M2QBm
-         WldQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755660800; x=1756265600;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=RJl5oVmMgI5BGBsHlip9UaDowHA3DOHEeTDLQcDqJqg=;
-        b=Sf81fZfTi8kXZBB/NbDtVrjre/R2WjHz1gvYJX9Tscu6h+6YXDKzrzOra43i9sP7cN
-         YYd9ZG5p/fJMZLZ3Mfiz7NsswmaMDganGkC51OfwhqT7wBLgLTJdFVXpJm0I3cSYkcH/
-         fhSC61fqKqlGqv5uRJ2HdoGNWd4PGesyBQf7MsBp8LoszxavdhxNFLSlnoWnA99lgyhg
-         nvhzblEN9Ka67DWbxYKl3Ip26SmVVG8GqCoWDP4DBK8aUGub+Ul+/Yc4dVSeN2MBLGRH
-         xrwH0s/3YBKlW3yYrzLvPWwhTkhIuMf4xpv+5AuCUFXPiUKvyCQwvvsJvJAytw3LEwfV
-         Uzcw==
-X-Gm-Message-State: AOJu0YwSgEt24/9ZFtARHK7kBqA6G4DzVw26Lbt94PK5Tm3RXuYVjiLa
-	xvQy3hKJ71Lrm9Au1ZZeffpZCcr3QjWu0h78ViNGnP44RRZxGhRgAWZQD3hyTJWznUGFR7i4Enq
-	YNhK9klXtaZbScJr06SefaZz3Gm2HFB9L5edpYdLWw9O68/p06ADJeTHRd54xrt/0nBfY+tOcBQ
-	Gv07A4kOYZAmFzvXmpXPttIdvUI4iQCKyaPNueuRMNI2vg5g==
-X-Gm-Gg: ASbGncugNnn44XLTJqX6uBSmEWx+S8lhSIr/xtqhZtJijeAossOivlRBLgV0+qf6p/n
-	FvI1ndC/b2HW3SXYchOA0oK3lFBLPsk1NbPMkUuT2dGCqbAeU1E3CEPA84ZK8cX8ENximcUotjP
-	cL60RZ6hshuARUjcgrbg1S3ADmonQ5cStu6oKHX3EGvhJO9FNv9wSN+6lsOErp4utotxU6/TBJe
-	z5/+QUIqt3l+wyUJkgXiVZitFBaKIz19b/Zwu9fkb9RKh9iWyVm2W47s5OXyY5E47f3osfLCxSr
-	akuq6mfXhwB6Ycp0P/cdVbX1L6CKz/0LaGlxdgke1O5tRc3i7aRJKKvC4olXqioVpNH0RJ3Bjva
-	hB0ioMHtus2p2ijrrD8HRBeD6sdgT66fefw9TDDCB83OF
-X-Google-Smtp-Source: AGHT+IHBy4UrMGQR1yYkfuJMaUYvDzhFtPB22WIAuCfuARWJ1t46+wmtSZsKiC0c4UszhVsBJTR0OQ==
-X-Received: by 2002:a17:902:e74e:b0:242:9bbc:c775 with SMTP id d9443c01a7336-245ef289b8emr17514135ad.56.1755660799773;
-        Tue, 19 Aug 2025 20:33:19 -0700 (PDT)
-Received: from hsinchu26.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-324e252ea41sm738430a91.9.2025.08.19.20.33.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Aug 2025 20:33:19 -0700 (PDT)
-From: Nick Hu <nick.hu@sifive.com>
-To: opensbi@lists.infradead.org
-Subject: [PATCH v4 11/11] platform: sifive: Add SiFive SMC0 driver
-Date: Wed, 20 Aug 2025 11:32:50 +0800
-Message-Id: <20250820033250.544-12-nick.hu@sifive.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20250820033250.544-1-nick.hu@sifive.com>
-References: <20250820033250.544-1-nick.hu@sifive.com>
+	Wed, 20 Aug 2025 04:03:48 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
+	MIME-Version; bh=Lq1MgYY01M4QHZREOSsZbd4LZ+mJ0PV1R6pVu4zYUgs=;
+	b=kKaJIiYyew/Jr5k/nJ2n9cpC/1f4YsO40ESX75c+iZZrqeCZMLu/FIGFUry4QS
+	7HBEmgW1OwR7IJaK200e481MRMfnI6ASGjChIA6fugvx4hq3j1oM9tMmuSyA4V9P
+	19wxuZJfcKQMi1RInWArJFxHdWzem2DSmheGtIIIQT0Ww=
+Received: from [127.0.0.1] (unknown [])
+	by gzga-smtp-mtada-g1-3 (Coremail) with SMTP id _____wDnb3AaSaVoHdgTCQ--.15228S2;
+	Wed, 20 Aug 2025 12:03:40 +0800 (CST)
+Message-ID: <7870307554f9366a85685402353ddd4cff83df46.camel@126.com>
+Subject: Re: [PATCH] lib: utils: fdt_helper: simplify
+ fdt_parse_isa_extensions() helper
+From: Xiang W <wxjstz@126.com>
+To: Yu-Chien Peter Lin <peter.lin@sifive.com>, opensbi@lists.infradead.org
+Cc: zong.li@sifive.com, greentime.hu@sifive.com
+Date: Wed, 20 Aug 2025 12:03:38 +0800
+In-Reply-To: <20250815024434.14303-1-peter.lin@sifive.com>
+References: <20250815024434.14303-1-peter.lin@sifive.com>
+Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
+ keydata=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
+User-Agent: Evolution 3.56.1-1 
+MIME-Version: 1.0
+X-CM-TRANSID: _____wDnb3AaSaVoHdgTCQ--.15228S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJF45ur18Wrykuw17Zr13urg_yoW7Jw4Up3
+	ZrKFWfKrs7tFy09ayqqw4DXr4xAwn2qw47trZ3t34SyF9xAr13Wr40kr109w17t348Xa1F
+	y39agF9ruFs8Xa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0z_4E_kUUUUU=
+X-Originating-IP: [153.35.240.208]
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbiFxivOmilQSAT2AABs8
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250819_203320_970586_68E1E653 
-X-CRM114-Status: GOOD (  26.28  )
+X-CRM114-CacheID: sfid-20250819_210347_348696_EB7D1B4F 
+X-CRM114-Status: GOOD (  15.69  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -91,563 +111,98 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Cc: vincent.chen@sifive.com, anup@brainfault.org, Nick Hu <nick.hu@sifive.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The SiFive SMC0 controls the clock and power domain of the core complex
-on the SiFive platform. The core complex enters the low power state
-after the secondary cores enter the tile power gating and last core
-execute the `CEASE` instruction with the corresponding SMC0
-configurations. The devices that inside both tile power domain and core
-complex power domain will be off, including caches and timer. Therefore
-we need to flush the last level cache before entering the core complex
-power gating and update the timer after waking up.
-
-Signed-off-by: Nick Hu <nick.hu@sifive.com>
-Reviewed-by: Cyan Yang <cyan.yang@sifive.com>
----
- include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h   |   3 +
- .../suspend/fdt_suspend_sifive_smc0.h         |  18 +
- lib/utils/hsm/fdt_hsm_sifive_tmc0.c           |  88 +++++
- lib/utils/suspend/Kconfig                     |   4 +
- lib/utils/suspend/fdt_suspend_sifive_smc0.c   | 323 ++++++++++++++++++
- lib/utils/suspend/objects.mk                  |   3 +
- platform/generic/configs/defconfig            |   1 +
- 7 files changed, 440 insertions(+)
- create mode 100644 include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h
- create mode 100644 lib/utils/suspend/fdt_suspend_sifive_smc0.c
-
-diff --git a/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h b/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
-index 4ba048b9..d370158a 100644
---- a/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
-+++ b/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
-@@ -9,6 +9,9 @@
- 
- #ifdef CONFIG_FDT_HSM_SIFIVE_TMC0
- int fdt_hsm_sifive_tmc0_cold_init(void);
-+int sifive_tmc0_set_wakemask_enareq(u32 hartid);
-+void sifive_tmc0_set_wakemask_disreq(u32 hartid);
-+bool sifive_tmc0_is_pg(u32 hartid);
- #else
- static inline int fdt_hsm_sifive_tmc0_cold_init(void) { return 0; }
- #endif
-diff --git a/include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h b/include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h
-new file mode 100644
-index 00000000..f092be52
---- /dev/null
-+++ b/include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h
-@@ -0,0 +1,18 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 SiFive Inc.
-+ */
-+
-+#ifndef __FDT_SUSPEND_SIFIVE_SMC0_H__
-+#define __FDT_SUSPEND_SIFIVE_SMC0_H__
-+
-+#ifdef CONFIG_FDT_SUSPEND_SIFIVE_SMC0
-+bool sifive_smc0_check_warm_reset(void);
-+void sifive_smc0_mtime_update(void);
-+#else
-+static inline bool sifive_smc0_check_warm_reset(void) { return false; }
-+static inline void sifive_smc0_mtime_update(void) { return; }
-+#endif
-+
-+#endif
-diff --git a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-index 83f86c88..4a13fd4d 100644
---- a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-+++ b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-@@ -20,6 +20,8 @@
- #include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
- #include <sbi_utils/hsm/fdt_hsm_sifive_tmc0.h>
- #include <sbi_utils/ipi/aclint_mswi.h>
-+#include <sbi_utils/irqchip/aplic.h>
-+#include <sbi_utils/suspend/fdt_suspend_sifive_smc0.h>
- 
- struct sifive_tmc0 {
- 	unsigned long reg;
-@@ -79,6 +81,73 @@ static unsigned long tmc0_offset;
- #define SIFIVE_TMC_WAKE_MASK_WREQ		BIT(31)
- #define SIFIVE_TMC_WAKE_MASK_ACK		BIT(30)
- 
-+int sifive_tmc0_set_wakemask_enareq(u32 hartid)
-+{
-+	struct sbi_scratch *scratch = sbi_hartid_to_scratch(hartid);
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(scratch);
-+	unsigned long addr;
-+	u32 v;
-+
-+	if (!tmc0)
-+		return SBI_ENODEV;
-+
-+	addr = tmc0->reg + SIFIVE_TMC_WAKE_MASK_OFF;
-+	v = readl((void *)addr);
-+	writel(v | SIFIVE_TMC_WAKE_MASK_WREQ, (void *)addr);
-+
-+	while (!(readl((void *)addr) & SIFIVE_TMC_WAKE_MASK_ACK));
-+
-+	return SBI_OK;
-+}
-+
-+void sifive_tmc0_set_wakemask_disreq(u32 hartid)
-+{
-+	struct sbi_scratch *scratch = sbi_hartid_to_scratch(hartid);
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(scratch);
-+	unsigned long addr;
-+	u32 v;
-+
-+	if (!tmc0)
-+		return;
-+
-+	addr = tmc0->reg + SIFIVE_TMC_WAKE_MASK_OFF;
-+	v = readl((void *)addr);
-+	writel(v & ~SIFIVE_TMC_WAKE_MASK_WREQ, (void *)addr);
-+
-+	while (readl((void *)addr) & SIFIVE_TMC_WAKE_MASK_ACK);
-+}
-+
-+bool sifive_tmc0_is_pg(u32 hartid)
-+{
-+	struct sbi_scratch *scratch = sbi_hartid_to_scratch(hartid);
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(scratch);
-+	unsigned long addr;
-+	u32 v;
-+
-+	if (!tmc0)
-+		return false;
-+
-+	addr = tmc0->reg + SIFIVE_TMC_PG_OFF;
-+	v = readl((void *)addr);
-+	if (!(v & SIFIVE_TMC_PG_ENA_ACK) ||
-+	    (v & SIFIVE_TMC_PG_ENARSP) ||
-+	    (v & SIFIVE_TMC_PG_DIS_REQ))
-+		return false;
-+
-+	return true;
-+}
-+
-+static bool sifive_tmc0_check_warm_reset(void)
-+{
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
-+	unsigned long addr = tmc0->reg + SIFIVE_TMC_PG_OFF;
-+
-+	if (!tmc0)
-+		return false;
-+
-+	return readl((void *)addr) & SIFIVE_TMC_PG_WARM_RESET ? true : false;
-+}
-+
- static void sifive_tmc0_set_resumepc(physical_addr_t addr)
- {
- 	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
-@@ -356,10 +425,29 @@ static int sifive_tmc0_stop(void)
- 	return SBI_OK;
- }
- 
-+static void sifive_pg_resume(void)
-+{
-+	/*
-+	 * To simplify the implementation, the SW won't clear the warm
-+	 * reset bit. If the system woken up from the Core Complex power
-+	 * gating, the warm reset bit of the TMC0 will be clear. Therefore
-+	 * we need to check the warm reset bit of the TMC0 first as the
-+	 * Tile power gating won't clear the warm reset bit of the SMC0.
-+	 */
-+	if (sifive_tmc0_check_warm_reset())
-+		return;
-+
-+	if (sifive_smc0_check_warm_reset()) {
-+		aplic_restore();
-+		sifive_smc0_mtime_update();
-+	}
-+}
-+
- static struct sbi_hsm_device tmc0_hsm_dev = {
- 	.name = "SiFive TMC0",
- 	.hart_start = sifive_tmc0_start,
- 	.hart_stop = sifive_tmc0_stop,
-+	.hart_resume = sifive_pg_resume,
- };
- 
- int fdt_hsm_sifive_tmc0_cold_init(void)
-diff --git a/lib/utils/suspend/Kconfig b/lib/utils/suspend/Kconfig
-index 2cbea75c..623e053f 100644
---- a/lib/utils/suspend/Kconfig
-+++ b/lib/utils/suspend/Kconfig
-@@ -14,6 +14,10 @@ config FDT_SUSPEND_RPMI
- 	depends on FDT_MAILBOX && RPMI_MAILBOX
- 	default n
- 
-+config FDT_SUSPEND_SIFIVE_SMC0
-+	bool "FDT SIFIVE SMC0 suspend driver"
-+	depends on FDT_HSM_SIFIVE_TMC0
-+	default n
- endif
- 
- endmenu
-diff --git a/lib/utils/suspend/fdt_suspend_sifive_smc0.c b/lib/utils/suspend/fdt_suspend_sifive_smc0.c
-new file mode 100644
-index 00000000..005486b4
---- /dev/null
-+++ b/lib/utils/suspend/fdt_suspend_sifive_smc0.c
-@@ -0,0 +1,323 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 SiFive
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/riscv_asm.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/sbi_timer.h>
-+#include <sbi_utils/cache/fdt_cmo_helper.h>
-+#include <sbi_utils/fdt/fdt_driver.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
-+#include <sbi_utils/hsm/fdt_hsm_sifive_tmc0.h>
-+#include <sbi_utils/suspend/fdt_suspend_sifive_smc0.h>
-+#include <sbi_utils/timer/aclint_mtimer.h>
-+
-+#define SIFIVE_SMC_PGPREP_OFF			0x0
-+#define SIFIVE_SMC_PG_OFF			0x4
-+#define SIFIVE_SMC_CCTIMER_OFF			0xc
-+#define SIFIVE_SMC_RESUMEPC_LO_OFF		0x10
-+#define SIFIVE_SMC_RESUMEPC_HI_OFF		0x14
-+#define SIFIVE_SMC_SYNC_PMC_OFF			0x24
-+#define SIFIVE_SMC_CYCLECOUNT_LO_OFF		0x28
-+#define SIFIVE_SMC_CYCLECOUNT_HI_OFF		0x2c
-+#define SIFIVE_SMC_WFI_UNCORE_CG_OFF		0x50
-+
-+#define SIFIVE_SMC_PGPREP_ENA_REQ		BIT(31)
-+#define SIFIVE_SMC_PGPREP_ENA_ACK		BIT(30)
-+#define SIFIVE_SMC_PGPREP_DIS_REQ		BIT(29)
-+#define SIFIVE_SMC_PGPREP_DIS_ACK		BIT(29)
-+#define SIFIVE_SMC_PGPREP_FRONTNOTQ		BIT(19)
-+#define SIFIVE_SMC_PGPREP_CLFPNOTQ		BIT(18)
-+#define SIFIVE_SMC_PGPREP_PMCENAERR		BIT(17)
-+#define SIFIVE_SMC_PGPREP_WAKE_DETECT		BIT(16)
-+#define SIFIVE_SMC_PGPREP_BUSERR		BIT(15)
-+#define SIFIVE_SMC_PGPREP_EARLY_ABORT		BIT(3)
-+#define SIFIVE_SMC_PGPREP_INTERNAL_ABORT	BIT(2)
-+#define SIFIVE_SMC_PGPREP_ENARSP		(SIFIVE_SMC_PGPREP_FRONTNOTQ | \
-+						 SIFIVE_SMC_PGPREP_CLFPNOTQ | \
-+						 SIFIVE_SMC_PGPREP_PMCENAERR | \
-+						 SIFIVE_SMC_PGPREP_WAKE_DETECT | \
-+						 SIFIVE_SMC_PGPREP_BUSERR)
-+
-+#define SIFIVE_SMC_PGPREP_ABORT			(SIFIVE_SMC_PGPREP_EARLY_ABORT | \
-+						 SIFIVE_SMC_PGPREP_INTERNAL_ABORT)
-+
-+#define SIFIVE_SMC_PG_ENA_REQ			BIT(31)
-+#define SIFIVE_SMC_PG_WARM_RESET		BIT(1)
-+
-+#define SIFIVE_SMC_SYNCPMC_SYNC_REQ		BIT(31)
-+#define SIFIVE_SMC_SYNCPMC_SYNC_WREQ		BIT(30)
-+#define SIFIVE_SMC_SYNCPMC_SYNC_ACK		BIT(29)
-+
-+static struct aclint_mtimer_data smc_sync_timer;
-+static unsigned long smc0_base;
-+
-+static void sifive_smc0_set_pmcsync(char regid, bool write_mode)
-+{
-+	unsigned long addr = smc0_base + SIFIVE_SMC_SYNC_PMC_OFF;
-+	u32 v = regid | SIFIVE_SMC_SYNCPMC_SYNC_REQ;
-+
-+	if (write_mode)
-+		v |= SIFIVE_SMC_SYNCPMC_SYNC_WREQ;
-+
-+	writel(v, (void *)addr);
-+	while (!(readl((void *)addr) & SIFIVE_SMC_SYNCPMC_SYNC_ACK));
-+}
-+
-+static u64 sifive_smc0_time_read(volatile u64 *addr)
-+{
-+	u32 lo, hi;
-+
-+	do {
-+		sifive_smc0_set_pmcsync(SIFIVE_SMC_CYCLECOUNT_LO_OFF, false);
-+		sifive_smc0_set_pmcsync(SIFIVE_SMC_CYCLECOUNT_HI_OFF, false);
-+		hi = readl_relaxed((u32 *)addr + 1);
-+		lo = readl_relaxed((u32 *)addr);
-+	} while (hi != readl_relaxed((u32 *)addr + 1));
-+
-+	return ((u64)hi << 32) | (u64)lo;
-+}
-+
-+static void sifive_smc0_set_resumepc(physical_addr_t raddr)
-+{
-+	/* Set resumepc_lo */
-+	writel((u32)raddr, (void *)(smc0_base + SIFIVE_SMC_RESUMEPC_LO_OFF));
-+	/* copy resumepc_lo from SMC to PMC */
-+	sifive_smc0_set_pmcsync(SIFIVE_SMC_RESUMEPC_LO_OFF, true);
-+#if __riscv_xlen > 32
-+	/* Set resumepc_hi */
-+	writel((u32)(raddr >> 32), (void *)(smc0_base + SIFIVE_SMC_RESUMEPC_HI_OFF));
-+	/* copy resumepc_hi from SMC to PMC */
-+	sifive_smc0_set_pmcsync(SIFIVE_SMC_RESUMEPC_HI_OFF, true);
-+#endif
-+}
-+
-+static u32 sifive_smc0_get_pgprep_enarsp(void)
-+{
-+	u32 v = readl((void *)(smc0_base + SIFIVE_SMC_PGPREP_OFF));
-+
-+	return v & SIFIVE_SMC_PGPREP_ENARSP;
-+}
-+
-+static void sifive_smc0_set_pgprep_disreq(void)
-+{
-+	unsigned long addr = smc0_base + SIFIVE_SMC_PGPREP_OFF;
-+	u32 v = readl((void *)addr);
-+
-+	writel(v | SIFIVE_SMC_PGPREP_DIS_REQ, (void *)addr);
-+	while (!(readl((void *)addr) & SIFIVE_SMC_PGPREP_DIS_ACK));
-+}
-+
-+static u32 sifive_smc0_set_pgprep_enareq(void)
-+{
-+	unsigned long addr = smc0_base + SIFIVE_SMC_PGPREP_OFF;
-+	u32 v = readl((void *)addr);
-+
-+	writel(v | SIFIVE_SMC_PGPREP_ENA_REQ, (void *)addr);
-+	while (!(readl((void *)addr) & SIFIVE_SMC_PGPREP_ENA_ACK));
-+
-+	v = readl((void *)addr);
-+
-+	return v & SIFIVE_SMC_PGPREP_ABORT;
-+}
-+
-+static void sifive_smc0_set_pg_enareq(void)
-+{
-+	unsigned long addr = smc0_base + SIFIVE_SMC_PG_OFF;
-+	u32 v = readl((void *)addr);
-+
-+	writel(v | SIFIVE_SMC_PG_ENA_REQ, (void *)addr);
-+}
-+
-+bool sifive_smc0_check_warm_reset(void)
-+{
-+	unsigned long addr = smc0_base + SIFIVE_SMC_PG_OFF;
-+
-+	if (!smc0_base)
-+		return false;
-+
-+	sifive_smc0_set_pmcsync(SIFIVE_SMC_PG_OFF, false);
-+
-+	return readl((void *)addr) & SIFIVE_SMC_PG_WARM_RESET ? true : false;
-+}
-+
-+static inline void sifive_smc0_set_cg(bool enable)
-+{
-+	unsigned long addr = smc0_base + SIFIVE_SMC_WFI_UNCORE_CG_OFF;
-+
-+	if (enable)
-+		writel(0, (void *)addr);
-+	else
-+		writel(1, (void *)addr);
-+}
-+
-+static int sifive_smc0_prep(void)
-+{
-+	const struct sbi_domain *dom = &root;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	unsigned long i;
-+	int rc;
-+	u32 target;
-+
-+	if (!smc0_base)
-+		return SBI_ENODEV;
-+
-+	/* Prevent all secondary tiles from waking up from PG state */
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-+		target = sbi_hartindex_to_hartid(i);
-+		if (target != current_hartid()) {
-+			rc = sifive_tmc0_set_wakemask_enareq(target);
-+			if (rc) {
-+				sbi_printf("Fail to enable wakemask for hart %d\n",
-+					   target);
-+				goto fail;
-+			}
-+		}
-+	}
-+
-+	/* Check if all secondary tiles enter PG state */
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-+		target = sbi_hartindex_to_hartid(i);
-+		if (target != current_hartid() &&
-+		    !sifive_tmc0_is_pg(target)) {
-+			sbi_printf("Hart %d not in the PG state\n", target);
-+			goto fail;
-+		}
-+	}
-+
-+	rc = sifive_smc0_set_pgprep_enareq();
-+	if (rc) {
-+		sbi_printf("SMC0 error: abort code: 0x%x\n", rc);
-+		goto fail;
-+	}
-+
-+	rc = sifive_smc0_get_pgprep_enarsp();
-+	if (rc) {
-+		sifive_smc0_set_pgprep_disreq();
-+		sbi_printf("SMC0 error: error response code: 0x%x\n", rc);
-+		goto fail;
-+	}
-+
-+	sifive_smc0_set_resumepc(scratch->warmboot_addr);
-+	return SBI_OK;
-+fail:
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-+		target = sbi_hartindex_to_hartid(i);
-+		if (target != current_hartid())
-+			sifive_tmc0_set_wakemask_disreq(target);
-+	}
-+
-+	return SBI_EFAIL;
-+}
-+
-+static int sifive_smc0_enter(void)
-+{
-+	const struct sbi_domain *dom = &root;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	unsigned long i;
-+	u32 target, rc;
-+
-+	/* Flush cache and check if there is wake detect or bus error */
-+	if (fdt_cmo_llc_flush_all() &&
-+	    sbi_hart_has_extension(scratch, SBI_HART_EXT_XSIFIVE_CFLUSH_D_L1))
-+		sifive_cflush();
-+
-+	rc = sifive_smc0_get_pgprep_enarsp();
-+	if (rc) {
-+		sbi_printf("SMC0 error: error response code: 0x%x\n", rc);
-+		rc = SBI_EFAIL;
-+		goto fail;
-+	}
-+
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XSIFIVE_CEASE)) {
-+		sifive_smc0_set_pg_enareq();
-+		while (1)
-+			sifive_cease();
-+	}
-+
-+	rc = SBI_ENOTSUPP;
-+fail:
-+	sifive_smc0_set_pgprep_disreq();
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
-+		target = sbi_hartindex_to_hartid(i);
-+		if (target != current_hartid())
-+			sifive_tmc0_set_wakemask_disreq(target);
-+	}
-+	return rc;
-+}
-+
-+static int sifive_smc0_pg(void)
-+{
-+	int rc;
-+
-+	rc = sifive_smc0_prep();
-+	if (rc)
-+		return rc;
-+
-+	return sifive_smc0_enter();
-+}
-+
-+static int sifive_smc0_system_suspend(u32 sleep_type, unsigned long addr)
-+{
-+	/* Disable the timer interrupt */
-+	sbi_timer_exit(sbi_scratch_thishart_ptr());
-+
-+	return sifive_smc0_pg();
-+}
-+
-+static int sifive_smc0_system_suspend_check(u32 sleep_type)
-+{
-+	return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND ? SBI_OK : SBI_EINVAL;
-+}
-+
-+static struct sbi_system_suspend_device smc0_sys_susp = {
-+	.name = "Sifive SMC0",
-+	.system_suspend_check = sifive_smc0_system_suspend_check,
-+	.system_suspend = sifive_smc0_system_suspend,
-+};
-+
-+void sifive_smc0_mtime_update(void)
-+{
-+	struct aclint_mtimer_data *mt = aclint_get_mtimer_data();
-+
-+	aclint_mtimer_update(mt, &smc_sync_timer);
-+}
-+
-+static int sifive_smc0_probe(const void *fdt, int nodeoff, const struct fdt_match *match)
-+{
-+	int rc;
-+	u64 addr;
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
-+	if (rc)
-+		return rc;
-+
-+	smc0_base = (unsigned long)addr;
-+	smc_sync_timer.time_rd = sifive_smc0_time_read;
-+	smc_sync_timer.mtime_addr = smc0_base + SIFIVE_SMC_CYCLECOUNT_LO_OFF;
-+
-+	sbi_system_suspend_set_device(&smc0_sys_susp);
-+	sifive_smc0_set_cg(true);
-+
-+	return SBI_OK;
-+}
-+
-+static const struct fdt_match sifive_smc0_match[] = {
-+	{ .compatible = "sifive,smc0" },
-+	{ },
-+};
-+
-+const struct fdt_driver fdt_suspend_sifive_smc0 = {
-+	.match_table = sifive_smc0_match,
-+	.init = sifive_smc0_probe,
-+};
-diff --git a/lib/utils/suspend/objects.mk b/lib/utils/suspend/objects.mk
-index 9c386248..1fb29b5e 100644
---- a/lib/utils/suspend/objects.mk
-+++ b/lib/utils/suspend/objects.mk
-@@ -9,3 +9,6 @@
- 
- carray-fdt_early_drivers-$(CONFIG_FDT_SUSPEND_RPMI) += fdt_suspend_rpmi
- libsbiutils-objs-$(CONFIG_FDT_SUSPEND_RPMI) += suspend/fdt_suspend_rpmi.o
-+
-+carray-fdt_early_drivers-$(CONFIG_FDT_SUSPEND_SIFIVE_SMC0) += fdt_suspend_sifive_smc0
-+libsbiutils-objs-$(CONFIG_FDT_SUSPEND_SIFIVE_SMC0) += suspend/fdt_suspend_sifive_smc0.o
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 837acd79..258988cc 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -55,6 +55,7 @@ CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
- CONFIG_SERIAL_SEMIHOSTING=y
- CONFIG_FDT_SUSPEND=y
- CONFIG_FDT_SUSPEND_RPMI=y
-+CONFIG_FDT_SUSPEND_SIFIVE_SMC0=y
- CONFIG_FDT_TIMER=y
- CONFIG_FDT_TIMER_MTIMER=y
- CONFIG_FDT_TIMER_PLMT=y
--- 
-2.17.1
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+5ZyoIDIwMjUtMDgtMTXkupTnmoQgMTA6NDQgKzA4MDDvvIxZdS1DaGllbiBQZXRlciBMaW7lhpnp
+gZPvvJoKPiBUaGUgZmR0X2lzYV9iaXRtYXAgd2FzIHByZXZpb3VzbHkgdXNlZCBhcyBhIHRlbXBv
+cmFyeSBhcnJheQo+IHRvIHN0b3JlIElTQSBleHRlbnNpb25zIHdoZW4gcGFyc2luZyBkZXZpY2Ut
+dHJlZS4KPiBUbyByZWR1Y2Ugc2NyYXRjaCBzcGFjZSBjb25zdW1wdGlvbiwgc2V0IHRoZSBJU0Eg
+Yml0bWFwCj4gZGlyZWN0bHkgaW4gaGZlYXR1cmUtPmV4dGVuc2lvbnMsIGFsbG93cyB1cyB0byBy
+ZW1vdmUgdGhlCj4gZmR0X3BhcnNlX2lzYV9hbGxfaGFydHMoKSBhcyBmZHRfcGFyc2VfaXNhX2V4
+dGVuc2lvbnMoKSBjYW4KPiBub3cgaGFuZGxlIHRoZSB0YXNrIGRpcmVjdGx5Lgo+IAo+IFRoaXMg
+Y2hhbmdlIG1ha2VzIHRoZSBoZWxwZXIgZnVuY3Rpb24gbW9yZSB2ZXJzYXRpbGUsIGV2ZW4KPiBi
+ZWZvcmUgc2NyYXRjaCBzcGFjZSBpcyBpbml0aWFsaXplZC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBZ
+dS1DaGllbiBQZXRlciBMaW4gPHBldGVyLmxpbkBzaWZpdmUuY29tPgpOQUNLCgpPcmlnaW5hbGx5
+LCB0aGUgZXh0ZW5zaW9ucyBwYXJzZWQgYnkgZmR0X3BhcnNlX2lzYV9leHRlbnNpb25zwqAKd2Vy
+ZSByZWxhdGVkIHRvIGhhcnRpZC4gQWZ0ZXIgdGhlIG1vZGlmaWNhdGlvbiwgaXQgd2lsbCBjb2xs
+ZWN0wqAKdGhlIGV4dGVuc2lvbnMgc3VwcG9ydGVkIGJ5IGFsbCB0aGUgSEFSVC4KClRvIHJlbW92
+ZSBmZHRfaXNhX2JpdG1hcF9vZmZzZXQsIGNhbGwgc2JpX2hhcnRfdXBkYXRlX2V4dGVuc2lvbsKg
+CmluIGZkdF9wYXJzZV9pc2FfZXh0ZW5zaW9uc19vbmVfaGFydC9mZHRfcGFyc2VfaXNhX29uZV9o
+YXJ0CgpSZWdhcmRzLApYaWFuZyBXCgo+IC0tLQo+IMKgaW5jbHVkZS9zYmlfdXRpbHMvZmR0L2Zk
+dF9oZWxwZXIuaCB8wqAgMyArLQo+IMKgbGliL3V0aWxzL2ZkdC9mZHRfaGVscGVyLmPCoMKgwqDC
+oMKgwqDCoMKgIHwgNDUgKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gwqBwbGF0Zm9y
+bS9nZW5lcmljL3BsYXRmb3JtLmPCoMKgwqDCoMKgwqDCoCB8wqAgMiArLQo+IMKgMyBmaWxlcyBj
+aGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDQ2IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQg
+YS9pbmNsdWRlL3NiaV91dGlscy9mZHQvZmR0X2hlbHBlci5oIGIvaW5jbHVkZS9zYmlfdXRpbHMv
+ZmR0L2ZkdF9oZWxwZXIuaAo+IGluZGV4IDA0Yzg1MGNjLi4yNGFkMWE5NCAxMDA2NDQKPiAtLS0g
+YS9pbmNsdWRlL3NiaV91dGlscy9mZHQvZmR0X2hlbHBlci5oCj4gKysrIGIvaW5jbHVkZS9zYmlf
+dXRpbHMvZmR0L2ZkdF9oZWxwZXIuaAo+IEBAIC01NCw4ICs1NCw3IEBAIGludCBmZHRfcGFyc2Vf
+Y2JvbV9ibG9ja19zaXplKGNvbnN0IHZvaWQgKmZkdCwgaW50IGNwdV9vZmZzZXQsIHVuc2lnbmVk
+IGxvbmfCoCAqYwo+IMKgCj4gwqBpbnQgZmR0X3BhcnNlX3RpbWViYXNlX2ZyZXF1ZW5jeShjb25z
+dCB2b2lkICpmZHQsIHVuc2lnbmVkIGxvbmcgKmZyZXEpOwo+IMKgCj4gLWludCBmZHRfcGFyc2Vf
+aXNhX2V4dGVuc2lvbnMoY29uc3Qgdm9pZCAqZmR0LCB1bnNpZ25lZCBpbnQgaGFydGlkLAo+IC0J
+CQnCoMKgwqDCoCB1bnNpZ25lZCBsb25nICpleHRlbnNpb25zKTsKPiAraW50IGZkdF9wYXJzZV9p
+c2FfZXh0ZW5zaW9ucyhjb25zdCB2b2lkICpmZHQsIHVuc2lnbmVkIGxvbmcgKmhhcnRfZXh0cyk7
+Cj4gwqAKPiDCoGludCBmZHRfcGFyc2VfZ2Fpc2xlcl91YXJ0X25vZGUoY29uc3Qgdm9pZCAqZmR0
+LCBpbnQgbm9kZW9mZnNldCwKPiDCoAkJCQlzdHJ1Y3QgcGxhdGZvcm1fdWFydF9kYXRhICp1YXJ0
+KTsKPiBkaWZmIC0tZ2l0IGEvbGliL3V0aWxzL2ZkdC9mZHRfaGVscGVyLmMgYi9saWIvdXRpbHMv
+ZmR0L2ZkdF9oZWxwZXIuYwo+IGluZGV4IDBmNDg1OWMxLi42MWE1OTYyYyAxMDA2NDQKPiAtLS0g
+YS9saWIvdXRpbHMvZmR0L2ZkdF9oZWxwZXIuYwo+ICsrKyBiL2xpYi91dGlscy9mZHQvZmR0X2hl
+bHBlci5jCj4gQEAgLTMyNCw4ICszMjQsNiBAQCBpbnQgZmR0X3BhcnNlX3RpbWViYXNlX2ZyZXF1
+ZW5jeShjb25zdCB2b2lkICpmZHQsIHVuc2lnbmVkIGxvbmcgKmZyZXEpCj4gwqAKPiDCoCNkZWZp
+bmUgUklTQ1ZfSVNBX0VYVF9OQU1FX0xFTl9NQVgJMzIKPiDCoAo+IC1zdGF0aWMgdW5zaWduZWQg
+bG9uZyBmZHRfaXNhX2JpdG1hcF9vZmZzZXQ7Cj4gLQo+IMKgc3RhdGljIGludCBmZHRfcGFyc2Vf
+aXNhX29uZV9oYXJ0KGNvbnN0IGNoYXIgKmlzYSwgdW5zaWduZWQgbG9uZyAqZXh0ZW5zaW9ucykK
+PiDCoHsKPiDCoAlzaXplX3QgaSwgaiwgaXNhX2xlbjsKPiBAQCAtNDA1LDE1ICs0MDMsMTMgQEAg
+c3RhdGljIHZvaWQgZmR0X3BhcnNlX2lzYV9leHRlbnNpb25zX29uZV9oYXJ0KGNvbnN0IGNoYXIg
+KmlzYSwKPiDCoAl9Cj4gwqB9Cj4gwqAKPiAtc3RhdGljIGludCBmZHRfcGFyc2VfaXNhX2FsbF9o
+YXJ0cyhjb25zdCB2b2lkICpmZHQpCj4gK2ludCBmZHRfcGFyc2VfaXNhX2V4dGVuc2lvbnMoY29u
+c3Qgdm9pZCAqZmR0LCB1bnNpZ25lZCBsb25nICpoYXJ0X2V4dHMpCj4gwqB7Cj4gwqAJdTMyIGhh
+cnRpZDsKPiDCoAljb25zdCBmZHQzMl90ICp2YWw7Cj4gLQl1bnNpZ25lZCBsb25nICpoYXJ0X2V4
+dHM7Cj4gLQlzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2g7Cj4gwqAJaW50IGVyciwgY3B1X29m
+ZnNldCwgY3B1c19vZmZzZXQsIGxlbjsKPiDCoAo+IC0JaWYgKCFmZHQgfHwgIWZkdF9pc2FfYml0
+bWFwX29mZnNldCkKPiArCWlmICghZmR0IHx8ICFoYXJ0X2V4dHMpCj4gwqAJCXJldHVybiBTQklf
+RUlOVkFMOwo+IMKgCj4gwqAJY3B1c19vZmZzZXQgPSBmZHRfcGF0aF9vZmZzZXQoZmR0LCAiL2Nw
+dXMiKTsKPiBAQCAtNDI4LDEzICs0MjQsNiBAQCBzdGF0aWMgaW50IGZkdF9wYXJzZV9pc2FfYWxs
+X2hhcnRzKGNvbnN0IHZvaWQgKmZkdCkKPiDCoAkJaWYgKCFmZHRfbm9kZV9pc19lbmFibGVkKGZk
+dCwgY3B1X29mZnNldCkpCj4gwqAJCQljb250aW51ZTsKPiDCoAo+IC0JCXNjcmF0Y2ggPSBzYmlf
+aGFydGlkX3RvX3NjcmF0Y2goaGFydGlkKTsKPiAtCQlpZiAoIXNjcmF0Y2gpCj4gLQkJCXJldHVy
+biBTQklfRU5PRU5UOwo+IC0KPiAtCQloYXJ0X2V4dHMgPSBzYmlfc2NyYXRjaF9vZmZzZXRfcHRy
+KHNjcmF0Y2gsCj4gLQkJCQkJCcKgwqAgZmR0X2lzYV9iaXRtYXBfb2Zmc2V0KTsKPiAtCj4gwqAJ
+CXZhbCA9IGZkdF9nZXRwcm9wKGZkdCwgY3B1X29mZnNldCwgInJpc2N2LGlzYS1leHRlbnNpb25z
+IiwgJmxlbik7Cj4gwqAJCWlmICh2YWwgJiYgbGVuID4gMCkgewo+IMKgCQkJZmR0X3BhcnNlX2lz
+YV9leHRlbnNpb25zX29uZV9oYXJ0KChjb25zdCBjaGFyICopdmFsLAo+IEBAIC00NTQsMzYgKzQ0
+Myw2IEBAIHN0YXRpYyBpbnQgZmR0X3BhcnNlX2lzYV9hbGxfaGFydHMoY29uc3Qgdm9pZCAqZmR0
+KQo+IMKgCXJldHVybiAwOwo+IMKgfQo+IMKgCj4gLWludCBmZHRfcGFyc2VfaXNhX2V4dGVuc2lv
+bnMoY29uc3Qgdm9pZCAqZmR0LCB1bnNpZ25lZCBpbnQgaGFydGlkLAo+IC0JCQl1bnNpZ25lZCBs
+b25nICpleHRlbnNpb25zKQo+IC17Cj4gLQlpbnQgcmMsIGk7Cj4gLQl1bnNpZ25lZCBsb25nICpo
+YXJ0X2V4dHM7Cj4gLQlzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2g7Cj4gLQo+IC0JaWYgKCFm
+ZHRfaXNhX2JpdG1hcF9vZmZzZXQpIHsKPiAtCQlmZHRfaXNhX2JpdG1hcF9vZmZzZXQgPSBzYmlf
+c2NyYXRjaF9hbGxvY19vZmZzZXQoCj4gLQkJCQkJc2l6ZW9mKCpoYXJ0X2V4dHMpICoKPiAtCQkJ
+CQlCSVRTX1RPX0xPTkdTKFNCSV9IQVJUX0VYVF9NQVgpKTsKPiAtCQlpZiAoIWZkdF9pc2FfYml0
+bWFwX29mZnNldCkKPiAtCQkJcmV0dXJuIFNCSV9FTk9NRU07Cj4gLQo+IC0JCXJjID0gZmR0X3Bh
+cnNlX2lzYV9hbGxfaGFydHMoZmR0KTsKPiAtCQlpZiAocmMpCj4gLQkJCXJldHVybiByYzsKPiAt
+CX0KPiAtCj4gLQlzY3JhdGNoID0gc2JpX2hhcnRpZF90b19zY3JhdGNoKGhhcnRpZCk7Cj4gLQlp
+ZiAoIXNjcmF0Y2gpCj4gLQkJcmV0dXJuIFNCSV9FTk9FTlQ7Cj4gLQo+IC0JaGFydF9leHRzID0g
+c2JpX3NjcmF0Y2hfb2Zmc2V0X3B0cihzY3JhdGNoLCBmZHRfaXNhX2JpdG1hcF9vZmZzZXQpOwo+
+IC0KPiAtCWZvciAoaSA9IDA7IGkgPCBCSVRTX1RPX0xPTkdTKFNCSV9IQVJUX0VYVF9NQVgpOyBp
+KyspCj4gLQkJZXh0ZW5zaW9uc1tpXSB8PSBoYXJ0X2V4dHNbaV07Cj4gLQlyZXR1cm4gMDsKPiAt
+fQo+IC0KPiDCoHN0YXRpYyBpbnQgZmR0X3BhcnNlX3VhcnRfbm9kZV9jb21tb24oY29uc3Qgdm9p
+ZCAqZmR0LCBpbnQgbm9kZW9mZnNldCwKPiDCoAkJCQnCoMKgwqDCoMKgIHN0cnVjdCBwbGF0Zm9y
+bV91YXJ0X2RhdGEgKnVhcnQsCj4gwqAJCQkJwqDCoMKgwqDCoCB1bnNpZ25lZCBsb25nIGRlZmF1
+bHRfZnJlcSwKPiBkaWZmIC0tZ2l0IGEvcGxhdGZvcm0vZ2VuZXJpYy9wbGF0Zm9ybS5jIGIvcGxh
+dGZvcm0vZ2VuZXJpYy9wbGF0Zm9ybS5jCj4gaW5kZXggNDdlNzcxYWQuLjJlOGM2MDUxIDEwMDY0
+NAo+IC0tLSBhL3BsYXRmb3JtL2dlbmVyaWMvcGxhdGZvcm0uYwo+ICsrKyBiL3BsYXRmb3JtL2dl
+bmVyaWMvcGxhdGZvcm0uYwo+IEBAIC0yNTEsNyArMjUxLDcgQEAgaW50IGdlbmVyaWNfZmluYWxf
+aW5pdChib29sIGNvbGRfYm9vdCkKPiDCoGludCBnZW5lcmljX2V4dGVuc2lvbnNfaW5pdChzdHJ1
+Y3Qgc2JpX2hhcnRfZmVhdHVyZXMgKmhmZWF0dXJlcykKPiDCoHsKPiDCoAkvKiBQYXJzZSB0aGUg
+SVNBIHN0cmluZyBmcm9tIEZEVCBhbmQgZW5hYmxlIHRoZSBsaXN0ZWQgZXh0ZW5zaW9ucyAqLwo+
+IC0JcmV0dXJuIGZkdF9wYXJzZV9pc2FfZXh0ZW5zaW9ucyhmZHRfZ2V0X2FkZHJlc3MoKSwgY3Vy
+cmVudF9oYXJ0aWQoKSwKPiArCXJldHVybiBmZHRfcGFyc2VfaXNhX2V4dGVuc2lvbnMoZmR0X2dl
+dF9hZGRyZXNzKCksCj4gwqAJCQkJCWhmZWF0dXJlcy0+ZXh0ZW5zaW9ucyk7Cj4gwqB9Cj4gwqAK
+PiAtLSAKPiAyLjQ4LjAKPiAKCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0
+cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
+Zm8vb3BlbnNiaQo=
