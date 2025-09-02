@@ -4,86 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 56D76CA1007
-	for <opensbi@archiver.kernel.org>; Tue,  2 Sep 2025 02:19:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 05057CA1007
+	for <opensbi@archiver.kernel.org>; Tue,  2 Sep 2025 02:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
 	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=z88afM/3JgUbCv4+Szb0fAGGs1b0FY6UC+x83BNzQLY=; b=Y7x5FM2F5iRinQ
-	tw5s2Th6Hj6TrvnkH9gWQlrIaFX4oKPZzalGm53XKA38YRF3pDC+rWh8oMoJAuuTpjcbqgqVafDfD
-	pPc5yFpqF+8UZxGIngbabJ8UefI5wujNsWR5SN9qJKu7YcUTxghTlBZR6wHzFzN3VxiUpuVouwYIn
-	l1ZZ2EpuqLakDLEO5MA4I6XaQv6vL6EyLKNvKhbn7NSGlBkl4GYCNqVd2einF2RFmIWOW4McwHnVh
-	jsaAmgf0HCcb2SB76Xrp/z5zWRdxN+88dOEK6W1oAn7IF3n+TSwj5TU1YQN8mAQUKLj7MDkdUf3Xc
-	zSYkfc7TXGDQpHBI7yTw==;
+	List-Owner; bh=PaVVRvsyJJq3/k9/9e6Ia8oOkZRUUpO67HBukEiimvo=; b=eGC6tZazscDoTp
+	LJz1eqnlRPrh+aQEdemsoLqTY+dMS1ynA3+f0aaAAABVo81XdbFbHFJU7QbbmUEWqP/F11fKK3IAw
+	nExqGWJphe690bmIXZ7L0Qm25XBsBf4EF9kUVBib2VjsuXLt2KlrvRaBI+BfVbxzGxAT39LecB9t0
+	CXbT+mmD5ROUIgY1YTGWVrPAkQSdRXHDcg5ZmFgBp6sCOsjo/f5DWTdxUZ+8Y11uQ8RZ6tkq5Hxn/
+	eX9XoFEcsggQsRECHXJTm3Opn98YXlcp4ItXnvAjzkboUpGF/0nRnsncvOXr+4D+ku7CNccbcryXc
+	YsFSbtguNfAhyQmBvfGw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1utGbz-0000000Epg4-0LAk;
-	Tue, 02 Sep 2025 02:19:07 +0000
-Received: from mail-pg1-x52c.google.com ([2607:f8b0:4864:20::52c])
+	id 1utGc1-0000000EpiB-1mJM;
+	Tue, 02 Sep 2025 02:19:09 +0000
+Received: from mail-pl1-x62d.google.com ([2607:f8b0:4864:20::62d])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1utGbw-0000000Epdy-29jn
+	id 1utGbz-0000000EpgR-2QLN
 	for opensbi@lists.infradead.org;
-	Tue, 02 Sep 2025 02:19:05 +0000
-Received: by mail-pg1-x52c.google.com with SMTP id 41be03b00d2f7-b49cf1d4f6fso3348347a12.3
-        for <opensbi@lists.infradead.org>; Mon, 01 Sep 2025 19:19:04 -0700 (PDT)
+	Tue, 02 Sep 2025 02:19:08 +0000
+Received: by mail-pl1-x62d.google.com with SMTP id d9443c01a7336-248ff5cabe0so24119225ad.0
+        for <opensbi@lists.infradead.org>; Mon, 01 Sep 2025 19:19:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1756779543; x=1757384343; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1756779547; x=1757384347; darn=lists.infradead.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=xdQj9Zi2kQt6Z2mPApB++4LsdIO1QbCB2Odpv4YE3VM=;
-        b=l+gNq/WMkdW9f4Tm31RKKYTXrBSlriS0bVs/RQCzH/ILTvsE4awdH5cRv5UDwSHnIU
-         EAuxh6MIbFqrqt2ub7MmKaHguz3fuZ8+mtU0mJrXDe49OCLLzlIRIk1R3sdt3NreRp84
-         PxsbcysnsLOG69nTFLxHDYlBTwPgqZxOIvtYYV5Qa+JrJs5jWihPs0pkq5W8P1+5A6S5
-         Sl2cUvk6DDEpcXID1S9HH3fvND68mIT9C9fC6jLocf4vTfIgwupR98pmeoGPN9V4vIZK
-         vhobCjw/z/QW8yj7bF2P0BBIXc/zJY10CDQr3tJ9JHWhSo5/5RJh0RU0vOj1k1MAycGI
-         a70A==
+        bh=5DElJWRx4mkDDHBFG5RBhwgkc093Hdm+wxXSDozLlD8=;
+        b=ZOfpfHMmpUTiY1/HCyWoCUI95qxTvNezMST3c9E04AemrcUe9UJ4ySh33ZOgNtm2WK
+         l7gComKY7gFXVpzokqRzf0ICiHDim1z0/oBDb9Jb2fwHCBwpZvyB2nL6D0DmGcJoS6a9
+         FaXC1CCo/eMwlu4haAZ+QE2LKAer6Kzx7VSiL6riJuFbCghUSC4TQ1xUnUWipXhSFYqN
+         vu3hDG5SeDJwT/fqgBksSwSSFsSpgNb2FViSV3BO3lxDHzSNvF4gbnrvAes5XXZQ0DrP
+         LfRxcS/T0LqWp50HhF0AHdB75CnZHAVPezzKsj6cCsImTZevHtuxjzwz4k5s8FYlPyci
+         Bzmw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756779543; x=1757384343;
+        d=1e100.net; s=20230601; t=1756779547; x=1757384347;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=xdQj9Zi2kQt6Z2mPApB++4LsdIO1QbCB2Odpv4YE3VM=;
-        b=R2kx9AXVfLlMpnGLGX+w1sKOWX6ntQiE8mpUdygTxuYdO2e/4RWxbly6XaTmJkBCKL
-         NOwvKNITbOnHIU3zliZsYzhH7isxKoC5mwyJ35o5V5Ed4Bf8nSid2OQ/y8LOwxLuyo2G
-         Jzt6xWdFZTSOyOMviIuSX8dxDI/WmxqAYbK97WZ1AukQTa4QnIcgUGyTLHZ65RM7NevP
-         M0gfmTNoIG3Wc5IZUeD6VjOHSmD7kE7SnhipKupsVb4WUoxD8jYA2CedoTRt4CXMru54
-         iHYuhqWpHN2cVAc88EbH25B4ybC5+imJhfhh8riBiI12tfnWNm1W9E4INXOH2XiO61iT
-         w/Tw==
-X-Gm-Message-State: AOJu0Yzx0nj/JDWvy6TUW0k1Kow0XBbAU5ALu5119YCR1iE5/lqtaVSv
-	+G96nwxyuLcvGmR1/PUoNLv4po/4+RyYawW08r72oNUmpgUIeIpKN4YCMocz7Yfqll8sGDkiC2q
-	DAMmVPWxiA3tUJPn8Bb6BxSkHe9EAd8Ua3RDLDDOZqRwf5W6B79hUMevHJzuADeaAwoew7W4FcK
-	4NjiR6JNjalsry6C0Q/F8pqC2gmFDOmLVMqXxeESC9t1PTLA==
-X-Gm-Gg: ASbGncu62UFo2YTEzcfKBN0UGhNyWW6pKGDkG36cYMlQHAGpZUbqNgjExnDwsxlw3J5
-	POj8f37d3grtqJ0j/WHlP1irGhs3eBvnjNWQQaYIWfqRTxbaljeNTRtM2BBWy/WYz8UnqsX+QzR
-	7YT66NdjgzwAfDQgSAK8jIEd7QBEyBrP/vcC8IcN+9ykPrOUuynO/hfgAtnuhawaz7Mch0JfEWd
-	g8e2/c+vZv+Gg1BMivepZvAJV7ZgEh21+H20wbualMtO9Iu0o1iTA3H3E5BaBJKYETCrvwIem6X
-	ygCcp25tJ1ZfWSOXWwrtpg6S9P7+PvK8I4e6RGCClaPY1BDCCYpGF7USknyi1Z42PdstwXhm6Sc
-	UsBqTy8Z8VcD8pkci11zw
-X-Google-Smtp-Source: AGHT+IErL+Ll8g9GvVsa3i9GC1U/eQ01zxORYuRab8D1/CX2RZhp4O7gDvHgkQuwNMmcGa+lHZlC+A==
-X-Received: by 2002:a17:902:ce03:b0:248:cd0b:3454 with SMTP id d9443c01a7336-24944873445mr115794565ad.9.1756779543295;
-        Mon, 01 Sep 2025 19:19:03 -0700 (PDT)
+        bh=5DElJWRx4mkDDHBFG5RBhwgkc093Hdm+wxXSDozLlD8=;
+        b=kOj595NSiAtbJYqsnzw2icq/f1NkLrjSIJwBVf817q9a8l3f8s1wbl9+7sqqbVHukr
+         YryJoPmwXveKreqz3VMJ9LuapEG4oxkBLszzCodi40980FkHgh3MpGmuscJNf9d4fHa6
+         OriEsSLDiSoSHP2r4hNW0wHI3s5hi8iwhp59HMdAyNfYqoxlnLkKh9+Q71zjgE1V+7Ft
+         q6ox+zWBaaCShgxbiuTeBgAVJtOEyaO5SuxmUQr3B6hoPyGG4j/YrwlRrd+WdXOgE1QN
+         uzfHcZmYBRuOIQgSF/sJwn0DjWwN7uW7J2NUAqxIGo5xh6g1og4SiOIpTkjOy5jNTuob
+         I+Fw==
+X-Gm-Message-State: AOJu0YyjzXfh7m39rs/OKPChcGN6oujZ1hQ3hMQvDB2gSNYxE0PcsYtj
+	8955GCHjSwwOnh3bStn9/baBOGDBEh9330mIttmUL9Ns5Q14F2jhAfKnY+q2V7RV7o4SumQs9UR
+	mELsPby+aFA5BqGIdMQIFF2/46S5ZRDmfd1UoXECUZdSOTwbnj+8PhLzUqM1wDL1ndBuHkluGf8
+	k9CMEnL6WXdbNO1BnOyYpXLhcKwMHKkdbuWPO/NpoPP2QXXQ==
+X-Gm-Gg: ASbGnctpofraN8Kz5CYiIQiMZiXA9Mnd1k5VH9nkgyQ02s1ZL+2I4sge2IeUs7J1v8K
+	jHxg3NUeff86riOTZxQNm5otVFCOQB4kCXUl8Y4SlS6FwfmzFL5qwN5k8/BpBtrDATnQXGPXKag
+	Fl3IueZ0Fi5lMkBbprDtz5rrjOLmp/Luf2o101SIozLCq+B7shpy2Vu9i79ejSUn0YOCMK5LwXj
+	eElrmtercwzPR+O9AgcHCpt3+3kjY//bpve6wo0nulSpGEQj7h2GyxWczUyIH2fSU/ioyN9v+zH
+	nSrfXi/qdr3ii4rbIeqCIW4lDcRhMBWA/6+2hF8G0Eh6lhgezX08kyFPBAmBCd95sA6U2u1yAd8
+	nXlj4jtVuPzsM89KVOJexBhwM5XndCMk=
+X-Google-Smtp-Source: AGHT+IFFXh0OTmDoceiQdC+MikrVPltLaf+pLo+NQGf7tBLRFe3hJ1/TqVofflyJVYmaXWDTgh72Rg==
+X-Received: by 2002:a17:903:98f:b0:248:79d4:93b3 with SMTP id d9443c01a7336-24944b29e4dmr129011675ad.59.1756779546326;
+        Mon, 01 Sep 2025 19:19:06 -0700 (PDT)
 Received: from [127.0.1.1] ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-24903755851sm116316745ad.56.2025.09.01.19.19.02
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-24903755851sm116316745ad.56.2025.09.01.19.19.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Sep 2025 19:19:02 -0700 (PDT)
+        Mon, 01 Sep 2025 19:19:05 -0700 (PDT)
 From: Nick Hu <nick.hu@sifive.com>
-Date: Tue, 02 Sep 2025 10:24:48 +0800
-Subject: [PATCH v5 09/11] platform: sifive: Add SiFive TMC0 driver
+Date: Tue, 02 Sep 2025 10:24:50 +0800
+Subject: [PATCH v5 11/11] platform: sifive: Add SiFive SMC0 driver
 MIME-Version: 1.0
-Message-Id: <20250902-cache-upstream-v5-9-af60a067f47a@sifive.com>
+Message-Id: <20250902-cache-upstream-v5-11-af60a067f47a@sifive.com>
 References: <20250902-cache-upstream-v5-0-af60a067f47a@sifive.com>
 In-Reply-To: <20250902-cache-upstream-v5-0-af60a067f47a@sifive.com>
 To: opensbi@lists.infradead.org
-Cc: Vincent Chen <vincent.chen@sifive.com>, 
- Cyan Yang <cyan.yang@sifive.com>, Nick Hu <nick.hu@sifive.com>
+Cc: Cyan Yang <cyan.yang@sifive.com>, Anup Patel <anup@brainfault.org>, 
+ Nick Hu <nick.hu@sifive.com>
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250901_191904_568894_D78B160E 
-X-CRM114-Status: GOOD (  21.63  )
+X-CRM114-CacheID: sfid-20250901_191907_634881_BFB69CED 
+X-CRM114-Status: GOOD (  24.61  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -100,98 +100,204 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The SiFive TMC0 controls the tile power domains on SiFive platform. The
-CPU enters the low power state via the `CEASE` instruction after
-configuring the TMC0. Any devices that inside the tile power domain will
-be power gated, including the private cache. Therefore flushing the
-private cache before entering the low power state.
+The SiFive SMC0 controls the clock and power domain of the core complex
+on the SiFive platform. The core complex enters the low power state
+after the secondary cores enter the tile power gating and last core
+execute the `CEASE` instruction with the corresponding SMC0
+configurations. The devices that inside both tile power domain and core
+complex power domain will be off, including caches and timer. Therefore
+we need to flush the last level cache before entering the core complex
+power gating and update the timer after waking up.
 
-Co-developed-by: Vincent Chen <vincent.chen@sifive.com>
-Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
 Reviewed-by: Cyan Yang <cyan.yang@sifive.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 Signed-off-by: Nick Hu <nick.hu@sifive.com>
 ---
- include/sbi_utils/hsm/fdt_hsm_sifive_inst.h   |  20 ++
- include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h   |  16 ++
- lib/utils/hsm/Kconfig                         |   5 +
- lib/utils/hsm/fdt_hsm_sifive_tmc0.c           | 317 ++++++++++++++++++++++++++
- lib/utils/hsm/objects.mk                      |   3 +
- platform/generic/Kconfig                      |   5 +
- platform/generic/configs/defconfig            |   2 +
- platform/generic/sifive/objects.mk            |   3 +
- platform/generic/sifive/sifive_dev_platform.c |  39 ++++
- 9 files changed, 410 insertions(+)
+ include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h        |   3 +
+ .../sbi_utils/suspend/fdt_suspend_sifive_smc0.h    |  18 ++
+ lib/utils/hsm/fdt_hsm_sifive_tmc0.c                |  88 ++++++
+ lib/utils/suspend/Kconfig                          |   4 +
+ lib/utils/suspend/fdt_suspend_sifive_smc0.c        | 323 +++++++++++++++++++++
+ lib/utils/suspend/objects.mk                       |   3 +
+ platform/generic/configs/defconfig                 |   1 +
+ 7 files changed, 440 insertions(+)
 
-diff --git a/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h b/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h
-new file mode 100644
-index 0000000000000000000000000000000000000000..de8aba190fd782e497e6f71662e734fac7b076fe
---- /dev/null
-+++ b/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h
-@@ -0,0 +1,20 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 SiFive Inc.
-+ */
-+
-+#ifndef __FDT_HSM_SIFIVE_INST_H__
-+#define __FDT_HSM_SIFIVE_INST_H__
-+
-+static inline void sifive_cease(void)
-+{
-+	__asm__ __volatile__(".insn 0x30500073" ::: "memory");
-+}
-+
-+static inline void sifive_cflush(void)
-+{
-+	__asm__ __volatile__(".insn 0xfc000073" ::: "memory");
-+}
-+
-+#endif
 diff --git a/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h b/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
-new file mode 100644
-index 0000000000000000000000000000000000000000..4ba048b92541ae0e303a0bdc6a018cbd88555683
---- /dev/null
+index 4ba048b92541ae0e303a0bdc6a018cbd88555683..d370158a57132102274eb3f87b057700d2eb6247 100644
+--- a/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
 +++ b/include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
-@@ -0,0 +1,16 @@
+@@ -9,6 +9,9 @@
+ 
+ #ifdef CONFIG_FDT_HSM_SIFIVE_TMC0
+ int fdt_hsm_sifive_tmc0_cold_init(void);
++int sifive_tmc0_set_wakemask_enareq(u32 hartid);
++void sifive_tmc0_set_wakemask_disreq(u32 hartid);
++bool sifive_tmc0_is_pg(u32 hartid);
+ #else
+ static inline int fdt_hsm_sifive_tmc0_cold_init(void) { return 0; }
+ #endif
+diff --git a/include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h b/include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..f092be529ccd5e316a97051235ea400ae9447ea7
+--- /dev/null
++++ b/include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h
+@@ -0,0 +1,18 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2025 SiFive Inc.
 + */
 +
-+#ifndef __FDT_HSM_SIFIVE_TMC0_H__
-+#define __FDT_HSM_SIFIVE_TMC0_H__
++#ifndef __FDT_SUSPEND_SIFIVE_SMC0_H__
++#define __FDT_SUSPEND_SIFIVE_SMC0_H__
 +
-+#ifdef CONFIG_FDT_HSM_SIFIVE_TMC0
-+int fdt_hsm_sifive_tmc0_cold_init(void);
++#ifdef CONFIG_FDT_SUSPEND_SIFIVE_SMC0
++bool sifive_smc0_check_warm_reset(void);
++void sifive_smc0_mtime_update(void);
 +#else
-+static inline int fdt_hsm_sifive_tmc0_cold_init(void) { return 0; }
++static inline bool sifive_smc0_check_warm_reset(void) { return false; }
++static inline void sifive_smc0_mtime_update(void) { return; }
 +#endif
 +
 +#endif
-diff --git a/lib/utils/hsm/Kconfig b/lib/utils/hsm/Kconfig
-index 1ad7958fb582a3ee561dfaec4afd738054b58906..3e6f8909e1f0a76b71ad12623dacabce270098ad 100644
---- a/lib/utils/hsm/Kconfig
-+++ b/lib/utils/hsm/Kconfig
-@@ -14,6 +14,11 @@ config FDT_HSM_RPMI
+diff --git a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
+index c57fbed0a1ebd1275327a72aa67babcbdeeb021d..e55f37f135555895f8fc3a9b1a17ae3b6e33b69f 100644
+--- a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
++++ b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
+@@ -20,6 +20,8 @@
+ #include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
+ #include <sbi_utils/hsm/fdt_hsm_sifive_tmc0.h>
+ #include <sbi_utils/ipi/aclint_mswi.h>
++#include <sbi_utils/irqchip/aplic.h>
++#include <sbi_utils/suspend/fdt_suspend_sifive_smc0.h>
+ 
+ struct sifive_tmc0 {
+ 	unsigned long reg;
+@@ -79,6 +81,73 @@ static unsigned long tmc0_offset;
+ #define SIFIVE_TMC_WAKE_MASK_WREQ		BIT(31)
+ #define SIFIVE_TMC_WAKE_MASK_ACK		BIT(30)
+ 
++int sifive_tmc0_set_wakemask_enareq(u32 hartid)
++{
++	struct sbi_scratch *scratch = sbi_hartid_to_scratch(hartid);
++	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(scratch);
++	unsigned long addr;
++	u32 v;
++
++	if (!tmc0)
++		return SBI_ENODEV;
++
++	addr = tmc0->reg + SIFIVE_TMC_WAKE_MASK_OFF;
++	v = readl((void *)addr);
++	writel(v | SIFIVE_TMC_WAKE_MASK_WREQ, (void *)addr);
++
++	while (!(readl((void *)addr) & SIFIVE_TMC_WAKE_MASK_ACK));
++
++	return SBI_OK;
++}
++
++void sifive_tmc0_set_wakemask_disreq(u32 hartid)
++{
++	struct sbi_scratch *scratch = sbi_hartid_to_scratch(hartid);
++	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(scratch);
++	unsigned long addr;
++	u32 v;
++
++	if (!tmc0)
++		return;
++
++	addr = tmc0->reg + SIFIVE_TMC_WAKE_MASK_OFF;
++	v = readl((void *)addr);
++	writel(v & ~SIFIVE_TMC_WAKE_MASK_WREQ, (void *)addr);
++
++	while (readl((void *)addr) & SIFIVE_TMC_WAKE_MASK_ACK);
++}
++
++bool sifive_tmc0_is_pg(u32 hartid)
++{
++	struct sbi_scratch *scratch = sbi_hartid_to_scratch(hartid);
++	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(scratch);
++	unsigned long addr;
++	u32 v;
++
++	if (!tmc0)
++		return false;
++
++	addr = tmc0->reg + SIFIVE_TMC_PG_OFF;
++	v = readl((void *)addr);
++	if (!(v & SIFIVE_TMC_PG_ENA_ACK) ||
++	    (v & SIFIVE_TMC_PG_ENARSP) ||
++	    (v & SIFIVE_TMC_PG_DIS_REQ))
++		return false;
++
++	return true;
++}
++
++static bool sifive_tmc0_check_warm_reset(void)
++{
++	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
++	unsigned long addr = tmc0->reg + SIFIVE_TMC_PG_OFF;
++
++	if (!tmc0)
++		return false;
++
++	return readl((void *)addr) & SIFIVE_TMC_PG_WARM_RESET ? true : false;
++}
++
+ static void sifive_tmc0_set_resumepc(physical_addr_t addr)
+ {
+ 	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
+@@ -230,10 +299,29 @@ static int sifive_tmc0_stop(void)
+ 	return SBI_OK;
+ }
+ 
++static void sifive_pg_resume(void)
++{
++	/*
++	 * To simplify the implementation, the SW won't clear the warm
++	 * reset bit. If the system woken up from the Core Complex power
++	 * gating, the warm reset bit of the TMC0 will be clear. Therefore
++	 * we need to check the warm reset bit of the TMC0 first as the
++	 * Tile power gating won't clear the warm reset bit of the SMC0.
++	 */
++	if (sifive_tmc0_check_warm_reset())
++		return;
++
++	if (sifive_smc0_check_warm_reset()) {
++		aplic_restore();
++		sifive_smc0_mtime_update();
++	}
++}
++
+ static struct sbi_hsm_device tmc0_hsm_dev = {
+ 	.name = "SiFive TMC0",
+ 	.hart_start = sifive_tmc0_start,
+ 	.hart_stop = sifive_tmc0_stop,
++	.hart_resume = sifive_pg_resume,
+ };
+ 
+ static int sifive_tmc0_bind_cpu(struct sifive_tmc0 *tmc0)
+diff --git a/lib/utils/suspend/Kconfig b/lib/utils/suspend/Kconfig
+index 2cbea75c265fa1995c7ee7a5f5f9e0b7369418fc..623e053f280e0a3daec1c0b1e104e9cc35fc55ea 100644
+--- a/lib/utils/suspend/Kconfig
++++ b/lib/utils/suspend/Kconfig
+@@ -14,6 +14,10 @@ config FDT_SUSPEND_RPMI
  	depends on FDT_MAILBOX && RPMI_MAILBOX
  	default n
  
-+config FDT_HSM_SIFIVE_TMC0
-+	bool "FDT SiFive TMC v0 driver"
-+	depends on PLATFORM_SIFIVE_DEV
++config FDT_SUSPEND_SIFIVE_SMC0
++	bool "FDT SIFIVE SMC0 suspend driver"
++	depends on FDT_HSM_SIFIVE_TMC0
 +	default n
-+
  endif
  
  endmenu
-diff --git a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
+diff --git a/lib/utils/suspend/fdt_suspend_sifive_smc0.c b/lib/utils/suspend/fdt_suspend_sifive_smc0.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..c57fbed0a1ebd1275327a72aa67babcbdeeb021d
+index 0000000000000000000000000000000000000000..005486b44f80ac85a908250ad024f687cf996b78
 --- /dev/null
-+++ b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-@@ -0,0 +1,317 @@
++++ b/lib/utils/suspend/fdt_suspend_sifive_smc0.c
+@@ -0,0 +1,323 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -201,421 +307,343 @@ index 0000000000000000000000000000000000000000..c57fbed0a1ebd1275327a72aa67babcb
 +#include <libfdt.h>
 +#include <sbi/riscv_asm.h>
 +#include <sbi/riscv_io.h>
-+#include <sbi/sbi_bitops.h>
 +#include <sbi/sbi_console.h>
++#include <sbi/sbi_domain.h>
 +#include <sbi/sbi_error.h>
 +#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_heap.h>
 +#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_ipi.h>
++#include <sbi/sbi_system.h>
++#include <sbi/sbi_timer.h>
 +#include <sbi_utils/cache/fdt_cmo_helper.h>
 +#include <sbi_utils/fdt/fdt_driver.h>
 +#include <sbi_utils/fdt/fdt_helper.h>
 +#include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
 +#include <sbi_utils/hsm/fdt_hsm_sifive_tmc0.h>
-+#include <sbi_utils/ipi/aclint_mswi.h>
++#include <sbi_utils/suspend/fdt_suspend_sifive_smc0.h>
++#include <sbi_utils/timer/aclint_mtimer.h>
 +
-+struct sifive_tmc0 {
-+	unsigned long reg;
-+	struct sbi_dlist node;
-+	u32 id;
-+};
++#define SIFIVE_SMC_PGPREP_OFF			0x0
++#define SIFIVE_SMC_PG_OFF			0x4
++#define SIFIVE_SMC_CCTIMER_OFF			0xc
++#define SIFIVE_SMC_RESUMEPC_LO_OFF		0x10
++#define SIFIVE_SMC_RESUMEPC_HI_OFF		0x14
++#define SIFIVE_SMC_SYNC_PMC_OFF			0x24
++#define SIFIVE_SMC_CYCLECOUNT_LO_OFF		0x28
++#define SIFIVE_SMC_CYCLECOUNT_HI_OFF		0x2c
++#define SIFIVE_SMC_WFI_UNCORE_CG_OFF		0x50
 +
-+static SBI_LIST_HEAD(tmc0_list);
-+static unsigned long tmc0_offset;
++#define SIFIVE_SMC_PGPREP_ENA_REQ		BIT(31)
++#define SIFIVE_SMC_PGPREP_ENA_ACK		BIT(30)
++#define SIFIVE_SMC_PGPREP_DIS_REQ		BIT(29)
++#define SIFIVE_SMC_PGPREP_DIS_ACK		BIT(29)
++#define SIFIVE_SMC_PGPREP_FRONTNOTQ		BIT(19)
++#define SIFIVE_SMC_PGPREP_CLFPNOTQ		BIT(18)
++#define SIFIVE_SMC_PGPREP_PMCENAERR		BIT(17)
++#define SIFIVE_SMC_PGPREP_WAKE_DETECT		BIT(16)
++#define SIFIVE_SMC_PGPREP_BUSERR		BIT(15)
++#define SIFIVE_SMC_PGPREP_EARLY_ABORT		BIT(3)
++#define SIFIVE_SMC_PGPREP_INTERNAL_ABORT	BIT(2)
++#define SIFIVE_SMC_PGPREP_ENARSP		(SIFIVE_SMC_PGPREP_FRONTNOTQ | \
++						 SIFIVE_SMC_PGPREP_CLFPNOTQ | \
++						 SIFIVE_SMC_PGPREP_PMCENAERR | \
++						 SIFIVE_SMC_PGPREP_WAKE_DETECT | \
++						 SIFIVE_SMC_PGPREP_BUSERR)
 +
-+#define tmc0_ptr_get(__scratch)				\
-+	sbi_scratch_read_type((__scratch), struct sifive_tmc0 *, tmc0_offset)
++#define SIFIVE_SMC_PGPREP_ABORT			(SIFIVE_SMC_PGPREP_EARLY_ABORT | \
++						 SIFIVE_SMC_PGPREP_INTERNAL_ABORT)
 +
-+#define tmc0_ptr_set(__scratch, __tmc0)			\
-+	sbi_scratch_write_type((__scratch), struct sifive_tmc0 *, tmc0_offset, (__tmc0))
++#define SIFIVE_SMC_PG_ENA_REQ			BIT(31)
++#define SIFIVE_SMC_PG_WARM_RESET		BIT(1)
 +
-+/* TMC.PGPREP */
-+#define SIFIVE_TMC_PGPREP_OFF			0x0
-+#define SIFIVE_TMC_PGPREP_ENA_REQ		BIT(31)
-+#define SIFIVE_TMC_PGPREP_ENA_ACK		BIT(30)
-+#define SIFIVE_TMC_PGPREP_DIS_REQ		BIT(29)
-+#define SIFIVE_TMC_PGPREP_DIS_ACK		BIT(28)
-+#define SIFIVE_TMC_PGPREP_CLFPNOTQ		BIT(18)
-+#define SIFIVE_TMC_PGPREP_PMCENAERR		BIT(17)
-+#define SIFIVE_TMC_PGPREP_PMCDENY		BIT(16)
-+#define SIFIVE_TMC_PGPREP_BUSERR		BIT(15)
-+#define SIFIVE_TMC_PGPREP_WAKE_DETECT		BIT(12)
-+#define SIFIVE_TMC_PGPREP_INTERNAL_ABORT	BIT(2)
-+#define SIFIVE_TMC_PGPREP_ENARSP		(SIFIVE_TMC_PGPREP_CLFPNOTQ | \
-+						 SIFIVE_TMC_PGPREP_PMCENAERR | \
-+						 SIFIVE_TMC_PGPREP_PMCDENY | \
-+						 SIFIVE_TMC_PGPREP_BUSERR | \
-+						 SIFIVE_TMC_PGPREP_WAKE_DETECT)
++#define SIFIVE_SMC_SYNCPMC_SYNC_REQ		BIT(31)
++#define SIFIVE_SMC_SYNCPMC_SYNC_WREQ		BIT(30)
++#define SIFIVE_SMC_SYNCPMC_SYNC_ACK		BIT(29)
 +
-+/* TMC.PG */
-+#define SIFIVE_TMC_PG_OFF			0x4
-+#define SIFIVE_TMC_PG_ENA_REQ			BIT(31)
-+#define SIFIVE_TMC_PG_ENA_ACK			BIT(30)
-+#define SIFIVE_TMC_PG_DIS_REQ			BIT(29)
-+#define SIFIVE_TMC_PG_DIS_ACK			BIT(28)
-+#define SIFIVE_TMC_PG_PMC_ENA_ERR		BIT(17)
-+#define SIFIVE_TMC_PG_PMC_DENY			BIT(16)
-+#define SIFIVE_TMC_PG_BUS_ERR			BIT(15)
-+#define SIFIVE_TMC_PG_MASTNOTQ			BIT(14)
-+#define SIFIVE_TMC_PG_WARM_RESET		BIT(1)
-+#define SIFIVE_TMC_PG_ENARSP			(SIFIVE_TMC_PG_PMC_ENA_ERR | \
-+						 SIFIVE_TMC_PG_PMC_DENY | \
-+						 SIFIVE_TMC_PG_BUS_ERR | \
-+						 SIFIVE_TMC_PG_MASTNOTQ)
++static struct aclint_mtimer_data smc_sync_timer;
++static unsigned long smc0_base;
 +
-+/* TMC.RESUMEPC */
-+#define SIFIVE_TMC_RESUMEPC_LO			0x10
-+#define SIFIVE_TMC_RESUMEPC_HI			0x14
-+
-+/* TMC.WAKEMASK */
-+#define SIFIVE_TMC_WAKE_MASK_OFF		0x20
-+#define SIFIVE_TMC_WAKE_MASK_WREQ		BIT(31)
-+#define SIFIVE_TMC_WAKE_MASK_ACK		BIT(30)
-+
-+static void sifive_tmc0_set_resumepc(physical_addr_t addr)
++static void sifive_smc0_set_pmcsync(char regid, bool write_mode)
 +{
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
++	unsigned long addr = smc0_base + SIFIVE_SMC_SYNC_PMC_OFF;
++	u32 v = regid | SIFIVE_SMC_SYNCPMC_SYNC_REQ;
 +
-+	writel((u32)addr, (void *)(tmc0->reg + SIFIVE_TMC_RESUMEPC_LO));
++	if (write_mode)
++		v |= SIFIVE_SMC_SYNCPMC_SYNC_WREQ;
++
++	writel(v, (void *)addr);
++	while (!(readl((void *)addr) & SIFIVE_SMC_SYNCPMC_SYNC_ACK));
++}
++
++static u64 sifive_smc0_time_read(volatile u64 *addr)
++{
++	u32 lo, hi;
++
++	do {
++		sifive_smc0_set_pmcsync(SIFIVE_SMC_CYCLECOUNT_LO_OFF, false);
++		sifive_smc0_set_pmcsync(SIFIVE_SMC_CYCLECOUNT_HI_OFF, false);
++		hi = readl_relaxed((u32 *)addr + 1);
++		lo = readl_relaxed((u32 *)addr);
++	} while (hi != readl_relaxed((u32 *)addr + 1));
++
++	return ((u64)hi << 32) | (u64)lo;
++}
++
++static void sifive_smc0_set_resumepc(physical_addr_t raddr)
++{
++	/* Set resumepc_lo */
++	writel((u32)raddr, (void *)(smc0_base + SIFIVE_SMC_RESUMEPC_LO_OFF));
++	/* copy resumepc_lo from SMC to PMC */
++	sifive_smc0_set_pmcsync(SIFIVE_SMC_RESUMEPC_LO_OFF, true);
 +#if __riscv_xlen > 32
-+	writel((u32)(addr >> 32), (void *)(tmc0->reg + SIFIVE_TMC_RESUMEPC_HI));
++	/* Set resumepc_hi */
++	writel((u32)(raddr >> 32), (void *)(smc0_base + SIFIVE_SMC_RESUMEPC_HI_OFF));
++	/* copy resumepc_hi from SMC to PMC */
++	sifive_smc0_set_pmcsync(SIFIVE_SMC_RESUMEPC_HI_OFF, true);
 +#endif
 +}
 +
-+static u32 sifive_tmc0_set_pgprep_enareq(void)
++static u32 sifive_smc0_get_pgprep_enarsp(void)
 +{
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
-+	unsigned long reg = tmc0->reg + SIFIVE_TMC_PGPREP_OFF;
-+	u32 v = readl((void *)reg);
++	u32 v = readl((void *)(smc0_base + SIFIVE_SMC_PGPREP_OFF));
 +
-+	writel(v | SIFIVE_TMC_PGPREP_ENA_REQ, (void *)reg);
-+	while (!(readl((void *)reg) & SIFIVE_TMC_PGPREP_ENA_ACK));
-+
-+	v = readl((void *)reg);
-+	return v & SIFIVE_TMC_PGPREP_INTERNAL_ABORT;
++	return v & SIFIVE_SMC_PGPREP_ENARSP;
 +}
 +
-+static void sifive_tmc0_set_pgprep_disreq(void)
++static void sifive_smc0_set_pgprep_disreq(void)
 +{
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
-+	unsigned long reg = tmc0->reg + SIFIVE_TMC_PGPREP_OFF;
-+	u32 v = readl((void *)reg);
++	unsigned long addr = smc0_base + SIFIVE_SMC_PGPREP_OFF;
++	u32 v = readl((void *)addr);
 +
-+	writel(v | SIFIVE_TMC_PGPREP_DIS_REQ, (void *)reg);
-+	while (!(readl((void *)reg) & SIFIVE_TMC_PGPREP_DIS_ACK));
++	writel(v | SIFIVE_SMC_PGPREP_DIS_REQ, (void *)addr);
++	while (!(readl((void *)addr) & SIFIVE_SMC_PGPREP_DIS_ACK));
 +}
 +
-+static u32 sifive_tmc0_get_pgprep_enarsp(void)
++static u32 sifive_smc0_set_pgprep_enareq(void)
 +{
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
-+	unsigned long reg = tmc0->reg + SIFIVE_TMC_PGPREP_OFF;
-+	u32 v = readl((void *)reg);
++	unsigned long addr = smc0_base + SIFIVE_SMC_PGPREP_OFF;
++	u32 v = readl((void *)addr);
 +
-+	return v & SIFIVE_TMC_PGPREP_ENARSP;
++	writel(v | SIFIVE_SMC_PGPREP_ENA_REQ, (void *)addr);
++	while (!(readl((void *)addr) & SIFIVE_SMC_PGPREP_ENA_ACK));
++
++	v = readl((void *)addr);
++
++	return v & SIFIVE_SMC_PGPREP_ABORT;
 +}
 +
-+static void sifive_tmc0_set_pg_enareq(void)
++static void sifive_smc0_set_pg_enareq(void)
 +{
-+	struct sifive_tmc0 *tmc0 = tmc0_ptr_get(sbi_scratch_thishart_ptr());
-+	unsigned long reg = tmc0->reg + SIFIVE_TMC_PG_OFF;
-+	u32 v = readl((void *)reg);
++	unsigned long addr = smc0_base + SIFIVE_SMC_PG_OFF;
++	u32 v = readl((void *)addr);
 +
-+	writel(v | SIFIVE_TMC_PG_ENA_REQ, (void *)reg);
++	writel(v | SIFIVE_SMC_PG_ENA_REQ, (void *)addr);
 +}
 +
-+static int sifive_tmc0_prep(void)
++bool sifive_smc0_check_warm_reset(void)
 +{
++	unsigned long addr = smc0_base + SIFIVE_SMC_PG_OFF;
++
++	if (!smc0_base)
++		return false;
++
++	sifive_smc0_set_pmcsync(SIFIVE_SMC_PG_OFF, false);
++
++	return readl((void *)addr) & SIFIVE_SMC_PG_WARM_RESET ? true : false;
++}
++
++static inline void sifive_smc0_set_cg(bool enable)
++{
++	unsigned long addr = smc0_base + SIFIVE_SMC_WFI_UNCORE_CG_OFF;
++
++	if (enable)
++		writel(0, (void *)addr);
++	else
++		writel(1, (void *)addr);
++}
++
++static int sifive_smc0_prep(void)
++{
++	const struct sbi_domain *dom = &root;
 +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	u32 rc;
++	unsigned long i;
++	int rc;
++	u32 target;
 +
-+	if (!tmc0_ptr_get(scratch))
++	if (!smc0_base)
 +		return SBI_ENODEV;
 +
-+	rc = sifive_tmc0_set_pgprep_enareq();
++	/* Prevent all secondary tiles from waking up from PG state */
++	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++		target = sbi_hartindex_to_hartid(i);
++		if (target != current_hartid()) {
++			rc = sifive_tmc0_set_wakemask_enareq(target);
++			if (rc) {
++				sbi_printf("Fail to enable wakemask for hart %d\n",
++					   target);
++				goto fail;
++			}
++		}
++	}
++
++	/* Check if all secondary tiles enter PG state */
++	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++		target = sbi_hartindex_to_hartid(i);
++		if (target != current_hartid() &&
++		    !sifive_tmc0_is_pg(target)) {
++			sbi_printf("Hart %d not in the PG state\n", target);
++			goto fail;
++		}
++	}
++
++	rc = sifive_smc0_set_pgprep_enareq();
 +	if (rc) {
-+		sbi_printf("TMC0 error: Internal Abort (Wake detect)\n");
++		sbi_printf("SMC0 error: abort code: 0x%x\n", rc);
 +		goto fail;
 +	}
 +
-+	rc = sifive_tmc0_get_pgprep_enarsp();
++	rc = sifive_smc0_get_pgprep_enarsp();
 +	if (rc) {
-+		sifive_tmc0_set_pgprep_disreq();
-+		sbi_printf("TMC0 error: error response code: 0x%x\n", rc);
++		sifive_smc0_set_pgprep_disreq();
++		sbi_printf("SMC0 error: error response code: 0x%x\n", rc);
 +		goto fail;
 +	}
 +
-+	sifive_tmc0_set_resumepc(scratch->warmboot_addr);
-+
++	sifive_smc0_set_resumepc(scratch->warmboot_addr);
 +	return SBI_OK;
-+
 +fail:
++	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++		target = sbi_hartindex_to_hartid(i);
++		if (target != current_hartid())
++			sifive_tmc0_set_wakemask_disreq(target);
++	}
++
 +	return SBI_EFAIL;
 +}
 +
-+static int sifive_tmc0_enter(void)
++static int sifive_smc0_enter(void)
 +{
++	const struct sbi_domain *dom = &root;
 +	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	u32 rc;
++	unsigned long i;
++	u32 target, rc;
 +
 +	/* Flush cache and check if there is wake detect or bus error */
-+	if (fdt_cmo_private_flc_flush_all() &&
++	if (fdt_cmo_llc_flush_all() &&
 +	    sbi_hart_has_extension(scratch, SBI_HART_EXT_XSIFIVE_CFLUSH_D_L1))
 +		sifive_cflush();
 +
-+	rc = sifive_tmc0_get_pgprep_enarsp();
++	rc = sifive_smc0_get_pgprep_enarsp();
 +	if (rc) {
-+		sbi_printf("TMC0 error: error response code: 0x%x\n", rc);
++		sbi_printf("SMC0 error: error response code: 0x%x\n", rc);
++		rc = SBI_EFAIL;
 +		goto fail;
 +	}
 +
 +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_XSIFIVE_CEASE)) {
-+		sifive_tmc0_set_pg_enareq();
++		sifive_smc0_set_pg_enareq();
 +		while (1)
 +			sifive_cease();
 +	}
 +
 +	rc = SBI_ENOTSUPP;
 +fail:
-+	sifive_tmc0_set_pgprep_disreq();
++	sifive_smc0_set_pgprep_disreq();
++	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
++		target = sbi_hartindex_to_hartid(i);
++		if (target != current_hartid())
++			sifive_tmc0_set_wakemask_disreq(target);
++	}
 +	return rc;
 +}
 +
-+static int sifive_tmc0_tile_pg(void)
++static int sifive_smc0_pg(void)
 +{
 +	int rc;
 +
-+	rc = sifive_tmc0_prep();
++	rc = sifive_smc0_prep();
 +	if (rc)
 +		return rc;
 +
-+	return sifive_tmc0_enter();
++	return sifive_smc0_enter();
 +}
 +
-+static int sifive_tmc0_start(u32 hartid, ulong saddr)
++static int sifive_smc0_system_suspend(u32 sleep_type, unsigned long addr)
 +{
-+	struct sbi_ipi_device *clint = aclint_mswi_get();
++	/* Disable the timer interrupt */
++	sbi_timer_exit(sbi_scratch_thishart_ptr());
 +
-+	/*
-+	 * In system suspend, the IMSIC will be reset in SiFive platform so
-+	 * we use the CLINT IPI as the wake event.
-+	 */
-+	if (clint && clint->ipi_send)
-+		clint->ipi_send(sbi_hartid_to_hartindex(hartid));
-+	else
-+		sbi_ipi_raw_send(sbi_hartid_to_hartindex(hartid));
-+
-+	return SBI_OK;
++	return sifive_smc0_pg();
 +}
 +
-+static int sifive_tmc0_stop(void)
++static int sifive_smc0_system_suspend_check(u32 sleep_type)
 +{
-+	unsigned long mie = csr_read(CSR_MIE);
-+	int rc;
-+	/* Set IPI as wake up source */
-+	csr_set(CSR_MIE, MIP_MEIP | MIP_MSIP);
-+
-+	rc = sifive_tmc0_tile_pg();
-+	if (rc) {
-+		csr_write(CSR_MIE, mie);
-+		return rc;
-+	}
-+
-+	return SBI_OK;
++	return sleep_type == SBI_SUSP_SLEEP_TYPE_SUSPEND ? SBI_OK : SBI_EINVAL;
 +}
 +
-+static struct sbi_hsm_device tmc0_hsm_dev = {
-+	.name = "SiFive TMC0",
-+	.hart_start = sifive_tmc0_start,
-+	.hart_stop = sifive_tmc0_stop,
++static struct sbi_system_suspend_device smc0_sys_susp = {
++	.name = "Sifive SMC0",
++	.system_suspend_check = sifive_smc0_system_suspend_check,
++	.system_suspend = sifive_smc0_system_suspend,
 +};
 +
-+static int sifive_tmc0_bind_cpu(struct sifive_tmc0 *tmc0)
++void sifive_smc0_mtime_update(void)
 +{
-+	const void *fdt = fdt_get_address();
-+	struct sbi_scratch *scratch;
-+	int cpus_off, cpu_off, rc;
-+	const fdt32_t *val;
-+	u32 hartid;
++	struct aclint_mtimer_data *mt = aclint_get_mtimer_data();
 +
-+	cpus_off = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_off < 0)
-+		return SBI_ENOENT;
-+
-+	fdt_for_each_subnode(cpu_off, fdt, cpus_off) {
-+		rc = fdt_parse_hart_id(fdt, cpu_off, &hartid);
-+		if (rc)
-+			continue;
-+
-+		scratch = sbi_hartid_to_scratch(hartid);
-+		if (!scratch)
-+			continue;
-+
-+		val = fdt_getprop(fdt, cpu_off, "power-domains", NULL);
-+		if (!val)
-+			return SBI_ENOENT;
-+
-+		if (tmc0->id == fdt32_to_cpu(val[0])) {
-+			tmc0_ptr_set(scratch, tmc0);
-+			return SBI_OK;
-+		}
-+	}
-+
-+	return SBI_ENODEV;
++	aclint_mtimer_update(mt, &smc_sync_timer);
 +}
 +
-+static int sifive_tmc0_probe(const void *fdt, int nodeoff, const struct fdt_match *match)
++static int sifive_smc0_probe(const void *fdt, int nodeoff, const struct fdt_match *match)
 +{
-+	struct sifive_tmc0 *tmc0;
-+	u64 addr;
 +	int rc;
-+
-+	if (!tmc0_offset) {
-+		tmc0_offset = sbi_scratch_alloc_type_offset(struct sifive_tmc0 *);
-+		if (!tmc0_offset)
-+			return SBI_ENOMEM;
-+
-+		sbi_hsm_set_device(&tmc0_hsm_dev);
-+	}
-+
-+	tmc0 = sbi_zalloc(sizeof(*tmc0));
-+	if (!tmc0)
-+		return SBI_ENOMEM;
++	u64 addr;
 +
 +	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
 +	if (rc)
-+		goto free_tmc0;
++		return rc;
 +
-+	tmc0->reg = (unsigned long)addr;
-+	tmc0->id = fdt_get_phandle(fdt_get_address(), nodeoff);
++	smc0_base = (unsigned long)addr;
++	smc_sync_timer.time_rd = sifive_smc0_time_read;
++	smc_sync_timer.mtime_addr = smc0_base + SIFIVE_SMC_CYCLECOUNT_LO_OFF;
 +
-+	rc = sifive_tmc0_bind_cpu(tmc0);
-+	if (rc)
-+		goto free_tmc0;
++	sbi_system_suspend_set_device(&smc0_sys_susp);
++	sifive_smc0_set_cg(true);
 +
 +	return SBI_OK;
-+
-+free_tmc0:
-+	sbi_free(tmc0);
-+	return rc;
 +}
 +
-+static const struct fdt_match sifive_tmc0_match[] = {
-+	{ .compatible = "sifive,tmc0" },
++static const struct fdt_match sifive_smc0_match[] = {
++	{ .compatible = "sifive,smc0" },
 +	{ },
 +};
 +
-+const struct fdt_driver fdt_hsm_sifive_tmc0 = {
-+	.match_table = sifive_tmc0_match,
-+	.init = sifive_tmc0_probe,
++const struct fdt_driver fdt_suspend_sifive_smc0 = {
++	.match_table = sifive_smc0_match,
++	.init = sifive_smc0_probe,
 +};
-diff --git a/lib/utils/hsm/objects.mk b/lib/utils/hsm/objects.mk
-index c13d81f78dd69ceb37cf83b19b10bc95c3dcfaff..6fbae628aa615e8ddcd41d01973303f2e36100d1 100644
---- a/lib/utils/hsm/objects.mk
-+++ b/lib/utils/hsm/objects.mk
+diff --git a/lib/utils/suspend/objects.mk b/lib/utils/suspend/objects.mk
+index 9c386248be3074e1cb0a037903926a4fda982cd1..1fb29b5e794123986bc7167bb92504bcf4d3eb09 100644
+--- a/lib/utils/suspend/objects.mk
++++ b/lib/utils/suspend/objects.mk
 @@ -9,3 +9,6 @@
  
- carray-fdt_early_drivers-$(CONFIG_FDT_HSM_RPMI) += fdt_hsm_rpmi
- libsbiutils-objs-$(CONFIG_FDT_HSM_RPMI) += hsm/fdt_hsm_rpmi.o
+ carray-fdt_early_drivers-$(CONFIG_FDT_SUSPEND_RPMI) += fdt_suspend_rpmi
+ libsbiutils-objs-$(CONFIG_FDT_SUSPEND_RPMI) += suspend/fdt_suspend_rpmi.o
 +
-+carray-fdt_early_drivers-$(CONFIG_FDT_HSM_SIFIVE_TMC0) += fdt_hsm_sifive_tmc0
-+libsbiutils-objs-$(CONFIG_FDT_HSM_SIFIVE_TMC0) += hsm/fdt_hsm_sifive_tmc0.o
-\ No newline at end of file
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 7559a4bd8ccfcf7e0e7366141f632f5f5e13bd98..e647d323f9b9abf73da73f3cc04bd3476a2a2387 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -47,6 +47,11 @@ config PLATFORM_RENESAS_RZFIVE
- 	select ANDES_PMU
- 	default n
- 
-+config PLATFORM_SIFIVE_DEV
-+	bool "SiFive development platform support"
-+	depends on FDT_CACHE
-+	default n
-+
- config PLATFORM_SIFIVE_FU540
- 	bool "SiFive FU540 support"
- 	default n
++carray-fdt_early_drivers-$(CONFIG_FDT_SUSPEND_SIFIVE_SMC0) += fdt_suspend_sifive_smc0
++libsbiutils-objs-$(CONFIG_FDT_SUSPEND_SIFIVE_SMC0) += suspend/fdt_suspend_sifive_smc0.o
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index f782e57df24674578bc179b949a621a6d522f1c8..9c98ce309d9894c654ec6f348e32c940126960a3 100644
+index 9c98ce309d9894c654ec6f348e32c940126960a3..a5904f77cfc77e2ef992665c83d5555c7a34b687 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -1,6 +1,7 @@
- CONFIG_PLATFORM_ALLWINNER_D1=y
- CONFIG_PLATFORM_ANDES_AE350=y
- CONFIG_PLATFORM_RENESAS_RZFIVE=y
-+CONFIG_PLATFORM_SIFIVE_DEV=y
- CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
- CONFIG_PLATFORM_SOPHGO_SG2042=y
-@@ -18,6 +19,7 @@ CONFIG_FDT_GPIO_SIFIVE=y
- CONFIG_FDT_GPIO_STARFIVE=y
- CONFIG_FDT_HSM=y
- CONFIG_FDT_HSM_RPMI=y
-+CONFIG_FDT_HSM_SIFIVE_TMC0=y
- CONFIG_FDT_I2C=y
- CONFIG_FDT_I2C_SIFIVE=y
- CONFIG_FDT_I2C_DW=y
-diff --git a/platform/generic/sifive/objects.mk b/platform/generic/sifive/objects.mk
-index d75e444abf5352bbb264af4a0e0cf2d0b401024b..d32e1273dec7e37a96f9e2c0e00f4cb9c384adde 100644
---- a/platform/generic/sifive/objects.mk
-+++ b/platform/generic/sifive/objects.mk
-@@ -2,6 +2,9 @@
- # SPDX-License-Identifier: BSD-2-Clause
- #
- 
-+carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_DEV) += sifive_dev_platform
-+platform-objs-$(CONFIG_PLATFORM_SIFIVE_DEV) += sifive/sifive_dev_platform.o
-+
- carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive_fu540
- platform-objs-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive/fu540.o
- 
-diff --git a/platform/generic/sifive/sifive_dev_platform.c b/platform/generic/sifive/sifive_dev_platform.c
-new file mode 100644
-index 0000000000000000000000000000000000000000..aa08ce751d400a8e4c51f336becf7d8c80a16244
---- /dev/null
-+++ b/platform/generic/sifive/sifive_dev_platform.c
-@@ -0,0 +1,39 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 SiFive Inc.
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/sbi_ipi.h>
-+#include <sbi_utils/cache/fdt_cmo_helper.h>
-+#include <sbi_utils/hsm/fdt_hsm_sifive_tmc0.h>
-+#include <sbi_utils/ipi/aclint_mswi.h>
-+
-+static int sifive_final_init(bool cold_boot)
-+{
-+	struct sbi_ipi_device *clint = aclint_mswi_get();
-+
-+	if (clint && clint->ipi_clear)
-+		clint->ipi_clear();
-+
-+	return generic_final_init(cold_boot);
-+}
-+
-+static int sifive_platform_init(const void *fdt, int nodeoff,
-+				const struct fdt_match *match)
-+{
-+	generic_platform_ops.final_init = sifive_final_init;
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match sifive_dev_platform_match[] = {
-+	{ .compatible = "sifive-dev" },
-+	{ },
-+};
-+
-+const struct fdt_driver sifive_dev_platform = {
-+	.match_table = sifive_dev_platform_match,
-+	.init = sifive_platform_init,
-+};
+@@ -56,6 +56,7 @@ CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
+ CONFIG_SERIAL_SEMIHOSTING=y
+ CONFIG_FDT_SUSPEND=y
+ CONFIG_FDT_SUSPEND_RPMI=y
++CONFIG_FDT_SUSPEND_SIFIVE_SMC0=y
+ CONFIG_FDT_TIMER=y
+ CONFIG_FDT_TIMER_MTIMER=y
+ CONFIG_FDT_TIMER_PLMT=y
 
 -- 
 2.34.1
