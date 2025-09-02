@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 63CF9CA0FFE
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id F3325CA100D
 	for <opensbi@archiver.kernel.org>; Tue,  2 Sep 2025 03:25:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,74 +12,76 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:To:In-Reply-To:References:Message-Id:
 	MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=1YoYRh0shcpRZVvnGLSHymNWBYD3cYAG9jTCo0h9SvQ=; b=N7ELkSV83b/4pA
-	Txggv5aeVkrywBDluszMxomK06HKLRg+g8r2cDkV0/oWJXWJenCoh42Z654afFlswgh3VLOch1/YP
-	7kEdwynZ0NNgqy8adqz1eBYSR0vnoegtybEauwDy7ofOXKMY9Z2tLWjXz/x7vgY/R/wDqZUZVCz0N
-	dF+baVJQfLFdK7dbvs1AB7koGGKMB/XGZC5YLOo/HcphBLeo/5/M+XD1WQwbwxIT7EP6Mro+T5PEB
-	ltWWZSuXgldc9y665JK0DZjGHsHR6AYVUvZlfz21yYB5RRTDiUOSXlZ13yV7bW4u4urASucynVOBK
-	UihugFWdEd5IOiSTF5jg==;
+	List-Owner; bh=V0zR5Ez8AJw1VnZ6Gau8RUwXqWFxkt7Q914E7NwtXxM=; b=COj8v4mdr48hnz
+	2TjX0f09yHetX4Fq7htQWMV3ed1dYSBP0YOgPRzFOizT6DV1Wk3CIzbhKv07Q7G1PNxxnDjJd9UJz
+	FZ/aRHZvs8QORr5yBb1989JHqEEoijFY5PgaMFfRrCZFMX1Z31F7Uz6LBNLe/B4rMU/TtkCpStSw5
+	R5BYNrUHfZeJsRBf1kHy+S3SlVOwcwkWTGCrnR0gFONGj7ruoVTNF8LuRVVj8tKZzfmCpWFYHUUwc
+	2ilGUD0ed5we5PiaU0dx3qUvz8unOQ2yotqUCz7MjTrgAjgm7/YCQFOIn/gTFQSU5CzbbZ10JdxFX
+	72n3Q0zXLQTqgwKis7FA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1utHeK-0000000F1QQ-2Uj7;
+	id 1utHeK-0000000F1QJ-0jSL;
 	Tue, 02 Sep 2025 03:25:36 +0000
-Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
+Received: from mail-pg1-f179.google.com ([209.85.215.179])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1utGbm-0000000EpXY-1ZMG
+	id 1utGbl-0000000EpWq-0gKU
 	for opensbi@lists.infradead.org;
-	Tue, 02 Sep 2025 02:18:55 +0000
-Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-24a9ccbf10dso19674275ad.3
-        for <opensbi@lists.infradead.org>; Mon, 01 Sep 2025 19:18:54 -0700 (PDT)
+	Tue, 02 Sep 2025 02:18:54 +0000
+Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-b49c1c130c9so3336141a12.0
+        for <opensbi@lists.infradead.org>; Mon, 01 Sep 2025 19:18:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1756779534; x=1757384334; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1756779532; x=1757384332; darn=lists.infradead.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=eT0qq69AHct33vFJO/qXqfBLOovB8QGFAriGJZGy2po=;
-        b=faniWHWW8y/YJFJ3bDyaGWTf/1yA/4gt9ihcTn9PYOOlS6GBexyFltKuI/IKNK5sCT
-         i7/0T4E+vg4BQOrT69tXuHeRhNHYLYkZk4EuVOjtsGnlucRumFwkd3ix9L3qo6axiuCV
-         JM/TUEUtU42hEl83VHV22bwsiQjkYUDRl+kBeBncgHLNK/l4cEDyGfDyJmFZoVJVOEHe
-         0ivGQ5B636WFs7366rgNTjduff8Oe9GcADMUaaggXAjn5cJfYOmkUrtnPAWMjmyuFSkZ
-         NDIti8lzqW0yd3b90iarS9ExrXtQiuJwZXYnar6Nsi1HsCvT3JqERoocSqIllqdc99C1
-         12+Q==
+        bh=1S0eep8Aeq+o/0b64iP3QPNTlfHJeUF3780onuRPsW4=;
+        b=iphvDZcYx0S9s0lZwOJGt9dcQ9ZN9K7oguou2S8Upz253YsYURylz+VVzY7BT2h7sz
+         AkUhDhkaRulWOUk9N+U4tUD08A1l9JOMqDrzeuvKwapE2aKsV6jo6zn0Q8wRvhHhEKo8
+         JnxictJZaKDkYbAD/vEpeG5x86+c4t+kbVJVQ2vPL2cEL8jgZ50aDnRp9GOuEQ8EczTi
+         5NOIQnmT8PxWo1ZS6+BiSdB/XBoBazFia06WFlvKyJY2XFX2weMiujPm8Ct4n6611B9L
+         mwgjg6f2YbUlotpE+LoQymRINWg02LDEabQ4qIwlTuOS2TRIxmk9XyflgRqsrG4JviXj
+         usAw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756779534; x=1757384334;
+        d=1e100.net; s=20230601; t=1756779532; x=1757384332;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=eT0qq69AHct33vFJO/qXqfBLOovB8QGFAriGJZGy2po=;
-        b=YvYUdHN4CKXcJKcekZzJH3c8dU2HSvauye9f/wgXG1TeB6zZzqWaGJGoUF7D6nuuvj
-         rIQA/Z6+DuGrsS7zUadiVKCj8J3/G7BsxK/cR3wdK8PWRAQOet8fXcKS5l70L8QS4a4h
-         D5KEf4RuawAmDgQKbkMPHNTrc9jFv3MBRLSQ83lRTVOnGyt4nJ0Q4hRu0wG76dOxGKHt
-         U50LDCfn15fPK4pkDO4ucsegdrbuRJZbqmjqzRixmRSKjOZf5Km1wZhySMy6O5oGOqte
-         Yu/E48sUxnquoFLKjJOK3kfolWJLNl2rwjjNndB8Q99jpgFVaa2uFfYJcWyx3kEYjYlE
-         qH1Q==
-X-Gm-Message-State: AOJu0Ywj75tFSyuUqlqH3wkjDGxB6PikB3BwDrK9LWHYs5g5VHmDjSX0
-	02XuuyQFReFawk+CxFlg+neNawVHDqZaJyhY69LLsGL7yVxuh7GRJnYtDNc+c8rAQj0=
-X-Gm-Gg: ASbGncvjV7fbiGB54TBpQALGhrTcuFQfz7i0daMahy+IBsN85Jly5GDvEqSsobB/NJ9
-	oNsbtbVfIJlQLByTVM+R4iBB0+jeGa/hARmWebnFWMC9uF53CMN9OQktLNsrG/Xrp1DuIbKhcEJ
-	uXdl7R/Y1S75ztn232J1ZxOKdf6HX1MqAWZFzPwuW5p48maOvFn5iqB3xPwbEK6OO/e72POFSeA
-	L5ucIjGX6vkfnIkF2gshejQzeXdpF8k3YYZUVfzgklMTC8ESamvFyp73hFb7aRSOLUwU3u6C4Dq
-	091lozxoqPUlgWEfNbKbAoU0RtamNpYqspxFXTfODHGu1opZ8zbnCLFxIQ56vEpGUxEMU5T/J/W
-	9s5O0gt7jLHptuSVuL2K9
-X-Google-Smtp-Source: AGHT+IGpyKJGTcxhmUaSRHvfgvHjcGgwuTOnpz3bIHvfAZ9rz8DpenxIbtHqkXqJ4y33MCaA2x5r1w==
-X-Received: by 2002:a17:903:8c8:b0:24b:25f:5f7f with SMTP id d9443c01a7336-24b025f66f6mr28674155ad.60.1756779533572;
-        Mon, 01 Sep 2025 19:18:53 -0700 (PDT)
+        bh=1S0eep8Aeq+o/0b64iP3QPNTlfHJeUF3780onuRPsW4=;
+        b=Frk6XxQCHolT996hCcXRlJdqy1e7adwDHE2lrV0PjlbPSIlL/tc9wKtcJ7Var72cuY
+         v1TzFUveRbE9uTvRwN9Hw3hNaoAGB96gGZF+HCOnJg6Zjg+TZTttLtr7qa/MSnq3GNQR
+         qwOHw8b7/zEwXbCXvB3c9ZHJ8LRiJnh9+FdpiBuEOidMDAnR5x/li6i6Er0WuA2HAPLp
+         WMv+y97RIkIxsrzrJ95uFuobzaGd+zyJhbak1h79qB8EWopDWCpaVgTZz1EJmSoiCGht
+         Z6rJ3EVcjstQqmdnMqYG8kW4dXyw+0Y6mmdtqb+7uvBy0DzTXOk6ONFzDvaJ9XfIhWHd
+         SNhA==
+X-Gm-Message-State: AOJu0Yysp0E/wyDm1LeLzUHs8JwbDDwlJXHmNTUXMoSYILqKNwA+tIa+
+	06yxI1b47VFrS2yjRryFKda1eqaEau2EMJ4vfEzCcpmQLf+twK/X60ZKzoECWnpyo0aP7wdmKxK
+	8VPcScn/4uIL3zXUxTxa7Kj/woZJRn8oEaWwPim6hMB+3JEz7fWISMKygDl7+kITDwDX+v1R+so
+	+PY7e0WLOqP83U6xPKGc3L07YHv+2AyDDkDfuUOpr8+dHw5A==
+X-Gm-Gg: ASbGncvUAwjHZK1o3jiupfwLY6UCz0enfnJJ5377rlHYrRbu0NvvDtul0t+jZdusfZS
+	CTYuPzL/46qEAVqvzZGElr45nClSvOMChwgjQYBKW8+WicKi8wRhkpdvKokXfaddnJ2//8+dhlJ
+	feiyQKuIO8aiwgWXFErnYaPy/YTtfCs28y+dnC1ns8zn07uTaMLeChYexJQ7ZFixO964pYL6ynZ
+	2HfYM8rhvUCDexkTqwwOYe8az2vs7nt9FUITFiQ3teUH5cmnrqmH6dllfdb1aIcwXvdtc+Fl+Ex
+	b4r4h6AUHwqpOoASzRx8zzpPFUqE0Rfh45aJQ7FRvrqCkfJVZroDVKoNzB3x+EoiCzgCCyhGJ6I
+	T4Itmj6t89aMQSkDL63zDkAylDaegkJg=
+X-Google-Smtp-Source: AGHT+IGEDcXtrNs0Y6ilDyZwAh+AGoBuJS8Mzv685rBa7BgB/TkuxX/YNhBKvtZHfwMoG5RLoIttJQ==
+X-Received: by 2002:a17:903:244e:b0:249:3eec:15bc with SMTP id d9443c01a7336-24944a44010mr129116475ad.19.1756779531937;
+        Mon, 01 Sep 2025 19:18:51 -0700 (PDT)
 Received: from [127.0.1.1] ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-24903755851sm116316745ad.56.2025.09.01.19.18.52
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-24903755851sm116316745ad.56.2025.09.01.19.18.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Sep 2025 19:18:53 -0700 (PDT)
+        Mon, 01 Sep 2025 19:18:51 -0700 (PDT)
 From: Nick Hu <nick.hu@sifive.com>
-Date: Tue, 02 Sep 2025 10:24:41 +0800
-Subject: [PATCH v5 02/11] lib: utils: Add FDT cache library
+Date: Tue, 02 Sep 2025 10:24:40 +0800
+Subject: [PATCH v5 01/11] lib: utils: Add cache flush library
 MIME-Version: 1.0
-Message-Id: <20250902-cache-upstream-v5-2-af60a067f47a@sifive.com>
+Message-Id: <20250902-cache-upstream-v5-1-af60a067f47a@sifive.com>
 References: <20250902-cache-upstream-v5-0-af60a067f47a@sifive.com>
 In-Reply-To: <20250902-cache-upstream-v5-0-af60a067f47a@sifive.com>
 To: opensbi@lists.infradead.org
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250901_191854_422851_A29FAF82 
-X-CRM114-Status: GOOD (  17.92  )
+X-CRM114-CacheID: sfid-20250901_191853_208383_3CE0CE5D 
+X-CRM114-Status: GOOD (  15.85  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -91,214 +93,196 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Cc: Vincent Chen <vincent.chen@sifive.com>, Anup Patel <anup@brainfault.org>, Andy Chiu <andy.chiu@sifive.com>, Nick Hu <nick.hu@sifive.com>
+Cc: Anup Patel <anup@brainfault.org>, Nick Hu <nick.hu@sifive.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add the FDT cache library so we can build up the cache topology via the
-'next-level-cache' DT property.
+The current RISC-V CMO only defines how to flush a cache block. However,
+certain use cases, such as power management, may require flushing the
+entire cache. Therefore, a framework is being introduced to allow vendors
+to flush the entire cache using their own methods.
 
-Co-developed-by: Vincent Chen <vincent.chen@sifive.com>
-Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
-Co-developed-by: Andy Chiu <andy.chiu@sifive.com>
-Signed-off-by: Andy Chiu <andy.chiu@sifive.com>
 Signed-off-by: Nick Hu <nick.hu@sifive.com>
 Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi_utils/cache/fdt_cache.h      | 34 +++++++++++++
- lib/utils/cache/Kconfig                  |  6 +++
- lib/utils/cache/fdt_cache.c              | 87 ++++++++++++++++++++++++++++++++
- lib/utils/cache/fdt_cache_drivers.carray |  3 ++
- lib/utils/cache/objects.mk               |  3 ++
- platform/generic/configs/defconfig       |  1 +
- 6 files changed, 134 insertions(+)
+ include/sbi_utils/cache/cache.h | 69 +++++++++++++++++++++++++++++++++++++++++
+ lib/utils/Kconfig               |  2 ++
+ lib/utils/cache/Kconfig         |  9 ++++++
+ lib/utils/cache/cache.c         | 46 +++++++++++++++++++++++++++
+ lib/utils/cache/objects.mk      |  7 +++++
+ 5 files changed, 133 insertions(+)
 
-diff --git a/include/sbi_utils/cache/fdt_cache.h b/include/sbi_utils/cache/fdt_cache.h
+diff --git a/include/sbi_utils/cache/cache.h b/include/sbi_utils/cache/cache.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..b377d6f502ff1496497172a7e09f3cca239003a9
+index 0000000000000000000000000000000000000000..70d9286f9a0a63b8fe13827925163db84f88bdc2
 --- /dev/null
-+++ b/include/sbi_utils/cache/fdt_cache.h
-@@ -0,0 +1,34 @@
++++ b/include/sbi_utils/cache/cache.h
+@@ -0,0 +1,69 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2025 SiFive Inc.
 + */
 +
-+#ifndef __FDT_CACHE_H__
-+#define __FDT_CACHE_H__
++#ifndef __CACHE_H__
++#define __CACHE_H__
 +
-+#include <sbi_utils/cache/cache.h>
++#include <sbi/sbi_list.h>
++#include <sbi/sbi_types.h>
++
++#define CACHE_NAME_LEN	32
++
++struct cache_device;
++
++struct cache_ops {
++	/** Warm init **/
++	int (*warm_init)(struct cache_device *dev);
++	/** Flush entire cache **/
++	int (*cache_flush_all)(struct cache_device *dev);
++};
++
++struct cache_device {
++	/** Name of the device **/
++	char name[CACHE_NAME_LEN];
++	/** List node for search **/
++	struct sbi_dlist node;
++	/** Point to the next level cache **/
++	struct cache_device *next;
++	/** Cache Management Operations **/
++	struct cache_ops *ops;
++	/** CPU private cache **/
++	bool cpu_private;
++	/** The unique id of this cache device **/
++	u32 id;
++};
 +
 +/**
-+ * Register a cache device using information from the DT
++ * Find a registered cache device
 + *
-+ * @param fdt devicetree blob
-+ * @param noff offset of a node in the devicetree blob
-+ * @param dev cache device to register for this devicetree node
++ * @param id unique ID of the cache device
++ *
++ * @return the cache device or NULL
++ */
++struct cache_device *cache_find(u32 id);
++
++/**
++ * Register a cache device
++ *
++ * cache_device->id must be initialized already and must not change during the life
++ * of the cache_device object.
++ *
++ * @param dev the cache device to register
 + *
 + * @return 0 on success, or a negative error code on failure
 + */
-+int fdt_cache_add(const void *fdt, int noff, struct cache_device *dev);
++int cache_add(struct cache_device *dev);
 +
 +/**
-+ * Get the cache device referencd by the "next-level-cache" property of a DT node
++ * Flush the entire cache
 + *
-+ * @param fdt devicetree blob
-+ * @param noff offset of a node in the devicetree blob
-+ * @param out_dev location to return the cache device
++ * @param dev the cache to flush
 + *
 + * @return 0 on success, or a negative error code on failure
 + */
-+int fdt_next_cache_get(const void *fdt, int noff, struct cache_device **out_dev);
++int cache_flush_all(struct cache_device *dev);
 +
 +#endif
+diff --git a/lib/utils/Kconfig b/lib/utils/Kconfig
+index 901ba564610ce8619f585b31cca3e9eadc358b31..5a5b3b1e0f1c0ce2f638593bcf186b617803110d 100644
+--- a/lib/utils/Kconfig
++++ b/lib/utils/Kconfig
+@@ -2,6 +2,8 @@
+ 
+ menu "Utils and Drivers Support"
+ 
++source "$(OPENSBI_SRC_DIR)/lib/utils/cache/Kconfig"
++
+ source "$(OPENSBI_SRC_DIR)/lib/utils/cppc/Kconfig"
+ 
+ source "$(OPENSBI_SRC_DIR)/lib/utils/fdt/Kconfig"
 diff --git a/lib/utils/cache/Kconfig b/lib/utils/cache/Kconfig
-index 24aa41bcf966cd42c719d995fa2f9f6ab62ad904..106021762f33229e66bf91c648c3c9febc4d325c 100644
---- a/lib/utils/cache/Kconfig
+new file mode 100644
+index 0000000000000000000000000000000000000000..24aa41bcf966cd42c719d995fa2f9f6ab62ad904
+--- /dev/null
 +++ b/lib/utils/cache/Kconfig
-@@ -2,6 +2,12 @@
- 
- menu "Cache Support"
- 
-+config FDT_CACHE
-+	bool "FDT based cache drivers"
-+	depends on FDT
-+	select CACHE
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: BSD-2-Clause
++
++menu "Cache Support"
++
++config CACHE
++	bool "Cache support"
 +	default n
 +
- config CACHE
- 	bool "Cache support"
- 	default n
-diff --git a/lib/utils/cache/fdt_cache.c b/lib/utils/cache/fdt_cache.c
++endmenu
+diff --git a/lib/utils/cache/cache.c b/lib/utils/cache/cache.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..e1c6f67cf6fab5232982a9479931f70b8b0d595c
+index 0000000000000000000000000000000000000000..6bc3d10e9347e03ad08dcf86f36b77846446e71b
 --- /dev/null
-+++ b/lib/utils/cache/fdt_cache.c
-@@ -0,0 +1,87 @@
++++ b/lib/utils/cache/cache.c
+@@ -0,0 +1,46 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2025 SiFive Inc.
 + */
 +
-+#include <libfdt.h>
-+#include <sbi/sbi_console.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_heap.h>
-+#include <sbi_utils/cache/fdt_cache.h>
-+#include <sbi_utils/fdt/fdt_driver.h>
++#include <sbi_utils/cache/cache.h>
 +
-+/* List of FDT cache drivers generated at compile time */
-+extern const struct fdt_driver *const fdt_cache_drivers[];
++static SBI_LIST_HEAD(cache_list);
 +
-+int fdt_cache_add(const void *fdt, int noff, struct cache_device *dev)
-+{
-+	int rc;
-+
-+	dev->id = noff;
-+	sbi_strncpy(dev->name, fdt_get_name(fdt, noff, NULL), sizeof(dev->name) - 1);
-+	sbi_dprintf("%s: %s\n", __func__, dev->name);
-+
-+	rc = fdt_next_cache_get(fdt, noff, &dev->next);
-+	if (rc)
-+		return rc;
-+
-+	return cache_add(dev);
-+}
-+
-+static int fdt_cache_add_generic(const void *fdt, int noff)
++struct cache_device *cache_find(u32 id)
 +{
 +	struct cache_device *dev;
-+	int rc;
 +
-+	dev = sbi_zalloc(sizeof(*dev));
-+	if (!dev)
-+		return SBI_ENOMEM;
-+
-+	rc = fdt_cache_add(fdt, noff, dev);
-+	if (rc) {
-+		sbi_free(dev);
-+		return rc;
++	sbi_list_for_each_entry(dev, &cache_list, node) {
++		if (dev->id == id)
++			return dev;
 +	}
 +
-+	return 0;
++	return NULL;
 +}
 +
-+static int fdt_cache_find(const void *fdt, int noff, struct cache_device **out_dev)
++int cache_add(struct cache_device *dev)
 +{
-+	struct cache_device *dev = cache_find(noff);
-+	int rc;
++	if (!dev)
++		return SBI_ENODEV;
 +
-+	if (!dev) {
-+		rc = fdt_driver_init_by_offset(fdt, noff, fdt_cache_drivers);
-+		if (rc == SBI_ENODEV)
-+			rc = fdt_cache_add_generic(fdt, noff);
-+		if (rc)
-+			return rc;
++	if (cache_find(dev->id))
++		return SBI_EALREADY;
 +
-+		dev = cache_find(noff);
-+		if (!dev)
-+			return SBI_EFAIL;
-+	}
-+
-+	if (out_dev)
-+		*out_dev = dev;
++	sbi_list_add(&dev->node, &cache_list);
 +
 +	return SBI_OK;
 +}
 +
-+int fdt_next_cache_get(const void *fdt, int noff, struct cache_device **out_dev)
++int cache_flush_all(struct cache_device *dev)
 +{
-+	const fdt32_t *val;
-+	int len;
++	if (!dev)
++		return SBI_ENODEV;
 +
-+	val = fdt_getprop(fdt, noff, "next-level-cache", &len);
-+	if (!val || len < sizeof(*val))
-+		return SBI_OK;
++	if (!dev->ops || !dev->ops->cache_flush_all)
++		return SBI_ENOTSUPP;
 +
-+	noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(val[0]));
-+	if (noff < 0)
-+		return noff;
-+
-+	return fdt_cache_find(fdt, noff, out_dev);
++	return dev->ops->cache_flush_all(dev);
 +}
-diff --git a/lib/utils/cache/fdt_cache_drivers.carray b/lib/utils/cache/fdt_cache_drivers.carray
-new file mode 100644
-index 0000000000000000000000000000000000000000..c1b1791c553a69a809a0930081fbff8952d30c74
---- /dev/null
-+++ b/lib/utils/cache/fdt_cache_drivers.carray
-@@ -0,0 +1,3 @@
-+HEADER: sbi_utils/cache/fdt_cache.h
-+TYPE: const struct fdt_driver
-+NAME: fdt_cache_drivers
 diff --git a/lib/utils/cache/objects.mk b/lib/utils/cache/objects.mk
-index 21d30ce8e18236eb90d666b884e10918a9a8fa0b..2fcf9666592700ff7c1fb924c5b9ea2de722fc2a 100644
---- a/lib/utils/cache/objects.mk
+new file mode 100644
+index 0000000000000000000000000000000000000000..21d30ce8e18236eb90d666b884e10918a9a8fa0b
+--- /dev/null
 +++ b/lib/utils/cache/objects.mk
-@@ -4,4 +4,7 @@
- # Copyright (c) 2025 SiFive
- #
- 
-+libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cache.o
-+libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cache_drivers.carray.o
+@@ -0,0 +1,7 @@
++#
++# SPDX-License-Identifier: BSD-2-Clause
++#
++# Copyright (c) 2025 SiFive
++#
 +
- libsbiutils-objs-$(CONFIG_CACHE) += cache/cache.o
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 4b93d0bc55233f83a907ff81234c78540e33d828..6470a511fe216b8bba1feb467738eb871f5738d4 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -8,6 +8,7 @@ CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_PLATFORM_THEAD=y
- CONFIG_PLATFORM_MIPS_P8700=y
- CONFIG_PLATFORM_OPENHWGROUP_OPENPITON=y
-+CONFIG_FDT_CACHE=y
- CONFIG_FDT_CPPC=y
- CONFIG_FDT_CPPC_RPMI=y
- CONFIG_FDT_GPIO=y
++libsbiutils-objs-$(CONFIG_CACHE) += cache/cache.o
 
 -- 
 2.34.1
