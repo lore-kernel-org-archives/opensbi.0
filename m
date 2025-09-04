@@ -4,83 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4C87CCA1017
-	for <opensbi@archiver.kernel.org>; Thu,  4 Sep 2025 05:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 96C7CCA1002
+	for <opensbi@archiver.kernel.org>; Thu,  4 Sep 2025 10:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:Cc:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:To:From:Reply-To:Content-ID:Content-Description:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=r9MMJvfa4lBW1/fx0UrDl+fGLdueYzMfNPicAssb3is=; b=oGr6ctYMnfBpJQ
-	QfH7ZzizBnVGgLjoVHl8v/kPpMj4DhCgy4I7PcijcvDaBY/R410JzF6KL31ps7qbYSXTvwVcraASB
-	I1cjc4q+vK5CdzYlh3yggSaTAITT/3/pq/P9IEwk4aR8RjtkOBo70K5jfO+DvfZMFpeKFyqVf27k9
-	taXXsOwmCtD9EUKP6n0l3Lc+U6GFZm21bUOW1KSBeoUh/+D/QBJx/oL9J2YXfS0zYkDz+o1+5eB49
-	T0wzhKegzOcOkm1sPoM4TGzCPlh2QzHfBsfUpJY35RzFQneCfG436Mdd2jSJfMD4cFK4fzo4V1h3S
-	n8vDKfcMVu/xZT+vPQ5Q==;
+	List-Owner; bh=/jYRTkJ6wbTOFFD5Bv1DLVVilFEQH4KNTlTqEpvYIS0=; b=so9D2ZoghaqASm
+	uTcuYDZM45Sw9vgCqc0nXrQ/Hcwrq5+nMx22TFOPMRlXex697Y67a7uNHUi7nh+hY0NeC5lew/YG/
+	LhlivS1RLpeXCHUkGdf+tRWMEdtayei2HShC7WpM6zzC7qVbHV8pvwfh9cSdr6ezPoMKkSps3MUnD
+	/WYyQMdl2ZN1igqqzXiBPxAv1JALr2bVx73qq/mBSgoMgNW1u0oVF/NE7YxkOq34lvuH+P8SMgATt
+	T90VyZzeJCTIVO7cFzQATzKaa1ojUAczPrDXWjhYWa97SYadPpgKakMZvEhrH31sCF+KeOx9uL8pj
+	ly+5HU1qPr2Jvk00t8tg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uu2ST-00000009DvE-03FX;
-	Thu, 04 Sep 2025 05:24:29 +0000
-Received: from mail-pf1-x430.google.com ([2607:f8b0:4864:20::430])
+	id 1uu7FT-0000000AuT8-0xW1;
+	Thu, 04 Sep 2025 10:31:23 +0000
+Received: from mail-yw1-x1133.google.com ([2607:f8b0:4864:20::1133])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uu2SQ-00000009Du3-0UHS
+	id 1uu6C1-0000000AXQS-0DSl
 	for opensbi@lists.infradead.org;
-	Thu, 04 Sep 2025 05:24:27 +0000
-Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-76e2ea933b7so559394b3a.1
-        for <opensbi@lists.infradead.org>; Wed, 03 Sep 2025 22:24:25 -0700 (PDT)
+	Thu, 04 Sep 2025 09:23:46 +0000
+Received: by mail-yw1-x1133.google.com with SMTP id 00721157ae682-71d60504788so8425037b3.2
+        for <opensbi@lists.infradead.org>; Thu, 04 Sep 2025 02:23:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1756963465; x=1757568265; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=sifive.com; s=google; t=1756977823; x=1757582623; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=CUUE3+0FAVpdu9fPqD77COX1Y2Fl+qYBdZtudY0U9bg=;
-        b=fsThmZZAV+oWfaPbUOai8H3xOlankyz2r9jkL0gevO7MNahS24kH/bJWGGTtInL/Wt
-         WS2wRZxtKJsm5gH2rjSg5GPBVZKtle3W6FztuvttjqOHE8BfRx+2SvLv2saGA/I3vSEW
-         mESnvpo9jtk7uJJUTdRtfYen6pSz8phmXvXpkbQ8aMUVs7PJb29vEDPT1Sak51NfIbkO
-         Y2aX9fjGsqD5WD7mFmC7dRfA1aWvur22dbhulMoe72fB2a4EqiujzRSAtFEHkROh3R48
-         mbYNDDwiamGIzPLxX9ahgOjH19kCxwpG4HQjUAlMymNlbFnzBfpQj/B6OroAFG7Bty00
-         /3Og==
+        bh=EvzKDiTUfzy/NNKbRfKKxyk8ooSjc9Lj5f06pXHNoQ4=;
+        b=cjjbrbHld+ZMEzod4876GOGkT2VbS/KqjRj08Yw/NCL5zWe6ld9F+jPChrKixyVOlK
+         Ncefp/Nyd7/wt0X6V7mZZovIDXGqt0NTcetqDGMqzkn5TB+QenbfYYKOBmMve68oYi5A
+         EIQyLjf+Ks7fpkAhHoWaIEKO3D1AIWs4+snoZRyK5N6hQOvYI0oPp9HA/CSbUPzxChaG
+         +LS0y+HoiJUVuf8EGiu6H5MVa1OymOFNsU3gLNwXC3VFI9qyy4yyEPiTHK/x/lSSQeue
+         pegAiXlALbv2p1o8Yuy6Fei+eLhNnrUQ790OFnP/ut4b/LMVDelWEZqucXZkZJqzfXM9
+         cCxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756963465; x=1757568265;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1756977823; x=1757582623;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=CUUE3+0FAVpdu9fPqD77COX1Y2Fl+qYBdZtudY0U9bg=;
-        b=MptOmxguemeDSawaESvqFyXGn3ho5HbuVEERZK21ha0/BdltvQSX0SXYE9l1wTn2z9
-         0UHV/bT0myc8uFZe+rx4WAULteyXCP385PeIqBh8h8jfbILNa/8Gkn/tUr9VrFetquKq
-         iVV9JoQlAt+orauZ2J6TH6dzkAb6YVWdu5ZUM3MCxi9ZghW/1C6kZDv9V+GZgFHIk13T
-         /FlXNwYHuEmuFPbGRbEH/CGfN177iQYAPCWyfMo7SdAHotBh5fhRjcM6gAJ/y2sWuxU8
-         4xR5InkJGlGw5FEhBJbGeUxnHG0zvUju4yX4Kv8oi7oSg0uICS6H8x2Vw+l4IbxHh4lr
-         gjUg==
-X-Forwarded-Encrypted: i=1; AJvYcCUOeU5D6XcZfUiMjF1iPEKJF9vmUIymROrfOuFhYpIITW7hmIXsAvI/C1pQGnUiz+mrrJex7B7H@lists.infradead.org
-X-Gm-Message-State: AOJu0YwwjnnqLe0OywZNo9Q1k9kAMmzw56xcvJQGwosGulQYgA2HZgrW
-	+zuXKB7qJsTi2EepmFv9XrH8esRhc0snJwIPKfF8JTQwczzx1hDn4qHYHQIHFfsvdr0=
-X-Gm-Gg: ASbGncu771E0BmPaYMUNB6F6Jl+AmFhyANVFlkP6XZr9GvoMyu2aPdAtlDuophSTyYr
-	T5KMAedllAY4mj51RfDxbZk4Lu9oxWGyWeuy6CCdnVvuB4lt8wHJulfIxQGVReWG476WUzdCRVm
-	YwxYGECKQRvZT3sa0xgSHmEWqTmddBc4gHgIDTnO2OIlrUz/hPXNk7aMLQnRc0zeSqHYkHci8yh
-	7TEhg358SNh2INQT/dByBcb+HYO2/WdN53ten1KGn0H6hk7riyuVHgpcJJz9njIcSpMrbBd3nfT
-	3l+3+gWZYAqMaImSTmUWX3nSCRWKsIFkxHAktX2P2d67oIJ9gl6u++cM4DuoRGabtRaxNVifqXg
-	zyPIeYAsuAjSGe9JbSrCwXIHF9U6OiXJh7bpT5Sgq4G0AMxKmKVfsAl/1zGiOWvxqILxJg7Nd
-X-Google-Smtp-Source: AGHT+IEP6oVhta2Dbl8G0rYx2fPX93Su0I6YItt0DdfdS1yJwQpk12j6OpUcFFY3x0Ueg61aqjsapA==
-X-Received: by 2002:a05:6a00:1821:b0:770:4753:b984 with SMTP id d2e1a72fcca58-7723e3d3eb8mr24399570b3a.16.1756963465225;
-        Wed, 03 Sep 2025 22:24:25 -0700 (PDT)
-Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-772447058dbsm14251524b3a.38.2025.09.03.22.24.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Sep 2025 22:24:24 -0700 (PDT)
-From: Anup Patel <apatel@ventanamicro.com>
-To: Atish Patra <atishp@rivosinc.com>
-Subject: [PATCH v3 2/3] include: sbi: Remove platform specific IPI init
-Date: Thu,  4 Sep 2025 10:54:09 +0530
-Message-ID: <20250904052410.546818-3-apatel@ventanamicro.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250904052410.546818-1-apatel@ventanamicro.com>
-References: <20250904052410.546818-1-apatel@ventanamicro.com>
+        bh=EvzKDiTUfzy/NNKbRfKKxyk8ooSjc9Lj5f06pXHNoQ4=;
+        b=jFQ1kqrQeKh12D8pBeshbC/1a36LNZVCHct2yGGpARreURQG/dsWaQGZ/I1QoTPmcP
+         //h4Q53XxhfJuEIOR6M9s6rcQH8jFDOH6FhtxALUYUd6vF6EpDZkV1AR5yiFtzod/uuB
+         RGxNTFmIuxKuHrWY86uVvudmSpAM/f2GswuD24LyZO9E83IxJGnkoQgEOuFFor7chOxB
+         YDlaFoqQjEfoQwU8F40CboroPyAfexUhB8+UQxOCntWkqss5skO7RGQie7PNnLVNnbbD
+         wG2E2b3IeBgfPg0K0Ht8pdfBuym27PAJ/6Aepr2vAxRlrteQ3nCJHZ+r4/Pe/0u93rUn
+         7wWg==
+X-Gm-Message-State: AOJu0Yxrbi6nMfFuTSEAkxrF47qKyzWBRuIOjvuqOSbADxmIuURF3vh1
+	UsDVo47lHQS92UYnxszw39AzK1r6uWTJNy5+VYvNDnj5OLn9xWSHGAKi3LPMddOfw/pdENGK/yl
+	xfVcDI0JSshyVi/EOIzY66IL3G756snfGgcBuwGmEkQ==
+X-Gm-Gg: ASbGncvVxEVpPZ34X/c4oM7u6It0v+7VyI702jCxEcXu9VzsiH/GAYH8XBBB2+lStfH
+	6PJawZbc19/UMW+3rBrBU58Xl4g0jC/F4OlUCvlIX79y7ug5qtFEJLpsynkMvZ52ogQeMYgjCNN
+	yy/UgwKu29L9dFLdaULQQp/GXy1jFU0d6waYZIIYpCZwRHn17LXu36m4TKCtWIy84QXMM7EjVEG
+	9Fzj2rrxAfdhf5xwHSsVEtSYoWGeRRxe9yWQ4s03N5SOcXFpcJgNGGNrr64KuaWW0HV6aN8zjiW
+	X4u4nA==
+X-Google-Smtp-Source: AGHT+IHHVxRBEIzZqUShsG4W6vDiArDt1QZf4v416xAXxfr/np/RrnclgBa/yRRt6H/T63MU2yflkembA3RDEA4OOAE=
+X-Received: by 2002:a05:690c:9a86:b0:723:b94d:97cf with SMTP id
+ 00721157ae682-723b94d9d2amr78959617b3.10.1756977823597; Thu, 04 Sep 2025
+ 02:23:43 -0700 (PDT)
 MIME-Version: 1.0
+References: <20250815024434.14303-1-peter.lin@sifive.com> <7870307554f9366a85685402353ddd4cff83df46.camel@126.com>
+In-Reply-To: <7870307554f9366a85685402353ddd4cff83df46.camel@126.com>
+From: Peter Lin <peter.lin@sifive.com>
+Date: Thu, 4 Sep 2025 17:23:33 +0800
+X-Gm-Features: Ac12FXy_JlyCTINF2mFqTGVUnMfgFGFc5SxSVhM5wU10LPRT9HEGXpIO5ViFiPs
+Message-ID: <CAHZsQ-Peg6MQ8h1hgVHD-mdCd0vSsVw2-RPSSwUmN88ztKSzdQ@mail.gmail.com>
+Subject: Re: [PATCH] lib: utils: fdt_helper: simplify fdt_parse_isa_extensions()
+ helper
+To: Xiang W <wxjstz@126.com>
+Cc: opensbi@lists.infradead.org, zong.li@sifive.com, greentime.hu@sifive.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250903_222426_157969_5CE4BD39 
-X-CRM114-Status: GOOD (  16.56  )
+X-CRM114-CacheID: sfid-20250904_022345_109703_7232DADD 
+X-CRM114-Status: GOOD (  26.33  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -92,357 +90,126 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Cc: Anup Patel <apatel@ventanamicro.com>, Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org, Nick Hu <nick.hu@sifive.com>, Andrew Jones <ajones@ventanamicro.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The platform specfic IPI init is not need anymore because using
-IPI device rating multiple IPI devices can be registered in any
-order as part of the platform specific early init.
-
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
-Tested-by: Nick Hu <nick.hu@sifive.com>
----
- include/sbi/sbi_platform.h               | 17 --------------
- lib/sbi/sbi_ipi.c                        |  5 ----
- platform/fpga/ariane/platform.c          | 29 +++++++++++-------------
- platform/generic/openhwgroup/openpiton.c | 23 ++++++++-----------
- platform/generic/platform.c              |  5 +++-
- platform/kendryte/k210/platform.c        | 17 +++++++-------
- platform/nuclei/ux600/platform.c         | 15 ++++++------
- platform/template/platform.c             | 20 +++++++---------
- 8 files changed, 49 insertions(+), 82 deletions(-)
-
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index c6d30080..d75c12de 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -116,9 +116,6 @@ struct sbi_platform_operations {
- 	/** Initialize the platform interrupt controller during cold boot */
- 	int (*irqchip_init)(void);
- 
--	/** Initialize IPI during cold boot */
--	int (*ipi_init)(void);
--
- 	/** Get tlb flush limit value **/
- 	u64 (*get_tlbr_flush_limit)(void);
- 
-@@ -528,20 +525,6 @@ static inline int sbi_platform_irqchip_init(const struct sbi_platform *plat)
- 	return 0;
- }
- 
--/**
-- * Initialize the platform IPI support during cold boot
-- *
-- * @param plat pointer to struct sbi_platform
-- *
-- * @return 0 on success and negative error code on failure
-- */
--static inline int sbi_platform_ipi_init(const struct sbi_platform *plat)
--{
--	if (plat && sbi_platform_ops(plat)->ipi_init)
--		return sbi_platform_ops(plat)->ipi_init();
--	return 0;
--}
--
- /**
-  * Initialize the platform timer during cold boot
-  *
-diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 93018fe6..ed9ccffb 100644
---- a/lib/sbi/sbi_ipi.c
-+++ b/lib/sbi/sbi_ipi.c
-@@ -357,11 +357,6 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- 		if (ret < 0)
- 			return ret;
- 		ipi_halt_event = ret;
--
--		/* Initialize platform IPI support */
--		ret = sbi_platform_ipi_init(sbi_platform_ptr(scratch));
--		if (ret)
--			return ret;
- 	} else {
- 		if (!ipi_data_off)
- 			return SBI_ENOMEM;
-diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
-index 4bc1c5be..1b6b052f 100644
---- a/platform/fpga/ariane/platform.c
-+++ b/platform/fpga/ariane/platform.c
-@@ -71,16 +71,22 @@ static struct aclint_mtimer_data mtimer = {
-  */
- static int ariane_early_init(bool cold_boot)
- {
-+	int rc;
-+
- 	if (!cold_boot)
- 		return 0;
- 
--	return uart8250_init(ARIANE_UART_ADDR,
--			     ARIANE_UART_FREQ,
--			     ARIANE_UART_BAUDRATE,
--			     ARIANE_UART_REG_SHIFT,
--			     ARIANE_UART_REG_WIDTH,
--			     ARIANE_UART_REG_OFFSET,
--			     ARIANE_UART_CAPS);
-+	rc = uart8250_init(ARIANE_UART_ADDR,
-+			   ARIANE_UART_FREQ,
-+			   ARIANE_UART_BAUDRATE,
-+			   ARIANE_UART_REG_SHIFT,
-+			   ARIANE_UART_REG_WIDTH,
-+			   ARIANE_UART_REG_OFFSET,
-+			   ARIANE_UART_CAPS);
-+	if (rc)
-+		return rc;
-+
-+	return aclint_mswi_cold_init(&mswi);
- }
- 
- /*
-@@ -107,14 +113,6 @@ static int ariane_irqchip_init(void)
- 	return plic_cold_irqchip_init(&plic);
- }
- 
--/*
-- * Initialize IPI during cold boot.
-- */
--static int ariane_ipi_init(void)
--{
--	return aclint_mswi_cold_init(&mswi);
--}
--
- /*
-  * Initialize ariane timer during cold boot.
-  */
-@@ -130,7 +128,6 @@ const struct sbi_platform_operations platform_ops = {
- 	.early_init = ariane_early_init,
- 	.final_init = ariane_final_init,
- 	.irqchip_init = ariane_irqchip_init,
--	.ipi_init = ariane_ipi_init,
- 	.timer_init = ariane_timer_init,
- };
- 
-diff --git a/platform/generic/openhwgroup/openpiton.c b/platform/generic/openhwgroup/openpiton.c
-index 9be7f9a4..3be66de6 100644
---- a/platform/generic/openhwgroup/openpiton.c
-+++ b/platform/generic/openhwgroup/openpiton.c
-@@ -104,11 +104,15 @@ static int openpiton_early_init(bool cold_boot)
- 				    ACLINT_DEFAULT_MTIMECMP_OFFSET;
- 	}
- 
--	return uart8250_init(uart.addr, uart.freq, uart.baud,
--			     OPENPITON_DEFAULT_UART_REG_SHIFT,
--			     OPENPITON_DEFAULT_UART_REG_WIDTH,
--			     OPENPITON_DEFAULT_UART_REG_OFFSET,
--			     OPENPITON_DEFAULT_UART_CAPS);
-+	rc = uart8250_init(uart.addr, uart.freq, uart.baud,
-+			   OPENPITON_DEFAULT_UART_REG_SHIFT,
-+			   OPENPITON_DEFAULT_UART_REG_WIDTH,
-+			   OPENPITON_DEFAULT_UART_REG_OFFSET,
-+			   OPENPITON_DEFAULT_UART_CAPS);
-+	if (rc)
-+		return rc;
-+
-+	return aclint_mswi_cold_init(&mswi);
- }
- 
- /*
-@@ -135,14 +139,6 @@ static int openpiton_irqchip_init(void)
- 	return plic_cold_irqchip_init(&plic);
- }
- 
--/*
-- * Initialize IPI during cold boot.
-- */
--static int openpiton_ipi_init(void)
--{
--	return aclint_mswi_cold_init(&mswi);
--}
--
- /*
-  * Initialize openpiton timer during cold boot.
-  */
-@@ -155,7 +151,6 @@ static int openhwgroup_openpiton_platform_init(const void *fdt, int nodeoff, con
- {
- 	generic_platform_ops.early_init = openpiton_early_init;
- 	generic_platform_ops.timer_init = openpiton_timer_init;
--	generic_platform_ops.ipi_init = openpiton_ipi_init;
- 	generic_platform_ops.irqchip_init = openpiton_irqchip_init;
- 	generic_platform_ops.final_init = openpiton_final_init;
- 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 889d6905..8ba6bc11 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -229,6 +229,10 @@ int generic_early_init(bool cold_boot)
- 			return rc;
- 
- 		fdt_driver_init_all(fdt, fdt_early_drivers);
-+
-+		rc = fdt_ipi_init();
-+		if (rc)
-+			return rc;
- 	}
- 
- 	return 0;
-@@ -337,7 +341,6 @@ struct sbi_platform_operations generic_platform_ops = {
- 	.extensions_init	= generic_extensions_init,
- 	.domains_init		= generic_domains_init,
- 	.irqchip_init		= fdt_irqchip_init,
--	.ipi_init		= fdt_ipi_init,
- 	.pmu_init		= generic_pmu_init,
- 	.pmu_xlate_to_mhpmevent = generic_pmu_xlate_to_mhpmevent,
- 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
-diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
-index aff133c6..65f5d497 100644
---- a/platform/kendryte/k210/platform.c
-+++ b/platform/kendryte/k210/platform.c
-@@ -112,13 +112,19 @@ static struct sbi_system_reset_device k210_reset = {
- 
- static int k210_early_init(bool cold_boot)
- {
-+	int rc;
-+
- 	if (!cold_boot)
- 		return 0;
- 
- 	sbi_system_reset_add_device(&k210_reset);
- 
--	return sifive_uart_init(K210_UART_BASE_ADDR, k210_get_clk_freq(),
--				K210_UART_BAUDRATE);
-+	rc = sifive_uart_init(K210_UART_BASE_ADDR, k210_get_clk_freq(),
-+			      K210_UART_BAUDRATE);
-+	if (rc)
-+		return rc;
-+
-+	return aclint_mswi_cold_init(&mswi);
- }
- 
- static int k210_final_init(bool cold_boot)
-@@ -141,11 +147,6 @@ static int k210_irqchip_init(void)
- 	return plic_cold_irqchip_init(&plic);
- }
- 
--static int k210_ipi_init(void)
--{
--	return aclint_mswi_cold_init(&mswi);
--}
--
- static int k210_timer_init(void)
- {
- 	return aclint_mtimer_cold_init(&mtimer, NULL);
-@@ -158,8 +159,6 @@ const struct sbi_platform_operations platform_ops = {
- 
- 	.irqchip_init = k210_irqchip_init,
- 
--	.ipi_init  = k210_ipi_init,
--
- 	.timer_init	   = k210_timer_init,
- };
- 
-diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
-index 1b67b644..14fbaeb6 100644
---- a/platform/nuclei/ux600/platform.c
-+++ b/platform/nuclei/ux600/platform.c
-@@ -151,6 +151,7 @@ static struct sbi_system_reset_device ux600_reset = {
- static int ux600_early_init(bool cold_boot)
- {
- 	u32 regval;
-+	int rc;
- 
- 	if (!cold_boot)
- 		return 0;
-@@ -168,8 +169,12 @@ static int ux600_early_init(bool cold_boot)
- 		UX600_GPIO_IOF_UART0_MASK;
- 	writel(regval, (void *)(UX600_GPIO_ADDR + UX600_GPIO_IOF_EN_OFS));
- 
--	return sifive_uart_init(UX600_DEBUG_UART, ux600_clk_freq,
--				UX600_UART_BAUDRATE);
-+	rc = sifive_uart_init(UX600_DEBUG_UART, ux600_clk_freq,
-+			      UX600_UART_BAUDRATE);
-+	if (rc)
-+		return rc;
-+
-+	return aclint_mswi_cold_init(&mswi);
- }
- 
- static void ux600_modify_dt(void *fdt)
-@@ -195,11 +200,6 @@ static int ux600_irqchip_init(void)
- 	return plic_cold_irqchip_init(&plic);
- }
- 
--static int ux600_ipi_init(void)
--{
--	return aclint_mswi_cold_init(&mswi);
--}
--
- static int ux600_timer_init(void)
- {
- 	return aclint_mtimer_cold_init(&mtimer, NULL);
-@@ -209,7 +209,6 @@ const struct sbi_platform_operations platform_ops = {
- 	.early_init		= ux600_early_init,
- 	.final_init		= ux600_final_init,
- 	.irqchip_init		= ux600_irqchip_init,
--	.ipi_init		= ux600_ipi_init,
- 	.timer_init		= ux600_timer_init,
- };
- 
-diff --git a/platform/template/platform.c b/platform/template/platform.c
-index 292889d2..38be1b5c 100644
---- a/platform/template/platform.c
-+++ b/platform/template/platform.c
-@@ -70,12 +70,18 @@ static struct aclint_mtimer_data mtimer = {
-  */
- static int platform_early_init(bool cold_boot)
- {
-+	int rc;
-+
- 	if (!cold_boot)
- 		return 0;
- 
- 	/* Example if the generic UART8250 driver is used */
--	return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
--			     PLATFORM_UART_BAUDRATE, 0, 1, 0, 0);
-+	rc = uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
-+			   PLATFORM_UART_BAUDRATE, 0, 1, 0, 0);
-+	if (rc)
-+		return rc;
-+
-+	return aclint_mswi_cold_init(&mswi);
- }
- 
- /*
-@@ -95,15 +101,6 @@ static int platform_irqchip_init(void)
- 	return plic_cold_irqchip_init(&plic);
- }
- 
--/*
-- * Initialize IPI during cold boot.
-- */
--static int platform_ipi_init(void)
--{
--	/* Example if the generic ACLINT driver is used */
--	return aclint_mswi_cold_init(&mswi);
--}
--
- /*
-  * Initialize platform timer during cold boot.
-  */
-@@ -120,7 +117,6 @@ const struct sbi_platform_operations platform_ops = {
- 	.early_init		= platform_early_init,
- 	.final_init		= platform_final_init,
- 	.irqchip_init		= platform_irqchip_init,
--	.ipi_init		= platform_ipi_init,
- 	.timer_init		= platform_timer_init
- };
- const struct sbi_platform platform = {
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+SGkgWGlhbmcsCgpPbiBXZWQsIEF1ZyAyMCwgMjAyNSBhdCAxMjowM+KAr1BNIFhpYW5nIFcgPHd4
+anN0ekAxMjYuY29tPiB3cm90ZToKPgo+IOWcqCAyMDI1LTA4LTE15LqU55qEIDEwOjQ0ICswODAw
+77yMWXUtQ2hpZW4gUGV0ZXIgTGlu5YaZ6YGT77yaCj4gPiBUaGUgZmR0X2lzYV9iaXRtYXAgd2Fz
+IHByZXZpb3VzbHkgdXNlZCBhcyBhIHRlbXBvcmFyeSBhcnJheQo+ID4gdG8gc3RvcmUgSVNBIGV4
+dGVuc2lvbnMgd2hlbiBwYXJzaW5nIGRldmljZS10cmVlLgo+ID4gVG8gcmVkdWNlIHNjcmF0Y2gg
+c3BhY2UgY29uc3VtcHRpb24sIHNldCB0aGUgSVNBIGJpdG1hcAo+ID4gZGlyZWN0bHkgaW4gaGZl
+YXR1cmUtPmV4dGVuc2lvbnMsIGFsbG93cyB1cyB0byByZW1vdmUgdGhlCj4gPiBmZHRfcGFyc2Vf
+aXNhX2FsbF9oYXJ0cygpIGFzIGZkdF9wYXJzZV9pc2FfZXh0ZW5zaW9ucygpIGNhbgo+ID4gbm93
+IGhhbmRsZSB0aGUgdGFzayBkaXJlY3RseS4KPiA+Cj4gPiBUaGlzIGNoYW5nZSBtYWtlcyB0aGUg
+aGVscGVyIGZ1bmN0aW9uIG1vcmUgdmVyc2F0aWxlLCBldmVuCj4gPiBiZWZvcmUgc2NyYXRjaCBz
+cGFjZSBpcyBpbml0aWFsaXplZC4KPiA+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBZdS1DaGllbiBQZXRl
+ciBMaW4gPHBldGVyLmxpbkBzaWZpdmUuY29tPgo+IE5BQ0sKPgo+IE9yaWdpbmFsbHksIHRoZSBl
+eHRlbnNpb25zIHBhcnNlZCBieSBmZHRfcGFyc2VfaXNhX2V4dGVuc2lvbnMKPiB3ZXJlIHJlbGF0
+ZWQgdG8gaGFydGlkLiBBZnRlciB0aGUgbW9kaWZpY2F0aW9uLCBpdCB3aWxsIGNvbGxlY3QKPiB0
+aGUgZXh0ZW5zaW9ucyBzdXBwb3J0ZWQgYnkgYWxsIHRoZSBIQVJULgo+Cj4gVG8gcmVtb3ZlIGZk
+dF9pc2FfYml0bWFwX29mZnNldCwgY2FsbCBzYmlfaGFydF91cGRhdGVfZXh0ZW5zaW9uCj4gaW4g
+ZmR0X3BhcnNlX2lzYV9leHRlbnNpb25zX29uZV9oYXJ0L2ZkdF9wYXJzZV9pc2Ffb25lX2hhcnQK
+ClRoYW5rcyBmb3IgY2F0Y2hpbmcgdGhpcywgYnV0IHRoZSBmdW5jdGlvbgphbHJlYWR5IGhhcyBk
+aXJlY3QgYWNjZXNzIHRvIHRoZSBoYXJ0X2V4dHMKKHdoaWNoIGNvcnJlc3BvbmRzIHRvIGhmZWF0
+dXJlLT5leHRlbmlvbnMKb2YgY3VycmVudCBIQVJUKSwgc28gd2UgbWF5IG5vdCBuZWVkIHRvIHVz
+ZQpzYmlfaGFydF91cGRhdGVfZXh0ZW5zaW9uKCkgd2hpY2ggbG9jYXRlcwpoZmVhdHVyZS0+ZXh0
+ZW5zaW9ucyBmcm9tIHNjcmF0Y2g/CgpTbyBJIHBsYW4gdG8gc2tpcCBvdGhlciBoYXJ0cyB3aGVu
+IHBhcnNpbmc6CgotLS0gYS9saWIvdXRpbHMvZmR0L2ZkdF9oZWxwZXIuYworKysgYi9saWIvdXRp
+bHMvZmR0L2ZkdF9oZWxwZXIuYwpAQCAtNDIxLDYgKzQyMSw5IEBAIGludCBmZHRfcGFyc2VfaXNh
+X2V4dGVuc2lvbnMoY29uc3Qgdm9pZCAqZmR0LAp1bnNpZ25lZCBsb25nICpoYXJ0X2V4dHMpCiAg
+ICAgICAgICAgICAgICBpZiAoZXJyKQogICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsK
+CisgICAgICAgICAgICAgICBpZiAoaGFydGlkICE9IGN1cnJlbnRfaGFydGlkKCkpCisgICAgICAg
+ICAgICAgICAgICAgICAgIGNvbnRpbnVlOworCiAgICAgICAgICAgICAgICBpZiAoIWZkdF9ub2Rl
+X2lzX2VuYWJsZWQoZmR0LCBjcHVfb2Zmc2V0KSkKICAgICAgICAgICAgICAgICAgICAgICAgY29u
+dGludWU7CgpJdCBzaG91bGQgZml4IHRoZSBpc3N1ZSBvZiBjb2xsZWN0aW5nIElTQSBmcm9tIGFs
+bApIQVJUcy4KClRoYW5rcywKUGV0ZXIgTGluCgo+IFJlZ2FyZHMsCj4gWGlhbmcgVwo+Cj4gPiAt
+LS0KPiA+ICBpbmNsdWRlL3NiaV91dGlscy9mZHQvZmR0X2hlbHBlci5oIHwgIDMgKy0KPiA+ICBs
+aWIvdXRpbHMvZmR0L2ZkdF9oZWxwZXIuYyAgICAgICAgIHwgNDUgKystLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tCj4gPiAgcGxhdGZvcm0vZ2VuZXJpYy9wbGF0Zm9ybS5jICAgICAgICB8ICAy
+ICstCj4gPiAgMyBmaWxlcyBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDQ2IGRlbGV0aW9ucygt
+KQo+ID4KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3NiaV91dGlscy9mZHQvZmR0X2hlbHBlci5o
+IGIvaW5jbHVkZS9zYmlfdXRpbHMvZmR0L2ZkdF9oZWxwZXIuaAo+ID4gaW5kZXggMDRjODUwY2Mu
+LjI0YWQxYTk0IDEwMDY0NAo+ID4gLS0tIGEvaW5jbHVkZS9zYmlfdXRpbHMvZmR0L2ZkdF9oZWxw
+ZXIuaAo+ID4gKysrIGIvaW5jbHVkZS9zYmlfdXRpbHMvZmR0L2ZkdF9oZWxwZXIuaAo+ID4gQEAg
+LTU0LDggKzU0LDcgQEAgaW50IGZkdF9wYXJzZV9jYm9tX2Jsb2NrX3NpemUoY29uc3Qgdm9pZCAq
+ZmR0LCBpbnQgY3B1X29mZnNldCwgdW5zaWduZWQgbG9uZyAgKmMKPiA+Cj4gPiAgaW50IGZkdF9w
+YXJzZV90aW1lYmFzZV9mcmVxdWVuY3koY29uc3Qgdm9pZCAqZmR0LCB1bnNpZ25lZCBsb25nICpm
+cmVxKTsKPiA+Cj4gPiAtaW50IGZkdF9wYXJzZV9pc2FfZXh0ZW5zaW9ucyhjb25zdCB2b2lkICpm
+ZHQsIHVuc2lnbmVkIGludCBoYXJ0aWQsCj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICB1
+bnNpZ25lZCBsb25nICpleHRlbnNpb25zKTsKPiA+ICtpbnQgZmR0X3BhcnNlX2lzYV9leHRlbnNp
+b25zKGNvbnN0IHZvaWQgKmZkdCwgdW5zaWduZWQgbG9uZyAqaGFydF9leHRzKTsKPiA+Cj4gPiAg
+aW50IGZkdF9wYXJzZV9nYWlzbGVyX3VhcnRfbm9kZShjb25zdCB2b2lkICpmZHQsIGludCBub2Rl
+b2Zmc2V0LAo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHBsYXRmb3Jt
+X3VhcnRfZGF0YSAqdWFydCk7Cj4gPiBkaWZmIC0tZ2l0IGEvbGliL3V0aWxzL2ZkdC9mZHRfaGVs
+cGVyLmMgYi9saWIvdXRpbHMvZmR0L2ZkdF9oZWxwZXIuYwo+ID4gaW5kZXggMGY0ODU5YzEuLjYx
+YTU5NjJjIDEwMDY0NAo+ID4gLS0tIGEvbGliL3V0aWxzL2ZkdC9mZHRfaGVscGVyLmMKPiA+ICsr
+KyBiL2xpYi91dGlscy9mZHQvZmR0X2hlbHBlci5jCj4gPiBAQCAtMzI0LDggKzMyNCw2IEBAIGlu
+dCBmZHRfcGFyc2VfdGltZWJhc2VfZnJlcXVlbmN5KGNvbnN0IHZvaWQgKmZkdCwgdW5zaWduZWQg
+bG9uZyAqZnJlcSkKPiA+Cj4gPiAgI2RlZmluZSBSSVNDVl9JU0FfRVhUX05BTUVfTEVOX01BWCAg
+IDMyCj4gPgo+ID4gLXN0YXRpYyB1bnNpZ25lZCBsb25nIGZkdF9pc2FfYml0bWFwX29mZnNldDsK
+PiA+IC0KPiA+ICBzdGF0aWMgaW50IGZkdF9wYXJzZV9pc2Ffb25lX2hhcnQoY29uc3QgY2hhciAq
+aXNhLCB1bnNpZ25lZCBsb25nICpleHRlbnNpb25zKQo+ID4gIHsKPiA+ICAgICAgIHNpemVfdCBp
+LCBqLCBpc2FfbGVuOwo+ID4gQEAgLTQwNSwxNSArNDAzLDEzIEBAIHN0YXRpYyB2b2lkIGZkdF9w
+YXJzZV9pc2FfZXh0ZW5zaW9uc19vbmVfaGFydChjb25zdCBjaGFyICppc2EsCj4gPiAgICAgICB9
+Cj4gPiAgfQo+ID4KPiA+IC1zdGF0aWMgaW50IGZkdF9wYXJzZV9pc2FfYWxsX2hhcnRzKGNvbnN0
+IHZvaWQgKmZkdCkKPiA+ICtpbnQgZmR0X3BhcnNlX2lzYV9leHRlbnNpb25zKGNvbnN0IHZvaWQg
+KmZkdCwgdW5zaWduZWQgbG9uZyAqaGFydF9leHRzKQo+ID4gIHsKPiA+ICAgICAgIHUzMiBoYXJ0
+aWQ7Cj4gPiAgICAgICBjb25zdCBmZHQzMl90ICp2YWw7Cj4gPiAtICAgICB1bnNpZ25lZCBsb25n
+ICpoYXJ0X2V4dHM7Cj4gPiAtICAgICBzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2g7Cj4gPiAg
+ICAgICBpbnQgZXJyLCBjcHVfb2Zmc2V0LCBjcHVzX29mZnNldCwgbGVuOwo+ID4KPiA+IC0gICAg
+IGlmICghZmR0IHx8ICFmZHRfaXNhX2JpdG1hcF9vZmZzZXQpCj4gPiArICAgICBpZiAoIWZkdCB8
+fCAhaGFydF9leHRzKQo+ID4gICAgICAgICAgICAgICByZXR1cm4gU0JJX0VJTlZBTDsKPiA+Cj4g
+PiAgICAgICBjcHVzX29mZnNldCA9IGZkdF9wYXRoX29mZnNldChmZHQsICIvY3B1cyIpOwo+ID4g
+QEAgLTQyOCwxMyArNDI0LDYgQEAgc3RhdGljIGludCBmZHRfcGFyc2VfaXNhX2FsbF9oYXJ0cyhj
+b25zdCB2b2lkICpmZHQpCj4gPiAgICAgICAgICAgICAgIGlmICghZmR0X25vZGVfaXNfZW5hYmxl
+ZChmZHQsIGNwdV9vZmZzZXQpKQo+ID4gICAgICAgICAgICAgICAgICAgICAgIGNvbnRpbnVlOwo+
+ID4KPiA+IC0gICAgICAgICAgICAgc2NyYXRjaCA9IHNiaV9oYXJ0aWRfdG9fc2NyYXRjaChoYXJ0
+aWQpOwo+ID4gLSAgICAgICAgICAgICBpZiAoIXNjcmF0Y2gpCj4gPiAtICAgICAgICAgICAgICAg
+ICAgICAgcmV0dXJuIFNCSV9FTk9FTlQ7Cj4gPiAtCj4gPiAtICAgICAgICAgICAgIGhhcnRfZXh0
+cyA9IHNiaV9zY3JhdGNoX29mZnNldF9wdHIoc2NyYXRjaCwKPiA+IC0gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmZHRfaXNhX2JpdG1hcF9vZmZzZXQpOwo+
+ID4gLQo+ID4gICAgICAgICAgICAgICB2YWwgPSBmZHRfZ2V0cHJvcChmZHQsIGNwdV9vZmZzZXQs
+ICJyaXNjdixpc2EtZXh0ZW5zaW9ucyIsICZsZW4pOwo+ID4gICAgICAgICAgICAgICBpZiAodmFs
+ICYmIGxlbiA+IDApIHsKPiA+ICAgICAgICAgICAgICAgICAgICAgICBmZHRfcGFyc2VfaXNhX2V4
+dGVuc2lvbnNfb25lX2hhcnQoKGNvbnN0IGNoYXIgKil2YWwsCj4gPiBAQCAtNDU0LDM2ICs0NDMs
+NiBAQCBzdGF0aWMgaW50IGZkdF9wYXJzZV9pc2FfYWxsX2hhcnRzKGNvbnN0IHZvaWQgKmZkdCkK
+PiA+ICAgICAgIHJldHVybiAwOwo+ID4gIH0KPiA+Cj4gPiAtaW50IGZkdF9wYXJzZV9pc2FfZXh0
+ZW5zaW9ucyhjb25zdCB2b2lkICpmZHQsIHVuc2lnbmVkIGludCBoYXJ0aWQsCj4gPiAtICAgICAg
+ICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyAqZXh0ZW5zaW9ucykKPiA+IC17Cj4gPiAtICAg
+ICBpbnQgcmMsIGk7Cj4gPiAtICAgICB1bnNpZ25lZCBsb25nICpoYXJ0X2V4dHM7Cj4gPiAtICAg
+ICBzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2g7Cj4gPiAtCj4gPiAtICAgICBpZiAoIWZkdF9p
+c2FfYml0bWFwX29mZnNldCkgewo+ID4gLSAgICAgICAgICAgICBmZHRfaXNhX2JpdG1hcF9vZmZz
+ZXQgPSBzYmlfc2NyYXRjaF9hbGxvY19vZmZzZXQoCj4gPiAtICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIHNpemVvZigqaGFydF9leHRzKSAqCj4gPiAtICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIEJJVFNfVE9fTE9OR1MoU0JJX0hBUlRfRVhUX01BWCkpOwo+
+ID4gLSAgICAgICAgICAgICBpZiAoIWZkdF9pc2FfYml0bWFwX29mZnNldCkKPiA+IC0gICAgICAg
+ICAgICAgICAgICAgICByZXR1cm4gU0JJX0VOT01FTTsKPiA+IC0KPiA+IC0gICAgICAgICAgICAg
+cmMgPSBmZHRfcGFyc2VfaXNhX2FsbF9oYXJ0cyhmZHQpOwo+ID4gLSAgICAgICAgICAgICBpZiAo
+cmMpCj4gPiAtICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHJjOwo+ID4gLSAgICAgfQo+ID4g
+LQo+ID4gLSAgICAgc2NyYXRjaCA9IHNiaV9oYXJ0aWRfdG9fc2NyYXRjaChoYXJ0aWQpOwo+ID4g
+LSAgICAgaWYgKCFzY3JhdGNoKQo+ID4gLSAgICAgICAgICAgICByZXR1cm4gU0JJX0VOT0VOVDsK
+PiA+IC0KPiA+IC0gICAgIGhhcnRfZXh0cyA9IHNiaV9zY3JhdGNoX29mZnNldF9wdHIoc2NyYXRj
+aCwgZmR0X2lzYV9iaXRtYXBfb2Zmc2V0KTsKPiA+IC0KPiA+IC0gICAgIGZvciAoaSA9IDA7IGkg
+PCBCSVRTX1RPX0xPTkdTKFNCSV9IQVJUX0VYVF9NQVgpOyBpKyspCj4gPiAtICAgICAgICAgICAg
+IGV4dGVuc2lvbnNbaV0gfD0gaGFydF9leHRzW2ldOwo+ID4gLSAgICAgcmV0dXJuIDA7Cj4gPiAt
+fQo+ID4gLQo+ID4gIHN0YXRpYyBpbnQgZmR0X3BhcnNlX3VhcnRfbm9kZV9jb21tb24oY29uc3Qg
+dm9pZCAqZmR0LCBpbnQgbm9kZW9mZnNldCwKPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHN0cnVjdCBwbGF0Zm9ybV91YXJ0X2RhdGEgKnVhcnQsCj4gPiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIGRlZmF1bHRfZnJlcSwKPiA+
+IGRpZmYgLS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL3BsYXRmb3JtLmMgYi9wbGF0Zm9ybS9nZW5l
+cmljL3BsYXRmb3JtLmMKPiA+IGluZGV4IDQ3ZTc3MWFkLi4yZThjNjA1MSAxMDA2NDQKPiA+IC0t
+LSBhL3BsYXRmb3JtL2dlbmVyaWMvcGxhdGZvcm0uYwo+ID4gKysrIGIvcGxhdGZvcm0vZ2VuZXJp
+Yy9wbGF0Zm9ybS5jCj4gPiBAQCAtMjUxLDcgKzI1MSw3IEBAIGludCBnZW5lcmljX2ZpbmFsX2lu
+aXQoYm9vbCBjb2xkX2Jvb3QpCj4gPiAgaW50IGdlbmVyaWNfZXh0ZW5zaW9uc19pbml0KHN0cnVj
+dCBzYmlfaGFydF9mZWF0dXJlcyAqaGZlYXR1cmVzKQo+ID4gIHsKPiA+ICAgICAgIC8qIFBhcnNl
+IHRoZSBJU0Egc3RyaW5nIGZyb20gRkRUIGFuZCBlbmFibGUgdGhlIGxpc3RlZCBleHRlbnNpb25z
+ICovCj4gPiAtICAgICByZXR1cm4gZmR0X3BhcnNlX2lzYV9leHRlbnNpb25zKGZkdF9nZXRfYWRk
+cmVzcygpLCBjdXJyZW50X2hhcnRpZCgpLAo+ID4gKyAgICAgcmV0dXJuIGZkdF9wYXJzZV9pc2Ff
+ZXh0ZW5zaW9ucyhmZHRfZ2V0X2FkZHJlc3MoKSwKPiA+ICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgaGZlYXR1cmVzLT5leHRlbnNpb25zKTsKPiA+ICB9Cj4gPgo+ID4gLS0K
+PiA+IDIuNDguMAo+ID4KPgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMu
+aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L29wZW5zYmkK
