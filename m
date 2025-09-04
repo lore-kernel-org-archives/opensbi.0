@@ -4,88 +4,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 6AF77CA101C
-	for <opensbi@archiver.kernel.org>; Thu,  4 Sep 2025 05:24:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4C87CCA1017
+	for <opensbi@archiver.kernel.org>; Thu,  4 Sep 2025 05:24:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	Content-Transfer-Encoding:Content-Type:Cc:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Message-ID:Date:Subject:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=JPGlYf4mcSVMp0Rl9nzqH+6mjlHYNQVDuW1n49CWPaU=; b=mAFw2VqZAdDvMN
-	Qt9e77L4wHbWbHJGKI5D1RZpR4MTRvsh9zw7yahOjIjAwAFnFs/MOr4ELoUsT+ZWy6Ehxv4kyOUh4
-	REqM+8jDk80wiSQ4aFzip0reODAQf43eW1iajEZ5M3VlG2d7AWeOHP+3/B70Vk6VpSQhx0ihFSGm9
-	AIl6gH0f1xv/GHFqv4tFWvtY+HX7eEl8mJetnafICgQ9cFCrVYFJDoWYhdGK/OPDrzbahHY2zoPbJ
-	8Lr+QAHIKaLXOzSz0w8qh4fqQLZZpT0G9ETuZuHEFSFKLpDecKVR/DT1NnKuBujcMEIQK/3u9XaZD
-	N4SNXMm30fr4TO2o7+Lg==;
+	List-Owner; bh=r9MMJvfa4lBW1/fx0UrDl+fGLdueYzMfNPicAssb3is=; b=oGr6ctYMnfBpJQ
+	QfH7ZzizBnVGgLjoVHl8v/kPpMj4DhCgy4I7PcijcvDaBY/R410JzF6KL31ps7qbYSXTvwVcraASB
+	I1cjc4q+vK5CdzYlh3yggSaTAITT/3/pq/P9IEwk4aR8RjtkOBo70K5jfO+DvfZMFpeKFyqVf27k9
+	taXXsOwmCtD9EUKP6n0l3Lc+U6GFZm21bUOW1KSBeoUh/+D/QBJx/oL9J2YXfS0zYkDz+o1+5eB49
+	T0wzhKegzOcOkm1sPoM4TGzCPlh2QzHfBsfUpJY35RzFQneCfG436Mdd2jSJfMD4cFK4fzo4V1h3S
+	n8vDKfcMVu/xZT+vPQ5Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uu2SP-00000009Dtu-2S3B;
-	Thu, 04 Sep 2025 05:24:25 +0000
-Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
+	id 1uu2ST-00000009DvE-03FX;
+	Thu, 04 Sep 2025 05:24:29 +0000
+Received: from mail-pf1-x430.google.com ([2607:f8b0:4864:20::430])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uu2SM-00000009DsR-30Ka
+	id 1uu2SQ-00000009Du3-0UHS
 	for opensbi@lists.infradead.org;
-	Thu, 04 Sep 2025 05:24:23 +0000
-Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-772679eb358so614067b3a.1
-        for <opensbi@lists.infradead.org>; Wed, 03 Sep 2025 22:24:22 -0700 (PDT)
+	Thu, 04 Sep 2025 05:24:27 +0000
+Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-76e2ea933b7so559394b3a.1
+        for <opensbi@lists.infradead.org>; Wed, 03 Sep 2025 22:24:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1756963462; x=1757568262; darn=lists.infradead.org;
+        d=ventanamicro.com; s=google; t=1756963465; x=1757568265; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Gj24UV6ZAS4pTm3Tt2UGKIDWHrZxVrgyqAgBpDASKB0=;
-        b=oBzNQktoQ4Rrwq4eFovgBEq7BVbSoFAl9DYnNWbcpwPtz/3EJXBXMsyoL7ysr0vbpN
-         Ez/QCG5UfFSkdhe3Q4ipbRxkUZgdUhUVJhhMZhlIw6/TnFDX9P803nguSsQS7AYdUFeA
-         oUOsdA7yI/X3uOcoYODS6kkdYTjmUoaaPxUNaRL81isw9LZE2cGRBHWDSdzwHxY3Ux1t
-         hEcve40Ipef4htsTCAuIjaMEg+XHQyuofVVUJh1jWtgIdJ1BwHneYF3dnKaQtNRUY35Q
-         TQjiLELw4Gp+kKYXGB/Y2Bs7/T1gvYcBNLkvpKEDNeMsJRqa3nk7WW1APBTxfXJ+S4N/
-         u9Qg==
+        bh=CUUE3+0FAVpdu9fPqD77COX1Y2Fl+qYBdZtudY0U9bg=;
+        b=fsThmZZAV+oWfaPbUOai8H3xOlankyz2r9jkL0gevO7MNahS24kH/bJWGGTtInL/Wt
+         WS2wRZxtKJsm5gH2rjSg5GPBVZKtle3W6FztuvttjqOHE8BfRx+2SvLv2saGA/I3vSEW
+         mESnvpo9jtk7uJJUTdRtfYen6pSz8phmXvXpkbQ8aMUVs7PJb29vEDPT1Sak51NfIbkO
+         Y2aX9fjGsqD5WD7mFmC7dRfA1aWvur22dbhulMoe72fB2a4EqiujzRSAtFEHkROh3R48
+         mbYNDDwiamGIzPLxX9ahgOjH19kCxwpG4HQjUAlMymNlbFnzBfpQj/B6OroAFG7Bty00
+         /3Og==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756963462; x=1757568262;
+        d=1e100.net; s=20230601; t=1756963465; x=1757568265;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Gj24UV6ZAS4pTm3Tt2UGKIDWHrZxVrgyqAgBpDASKB0=;
-        b=FGbZgeOk5+Kddy3wt4kjL+aA36eDOU3HS/YtcMVL/WdTpgtH/Oq2zp5FCl/V+SlRjt
-         8Z7AAU3UoOj3Fq82tvgHpgNeP+Y/03TIrvYy53K14QU26OTmBQCyg78ufrpgXpJr+Wv3
-         +NQ1OxiS6vEF/xPn//cH2lq98jtqc3Hi58pE2xjShycnAn568M5wS0isSGzGut+qrdTx
-         essTpzIF887QGEFI4wVorcU6jEcxJ10ln95Q1kVozxp8iSoVGoCyqov3mCOZfQ2FjIB9
-         Dym5ea+5DpEklDw+OBZeRnmCNeMTyHCc6WZbwMHMbtAikbYewwjFHdtCSEVbECNBdH2n
-         B+dA==
-X-Forwarded-Encrypted: i=1; AJvYcCW/BdwV+XwPjK2xK0qb3QFyx8fBhYt2UsANorsg8GK5rIwqp4uWTFSwXSL5l6NMQv1Jt2MMcf5E@lists.infradead.org
-X-Gm-Message-State: AOJu0Yzdip5LoK/Ialwt75VmmpsVPQ8/9rSr76fMYhYdL6OJOws2W8vG
-	3XvYMRvnadL1cpUxSeHQVi7ggIXodkDmfxBLbavgMPw/617oANZdd/qq9iccteosVo4=
-X-Gm-Gg: ASbGncvgTFfR7TcRyF+iIHknHvW2F0ry0Cnan+6XmGCemZS4VWtKNsZTygzguNWihk2
-	LbthwGbSCKXBWFsxoo9FPOzvacCOlhxi8Iq+ndx14twml+N9cXX2KyyOL0NhCx4vaFoMzrlPbh7
-	JkSFEj+XFvAvBhSGbPX80/KTf31jj3yeASi1GboP5jgjkJ2hC73Jgq7Yzqm+Ucl3+/2rD/vcPEf
-	msfkRJHIcMgU4mkgiZ9XviOCBmqsy9WgnGe0dwK/dSqueKCEouLK9wKYLpv8/9ODj77MWbij8k2
-	Ob+nbj285TrC8pX4RXP8t585uUOCJzRVcwDx82KWnPJ6ngXKCFBCqrKApqlAI+yjRgvqOA+XclK
-	2dNz55GhSgGXP0c9oBnfI4iT3Q4KeYLkq5FBQrtfEjC92W6xI737NI2E/wpuYpKD+VkeaPa3j
-X-Google-Smtp-Source: AGHT+IEowDDW4DDFSz3zjLGzULIzfhLoHpH70nAmgz5odtLyjObH8fKi7i2oiTm45yh0oN+23VjJBw==
-X-Received: by 2002:a05:6a00:39a9:b0:771:58e:5b10 with SMTP id d2e1a72fcca58-7723e2534acmr17771709b3a.8.1756963461812;
-        Wed, 03 Sep 2025 22:24:21 -0700 (PDT)
+        bh=CUUE3+0FAVpdu9fPqD77COX1Y2Fl+qYBdZtudY0U9bg=;
+        b=MptOmxguemeDSawaESvqFyXGn3ho5HbuVEERZK21ha0/BdltvQSX0SXYE9l1wTn2z9
+         0UHV/bT0myc8uFZe+rx4WAULteyXCP385PeIqBh8h8jfbILNa/8Gkn/tUr9VrFetquKq
+         iVV9JoQlAt+orauZ2J6TH6dzkAb6YVWdu5ZUM3MCxi9ZghW/1C6kZDv9V+GZgFHIk13T
+         /FlXNwYHuEmuFPbGRbEH/CGfN177iQYAPCWyfMo7SdAHotBh5fhRjcM6gAJ/y2sWuxU8
+         4xR5InkJGlGw5FEhBJbGeUxnHG0zvUju4yX4Kv8oi7oSg0uICS6H8x2Vw+l4IbxHh4lr
+         gjUg==
+X-Forwarded-Encrypted: i=1; AJvYcCUOeU5D6XcZfUiMjF1iPEKJF9vmUIymROrfOuFhYpIITW7hmIXsAvI/C1pQGnUiz+mrrJex7B7H@lists.infradead.org
+X-Gm-Message-State: AOJu0YwwjnnqLe0OywZNo9Q1k9kAMmzw56xcvJQGwosGulQYgA2HZgrW
+	+zuXKB7qJsTi2EepmFv9XrH8esRhc0snJwIPKfF8JTQwczzx1hDn4qHYHQIHFfsvdr0=
+X-Gm-Gg: ASbGncu771E0BmPaYMUNB6F6Jl+AmFhyANVFlkP6XZr9GvoMyu2aPdAtlDuophSTyYr
+	T5KMAedllAY4mj51RfDxbZk4Lu9oxWGyWeuy6CCdnVvuB4lt8wHJulfIxQGVReWG476WUzdCRVm
+	YwxYGECKQRvZT3sa0xgSHmEWqTmddBc4gHgIDTnO2OIlrUz/hPXNk7aMLQnRc0zeSqHYkHci8yh
+	7TEhg358SNh2INQT/dByBcb+HYO2/WdN53ten1KGn0H6hk7riyuVHgpcJJz9njIcSpMrbBd3nfT
+	3l+3+gWZYAqMaImSTmUWX3nSCRWKsIFkxHAktX2P2d67oIJ9gl6u++cM4DuoRGabtRaxNVifqXg
+	zyPIeYAsuAjSGe9JbSrCwXIHF9U6OiXJh7bpT5Sgq4G0AMxKmKVfsAl/1zGiOWvxqILxJg7Nd
+X-Google-Smtp-Source: AGHT+IEP6oVhta2Dbl8G0rYx2fPX93Su0I6YItt0DdfdS1yJwQpk12j6OpUcFFY3x0Ueg61aqjsapA==
+X-Received: by 2002:a05:6a00:1821:b0:770:4753:b984 with SMTP id d2e1a72fcca58-7723e3d3eb8mr24399570b3a.16.1756963465225;
+        Wed, 03 Sep 2025 22:24:25 -0700 (PDT)
 Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-772447058dbsm14251524b3a.38.2025.09.03.22.24.19
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-772447058dbsm14251524b3a.38.2025.09.03.22.24.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Sep 2025 22:24:21 -0700 (PDT)
+        Wed, 03 Sep 2025 22:24:24 -0700 (PDT)
 From: Anup Patel <apatel@ventanamicro.com>
 To: Atish Patra <atishp@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>,
-	Anup Patel <anup@brainfault.org>,
-	opensbi@lists.infradead.org,
-	Anup Patel <apatel@ventanamicro.com>,
-	Nick Hu <nick.hu@sifive.com>
-Subject: [PATCH v3 1/3] lib: sbi: Introduce IPI device rating
-Date: Thu,  4 Sep 2025 10:54:08 +0530
-Message-ID: <20250904052410.546818-2-apatel@ventanamicro.com>
+Subject: [PATCH v3 2/3] include: sbi: Remove platform specific IPI init
+Date: Thu,  4 Sep 2025 10:54:09 +0530
+Message-ID: <20250904052410.546818-3-apatel@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20250904052410.546818-1-apatel@ventanamicro.com>
 References: <20250904052410.546818-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250903_222422_755075_C8A00281 
-X-CRM114-Status: GOOD (  19.42  )
+X-CRM114-CacheID: sfid-20250903_222426_157969_5CE4BD39 
+X-CRM114-Status: GOOD (  16.56  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,233 +92,352 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Cc: Anup Patel <apatel@ventanamicro.com>, Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org, Nick Hu <nick.hu@sifive.com>, Andrew Jones <ajones@ventanamicro.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-A platform can have multiple IPI devices (such as ACLINT MSWI,
-AIA IMSIC, etc). Currently, OpenSBI rely on platform calling
-the sbi_ipi_set_device() function in correct order and prefer
-the first avaiable IPI device which is fragile.
-
-Instead of the above, introduce IPI device rating and prefer
-the highest rated IPI device. This further allows extending
-the sbi_ipi_raw_clear() to clear all available IPI devices.
+The platform specfic IPI init is not need anymore because using
+IPI device rating multiple IPI devices can be registered in any
+order as part of the platform specific early init.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
 Tested-by: Nick Hu <nick.hu@sifive.com>
 ---
- include/sbi/sbi_ipi.h        |  7 ++++--
- lib/sbi/sbi_init.c           |  2 +-
- lib/sbi/sbi_ipi.c            | 43 +++++++++++++++++++++++++++++-------
- lib/utils/ipi/aclint_mswi.c  |  3 ++-
- lib/utils/ipi/andes_plicsw.c |  3 ++-
- lib/utils/irqchip/imsic.c    |  3 ++-
- 6 files changed, 47 insertions(+), 14 deletions(-)
+ include/sbi/sbi_platform.h               | 17 --------------
+ lib/sbi/sbi_ipi.c                        |  5 ----
+ platform/fpga/ariane/platform.c          | 29 +++++++++++-------------
+ platform/generic/openhwgroup/openpiton.c | 23 ++++++++-----------
+ platform/generic/platform.c              |  5 +++-
+ platform/kendryte/k210/platform.c        | 17 +++++++-------
+ platform/nuclei/ux600/platform.c         | 15 ++++++------
+ platform/template/platform.c             | 20 +++++++---------
+ 8 files changed, 49 insertions(+), 82 deletions(-)
 
-diff --git a/include/sbi/sbi_ipi.h b/include/sbi/sbi_ipi.h
-index 62d61304..26d1b66b 100644
---- a/include/sbi/sbi_ipi.h
-+++ b/include/sbi/sbi_ipi.h
-@@ -23,6 +23,9 @@ struct sbi_ipi_device {
- 	/** Name of the IPI device */
- 	char name[32];
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index c6d30080..d75c12de 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -116,9 +116,6 @@ struct sbi_platform_operations {
+ 	/** Initialize the platform interrupt controller during cold boot */
+ 	int (*irqchip_init)(void);
  
-+	/** Ratings of the IPI device (higher is better) */
-+	unsigned long rating;
-+
- 	/** Send IPI to a target HART index */
- 	void (*ipi_send)(u32 hart_index);
+-	/** Initialize IPI during cold boot */
+-	int (*ipi_init)(void);
+-
+ 	/** Get tlb flush limit value **/
+ 	u64 (*get_tlbr_flush_limit)(void);
  
-@@ -87,11 +90,11 @@ void sbi_ipi_process(void);
- 
- int sbi_ipi_raw_send(u32 hartindex);
- 
--void sbi_ipi_raw_clear(void);
-+void sbi_ipi_raw_clear(bool all_devices);
- 
- const struct sbi_ipi_device *sbi_ipi_get_device(void);
- 
--void sbi_ipi_set_device(const struct sbi_ipi_device *dev);
-+void sbi_ipi_add_device(const struct sbi_ipi_device *dev);
- 
- int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot);
- 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 84a63748..663b486b 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -507,7 +507,7 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
- 	if (hstate == SBI_HSM_STATE_SUSPENDED) {
- 		init_warm_resume(scratch, hartid);
- 	} else {
--		sbi_ipi_raw_clear();
-+		sbi_ipi_raw_clear(true);
- 		init_warm_startup(scratch, hartid);
- 	}
+@@ -528,20 +525,6 @@ static inline int sbi_platform_irqchip_init(const struct sbi_platform *plat)
+ 	return 0;
  }
+ 
+-/**
+- * Initialize the platform IPI support during cold boot
+- *
+- * @param plat pointer to struct sbi_platform
+- *
+- * @return 0 on success and negative error code on failure
+- */
+-static inline int sbi_platform_ipi_init(const struct sbi_platform *plat)
+-{
+-	if (plat && sbi_platform_ops(plat)->ipi_init)
+-		return sbi_platform_ops(plat)->ipi_init();
+-	return 0;
+-}
+-
+ /**
+  * Initialize the platform timer during cold boot
+  *
 diff --git a/lib/sbi/sbi_ipi.c b/lib/sbi/sbi_ipi.c
-index 2de459b0..93018fe6 100644
+index 93018fe6..ed9ccffb 100644
 --- a/lib/sbi/sbi_ipi.c
 +++ b/lib/sbi/sbi_ipi.c
-@@ -15,9 +15,11 @@
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_heap.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_init.h>
- #include <sbi/sbi_ipi.h>
-+#include <sbi/sbi_list.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_pmu.h>
- #include <sbi/sbi_string.h>
-@@ -32,8 +34,14 @@ _Static_assert(
- 	"type of sbi_ipi_data.ipi_type has changed, please redefine SBI_IPI_EVENT_MAX"
- 	);
- 
-+struct sbi_ipi_device_node {
-+	struct sbi_dlist head;
-+	const struct sbi_ipi_device *dev;
-+};
-+
- static unsigned long ipi_data_off;
- static const struct sbi_ipi_device *ipi_dev = NULL;
-+static SBI_LIST_HEAD(ipi_dev_node_list);
- static const struct sbi_ipi_event_ops *ipi_ops_array[SBI_IPI_EVENT_MAX];
- 
- static int sbi_ipi_send(struct sbi_scratch *scratch, u32 remote_hartindex,
-@@ -248,7 +256,7 @@ void sbi_ipi_process(void)
- 			sbi_scratch_offset_ptr(scratch, ipi_data_off);
- 
- 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_IPI_RECVD);
--	sbi_ipi_raw_clear();
-+	sbi_ipi_raw_clear(false);
- 
- 	ipi_type = atomic_raw_xchg_ulong(&ipi_data->ipi_type, 0);
- 	ipi_event = 0;
-@@ -283,10 +291,19 @@ int sbi_ipi_raw_send(u32 hartindex)
- 	return 0;
- }
- 
--void sbi_ipi_raw_clear(void)
-+void sbi_ipi_raw_clear(bool all_devices)
+@@ -357,11 +357,6 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
+ 		if (ret < 0)
+ 			return ret;
+ 		ipi_halt_event = ret;
+-
+-		/* Initialize platform IPI support */
+-		ret = sbi_platform_ipi_init(sbi_platform_ptr(scratch));
+-		if (ret)
+-			return ret;
+ 	} else {
+ 		if (!ipi_data_off)
+ 			return SBI_ENOMEM;
+diff --git a/platform/fpga/ariane/platform.c b/platform/fpga/ariane/platform.c
+index 4bc1c5be..1b6b052f 100644
+--- a/platform/fpga/ariane/platform.c
++++ b/platform/fpga/ariane/platform.c
+@@ -71,16 +71,22 @@ static struct aclint_mtimer_data mtimer = {
+  */
+ static int ariane_early_init(bool cold_boot)
  {
--	if (ipi_dev && ipi_dev->ipi_clear)
--		ipi_dev->ipi_clear();
-+	struct sbi_ipi_device_node *entry;
++	int rc;
 +
-+	if (all_devices) {
-+		sbi_list_for_each_entry(entry, &ipi_dev_node_list, head) {
-+			if (entry->dev->ipi_clear)
-+				entry->dev->ipi_clear();
-+		}
-+	} else {
-+		if (ipi_dev && ipi_dev->ipi_clear)
-+			ipi_dev->ipi_clear();
-+	}
+ 	if (!cold_boot)
+ 		return 0;
  
- 	/*
- 	 * Ensure that memory or MMIO writes after this
-@@ -305,12 +322,22 @@ const struct sbi_ipi_device *sbi_ipi_get_device(void)
- 	return ipi_dev;
+-	return uart8250_init(ARIANE_UART_ADDR,
+-			     ARIANE_UART_FREQ,
+-			     ARIANE_UART_BAUDRATE,
+-			     ARIANE_UART_REG_SHIFT,
+-			     ARIANE_UART_REG_WIDTH,
+-			     ARIANE_UART_REG_OFFSET,
+-			     ARIANE_UART_CAPS);
++	rc = uart8250_init(ARIANE_UART_ADDR,
++			   ARIANE_UART_FREQ,
++			   ARIANE_UART_BAUDRATE,
++			   ARIANE_UART_REG_SHIFT,
++			   ARIANE_UART_REG_WIDTH,
++			   ARIANE_UART_REG_OFFSET,
++			   ARIANE_UART_CAPS);
++	if (rc)
++		return rc;
++
++	return aclint_mswi_cold_init(&mswi);
  }
  
--void sbi_ipi_set_device(const struct sbi_ipi_device *dev)
-+void sbi_ipi_add_device(const struct sbi_ipi_device *dev)
+ /*
+@@ -107,14 +113,6 @@ static int ariane_irqchip_init(void)
+ 	return plic_cold_irqchip_init(&plic);
+ }
+ 
+-/*
+- * Initialize IPI during cold boot.
+- */
+-static int ariane_ipi_init(void)
+-{
+-	return aclint_mswi_cold_init(&mswi);
+-}
+-
+ /*
+  * Initialize ariane timer during cold boot.
+  */
+@@ -130,7 +128,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.early_init = ariane_early_init,
+ 	.final_init = ariane_final_init,
+ 	.irqchip_init = ariane_irqchip_init,
+-	.ipi_init = ariane_ipi_init,
+ 	.timer_init = ariane_timer_init,
+ };
+ 
+diff --git a/platform/generic/openhwgroup/openpiton.c b/platform/generic/openhwgroup/openpiton.c
+index 9be7f9a4..3be66de6 100644
+--- a/platform/generic/openhwgroup/openpiton.c
++++ b/platform/generic/openhwgroup/openpiton.c
+@@ -104,11 +104,15 @@ static int openpiton_early_init(bool cold_boot)
+ 				    ACLINT_DEFAULT_MTIMECMP_OFFSET;
+ 	}
+ 
+-	return uart8250_init(uart.addr, uart.freq, uart.baud,
+-			     OPENPITON_DEFAULT_UART_REG_SHIFT,
+-			     OPENPITON_DEFAULT_UART_REG_WIDTH,
+-			     OPENPITON_DEFAULT_UART_REG_OFFSET,
+-			     OPENPITON_DEFAULT_UART_CAPS);
++	rc = uart8250_init(uart.addr, uart.freq, uart.baud,
++			   OPENPITON_DEFAULT_UART_REG_SHIFT,
++			   OPENPITON_DEFAULT_UART_REG_WIDTH,
++			   OPENPITON_DEFAULT_UART_REG_OFFSET,
++			   OPENPITON_DEFAULT_UART_CAPS);
++	if (rc)
++		return rc;
++
++	return aclint_mswi_cold_init(&mswi);
+ }
+ 
+ /*
+@@ -135,14 +139,6 @@ static int openpiton_irqchip_init(void)
+ 	return plic_cold_irqchip_init(&plic);
+ }
+ 
+-/*
+- * Initialize IPI during cold boot.
+- */
+-static int openpiton_ipi_init(void)
+-{
+-	return aclint_mswi_cold_init(&mswi);
+-}
+-
+ /*
+  * Initialize openpiton timer during cold boot.
+  */
+@@ -155,7 +151,6 @@ static int openhwgroup_openpiton_platform_init(const void *fdt, int nodeoff, con
  {
--	if (!dev || ipi_dev)
-+	struct sbi_ipi_device_node *entry;
+ 	generic_platform_ops.early_init = openpiton_early_init;
+ 	generic_platform_ops.timer_init = openpiton_timer_init;
+-	generic_platform_ops.ipi_init = openpiton_ipi_init;
+ 	generic_platform_ops.irqchip_init = openpiton_irqchip_init;
+ 	generic_platform_ops.final_init = openpiton_final_init;
+ 
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 889d6905..8ba6bc11 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -229,6 +229,10 @@ int generic_early_init(bool cold_boot)
+ 			return rc;
+ 
+ 		fdt_driver_init_all(fdt, fdt_early_drivers);
 +
-+	if (!dev)
-+		return;
++		rc = fdt_ipi_init();
++		if (rc)
++			return rc;
+ 	}
+ 
+ 	return 0;
+@@ -337,7 +341,6 @@ struct sbi_platform_operations generic_platform_ops = {
+ 	.extensions_init	= generic_extensions_init,
+ 	.domains_init		= generic_domains_init,
+ 	.irqchip_init		= fdt_irqchip_init,
+-	.ipi_init		= fdt_ipi_init,
+ 	.pmu_init		= generic_pmu_init,
+ 	.pmu_xlate_to_mhpmevent = generic_pmu_xlate_to_mhpmevent,
+ 	.get_tlbr_flush_limit	= generic_tlbr_flush_limit,
+diff --git a/platform/kendryte/k210/platform.c b/platform/kendryte/k210/platform.c
+index aff133c6..65f5d497 100644
+--- a/platform/kendryte/k210/platform.c
++++ b/platform/kendryte/k210/platform.c
+@@ -112,13 +112,19 @@ static struct sbi_system_reset_device k210_reset = {
+ 
+ static int k210_early_init(bool cold_boot)
+ {
++	int rc;
 +
-+	entry = sbi_zalloc(sizeof(*entry));
-+	if (!entry)
- 		return;
-+	SBI_INIT_LIST_HEAD(&entry->head);
-+	entry->dev = dev;
-+	sbi_list_add_tail(&entry->head, &ipi_dev_node_list);
+ 	if (!cold_boot)
+ 		return 0;
  
--	ipi_dev = dev;
-+	if (!ipi_dev || ipi_dev->rating < dev->rating)
-+		ipi_dev = dev;
+ 	sbi_system_reset_add_device(&k210_reset);
+ 
+-	return sifive_uart_init(K210_UART_BASE_ADDR, k210_get_clk_freq(),
+-				K210_UART_BAUDRATE);
++	rc = sifive_uart_init(K210_UART_BASE_ADDR, k210_get_clk_freq(),
++			      K210_UART_BAUDRATE);
++	if (rc)
++		return rc;
++
++	return aclint_mswi_cold_init(&mswi);
  }
  
- int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
-@@ -347,7 +374,7 @@ int sbi_ipi_init(struct sbi_scratch *scratch, bool cold_boot)
- 	ipi_data->ipi_type = 0x00;
- 
- 	/* Clear any pending IPIs for the current hart */
--	sbi_ipi_raw_clear();
-+	sbi_ipi_raw_clear(true);
- 
- 	/* Enable software interrupts */
- 	csr_set(CSR_MIE, MIP_MSIP);
-diff --git a/lib/utils/ipi/aclint_mswi.c b/lib/utils/ipi/aclint_mswi.c
-index 9e55078a..d4acacf0 100644
---- a/lib/utils/ipi/aclint_mswi.c
-+++ b/lib/utils/ipi/aclint_mswi.c
-@@ -62,6 +62,7 @@ static void mswi_ipi_clear(void)
- 
- static struct sbi_ipi_device aclint_mswi = {
- 	.name = "aclint-mswi",
-+	.rating = 100,
- 	.ipi_send = mswi_ipi_send,
- 	.ipi_clear = mswi_ipi_clear
- };
-@@ -106,7 +107,7 @@ int aclint_mswi_cold_init(struct aclint_mswi_data *mswi)
- 	if (rc)
- 		return rc;
- 
--	sbi_ipi_set_device(&aclint_mswi);
-+	sbi_ipi_add_device(&aclint_mswi);
- 
- 	return 0;
+ static int k210_final_init(bool cold_boot)
+@@ -141,11 +147,6 @@ static int k210_irqchip_init(void)
+ 	return plic_cold_irqchip_init(&plic);
  }
-diff --git a/lib/utils/ipi/andes_plicsw.c b/lib/utils/ipi/andes_plicsw.c
-index 5d085d85..3621e3cb 100644
---- a/lib/utils/ipi/andes_plicsw.c
-+++ b/lib/utils/ipi/andes_plicsw.c
-@@ -61,6 +61,7 @@ static void plicsw_ipi_clear(void)
  
- static struct sbi_ipi_device plicsw_ipi = {
- 	.name      = "andes_plicsw",
-+	.rating    = 200,
- 	.ipi_send  = plicsw_ipi_send,
- 	.ipi_clear = plicsw_ipi_clear
- };
-@@ -99,7 +100,7 @@ int plicsw_cold_ipi_init(struct plicsw_data *plicsw)
- 	if (rc)
- 		return rc;
+-static int k210_ipi_init(void)
+-{
+-	return aclint_mswi_cold_init(&mswi);
+-}
+-
+ static int k210_timer_init(void)
+ {
+ 	return aclint_mtimer_cold_init(&mtimer, NULL);
+@@ -158,8 +159,6 @@ const struct sbi_platform_operations platform_ops = {
  
--	sbi_ipi_set_device(&plicsw_ipi);
-+	sbi_ipi_add_device(&plicsw_ipi);
+ 	.irqchip_init = k210_irqchip_init,
  
- 	return 0;
- }
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index 057b9fa7..d72ef794 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -199,6 +199,7 @@ static void imsic_ipi_send(u32 hart_index)
- 
- static struct sbi_ipi_device imsic_ipi_device = {
- 	.name		= "aia-imsic",
-+	.rating		= 300,
- 	.ipi_send	= imsic_ipi_send
+-	.ipi_init  = k210_ipi_init,
+-
+ 	.timer_init	   = k210_timer_init,
  };
  
-@@ -393,7 +394,7 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
- 	sbi_irqchip_add_device(&imsic_device);
+diff --git a/platform/nuclei/ux600/platform.c b/platform/nuclei/ux600/platform.c
+index 1b67b644..14fbaeb6 100644
+--- a/platform/nuclei/ux600/platform.c
++++ b/platform/nuclei/ux600/platform.c
+@@ -151,6 +151,7 @@ static struct sbi_system_reset_device ux600_reset = {
+ static int ux600_early_init(bool cold_boot)
+ {
+ 	u32 regval;
++	int rc;
  
- 	/* Register IPI device */
--	sbi_ipi_set_device(&imsic_ipi_device);
-+	sbi_ipi_add_device(&imsic_ipi_device);
+ 	if (!cold_boot)
+ 		return 0;
+@@ -168,8 +169,12 @@ static int ux600_early_init(bool cold_boot)
+ 		UX600_GPIO_IOF_UART0_MASK;
+ 	writel(regval, (void *)(UX600_GPIO_ADDR + UX600_GPIO_IOF_EN_OFS));
  
- 	return 0;
+-	return sifive_uart_init(UX600_DEBUG_UART, ux600_clk_freq,
+-				UX600_UART_BAUDRATE);
++	rc = sifive_uart_init(UX600_DEBUG_UART, ux600_clk_freq,
++			      UX600_UART_BAUDRATE);
++	if (rc)
++		return rc;
++
++	return aclint_mswi_cold_init(&mswi);
  }
+ 
+ static void ux600_modify_dt(void *fdt)
+@@ -195,11 +200,6 @@ static int ux600_irqchip_init(void)
+ 	return plic_cold_irqchip_init(&plic);
+ }
+ 
+-static int ux600_ipi_init(void)
+-{
+-	return aclint_mswi_cold_init(&mswi);
+-}
+-
+ static int ux600_timer_init(void)
+ {
+ 	return aclint_mtimer_cold_init(&mtimer, NULL);
+@@ -209,7 +209,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.early_init		= ux600_early_init,
+ 	.final_init		= ux600_final_init,
+ 	.irqchip_init		= ux600_irqchip_init,
+-	.ipi_init		= ux600_ipi_init,
+ 	.timer_init		= ux600_timer_init,
+ };
+ 
+diff --git a/platform/template/platform.c b/platform/template/platform.c
+index 292889d2..38be1b5c 100644
+--- a/platform/template/platform.c
++++ b/platform/template/platform.c
+@@ -70,12 +70,18 @@ static struct aclint_mtimer_data mtimer = {
+  */
+ static int platform_early_init(bool cold_boot)
+ {
++	int rc;
++
+ 	if (!cold_boot)
+ 		return 0;
+ 
+ 	/* Example if the generic UART8250 driver is used */
+-	return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
+-			     PLATFORM_UART_BAUDRATE, 0, 1, 0, 0);
++	rc = uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
++			   PLATFORM_UART_BAUDRATE, 0, 1, 0, 0);
++	if (rc)
++		return rc;
++
++	return aclint_mswi_cold_init(&mswi);
+ }
+ 
+ /*
+@@ -95,15 +101,6 @@ static int platform_irqchip_init(void)
+ 	return plic_cold_irqchip_init(&plic);
+ }
+ 
+-/*
+- * Initialize IPI during cold boot.
+- */
+-static int platform_ipi_init(void)
+-{
+-	/* Example if the generic ACLINT driver is used */
+-	return aclint_mswi_cold_init(&mswi);
+-}
+-
+ /*
+  * Initialize platform timer during cold boot.
+  */
+@@ -120,7 +117,6 @@ const struct sbi_platform_operations platform_ops = {
+ 	.early_init		= platform_early_init,
+ 	.final_init		= platform_final_init,
+ 	.irqchip_init		= platform_irqchip_init,
+-	.ipi_init		= platform_ipi_init,
+ 	.timer_init		= platform_timer_init
+ };
+ const struct sbi_platform platform = {
 -- 
 2.43.0
 
