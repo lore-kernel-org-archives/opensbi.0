@@ -4,86 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id D6DE3CA1012
-	for <opensbi@archiver.kernel.org>; Sat,  6 Sep 2025 07:27:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 92A7CCA1016
+	for <opensbi@archiver.kernel.org>; Mon,  8 Sep 2025 05:57:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=AyOMw2raOh7THStjHIxZubkw4ot0rlrlNguNumsxDUg=; b=wycus+dp2NRCqX
-	l9olHvsnRcnZ3J8RC1R5XMotyiR5sVNxY4E6N5Plg5AuMQZEsy9ooVViUQEw20MxH2eD0qCI1T+zX
-	iUGUxCPYIDv2y1VLiJzN6AaLLD81l5Y9CS4FhdKrGKeguB70glgXGFV3TJAjALwHEoFOEsd2Wv5Zf
-	XMVGiaDxMCM9T7bxg2QtLoq/E6m2G4dfnwdYRbfdw0tQWCFvweOi4iOzE0O00TNLPRgVpuRyDcBCd
-	5cnjqdnV/PMxpYrL9iKud7cpxeO7D8VNOQ0IAXBRK4M0vJLE5FSEACfLgu+jyjgG0XRx447roCrc2
-	QROy/M6BbBA4TJShPG7g==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=CUSgkKT8cmJ4CuFiaDmwO3NN3SeBOCJacEO+JT5cWzc=; b=inlvQ/ptGucByN
+	xCnSKa9CJ8k6NdMrLf4TZhMxyErEMupn4b4lvCJuB5tSGPAnLSA047bhw8BfziKuhxc/XwoLy5ukU
+	WNrAeyOjYw5LAedZTXCNY1662mt1xi9VDMy1YXhzfFTFW59CiUfw/rt/lsZ2x+PNbQCheiGkYt632
+	bKj7JiNKoJb8lDwcS0FgCrVtTH4mn66+tr/lCBJRCX82squajTJYex/f21fEw1DMfJYujPlyZVbSc
+	j7jbHZIO84wbr4Aaq9xdPOAw4zTQeU/JMn45BEUisxbpWFFxdMRvsnRBRHK8IF8FRfSo3NHzll39V
+	FDFM6BStfv1/azcn9DDQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uunKD-000000078IY-251N;
-	Sat, 06 Sep 2025 07:27:05 +0000
-Received: from mail-pg1-x52f.google.com ([2607:f8b0:4864:20::52f])
+	id 1uvUs1-0000000Epne-0igA;
+	Mon, 08 Sep 2025 05:56:53 +0000
+Received: from mail-pl1-x62a.google.com ([2607:f8b0:4864:20::62a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uunKA-000000078HX-3Jia
+	id 1uvUry-0000000EplS-1Pus
 	for opensbi@lists.infradead.org;
-	Sat, 06 Sep 2025 07:27:03 +0000
-Received: by mail-pg1-x52f.google.com with SMTP id 41be03b00d2f7-b52287367ceso15153a12.2
-        for <opensbi@lists.infradead.org>; Sat, 06 Sep 2025 00:27:02 -0700 (PDT)
+	Mon, 08 Sep 2025 05:56:51 +0000
+Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-25669596955so6059355ad.0
+        for <opensbi@lists.infradead.org>; Sun, 07 Sep 2025 22:56:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1757143621; x=1757748421; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=WHKz0vSDqtVcXCwhJvi4FhbgoHJw0D4bvXiKqs1xan8=;
-        b=lGrfebWGF7GLsf3Q63tR44bh8ZYGUTYLRD84/TWq3mI3XjKcqEzSb1eRzF/ilEoSyN
-         83Z7YXD24h1aaR6VVC/UyQKzhqE24TriAe/C0cR9VYRcktoCuGiu6OjVjAwRHLBhXq3C
-         DJeUkaqjBwCNiMLw7dfmd0ZkZ1QJCo0Uk35a/AhmXUQ93xCr5g/IbM6fMRVRLoeVtuHz
-         jVeBKMUHvAgMMkmZskPeGwzIkTsNIUwCLE1s6ctzJJnKZTGz7t0xjNcfx2HsuMhw7e7V
-         pyjc2L8hmvuMAjWT0vsYAWbT6RbpMNQ+neD0sA1sYxr3E4oQ+kNCzIBHmrJC78EfxXVd
-         cOjQ==
+        d=sifive.com; s=google; t=1757311009; x=1757915809; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zsTO+X0DTuE37z1b8cUyqxNTPCEhjHHmrsnFAhLXDm0=;
+        b=kquXXf5oar9+ip/vO4aeoDp0UZF1ud7axSdyBvbqlWAvmDPE0XTmdP3vxxPXB9SKiZ
+         0FkNnY4YChuxmSy6aJdKFbYcXha0kqQg/Ku1I9W1YBvhwIxbQwj523fq0N6trOoeYm6C
+         m19703AvCB8BxjzcnjMyTLSdFipRsXDeMmgO1RlDXcHZpHPlpSJRySLQ4uW9KepD+tQj
+         xf0zJEhguzNyKNrZcEUVcKUwpNuiaGtLRqeC9fQROPr5ZM84zTKFTccfo5xgcl9KfvdL
+         x2xCCkLbB4isSYK8pxd0CxbEWWoOp3NXAKW8KZnxf48MUSWjubLMhWicKrV9YN34s0L8
+         IrXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757143621; x=1757748421;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=WHKz0vSDqtVcXCwhJvi4FhbgoHJw0D4bvXiKqs1xan8=;
-        b=IAF9VNw0shZ4ere11sZc6Pe8OStUApavqFXAcYnUpH5KZEbZMWcDGygsON3Zu6p5AA
-         VOTpPKF/GxObMrw6i5a5Gif8GGZgPYJW67/rjC5t6MTDMnnrRaqF+taVMbua8iKdP00q
-         510VG+iXvwazby2NE74rHiczGe45njm8i17mA5X2Zz8zQyVgNTgA/qdON4BI78rKbYjF
-         Ps0j+mxmj2qN+2mhvGe0349zmyGEqBGyur+ktu3huOFSlSUH1rRrAV5KMFGOF4rnOv+L
-         S+Kx2T9upNXrzMX02671MrE1GjGVdk0A62Fqy3JLHLov8ZrGYEMUfwRpJlIyC4VY7ZZv
-         VcaA==
-X-Gm-Message-State: AOJu0YzIQXr/pQEcQ+ySrc42DgQ0myzM0KauYUfxjP7kOxP2Axn9gVR2
-	WRlHCLx2RbKOtWzk+Rah/LdJSiNzIA0huoJwH36lfdRV96PHrPcEYd+MtupCVSRHgWDp5I0BhJa
-	EuE2WMmWIxSyliNM2AUQFb+ojiltgGnYE56Yw5ZtIqGBZIj91uo7/hu7HmGfz1BSzJe0QU/bood
-	Mk0ih1uAfEiMTzfm6dfEs8szMMNXOXwonfp2xXLFQsKADtORyoie0=
-X-Gm-Gg: ASbGncvRARxoOOUkQdaI4SFpX3H4NxqhOigUBnnk9X/UdqS4gYYnPgsqdYJDlltJyFe
-	1IxVzeM8P5DnJ4cDAYyFl0UPaH0o1cuv+a/NjVCRz/5DIje/o3DPsJaU65HRyqsyOYkx7iJN2uF
-	YAS2JLPk5qWZcnUgvPT6ISo57pIpCOnJYBHeYvBpGJAs25rC6MezjRiXiRDnEwcstIMVVzSR/qw
-	hyMhVKzw9aVCxO+NDML7FW3H3GD2dhlFo/V47jsyO+/XemlfS0zJKtit+2K/4UjuF5LzFyqyES9
-	uEfo81XX0IIxvPIR6cH1LDjrD7bHnrGuL29ntFM3ZSOT9eiPgJ89rtXVshOVwjs+iwbVydpSbHT
-	hJA5CixbCRGOhcCYU1XRyOxKZe/o3rsXHUDiW87pgkVEyZaL46FUXAO94c0u5+ZXbbAJpZSJy7/
-	EBjoyS+Q4e11N3Pghj5sJEQBUkUEmypSnPWePVpxGkc0Q=
-X-Google-Smtp-Source: AGHT+IFBnhWDo7DC94Q7CmPgwGQb9h0aZH0dR0+hZIeTuHFprtlkfqWI+d7IeQF3bGxMAdTB9ZJWhg==
-X-Received: by 2002:a05:6a20:3943:b0:24a:c995:e145 with SMTP id adf61e73a8af0-2533d225ee3mr2264335637.19.1757143621378;
-        Sat, 06 Sep 2025 00:27:01 -0700 (PDT)
-Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-32b5d95709fsm10233653a91.10.2025.09.06.00.26.59
+        d=1e100.net; s=20230601; t=1757311009; x=1757915809;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zsTO+X0DTuE37z1b8cUyqxNTPCEhjHHmrsnFAhLXDm0=;
+        b=IhKeMX9TgYN1aJ0X5xKdNxCvheKZ3Imn9a1p5o4l9vN8FxQ3MtzayUrR5D839lXd7E
+         MBtmd5IXPaPIP1jJU4pkVbhr5ZXTu030AXEFDgEuwUB7Lmgl0evrYb44dhEHV//HePTI
+         xKy5VnrXTZHGVwkWTA23nTgqw0O+o6FZ54t00cffPRwB1NjadpT7Hb+PFZ9ocn4ZcJfq
+         hl3/gUWHD6VGC8aWjgcGf2AqHG+2DvjVelEztbD9khAOnLy6fsRMHY7aNVvXFxO36sCY
+         6szwRoyqx+m8bQgsSV0j4GliGjaKu/TXA81hm4z1A9G8ormNZoxE//7BEDBnIAbzUYym
+         FPHA==
+X-Gm-Message-State: AOJu0Ywb6ZP90mLjpfUfPkZGpxY3tXDAN3jG2QXhH/e2ee0BANPCZN4e
+	fxRw7wrCUvDYc8u3Tow5H8t3Q1UVP8ph3z8vHVUoXFKImxgRY+DQ/7j4JuqfLLiM0kFWFuRHISA
+	ZeZSjoCEWQ666oMIQyU0uEvXQL0v3TWeoZePo6ispgfj4KB2Xt0JO6e94YUgR25hc9VPhu4C1NB
+	0iAJ/DwUvFmaMzkgir2s6Dcp3MxMCjEUUP+nCFgICk4EqNim0+WExDXU4=
+X-Gm-Gg: ASbGncuZlUtXDAr9XqShO0O/s66uXKbcRkdmLsr3G0MfBjUatr2Z9pI9ZZlS1NAoQXU
+	w4hlXgZX6OBdCwk50SvxktmC2wz+IA+PrskwfZi/F0UnmOFQ6tYc/0mzBwen2merGk4nkgv9c69
+	hq2NgThBdUfZb19U2rKhiakJxVZznvRsPFzVytYRerZKd4AGKrvcR/TrqXd2BGspB1NsTOxTjWY
+	4WhI8X0IP4R1nYkaTk0YaH0Vbyju6qhnimb4ImujeYrqvVGaJoKNR5q1KLYm8i67vrrGjnepidp
+	3w07QAosnAAruzlkcv9R7l6WlfI3pXgSgC8MZil20RlMgSViocwoYITGG2EMgD+Q+IifLgdwIi1
+	7W+llKIh9cxDOQ4Mjkd08RSovjkZf08MVpEL7oC2UTpdN
+X-Google-Smtp-Source: AGHT+IHTE0aZbK+Y1m0UMcYysTi4Ql2HPh6497eFPge3Xnm/YBFkGE3+UF1QnODpGkWzjQr7dmzbhg==
+X-Received: by 2002:a17:902:e80e:b0:246:2e9:daa4 with SMTP id d9443c01a7336-2516ef54db3mr100401365ad.6.1757311008903;
+        Sun, 07 Sep 2025 22:56:48 -0700 (PDT)
+Received: from sw06.internal.sifive.com ([4.53.31.132])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-252ea823306sm42894525ad.26.2025.09.07.22.56.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 06 Sep 2025 00:27:00 -0700 (PDT)
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
+        Sun, 07 Sep 2025 22:56:48 -0700 (PDT)
+From: Samuel Holland <samuel.holland@sifive.com>
 To: opensbi@lists.infradead.org
-Cc: zong.li@sifive.com,
-	greentime.hu@sifive.com,
-	wxjstz@126.com,
-	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH v2] lib: utils: fdt_helper: simplify fdt_parse_isa_extensions() helper
-Date: Sat,  6 Sep 2025 15:26:56 +0800
-Message-ID: <20250906072656.5525-1-peter.lin@sifive.com>
-X-Mailer: git-send-email 2.48.0
+Cc: Samuel Holland <samuel.holland@sifive.com>
+Subject: [PATCH 3/3] lib: sbi_hsm: Use 64-bit CSR macro for menvcfg
+Date: Sun,  7 Sep 2025 22:56:40 -0700
+Message-ID: <20250908055646.2391370-3-samuel.holland@sifive.com>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250908055646.2391370-1-samuel.holland@sifive.com>
+References: <20250908055646.2391370-1-samuel.holland@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250906_002702_839526_165B1634 
-X-CRM114-Status: GOOD (  14.01  )
+X-CRM114-CacheID: sfid-20250907_225650_399498_70A4ADC9 
+X-CRM114-Status: GOOD (  10.00  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -100,140 +99,66 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The fdt_isa_bitmap was previously used as a temporary array
-to store ISA extensions when parsing device-tree.
-To reduce scratch space consumption, set the ISA bitmap
-directly in hfeature->extensions, allows us to remove the
-fdt_parse_isa_all_harts() as fdt_parse_isa_extensions() can
-now handle the task directly.
+Simplify the code and remove preprocessor checks by treating menvcfg and
+menvcfgh together as one 64-bit value.
 
-This change makes the helper function more versatile, even
-before scratch space is initialized.
-
-Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
- include/sbi_utils/fdt/fdt_helper.h |  3 +-
- lib/utils/fdt/fdt_helper.c         | 48 ++++--------------------------
- platform/generic/platform.c        |  2 +-
- 3 files changed, 7 insertions(+), 46 deletions(-)
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 04c850cc..24ad1a94 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -54,8 +54,7 @@ int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long  *c
+ lib/sbi/sbi_hsm.c | 21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
+
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 8ec94d2b..bb274b33 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -48,10 +48,7 @@ struct sbi_hsm_data {
+ 	unsigned long saved_mip;
+ 	unsigned long saved_medeleg;
+ 	unsigned long saved_mideleg;
+-	unsigned long saved_menvcfg;
+-#if __riscv_xlen == 32
+-	unsigned long saved_menvcfgh;
+-#endif
++	u64 saved_menvcfg;
+ 	atomic_t start_ticket;
+ };
  
- int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
- 
--int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
--			     unsigned long *extensions);
-+int fdt_parse_isa_extensions(const void *fdt, unsigned long *hart_exts);
- 
- int fdt_parse_gaisler_uart_node(const void *fdt, int nodeoffset,
- 				struct platform_uart_data *uart);
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 0f4859c1..252dd459 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -324,8 +324,6 @@ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq)
- 
- #define RISCV_ISA_EXT_NAME_LEN_MAX	32
- 
--static unsigned long fdt_isa_bitmap_offset;
--
- static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
- {
- 	size_t i, j, isa_len;
-@@ -405,15 +403,13 @@ static void fdt_parse_isa_extensions_one_hart(const char *isa,
- 	}
- }
- 
--static int fdt_parse_isa_all_harts(const void *fdt)
-+int fdt_parse_isa_extensions(const void *fdt, unsigned long *hart_exts)
- {
- 	u32 hartid;
- 	const fdt32_t *val;
--	unsigned long *hart_exts;
--	struct sbi_scratch *scratch;
- 	int err, cpu_offset, cpus_offset, len;
- 
--	if (!fdt || !fdt_isa_bitmap_offset)
-+	if (!fdt || !hart_exts)
- 		return SBI_EINVAL;
- 
- 	cpus_offset = fdt_path_offset(fdt, "/cpus");
-@@ -425,15 +421,11 @@ static int fdt_parse_isa_all_harts(const void *fdt)
- 		if (err)
- 			continue;
- 
--		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+		if (hartid != current_hartid())
- 			continue;
- 
--		scratch = sbi_hartid_to_scratch(hartid);
--		if (!scratch)
--			return SBI_ENOENT;
--
--		hart_exts = sbi_scratch_offset_ptr(scratch,
--						   fdt_isa_bitmap_offset);
-+		if (!fdt_node_is_enabled(fdt, cpu_offset))
-+			continue;
- 
- 		val = fdt_getprop(fdt, cpu_offset, "riscv,isa-extensions", &len);
- 		if (val && len > 0) {
-@@ -454,36 +446,6 @@ static int fdt_parse_isa_all_harts(const void *fdt)
- 	return 0;
- }
- 
--int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
--			unsigned long *extensions)
--{
--	int rc, i;
--	unsigned long *hart_exts;
--	struct sbi_scratch *scratch;
--
--	if (!fdt_isa_bitmap_offset) {
--		fdt_isa_bitmap_offset = sbi_scratch_alloc_offset(
--					sizeof(*hart_exts) *
--					BITS_TO_LONGS(SBI_HART_EXT_MAX));
--		if (!fdt_isa_bitmap_offset)
--			return SBI_ENOMEM;
--
--		rc = fdt_parse_isa_all_harts(fdt);
--		if (rc)
--			return rc;
+@@ -431,12 +428,8 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+ 	hdata->saved_mip = csr_read(CSR_MIP) & (MIP_SSIP | MIP_STIP);
+ 	hdata->saved_medeleg = csr_read(CSR_MEDELEG);
+ 	hdata->saved_mideleg = csr_read(CSR_MIDELEG);
+-	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
+-#if __riscv_xlen == 32
+-		hdata->saved_menvcfgh = csr_read(CSR_MENVCFGH);
+-#endif
+-		hdata->saved_menvcfg = csr_read(CSR_MENVCFG);
 -	}
--
--	scratch = sbi_hartid_to_scratch(hartid);
--	if (!scratch)
--		return SBI_ENOENT;
--
--	hart_exts = sbi_scratch_offset_ptr(scratch, fdt_isa_bitmap_offset);
--
--	for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
--		extensions[i] |= hart_exts[i];
--	return 0;
--}
--
- static int fdt_parse_uart_node_common(const void *fdt, int nodeoffset,
- 				      struct platform_uart_data *uart,
- 				      unsigned long default_freq,
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 47e771ad..2e8c6051 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -251,7 +251,7 @@ int generic_final_init(bool cold_boot)
- int generic_extensions_init(struct sbi_hart_features *hfeatures)
- {
- 	/* Parse the ISA string from FDT and enable the listed extensions */
--	return fdt_parse_isa_extensions(fdt_get_address(), current_hartid(),
-+	return fdt_parse_isa_extensions(fdt_get_address(),
- 					hfeatures->extensions);
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
++		hdata->saved_menvcfg = csr_read64(CSR_MENVCFG);
  }
  
+ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+@@ -444,12 +437,8 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
+-	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12) {
+-		csr_write(CSR_MENVCFG, hdata->saved_menvcfg);
+-#if __riscv_xlen == 32
+-		csr_write(CSR_MENVCFGH, hdata->saved_menvcfgh);
+-#endif
+-	}
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
++		csr_write64(CSR_MENVCFG, hdata->saved_menvcfg);
+ 	csr_write(CSR_MIDELEG, hdata->saved_mideleg);
+ 	csr_write(CSR_MEDELEG, hdata->saved_medeleg);
+ 	csr_write(CSR_MIE, hdata->saved_mie);
 -- 
-2.48.0
+2.47.2
 
+base-commit: 153cdeea5350837c1206a2d2b6189fd0ba06d1f2
+branch: up/mideleg-fix
 
 -- 
 opensbi mailing list
