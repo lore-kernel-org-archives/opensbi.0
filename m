@@ -4,102 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 077E5CA101F
-	for <opensbi@archiver.kernel.org>; Wed, 10 Sep 2025 05:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DC212CA101F
+	for <opensbi@archiver.kernel.org>; Wed, 10 Sep 2025 05:32:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
 	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=p+3t8jNXE8fGykRQ+dKESoTHSJoraTt/6cdvZj/sBo8=; b=BuJcV/IK1W+PJ6
-	9HQoi4mSr/3Ndgpup+1xIYwtfcFqe+ZfH5811hoeqmXkMrCdNwy8wyBShbAHNLQVnDMNqklkPyIEM
-	7BaL5zvpbGlqw1DsFEf026vkI/f0gbzDgOWExKD6d15fjm/Y2kP18ftIaJzn35UiKjeWgRSZgJ0nA
-	6hM4E2H39U1B3vhqFYlhHlWywBRM3xbZHd5v+BuTPzc8op+NLaNNBZhCbC9v6m+ey8qYv/fW9OvIw
-	6scncjZ09kKh8QNZwNudPmu8dDvK7uPYMIf8zC2Y+TBuaCsrJDTde8zNig9DhI3UN+80eec4rFZP/
-	4EsiauZjIOe4YiJw8weQ==;
+	List-Owner; bh=2hide/snww/pSdRFTtBMo/rNSVkBEWXzdjgMmvr9AH0=; b=U0yZ/j0AjvDrs/
+	+Va4uLP7juEk0sA/jmMAwzUNNN5gmC7tYglRnpj7w24gkER/G+UK9bsm2pVeua1i8lWfU+Do1yAND
+	XdOUwsx3ghuV2fdHmTWYIMkTm4L++8K+Rbpmv4Qp+nooOMwSuXvY+etgYsB5rC7wfB9Xqage+tCIt
+	IQPGo5S2Xf722QEqx4xLeFQfUvZDR880bejlDoEfGfMaogJd2aC6VpuuDcszVEX3vuScCNAXXeetI
+	mBo4xDGJCAnLhTg7ABejKIF9CLtNyA6flvbmaRdQcd+hotBBJMozyDc2WnztMyHQAR5gpm1ByKYpm
+	OthFI32V98Nw8r867kRQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uwD0L-0000000C2qN-3By7;
-	Wed, 10 Sep 2025 05:04:25 +0000
-Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+	id 1uwDRa-0000000CBeX-2gyC;
+	Wed, 10 Sep 2025 05:32:34 +0000
+Received: from mail-il1-x12c.google.com ([2607:f8b0:4864:20::12c])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uwD0K-0000000C2p9-1gSD
-	for opensbi@bombadil.infradead.org;
-	Wed, 10 Sep 2025 05:04:24 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-	:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:
-	Sender:Reply-To:Content-ID:Content-Description;
-	bh=iC63/RJTeJkQ1+IrU21ucrYjL7BuPOO5Y6F0P+6CLoM=; b=WoLViDKJyu56XxZrroqELrABAO
-	3UpCGSkv80BT974368urR/TzfFXqWJJPpTKrjQxFb/X5B5YKZyRKFu/nobHDcYprJfEGqrdk3PMVo
-	V+NUyILfYE3EJg390nWrLZPxOwV7c/ThzckhDxC1JkArAi0ww9L8iWYVE98jl/G2jkR6mSmd0MSG4
-	JTh7jgkK6vEm9TLrTQi1jpMVObc8tTIXrpf15ruB2yqXwa1v81XT/hCr/KALYb98tVjsnNqxOqHIx
-	2Ve6svhytV+vS1swMdPVtSYohLvLq2LlWl7h4TeXL1ejzk3hOco8WU+BgNKnaCzr2XaZ+qDVcoeQP
-	APO9q9tA==;
-Received: from mail-io1-xd34.google.com ([2607:f8b0:4864:20::d34])
-	by desiato.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uwD05-00000005ivY-0sj0
+	id 1uwDRY-0000000CBd5-1v3I
 	for opensbi@lists.infradead.org;
-	Wed, 10 Sep 2025 05:04:22 +0000
-Received: by mail-io1-xd34.google.com with SMTP id ca18e2360f4ac-88428b19ea9so4238339f.0
-        for <opensbi@lists.infradead.org>; Tue, 09 Sep 2025 22:04:07 -0700 (PDT)
+	Wed, 10 Sep 2025 05:32:33 +0000
+Received: by mail-il1-x12c.google.com with SMTP id e9e14a558f8ab-40613af807bso17884295ab.2
+        for <opensbi@lists.infradead.org>; Tue, 09 Sep 2025 22:32:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1757480645; x=1758085445; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
+        d=sifive.com; s=google; t=1757482351; x=1758087151; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=iC63/RJTeJkQ1+IrU21ucrYjL7BuPOO5Y6F0P+6CLoM=;
-        b=W6F2AirvNqol2yVNVfqK4sFlAr/CPzZbb6dVqkvROk07YtTjjFHeJcxB2M59+1r/c2
-         DdAQPn2lxLn/QkF7LOCuMes4NMDFtT4unShNTq1kJShHZOkzxnxZzt5tzrGRLHMknGvV
-         PLDEWkU//0DUWccTBJ68kqVygYsQ/HXOrE6iMj8LKxkHZ7cWOyZ2NtJSCCABP1SQbJbU
-         C5M/BO8VcQGPmCxX2UqB2Agn5Mhy3Bf4db/pFc8BBQuUCHszmj5hreZS9/goOjuhBr2n
-         slVDBn9rKbuvTBaZCdWvNnFQRiLwsaE7J2LuMlLJgLoqXLnyTofO/Fnoc89hIwOiOgrc
-         YvUQ==
+        bh=sjUGhb+Z/6CNoAbIR1XCJpFRyR11WwkmjUdhbqV4S0s=;
+        b=ZxefF0+yKUY8ooA6dzEnaiOt9FmUoQPrwTt76tF0FXJRjacUtFsjsnlz2i5q7Sr5Qd
+         NtV48TkR8t7LRyoSJivetp0+lbR/Hcy05MN2idze9dTePc/MoVDZe/PVfAiPFvO5tjha
+         jnfCbCUSZS4iH1rmKFxm3a2gZVejHHmTwC0Kc850VtdeqOV3WqOPJ4Qgvh+AUOecUWQ2
+         sqWZ73PvsmLfm0253mPOReH+EXIwFf4ECgCsmMF+kS0gt/sWtnqi9ZMB/fKcphEBfw12
+         aqLODA5di5EPZF6eih5j81jtxmOBLbchQoXiCBLCnsZsZ1KDcoSRQbrizAzeVnhN9ahT
+         dhSA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757480645; x=1758085445;
-        h=content-transfer-encoding:in-reply-to:content-language:from
+        d=1e100.net; s=20230601; t=1757482351; x=1758087151;
+        h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=iC63/RJTeJkQ1+IrU21ucrYjL7BuPOO5Y6F0P+6CLoM=;
-        b=WVwOeyjl2jvThSPJEL6mzzghRLPEHVGEZ1ZufXC7bCaHa9Lm6j6ht7aVnYdAQ9eQef
-         Wjn46TWrCdYPLaFRBBVuvvuT5CpNvar9YezLDv7xpCXDsB79A9FMsjIKPXdH/k4OhiFE
-         HJldNGwDOihtQ35uI0qR7Noo7vXsx3Q13BUGaBSZi7nGdaFvl+RoZCz6nkPfqnCHbK9W
-         RdYHF1N9XW4mMFdX09SOD0ksdWyT/ikjl17ntpYaY8lRiAdP+eCD1U1NNW0phLkt/aRa
-         2UkKuOMNqn6Md9zn9uFbC0iodzQ5aN/4Vw11pY7oBUYtX2TrPzEyuDlz8x/f/xOZgLZY
-         fWIg==
-X-Forwarded-Encrypted: i=1; AJvYcCWXAAVT5S7ie6T0QkNqrwqqUd4Qx2/0pRje463tVgMUl/pWgkR/UgrfK8vh9AD5hIORNvNy7v/N@lists.infradead.org
-X-Gm-Message-State: AOJu0YxryZRdSulTD6NRYwiDx2BeM1XC/Vd4kfBaOmdClCmj8/oTOJ4k
-	z3W1YHVFDMULMOWRfafhq+D7oTRIplmDPX+Y3E1pl/NJoh7xFhs4I3l5ngMvV3eerxk=
-X-Gm-Gg: ASbGncvwEaPlh5rFoOolT9tvc8AKbmGwJ4cpzuQf6eSQGKvDPN5mmwJX5OtrwJ0QlpB
-	7wnUeyhQlUteEPAPNcFydZRiNa5KDOqgjRB7xEcBTtCzp2p/0Wrb2k4e6AG1XRz3oqy5zoHAYym
-	A/DDt8V4Bmzxy9PNrHMuXcN9PelI4OXS1bzJSwzx5GLjegb42rXJG3UQIJ9TC5GS4QDxFaqKG8T
-	nLsFymOOqOKLjskARhD6BNB/I0uIZP4kVfCuRHLEx/UzK6Npgwx+EMzZKG4RgYHBFlhSBNa3ORn
-	EMHhNwc6BNAro68RSbI9b+TRcN5kykDUg6jXN4PSc2SA4kXZcJAuxC7UBn0Ghcd7+mld8GQ3zI0
-	uknpGj1bHjANJ53layWa47yKEnFNNi66C5eT1eg8=
-X-Google-Smtp-Source: AGHT+IGLCXk02c6hTi1RtjcUqKJ+ON1vDiqOO+go65aDuMn3oLRAXkMlfY0Dd7VRCPtas/Vtj6hRhA==
-X-Received: by 2002:a5e:db46:0:b0:883:ee57:93b7 with SMTP id ca18e2360f4ac-88767d09074mr2580484239f.0.1757480645211;
-        Tue, 09 Sep 2025 22:04:05 -0700 (PDT)
+        bh=sjUGhb+Z/6CNoAbIR1XCJpFRyR11WwkmjUdhbqV4S0s=;
+        b=a3JQ0KN7/ej8VWkvg/Rg+/9ij4YwvnndRLEfTM6k8Ek43hz7YOYNcberFAho1bSRBD
+         /t3bUn3lSLG4s6HCezomzXigjVwz92lzhQRQNEcJqL4sYpzpfwlJyBk4hSuGUolIw7YH
+         CB8oVghFMrAVkQUqphUbA4RJvNtMKLrJyv2zSa3XWu+HkrUsUUnjZLrnYusa+p2rioU7
+         zkOtyemkdJyyyWHjqZO+hDRjiV4qPoqt4BENq1LK9XalJc6620twPFXNytJvaONYi+4r
+         2zXYrzuSBqxvMcZV4uyYrJIHlwci66aGO+QkFR6bqzzkMaGUwots4Z9MuLkzji4cvQ4P
+         MlPQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWHGVLtEVLO5gXKmX6zrpIFrfNYRFX0VAkWJh+SnHF2Kq8n69d3+CKIRIdqlKmzCcDOEQ4VhVnw@lists.infradead.org
+X-Gm-Message-State: AOJu0YySGVM/BOfmSs0zdwvLYeLGZRABqmkhCOPMGHGAV9k0quNsvOfa
+	HeddSLUBRrbP/xxwHekT2bwyfm0ogrSJLIVG2borQLbYGdGgcjvQTdWVi7yZwIYc7iE=
+X-Gm-Gg: ASbGncudlOZLErwD6Wa6fma+6H9yE/sgLn0HpcRFM5yiqXPgBVcFjdLdWy7UItPz/nZ
+	TO+jn/ibkw64u8ZQ9N6drX5fdZeQjazEwzaZsdN8jDggzVW9DgsjT4WKukuzI7uu2Bi7MEnkVLh
+	2rTVh/Mipeu2yRX1YgG2oZ95UiGYEf+JZxEEUU+P+LAx4EVWZlEn007HMRxhZ4srQeOVIJqyL7o
+	9lzRkUvtQQ1tFbP36pKN1iKV9CGug2xOlr2ucog0ZcgcZ9y5DzszpaKmqRT35dGHu3VFsKBfaIF
+	PYVMmBjntXM/BolZAw9lqS/bAE7TiTtImOZWh2EtqBI+QwxMzIgt3cKc08aaLYArHWOqKCDATz0
+	LsSvDxr//T/D7k8yohNIo9S1LZKAg+JrWWRlei8o8RcrOhkMHYw==
+X-Google-Smtp-Source: AGHT+IGsrpV4o8yd1qMYv87OlMMkTNmkX/ubdPlH0LoEZNaUiWxR0U+vtNwTHWqAR6gi7fVe3DDK2Q==
+X-Received: by 2002:a05:6e02:152e:b0:415:2b3d:651a with SMTP id e9e14a558f8ab-4152b3d66ddmr41309475ab.7.1757482351434;
+        Tue, 09 Sep 2025 22:32:31 -0700 (PDT)
 Received: from [100.64.0.1] ([170.85.6.207])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-50d8f31ca99sm10591525173.51.2025.09.09.22.04.04
+        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-50d8f31ca99sm10608151173.51.2025.09.09.22.32.30
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 09 Sep 2025 22:04:04 -0700 (PDT)
-Message-ID: <f37ccb84-ef5f-4aed-8149-78c65e229165@sifive.com>
-Date: Wed, 10 Sep 2025 00:04:03 -0500
+        Tue, 09 Sep 2025 22:32:31 -0700 (PDT)
+Message-ID: <1f1c14d4-4637-4991-87a3-1cf3327eeef3@sifive.com>
+Date: Wed, 10 Sep 2025 00:32:30 -0500
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] lib: utils: fdt_helper: simplify
- fdt_parse_isa_extensions() helper
-To: Yu-Chien Peter Lin <peter.lin@sifive.com>
-Cc: zong.li@sifive.com, greentime.hu@sifive.com, wxjstz@126.com,
- opensbi@lists.infradead.org
-References: <20250906072656.5525-1-peter.lin@sifive.com>
-From: Samuel Holland <samuel.holland@sifive.com>
+Subject: Re: [PATCH] lib: utils/reset: Hang the hart after RPMI system reset
+ message
+To: Rahul Pathak <rpathak@ventanamicro.com>, opensbi@lists.infradead.org
+Cc: rahul@summations.net, Anup Patel <apatel@ventanamicro.com>
+References: <20250903144323.251270-1-rpathak@ventanamicro.com>
 Content-Language: en-US
-In-Reply-To: <20250906072656.5525-1-peter.lin@sifive.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+In-Reply-To: <20250903144323.251270-1-rpathak@ventanamicro.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250910_060419_810532_137EB89C 
-X-CRM114-Status: GOOD (  22.39  )
+X-CRM114-CacheID: sfid-20250909_223232_510437_5AD2EE3D 
+X-CRM114-Status: GOOD (  16.90  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -116,151 +100,52 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Hi Peter,
+Hi Rahul,
 
-On 2025-09-06 2:26 AM, Yu-Chien Peter Lin wrote:
-> The fdt_isa_bitmap was previously used as a temporary array
-> to store ISA extensions when parsing device-tree.
-> To reduce scratch space consumption, set the ISA bitmap
-> directly in hfeature->extensions, allows us to remove the
-> fdt_parse_isa_all_harts() as fdt_parse_isa_extensions() can
-> now handle the task directly.
+On 2025-09-03 9:43 AM, Rahul Pathak wrote:
+> RPMI system reset is a posted message which
+> does not wait for acknowledgement after sending
+> the RPMI message to PuC. Call the sbi_hart_hang()
+> to hang the hart after performing the system reset
+> via RPMI message.
+> 
+> Fixes: 6a26726e08e4 ("lib/utils: reset: Add RPMI System Reset driver")
+> Reported-by: Anup Patel <apatel@ventanamicro.com>
+> Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+> ---
+>  lib/utils/reset/fdt_reset_rpmi.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/lib/utils/reset/fdt_reset_rpmi.c b/lib/utils/reset/fdt_reset_rpmi.c
+> index edc53932ccc0..c29715d329c4 100644
+> --- a/lib/utils/reset/fdt_reset_rpmi.c
+> +++ b/lib/utils/reset/fdt_reset_rpmi.c
+> @@ -7,6 +7,7 @@
+>   *   Rahul Pathak <rpathak@ventanamicro.com>
+>   */
+>  
+> +#include <sbi/sbi_hart.h>
+>  #include <sbi/sbi_error.h>
+>  #include <sbi/sbi_system.h>
+>  #include <sbi/sbi_console.h>
+> @@ -56,6 +57,8 @@ static void rpmi_do_system_reset(u32 reset_type)
+>  	if (ret)
+>  		sbi_printf("system reset failed [type: %d]: ret: %d\n",
+>  			   reset_type, ret);
+> +
+> +	sbi_hart_hang();
+>  }
+If rpmi_do_system_reset() returns normally, the generic code will continue to
+sbi_exit() and eventually sbi_hsm_hart_wait(). Was that problematic in some way?
+You've added a Fixes tag, but it's not clear from the commit message what
+problem you observed.
 
-Unfortunately, this change is not valid, because sbi_platform_extensions_init()
-is called from the warm boot process, and it is not safe to access the FDT after
-the cold boot process completes. The FDT is stored in memory accessible to
-S-mode, so it could be clobbered as soon as the first supervisor domain starts.
-Any refactoring must satisfy the requirement that the cold boot hart parses the
-FDT nodes of all harts.
+If allowing the driver's .system_reset callback to return is problematic (some
+driver implementations hang, some don't), then we should mark the function type
+as noreturn and update the remaining drivers as well.
 
 Regards,
 Samuel
-
-> 
-> This change makes the helper function more versatile, even
-> before scratch space is initialized.
-> 
-> Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-> ---
->  include/sbi_utils/fdt/fdt_helper.h |  3 +-
->  lib/utils/fdt/fdt_helper.c         | 48 ++++--------------------------
->  platform/generic/platform.c        |  2 +-
->  3 files changed, 7 insertions(+), 46 deletions(-)
-> 
-> diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-> index 04c850cc..24ad1a94 100644
-> --- a/include/sbi_utils/fdt/fdt_helper.h
-> +++ b/include/sbi_utils/fdt/fdt_helper.h
-> @@ -54,8 +54,7 @@ int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long  *c
->  
->  int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
->  
-> -int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
-> -			     unsigned long *extensions);
-> +int fdt_parse_isa_extensions(const void *fdt, unsigned long *hart_exts);
->  
->  int fdt_parse_gaisler_uart_node(const void *fdt, int nodeoffset,
->  				struct platform_uart_data *uart);
-> diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-> index 0f4859c1..252dd459 100644
-> --- a/lib/utils/fdt/fdt_helper.c
-> +++ b/lib/utils/fdt/fdt_helper.c
-> @@ -324,8 +324,6 @@ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq)
->  
->  #define RISCV_ISA_EXT_NAME_LEN_MAX	32
->  
-> -static unsigned long fdt_isa_bitmap_offset;
-> -
->  static int fdt_parse_isa_one_hart(const char *isa, unsigned long *extensions)
->  {
->  	size_t i, j, isa_len;
-> @@ -405,15 +403,13 @@ static void fdt_parse_isa_extensions_one_hart(const char *isa,
->  	}
->  }
->  
-> -static int fdt_parse_isa_all_harts(const void *fdt)
-> +int fdt_parse_isa_extensions(const void *fdt, unsigned long *hart_exts)
->  {
->  	u32 hartid;
->  	const fdt32_t *val;
-> -	unsigned long *hart_exts;
-> -	struct sbi_scratch *scratch;
->  	int err, cpu_offset, cpus_offset, len;
->  
-> -	if (!fdt || !fdt_isa_bitmap_offset)
-> +	if (!fdt || !hart_exts)
->  		return SBI_EINVAL;
->  
->  	cpus_offset = fdt_path_offset(fdt, "/cpus");
-> @@ -425,15 +421,11 @@ static int fdt_parse_isa_all_harts(const void *fdt)
->  		if (err)
->  			continue;
->  
-> -		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> +		if (hartid != current_hartid())
->  			continue;
->  
-> -		scratch = sbi_hartid_to_scratch(hartid);
-> -		if (!scratch)
-> -			return SBI_ENOENT;
-> -
-> -		hart_exts = sbi_scratch_offset_ptr(scratch,
-> -						   fdt_isa_bitmap_offset);
-> +		if (!fdt_node_is_enabled(fdt, cpu_offset))
-> +			continue;
->  
->  		val = fdt_getprop(fdt, cpu_offset, "riscv,isa-extensions", &len);
->  		if (val && len > 0) {
-> @@ -454,36 +446,6 @@ static int fdt_parse_isa_all_harts(const void *fdt)
->  	return 0;
->  }
->  
-> -int fdt_parse_isa_extensions(const void *fdt, unsigned int hartid,
-> -			unsigned long *extensions)
-> -{
-> -	int rc, i;
-> -	unsigned long *hart_exts;
-> -	struct sbi_scratch *scratch;
-> -
-> -	if (!fdt_isa_bitmap_offset) {
-> -		fdt_isa_bitmap_offset = sbi_scratch_alloc_offset(
-> -					sizeof(*hart_exts) *
-> -					BITS_TO_LONGS(SBI_HART_EXT_MAX));
-> -		if (!fdt_isa_bitmap_offset)
-> -			return SBI_ENOMEM;
-> -
-> -		rc = fdt_parse_isa_all_harts(fdt);
-> -		if (rc)
-> -			return rc;
-> -	}
-> -
-> -	scratch = sbi_hartid_to_scratch(hartid);
-> -	if (!scratch)
-> -		return SBI_ENOENT;
-> -
-> -	hart_exts = sbi_scratch_offset_ptr(scratch, fdt_isa_bitmap_offset);
-> -
-> -	for (i = 0; i < BITS_TO_LONGS(SBI_HART_EXT_MAX); i++)
-> -		extensions[i] |= hart_exts[i];
-> -	return 0;
-> -}
-> -
->  static int fdt_parse_uart_node_common(const void *fdt, int nodeoffset,
->  				      struct platform_uart_data *uart,
->  				      unsigned long default_freq,
-> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-> index 47e771ad..2e8c6051 100644
-> --- a/platform/generic/platform.c
-> +++ b/platform/generic/platform.c
-> @@ -251,7 +251,7 @@ int generic_final_init(bool cold_boot)
->  int generic_extensions_init(struct sbi_hart_features *hfeatures)
->  {
->  	/* Parse the ISA string from FDT and enable the listed extensions */
-> -	return fdt_parse_isa_extensions(fdt_get_address(), current_hartid(),
-> +	return fdt_parse_isa_extensions(fdt_get_address(),
->  					hfeatures->extensions);
->  }
->  
 
 
 -- 
