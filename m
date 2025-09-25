@@ -4,91 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2080ACAC5B7
-	for <opensbi@archiver.kernel.org>; Thu, 25 Sep 2025 09:49:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 973F7CAC5B0
+	for <opensbi@archiver.kernel.org>; Thu, 25 Sep 2025 09:49:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
-	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=k+Z/38LK+9Ooy1viuo+VaG1oW/zoiNl0reIG2QbJXnw=; b=d7zst/9beMYeod
-	zxGoh/fMF4ZWdHiJU1I5fK/Tiz9TwWeezAJl3wdcTwm0/Mx1CHZwPlEDVFGS7KHTLAmeBZcM3bOk/
-	VHq0izHEXBSLX05NiY0yV9pQteka9lN5GgbF9xDcVExIyy+JWwftq+u8Xj/b4BC+DIWWncIdxpp7I
-	jcLXSJ5skwBMXJ0ruQfuyWsrn+7v+92KD9O2xaZpMCKpOYxk+kxrSPWL7SNVYJtzOO/rrT6TTDyT4
-	JkKFTbmSYnIHJ2Cz+EHVACkKdQugjeJtmHKy9qQZhlLga2blP6dqooOVZxekCiedBYtY1JDOTWikT
-	WCQY/rNsTjXeipZNXWUw==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=0r0bH/ZSJurtPrFMCeEpt2K/7wxBCGsyOgYOX0UrwDw=; b=G2qUxoYa/iu3va
+	onUcg0Sb9dRtACUWMuxnmYRA1qER/ayNiXQCOq/BOj12CtzURQdf2jePd1zTmWtQGr0yzkQBzUlLQ
+	U7tkTgsp/ss2RhJt+mUJmpuTg/VmmXJ1CpcqBTVypVlUxoyhepiQ7yuz3PG8PCrRtaj0eZfHR4r/n
+	bO5jtWk34Y8mibJu2HLEE1k0EisQ/5nlHSqWdqrCYDfBCRNknjUxKCMC/uFLU96WBZlPJK15+Vj3/
+	eYPEf1OdOIkkyOIBcRJxEslkG10emlyEQCqQvJCLkTDDVsf7PHNeEFb3ug8H+KqXpGmEdmpqcBqwE
+	asTjKYMs747UuTZ3TccA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v1iba-00000007nV3-3HWA;
+	id 1v1iba-00000007nUt-27TC;
 	Thu, 25 Sep 2025 09:49:38 +0000
-Received: from smtpbgeu1.qq.com ([52.59.177.22])
+Received: from smtpbguseast3.qq.com ([54.243.244.52])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v1ibU-00000007nEE-3FWO
+	id 1v1ibX-00000007nH2-0t8h
 	for opensbi@lists.infradead.org;
-	Thu, 25 Sep 2025 09:49:38 +0000
+	Thu, 25 Sep 2025 09:49:37 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1758793745;
-	bh=NBXbhzHkt6U7W8WwW3hNYO3je2UgVMwj578eB5oY2ww=;
-	h=From:Subject:Date:Message-Id:MIME-Version:To;
-	b=oD88wgMT3rs9MthiX4VwzoQy/MG0AV7t5bzBTOAcST+PIjoEdksLIEUJ3bF+DcNuB
-	 3JjyU+S1RJXsTs86Qe6PVe4YHkq28WvUrH/0xpSWT9HQSaa4juMIls+0rSnKcSU3US
-	 LzsuQXnXcipMSmu4UyAAYcnx9bvdiKqhf5wwTeKg=
-X-QQ-mid: zesmtpgz4t1758793744t42c5ceed
-X-QQ-Originating-IP: V2/888KxUDAQL43ivZV46m7yu/El2qFfXRW0yoX7g64=
+	s=mxsw2412; t=1758793752;
+	bh=C9AHTCGXh3y6yhBLcqU6we0kFrUNJptTTqZT58x4DNs=;
+	h=From:Date:Subject:MIME-Version:Message-Id:To;
+	b=i6avoWebEalHZfe0t4DmaeW+ykRFI5oHqjTzNo54ly9FXZryQ2HmL/7AnQlwcA49r
+	 pYsj64GPL8Gtt9kJO+sgLBmSc7X3NYINi/17kHOitWmTibrBSCkdxo3zbB0tqwlNhs
+	 mombTUukwbPLmnU6h3BMqxfz/Azum5hFqMn207uk=
+X-QQ-mid: zesmtpgz9t1758793751t3ee2e771
+X-QQ-Originating-IP: BcSZUP/MjjRxMA2VvAyWruSwp4nIGLs93yrU/cq3n3U=
 Received: from = ( [61.145.255.150])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 25 Sep 2025 17:49:03 +0800 (CST)
+	id ; Thu, 25 Sep 2025 17:49:10 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 817111345767695483
+X-BIZMAIL-ID: 16978658429168907444
 EX-QQ-RecipientCnt: 3
 From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-Subject: [PATCH v3 0/3] platform: generic: spacemit: add K1
-Date: Thu, 25 Sep 2025 17:48:54 +0800
-Message-Id: <20250925-smt-k1-8-cores-v3-0-0885a8a70f8e@linux.spacemit.com>
+Date: Thu, 25 Sep 2025 17:48:57 +0800
+Subject: [PATCH v3 3/3] platform: generic: Add SpacemiT K1 platform support
 MIME-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIAAYQ1WgC/23M0QqCMBTG8VeJXXfEzba0q94juljbMQ+lk82GI
- b57UwiiujnwP/D9JhbQEwZ22EzMY6RArktRbDfMNLq7IpBNzUQuZF5xDqEd4MahBOM8BiirUhp
- Z7/J0WBr1HmsaV/B0Tt1QGJx/rn7ky/dNqW8qcuAgL3uFubJcWH28U/cYs9Brgy0NmXEtW8woP
- hwhfhyRHGtQo1R1oWz115nn+QWJo/L2/QAAAA==
-X-Change-ID: 20250911-smt-k1-8-cores-8985c5f40c5f
+Message-Id: <20250925-smt-k1-8-cores-v3-3-0885a8a70f8e@linux.spacemit.com>
+References: <20250925-smt-k1-8-cores-v3-0-0885a8a70f8e@linux.spacemit.com>
+In-Reply-To: <20250925-smt-k1-8-cores-v3-0-0885a8a70f8e@linux.spacemit.com>
 To: opensbi@lists.infradead.org
 Cc: Troy Mitchell <troy.mitchell@linux.spacemit.com>, 
  Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1758793743; l=1849;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1758793743; l=1466;
  i=troy.mitchell@linux.spacemit.com; s=20250710; h=from:subject:message-id;
- bh=adbZlBWFh5INtBCFGx+4PovvKLVSji5Mb+YFFp4gxMw=;
- b=fMRT3Wn3quvHGIkNUpC0IuZlCs1SbDVZ5ZnsMhTocnd2NGifDsrEp38shw2EIINjlB2BY6Ywe
- agkbsftpkdGCwTfQF2Rw4nn2wHhSbTg942CU9vo0WFAtkPDTDZu33Ff
+ bh=6mdXnIcgVULQSdwhwghzu5m8XhEkreTEqdSA1jYDaXY=;
+ b=8qq7dCyno8sHv7YKj69NHqLYfIixfYeHFUepajqF6iFSRA9FN1hLC3F64b/XX69Az8QvWk2xZ
+ GlhGiEmFavHDc1xQIfQbImOXlD68A9FZJXSxtjgZGWKE57bcAc3GVZh
 X-Developer-Key: i=troy.mitchell@linux.spacemit.com; a=ed25519;
  pk=lQa7BzLrq8DfZnChqmwJ5qQk8fP2USmY/4xZ2/MSsXc=
 X-QQ-SENDSIZE: 520
 Feedback-ID: zesmtpgz:linux.spacemit.com:qybglogicsvrsz:qybglogicsvrsz3a-0
-X-QQ-XMAILINFO: Nl0CLVc4OOh2PDvWfKaGKxtvzRGcanzxS3HLzn0UzccpQGD0FFYpzsup
-	R2YvXoYQLmveceiq0cVCmoZZj3bPS0cz6mHe0VwMXSMhB7URfJ3xZxqfRhRL8DJVUQ6zbQ0
-	ElauiC8NQ0iLAzk1kJ/ryt/bwy44TsKC9H+Jnslj18ohMsV09P5Lf6+Vuuq9Sbzddp8PKhE
-	J/gHhA9iizBG6iQN9afwF29fu/6U1BleYw/ULNka6w/k6rtw/ONS5SSITVYOjICBnq478C6
-	ru/JZRpnrnfharJjUFNm5IXbiFVEWxfryNTXmBmyPf2kv3+23xaMQp63M/0umu1pZd/Ija6
-	iTXr8RNBjKU5L58xNmm0olNUFdXi5fK0dqmF6XnKoqS0LvYaJ3YlOmJgNn9/x4JOcCGrt84
-	HqgamvL5ClVsmR/zZIdvbPt1amm/yGMsJcJTO+G/qhTWZvTPN+5elQkLUTnGcYAg+koTNci
-	oZnxKGa2/iW1bbDCiY9WPOGLNytUTE2m733QLey5kjDM5CSfctVnS9tCUy8wOA4RQObReai
-	4YCryEgD60vqU0YGyabbDMZ0a5WSMM5Gh0zNuQ/uu29QVVCqeYjw2q0z2bDTvElhwVGIDmp
-	HfcpsFWOY/Ih/KEsVjEdTQObZJJPPEpEoOjjblPK+apAjRp606bCM4K6UYoSeh/bwbcbwqt
-	9GS4R+m7GU5mXGGPg47mz5ZCAh5JyL7zOGfeeLmOMMldD5ArMOUBOqT+gYXeWmsNmLJUGVV
-	KL6slk5mGlRKvet2TgOlza9FvUZoEtFndPzPZVQqdr75mxKtEvymfn0TWMyRVE3Stu6D2pr
-	7/ErRbaNH7itVXwavNTbSHdLWgalc9ekqq8hymJ2vNTARDbaeCG+2lusbKWtEeK+0vN97yF
-	pXDCTJdTGhrko593Xfyf9MylfSktuMEveDc5hM4HcrBdZYjf0yhFQtsKWRI0/RaRRr5VVJA
-	Xg2HmDSWyRKGyI/5Th1lcJUF6vmKWak3v+JxIIvpJvWCaPpw9XCDOAcPJ47j9kNfdftle+t
-	uxXow/s4RHejTSZGbYnWL4MQ2dw6W58VFxVZEwbKJw1D0uyHrB3JpGmVdFWb85Hrfk2W6rY
-	Nu3JU6QoJtSdVUmI9lq0sJ454V2aQS6dNmwrXR5qKzDfAOAZvqUDxi/rYRwKleVGTCC2Ut/
-	JdQ4
-X-QQ-XMRINFO: MPJ6Tf5t3I/ycC2BItcBVIA=
+X-QQ-XMAILINFO: NBUSIVIw0bNzPGxa+ZadxzV5UIJU7i3MFi7GnE/zbAOhwHgz/5Wav1ZK
+	LLVDEP52q0npB02rzK15aXy0cT+HCTmnPmXKz+G5a8Aekr/pJV28DFlxWSW44tIn2InO23q
+	EAB1bQWVuBf1f/9Q2il90lPB5KCUADWyOOTpn43mvWWiBfg0aMHWkRSU1qZOhv8vohFSuWR
+	RAE9oD38Tw/mQ5EeIr3a/7u+Edry/eiI2NCacPwLpfROYWOB94BCHDhUGHeFVqIQrE9I3ij
+	CpCTfScBkRnaSrIMt2VEq6mlaI0ZbC4IeQsrMI8tWzOMDIx62xFDXooAhSrftAJf1zXzzKQ
+	26HYdeQ+MTRQwY9pMq26NbyxEw1ZW0ri4o2eEKZgwENkMcLL6a482sXSZ1qMMd1/NzpOS1h
+	ZEQs2H6S1jfAp2BoDusM6Gf6D1N/j9S5PUvW242ejPR5cS9PN/ITdVHFgkl/h07jIyQYpYs
+	MI5nuu3TLim1CPC+BxjPgGjw8DZERZeIcTY2JVdh+I0X44r0VzwhJEcvIOGcgjw5Grt8sZz
+	U4fpG0RhhuokVcNNjCD6K82es06LMEYyuKn5YN+JWmKWPcmGiv1khuFAIx2r0nl/vqGWkVq
+	uD1JK3d2wJ6GO4+QygKKFol8mILlCyeHOq0GgWYNFSqOCe7KNIErWZpCS5ioO2r4AS2ZjIR
+	4kb56Po+VrxpNvAb1cZb2IpJ2ndts7MUjGktQ6iFXNx3wxZndbLMxoNUnl3v15Kxc7MoCe/
+	uXLIOPFQPJcrVGyTUeEcOBNc7qx7x4pJBCb9UzxtrSHb7ecHlTmd2Pb/Od1rOsOf9xIWitS
+	gnkw3wtA2rLCMVr/mMfj/WMGB8ZW/TnHNnoCHnoGulO5tghaRVC0kVClNagnyA09mpK6a5v
+	J2l0Gi7jUXamEJPjfKbOdTdielgUraHJo3e8cAiat2cvOovISH0k+etBwzWEEbTD3u1tu+1
+	Lw+WCp+9joNR/X8eM5jTSDLvzFbuFnFgk/5xeZvleZL/NEQuXM55vcuLR2WyLh27zdhANHB
+	6w0ZMCuuWLlUrqopQYaxwdZ0ZumZ9p4b5S26f4n80ra39u+hWO2tP30MES7P1eW4o5A4ki0
+	2wjiHXzGTrSgAzeEQ+ZbuILbJ6g6bE0cw==
+X-QQ-XMRINFO: NS+P29fieYNw95Bth2bWPxk=
 X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20250925_024933_849664_3B7F1667 
-X-CRM114-Status: UNSURE (   8.01  )
+X-CRM114-CacheID: sfid-20250925_024935_729651_C0FD6D9F 
+X-CRM114-Status: UNSURE (   7.68  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -106,51 +102,50 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Extend generic platform to support SpacemiT K1.
+From: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
 
-On K1, the BROM only brings up the primary core and leaves the
-other cores in a disabled state. This prevents Linux from booting
-SMP and only one core is available.
-
-This series enables CPU hotplug operations on the SpacemiT K1,
-allowing Linux to run across all 8 cores.
+Enable CONFIG_PLATFORM_SPACEMIT_K1 in the defconfig for SpacemiT K1 SoC.
 
 Co-authored-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 Signed-off-by: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
 ---
-Changes in v3:
-- split out the HSM driver
-- updated commit message
-- use sbi_scratch_thishart_ptr() instead of sbi_hartid_to_scratch()
-- Link to v2: https://lore.kernel.org/r/20250922-smt-k1-8-cores-v2-1-dceae56f36d9@linux.spacemit.com
+ platform/generic/configs/defconfig | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Changes in v2:
-- remove __sbi_hsm_hart_get_state() in spacemit_cold_boot_allowed()
-- plus PMU_AP_BASE in PMU_AP_CORE(0|4)_(WAKEUP|IDLE)_OFFSET
-- Link to v1: https://lore.kernel.org/r/20250916-smt-k1-8-cores-v1-1-5b76e06d12da@linux.spacemit.com
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 4b93d0bc55233f83a907ff81234c78540e33d828..86e7bb9e3d859dcf72e7775fae0844ff066be0f8 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -1,5 +1,6 @@
+ CONFIG_PLATFORM_ALLWINNER_D1=y
+ CONFIG_PLATFORM_ANDES_AE350=y
++CONFIG_PLATFORM_OPENHWGROUP_OPENPITON=y
+ CONFIG_PLATFORM_RENESAS_RZFIVE=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
+@@ -7,7 +8,7 @@ CONFIG_PLATFORM_SOPHGO_SG2042=y
+ CONFIG_PLATFORM_STARFIVE_JH7110=y
+ CONFIG_PLATFORM_THEAD=y
+ CONFIG_PLATFORM_MIPS_P8700=y
+-CONFIG_PLATFORM_OPENHWGROUP_OPENPITON=y
++CONFIG_PLATFORM_SPACEMIT_K1=y
+ CONFIG_FDT_CPPC=y
+ CONFIG_FDT_CPPC_RPMI=y
+ CONFIG_FDT_GPIO=y
+@@ -36,8 +37,8 @@ CONFIG_FDT_RESET_ATCWDT200=y
+ CONFIG_FDT_RESET_GPIO=y
+ CONFIG_FDT_RESET_HTIF=y
+ CONFIG_FDT_RESET_RPMI=y
+-CONFIG_FDT_RESET_SUNXI_WDT=y
+ CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
++CONFIG_FDT_RESET_SUNXI_WDT=y
+ CONFIG_FDT_RESET_SYSCON=y
+ CONFIG_FDT_SERIAL=y
+ CONFIG_FDT_SERIAL_CADENCE=y
 
----
-Xianbin Zhu (3):
-      platform: generic: spacemit: add K1
-      platform: spacemit: Add HSM driver
-      platform: generic: Add SpacemiT K1 platform support
-
- lib/utils/hsm/Kconfig                  |   4 +
- lib/utils/hsm/fdt_hsm_spacemit.c       | 140 +++++++++++++++++++++++++++++++++
- lib/utils/hsm/objects.mk               |   3 +
- platform/generic/Kconfig               |   5 ++
- platform/generic/configs/defconfig     |   5 +-
- platform/generic/include/spacemit/k1.h |  98 +++++++++++++++++++++++
- platform/generic/spacemit/k1.c         | 119 ++++++++++++++++++++++++++++
- 7 files changed, 372 insertions(+), 2 deletions(-)
----
-base-commit: 153cdeea5350837c1206a2d2b6189fd0ba06d1f2
-change-id: 20250911-smt-k1-8-cores-8985c5f40c5f
-
-Best regards,
 -- 
-Troy Mitchell <troy.mitchell@linux.spacemit.com>
+2.51.0
 
 
 -- 
