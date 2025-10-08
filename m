@@ -4,73 +4,73 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4D02CCCA470
-	for <opensbi@archiver.kernel.org>; Wed,  8 Oct 2025 08:45:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 50008CCD186
+	for <opensbi@archiver.kernel.org>; Wed,  8 Oct 2025 08:45:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=TF00Z/h+j995w52IW9DaQpnvgjRq2EqM7tLW7HX4u60=; b=Y/8OVkXkWjJ2PQ
-	EZVpdgL/V+bSXAGrbK2XvJ52MMK3IZ8eIjaSkIiKGO9V0CetD6rl8aV8lsDC5lq8j5ZZkKXwta5NR
-	upamk2XtLiLakqs91nDvxzHX1jVh4WGHPceMUsWrSQz3sU0ZpFoXTG36rquEFhuY8+1kM2HOLk74o
-	jSAGIqtUapGdJbMwVoFpPIL6y0Vvik47DzdtTrNK6PF81pFRGWbJmJ97IRrfgLfTSDfluIZ7ji8nP
-	xnCX2i4/0+nqrkm/sxQ6zUqQCxSI193qMVMXgBerLiv8a0gCkwCHF1XpoZWj3skZkwHDkv88c7ISS
-	1MqTbkupvT3EJ0DXwYtg==;
+	List-Owner; bh=HzOv/FRzOttDnyKRJQOz4LlhhTvjRlCp6++sW5ltqHY=; b=UjvC0zSFnki4ST
+	3xaKXaqycEsCrwPpJEbqahWGwLmNw8TbLalNELR7lJjX1Hbl4OuPcj6p0EwuL8sNCF3M/GkkcoXct
+	jklwS9tWVIEGtXhJ7L6wQiW5lrfx4UT8cd/MbepM1K8DUmBzpsqIWIEpDQn/6CrZ+/6Y4aEjoleLf
+	BO/m145s4CdBiSlEzeQpRpcOsh35m/wSVGXOjN19wWpzbVodFBa6uzhBAUMjYDtYoaYsUtGENb+mj
+	rXHkNG1GChBYX3d3bnfyqw+s39V/wXLttr5UDPyAXzAbCRZXaL57Y5QJOaoc5XsC/v2dWyePCVa0K
+	YE5cagBkts9IEJYUR4zQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v6PnA-00000003USm-1dHx;
-	Wed, 08 Oct 2025 08:45:00 +0000
-Received: from mail-pl1-x62b.google.com ([2607:f8b0:4864:20::62b])
+	id 1v6PnC-00000003UUo-2pbq;
+	Wed, 08 Oct 2025 08:45:02 +0000
+Received: from mail-pl1-x635.google.com ([2607:f8b0:4864:20::635])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v6Pn7-00000003UQr-2SFw
+	id 1v6Pn9-00000003URh-1knN
 	for opensbi@lists.infradead.org;
-	Wed, 08 Oct 2025 08:44:58 +0000
-Received: by mail-pl1-x62b.google.com with SMTP id d9443c01a7336-27c369f8986so70021545ad.3
-        for <opensbi@lists.infradead.org>; Wed, 08 Oct 2025 01:44:57 -0700 (PDT)
+	Wed, 08 Oct 2025 08:45:00 +0000
+Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-269639879c3so66030105ad.2
+        for <opensbi@lists.infradead.org>; Wed, 08 Oct 2025 01:44:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1759913097; x=1760517897; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1759913098; x=1760517898; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=fKh1Atc+T4C5/c9pHqI3Q2yLSkznXDUPDVc25pUi0HY=;
-        b=fQcNuDdHVQr0W2OXJASNelAAiZbANJNP9jhftA87KSomUsS8lWTuHHbH4fizP2pF/1
-         l9mT6MM5W1cw9xJbgzNwk2ZQZX4wXLKB7U+uE6pjWGYupz47y9DWlVv1TBCMHDU+w2BW
-         6X9UJ2A6do13H/nQvKUa7vJyrG8atC7kIjwb3juIEe3ziAfOtJQNw8tFNip7yOQkjzt9
-         p2uNxfdqen5gzZ18Oxo+vRRiGHh1WAscZzhGQ0N98L69jRg9lEzNC24tmmG+sI719OGw
-         ZSqFDTJUnOyKmqXILAXWF0CFsndtspkePS8+s+R+S53btxtzMzrJGIBiSnMd/zgcYmmW
-         6ruA==
+        bh=SctYrUpkixmBlorK/EcysuiSLEwDoZu2CpGMbkwEFOk=;
+        b=G9Mw93yGb/QfhN7/0s7PRLnLkHevA5Sp0MNUEbSF6aQ9khQt/5D64pKU3AMtodd7Zs
+         fXccfQE+kHKtH//MhMmuV3bfZMlg+YOKaXiPlWbpNQ+h+2DTUywy3dTJEnB06NgvfQoM
+         4DyzWeKvI+GLtPyOdwvglQaNW1o1AGRC9bDe7w7HO/hEsFfpk37PjpapjrXMGCH4ctV+
+         ZvGp/X2go+xW+fhklEUXdZngYB2C/UPdCsnmYjhAoPpmmNQVqzP3QFv+8VrZ9/FxzbVj
+         1MP2g6PcypkpieG+C7C7L3BQ7pcVrr6GE+IU8w2qBTz/WTTYMwbANvW5w+I6lhuR5fzc
+         cr2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1759913097; x=1760517897;
+        d=1e100.net; s=20230601; t=1759913098; x=1760517898;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=fKh1Atc+T4C5/c9pHqI3Q2yLSkznXDUPDVc25pUi0HY=;
-        b=XfGebp5RbCjASqG/6imldLEFpKgmPUypCUQq/hrhbWUNu/R/CbweEy6Ol8c5y/QWqP
-         Yz2L4SYlNkDl2Z2dD9cXW8mWZy/TSIXhLwqEVyrwjH9IAz2GRKxnVrl8qHjvrb1oCR4o
-         +wa9FvuuCIZjBx+Uog61LRw+9b7qQz/0DleBeEJamz6L8Yxb1sOZFIjnuSpuTDfegS5+
-         gR/6WfRreiozuZ/mNnuJbRWQpgdpDD4BJ0UcNAOqW6+MeCRWSFTswXwjdNgmMM3LpzVN
-         I9Gfv7ZPfEdkttuFfn92eEM/UFAKdVSZct674cBuU8Co2PilwPhWpUR1LCrbBmbX6bxV
-         9DeA==
-X-Gm-Message-State: AOJu0Yx/QCDtcrZAtGaWyrOVutzbcLcinhBZyhRWtTXnaQPbRdMQY49W
-	nuo7e/zdxjuQ/vCXr0VAz5rydDZZ9TGIvkN5nkarbewQtNn55Nxb325gW9a/Q2SKEfs0iCYgjEQ
-	EOLFdRfoFTuE0Jpj7iyP6D26lXQDLh90aKEeCZ98GFeg9cxwSZIWZfTd7whTJ4waAuHxBZPbUYz
-	BLHMGxUAsL9VSi7LST1V5OqgodW1klSi8vR8XhCzP8kuHg5XDCwxA=
-X-Gm-Gg: ASbGncsKNRxYbIenhXTz5zIuyoBshPuijJfWwze3u7B8ZvT9mxDh10BsoP/dhI1NZYd
-	ucXhIPZJsyiIrJkRBtf5s6NzheKPJA/fsUpuTYd1bb0aQgFor9hHmpMbYc66qMYT4oa3haae+9g
-	PpNfwUls+6U5zddPstAfqw1AWfS03N2qtvju7v7QCMSuR7YcYMVc4aZh3AM5RxEB/cnqI+DdpBq
-	qmiAre/2pSyMVtFexKZB/PXs3Fsprw5WVf+NttZPW2OalDHXOQ2R6Hq8Tw9WC9tPPdoO03I2Z+2
-	HUVps5EHcEseux0LDxKte3iPLzzkW3wTQi/uwL/FJGPfpeqC0Bz0ug5OIjPRTjSMBiz92x8tt+u
-	F9sXURpx5Q6Sms5m5NdnvkrUNdjBJgNNeNWr+n420xVFOQko1ZlzagIfZqJlFmNf9yAkYaX8/Q2
-	Zz8A+d5vXq9opK/bff9IVMEPXcNOV92yUct5+jqreA6bnEbetoPYlwKnV+
-X-Google-Smtp-Source: AGHT+IGD8DCB/ThRUejau/T7jSeDwpYxVdp0N2gICaFK46kQw/0IyiXZIj4aPh5fk3bP7Y8T4cuGPw==
-X-Received: by 2002:a17:903:3807:b0:269:4741:6d33 with SMTP id d9443c01a7336-2902737a672mr35425315ad.23.1759913096084;
-        Wed, 08 Oct 2025 01:44:56 -0700 (PDT)
+        bh=SctYrUpkixmBlorK/EcysuiSLEwDoZu2CpGMbkwEFOk=;
+        b=AN47IKxwIbByfg3GECbEtFmq3dajloT8YgnHGFrvV9Oqcn/5zjN48t1xyLMm+lz2sH
+         YSx0jmwUYtAG1rzV/1MgTea0FckEgvZAt3YG74AZQs92bxL1SaAuSryI2chPQl7yV1lD
+         QMTnkBlZ6YUqSL8XOaDbcLXld+Wr7Q0gvgcfdrBdVGuuawHrKcjxCJRhJHxC6F9cvR41
+         GoQv0ZRKV6ayy9PAdXTtxYLPJ9BPk5u7Y55yzWGXJDCkxkpsrWCKmW9nnHs8IO8EtCTv
+         DdPVDDSa/StMkXC7Tk/HXvKVkyxJvuTfz/5d7Tzc9AjGx9ao2WujjQ5SDk8Mnh21mwUO
+         J5NA==
+X-Gm-Message-State: AOJu0YxIdEsHIFdFtaPNlJPf7MEBMkuKyeTT5zS5AvddDVkyAM2/13RZ
+	gVtQPoJpEP54Givcu+s3V9audcqaqW30G2ngN3bpexqj1MGqQ+NjaMu22Nm2Cw2u9FH1p5OucXv
+	HiNfLX415Ct/gDNIvb3q83yrAyUUPP4EF4TV6CAGSpM+aykhRkyxafJ7DNkJljsXdl3gnS9RZmR
+	HxA2dx+c/Fcq52+J19SMY2lGZ8BJnKSzpke0gvuC1so4xmsAxiQNo=
+X-Gm-Gg: ASbGncsCICQRGyqTsi5l8mNsRfDH3UKTqAR14o38VzMwehi2alFGhWUkfPtW6iFZ2h2
+	UehUEMiYpOrW/YUSedTIgWDW/sm2e5L0WFm8VagxPRcVC+DZdz+efP5vqE9d1rHF9zlUDscZQlQ
+	H3nIWsP3sWot7J9SJYXhZNCmHIMgelyn1zqh9X7+OyjFyyj2cJz8e0FOVY+EJD+W5dZdTVej3gL
+	6xtT1/aroeGh9xKDYdOlZwmoc8tQYSvlmhLp+VecarMPgawFV4clvZ4B8ssqwxMJjE6QgOEHuTG
+	+XXvtcM3IzMMvXA6DQDJaAWUACCer5/PcnncSVqhfUQspssaUIuafLqcg2V/Y0KmXgEJS41Yf8l
+	Lbqcl65G9Mn/oWPvJKgvFMQ2ZGZBmXYksgweaSiAPRVRENNJMrAVEeCpMhdcBG0P3fUUTDe80Sy
+	aRfm9dlKdnCDB1ZapwNQQ0Z9z7aejrMIj4OszmOC9duAD+zExRp0qF3NQp
+X-Google-Smtp-Source: AGHT+IEh2PlIYSo7/oFN/QzaWlou+Qnct6uDMdjuIhwHe0NPV6B5qnf1AnAZuZkAkzeaSAb6BwkSdA==
+X-Received: by 2002:a17:903:1b0b:b0:269:91b2:e9d6 with SMTP id d9443c01a7336-29027402c3cmr35282335ad.46.1759913098287;
+        Wed, 08 Oct 2025 01:44:58 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-28ecaefd60fsm51327255ad.93.2025.10.08.01.44.54
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-28ecaefd60fsm51327255ad.93.2025.10.08.01.44.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Oct 2025 01:44:55 -0700 (PDT)
+        Wed, 08 Oct 2025 01:44:57 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
@@ -79,17 +79,16 @@ Cc: zong.li@sifive.com,
 	alvinga@andestech.com,
 	anup@brainfault.org,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH v2 3/8] lib: sbi_domain: print unsupported SmePMP permissions
-Date: Wed,  8 Oct 2025 16:44:39 +0800
-Message-ID: <20251008084444.3525615-4-peter.lin@sifive.com>
+Subject: [PATCH v2 4/8] lib: sbi_hart: return error when insufficient PMP entries available
+Date: Wed,  8 Oct 2025 16:44:40 +0800
+Message-ID: <20251008084444.3525615-5-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20251008084444.3525615-1-peter.lin@sifive.com>
 References: <20251008084444.3525615-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251008_014457_628893_342B6865 
-X-CRM114-Status: UNSURE (   9.64  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251008_014459_459165_E431A883 
+X-CRM114-Status: GOOD (  12.06  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -106,44 +105,72 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The reg->flag is encoded with 6 bits to specify RWX
-permissions for M-mode and S-/U-mode. However, only
-16 of the possible encodings are valid on SmePMP.
-
-Add a warning message when an unsupported permission
-encoding is detected.
+Previously, when memory regions exceed available PMP entries,
+some regions were silently ignored. If the last entry that covers
+the full 64-bit address space is not added to a domain, the next
+stage S-mode software won't have permission to access and fetch
+instructions from its memory. So return early with error message
+to catch such situation.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- lib/sbi/sbi_domain.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ lib/sbi/sbi_hart.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 89250d4c..798e68b3 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -125,6 +125,7 @@ void sbi_domain_memregion_init(unsigned long addr,
- unsigned int sbi_domain_get_smepmp_flags(struct sbi_domain_memregion *reg)
- {
- 	unsigned int pmp_flags = 0;
-+	unsigned long rstart, rend;
- 
- 	if ((reg->flags & SBI_DOMAIN_MEMREGION_ACCESS_MASK) == 0) {
- 		/*
-@@ -185,6 +186,13 @@ unsigned int sbi_domain_get_smepmp_flags(struct sbi_domain_memregion *reg)
- 			pmp_flags |= PMP_W;
- 		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
- 			pmp_flags |= PMP_X;
-+	} else {
-+		rstart = reg->base;
-+		rend = (reg->order < __riscv_xlen) ?
-+			rstart + ((1UL << reg->order) - 1) : -1UL;
-+		sbi_printf("%s: Unsupported Smepmp permissions "
-+			   "on region 0x%" PRILX "-0x%" PRILX "\n",
-+			   __func__, rstart, rend);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index d018619b..032f7dc1 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -324,6 +324,16 @@ static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
  	}
+ }
  
- 	return pmp_flags;
++static bool is_valid_pmp_idx(unsigned int pmp_count, unsigned int pmp_idx)
++{
++	if (pmp_count > pmp_idx)
++		return true;
++
++	sbi_printf("ERR: insufficient PMP entries\n");
++
++	return false;
++}
++
+ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 				     unsigned int pmp_count,
+ 				     unsigned int pmp_log2gran,
+@@ -348,8 +358,8 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 		/* Skip reserved entry */
+ 		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+ 			pmp_idx++;
+-		if (pmp_count <= pmp_idx)
+-			break;
++		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
++			return SBI_EFAIL;
+ 
+ 		/* Skip shared and SU-only regions */
+ 		if (!SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
+@@ -372,8 +382,8 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 		/* Skip reserved entry */
+ 		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+ 			pmp_idx++;
+-		if (pmp_count <= pmp_idx)
+-			break;
++		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
++			return SBI_EFAIL;
+ 
+ 		/* Skip M-only regions */
+ 		if (SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
+@@ -407,8 +417,8 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+ 	unsigned long pmp_addr;
+ 
+ 	sbi_domain_for_each_memregion(dom, reg) {
+-		if (pmp_count <= pmp_idx)
+-			break;
++		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
++			return SBI_EFAIL;
+ 
+ 		pmp_flags = 0;
+ 
 -- 
 2.48.0
 
