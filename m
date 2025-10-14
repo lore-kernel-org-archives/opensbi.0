@@ -4,117 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 30870CCD18E
-	for <opensbi@archiver.kernel.org>; Mon, 13 Oct 2025 15:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9F2E2CCD184
+	for <opensbi@archiver.kernel.org>; Tue, 14 Oct 2025 05:54:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=A3zcFYP1JzRqXKoGHFLKe1GijCkIelUS4C0q9cLd5yI=; b=ry0T3ImHSQ4KPY
-	jaBFxErfivqP7aWNJdDqKpoK9Rmt6OH8xE8xN8Kxnr2BAmcHJ2ut0aGI1riIZRXFpljiIPOkOdTuU
-	mg4yziTQ5qH0s4VlKSIsGHP4KMgZ5ECaI0p8gbwYbSM/oNjUJxPH7IcFP9KVhuwODyJBVzk7AtjYQ
-	8JPOpkcKEAAc6uvr0S9HW4CvP4+blNsFlkF+IpMrGjsTCE2haplsnsA+uhr3qfT4cuw7qwuM46W63
-	m7bAurIqL/K6FAVTtTOz/ce/YsduyHtrZBLNluWHbWTZNZf0TbaLrboEu9Fc1N9DLDih9UF50DOLB
-	/5QBTjvHDJFBPoYTWOgw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=4H6kJQDqBGBl9nUSiYxFLW+itgtjtPjd0mbc0NIxUFo=; b=vosL2L9q2AkDiQ
+	u0qIrk8LbWSW4k0pVvmufb3yIm3NdfplmdONvyk9iBkM1ADwOjzzxqIpWx32B7nNsEZM6Nqc2lM73
+	PuEdut3gM0OJP1HQKH0DHcIh+dMyjTSP/P2ShyGAdrKRUyFfFvqVzy1DasajsU6FArOQYIfRBlAB4
+	0bIq7V45/3oHrdA1rUk8LvXxzruFOrHxZ5HP/6+UQqiFqDaEkNI97a7hRB5n1PPxJkLXPm+nGBjqp
+	gfa9e7tBYhY0JwyQ69PYJjw5WbD7nLOE2XZEpSTBEuM08RWr66SM6kmR71KR9GinOy/wJvhCFnhiV
+	QwIThx2oZ94S+5f1JgbQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v8KXX-0000000Dh31-2Jyc;
-	Mon, 13 Oct 2025 15:32:47 +0000
-Received: from mail-bjschn02on2100.outbound.protection.partner.outlook.cn ([139.219.17.100] helo=CHN02-BJS-obe.outbound.protection.partner.outlook.cn)
+	id 1v8Xz2-0000000FFMs-0KGh;
+	Tue, 14 Oct 2025 05:54:04 +0000
+Received: from mail-pf1-x42a.google.com ([2607:f8b0:4864:20::42a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v8KXV-0000000Dgyb-1uy5
+	id 1v8Xyz-0000000FFM7-2yi2
 	for opensbi@lists.infradead.org;
-	Mon, 13 Oct 2025 15:32:46 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=neeVa2aa4TFEE5ceP9tj4paV0d0pDEqXPc+mu1m+QUEvC/TdLPZoYvLZmo1oVSBneS/tJr36cXOwohTYqX/M4DkkqooJE0WF94HhTMO+QAfiQdGVygBuexeKI71grV9kRw/y17V6rj4iUq4HfVZ2J0+iaIZHOh7Sa+OP+9l3eDAxOlpZypX8w5ZFVdo5P3EyMxtYGR6y/ncMkALYck6SPli4JF/aZI1vc34kMcrJSojzlgzmbIG4wZWZzj/LmEST4Vs6N7T4RmMTj9HXlA7t7eR0yxzm6oWFtHScvHlvppk/jjaJB31oIhdOo23risjDXuz+puOfXsyQF/Z+WkLLcg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NeQJsg/LxN/OBwLA9g0szRlDm5QcpgQ/8lR9yciWLDE=;
- b=KXiKWs8E35tQVElvDT+ta5uAsteDdDSRYiKQ2+IP9KC1vfzygpSWalkEbB/pqOsjg5sY1yQMrrBGYB/BHPYf3bVvFhau7YTk3wzghhELGibo7TaP0Us1kcEjRgtOIxAqafdJ04mbY4oqpBl0wxa5cS//sQeb1OkSr1NwcmnDYikoirxvae6HEmxVR3mreGtGyJoBK3dDPPmaC0bfBrIq+PpHfLOKSochLP4avjT361pS3UdTEwK/D3Id78I3NbnOT19Kowsj5ZuTMlZ2DW3jA4x+F7YQSkbyG1oc6CiviF2DNPSDjeZ4VjtWHF9moOl7chUjayBwLEeOjXxhrBg3tQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=starfivetech.com; dmarc=pass action=none
- header.from=starfivetech.com; dkim=pass header.d=starfivetech.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=starfivetech.com;
-Received: from SH0PR01MB0841.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c311:20::14) by SH0PR01MB0730.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c311:22::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9182.23; Mon, 13 Oct
- 2025 15:32:15 +0000
-Received: from SH0PR01MB0841.CHNPR01.prod.partner.outlook.cn
- ([fe80::81c4:2724:6a48:a18]) by SH0PR01MB0841.CHNPR01.prod.partner.outlook.cn
- ([fe80::81c4:2724:6a48:a18%6]) with mapi id 15.20.9182.020; Mon, 13 Oct 2025
- 15:32:15 +0000
-From: Joshua Yeong <joshua.yeong@starfivetech.com>
-To: atishp@atishpatra.org
-Cc: opensbi@lists.infradead.org,
-	apatel@ventanamicro.com,
-	rpathak@ventanamicro.com,
-	leyfoon.tan@starfivetech.com,
-	joshua.yeong@starfivetech.com
-Subject: [PATCH 3/3] lib: utils: Add MPXY RPMI mailbox driver for performance
-Date: Mon, 13 Oct 2025 23:31:38 +0800
-Message-ID: <20251013153138.1574512-4-joshua.yeong@starfivetech.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20251013153138.1574512-1-joshua.yeong@starfivetech.com>
-References: <20251013153138.1574512-1-joshua.yeong@starfivetech.com>
-X-ClientProxiedBy: ZQ0PR01CA0011.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c550:5::10) To SH0PR01MB0841.CHNPR01.prod.partner.outlook.cn
- (2406:e500:c311:20::14)
+	Tue, 14 Oct 2025 05:54:03 +0000
+Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-781db5068b8so3936572b3a.0
+        for <opensbi@lists.infradead.org>; Mon, 13 Oct 2025 22:54:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1760421240; x=1761026040; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=R86/44DvbgRIT819+tlaXsEXghlt2hmGE7mKwP5iVDc=;
+        b=gBXNp6FP0Koio0NBYfCjDA9n/B6o4rc+CkhfyXFDqe80OOQnJT8YngbxD0jNX5OMcL
+         VT4Wl4T9LGd8fJd1LMeJSaVanqHpbvkraG7Fm4G1Y3Msgki7EZzlhO++9oETOsqlNZDX
+         4Pr2/jjVNHanEGJvTeYRSSxgLkIsyxEqTsCt25jkZJ1a5+zg1KihKINuhyB/R8rlRFS2
+         VQ1gPtcAX4APhU3SsUrNmgfKfIZfoqXDygXBjpTRhcW6F+W06v/oHmI+OJbbTz5w02Ji
+         c5jnrLShEC6v2hqjJMGWSEQq25WGOOn/Csj+s+Tv7F/ko631FLWaFnJqDApcXiAqBHQS
+         V8jA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760421240; x=1761026040;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=R86/44DvbgRIT819+tlaXsEXghlt2hmGE7mKwP5iVDc=;
+        b=VFiJ4AWcLWSS81GfDWCf6cr6UijddARPzo3QqYtzlCiZVa85tf8TgOpaito3ATnSH/
+         x8fXZFPRiKJGYgFJeWwKK/TfXXDD+wWJcuo2zhB3fX/kI/33Xc2UKbZ9trclffkZ1i+l
+         nr65ZGL/dz0eHiljd8as3dzt5si7sGlW17ooMU/vbpgZdQjd15lYr74/HN9KUt1/2O74
+         cRvWQ5bRGBfXA8yDJnv5oCSjMrXcl5Dj1mSFna0mb4IEb0FKx0yaiKt4au/aV0OVq+G5
+         ru7DTTT/NjQusv+86fmQWzSYw9F5CgRN07bhLZI4aviwWc+GX53yto2xyTQNkxFuhfun
+         Mslw==
+X-Gm-Message-State: AOJu0YxJH6M1TPVzfEFtdwPSUeyRvo98uK26jSTFjryGwdjJ8UjjiQ8Q
+	asaXdsmERDAbVqzMrj2dJ7aITpEh4gn/HAqrH3CRXg2YELFamEtUoU8zYaD9X30CGUuYYQVUs5f
+	bdh6Ve3s=
+X-Gm-Gg: ASbGncsqLW0QrjXlnsXkuCdlscdVlrTYgLKovAdZ2mUKKPgJbSRCIqvlNjdlfgWJ3Pn
+	NCxi6ipvh9Q1K1OAwKhIVg33+qiDKtAqHAUVQ49q6vXwNcj7V8am3lCpV2W5FsIalhVZ01gUHlZ
+	rXvFwdloLfm/sDZgWXWDxkVPuAs4q3B1z30l2kPzB8Ex+fiaHJbkvNnhvt1eyK2FHdnLFCzrMu1
+	cHu5tZdEVxwtpan20RO/0GSwCZXxmcnMVceL2/fH/i8jovR71S1RGd3biGd6gWUUAlwKyJKI5Ln
+	54Z1YrkwB57SpozEUJ3Uw0wrpOikw9bSqyzF2T2IDUwLdsirI1ZBpQkAYxoXd0guwmrqOs5K37A
+	fupNFYePRNnfq4Ky0lPo9Tl6ypEoOM/H2g7akAdVaVmALgt6iXFfDvtmz30RX79Q67pJ7wjtPq8
+	TWdGPG4erHRLApHWMBPpMYJK5U3GqwG8XKV8VuClc=
+X-Google-Smtp-Source: AGHT+IFqpEcq8+PiFsQ8EN3YacHFhVlzHhYEyAHvc4G+TLi4ErpacqRi6UA6RbvYzaBfQn6SqXpFcg==
+X-Received: by 2002:a05:6a20:6a29:b0:2d6:9a15:1394 with SMTP id adf61e73a8af0-32da8130c95mr30611608637.18.1760421240476;
+        Mon, 13 Oct 2025 22:54:00 -0700 (PDT)
+Received: from VR452476K0.bytedance.net ([61.213.176.56])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7992bb18e28sm13788253b3a.29.2025.10.13.22.53.57
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Mon, 13 Oct 2025 22:54:00 -0700 (PDT)
+From: weidongwd <weidong.wd@bytedance.com>
+To: opensbi@lists.infradead.org
+Cc: cuiyunhui@bytedance.com,
+	heshuan@bytedance.com,
+	weidongwd <weidong.wd@bytedance.com>
+Subject: [PATCH] lib: sbi: sse: add local unknown nmi event
+Date: Tue, 14 Oct 2025 13:53:30 +0800
+Message-ID: <20251014055330.59506-1-weidong.wd@bytedance.com>
+X-Mailer: git-send-email 2.45.2
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SH0PR01MB0841:EE_|SH0PR01MB0730:EE_
-X-MS-Office365-Filtering-Correlation-Id: af03ba43-d184-4857-3b9d-08de0a6dafbd
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|41320700013|52116014|38350700014;
-X-Microsoft-Antispam-Message-Info: qa8aSEUoJP6/v/5WpyCZeIPfQxlwIZiDSl3tfIHabRu7a5QP+3qB7ZhIWjhc0tiP3jM/dgO6N8f7WRyPwpoc64IQFWU/XpB0Ol1/FsEZ6yBXomriNNDQrY1LIuIvUkRy0SqiuthUeuUXOou2SYnZ5uRvth0FkFrXAt7j7DkZq9nAzKyfwVL6ZPVhSQdiWMVgH8Pbtjg+Q81ms3yDaM9EkDuWwaZCFnIx+aFOrlV5bWGLiKGoLKk4+xYPkpKPoQE6z4JERb7ZJnjbU2Oaw3DjAiwyB870t1J+IzQ6SWSHO/CHLRuzLLgoBdKe56p4TULct0ms30MRHefi6taEGNlCTI/3H06ML3F9yzJb9rnxJIBSJI5VvQom3Lav15w109CiN+DEshLZbjfkV74PwdPx4eC7TTBkM4sXUCsiE1RO+xgD3nVzu1/1nFRsBIo8eOxQtyYm5zrUSdm9w3MUq+GmTTqjsdfrzljxk4LId/49ykiV4nS+PDbxxfG66AflN+GuX9pz2tW/2z5lYLWC2TWCZMyfK2Ije96JtwCm2ssp7tzreZoMsDNWynWBdqXx1JI6U2Bu4JEfMAFBNsutCdhc13peBkxF04d8juaKDu850So=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SH0PR01MB0841.CHNPR01.prod.partner.outlook.cn;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(41320700013)(52116014)(38350700014);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?MVKYaJSuDMHS2G7vYl9b2rVHNgC2ANNKzg0dIK+xhPHH4SX2ld+IfIz1xyL1?=
- =?us-ascii?Q?18WONnlZ7QMfGQzDN5wT+Jk8L0iFkgEfs9sDR2JrX3OHZBKeA/H+H3BTMH8h?=
- =?us-ascii?Q?8/MUyuvowFRoRkr4iDqsvcSS2wTao5GV+lvCb5BsvnJClhHXTMXePaB6Ni8H?=
- =?us-ascii?Q?M/I9HOApA86Mq22w2WNPyFULn8boXutRgyza0ry/ItiuE/WcICXoAkqADJQe?=
- =?us-ascii?Q?6MGgsCdQEmz4FXK/QZK+lbInI39hJSpuCH4Nt55P+MgpRu++ffDVCMCNpUZ+?=
- =?us-ascii?Q?lb9AkaQmo4uFVfPkeitrNVaKdRhxXuRVrl3hRPWqInd8Mb8nEZu05S9DBDOl?=
- =?us-ascii?Q?JtwOcREYGx+Plbaj6+H4udEKTMkhoNgc9iAyOj3rlGjzwqpaNTETuB5FnlLz?=
- =?us-ascii?Q?9Tn3ea63ynMMt+N65cAb74TF16BjLycM0HsoSFJUh8nPokurtQ9YyRwUNc0E?=
- =?us-ascii?Q?CQPMM3SJiwtJMcViJL/hzhCyfeM8Cl1DFV9Q965ceA/BG+gsxJoifYFPEwyn?=
- =?us-ascii?Q?1nAaiM2aMbtmWEtNRej+DQWU3Bol1hD9V2kn6kUjOA7MyFNEHInFUSt5M9xy?=
- =?us-ascii?Q?1/1LgA4bmhs3XjiEAF32GLThsq464t6QNgii/HLXGEfkSgivQIXBlP2xat+L?=
- =?us-ascii?Q?2iUKP/BHIWPq4YJgtG/nsNQNuMwBHUfgg6HOaudP5saxzItplz1CuxsnEeeU?=
- =?us-ascii?Q?1f8vtGg/MJ72LYrqeLA0T1p6W39MtF4g704fT4DNeb/3fC2AV+hgH9RkRDp0?=
- =?us-ascii?Q?Ag5fXKSBXgCIqIPpZFtJl6cFD9BZc7UgokbFV1Qs6mt/uMXMp12AGYDXCczM?=
- =?us-ascii?Q?DhK8FnQCak09ZKzYmI4aNskzENiZkIoUO/rvjadceFPzgUgbVYkccqGXxmY+?=
- =?us-ascii?Q?shwu6uNa+HsUoAozypEC3rVGv0dnHmr02z6WiypWwJ0hlmSBztB52AwIZHC6?=
- =?us-ascii?Q?aOJNbuevHbVTmOILeSi5fDcBw6iR3YKAYBwqYlvE5bYeznNLA6d+nZizHDgt?=
- =?us-ascii?Q?1sQSdhRR58E7hJkljQv+a8OdsT7xCCUKDoqZlz1v5S7uUXjcUUyIka/8ANWb?=
- =?us-ascii?Q?v9kylA6yzPekNoDuRq4OiSrmJaRn5c++mvk9BcW8fnfdiThcANxxKvJKK5TG?=
- =?us-ascii?Q?hLIduGmXcfAIBPlp0hFcblOOu4+i1X8s3+aKQ+szWlhF6X67ArhEAEAgbaOk?=
- =?us-ascii?Q?JOgOdeZKy3nXsB9fs+rcD0cI+/Pfuit2HvtQBHMUJJstEMaI2tTwFY7qN/w4?=
- =?us-ascii?Q?te9UgVIc0XACN+aTqgwR8nUcCIJUYXzlyf8txOKFJ1tn7S2m9ytP2ZBCeeAy?=
- =?us-ascii?Q?EYF3B57g0b7yGc5qej43Y3Q9poKEUyWUP8FxYIvMhwaRrtTRaMl5TcFS5UqT?=
- =?us-ascii?Q?+fDmbjw3sX2NsgC/zrtJqazx0VSPDQjS8gaKE9digg33qERanFDfhziY096c?=
- =?us-ascii?Q?VWnjPqHgduHl6wxlXISD3MyjEpj9zPyCkOkVpQ0eZ/ccOhQTi7tnAKa7dsRG?=
- =?us-ascii?Q?udBGfGBfkbvHbHfCF9sdpUPFzdZvN6mgIy3C89isXXTodEuEZrl8BBQ76rQE?=
- =?us-ascii?Q?SvktFUQ8JXrkfgM7m32yyLj9pfp5QvNcDJlzdVzA++VMVlBYeipthqufPQo+?=
- =?us-ascii?Q?1EZO7He9TX17PDagj3fa9pA=3D?=
-X-OriginatorOrg: starfivetech.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: af03ba43-d184-4857-3b9d-08de0a6dafbd
-X-MS-Exchange-CrossTenant-AuthSource: SH0PR01MB0841.CHNPR01.prod.partner.outlook.cn
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Oct 2025 15:32:15.1641
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 06fe3fa3-1221-43d3-861b-5a4ee687a85c
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ufJOVvk9KvbKqPol57os5WbGCnrsuLrwNNtmSbawexH90dHcOG8r+agKkVTz1iL6ZanvZZB9/QzX71V8COe0B8N6vWN151BQ+bKuydP9klc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SH0PR01MB0730
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251013_083245_497005_92569A48 
-X-CRM114-Status: GOOD (  13.64  )
+X-CRM114-CacheID: sfid-20251013_225401_931969_20CAEE9E 
+X-CRM114-Status: GOOD (  10.94  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -131,289 +98,59 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add MPXY RPMI mailbox driver for performance.
+Add the id of local unknown nmi event and add this event to the
+list of supported events.
 
-Signed-off-by: Joshua Yeong <joshua.yeong@starfivetech.com>
+Signed-off-by: weidongwd <weidong.wd@bytedance.com>
 ---
- include/sbi_utils/mailbox/rpmi_msgprot.h   | 118 +++++++++++++++++++++
- lib/utils/mpxy/Kconfig                     |   4 +
- lib/utils/mpxy/fdt_mpxy_rpmi_performance.c |  90 ++++++++++++++++
- lib/utils/mpxy/objects.mk                  |   3 +
- platform/generic/configs/defconfig         |   1 +
- 5 files changed, 216 insertions(+)
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_performance.c
+ include/sbi/sbi_ecall_interface.h | 3 ++-
+ lib/sbi/sbi_sse.c                 | 8 +++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
-index 4e915a08..f8b16753 100644
---- a/include/sbi_utils/mailbox/rpmi_msgprot.h
-+++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
-@@ -219,6 +219,7 @@ enum rpmi_servicegroup_id {
- 	RPMI_SRVGRP_VOLTAGE = 0x00007,
- 	RPMI_SRVGRP_CLOCK = 0x0008,
- 	RPMI_SRVGRP_DEVICE_POWER = 0x0009,
-+	RPMI_SRVGRP_PERFORMANCE = 0x0000A,
- 	RPMI_SRVGRP_ID_MAX_COUNT,
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index af7a05a..8bb0d39 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -436,7 +436,8 @@ enum sbi_sse_state {
  
- 	/* Reserved range for service groups */
-@@ -829,4 +830,121 @@ struct rpmi_dpwr_get_state_resp {
- 	u32 state;
+ /* Range 0xffff0000 - 0xffffffff */
+ #define SBI_SSE_EVENT_LOCAL_SOFTWARE		0xffff0000
+-#define SBI_SSE_EVENT_LOCAL_RESERVED_3_START	0xffff0001
++#define SBI_SSE_EVENT_LOCAL_UNKNOWN_NMI		0xffff0001
++#define SBI_SSE_EVENT_LOCAL_RESERVED_3_START	0xffff0002
+ #define SBI_SSE_EVENT_LOCAL_RESERVED_3_END	0xffff3fff
+ #define SBI_SSE_EVENT_LOCAL_PLAT_3_START	0xffff4000
+ #define SBI_SSE_EVENT_LOCAL_PLAT_3_END		0xffff7fff
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index 986b770..e771efe 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -182,9 +182,14 @@ struct sse_event_info global_software_event = {
+ 	SBI_SLIST_NODE_INIT(NULL),
  };
  
-+/** RPMI Performance ServiceGroup Service IDs */
-+enum rpmi_performance_service_id {
-+	RPMI_PERF_SRV_ENABLE_NOTIFICATION = 0x01,
-+	RPMI_PERF_SRV_GET_NUM_DOMAINS = 0x02,
-+	RPMI_PERF_SRV_GET_ATTRIBUTES = 0x03,
-+	RPMI_PERF_SRV_GET_SUPPORTED_LEVELS = 0x04,
-+	RPMI_PERF_SRV_GET_LEVEL = 0x05,
-+	RPMI_PERF_SRV_SET_LEVEL = 0x06,
-+	RPMI_PERF_SRV_GET_LIMIT = 0x07,
-+	RPMI_PERF_SRV_SET_LIMIT = 0x08,
-+	RPMI_PERF_SRV_GET_FAST_CHANNEL_REGION = 0x09,
-+	RPMI_PERF_SRV_GET_FAST_CHANNEL_ATTRIBUTES = 0x0A,
-+	RPMI_PERF_SRV_MAX_COUNT,
++struct sse_event_info local_unknown_nmi_event = {
++	.event_id = SBI_SSE_EVENT_LOCAL_UNKNOWN_NMI,
++	SBI_SLIST_NODE_INIT(&global_software_event),
 +};
 +
-+struct rpmi_perf_get_num_domain_resp {
-+	s32 status;
-+	u32 num_domains;
-+};
-+
-+struct rpmi_perf_get_attrs_req {
-+	u32 domain_id;
-+};
-+
-+struct rpmi_perf_get_attrs_resp {
-+	s32 status;
-+	u32 flags;
-+	u32 num_level;
-+	u32 latency;
-+	u8 name[16];
-+};
-+
-+struct rpmi_perf_get_supported_level_req {
-+	u32 domain_id;
-+	u32 perf_level_index;
-+};
-+
-+struct rpmi_perf_domain_level {
-+	u32 level_index;
-+	u32 opp_level;
-+	u32 power_cost_uw;
-+	u32 transition_latency_us;
-+};
-+
-+struct rpmi_perf_get_supported_level_resp {
-+	s32 status;
-+	u32 reserve;
-+	u32 remaining;
-+	u32 returned;
-+	struct rpmi_perf_domain_level level[0];
-+};
-+
-+struct rpmi_perf_get_level_req {
-+	u32 domain_id;
-+};
-+
-+struct rpmi_perf_get_level_resp {
-+	s32 status;
-+	u32 level_index;
-+};
-+
-+struct rpmi_perf_set_level_req {
-+	u32 domain_id;
-+	u32 level_index;
-+};
-+
-+struct rpmi_perf_set_level_resp {
-+	s32 status;
-+};
-+
-+struct rpmi_perf_get_limit_req {
-+	u32 domain_id;
-+};
-+
-+struct rpmi_perf_get_limit_resp {
-+	s32 status;
-+	u32 level_index_max;
-+	u32 level_index_min;
-+};
-+
-+struct rpmi_perf_set_limit_req {
-+	u32 domain_id;
-+	u32 level_index_max;
-+	u32 level_index_min;
-+};
-+
-+struct rpmi_perf_set_limit_resp {
-+	s32 status;
-+};
-+
-+struct rpmi_perf_get_fast_chn_region_resp {
-+	s32 status;
-+	u32 region_phy_addr_low;
-+	u32 region_phy_addr_high;
-+	u32 region_size_low;
-+	u32 region_size_high;
-+};
-+
-+struct rpmi_perf_get_fast_chn_attr_req {
-+	u32 domain_id;
-+	u32 service_id;
-+};
-+
-+struct rpmi_perf_get_fast_chn_attr_resp {
-+	s32 status;
-+	u32 flags;
-+	u32 region_offset_low;
-+	u32 region_offset_high;
-+	u32 region_size;
-+	u32 db_addr_low;
-+	u32 db_addr_high;
-+	u32 db_id_low;
-+	u32 db_id_high;
-+	u32 db_perserved_low;
-+	u32 db_perserved_high;
-+};
-+
- #endif /* !__RPMI_MSGPROT_H__ */
-diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
-index 25288671..507b8371 100644
---- a/lib/utils/mpxy/Kconfig
-+++ b/lib/utils/mpxy/Kconfig
-@@ -30,6 +30,10 @@ config FDT_MPXY_RPMI_DEVICE_POWER
- 	bool "MPXY driver for RPMI device power service group"
- 	default n
+ struct sse_event_info local_software_event = {
+ 	.event_id = SBI_SSE_EVENT_LOCAL_SOFTWARE,
+-	SBI_SLIST_NODE_INIT(&global_software_event),
++	SBI_SLIST_NODE_INIT(&local_unknown_nmi_event),
+ };
  
-+config FDT_MPXY_RPMI_PERFORMANCE
-+	bool "MPXY driver for RPMI performance service group"
-+	default n
-+
- endif
+ static SBI_SLIST_HEAD(supported_events, sse_event_info) =
+@@ -202,6 +207,7 @@ static const uint32_t standard_events[] = {
+ 	SBI_SSE_EVENT_LOCAL_LOW_PRIO_RAS,
+ 	SBI_SSE_EVENT_GLOBAL_LOW_PRIO_RAS,
+ 	SBI_SSE_EVENT_LOCAL_SOFTWARE,
++	SBI_SSE_EVENT_LOCAL_UNKNOWN_NMI,
+ 	SBI_SSE_EVENT_GLOBAL_SOFTWARE,
+ };
  
- endmenu
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_performance.c b/lib/utils/mpxy/fdt_mpxy_rpmi_performance.c
-new file mode 100644
-index 00000000..f4f18831
---- /dev/null
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_performance.c
-@@ -0,0 +1,90 @@
-+#include <sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h>
-+
-+static struct mpxy_rpmi_service_data performance_services[] = {
-+{
-+	.id = RPMI_PERF_SRV_ENABLE_NOTIFICATION,
-+	.min_tx_len = sizeof(struct rpmi_enable_notification_req),
-+	.max_tx_len = sizeof(struct rpmi_enable_notification_req),
-+	.min_rx_len = sizeof(struct rpmi_enable_notification_resp),
-+	.max_rx_len = sizeof(struct rpmi_enable_notification_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_NUM_DOMAINS,
-+	.min_tx_len = 0,
-+	.max_tx_len = 0,
-+	.min_rx_len = sizeof(struct rpmi_perf_get_num_domain_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_get_num_domain_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_ATTRIBUTES,
-+	.min_tx_len = sizeof(struct rpmi_perf_get_attrs_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_get_attrs_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_get_attrs_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_get_attrs_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_SUPPORTED_LEVELS,
-+	.min_tx_len = sizeof(struct rpmi_perf_get_supported_level_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_get_supported_level_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_get_supported_level_resp),
-+	.max_rx_len = -1U,
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_LEVEL,
-+	.min_tx_len = sizeof(struct rpmi_perf_get_level_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_get_level_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_get_level_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_get_level_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_SET_LEVEL,
-+	.min_tx_len = sizeof(struct rpmi_perf_set_level_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_set_level_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_set_level_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_set_level_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_LIMIT,
-+	.min_tx_len = sizeof(struct rpmi_perf_get_limit_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_get_limit_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_get_limit_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_get_limit_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_SET_LIMIT,
-+	.min_tx_len = sizeof(struct rpmi_perf_set_limit_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_set_limit_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_set_limit_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_set_limit_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_FAST_CHANNEL_REGION,
-+	.min_tx_len = 0,
-+	.max_tx_len = 0,
-+	.min_rx_len = sizeof(struct rpmi_perf_get_fast_chn_region_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_get_fast_chn_region_resp),
-+},
-+{
-+	.id = RPMI_PERF_SRV_GET_FAST_CHANNEL_ATTRIBUTES,
-+	.min_tx_len = sizeof(struct rpmi_perf_get_fast_chn_attr_req),
-+	.max_tx_len = sizeof(struct rpmi_perf_get_fast_chn_attr_req),
-+	.min_rx_len = sizeof(struct rpmi_perf_get_fast_chn_attr_resp),
-+	.max_rx_len = sizeof(struct rpmi_perf_get_fast_chn_attr_resp),
-+},
-+};
-+
-+static const struct mpxy_rpmi_mbox_data performance_data = {
-+	.servicegrp_id = RPMI_SRVGRP_PERFORMANCE ,
-+	.num_services = RPMI_PERF_SRV_MAX_COUNT,
-+	.service_data = performance_services,
-+};
-+
-+static const struct fdt_match performance_match[] = {
-+	{ .compatible = "riscv,rpmi-mpxy-performance", .data = &performance_data },
-+	{ },
-+};
-+
-+const struct fdt_driver fdt_mpxy_rpmi_performance = {
-+	.match_table = performance_match,
-+	.init = mpxy_rpmi_mbox_init,
-+};
-diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
-index 45b3281b..bbc998af 100644
---- a/lib/utils/mpxy/objects.mk
-+++ b/lib/utils/mpxy/objects.mk
-@@ -15,6 +15,9 @@ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MBOX) += mpxy/fdt_mpxy_rpmi_mbox.o
- carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_CLOCK) += fdt_mpxy_rpmi_clock
- libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_CLOCK) += mpxy/fdt_mpxy_rpmi_clock.o
- 
-+carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_PERFORMANCE) += fdt_mpxy_rpmi_performance
-+libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_PERFORMANCE) += mpxy/fdt_mpxy_rpmi_performance.o
-+
- carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_SYSMSI) += fdt_mpxy_rpmi_sysmsi
- libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_SYSMSI) += mpxy/fdt_mpxy_rpmi_sysmsi.o
- 
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 5e819b3b..387ce833 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -61,4 +61,5 @@ CONFIG_FDT_MPXY_RPMI_MBOX=y
- CONFIG_FDT_MPXY_RPMI_CLOCK=y
- CONFIG_FDT_MPXY_RPMI_VOLTAGE=y
- CONFIG_FDT_MPXY_RPMI_DEVICE_POWER=y
-+CONFIG_FDT_MPXY_RPMI_PERFORMANCE=y
- CONFIG_FDT_MPXY_RPMI_SYSMSI=y
 -- 
-2.43.0
+2.20.1
 
 
 -- 
