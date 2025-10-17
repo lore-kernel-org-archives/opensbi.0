@@ -4,63 +4,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E46B8CCD195
-	for <opensbi@archiver.kernel.org>; Fri, 17 Oct 2025 07:52:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2A5BECCD19A
+	for <opensbi@archiver.kernel.org>; Fri, 17 Oct 2025 12:07:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=YUKB1KgrVwe2Q12ZQkjFbvsl4rjkD8abI8G84dn7bl0=; b=r7vVZgtd8hpuHc
-	HITfPQggtXgNvTguI6Pu9VaKibSS5/si3x9MwBgnuMvFNlHv5cgNqBdUae68PoajpAaU725S8YPjH
-	8BA3NZQzNNXVUiOdjzEPii8/fNP8U8NyrBzw75G/dJklw9umhAd+3aTd7XZR0kXbByUswt55mUIrq
-	AjackNZpITPGmvxaLWeroJCy2fQXsNX641FNbNB88zqfIGeekeRL6pkIR5n4gOzxXuUvoMsd7G9sa
-	vQ6QgXFB4fL0hneuuQVMNCjj4KTtu4oTM71ACb85CTlR+h1C7F5IfgjqDjbC+c/5B0vg9TlcQdGDW
-	Lynio46VxYsm2d61jMZA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=W7L7p2qMhByTG/2lRogXNVR5O5jR/krezm5CpXtPis0=; b=p0/aF38rgtFagt
+	U94OsOKU+OR72YZDjUmXyN60AncgdWOpU8EEYngEmifTt+lATL/aPS5698QftcRVBZZQAcvJPKtSn
+	9tTWg4JXSuHkSjyZokQySkZ5xAcbhSDbdWV5YI4sIfLru9m//jvmL3XFXXaKA+E1nFWRXLp01xRJK
+	QCt0J+Gjc+9ERVFg9isRzXOci5k3yEMSN2uLwn38p5Z/BwbsMMEqxXOqWzNXpUjgYJe0zvrjwiQUX
+	4TzKWs+CczcVV4VH3lfI/9hWcQF2+ceO9x4cdxsS5F11l/+3Mf1N4vglVzSKb87e3I2xxTcRWbWk8
+	MQKjA0hkZxFSQhB8ksDA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v9fGR-000000070y7-0EeI;
-	Fri, 17 Oct 2025 07:52:39 +0000
-Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
+	id 1v9jEi-00000007lkg-1GvC;
+	Fri, 17 Oct 2025 12:07:08 +0000
+Received: from m16.mail.126.com ([220.197.31.9])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1v9fGO-000000070xh-0N8c
+	id 1v9jEe-00000007ljm-3iON
 	for opensbi@lists.infradead.org;
-	Fri, 17 Oct 2025 07:52:38 +0000
-Received: from iscas.ac.cn (unknown [43.160.207.140])
-	by APP-03 (Coremail) with SMTP id rQCowACn8Xu99fFoKE_dDw--.26073S2;
-	Fri, 17 Oct 2025 15:52:30 +0800 (CST)
-From: Meng Zhuo <mengzhuo@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: hal.feng@starfivetech.com,
-	Meng Zhuo <mengzhuo@iscas.ac.cn>
-Subject: [PATCH] platform: starfive: jh7110: fix wrong pmic i2c address
-Date: Fri, 17 Oct 2025 15:52:27 +0800
-Message-ID: <20251017075227.442834-1-mengzhuo@iscas.ac.cn>
-X-Mailer: git-send-email 2.47.3
+	Fri, 17 Oct 2025 12:07:06 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
+	MIME-Version; bh=edTqai8lu21QsRrQ+j1tJHIn8yU/OtQUioUh6d5rvE8=;
+	b=iZz8V0WvgrOezg5O3NEfvzHm5CYVoLVhyh8El1xdU/H8e6CFtVPAYO5TZObBVj
+	fkPnD4ZsCHrhSnfkzU7118GrWiT1343Pkvn/XpuxfepXCDTh3Acj1i1H8Eg+YPEH
+	Wl40+WVyRTRnfotGzuTOE15Kal3BqqbQu5CVqAln5YDIE=
+Received: from [127.0.0.1] (unknown [])
+	by gzsmtp3 (Coremail) with SMTP id PikvCgD3v0dgMfJoOriTAA--.60321S2;
+	Fri, 17 Oct 2025 20:06:57 +0800 (CST)
+Message-ID: <053927bc539bb551ed776af636d0b6b057ebef03.camel@126.com>
+Subject: Re: [PATCH] platform: starfive: jh7110: fix wrong pmic i2c address
+From: Xiang W <wxjstz@126.com>
+To: Meng Zhuo <mengzhuo@iscas.ac.cn>, opensbi@lists.infradead.org
+Cc: hal.feng@starfivetech.com
+Date: Fri, 17 Oct 2025 20:06:56 +0800
+In-Reply-To: <20251017075227.442834-1-mengzhuo@iscas.ac.cn>
+References: <20251017075227.442834-1-mengzhuo@iscas.ac.cn>
+Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
+ keydata=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
+User-Agent: Evolution 3.56.1-1 
 MIME-Version: 1.0
-X-CM-TRANSID: rQCowACn8Xu99fFoKE_dDw--.26073S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrKF1rtw4rXF18tw18Wr1UAwb_yoWxKFg_t3
-	y8Xr4kGr18GFyqgw1jywnxCF4xXwn8Wan5uF43G3sIvr18Ka1kt3sxCrZ5AasIqF4UKFyf
-	J3ZFgr9xC34akjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUb2kFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r106r15McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkIecxEwVAm7VW8CwCF
-	04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r
-	18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jrv_JF1lIxkGc2Ij64vI
-	r41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr
-	1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvE
-	x4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUb92-5UUUUU==
-X-Originating-IP: [43.160.207.140]
-X-CM-SenderInfo: pphqw6xkxrqxpvfd2hldfou0/1tbiBg0SEmjxm3X8IwABsi
+X-CM-TRANSID: PikvCgD3v0dgMfJoOriTAA--.60321S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tw1DKrWrKw1DCw45XFyDtrb_yoW8ZFyfpF
+	4vkFyrKr4DKr47ta1xtayDZFW29Fs5t3y8WFy7Zrykurn8G397KrsI9F45KFsruryxJ345
+	XrnFy345ua95CFDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRYiiDUUUUU=
+X-Originating-IP: [2408:823c:b211:203d:21b2:35cf:5da4:828c]
+X-CM-SenderInfo: pz0m23b26rjloofrz/1tbiFwbpOmjyFQcLogABsi
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251017_005236_512144_07A18C6F 
-X-CRM114-Status: UNSURE (   6.64  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251017_050705_284767_71357F92 
+X-CRM114-Status: GOOD (  11.02  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -72,36 +110,46 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The original address 0x32(50) which is eeprom, not pmic 0x24(36).
-
-Signed-off-by: Meng Zhuo <mengzhuo@iscas.ac.cn>
----
- platform/generic/starfive/jh7110.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index c132843..07eade0 100644
---- a/platform/generic/starfive/jh7110.c
-+++ b/platform/generic/starfive/jh7110.c
-@@ -62,7 +62,7 @@ static u32 selected_hartid = -1;
- #define SYSTOP_CPU_PD_MASK		0x3
- 
- #define TIMEOUT_COUNT			100000
--#define AXP15060_POWER_REG		0x32
-+#define AXP15060_POWER_REG		0x24
- #define AXP15060_POWER_OFF_BIT		BIT(7)
- #define AXP15060_RESET_BIT		BIT(6)
- 
--- 
-2.47.3
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+5ZyoIDIwMjUtMTAtMTfkupTnmoQgMTU6NTIgKzA4MDDvvIxNZW5nIFpodW/lhpnpgZPvvJoKPiBU
+aGUgb3JpZ2luYWwgYWRkcmVzcyAweDMyKDUwKSB3aGljaCBpcyBlZXByb20sIG5vdCBwbWljIDB4
+MjQoMzYpLgo+IAo+IFNpZ25lZC1vZmYtYnk6IE1lbmcgWmh1byA8bWVuZ3podW9AaXNjYXMuYWMu
+Y24+Cj4gLS0tCj4gwqBwbGF0Zm9ybS9nZW5lcmljL3N0YXJmaXZlL2poNzExMC5jIHwgMiArLQo+
+IMKgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlm
+ZiAtLWdpdCBhL3BsYXRmb3JtL2dlbmVyaWMvc3RhcmZpdmUvamg3MTEwLmMgYi9wbGF0Zm9ybS9n
+ZW5lcmljL3N0YXJmaXZlL2poNzExMC5jCj4gaW5kZXggYzEzMjg0My4uMDdlYWRlMCAxMDA2NDQK
+PiAtLS0gYS9wbGF0Zm9ybS9nZW5lcmljL3N0YXJmaXZlL2poNzExMC5jCj4gKysrIGIvcGxhdGZv
+cm0vZ2VuZXJpYy9zdGFyZml2ZS9qaDcxMTAuYwo+IEBAIC02Miw3ICs2Miw3IEBAIHN0YXRpYyB1
+MzIgc2VsZWN0ZWRfaGFydGlkID0gLTE7Cj4gwqAjZGVmaW5lIFNZU1RPUF9DUFVfUERfTUFTSwkJ
+MHgzCj4gwqAKPiDCoCNkZWZpbmUgVElNRU9VVF9DT1VOVAkJCTEwMDAwMAo+IC0jZGVmaW5lIEFY
+UDE1MDYwX1BPV0VSX1JFRwkJMHgzMgo+ICsjZGVmaW5lIEFYUDE1MDYwX1BPV0VSX1JFRwkJMHgy
+NApOQUNLCgpUaGlzIGlzIHJlZ2lzdGVyIG9mIHBtaWMuIE5vdCBwbWljIGFkZHJlc3MuCgpUaGUg
+Zm9sbG93aW5nIGlzIGEgZGVzY3JpcHRpb24gb2YgdGhpcyByZWdpc3RlcgoKUG93ZXIgT2ZmCjEu
+V2hlbiBFTi9QV1JPTiBwaW4gaXMgY29uZmlndXJlZCBhcyBQV1JPTiBwaW4sIHBvd2VyIG9mZiBz
+b3VyY2VzIGluY2x1ZGU6CigxKS5QT0suIEFYUDE1MDYwIGNhbiBiZSBwb3dlcmVkIG9mZiBieSBw
+cmVzc2luZyBhbmQgaG9sZGluZyBQT0sgZm9yIGEgcGVyaW9kIG9mIHRpbWUgdGhhdCBsb25nZXIg
+dGhhbgrigJxPRkZMRVZFTOKAnS4gVGhlIGZ1bmN0aW9uIGNhbiBiZSBjb25maWd1cmVkIGJ5IFJF
+RzM2SFszXSBhbmQgUkVHMzZIWzJdIGRlY2lkZXMgd2hldGhlciB0aGUgUE1JQyBhdXRvIHR1cm5z
+Cm9uIG9yIG5vdCB3aGVuIGl0IHNodXRzIGRvd24gYWZ0ZXIgT0ZGTEVWRUwgUE9LLgooMikuV3Jp
+dGUg4oCcMeKAnSB0byBSRUczMkhbN10gLgoKUmVzZXQKVGhlIFBNSUMgaGFzIHN5c3RlbSByZXNl
+dCBhbmQgcG93ZXIgb24gcmVzZXQuCu+BrCBTeXN0ZW0gcmVzZXQKU3lzdGVtIHJlc2V0IG1lYW5z
+IHRoZSByZWdpc3RlcnMgd2lsbCBiZSByZXNldCB3aGVuIFBNSUMgaXMgcG93ZXJlZCBvbi4gV2hl
+biBhdCBzeXN0ZW0gcmVzZXQgc3RhdGUsIGFsbCB2b2x0YWdlCm91dHB1dHMgYXJlIHR1cm5lZCBv
+ZmYgZXhjZXB0IFJUQ0xETyBhbmQgVlJFRi4gVGhlcmUgYXJlIHR3byB3YXlzIG9mIHN5c3RlbSBy
+ZXNldC4KKDEpLlBXUk9LIGRyaXZlIGxvdy4KVGhlIFBXUk9LIHBpbiBjYW4gYmUgdXNlZCBhcyB0
+aGUgcmVzZXQgc2lnbmFsIG9mIGFwcGxpY2F0aW9uIHN5c3RlbS4gRHVyaW5nIEFYUDE1MDYwIHN0
+YXJ0dXAsIFBXUk9LIG91dHB1dHMKbG93IGxldmVsLCB3aGljaCB3aWxsIGJlIHB1bGxlZCB1cCB0
+byBzdGFydHVwIHRoZSBzeXN0ZW0gYWZ0ZXIgb3V0cHV0IHZvbHRhZ2UgcmVhY2hlcyB0aGUgcmVn
+dWxhdGVkIHZhbHVlLgpXaGVuIGFwcGxpY2F0aW9uIHN5c3RlbSB3b3JrcyBub3JtYWxseSwgSWYg
+dGhlIFBXUk9LIHBpbiBpcyBkcml2ZW4gbG93IGJ5IGV4dGVybmFsIGtleSBvciBvdGhlciByZWFz
+b25zLCB0aGUKUE1JQyB3aWxsIGJlIHJlc3RhcnRlZC4gVGhlIGZ1bmN0aW9uIGNhbiBiZSBjb25m
+aWd1cmVkIGJ5IFJFRzMySFs0XS4KKDIpLldyaXRlIOKAnDHigJ0gdG8gUkVHMzJIWzZdIHRvIHJl
+c3RhcnQgdGhlIFBNSUMuCgogClJlZ2FyZHMsClhpYW5nIFcKCj4gwqAjZGVmaW5lIEFYUDE1MDYw
+X1BPV0VSX09GRl9CSVQJCUJJVCg3KQo+IMKgI2RlZmluZSBBWFAxNTA2MF9SRVNFVF9CSVQJCUJJ
+VCg2KQo+IMKgCj4gLS0gCj4gMi40Ny4zCj4gCgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9w
+ZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL29wZW5zYmkK
