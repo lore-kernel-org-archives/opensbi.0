@@ -4,92 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 48717CCD1A2
-	for <opensbi@archiver.kernel.org>; Mon, 20 Oct 2025 06:27:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id CC931CCD199
+	for <opensbi@archiver.kernel.org>; Mon, 20 Oct 2025 06:27:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
-	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=9LX/MIlzaJooygdL7Y8h12mvxcE1HmnaqrHzL2MWPLA=; b=bW1Ty+Vx6Jgwv4
-	Cz1s6oH6b9elF1xB0v13hU1pGp88TCzZrbCnjfoPcsDN4a+Nh1r5OCasgo5vIyYwBPnGzFaJUIbm0
-	54Tq3bEb3SuH6LSowS5OaXQeSw2WOd94ZOa62dbLczSaVvKVkGlgwaCmgMi3YAKXWaO080iJTZ3fF
-	RUYa8VIb0hOAYTcjGk1pl8+JAQ1OXOW8qBSZcD0ni74O0kF1NnMRVXG94SttC/T2bzcYqyD8ksByP
-	H69zjG+wY98EMnW6viWBu7y4+aDqwVJEVdwcELQ6bAfv7EnlXrbnVNSyu+8KTnuZn4+Trly8TT252
-	paUMUS8KHST16liHYO/g==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=swfWjPRN2jjYW1LHKUUchm8z2v7h7F+4eJqgeiraVdk=; b=mCkJoAroAR81BP
+	dHsUnJzakEbJDGl79+HoMk8xuSVyHyXKQ2NbY7cKOt9y8Z6xq6kiGDfYpm/Ycyo9ZuBGXn5JwK4pK
+	x/9vrq/aGhjvpVToj8GVl6JZA2/RQJXzuvNuy6t5sFW7JgixQmsrgtg95LHE5OpCAxqCuXhSMjx8F
+	mbTWJInCLlw6q6LDRKboQrUcGc9Y7DlczZzLlZsUXh6aqKqRgtViTSE6A5qu91Zl4CM0aosgmIjd3
+	KD8ib5uH+qTk7JLZvtJao+6rzRrRFfSmxyTg2wiWMkidMTjuJDY/4P86CQCxXeEkCrxIWVegiyVu8
+	256Kd3o2Bo8exT5EP8MA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vAjM4-0000000C1sK-3B2c;
-	Mon, 20 Oct 2025 06:26:52 +0000
-Received: from mail-pf1-x42e.google.com ([2607:f8b0:4864:20::42e])
+	id 1vAjM8-0000000C1vC-48JP;
+	Mon, 20 Oct 2025 06:26:56 +0000
+Received: from mail-pf1-x434.google.com ([2607:f8b0:4864:20::434])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vAjM2-0000000C1rK-07pc
+	id 1vAjM6-0000000C1sz-2skD
 	for opensbi@lists.infradead.org;
-	Mon, 20 Oct 2025 06:26:51 +0000
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-78f3bfe3f69so3458162b3a.2
-        for <opensbi@lists.infradead.org>; Sun, 19 Oct 2025 23:26:49 -0700 (PDT)
+	Mon, 20 Oct 2025 06:26:55 +0000
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-77f343231fcso2621155b3a.3
+        for <opensbi@lists.infradead.org>; Sun, 19 Oct 2025 23:26:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1760941609; x=1761546409; darn=lists.infradead.org;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=YGhDt7UbM5TqXpxW2KcPnlhsIPA1CCIjfAjawpID7gE=;
-        b=cqikWLjQphnafG/N5sHzASdap8gfc03KOCVCXDKlNPOiFt/ImU/vYREyEM+LLBDi8y
-         7ZEmUKT6SzJUQOXIM+eGRBUUEJnP9sWaahwLhCRPp0gpvGUcvPMyWaukIF/wpPHDTo1V
-         4YhbxkcNKfTaGtq1hYdpO+7O4R/HRHmocYTrUssbLjybvx4Al3zMHtjD6wYL+b1NCDpT
-         oUBDtsh4VcPHPFbKydSwdOZrGSzV4ruyXvP62aaGhafSI4XCVuS6WIe9AkyOnY/aku04
-         grTjasfyKXhXKhR77ng31PoO7JfEkE6fZbXZg1bbVxKCFGPOnmtTA3tHIwf3L+7jWg6n
-         t4TQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760941609; x=1761546409;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=sifive.com; s=google; t=1760941613; x=1761546413; darn=lists.infradead.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=YGhDt7UbM5TqXpxW2KcPnlhsIPA1CCIjfAjawpID7gE=;
-        b=O01A39FiuEYt+oNot8vgVlGdb6xtJDMJYd/C3Kra4DNFAIfNbCQaBGQ5oOh+OoACRo
-         xuf31yxYcRTxkxHGka/QpO5UiY+Agjono3GtaJ8GuKmKhNNCofcys7KJDLzjOIm33H8N
-         tVVi0P9OxJBGIRU9AYGfafb4qBldQupkPaRx22J2J/BD1jc+LqDzuRLzPfZF6PMDSF7a
-         ADPKlbaeNQ8crS6sIyQeJKxeG9oW3SQ6MKnjSJEj6qspPQVKxn4wqMUCckRT4hEhPBJ0
-         +ruhGT/KO6jpycXeIvOL3fDCmQ8BkNrze+W9HUCOiK6yU9nE3c+H0W2rmWPUAUQDQks/
-         YW6Q==
-X-Gm-Message-State: AOJu0YwmIb20oT5tN88bEMPiEAbyk39cAJIRKkUwKNVrd6Wr+4nYAcb9
-	/3VYwirzTYu5QUa9/cKw1omQiLQsW4oiaCd2nglpnYyBshR8GEYTWSy0uYA9tq6Myjzsk3uyw1r
-	925A4
-X-Gm-Gg: ASbGncu3HzUzNXMRKwQMYf8fFsVxcdrFhqwWFT1VZVhZGVCNwbudsiGVcO7LinCGKsO
-	nep4oPGXg8I16sbS4lamkmYRneTjaYGffBeoMNabHnJMgXzd5XprDxKVKSJP94e/Qe2vGjI47sB
-	6So7t6nEpib1Chh3axcMb/jJ15W2iC5pRWKbISiLT08QU4lmY4khSCrry2XjnlqAxUBEdR9n/nX
-	Dk1lcNTgmGvYF/FUQm2Pkl9rqPASBOZYr/3Zy1gNNwERl3yMQhai9QDinloewe//CIZNba1zTSB
-	uSC6cAJRF2kj4u1kZAvNtDgF3EaPQwdCN4UYPZ0h2rkf1WuVaQ2drij2btaeA9mOyoWzwSchIYA
-	QS8QxkA9Tk0if4GTsGk5Xo7MhVNp062tBBSHyMkkXKCYiiRnwlaU6KnssEtTn9t3U6VrSqbl+Y+
-	OouHg70w/6
-X-Google-Smtp-Source: AGHT+IEroPtcLMyrt5ui2n+ISftXLkT0Lzvhb/xKsqlzrI3Vh8gyN8ydkLPToDsFfqxLsHke3gJhuA==
-X-Received: by 2002:a05:6a20:9392:b0:32b:5ec7:1408 with SMTP id adf61e73a8af0-334a8614204mr14678838637.48.1760941608790;
-        Sun, 19 Oct 2025 23:26:48 -0700 (PDT)
+        bh=bRLBP5tDOfxeaYVSYD5ThI+APX9Eacl45LDVLBk1O1E=;
+        b=DlbwlL+kGCOIar5TAeHgRIQ9f62dTgmeFPk2tYkwObVCvupXsP6+ykyaZESNqpWSvM
+         jBAC1sqyoyS2I8MRloBc2mcTDOTfaplw8bikVD0JSFAciWacMlvcutAOQnJyJnaiwsX1
+         UJhrrjwsPd4nW2GQ2IVcCOt1FNz4VKXXJL63L4ENhvxXeiHIhfEKvMI2LGUnVzVLg2rv
+         WqzpzUyDsA5iAnZssoejPBpkthuC3vSkZYEj2sl99PPru0/lGk798C7P/jGyRok/uw1P
+         l4fmvbFDu6ba4qECEaVEYyZ10eve1UnMhytBV8RbZF4XwjffZddxROr7/nFGK6ZdJfvB
+         mVEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760941613; x=1761546413;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=bRLBP5tDOfxeaYVSYD5ThI+APX9Eacl45LDVLBk1O1E=;
+        b=XZMrWWDlFvDxv9V68CDzcdxlA4uq5S1h9Kaijml9r9PoPnf7PO824EIvPnNhgLd9J4
+         M+Tex/pU+yQCdvObUfo19O4epQcFXOF9BpMTw5a/KAy+AxXMbb9XhGU+YZcbupqaXNVL
+         fD5p45Ar3shlfyM6kSCJdkxX4iGSaQOBd3G9pQxp4pj4wFuTQkNJGKMvlfWRFxBYa9SK
+         jSyNlEvGMeSZfEu/gpfkKdzeWJW0k4efkSBtut0JG/S/euzxU6HsxVIXSAFpInMF8gsK
+         VRqXc1ISHISiT+RhOkNoWn6rFfIAATkOcDmbPiSL2fwsqfEUB2aGFXXEmrCINofoUtKn
+         qnug==
+X-Gm-Message-State: AOJu0YyVCc3omQu+2xEIQceFScGGQFLkt/NmUjWeo46cMOCEg+qPzDCU
+	Mc2exh43m5tDwxqv8N2p3l60KoVXW1jhM4ntV1R+bG42SFOnHlVOWaz0zCkjcwWpfemSN6jvrR+
+	5j+fyLlhFq59q3RCOSp/j6NlaXtbcU7MAVwJ2zRlwR7J+yqA7mXXCBAxy7rB3zZpw7V2Dnq8RIN
+	MINcecbWSIJZS6XKFddm6rIfPg9tYGoGTeUfZcTDNgiGaWIQ==
+X-Gm-Gg: ASbGncvaTl/F3CptpQLMLIul95jiytyBG8kG2e8JgIrJcKbImFAWlnlHUoddaOX2vpF
+	EDl5Jy6o3G3tRi3v72TgSJL3VXwmWGDa9tDKAygDnhLuk1DlvZ+UN8HEY06RfLTpeLRYcJ5SYlo
+	XNqr4aLvMCKIC5t8a+J7iwcCF4LKHNM3RQ5PzgIyBf8G2Zd3aifiZ6LNTUeOUpQYS3qWBLui2av
+	/js3NJ4DPUu5w0dtJYJ3CgepBjLYsCBhR3mF6ZFGVv9yWNNlqauCC+hCOvHYPB1RJlT1xTvlwBF
+	vu2vc4UfpeS1hIXYxIsmtSe0y9Ldma/rJSSgLuHT/nOGi0Jk0hFF6SODmJh1ReU4DPyURUXRpzW
+	Lx6OJF9aNPanP1wu7S2I+eu4b0is0J8m6khmgL6VEFd3bDL57/bnb2DokVvNw98J7jcvjokQnDV
+	oJhUkzS9106yJrkscWx0s=
+X-Google-Smtp-Source: AGHT+IGcU0UX++qAPrFWOhF1JC6PRLdE3B7tn0cpeWP5nagBGxMShLeXHIb2mAxMZsWXak0YkybD4A==
+X-Received: by 2002:a05:6a20:3943:b0:24d:7926:bb29 with SMTP id adf61e73a8af0-334a85151bfmr15106958637.5.1760941613357;
+        Sun, 19 Oct 2025 23:26:53 -0700 (PDT)
 Received: from [127.0.1.1] ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7a22ff349bcsm7301244b3a.17.2025.10.19.23.26.47
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7a22ff349bcsm7301244b3a.17.2025.10.19.23.26.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Oct 2025 23:26:48 -0700 (PDT)
+        Sun, 19 Oct 2025 23:26:52 -0700 (PDT)
 From: Nick Hu <nick.hu@sifive.com>
-Subject: [PATCH v7 00/12] Add SiFive TMC0 and SMC0 driver
-Date: Mon, 20 Oct 2025 14:34:02 +0800
-Message-Id: <20251020-cache-upstream-v7-0-69a132447d8a@sifive.com>
+Date: Mon, 20 Oct 2025 14:34:05 +0800
+Subject: [PATCH v7 03/12] utils: cache: Add SiFive ccache controller
 MIME-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIANrX9WgC/2WQwW6EIBCGX8VwLgZBBtlT36PpYcShkkbdBTRtN
- vvuxfVi29v8Gb4v/3BniWKgxC7VnUXaQgrLXIJ5qZgbcf4gHoaSmRRSi05a7tCNxNdrypFw4lY
- ZJTrVYYPACnSN5MPXU/j2XrKPy8TzWN6eNUIoVYZaty1v+BzcZz2uryn4sFHtlmk3jSHlJX4/m
- 2169x20FfJviU1zwdGDQAHGtwbPqr3FBmde/+Oh8IAwIEjrLDS/+MdxVqTbWr4nH7exHhPxsp9
- CvlSkqNcWlQV0WlujSQ3Uk/NO96Zpm456kLLtiuzxAx8LcBhzAQAA
-X-Change-ID: 20250829-cache-upstream-93730838a1a6
+Message-Id: <20251020-cache-upstream-v7-3-69a132447d8a@sifive.com>
+References: <20251020-cache-upstream-v7-0-69a132447d8a@sifive.com>
+In-Reply-To: <20251020-cache-upstream-v7-0-69a132447d8a@sifive.com>
 To: opensbi@lists.infradead.org
-Cc: Nick Hu <nick.hu@sifive.com>, 
- Samuel Holland <samuel.holland@sifive.com>, 
- Anup Patel <anup@brainfault.org>, Vincent Chen <vincent.chen@sifive.com>, 
- Andy Chiu <andy.chiu@sifive.com>, Cyan Yang <cyan.yang@sifive.com>, 
- Yong-Xuan Wang <yongxuan.wang@sifive.com>
+Cc: Vincent Chen <vincent.chen@sifive.com>, 
+ Samuel Holland <samuel.holland@sifive.com>, Nick Hu <nick.hu@sifive.com>, 
+ Anup Patel <anup@brainfault.org>
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251019_232650_118679_39E111FF 
-X-CRM114-Status: GOOD (  18.04  )
+X-CRM114-CacheID: sfid-20251019_232654_757621_D67BD0EF 
+X-CRM114-Status: GOOD (  19.79  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -106,185 +102,253 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SiFive TMC0 and SMC0 are the power controllers that controls the Tile and
-CoreComplex power domain. Add the drivers to support the power
-management features such as HSM STOP and System Suspend.
+From: Vincent Chen <vincent.chen@sifive.com>
 
-Features such as power management may require flushing the entire
-cache before entering a non-retention power state. To support this, a
-simple cache flush framework is introduced to allow the external CMO
-to perform a full cache flush.
+SiFive Composable cache is a L3 share cache of the core complex. Add this
+driver to support the share cache maintenance operations via the MMIO
+registers.
 
+Co-developed-by: Samuel Holland <samuel.holland@sifive.com>
+Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
+Signed-off-by: Vincent Chen <vincent.chen@sifive.com>
+Co-developed-by: Nick Hu <nick.hu@sifive.com>
+Signed-off-by: Nick Hu <nick.hu@sifive.com>
+Reviewed-by: Samuel Holland <samuel.holland@sifive.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
-Changes in v7:
-- Update the change log of PATCH 9 and PATCH 12 because the TMC0 and SMC0 are moved to the
-  lib/utils/hsm and lib/utils/suspend.
-- Add new commit to Extend the sbi_ipi_raw_send() to use all available IPI device in
-  PATCH 8 and use it in PATCH 9
-- Add `system_resume` callback for system suspend
-- Since the SMC0 driver need the `aplic_reinit_all()`, update the
-  SMC0 Kconfig option to depend upon the APLIC Kconfig option
-- Link to v6: https://lore.kernel.org/r/20250905-cache-upstream-v6-0-6a6da629c961@sifive.com
+ lib/utils/cache/Kconfig             |   8 ++
+ lib/utils/cache/fdt_sifive_ccache.c | 175 ++++++++++++++++++++++++++++++++++++
+ lib/utils/cache/objects.mk          |   3 +
+ platform/generic/configs/defconfig  |   1 +
+ 4 files changed, 187 insertions(+)
 
-Changes in v6:
-- Rename the aplic_restore() to aplic_reinit_all()
-- Remove fdt_hsm_sifive_tmc0_cold_init() from TMC0 header file
-- Remove the sifive_dev_platform.c
-- Add a dummy inline flavor of fdt_cmo_init() for the case where CONFIG_FDT_CACHE is disabled
-- Link to v5: https://lore.kernel.org/r/20250902-cache-upstream-v5-0-af60a067f47a@sifive.com
+diff --git a/lib/utils/cache/Kconfig b/lib/utils/cache/Kconfig
+index 106021762f33229e66bf91c648c3c9febc4d325c..1c7abdc9ad93319569807b4e25623cac871c6ce3 100644
+--- a/lib/utils/cache/Kconfig
++++ b/lib/utils/cache/Kconfig
+@@ -8,6 +8,14 @@ config FDT_CACHE
+ 	select CACHE
+ 	default n
+ 
++if FDT_CACHE
++
++config FDT_CACHE_SIFIVE_CCACHE
++	bool "SiFive CCACHE FDT cache driver"
++	default n
++
++endif
++
+ config CACHE
+ 	bool "Cache support"
+ 	default n
+diff --git a/lib/utils/cache/fdt_sifive_ccache.c b/lib/utils/cache/fdt_sifive_ccache.c
+new file mode 100644
+index 0000000000000000000000000000000000000000..b641ed163421bb046c70332299defaa9675b62f5
+--- /dev/null
++++ b/lib/utils/cache/fdt_sifive_ccache.c
+@@ -0,0 +1,175 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 SiFive Inc.
++ */
++
++#include <libfdt.h>
++#include <sbi/riscv_barrier.h>
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
++#include <sbi_utils/cache/fdt_cache.h>
++#include <sbi_utils/fdt/fdt_driver.h>
++
++#define CCACHE_CFG_CSR			0
++#define CCACHE_CMD_CSR			0x280
++#define CCACHE_STATUS_CSR		0x288
++
++#define CFG_CSR_BANK_MASK		0xff
++#define CFG_CSR_WAY_MASK		0xff00
++#define CFG_CSR_WAY_OFFSET		8
++#define CFG_CSR_SET_MASK		0xff0000
++#define CFG_CSR_SET_OFFSET		16
++
++#define CMD_CSR_CMD_OFFSET	56
++#define CMD_CSR_BANK_OFFSET	6
++
++#define CMD_OPCODE_SETWAY	0x1ULL
++#define CMD_OPCODE_OFFSET	0x2ULL
++
++#define CFLUSH_SETWAY_CLEANINV  ((CMD_OPCODE_SETWAY << CMD_OPCODE_OFFSET) | 0x3)
++
++#define CCACHE_CMD_QLEN	0xff
++
++#define ccache_mb_b()		RISCV_FENCE(rw, o)
++#define ccache_mb_a()		RISCV_FENCE(o, rw)
++
++#define CCACHE_ALL_OP_REQ_BATCH_NUM	0x10
++#define CCACHE_ALL_OP_REQ_BATCH_MASK (CCACHE_CMD_QLEN + 1 - CCACHE_ALL_OP_REQ_BATCH_NUM)
++
++struct sifive_ccache {
++	struct cache_device dev;
++	void *addr;
++	u64 total_lines;
++};
++
++#define to_ccache(_dev) container_of(_dev, struct sifive_ccache, dev)
++
++static inline unsigned int sifive_ccache_read_status(void *status_addr)
++{
++	return readl_relaxed(status_addr);
++}
++
++static inline void sifive_ccache_write_cmd(u64 cmd, void *cmd_csr_addr)
++{
++#if __riscv_xlen != 32
++	writeq_relaxed(cmd, cmd_csr_addr);
++#else
++	/*
++	 * The cache maintenance request is only generated when the "command"
++	 * field (part of the high word) is written.
++	 */
++	writel_relaxed(cmd, cmd_csr_addr);
++	writel(cmd >> 32, cmd_csr_addr + 4);
++#endif
++}
++
++static int sifive_ccache_flush_all(struct cache_device *dev)
++{
++	struct sifive_ccache *ccache = to_ccache(dev);
++	void *status_addr = (char *)ccache->addr + CCACHE_STATUS_CSR;
++	void *cmd_csr_addr = (char *)ccache->addr + CCACHE_CMD_CSR;
++	u64 total_cnt = ccache->total_lines;
++	u64 cmd = CFLUSH_SETWAY_CLEANINV << CMD_CSR_CMD_OFFSET;
++	int loop_cnt = CCACHE_CMD_QLEN & CCACHE_ALL_OP_REQ_BATCH_MASK;
++
++	ccache_mb_b();
++send_cmd:
++	total_cnt -= loop_cnt;
++	while (loop_cnt > 0) {
++		sifive_ccache_write_cmd(cmd + (0 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (1 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (2 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (3 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (4 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (5 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (6 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (7 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (8 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (9 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (10 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (11 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (12 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (13 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (14 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		sifive_ccache_write_cmd(cmd + (15 << CMD_CSR_BANK_OFFSET), cmd_csr_addr);
++		cmd += CCACHE_ALL_OP_REQ_BATCH_NUM << CMD_CSR_BANK_OFFSET;
++		loop_cnt -= CCACHE_ALL_OP_REQ_BATCH_NUM;
++	}
++	if (!total_cnt)
++		goto done;
++
++	/* Ensure the ccache is able receive more than 16 requests */
++	do {
++		loop_cnt = (CCACHE_CMD_QLEN - sifive_ccache_read_status(status_addr));
++	} while (loop_cnt < CCACHE_ALL_OP_REQ_BATCH_NUM);
++	loop_cnt &= CCACHE_ALL_OP_REQ_BATCH_MASK;
++
++	if (total_cnt < loop_cnt) {
++		loop_cnt = (total_cnt + CCACHE_ALL_OP_REQ_BATCH_NUM) & CCACHE_ALL_OP_REQ_BATCH_MASK;
++		cmd -= ((loop_cnt - total_cnt) << CMD_CSR_BANK_OFFSET);
++		total_cnt = loop_cnt;
++	}
++	goto send_cmd;
++done:
++	do {} while (sifive_ccache_read_status(status_addr));
++	ccache_mb_a();
++
++	return 0;
++}
++
++static struct cache_ops sifive_ccache_ops = {
++	.cache_flush_all = sifive_ccache_flush_all,
++};
++
++static int sifive_ccache_cold_init(const void *fdt, int nodeoff, const struct fdt_match *match)
++{
++	struct sifive_ccache *ccache;
++	struct cache_device *dev;
++	u64 reg_addr = 0;
++	u32 config_csr, banks, sets, ways;
++	int rc;
++
++	/* find the ccache base control address */
++	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, NULL);
++	if (rc < 0 && reg_addr)
++		return SBI_ENODEV;
++
++	ccache = sbi_zalloc(sizeof(*ccache));
++	if (!ccache)
++		return SBI_ENOMEM;
++
++	dev = &ccache->dev;
++	dev->ops = &sifive_ccache_ops;
++	rc = fdt_cache_add(fdt, nodeoff, dev);
++	if (rc) {
++		sbi_free(ccache);
++		return rc;
++	}
++
++	ccache->addr = (void *)(uintptr_t)reg_addr;
++
++	/* get the info of ccache from config CSR */
++	config_csr = readl(ccache->addr + CCACHE_CFG_CSR);
++	banks = config_csr & CFG_CSR_BANK_MASK;
++
++	sets = (config_csr & CFG_CSR_SET_MASK) >> CFG_CSR_SET_OFFSET;
++	sets = (1 << sets);
++
++	ways = (config_csr & CFG_CSR_WAY_MASK) >> CFG_CSR_WAY_OFFSET;
++
++	ccache->total_lines = sets * ways * banks;
++
++	return SBI_OK;
++}
++
++static const struct fdt_match sifive_ccache_match[] = {
++	{ .compatible = "sifive,ccache2" },
++	{},
++};
++
++const struct fdt_driver fdt_sifive_ccache = {
++	.match_table = sifive_ccache_match,
++	.init = sifive_ccache_cold_init,
++};
+diff --git a/lib/utils/cache/objects.mk b/lib/utils/cache/objects.mk
+index 2fcf9666592700ff7c1fb924c5b9ea2de722fc2a..a343eb8c4bd495a1596845c1fd02420277023430 100644
+--- a/lib/utils/cache/objects.mk
++++ b/lib/utils/cache/objects.mk
+@@ -7,4 +7,7 @@
+ libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cache.o
+ libsbiutils-objs-$(CONFIG_FDT_CACHE) += cache/fdt_cache_drivers.carray.o
+ 
++carray-fdt_cache_drivers-$(CONFIG_FDT_CACHE_SIFIVE_CCACHE) += fdt_sifive_ccache
++libsbiutils-objs-$(CONFIG_FDT_CACHE_SIFIVE_CCACHE) += cache/fdt_sifive_ccache.o
++
+ libsbiutils-objs-$(CONFIG_CACHE) += cache/cache.o
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 7107e225cdd78287a296ca898c33659ecc89c969..86decbd0755e74c658b23e0097d103ded25a10d1 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -10,6 +10,7 @@ CONFIG_PLATFORM_THEAD=y
+ CONFIG_PLATFORM_MIPS_P8700=y
+ CONFIG_PLATFORM_OPENHWGROUP_OPENPITON=y
+ CONFIG_FDT_CACHE=y
++CONFIG_FDT_CACHE_SIFIVE_CCACHE=y
+ CONFIG_FDT_CPPC=y
+ CONFIG_FDT_CPPC_RPMI=y
+ CONFIG_FDT_GPIO=y
 
-Changes in v5:
-- Put the SiFive TMC0 driver to the fdt_early_driver
-- Fix the format of the comments in SiFive TMC0 driver
-
-Changes in v4:
-- Call fdt_cmo_init() directly as part of generic_early_init()
-- Rename SBI_HART_EXT_XSF* to SBI_HART_EXT_XSIFIVE*
-- Move the TMC0 driver to the lib/utils/hsm/
-- Move the SMC0 driver to the lib/utils/suspend/
-
-Changes in v3:
-- Add the SiFive TMC and SMC driver
-
-Changes in v2:
-- Since the platform override hooks was deprecated, use the fdt_driver
-for initializing the sifive_dev_platform.
-
----
-Nick Hu (10):
-  lib: utils: Add cache flush library
-  lib: utils: Add FDT cache library
-  lib: utils/cache: Add fdt cmo helpers
-  lib: sbi: Add SiFive proprietary xsfcflushdlone
-  lib: sbi: Add SiFive proprietary xsfcease
-  lib: sbi: Extends sbi_ipi_raw_send() to use all available IPI devices
-  lib: utils/irqchip: Add APLIC restore function
-  platform: sifive: Add SiFive TMC0 driver
-  lib: utils/timer: Expose timer update function
-  platform: sifive: Add SiFive SMC0 driver
-
-Vincent Chen (1):
-  utils: cache: Add SiFive ccache controller
-
- include/sbi/sbi_hart.h                        |   4 +
- include/sbi_utils/cache/cache.h               |  69 +++
- include/sbi_utils/cache/fdt_cache.h           |  34 ++
- include/sbi_utils/cache/fdt_cmo_helper.h      |  34 ++
- include/sbi_utils/hsm/fdt_hsm_sifive_inst.h   |  20 +
- include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h   |  19 +
- include/sbi_utils/ipi/aclint_mswi.h           |   1 +
- include/sbi_utils/irqchip/aplic.h             |   3 +
- .../suspend/fdt_suspend_sifive_smc0.h         |  18 +
- include/sbi_utils/timer/aclint_mtimer.h       |   5 +
- lib/sbi/sbi_hart.c                            |   2 +
- lib/utils/Kconfig                             |   2 +
- lib/utils/cache/Kconfig                       |  23 +
- lib/utils/cache/cache.c                       |  46 ++
- lib/utils/cache/fdt_cache.c                   |  87 ++++
- lib/utils/cache/fdt_cache_drivers.carray      |   3 +
- lib/utils/cache/fdt_cmo_helper.c              | 112 +++++
- lib/utils/cache/fdt_sifive_ccache.c           | 175 +++++++
- lib/utils/cache/objects.mk                    |  14 +
- lib/utils/hsm/Kconfig                         |   5 +
- lib/utils/hsm/fdt_hsm_sifive_tmc0.c           | 468 ++++++++++++++++++
- lib/utils/hsm/objects.mk                      |   2 +
- lib/utils/ipi/aclint_mswi.c                   |   5 +
- lib/utils/irqchip/aplic.c                     | 160 +++---
- lib/utils/suspend/Kconfig                     |   4 +
- lib/utils/suspend/fdt_suspend_sifive_smc0.c   | 323 ++++++++++++
- lib/utils/suspend/objects.mk                  |   3 +
- lib/utils/timer/aclint_mtimer.c               |  28 +-
- platform/generic/Kconfig                      |   5 +
- platform/generic/configs/defconfig            |   5 +
- platform/generic/platform.c                   |   3 +-
- platform/generic/sifive/objects.mk            |   3 +
- platform/generic/sifive/sifive_dev_platform.c |  57 +++
- 33 files changed, 1667 insertions(+), 75 deletions(-)
- create mode 100644 include/sbi_utils/cache/cache.h
- create mode 100644 include/sbi_utils/cache/fdt_cache.h
- create mode 100644 include/sbi_utils/cache/fdt_cmo_helper.h
- create mode 100644 include/sbi_utils/hsm/fdt_hsm_sifive_inst.h
- create mode 100644 include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h
- create mode 100644 include/sbi_utils/suspend/fdt_suspend_sifive_smc0.h
- create mode 100644 lib/utils/cache/Kconfig
- create mode 100644 lib/utils/cache/cache.c
- create mode 100644 lib/utils/cache/fdt_cache.c
- create mode 100644 lib/utils/cache/fdt_cache_drivers.carray
- create mode 100644 lib/utils/cache/fdt_cmo_helper.c
- create mode 100644 lib/utils/cache/fdt_sifive_ccache.c
- create mode 100644 lib/utils/cache/objects.mk
- create mode 100644 lib/utils/hsm/fdt_hsm_sifive_tmc0.c
- create mode 100644 lib/utils/suspend/fdt_suspend_sifive_smc0.c
- create mode 100644 platform/generic/sifive/sifive_dev_platform.c
-
---
-2.17.1
-
---
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
-
-To: opensbi@lists.infradead.org
-
----
-Nick Hu (11):
-      lib: utils: Add cache flush library
-      lib: utils: Add FDT cache library
-      lib: utils/cache: Add fdt cmo helpers
-      lib: sbi: Add SiFive proprietary xsfcflushdlone
-      lib: sbi: Add SiFive proprietary xsfcease
-      lib: utils/irqchip: Add APLIC restore function
-      lib: sbi: Extends sbi_ipi_raw_send() to use all available IPI devices
-      lib: utils/hsm: Add SiFive TMC0 driver
-      lib: utils/timer: Expose timer update function
-      lib: sbi: Add system_resume callback for restoring the system
-      lib: utils/suspend: Add SiFive SMC0 driver
-
-Vincent Chen (1):
-      utils: cache: Add SiFive ccache controller
-
- include/sbi/sbi_hart.h                      |   4 +
- include/sbi/sbi_ipi.h                       |   2 +-
- include/sbi/sbi_system.h                    |   7 +
- include/sbi_utils/cache/cache.h             |  69 ++++++
- include/sbi_utils/cache/fdt_cache.h         |  34 +++
- include/sbi_utils/cache/fdt_cmo_helper.h    |  40 +++
- include/sbi_utils/hsm/fdt_hsm_sifive_inst.h |  20 ++
- include/sbi_utils/hsm/fdt_hsm_sifive_tmc0.h |  14 ++
- include/sbi_utils/irqchip/aplic.h           |   3 +
- include/sbi_utils/timer/aclint_mtimer.h     |   5 +
- lib/sbi/sbi_hart.c                          |   2 +
- lib/sbi/sbi_hsm.c                           |   7 +-
- lib/sbi/sbi_ipi.c                           |  16 +-
- lib/sbi/sbi_system.c                        |  17 ++
- lib/utils/Kconfig                           |   2 +
- lib/utils/cache/Kconfig                     |  23 ++
- lib/utils/cache/cache.c                     |  46 ++++
- lib/utils/cache/fdt_cache.c                 |  87 +++++++
- lib/utils/cache/fdt_cache_drivers.carray    |   3 +
- lib/utils/cache/fdt_cmo_helper.c            | 112 +++++++++
- lib/utils/cache/fdt_sifive_ccache.c         | 175 +++++++++++++
- lib/utils/cache/objects.mk                  |  14 ++
- lib/utils/hsm/Kconfig                       |   5 +
- lib/utils/hsm/fdt_hsm_sifive_tmc0.c         | 367 ++++++++++++++++++++++++++++
- lib/utils/hsm/objects.mk                    |   3 +
- lib/utils/irqchip/aplic.c                   | 164 +++++++------
- lib/utils/suspend/Kconfig                   |   4 +
- lib/utils/suspend/fdt_suspend_sifive_smc0.c | 318 ++++++++++++++++++++++++
- lib/utils/suspend/objects.mk                |   3 +
- lib/utils/timer/aclint_mtimer.c             |  28 ++-
- platform/generic/andes/ae350.c              |   2 +-
- platform/generic/configs/defconfig          |   4 +
- platform/generic/platform.c                 |   3 +-
- 33 files changed, 1520 insertions(+), 83 deletions(-)
----
-base-commit: e3eb59a396ac55975e3debecfc5b71418eb62248
-change-id: 20250829-cache-upstream-93730838a1a6
-
-Best regards,
 -- 
-Nick Hu <nick.hu@sifive.com>
+2.34.1
 
 
 -- 
