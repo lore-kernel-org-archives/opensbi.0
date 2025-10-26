@@ -4,66 +4,62 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7E1CDCCF9EC
-	for <opensbi@archiver.kernel.org>; Sun, 26 Oct 2025 20:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1C434CCF9ED
+	for <opensbi@archiver.kernel.org>; Sun, 26 Oct 2025 20:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=uqN5Nw98wffIwdSSQbQbzznXoxHMkAZRjzpvyW2/LDs=; b=j3YMsy+vmLSZvg
-	kBIb4vrYWzPdpHtOGLvYPniwbJCQzuopmXUDWmUjcKCiUQXhjvmA5OEmzgPiXpiE57Q5Li+hf8nfT
-	ZhT4hEYjZHHLLq+s7orgl023ej3BnEXc+iAQvZyq49rsz4o3KZKxbkJnWRvufTXFQV7sca7nuC/D2
-	JGOQ042U0ApYgtdQCeDlCrdu66rKIpid7cudOS0Q3IVUKAS9mocWiBrDNwIM9v5BEAGYD9LUDHS9r
-	qMDZ9GPSzHV/ffXZhb6zK9aM0XWQbrNvBZ8KK7arTBL9+Pqp89+SByvTLgu+EFr/iPCiXGfZ7572m
-	BBNRaKK5i3NcqBDjU8/w==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:To
+	:From:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=+oF/XtrrMRQCUVYfOMHPTqi7uTAw4AsUSPpTzOhDFT0=; b=EdhDo/IauDWSF4
+	Y0OYtfrEgnuyyT6OPSAVjp30P6vXUn18TnnoJld0X6yWf94EMjO3776COr1bZEVnSVRpLt3m48cAy
+	JMSwRrzA+/EJSqwsN5Nm1fdMTELlWPHuMfZj/lWLTbAcKJ+oY/QuAfTjbgXfGlvWuXuhLW6ItY3BC
+	hqS03GM1KVfOYOS/HbqdKl/wrMpLTfLAuxekn0Ks72Xt8FiBLjWQCZydddTc94yYKd6vfBaO9LHXO
+	/PV/ZFrqwtR5Cj4onIkMg+JSI3P7rZzYVYY0dYvZm0Hn31xymtpyzpe6hRsTidNT6MHOjmLpqyBHC
+	bcYkSlOQ8P0x1Cjnn8CA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vD7I6-0000000CiXy-49tv;
-	Sun, 26 Oct 2025 20:24:38 +0000
-Received: from mout.gmx.net ([212.227.17.20])
+	id 1vD7I3-0000000CiWN-3fyo;
+	Sun, 26 Oct 2025 20:24:35 +0000
+Received: from mout.gmx.net ([212.227.17.22])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vD7I4-0000000CiVw-0zxW
+	id 1vD7I1-0000000CiVT-1ICX
 	for opensbi@lists.infradead.org;
-	Sun, 26 Oct 2025 20:24:37 +0000
+	Sun, 26 Oct 2025 20:24:34 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.net;
-	s=s31663417; t=1761510274; x=1762115074; i=b.freisen@gmx.net;
-	bh=nglJjNuxEFyhS1g9112b7jjHkY1kJLiiory6At8gNTA=;
-	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-ID:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding:cc:
+	s=s31663417; t=1761510268; x=1762115068; i=b.freisen@gmx.net;
+	bh=b0UsYkOqP5uSl8NoJTiwRIVF0DU4r7yy1uYl6G6x6Rc=;
+	h=X-UI-Sender-Class:From:To:Subject:Date:Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=pAzNcxMKH/RgbZ0IdI6sXxmNO+dPZ73IvJ9Yc9tFaFdL/XSrYtgggRXD3iigZwd1
-	 fhas87g4lSoV1o3/dhSCe6u+sRqri5TC/abO7pksHauqIXiGVVsEgvBW1RslyDnY7
-	 jO29d4mQuJuHau7JJoTpr4UJOOD6fsGJ0SHh7u3leQCSq6lNO33MNr+BAOva9cvbX
-	 qHQLRwmXu6YyLwA+EUL7Yy1zwSLKFXZo0Vd2fXrluDFNGW57GJWRuujTUARHF98Jg
-	 CAMpBXkQ2edYk9UPuR8u9tA8+aRvYuWG8gEgcZf/R3nJkFwiE7qAK+vWhB+vcjxak
-	 46mftZpUbBjsR2uX2A==
+	b=fJG5B/o0lizLry8C2UQcgVVIx0gyS4nRSEiNNiKUwYeWDCS8YUdZDYV3rZypw5F0
+	 9UXkCvOmVY4RU9A0WTTPORBnIasUzwazxaAq+ZPNj61IwdmK9Tu67fs2bheFs1n7T
+	 BeLZWpqI3IoF/UZrIY3NCYvxyX8sOiBXaosA+YGS7V07jlsNxXXnTvwoU5RvvhqjR
+	 AM0Tr4gKmc4AmKzzF/uGUPSagRBKTIwkqQB/sdW4Hi3xmQF75uNxbSLuB3IkH5Zmb
+	 H0B72AGVN02c53JuLjFl4UIGBUT35Ln89/vIVV3B8ASkVxR/eKwTCbXp/D4mK3vmK
+	 GhznV1BP2ntBS85h6Q==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from blackbox ([95.223.79.155]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MybGX-1uEr6d1HVV-00xYf3; Sun, 26
- Oct 2025 21:24:34 +0100
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1M42nY-1vD7Hw2kt6-001SCi for
+ <opensbi@lists.infradead.org>; Sun, 26 Oct 2025 21:24:28 +0100
 From: Benedikt Freisen <b.freisen@gmx.net>
 To: opensbi@lists.infradead.org
-Cc: Benedikt Freisen <b.freisen@gmx.net>
-Subject: [PATCH 3/5] include: sbi: Make "s8" actually signed.
-Date: Sun, 26 Oct 2025 21:21:57 +0100
-Message-ID: <20251026202416.23550-4-b.freisen@gmx.net>
+Subject: [PATCH] Add trap-based ISA extension emulation
+Date: Sun, 26 Oct 2025 21:21:54 +0100
+Message-ID: <20251026202416.23550-1-b.freisen@gmx.net>
 X-Mailer: git-send-email 2.51.1
-In-Reply-To: <20251026202416.23550-1-b.freisen@gmx.net>
-References: <20251026202416.23550-1-b.freisen@gmx.net>
 MIME-Version: 1.0
-X-Provags-ID: V03:K1:0Kclxo23+BRyhQWwxu4RcyY8DTTu4T8aeu/sL2BkOZaD19FZ8zB
- mEkdnODCnTHKxOrYzpo33fqgoxqAXkjD4nZOVOYclu12b8fKVRg35Q5TivyY77ximEvHrzP
- e5j4dDHWshuT77JTUreZa+iugBpQcuy/C1AmvvzWhrGsT528jSEI/lHJtwV+PAxJN0ea0a+
- 9KyduowXMUQ1TAj3mLa5w==
-UI-OutboundReport: notjunk:1;M01:P0:pvyENKn9HhU=;kpYmLGZ3n63bWqVCJym6q639HBt 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
+X-Provags-ID: V03:K1:Lhu0Ip8iljjOSmvB2ILyKn9YbZQaFGd0t5z58M6tTUDqK2NChbq
+ ZLtXBh/U4Jy1spDB0IAlVzZ6JFcvdnyePmY3YjgOP4q+vIHgYKd4DgGodzDVnmFDClNid8j
+ cQ3jvWlaS6XN+7qOv14xT3GNlRZFOHulpstTo0oFFZJu5Sc9XaMPWT+U/ScSca6JtCfPIat
+ 1FbMGqxlvGBPMtZFmqbtg==
+UI-OutboundReport: notjunk:1;M01:P0:13yHWGm6YwU=;Ku/uYFuLLJi+MGZeTzIT6oPlp5O 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
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251026_132436_555002_E84B8CE2 
-X-CRM114-Status: UNSURE (   8.20  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251026_132433_627056_AF656663 
+X-CRM114-Status: GOOD (  10.23  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -80,28 +76,23 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Since plain "char" is implicitly unsigned on RISC-V, "s8" should be an alias for "signed char".
+This patch series seeks to add trap-based emulation functionality for various ISA extensions relevant to RVA22, RVB23 and RVA23.
+The emulation functionality contained herein has been demonstrated to e.g. allow the VisionFive 2's JH7110 to run software using the RVA22U64 and RVB23U64 profiles, allow the Orange Pi RV2's Ky X1 (a SpacemiT K1 derivative) to run Ubuntu 25.10 (RVA23U64) in a docker container, and allow the Tenstorrent Blackhole's SiFive X280 (Gen. 1) to boot into Ubuntu 25.10.
 
-Signed-off-by: Benedikt Freisen <b.freisen@gmx.net>
----
- include/sbi/sbi_types.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The first patch merely fixes the tab alignment in riscv_encoding.h.
 
-diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
-index 2637faf..b8a7e6c 100644
---- a/include/sbi/sbi_types.h
-+++ b/include/sbi/sbi_types.h
-@@ -14,7 +14,7 @@
- 
- /* clang-format off */
- 
--typedef char			s8;
-+typedef signed char		s8;
- typedef unsigned char		u8;
- typedef unsigned char		uint8_t;
- 
--- 
-2.51.1
+The second patch adds workarounds for decoder bugs in the C906 and C910, where FENCE and FENCE.I instructions with nonzero reserved fields are mistakenly treated as illegal instructions.
+
+The third patch corrects the typedef of "s8" from "char" to "signed char", because "char" is implicitly unsigned on RISC-V.
+
+To me, personally, these three look like uncontroversial improvements.
+
+The fourth patch, the big one, adds the actual ISA extension emulation code.
+For initial consideration, I am hereby submitting it "as-is", mainly to see whether there is even interest in having this kind of functionality in mainline OpenSBI.
+If that turns out to be the case, this patch will need further iterations that, aside from incorporating your feedback, e.g. add configuration options for conditional compilation.
+
+The fifth patch is included for documentary purposes only, not for merging.
+It contains the section of my fork's README file that explains which extensions can be emulated. The information therein could also go somewhere else.
 
 
 -- 
