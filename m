@@ -4,68 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 291F3CCF9E0
-	for <opensbi@archiver.kernel.org>; Mon, 27 Oct 2025 11:10:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 33DCCCCF9EE
+	for <opensbi@archiver.kernel.org>; Mon, 27 Oct 2025 11:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:To:Subject:MIME-Version:
-	Date:Message-ID:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Owner;
-	bh=3uPwJvVebLXZMZYm9cLz26RAlIfzPSNyfVS4ZYdlRvA=; b=GTZeNmDuFjt81+O/607LzqOLW6
-	S/l9NfRlE8URbhmfaJX94tzDIOhzHz1hhzlnDARhMa7Yayza/Q0EMkJ588UlqpQhjRhgOmt3G0v7Q
-	mRKrmwB8eGZhCiUt5JkL2NQtEvMxQHAqFsdWn053DUyyXJ31VEZ/0KaYoO0ntbq9pyN3WaZLetJN7
-	D+fHyr0I+rkGiPtqRq683hD/UHx4UKttFfmv0B8mlAbnHqj4DCMdV8UrIYA3tPdvnpQKlaPmqhszg
-	g/5irQQAMGRGnR7q2baPCXNJ6lAuVeQhtTMn5R9C+qskmgPzeE4cIogCp0ujKNjLcmKps6I720lMi
-	LMP7nU9A==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:References:From:To:Cc:
+	Subject:Message-Id:Date:Mime-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=VBJAmRC+wOHDW3fBWPkRQcLRzRYJw2Z8tLWMavSgpi4=; b=p2iI4fHnXEXRKN
+	skd+38wjb7Ce8cZ4iGofnlrzC0gJhbd183EqTkrBJ/2M2nzEToQV2JxFZtCpmQ9HwPoINbuhF84vr
+	nbdyi5VaN45XGG3bNJOWUB+ll2qVwMekAVJpn8nDZw540DpKiop/3gaJN/ar8SjaFiVLwNeTMJVdS
+	gANp+sXYl4bwgRkp1fptwKcYmTHPSkXKRp9ie8uVN4REn74AsatWQrFrA3NKKW4lXiA0H18DcXE3m
+	v+MHSURB0tjxLbv3T1/e61SJ5QOdrkyVCcI6ZKTgdR6WPWXPWDuig/47Nz76lVdARlymUHOhTrTZ5
+	KyugmRU8Wv8+cg1GY+LA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vDL6y-0000000DjLf-1LTw;
-	Mon, 27 Oct 2025 11:10:04 +0000
-Received: from mout.gmx.net ([212.227.15.18])
+	id 1vDLDd-0000000Dkjt-2h7u;
+	Mon, 27 Oct 2025 11:16:57 +0000
+Received: from mail-wm1-x331.google.com ([2a00:1450:4864:20::331])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vDL6v-0000000DjKk-2hVD
+	id 1vDLDa-0000000Dkix-3qKQ
 	for opensbi@lists.infradead.org;
-	Mon, 27 Oct 2025 11:10:03 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.net;
-	s=s31663417; t=1761563399; x=1762168199; i=b.freisen@gmx.net;
-	bh=jIvTbbc/Sk8idAmM7GesDq/UlA5wCiCmE1UjLSJ9yBs=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=ficyq0QAb+q5ALHnJMIi3KO9beAgWky0r0Cr9UoHu6bBBuZ7MkJzRkDzEHGFYYGX
-	 3SZzBvU6k2EibpDMhZXyjylsXvoN6FblxoSx6LM1Kn8oWqHHeonzh/NwK+6R306XG
-	 iXwNFp8i5br1W32lMSFv98Wl0KopMnG4K6p2DCGgOtFFpmve8T4T2qUdzAduKPQZw
-	 AZUC3bQYOSrbXOPfEnXig6iIKBVMZQcPMul5e9zJ1P9gtPGYqpi69pnb0be/tLlGg
-	 PnFsDAaZy7koLCht9INTXDAkaIhxo1DmzL5LTARobJuIQRb+LRBV/2gjp7MW9A4p1
-	 nMRMHtphuoMYU8JogA==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.0.215] ([95.223.79.155]) by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1MkHQh-1uT30g0Z0T-00pDi4 for
- <opensbi@lists.infradead.org>; Mon, 27 Oct 2025 12:09:59 +0100
-Message-ID: <42506640-9b61-4887-9027-27a6342cc93b@gmx.net>
-Date: Mon, 27 Oct 2025 12:09:47 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] Add trap-based ISA extension emulation
-To: opensbi@lists.infradead.org
+	Mon, 27 Oct 2025 11:16:56 +0000
+Received: by mail-wm1-x331.google.com with SMTP id 5b1f17b1804b1-470ff9b5820so6780235e9.3
+        for <opensbi@lists.infradead.org>; Mon, 27 Oct 2025 04:16:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ventanamicro.com; s=google; t=1761563812; x=1762168612; darn=lists.infradead.org;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=xNs+hiBhIc6EO3BJ81iO7sDFOo8h7ElqVg/gQo0KUlE=;
+        b=nh1AI24+XSwL65GgUFay7CIrgmVgBV+hTxj+MfSr6HvF9SpupMPiqqjs3wBmDEEvL8
+         SwFPhrKU7GzLoxuCig/7LSPb4MMIWHJFD+0qebbKS4uhcZCaVrc4bXndc89IJoKhQA8F
+         jEUKbKOjtjcwz5McCpP9GU0C594SjrCLzSxP9J84xMvfaplNPvqPRAemD9bQYnkualh6
+         w0gEnN1ZQ9d7cnqfd7/U4SlcTZqWd/kEULiMZy6E2ylx3K6Z5CYXsdnyrWjGlnZS3qkH
+         WIghF6yC82wKz9ygSwW4lJnqw/diZLF1GMmMgS1Wl0FUW4KgEbacLgQ1MpxVlDgHbbVD
+         Dukw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761563812; x=1762168612;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=xNs+hiBhIc6EO3BJ81iO7sDFOo8h7ElqVg/gQo0KUlE=;
+        b=nQkI2y861pfxYWiWvKGhKY1l8bDEoEpSPyzhe62fKbNd2Qdzznoec064GASF8LFUAr
+         SPhrmQ1AgbrrdfiLGm95Vx1qRKljar4Sqqds8UfOyecH17c+dR3nGLxUxcB/X8KI/drP
+         yl5ASixP1V0zVj2kdZnQkU/Qr6cX+T8wS14/aZegGCvPWRMUdL3T/opiJ2E98kp7Om8F
+         c94QtejZBz0672sH9n/uBqz5lU/9JMSHRo/4kLm/U8g5Sq5GeihvEr34Pzmr3JhqGHnx
+         XR6PiciDYLlLgyEUV2E6XEilEqkxi9GO5qG833Gbrhbv8wd43KM7AFHAPyQ8BSomDOm0
+         FGJQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUctkAhnPsbEjQ/Qmi8pqsmEtWshXmsiHf/7l0lM6o+vSVYeAA0TipoV5ga6Q0EImw28FngtrDU@lists.infradead.org
+X-Gm-Message-State: AOJu0Yw+GQgF65I1avK1ozre1FVi90sVS7spCWEy6jYN5PWvhgI70YLH
+	/0pq43Rpksy6v0E+6ST4IBCgBOgvvXvV6TxxkV/bSbQE0JiU3CrGfw3eGXMNmdeREQY=
+X-Gm-Gg: ASbGnctZBYXV0SAzmTsNeeQFL0DLufEb5Sb42VYp7/nDZsHSY+Ak+mWxEBc8NnZ10OM
+	MVOm574F8hRx6VcpfKhprs6HZW4R+3SE95pGhKZcX4WETefUWsJ7buaEyk61NydXWqSXPK8YYzG
+	hJEhzekSB1mp+mBYs9TGiCHqix6XDbuS+SVMgUuB9644gZE6enLpBhP8p3oON4NM8DceeKyEH5e
+	/sPcs+r8aA1xnLzeAO3nkth8BobhlcO6gH8XL5T8AfLj3g7J8lR5b5cHAwRa9RWPTzOdgTPBJBn
+	GSZL5lyB7gjKbvwrMn/d9P+8n/poiODGFHyn8Hx53iNC6WkFTZMd0hnxC4+dmpdbT1IwSw1a5f4
+	yISNf+LWuNjWf1yUPHGpe0kfBVcKrpSeWHYg2OKkhzGwhBOtL6Z65PobgQeGIDNjK3MfD7xhQ2M
+	w=
+X-Google-Smtp-Source: AGHT+IHJURJo26A3HdM5dotYkLY7hXnA5KuZsDD20wYx5vr2YJscRxY/Xtx5/x+WGQbBeOACajsSEg==
+X-Received: by 2002:a05:600c:3144:b0:46e:354d:d1b1 with SMTP id 5b1f17b1804b1-47117905038mr160894435e9.3.1761563812052;
+        Mon, 27 Oct 2025 04:16:52 -0700 (PDT)
+Received: from localhost ([2a02:8308:a00c:e200::3052])
+        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-475dd02cd6dsm134536135e9.2.2025.10.27.04.16.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Oct 2025 04:16:51 -0700 (PDT)
+Mime-Version: 1.0
+Date: Mon, 27 Oct 2025 12:16:46 +0100
+Message-Id: <DDT294QB5R6U.1SC7974LHM7K6@ventanamicro.com>
+Subject: Re: [PATCH 2/5] lib: sbi: Workaround for FENCE(.I) errata on C906,
+ C910.
+Cc: "opensbi" <opensbi-bounces@lists.infradead.org>
+To: "Benedikt Freisen" <b.freisen@gmx.net>, <opensbi@lists.infradead.org>
+From: =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@ventanamicro.com>
 References: <20251026202416.23550-1-b.freisen@gmx.net>
- <3003220bcebd3decdf6d9455c1e55df7aeeccd1b.camel@iscas.ac.cn>
-Content-Language: en-US
-From: Benedikt Freisen <b.freisen@gmx.net>
-In-Reply-To: <3003220bcebd3decdf6d9455c1e55df7aeeccd1b.camel@iscas.ac.cn>
-X-Provags-ID: V03:K1:yhWv9C+NAbqCS+KfM6Q/DJdT3c6cf9diU40IRGHszgKrtS/U6ao
- iUfW9PhbWm2PGy5jKZCcwGnT2Ra2nerdiH/YR7rSR1mkceskDwaJXvrSK9jyhlvPeP/MXff
- gAqub/Wjqogpx1WpmQ72inJIq2TEJOobP+AGIeMkC5kDzXx4NUGKgUcMREoH0z67MDLr2n0
- 3waVc2ydg7WzLRiV/wGjA==
-UI-OutboundReport: notjunk:1;M01:P0:VgxqlRkmxWE=;OpJUFfMNTplGqibHa340oP9icwN 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 HUF76uPOttLEqPx0sHpURuRlRaOabfXA==
+ <20251026202416.23550-3-b.freisen@gmx.net>
+In-Reply-To: <20251026202416.23550-3-b.freisen@gmx.net>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251027_041002_058147_9A52ACCF 
-X-CRM114-Status: UNSURE (   4.31  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251027_041654_977400_18EE30D0 
+X-CRM114-Status: GOOD (  12.84  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -77,24 +95,56 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Am 27.10.25 um 11:02 schrieb Xiang W:
-> PATCH4 missing
+2025-10-26T21:21:56+01:00, Benedikt Freisen <b.freisen@gmx.net>:
+> According to the RISCVuzz paper by Thomas et al., the T-Head/Xuantie C906
+> and C910 cores fail to ignore reserved fields in the "fence" and "fence.i"
+> encodings and trigger illegal instruction traps if these fields are non-zero,
+> so address that in the illegal instruction trap handler.
 >
-> Regards,
-> Xiang W
+> Signed-off-by: Benedikt Freisen <b.freisen@gmx.net>
+> ---
+> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+> @@ -944,8 +944,12 @@
+> +#define INSN_MASK_FENCE			0xf000707f
 
-PATCH4 is currently stuck in moderation, because the mailing list 
-apparently imposes a 100 kilobyte limit, which PATCH4 narrowly exceeds. 
-I will take note and split it up for a future version.
+Bits 31, 30, 29, and 28 should not be a part of the mask, because any
+reserved value there must be treated as 0b0000.
 
-Greetings,
-Benedikt Freisen
+> +#define INSN_MATCH_FENCE		0x0000000f
+>  #define INSN_MASK_FENCE_TSO		0xffffffff
 
+(Related: INSN_MASK_FENCE_TSO should ignore the reserved rs1/rd fields,
+ but covering that encoding with the new IORW fence is acceptable.)
+
+>  #define INSN_MATCH_FENCE_TSO		0x8330000f
+> +#define INSN_MASK_FENCE_I		0x0000707f
+> +#define INSN_MATCH_FENCE_I		0x0000100f
+> diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+> @@ -42,6 +42,21 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+> +	/* Errata workaround: C906, C910 fail to ignore reserved fields
+> +	 * in the `fence` and `fence.i` encodings. [Thomas2024RISCVuzz] */
+> +	if ((insn & INSN_MASK_FENCE) == INSN_MATCH_FENCE) {
+> +		/* NOTE: Emulation should ideally preserve the `pred` and
+> +		 * `succ` fields, but that is not easily possible here. */
+> +		mb();
+> +		regs->mepc += 4;
+> +		return 0;
+> +	}
+> +	if ((insn & INSN_MASK_FENCE_I) == INSN_MATCH_FENCE_I) {
+> +		RISCV_FENCE_I;
+> +		regs->mepc += 4;
+> +		return 0;
+> +	}
+
+Don't we want to hide these workarounds behind a config, so the code
+doesn't have to be included in builds for other platorms?
+
+Thanks.
 
 -- 
 opensbi mailing list
