@@ -4,81 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 386FCCCFA0D
-	for <opensbi@archiver.kernel.org>; Wed,  5 Nov 2025 16:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2D4F0CCFA0D
+	for <opensbi@archiver.kernel.org>; Wed,  5 Nov 2025 16:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=t/9FCvmK9l0GfjRCDG+rUVYZTfiD+0oZ6Q11cwJyaEA=; b=tJD5s5lZcNXBuQ
-	prm1w8cSF1izL+nNqone/bBEH+l+eAB35G/WIb/prkPugq8xLtilEyPSDRtyLEe82iuz3j7gJFyHA
-	bANEYgJjPMm78pEwtAj+zTYleIfvbCkOfICu/JHaTkGVyqQbf4L8osYWHjnmo36GJnIXHmKVq9hAH
-	3SOvZsX3P8nx+g/NNcQBeLeZhbLm3gjD5KNdzojwWLHuinj6Y6XkVrPHpkp9FXlJsSIweQtrEaRIl
-	7yv0fkE3RGiiY4LJsKTRgSp1RqxWYBTKlrb3OD6ZaSE/bXE+SrI/gTPsT9tjg31A2EAVqLMTC8wRh
-	TD+nmQBEnMMzgtNGhKxA==;
+	List-Owner; bh=2kOmbaE8lEyYaXvFkrDey4GONIccuxMBKhGr6cxeFfU=; b=NJXLCvpmRtq+eP
+	+GGZE4soIXhkRNsuzoflggvwaU19iHtcfPI3UBXAk3zmiV2qTrZZ7k27ynEWzj2NhdYBCADPyiNz0
+	hgvOFP5QpBOKytA2joyDDtVu5E8bhk5Y49Mih9SVVcw+/GaintRtOz5D5j10ufqp8mIbBn/h0D8cI
+	9YqT6u7ZplEvBi2WRYpPYeROurOFLYMGc8LzvyuGPworRVmpmk3RKAqOA6ZQ0Bg2X02/KZRR4E88z
+	0847W+XsFdYrgBfKVTXLfRUvpxbFB3XFh3kBni2lQAXNnx38/LyJbCyoXsAH2x3clSBjtFSejfmUW
+	XYWuqk67BcSLZ0taMlVA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vGg6c-0000000E1te-3AHW;
-	Wed, 05 Nov 2025 16:11:30 +0000
-Received: from mail-il1-x12f.google.com ([2607:f8b0:4864:20::12f])
+	id 1vGg9t-0000000E2Xs-3kzc;
+	Wed, 05 Nov 2025 16:14:53 +0000
+Received: from mail-io1-xd2f.google.com ([2607:f8b0:4864:20::d2f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vGg6Z-0000000E1tG-2jIG
+	id 1vGg9r-0000000E2Us-1p1e
 	for opensbi@lists.infradead.org;
-	Wed, 05 Nov 2025 16:11:28 +0000
-Received: by mail-il1-x12f.google.com with SMTP id e9e14a558f8ab-4332381ba9bso46357915ab.1
-        for <opensbi@lists.infradead.org>; Wed, 05 Nov 2025 08:11:27 -0800 (PST)
+	Wed, 05 Nov 2025 16:14:52 +0000
+Received: by mail-io1-xd2f.google.com with SMTP id ca18e2360f4ac-94849c6e0bbso137441939f.1
+        for <opensbi@lists.infradead.org>; Wed, 05 Nov 2025 08:14:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1762359086; x=1762963886; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MNHwDmQ56qP7BBS87tKwuRV2Cd/krQrX3ZeFMNJ4PNc=;
-        b=Dtz/MUmU4A7TjMGnFKuYOsM1Jo6dremKCAoapUROrxkEMXKZpM7dnE6wz62x1mA6DR
-         CeZ1Iy1v+nt49nVVsatyEk0nlYaC73oGJxS70Ow+vd19BQ4a4sWPRehnr/+NDt3qeV4g
-         9zXYevNkqOKGFckYlmgOkyd+42cKdoswclOum5MjbDJs4Z3MHfieA/D/xkJAbzC7Da6D
-         k2iBzaLontaWjRMEHA299vvVhzqdYtK9kJKW2w2xdnVILf7THql6UOwA/V+SbU+XfpVS
-         644Lzc0lfaHEj9eU1XQKLbDJshUji77gVUyP08kYYZoadWdFB7eUNl9HKxWlcpSS6op2
-         SZ2w==
+        d=ventanamicro.com; s=google; t=1762359290; x=1762964090; darn=lists.infradead.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Nwlh+qG0I0PxmLpynFtVkKhYGg5l3ue9uswZ+WW/yAE=;
+        b=R53cSLsCzTcHYpv11QMVNmUQ0EUPGvCewXSdmEp/IMcHTc8p//aJAWJl4AGKpfaTjP
+         VtcvFc/Ac/e4+WEizvocY5LH+dlgWey1/XYKT5iLQmb1W/ph5ND8SvOfodF3HVhn/Geq
+         6eErCqkWJqX2R64qHsG3jFt2/FYuSLFOBH3T7S2bM8G6OH3rVAkhuieREf7yB1laebdP
+         zrrDbppf6wuZe3+LtDp/hq+wrMwodO3QOgQXtwDHRec7uP4dvlX9t2O1E3mm70dtODbB
+         kjCg7i0ocFMVTN2n6+9d4BZmXzWPCO+58kcO7A81II/aKv+TWtam6lZtIgMztE3gHLkv
+         NKAA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762359086; x=1762963886;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=MNHwDmQ56qP7BBS87tKwuRV2Cd/krQrX3ZeFMNJ4PNc=;
-        b=QoehXN/mjvLmYkXjmbQHsTw6gojDnt9SiHsfkks/cZoQ3LkTA5EDZM6GlO3SMX4fGT
-         5MQw/egjj3cyD02KEBm2WsjZqk/MiRc71P8dX5Lc1SYEt6++32U9sNnVAUEaQWCFMak7
-         7avEAOztAAjpB07UT5brXH89sf59mx8w64P9upG0TDCJHabTd7iZDgBEJW5Q/PQRSAMP
-         vOM1qtnVBoS89q0c5ZXRCfCEdq1skfl3osptcGztaf3c7fWXtjkH+7pxUT8KGEx7dSt4
-         u3O9QVXMZEE1Iq/yIoP50xRpVVON9yy9Pb0kjec3dZkDtjUWGfiN2KVQ0vzgSlN9ZcEK
-         o0Dw==
-X-Gm-Message-State: AOJu0YxLfC6/cHkhi0Sh5vvj9rvYPqDFDyLduS2sIMZfUH0asbTHES34
-	48W6tfwByJLlX/NpdPtLwJcxz/j6qxzL9leYXVJIDYP7uoRuxGdyk5R+k0kM2Z0Q002ed5Y1lbl
-	ADICUwi5nlcqHBt5cyuRi/PEGlLysqLVgoXvkJqSRkg==
-X-Gm-Gg: ASbGnctyHHr1usVS9x3DvZXSfuxXM+rsLJo6DBE8UM8QMdaS6E+gk3bUdNT8r2zubMJ
-	HJ9qYy3y1yWb2poVabK008CkP2iJObSktLBxR0cGOoaDbtSBZtKjFIOHPPYcqMO0r2Sp1+BHH9o
-	pmZ9Dm5YZ9KvG5FnCtR+J2xGINxX4PqQnTm9SacyiWoFqqH5NEi1RtD1eiUw/DgTvfvxGowGBhl
-	RScFyBBmysCYJ2SZJG+OjFHATTudqvooxXvpxkkvGCfmaMu5pfCnFSVf4KmUg==
-X-Google-Smtp-Source: AGHT+IEpHGRil6Dlv0CGgLeE9y1mxSkfnmKNVmtchTV/JG4PDAwQYm/E4mcZb4FCGVy4ExSx+PpAcMqADN2SqdXDaiw=
-X-Received: by 2002:a05:6e02:4416:20b0:433:4e9d:de8f with SMTP id
- e9e14a558f8ab-4334e9ddfb5mr3023795ab.19.1762359083191; Wed, 05 Nov 2025
- 08:11:23 -0800 (PST)
+        d=1e100.net; s=20230601; t=1762359290; x=1762964090;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Nwlh+qG0I0PxmLpynFtVkKhYGg5l3ue9uswZ+WW/yAE=;
+        b=ggKxA9sjJnclUZPoukidnQdgZErqLB6HqJtB4Md4fvS+BgyfXNr9U72ALzPSkE0kfv
+         WFXKTrw7XkUmknQUJj1gZj/g2VAuQq0awZX1BN3ro0gkklH/ebkitieBzDfWH6ul6+/o
+         zLb9YIIQbAdnOKelkoxMMr1WV4hZMwvmvdtWOKmyS2/EAIe0hM4hcyLL3C+OKQ8t87cZ
+         pll0pnJM5F6aSSqr8UZBWggeKnJefKiaBMQ7UhL7TKH02k0ViioGy/xBj77JWJ8nsgC2
+         7h5s8UDrAzgxzdVwKE/2fqNW3qNVzQwsOE800XZp0JtDK0UnXkXvOieShUghGGdB9xTI
+         2A9g==
+X-Forwarded-Encrypted: i=1; AJvYcCXUOjierfXdF8CQB8kINeGEGUQZuBxSAaAZDKey2NhQdztuwZW3eiZvcZc6gFRhbox8PHiNQKSy@lists.infradead.org
+X-Gm-Message-State: AOJu0YxT3XJ24ZXrtDHfeLGIrF75HV2zZun4nF8qsfNFeyRe4G+Y3zpz
+	Jx23lAiYqFXN66KRJ2w58Ugen6aMvIe7UZX7gnf77iBr7tY0ZIKrGG1gPUR0G2MaZCTPezbkgfx
+	ZwIknnyjmZA==
+X-Gm-Gg: ASbGncsTCTaNwwqM8HfIc4YNvDIiW68ARQhyWXXj7sYGgwUJAyWvJ3ycmZqZe6WCRtv
+	/ZMUftecq3u5sMNGiFfKR7sx/Da1XLjsH75yxuPdmb7WXVOB48WG/hHeYv7FT1P3SpJR2PKGvN9
+	XgUkig4XU5dAQSeQXRGgXBI9OtuKgqt81lDyyxL3HMVFJzxXKvS0BD+NuF8nAnvyotEbsA6PqBd
+	TcF/Py7s1XWDxMdmunUqDUouAIG6buYoWETfTIUosN72NmsdCxdmGmzuBEGkibztGweKYncdP1A
+	/wOIxaXRck7gqUFb/HGGO8cTHP2/4+0IsrZtuWqPb733ZGQkGeyCSRn/orZqUPWiHXpfPF3R0Ha
+	rCeXsA8RyfL2DIKDbDopOtqs7wdhSUCeEnmEU/4cNP+Kj3crYLbhy28sMNYJ2fEKnaVnHoe6fN2
+	zAXq1pKggwE4Zr
+X-Google-Smtp-Source: AGHT+IHNKC5lcGqyX4VnjHHPA1EI55wUHeW6ilaaxm6yojDuSZd1Q4vZpJ7e3unsTYl0zire39g2XA==
+X-Received: by 2002:a05:6602:388f:b0:948:6c18:1f7c with SMTP id ca18e2360f4ac-9486c18268dmr377870539f.11.1762359290028;
+        Wed, 05 Nov 2025 08:14:50 -0800 (PST)
+Received: from localhost ([140.82.166.162])
+        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-5b7225ae785sm2592614173.26.2025.11.05.08.14.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Nov 2025 08:14:49 -0800 (PST)
+Date: Wed, 5 Nov 2025 10:14:49 -0600
+From: Andrew Jones <ajones@ventanamicro.com>
+To: Anup Patel <apatel@ventanamicro.com>
+Cc: Atish Patra <atishp@rivosinc.com>, Anup Patel <anup@brainfault.org>, 
+	opensbi@lists.infradead.org
+Subject: Re: [PATCH] platform: generic: Keep some empty space in FDT passed
+ to next stage
+Message-ID: <20251105-c4154b1f28934a0798a712a0@orel>
+References: <20251105160146.271156-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
-References: <20251027-p8700-aclint-v2-0-f10cbfb66e92@bootlin.com> <20251027-p8700-aclint-v2-2-f10cbfb66e92@bootlin.com>
-In-Reply-To: <20251027-p8700-aclint-v2-2-f10cbfb66e92@bootlin.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 5 Nov 2025 21:41:11 +0530
-X-Gm-Features: AWmQ_bm6vRRqr8dsjtaZGcjZ-q8534kXchA_W5FoOsEgKW-m9EV-vD0vaVV3gLw
-Message-ID: <CAAhSdy3QTuFkuqjGaibU5btxxbsANwLpwaiku30cavG+jtrKwQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] lib: utils/timer: mtimer: add MIPS P8700 compatible
-To: =?UTF-8?Q?Beno=C3=AEt_Monin?= <benoit.monin@bootlin.com>
-Cc: opensbi@lists.infradead.org, 
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Tawfik Bayouk <tawfik.bayouk@mobileye.com>, 
-	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+Content-Disposition: inline
+In-Reply-To: <20251105160146.271156-1-apatel@ventanamicro.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251105_081127_702890_957DAEA9 
-X-CRM114-Status: GOOD (  30.02  )
+X-CRM114-CacheID: sfid-20251105_081451_499755_B8E4C892 
+X-CRM114-Status: GOOD (  18.57  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -90,81 +96,67 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gTW9uLCBPY3QgMjcsIDIwMjUgYXQgNjo0MuKAr1BNIEJlbm/DrnQgTW9uaW4gPGJlbm9pdC5t
-b25pbkBib290bGluLmNvbT4gd3JvdGU6Cj4KPiBUaGUgTVRJTUVSIG9mIHRoZSBNSVBTIFA4NzAw
-IGlzIGNvbXBsaWFudCB3aXRoIHRoZSBBQ0xJTlQgc3BlY2lmaWNhdGlvbiwKPiBzbyBhZGQgYSBj
-b21wYXRpYmxlIHN0cmluZyBmb3IgaXQuCj4KPiBJbiBhIG11bHRpLWNsdXN0ZXIgY29uZmlndXJh
-dGlvbiwgdGhlcmUgaXMgb25lIE1USU1FUiBwZXIgY2x1c3RlciwgZWFjaAo+IGFzc29jaWF0ZWQg
-d2l0aCB0aGUgSEFSVFMgb2YgdGhlIGNsdXN0ZXIuIFNvIHdlIGRvIG5vdCBoYXZlIGEgTVRJTUVS
-Cj4gd2l0aCBubyBhc3NvY2lhdGVkIEhBUlRzIHRvIHVzZSBhcyBvdXIgcmVmZXJlbmNlLgo+Cj4g
-VG8gYmUgYWJsZSB0byBzZWxlY3QgYSByZWZlcmVuY2UgTVRJTUVSIGluIHRoYXQgY2FzZSwgYWRk
-IGEgcXVpcmsgdG8gbG9vawo+IHVwIGFuIG9wdGlvbmFsIGRldmljZSB0cmVlIHByb3BlcnR5IHRo
-YXQgaW5kaWNhdGUgd2hpY2ggTVRJTUVSIHRvIHVzZS4KPiBGb3IgdGhlIE1JUFMgUDg3MDAsIHRo
-ZSBwcm9wZXJ0eSBpcyAibWlwcyxyZWZlcmVuY2UtbXRpbWVyIi4KPgo+IFNpZ25lZC1vZmYtYnk6
-IEJlbm/DrnQgTW9uaW4gPGJlbm9pdC5tb25pbkBib290bGluLmNvbT4KPiAtLS0KPiAgbGliL3V0
-aWxzL3RpbWVyL2ZkdF90aW1lcl9tdGltZXIuYyB8IDI1ICsrKysrKysrKysrKysrKysrKystLS0t
-LS0KPiAgMSBmaWxlIGNoYW5nZWQsIDE5IGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCj4K
-PiBkaWZmIC0tZ2l0IGEvbGliL3V0aWxzL3RpbWVyL2ZkdF90aW1lcl9tdGltZXIuYyBiL2xpYi91
-dGlscy90aW1lci9mZHRfdGltZXJfbXRpbWVyLmMKPiBpbmRleCBlMWZkMDUxLi5lOThjOTlmIDEw
-MDY0NAo+IC0tLSBhL2xpYi91dGlscy90aW1lci9mZHRfdGltZXJfbXRpbWVyLmMKPiArKysgYi9s
-aWIvdXRpbHMvdGltZXIvZmR0X3RpbWVyX210aW1lci5jCj4gQEAgLTIwLDYgKzIwLDcgQEAgc3Ry
-dWN0IHRpbWVyX210aW1lcl9xdWlya3Mgewo+ICAgICAgICAgdW5zaWduZWQgaW50ICAgIGNsaW50
-X210aW1lX29mZnNldDsKPiAgICAgICAgIGJvb2wgICAgICAgICAgICBjbGludF93aXRob3V0X210
-aW1lOwo+ICAgICAgICAgYm9vbCAgICAgICAgICAgIGhhc182NGJpdF9tbWlvOwo+ICsgICAgICAg
-Y29uc3QgY2hhciAgICAgICpkdF9yZWZfcHJvcDsKPiAgfTsKPgo+ICBzdHJ1Y3QgdGltZXJfbXRp
-bWVyX25vZGUgewo+IEBAIC0zOSw2ICs0MCw3IEBAIHN0YXRpYyBpbnQgdGltZXJfbXRpbWVyX2Nv
-bGRfaW5pdChjb25zdCB2b2lkICpmZHQsIGludCBub2Rlb2ZmLAo+ICAgICAgICAgc3RydWN0IGFj
-bGludF9tdGltZXJfZGF0YSAqbXQ7Cj4gICAgICAgICBjb25zdCBzdHJ1Y3QgdGltZXJfbXRpbWVy
-X3F1aXJrcyAqcXVpcmtzID0gbWF0Y2gtPmRhdGE7Cj4gICAgICAgICBib29sIGlzX2NsaW50ID0g
-cXVpcmtzICYmIHF1aXJrcy0+aXNfY2xpbnQ7Cj4gKyAgICAgICBib29sIGlzX3JlZiA9IGZhbHNl
-Owo+Cj4gICAgICAgICBtdG4gPSBzYmlfemFsbG9jKHNpemVvZigqbXRuKSk7Cj4gICAgICAgICBp
-ZiAoIW10bikKPiBAQCAtMTEwLDEzICsxMTIsMTggQEAgc3RhdGljIGludCB0aW1lcl9tdGltZXJf
-Y29sZF9pbml0KGNvbnN0IHZvaWQgKmZkdCwgaW50IG5vZGVvZmYsCj4gICAgICAgICB9Cj4KPiAg
-ICAgICAgIC8qCj4gLSAgICAgICAgKiBTZWxlY3QgZmlyc3QgTVRJTUVSIGRldmljZSB3aXRoIG5v
-IGFzc29jaWF0ZWQgSEFSVHMgYXMgb3VyCj4gLSAgICAgICAgKiByZWZlcmVuY2UgTVRJTUVSIGRl
-dmljZS4gVGhpcyBpcyBvbmx5IGEgdGVtcG9yYXJ5IHN0cmF0ZWd5Cj4gLSAgICAgICAgKiBvZiBz
-ZWxlY3RpbmcgcmVmZXJlbmNlIE1USU1FUiBkZXZpY2UuIEluIGZ1dHVyZSwgd2UgbWlnaHQKPiAt
-ICAgICAgICAqIGRlZmluZSBhbiBvcHRpb25hbCBEVCBwcm9wZXJ0eSBvciBzb21lIG90aGVyIG1l
-Y2hhbmlzbSB0bwo+IC0gICAgICAgICogaGVscCB1cyBzZWxlY3QgdGhlIHJlZmVyZW5jZSBNVElN
-RVIgZGV2aWNlLgo+ICsgICAgICAgICogSWYgd2UgaGF2ZSBhIERUIHByb3BlcnR5IHRvIGluZGlj
-YXRlIHdoaWNoIE1USU1FUiBpcyB0aGUgcmVmZXJlbmNlLAo+ICsgICAgICAgICogc2VsZWN0IHRo
-ZSBmaXJzdCBNVElNRVIgZGV2aWNlIHRoYXQgaGFzIGl0LiBPdGhlcndpc2UsIHNlbGVjdCB0aGUK
-PiArICAgICAgICAqIGZpcnN0IE1USU1FUiBkZXZpY2Ugd2l0aCBubyBhc3NvY2lhdGVkIEhBUlRz
-IGFzIG91ciByZWZlcmVuY2UuCj4gICAgICAgICAgKi8KPiAtICAgICAgIGlmICghbXQtPmhhcnRf
-Y291bnQgJiYgIW10X3JlZmVyZW5jZSkgewo+ICsgICAgICAgaWYgKHF1aXJrcyAmJiBxdWlya3Mt
-PmR0X3JlZl9wcm9wKSB7Cj4gKyAgICAgICAgICAgICAgIGlmIChmZHRfZ2V0cHJvcChmZHQsIG5v
-ZGVvZmYsIHF1aXJrcy0+ZHRfcmVmX3Byb3AsIE5VTEwpKQo+ICsgICAgICAgICAgICAgICAgICAg
-ICAgIGlzX3JlZiA9IHRydWU7Cj4gKyAgICAgICB9IGVsc2UgaWYgKCFtdC0+aGFydF9jb3VudCkg
-ewo+ICsgICAgICAgICAgICAgICBpc19yZWYgPSB0cnVlOwo+ICsgICAgICAgfQo+ICsKPiArICAg
-ICAgIGlmIChpc19yZWYgJiYgIW10X3JlZmVyZW5jZSkgewo+ICAgICAgICAgICAgICAgICBtdF9y
-ZWZlcmVuY2UgPSBtdDsKPiAgICAgICAgICAgICAgICAgLyoKPiAgICAgICAgICAgICAgICAgICog
-U2V0IHJlZmVyZW5jZSBmb3IgYWxyZWFkeSBwcm9wYmVkIE1USU1FUiBkZXZpY2VzCj4gQEAgLTE1
-Miw2ICsxNTksMTAgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCB0aW1lcl9tdGltZXJfcXVpcmtzIHRo
-ZWFkX2FjbGludF9xdWlya3MgPSB7Cj4gICAgICAgICAuaGFzXzY0Yml0X21taW8gICAgICAgICA9
-IGZhbHNlLAo+ICB9Owo+Cj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdGltZXJfbXRpbWVyX3F1aXJr
-cyBtaXBzX2FjbGludF9xdWlya3MgPSB7Cj4gKyAgICAgICAuZHRfcmVmX3Byb3AgICAgICAgICAg
-ICA9ICJtaXBzLHJlZmVyZW5jZS1tdGltZXIiLAo+ICt9Owo+ICsKCkkgdGhpbmsgdGhpcyBEVCBw
-cm9wZXJ0eSBjYW4gYmUgdXNlZnVsIHRvIG90aGVyIHBsYXRmb3JtcyBhcyB3ZWxsLgpIb3cgYWJv
-dXQgInJpc2N2LHJlZmVyZW5jZS1tdGltZXIiIGFzIGEgRFQgcHJvcGVydHkgPyBUaGlzIHdheQp5
-b3UgZG9uJ3QgbmVlZCB0byBtYWtlIGl0IGFzIE1JUFMgcXVpcmsuCgo+ICBzdGF0aWMgY29uc3Qg
-c3RydWN0IGZkdF9tYXRjaCB0aW1lcl9tdGltZXJfbWF0Y2hbXSA9IHsKPiAgICAgICAgIHsgLmNv
-bXBhdGlibGUgPSAicmlzY3YsY2xpbnQwIiwgLmRhdGEgPSAmc2lmaXZlX2NsaW50X3F1aXJrcyB9
-LAo+ICAgICAgICAgeyAuY29tcGF0aWJsZSA9ICJzaWZpdmUsY2xpbnQwIiwgLmRhdGEgPSAmc2lm
-aXZlX2NsaW50X3F1aXJrcyB9LAo+IEBAIC0xNTksNiArMTcwLDggQEAgc3RhdGljIGNvbnN0IHN0
-cnVjdCBmZHRfbWF0Y2ggdGltZXJfbXRpbWVyX21hdGNoW10gPSB7Cj4gICAgICAgICB7IC5jb21w
-YXRpYmxlID0gInRoZWFkLGM5MDAtY2xpbnQiLCAuZGF0YSA9ICZ0aGVhZF9jbGludF9xdWlya3Mg
-fSwKPiAgICAgICAgIHsgLmNvbXBhdGlibGUgPSAidGhlYWQsYzkwMC1hY2xpbnQtbXRpbWVyIiwK
-PiAgICAgICAgICAgLmRhdGEgPSAmdGhlYWRfYWNsaW50X3F1aXJrcyB9LAo+ICsgICAgICAgeyAu
-Y29tcGF0aWJsZSA9ICJtaXBzLHA4NzAwLWFjbGludC1tdGltZXIiLAo+ICsgICAgICAgICAuZGF0
-YSA9ICZtaXBzX2FjbGludF9xdWlya3MgfSwKPiAgICAgICAgIHsgLmNvbXBhdGlibGUgPSAicmlz
-Y3YsYWNsaW50LW10aW1lciIgfSwKPiAgICAgICAgIHsgfSwKPiAgfTsKPgo+IC0tCj4gMi41MS4x
-Cj4KPgo+IC0tCj4gb3BlbnNiaSBtYWlsaW5nIGxpc3QKPiBvcGVuc2JpQGxpc3RzLmluZnJhZGVh
-ZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5z
-YmkKClJlZ2FyZHMsCkFudXAKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3Rz
-LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9vcGVuc2JpCg==
+On Wed, Nov 05, 2025 at 09:31:45PM +0530, Anup Patel wrote:
+> Leaving no empty space in the FDT passed to the next booting stage
+> causes the following U-Boot crash on Ventana internal platforms:
+> 
+> Unhandled exception: Load access fault
+> EPC: 00000000fffa6372 RA: 00000000fffa7418 TVAL: 0001746174730068
+> EPC: 0000000080245372 RA: 0000000080246418 reloc adjusted
+> 
+> SP:  00000000fef38440 GP:  00000000fef40e60 TP:  0000000000000000
+> T0:  00000000fef40a70 T1:  000000000000ff00 T2:  0000000000000000
+> S0:  00000000fffc17a8 S1:  00000000fef38d40 A0:  7375746174730068
+> A1:  00000000fffc17a8 A2:  0000000000000010 A3:  0000000000000010
+> A4:  0000000000000000 A5:  00000000fffc17b8 A6:  0000000000ff0000
+> A7:  000000000000b100 S2:  0000000000000000 S3:  0000000000000001
+> S4:  00000000fef38d40 S5:  7375746174730068 S6:  0000000000000000
+> S7:  00000000fef4eef0 S8:  00000000fef4ef90 S9:  0000000000000000
+> S10: 0000000000000000 S11: 00000000fef4efc0 T3:  00000000fef40ea8
+> T4:  0000000000ff0000 T5:  00000000fef40a60 T6:  00000000fef40a6c
+> 
+> To address the above issue, keep some minimal empty space in the
+> FDT instead of no empty space.
+> 
+> Fixes: bbe9a23060e9 ("platform: generic: Pack the FDT after applying fixups")
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> ---
+>  platform/generic/platform.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+> index e66f99fa..ea44676b 100644
+> --- a/platform/generic/platform.c
+> +++ b/platform/generic/platform.c
+> @@ -245,7 +245,9 @@ int generic_final_init(bool cold_boot)
+>  	fdt_fixups(fdt);
+>  	fdt_domain_fixup(fdt);
+>  
+> +	/* Minimize the empty space in FDT to 4KB */
+>  	fdt_pack(fdt);
+> +	fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 4096);
+>  
+>  	return 0;
+>  }
+> -- 
+> 2.43.0
+>
+
+I agree opensbi needs to workaround uboot issues in order to ensure it
+doesn't break current configurations, but maybe we should make the
+extra space added be a Kconfig managed define, rather than a hard 4096.
+The main reason would be to enable setting it to zero so issues with
+second stage loaders like this one can be flushed out and fixed.
+
+Thanks,
+drew
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
