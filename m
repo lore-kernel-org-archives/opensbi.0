@@ -4,73 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id D9548CCFA13
-	for <opensbi@archiver.kernel.org>; Mon, 10 Nov 2025 11:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 22218CCF9E3
+	for <opensbi@archiver.kernel.org>; Mon, 10 Nov 2025 12:31:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:CC
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=51jkbrs+EU2Z//yrDrAppa05+F3dT7KKOOnU69iyPGY=; b=GfjcMkuVrS/som
-	g8oNc+yT8Uh69i8HGVLfqUZRgabTGYT0XmhPpG48qwf52h8hbm7WwDsake5YbvqrKL1OCBKQ9PbA2
-	A7nmqnTtELOBAG9u1CzvbNlJcB6bTMPCDMgu9uEB3x6M3QiyXbMMRmD5ok5aqtYh9mLssoLvtioIf
-	xU2xviZjtV5Ruiyvbq3TFu5/ykuC65D03df/w6NjpTKGhZ1cisF9dGED5eO2irhFj7VTThVWCU9fb
-	sTt2XcGVv7HBSVX6tnMwFiwB0fEfrSASmDkhJ7i5qhHihu51JjSwoQJqKA6YE88JX11RHv4ZvzJAT
-	D4IpL1daZbrPQO/bpStA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=nqABbiS7+vKYCLVgC6/xQb1Bsa4RILjiWiIn8OAp6fs=; b=tHEMoIAJJyXS2u
+	PEnLaOSdg/tx1y506VKF2ug7kpEpncaZVYlltrCc0SWrHavAGEiKvP235CC7+Bj1pWYve1LitkStl
+	f/HQOcXMhAHlQdJ2ezod3vGxDloIiZpEcS+RP6cVnRXykttAwr669GTzES5CqX7cq3VMDZzkVmOgm
+	6xcyYocoG6xIC+H13wpxo5bhDjhjqXCRCDf1GT1/QyYkczdTlLIYG2slpRw9dp55Sg0sxgNpp/2iU
+	Yau/d2fdPRQErjHm0c7Wbrp4I4FsCgdfk3/22C5y/cO/QdiwSwmLqXdwZjuddfXWRu2k3ox+8+268
+	9L/qcFbXEA4g+MBPgepg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIQ8w-00000005K9I-3uYf;
-	Mon, 10 Nov 2025 11:33:06 +0000
-Received: from m.syntacore.com ([178.249.69.228])
+	id 1vIR3U-00000005Pd8-1e5u;
+	Mon, 10 Nov 2025 12:31:32 +0000
+Received: from out30-130.freemail.mail.aliyun.com ([115.124.30.130])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIQ8u-00000005K8C-3Lhy
+	id 1vIR3S-00000005PcX-0CbT
 	for opensbi@lists.infradead.org;
-	Mon, 10 Nov 2025 11:33:06 +0000
-Received: from MRN-SC-KSMG-01.corp.syntacore.com (localhost [127.0.0.1])
-	by m.syntacore.com (Postfix) with ESMTP id E35051A0005
-	for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 11:33:02 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.11.0 m.syntacore.com E35051A0005
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=syntacore.com; s=m;
-	t=1762774382; bh=W46flc4bnhqIb3msi05Enqxwk/C1N0ME1nmKPNDflCs=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:From;
-	b=ACUzyh6jNkglQWftaw05IA8/cUPy4MSn3y4iGfGZX/bKXdOt1+6ZS1KQ3f+7wPdoS
-	 U4fn/cgu48hFCmBRC3ZcygskBc6FDSKmYUBWVnQu3LJBa+BtoarF9up7MRYb9s/f2p
-	 x1pszWt90YIggEccvAOQEB0A1KxboefQeL6vY65Sh05yqIG1BtkC/0DfexYnkrnnLc
-	 1BvyujlN23KHAzPQI2tubUXrxU0V4Fqzo9K2Nz0w1YMPdzcSdxMI4L5NrlECIN9L2z
-	 ugYAdFTmt5aJoR/26gMzbaRUYf3L1fV3TtmwurMH4SKmz4Qru3kidmGevVLfS/wKEw
-	 fCGQ9AZhR/AFQ==
-Received: from S-SC-EXCH-01.corp.syntacore.com (exchange.syntacore.com [10.76.202.20])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by m.syntacore.com (Postfix) with ESMTPS
-	for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 11:33:02 +0000 (UTC)
-Received: from apokriff-sc.corp.yadro.com (10.76.16.215) by
- S-SC-EXCH-01.corp.syntacore.com (10.76.202.20) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.29; Mon, 10 Nov 2025 14:32:41 +0300
-From: Shifrin Dmitry <dmitry.shifrin@syntacore.com>
-To: <opensbi@lists.infradead.org>
-CC: Shifrin Dmitry <dmitry.shifrin@syntacore.com>
-Subject: [PATCH] lib: sbi: sbi_pmu: Fix xINH bits configuring
-Date: Mon, 10 Nov 2025 14:31:40 +0300
-Message-ID: <20251110113140.80561-1-dmitry.shifrin@syntacore.com>
-X-Mailer: git-send-email 2.34.1
+	Mon, 10 Nov 2025 12:31:31 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1762777884; h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	bh=HShw3u1zQYWwNek4qQD7/gxf9ahEzkO13PrrOkyT378=;
+	b=LKxK9PfJFTEyMp9ncZyym8BI3by6HFv3e8DE48MhjAwxruKSdxx7lh5njxbuVYnxrgqi02Mz1P4/V7t80vX4N685fRgw4zDMntstsuFBfG0f7cCjaZQ+5vECYW979sGS9ae7CEuQHZAEaV8s/Z5Ux18Gmcm1h9KI+JzOUO5JuRE=
+Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0Ws3pPce_1762777876 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Mon, 10 Nov 2025 20:31:20 +0800
+From: cp0613@linux.alibaba.com
+To: rkrcmar@ventanamicro.com
+Cc: anup@brainfault.org,
+	guoren@kernel.org,
+	opensbi@lists.infradead.org
+Subject: Re: [PATCH v3] lib: sbi: Enable Ssqosid Ext using mstateen0
+Date: Mon, 10 Nov 2025 20:31:15 +0800
+Message-ID: <20251110123116.496-1-cp0613@linux.alibaba.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <DE4VJ8FBXUYQ.1L6AZ87OOAMPT@ventanamicro.com>
+References: <DE4VJ8FBXUYQ.1L6AZ87OOAMPT@ventanamicro.com>
 MIME-Version: 1.0
-X-Originating-IP: [10.76.16.215]
-X-ClientProxiedBy: S-SC-EXCH-01.corp.syntacore.com (10.76.202.20) To
- S-SC-EXCH-01.corp.syntacore.com (10.76.202.20)
-X-KSMG-AntiPhishing: not scanned, disabled by settings
-X-KSMG-AntiSpam-Interceptor-Info: not scanned
-X-KSMG-AntiSpam-Status: not scanned, disabled by settings
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.1.8310, bases: 2025/11/10 10:58:00 #27905202
-X-KSMG-AntiVirus-Status: NotDetected, skipped
-X-KSMG-LinksScanning: NotDetected
-X-KSMG-Message-Action: skipped
-X-KSMG-Rule-ID: 5
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251110_033304_996328_1E92E1E4 
-X-CRM114-Status: GOOD (  19.04  )
+X-CRM114-CacheID: sfid-20251110_043130_400723_EF53A1E4 
+X-CRM114-Status: GOOD (  35.70  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -82,118 +61,86 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Before this patch sbi_pmu_ctr_start() ignores
-flags received in sbi_pmu_ctr_cfg_match() including
-inhibit ones.
-To prevent it save flags together with event_data
-and use them both in sbi_pmu_ctr_start()
-
-Fixes: 1db95da2997b ("lib: sbi: sbi_pmu: fixed hw counters start for hart")
-
-Signed-off-by: Shifrin Dmitry <dmitry.shifrin@syntacore.com>
----
- include/sbi/sbi_ecall_interface.h |  9 +++++++++
- lib/sbi/sbi_pmu.c                 | 33 ++++++++++++++++++++++++-------
- 2 files changed, 35 insertions(+), 7 deletions(-)
-
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index af7a05af..bdffb0fa 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -291,6 +291,15 @@ struct sbi_pmu_event_info {
- #define SBI_PMU_CFG_FLAG_SET_UINH	(1 << 5)
- #define SBI_PMU_CFG_FLAG_SET_SINH	(1 << 6)
- #define SBI_PMU_CFG_FLAG_SET_MINH	(1 << 7)
-+/* Event configuration mask */
-+#define SBI_PMU_CFG_EVENT_MASK          \
-+	( \
-+		SBI_PMU_CFG_FLAG_SET_VUINH | \
-+		SBI_PMU_CFG_FLAG_SET_VSINH | \
-+		SBI_PMU_CFG_FLAG_SET_UINH  | \
-+		SBI_PMU_CFG_FLAG_SET_SINH  | \
-+		SBI_PMU_CFG_FLAG_SET_MINH    \
-+	)
- 
- /* Flags defined for counter start function */
- #define SBI_PMU_START_FLAG_SET_INIT_VALUE (1 << 0)
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 70c49abc..e24e485d 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -56,6 +56,14 @@ union sbi_pmu_ctr_info {
- #error "Can't handle firmware counters beyond BITS_PER_LONG"
- #endif
- 
-+/** HW event configuration parameters */
-+struct sbi_pmu_hw_event_config {
-+	/* event_data value from sbi_pmu_ctr_cfg_match() */
-+	uint64_t event_data;
-+	/* HW events flags from sbi_pmu_ctr_cfg_match() */
-+	uint64_t flags;
-+};
-+
- /** Per-HART state of the PMU counters */
- struct sbi_pmu_hart_state {
- 	/* HART to which this state belongs */
-@@ -72,11 +80,12 @@ struct sbi_pmu_hart_state {
- 	 * and hence can optimally share the same memory.
- 	 */
- 	uint64_t fw_counters_data[SBI_PMU_FW_CTR_MAX];
--	/* Data values from sbi_pmu_ctr_cfg_match() command which
--	 * is used for restoring RAW hardware events after
-+	/* HW events configuration parameters from
-+	 * sbi_pmu_ctr_cfg_match() command which are
-+	 * used for restoring RAW hardware events after
- 	 * cpu suspending.
- 	 */
--	uint64_t hw_counters_data[SBI_PMU_HW_CTR_MAX];
-+	struct sbi_pmu_hw_event_config hw_counters_cfg[SBI_PMU_HW_CTR_MAX];
- };
- 
- /** Offset of pointer to PMU HART state in scratch space */
-@@ -561,9 +570,13 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
- 					       ival, bUpdate);
- 		} else {
- 			if (cidx >= 3) {
-+				struct sbi_pmu_hw_event_config *ev_cfg =
-+					&phs->hw_counters_cfg[cidx];
-+
- 				ret = pmu_update_hw_mhpmevent(&hw_event_map[cidx], cidx,
--							0, phs->active_events[cidx],
--							phs->hw_counters_data[cidx]);
-+							ev_cfg->flags,
-+							phs->active_events[cidx],
-+							ev_cfg->event_data);
- 				if (ret)
- 					return ret;
- 			}
-@@ -892,8 +905,14 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
- 	} else {
- 		ctr_idx = pmu_ctr_find_hw(phs, cidx_base, cidx_mask, flags,
- 					  event_idx, event_data);
--		if (ctr_idx >= 0)
--			phs->hw_counters_data[ctr_idx] = event_data;
-+		if (ctr_idx >= 0) {
-+			struct sbi_pmu_hw_event_config *ev_cfg =
-+					&phs->hw_counters_cfg[ctr_idx];
-+
-+			ev_cfg->event_data = event_data;
-+			/* Remove flags that are used in match call only */
-+			ev_cfg->flags = flags & SBI_PMU_CFG_EVENT_MASK;
-+		}
- 	}
- 
- 	if (ctr_idx < 0)
--- 
-2.34.1
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gMjAyNS0xMS0xMCAwODozMiBBTSwgUmFkaW0gS3LEjW3DocWZIHdyb3RlOgoKPiA+PiA+IGRp
+ZmYgLS1naXQgYS9pbmNsdWRlL3NiaS9zYmlfaGFydC5oIGIvaW5jbHVkZS9zYmkvc2JpX2hhcnQu
+aAo+ID4+ID4gQEAgLTc5LDYgKzc5LDggQEAgZW51bSBzYmlfaGFydF9leHRlbnNpb25zIHsKPiA+
+PiA+ICAgU0JJX0hBUlRfRVhUX1NNQ1RSLAo+ID4+ID4gICAvKiogSEFSVCBoYXMgQ1RSIFMtbW9k
+ZSBDU1JzICovCj4gPj4gPiAgIFNCSV9IQVJUX0VYVF9TU0NUUiwKPiA+PiA+ICsgLyoqIEhhcnQg
+aGFzIFNzcW9zaWQgZXh0ZW5zaW9uICovCj4gPj4gPiArIFNCSV9IQVJUX0VYVF9TU1FPU0lELAo+
+ID4KPiA+PiBEb24ndCB3ZSBhbHNvIG5lZWQgc29tZXRoaW5nIGxpa2UKPiA+Cj4gPj4gICBfX2No
+ZWNrX2V4dF9jc3IoU0JJX0hBUlRfUFJJVl9WRVJfVU5LTk9XTiwKPiA+PiAgICAgICAgICAgICAg
+ICAgICBDU1JfU1JNQ0ZHLCBTQklfSEFSVF9FWFRfU1NRT1NJRCk7Cj4gPgo+ID4+IHRvIGRldGVj
+dCB0aGUgU1NRT1NJRCBleHRlbnNpb24/Cj4gPgo+ID4gSGkgUmFkaW0sCj4gPgo+ID4gSSBhZGRl
+ZCB0aGlzIGRldGVjdGlvbiBtZWNoYW5pc20gaW4gdGhlIGZpcnN0IHBhdGNoLCBidXQgQW51cCBz
+YWlkLCAiRm9yIG5ld2VyCj4gPiBleHRlbnNpb25zLCBkZXRlY3RpbmcgZnJvbSBJU0Egc3RyaW5n
+cyBpcyBzdWZmaWNpZW50LCBzbyB0aGVyZSdzIG5vIG5lZWQgdG8KPiA+IHRyYXAtbi1kZXRlY3Qg
+aGVyZS4iIFRoZXJlZm9yZSwgaXQgaGFzIGJlZW4gcmVtb3ZlZCBoZXJlLgo+IAo+IEFoLCB0aGF0
+IGlzIGEgZ3JlYXQgZGVjaXNpb24uCj4gCj4gKEkgbWlzc2VkIHRoYXQgdGhpcyBpc24ndCB0aGUg
+Zmlyc3QgdmVyc2lvbiwgcGxlYXNlIHRyeSB0byBtYWludGFpbiBhCj4gIGNoYW5nZWxvZyB3aGVu
+IHBvc3Rpbmcgc3Vic2VxdWVudCBtb2RpZmljYXRpb25zLikKClRoYW5rcyBmb3IgdGhlIHJlbWlu
+ZGVyLCBJIHdpbGwga2VlcCBhIGNoYW5nZWxvZyBpbiB0aGUgbmV4dCBwYXRjaC4KCj4gCj4gPj4g
+PiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlfZG9tYWluX2NvbnRleHQuYyBiL2xpYi9zYmkvc2Jp
+X2RvbWFpbl9jb250ZXh0LmMKPiA+PiA+IEBAIC0xNDMsOCArMTQ1LDExIEBAIHN0YXRpYyBpbnQg
+c3dpdGNoX3RvX25leHRfZG9tYWluX2NvbnRleHQoc3RydWN0IGhhcnRfY29udGV4dCAqY3R4LAo+
+ID4+ID4gICBjdHgtPnNhdHAgPSBjc3Jfc3dhcChDU1JfU0FUUCwgZG9tX2N0eC0+c2F0cCk7Cj4g
+Pj4gPiAgIGlmIChzYmlfaGFydF9wcml2X3ZlcnNpb24oc2NyYXRjaCkgPj0gU0JJX0hBUlRfUFJJ
+Vl9WRVJfMV8xMCkKPiA+PiA+ICAgIGN0eC0+c2NvdW50ZXJlbiA9IGNzcl9zd2FwKENTUl9TQ09V
+TlRFUkVOLCBkb21fY3R4LT5zY291bnRlcmVuKTsKPiA+PiA+IC0gaWYgKHNiaV9oYXJ0X3ByaXZf
+dmVyc2lvbihzY3JhdGNoKSA+PSBTQklfSEFSVF9QUklWX1ZFUl8xXzEyKQo+ID4+ID4gKyBpZiAo
+c2JpX2hhcnRfcHJpdl92ZXJzaW9uKHNjcmF0Y2gpID49IFNCSV9IQVJUX1BSSVZfVkVSXzFfMTIp
+IHsKPiA+PiA+ICAgIGN0eC0+c2VudmNmZyA9IGNzcl9zd2FwKENTUl9TRU5WQ0ZHLCBkb21fY3R4
+LT5zZW52Y2ZnKTsKPiA+PiA+ICsgIGlmIChzYmlfaGFydF9oYXNfZXh0ZW5zaW9uKHNjcmF0Y2gs
+IFNCSV9IQVJUX0VYVF9TU1FPU0lEKSkKPiA+PiA+ICsgICBjdHgtPnNybWNmZyA9IGNzcl9zd2Fw
+KENTUl9TUk1DRkcsIGRvbV9jdHgtPnNybWNmZyk7Cj4gPj4gPiArIH0KPiA+Cj4gPj4gV2h5IHdv
+dWxkIHdlIHdhbnQgU3Nxb3NpZCB0byBkZXBlbmQgb24gUyA+PSAxLjEyPwo+ID4KPiA+IEknbSBn
+dWVzc2luZyB5b3UgcmVhZCB0aGUgUklTQy1WIEluc3RydWN0aW9uIFNldCBNYW51YWwsIHdoaWNo
+IGRlc2NyaWJlcyBzc3FvaWQgYXMKPiA+IHJlcXVpcmluZyBwcml2IHZlcnNpb24gMS4xNC4gSG93
+ZXZlciwgdGhlIGhpZ2hlc3QgcHJpdiB2ZXJzaW9uIGN1cnJlbnRseSBzdXBwb3J0ZWQKPiA+IGJ5
+IE9wZW5TQkkgaXMgMS4xMi4gVGhlcmVmb3JlLCB0aGlzIGltcGxlbWVudGF0aW9uIGlzIGJhc2Vk
+IG9uIHRoZSBjdXJyZW50IHNpdHVhdGlvbiwKPiA+IGFuZCB0aGUgcHJldmlvdXMgaW1wbGVtZW50
+YXRpb25zIHN1Y2ggYXMgQ1RSIGFsc28gZm9sbG93IHRoaXMgYXBwcm9hY2guCj4gCj4gRG9lcyBp
+dD8gIFRoZXJlIGlzIGV2ZW4gYSBub24tbm9ybWF0aXZlIG5vdGU6Cj4gCj4gICBUaGUgU3Nxb3Np
+ZCBleHRlbnNpb24gZG9lcyBub3QgcmVxdWlyZSB0aGF0IFMtbW9kZSBtb2RlIGJlIGltcGxlbWVu
+dGVkLgo+IAo+IEkgdGhpbmsgaXQncyBiZWNhdXNlIHNybWNmZyBoYXMgZWZmZWN0IG9uIE0tbW9k
+ZSwgc28gdGhlIGV4dGVuc2lvbiBpcwo+IGNvbXBsZXRlbHkgaW5kZXBlbmRlbnQgdG8gYWxsb3cg
+aXQgaW4gcHVyZSBNIHN5c3RlbXMuCj4gCj4gKFdlIGVuYWJsZSBzcm1jZmcgaW4gbXN0YXRlZW4g
+cmVnYXJkbGVzcyBvZiBTIHZlcnNpb24sIHNvIHRoZXJlIGlzIGEKPiAgcG90ZW50aWFsIGJ1ZyB3
+aGVyZSB3ZSB3b3VsZG4ndCBjb3JyZWN0bHkgY29udGV4dCBzd2l0Y2ggdGhlIGNzciwgZ2l2ZW4K
+PiAgYSBzeXN0ZW0gd2l0aCB3ZWlyZCBjb21iaW5hdGlvbiBvZiBleHRlbnNpb25zLikKPiAKCkkg
+aGF2ZSBhIGRpZmZlcmVudCBvcGluaW9uIG9uIHRoaXMgcG9pbnQuIFRoaXMgZXh0ZW5zaW9uIGlz
+IGJhc2ljYWxseSB1bnJlbGF0ZWQKdG8gTS1tb2RlLCBpbnN0ZWFkLCBpdCBydW5zIGluIFMtbW9k
+ZS4gSXQgbWF5IGJlIG5lY2Vzc2FyeSB0byBjb25zaWRlciB0aGUgYmFja2dyb3VuZApvZiBzc3Fv
+c2lkJ3MgaW50cm9kdWN0aW9uLiBUaGlzIGlzIHRvIGVuc3VyZSB0aGF0IGNlcnRhaW4gY3JpdGlj
+YWwgYnVzaW5lc3MgcHJvY2Vzc2VzCmNhbiBvYnRhaW4gc3VmZmljaWVudCBoYXJkd2FyZSByZXNv
+dXJjZXMgdG8gcnVuIGFuZCB0aHVzIGd1YXJhbnRlZSBzZXJ2aWNlIHF1YWxpdHkuCgpTaW1pbGFy
+IHRlY2hub2xvZ2llcyBpbmNsdWRlIEludGVsLVJEVCBhbmQgQVJNIE1QQU0uIE9uIHRoZSBMaW51
+eCBzaWRlLCBEcmV3IGhhcyBhbHJlYWR5CnN1Ym1pdHRlZCByZWxldmFudCBwYXRjaGVzIFsxXS4g
+SXQgY2FuIGJlIHNlZW4gdGhhdCBpbiB0aGUgZnV0dXJlLCBpdCB3aWxsIGluZXZpdGFibHkgYmUK
+dXNlZCBpbiBjb25qdW5jdGlvbiB3aXRoIExpbnV4IHJlc2N0cmwsIHNvIHRoZXJlIGlzIG5vIG5l
+ZWQgdG8gY29uc2lkZXIgdGhlIGV4ZWN1dGlvbgpzaXR1YXRpb24gaW4gTS1tb2RlLCBpdCBpcyBv
+bmx5IG5lY2Vzc2FyeSB0byBlbmFibGUgdGhlIHJlbGV2YW50IHBlcm1pc3Npb25zLgoKPiA+PiA+
+IGRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9oYXJ0LmMgYi9saWIvc2JpL3NiaV9oYXJ0LmMKPiA+
+PiA+IEBAIC0xMTIsNiArMTEyLDExIEBAIHN0YXRpYyB2b2lkIG1zdGF0dXNfaW5pdChzdHJ1Y3Qg
+c2JpX3NjcmF0Y2ggKnNjcmF0Y2gpCj4gPj4gPiArICBlbHNlCj4gPj4gPiArICAgbXN0YXRlZW5f
+dmFsICY9IH4oU01TVEFURUVOMF9TUk1DRkcpOwo+ID4KPiA+PiBUaGUgZWxzZSBicmFuY2ggaXMg
+cG9pbnRsZXNzLCBiZWNhdXNlIHRoZSBiaXQgaXMga25vd24gdG8gYmUgMC4KPiA+Cj4gPj4gVGhh
+bmtzLgo+ID4KPiA+IEhlcmUgd2UgbmVlZCB0byBjb25zaWRlciB0aGUgZm9sbG93aW5nIHNjZW5h
+cmlvOiBldmVuIGlmIEhBUlQgc3VwcG9ydHMgdGhlIFNTUU9TSUQKPiA+IGV4dGVuc2lvbiwgYnV0
+IHRoZSB1c2VyIGRvZXNuJ3Qgd2FudCB0byB1c2UgdGhpcyBmZWF0dXJlIGFuZCByZW1vdmVzIHRo
+ZSBzc3Fvc2lkCj4gPiBmaWVsZCBmcm9tIHRoZSBJU0Egc3RyaW5nLCB0aGVuIHRoaXMgYml0IG5l
+ZWRzIHRvIGJlIGV4cGxpY2l0bHkgY2xlYXJlZC4KPiAKPiBXZSB6ZXJvIGEgemVybyBiaXQuICBU
+aGUgY29kZSBmbG93cyBsaWtlIHRoaXM6Cj4gCj4gICBtc3RhdGVlbl92YWwgPSAwOwo+ICAgLi4u
+Cj4gICBtc3RhdGVlbl92YWwgJj0gfihTTVNUQVRFRU4wX1NSTUNGRyk7Cj4gCj4gSSB3b3VsZCBw
+cmVmZXIgaWYgd2UgZGlkbid0IGFkZCB0aGUgZWxzZSBicmFuY2gsIGJ1dCBJIGRvbid0IG1pbmQg
+aXQgdG9vCj4gbXVjaCBlaXRoZXIgaWYgdGhhdCdzIHRoZSBvcGVuc2JpIHN0eWxlLgo+IChPcHRp
+bWl6aW5nIGNvbXBpbGVyIHNob3VsZCBnZW5lcmF0ZSB0aGUgc2FtZSBjb2RlLikKPiAKPiBUaGFu
+a3MuCgpZZXMsIEknbSBqdXN0IG1haW50YWluaW5nIGNvbnNpc3RlbmN5IHdpdGggZXhpc3Rpbmcg
+Y29kaW5nIHN0eWxlcy4KClRoYW5rcywKUGVpCgpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcv
+bGttbC8yMDI1MTAwNy1zc3Fvc2lkLXY0LTAtZThiNTdlNTlkODEyQGtlcm5lbC5vcmcvCgotLSAK
+b3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
+aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
