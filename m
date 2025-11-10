@@ -4,87 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C8675CCFA13
-	for <opensbi@archiver.kernel.org>; Mon, 10 Nov 2025 14:41:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 207D1CCF9E3
+	for <opensbi@archiver.kernel.org>; Mon, 10 Nov 2025 16:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:References:From:To:Cc:
-	Subject:Message-Id:Date:Mime-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Re9Td2e+w1tdZsUprqKlXFtRMEFz0GR6ANDBG24q/uU=; b=LVkvaiGyeAnUdA
-	boguikTR+inYPLhTIe5KAeRd2g9i5b82UumVpoVL+wtZf3h0NWR0oRtxKymiBrEkqfYHxSx7Guhp5
-	DbZFVPAL1zadnwmI+NXbSXbdBtPUzNGbgYTEqY68EgzvEZEjeZAn8B9njMLNAVbAIrzM9xvBA4UOv
-	hVxEzF5cV04xqxvurEitwGaoCEnFmzaNyKbDA5wARN4eKZFcgUCED3s8Ony2gYP94zXjdFrHAJy+8
-	kCwe8XFemix0AxyEhWNWad7dC30K3geR4mGOmOpMSV+cgMyYpDf05av3r+R1ijPcrnTWiJcO3ptDE
-	ZiaNhtnum5Pewg7S/cgg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=4BD0bOlbWiPV3v+MR+s7RiTwEvCW0ACFi6SZ1R13nZk=; b=2ElgqBk8dnoxae
+	n8HGN7onEAoGw6xk8RsGED6AfictWTPaP60DxBl1wJenO6MhWW6QwjVz5fKIDDdcPEcqfGwVbCiB0
+	CmFH50h2NsVvT67bNlQLi/U2LmMz9SnaBKBCLxUfJMznGMFB3/qvPWF2N3ig0vKwNAHTrjDMjmw0r
+	pZNOiia83Q6dZvUoYYuLS4cOypKuyvE6RfakE88oE0JYTId4NXExfMeVwBS3OnQnenPmXuAVeXnpi
+	I9X4KAuUWnoAwrPvYKPteyqDO36Vslunxr2empBYbf4tMdGjhrcx3CP3LFodIGnHdOAoW3dDUEmky
+	cqsot96eyhUi5FINDXkw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIT5N-00000005boD-0XJH;
-	Mon, 10 Nov 2025 14:41:37 +0000
-Received: from mail-ed1-x534.google.com ([2a00:1450:4864:20::534])
+	id 1vIV00-00000005qiE-211q;
+	Mon, 10 Nov 2025 16:44:12 +0000
+Received: from mail-pl1-x62b.google.com ([2607:f8b0:4864:20::62b])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIT5K-00000005bnU-2lAe
+	id 1vIUzw-00000005qhR-34Dk
 	for opensbi@lists.infradead.org;
-	Mon, 10 Nov 2025 14:41:35 +0000
-Received: by mail-ed1-x534.google.com with SMTP id 4fb4d7f45d1cf-64094a79237so399529a12.1
-        for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 06:41:33 -0800 (PST)
+	Mon, 10 Nov 2025 16:44:10 +0000
+Received: by mail-pl1-x62b.google.com with SMTP id d9443c01a7336-297f8c26dc7so15335905ad.2
+        for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 08:44:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1762785693; x=1763390493; darn=lists.infradead.org;
-        h=in-reply-to:references:from:to:cc:subject:message-id:date
-         :content-transfer-encoding:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HlU9ckIWZyG7ADyC1MnjvOLxGTQweaX4VKCHkuSewQY=;
-        b=hYOdMobcqGBZZFT7uS5V0G8mWzMEtQuYj9j5kxvyv0GwCf8NPWd/RYaTIwIEZWErCw
-         tHmOz+E5VG8x41hDLCX68AbewWsg1eykZNaNIe+D1BMdvkJgrFmdsQXeTz/vDrvHPrss
-         svfmgvanTZwopdxNxXn+sU6l69M3/VacDrgbgFL4bmmQjxBvNTBI41aazVocIClAbbrX
-         UhzFJieDjApnU45PEGQWo+XO6n4ysQ1EHKzaQxeGDKoZ8vI61S2JGcy2nH9WTzRs1yas
-         8aj7LQWcZNshqxbYfQWF6J06FWG4WZCDhRl5RFGTdB8bMfFKantBENf2BswkTn4fuzlI
-         v37Q==
+        d=ventanamicro.com; s=google; t=1762793047; x=1763397847; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=GSnVz4tmvsbcin9HusWHCciOA4ubFtl+zArMc2HjW88=;
+        b=M4ayCE9rQJEyTDZsR6CQBLEVVjR4PQzcd4KnTeautxa3GrkP2iw4rrAD76t5B48im3
+         FnZYRFie8wUffVfN8PjukdKKdCuCevZCf2ZtNBm6XalYBuNmbQnTh6VxuV4puR2xEvDd
+         bh1lJMg47Dwr3I0iuETWhhJwZpHyOyXyfJcyZe1B2AJ8sgmEwcMXA2jRV1TjKjg+/fAE
+         NfLzmHh61YKOuEfsVPVjoUrT1oOzHpXwTcV3DBgTlrXtmaefvrLb274WTqYLKakGJAXC
+         LVuTzHyopQnr9xfnQSbo1/j4Ms1jIDxR5oJ11nNPyhi8VzaerW9LuSEqrigW+eXbgrKs
+         Zg6Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762785693; x=1763390493;
-        h=in-reply-to:references:from:to:cc:subject:message-id:date
-         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=HlU9ckIWZyG7ADyC1MnjvOLxGTQweaX4VKCHkuSewQY=;
-        b=eYMF1yY/cyMULmF0ofTyIFYZzlwarpaPPBqPN/UrgDO4/wD+r3zAPVYeFP4+48cHfT
-         /bNuLJ7W+uFlzhZIXooIctECwJaZd9ARp8XJ5xWps3wSRRSbzwO/HG4cIHamvQc13fxN
-         dkGUttVlZ5ml65ZtLhH1m2gDcSlo7BVoZ9STt+TmNTrN3/a4cGgaMJyowP9CiL5llmRq
-         RVnx7wNl+sAbznSMF+qsdsmDn+xzYAwdpsgMtfjQccvsKK1Daovl7iJuwA/+Jet0MCqJ
-         x6LKLosHq64DTBwgQqCVuI9JY+uwcuqz90R3i+iLPbg4rFZCphvwGrFa6YEaMIxmiBWM
-         lGLA==
-X-Forwarded-Encrypted: i=1; AJvYcCXQKs74ddg+LW/F5vWHf/x0mHm0zYD8ZjNNnnKqNrxKKHWvu5Ja97gPy8rjtfVUPQj3f/Sv9WUn@lists.infradead.org
-X-Gm-Message-State: AOJu0YyuTBCZFz9AfGasgiWzleKR70PI2dsG5KF27Z/nyoyyxgbpb30U
-	ORYrLlO282E7P7wYINb3urNuX4psxRwTbD5E9zxglJSTbbhc3X2GqgwtuxMtAue98Ec=
-X-Gm-Gg: ASbGncssCzbWMiBMxFtCG1NERm3dY2olwv0SQKsQ+1I4XBlGP86lgNI/1mFcb1I0g8D
-	Hv/ZRqXtiaoOc8n7X+eBZjrvBm9Ku8ycIdr2wfhhzZ8lBpcpIJVuOa5K4GXaubVkQxijQxYT2Pf
-	VgHx9vIZGROAuqS6R4Y9E2VPRi133oDFR2oqbuMCGSBSJ74IkcupYcQ6TrTTGIRRLePR98Xy4wS
-	fpEYwNvz0AcBgTvl0rpZ5Bi34vHhERM8nD321zu/GXExFWzuVTXhPiXHWAwmMP2gppaKJHm/T3b
-	ysD6xmw+hXyqeETvm3NWYQOjVxyY/+XRh6C5oO1TNXHj25diEFp2a7HVe8X2FC39pVoQ5vqC8Iu
-	VtHsYQw5zoTszXesiI1RJLsdY9k5z8ng4VQVh5Tv4b+mK1QaZifEDhWTYZE1ohnZBBXclk+/8hY
-	5fJ7NhgfjABA==
-X-Google-Smtp-Source: AGHT+IF3mdSrgEW4cUW8gkwBPPnF6ghqy4C9u34JDLjd97C+wWASLpJTpg6ecHVSimJ0nbGocZ4AqA==
-X-Received: by 2002:a05:6402:1462:b0:63c:4031:d864 with SMTP id 4fb4d7f45d1cf-6415ea4d860mr3593425a12.6.1762785692464;
-        Mon, 10 Nov 2025 06:41:32 -0800 (PST)
-Received: from localhost ([2a02:8308:a00c:e200::3052])
-        by smtp.gmail.com with UTF8SMTPSA id 4fb4d7f45d1cf-6411f862ca8sm11457752a12.28.2025.11.10.06.41.31
+        d=1e100.net; s=20230601; t=1762793047; x=1763397847;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GSnVz4tmvsbcin9HusWHCciOA4ubFtl+zArMc2HjW88=;
+        b=u8AHBeddpttJIOAp5jkXN2g970k1x9GHBsYH0Dhv0kLzZfpHC7qvVs75NQlhfWvmn2
+         zQCM31gddLzlWwqnqlbK0je9GBE8rDXt+a7RXETcqNyR9EocmAUPjqSaheVGx+02c6aa
+         coBhcy1P8z7hjQwL1uDPsMvLrCuTzKsUtRq4pS1/aXo2isCMyF7B6Hdk8MxujbehLmGc
+         M0vKkLtcITaLCNHe3NH9vgIRR8ludJpHExB5m4s2yQkm0UB/XRQ2ddmGRt9WPQxcvO/s
+         FrGGDm81KfpvkAQ6Y2CvD4Qj6S+px9Ds2qSSygE5VcoklCRMSujHvq14rXPJXZWife30
+         PGoQ==
+X-Gm-Message-State: AOJu0YwS1Ppt4cR2cD1I+abMO4BnnGoKKf2fLGzSzImlFD8vQFvDFxIr
+	0SKwE7RvgOGmFGi+54qe1N4oKmqlUIRGAk9YbdbaHKR7TcwbCBrobsfKPhKW1dMw9Gt/cwkJtQ+
+	0Zrg7y/c=
+X-Gm-Gg: ASbGncv5rGzHxLbi8OoUy0VLelR/oFXB5NOr/mfIe4mu3Ij+DCL9jDMq0BwpIV9K3p2
+	KdtSV9SYf3MaKp7aNJoqh021RCTgWVen5XM5cV++8s9y2aSDikrRHfgPgl06ippLfvccTyfjKIj
+	npZS6io9FAPgJOkFxgoF3rY1SJ4OJdeAY3nV2IGPz3qplKhuFBWFby7R6vf8pN0dDgNRy9Ud76O
+	OitawSE4u89INFKXw47FMAiQFoJmz+c405RufFCLwdlJAh66phNROK/DZ0PqU4dCQBZLBXdsjyS
+	rutyjokYuVDzNEEnBJVwD4dAct59wLbbfkkIdcxhRi8Ry/nfduhivJooRmFFpML7HJiOEnQpStu
+	xDsfrSRwT3kJas2oD9fUjzHt4uw8N6cfnKFec2GPEaCPkKEdTg3tkBglRbw5BklZzdYL3pBq4Ek
+	ihV8ywWcfb9ayhqL0df/DsWpNzcOjG0TMS8WFlVfQXbkgN2bHvXay2qbSnSghyPfQgBNaZFVSW0
+	myBk0c/pAtRhFsZzAUG83/U3eLdr2H3omp+uCJj6Ac8EjxCUr+XUIm8
+X-Google-Smtp-Source: AGHT+IEq0SYIJCeJj+NOWA9zTHBdCWO75Yv7W7pOjVwh5XI/ZIBa7DPATVx8o4K+YDk9uP6husv2SA==
+X-Received: by 2002:a17:903:17c5:b0:295:4d97:84dd with SMTP id d9443c01a7336-297e56f9d37mr108250395ad.51.1762793047391;
+        Mon, 10 Nov 2025 08:44:07 -0800 (PST)
+Received: from rpathak-ThinkPad-T490.. ([2402:e280:3e81:5eb:fcf7:9bbd:3c34:48ea])
+        by smtp.googlemail.com with ESMTPSA id d9443c01a7336-29650c5c72esm150502155ad.33.2025.11.10.08.44.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Nov 2025 06:41:32 -0800 (PST)
-Mime-Version: 1.0
-Date: Mon, 10 Nov 2025 15:41:13 +0100
-Message-Id: <DE53DAU3LAAK.2FGKTU66OSUEX@ventanamicro.com>
-Subject: Re: [PATCH v3] lib: sbi: Enable Ssqosid Ext using mstateen0
-Cc: <anup@brainfault.org>, <guoren@kernel.org>,
- <opensbi@lists.infradead.org>, "opensbi"
- <opensbi-bounces@lists.infradead.org>
-To: <cp0613@linux.alibaba.com>
-From: =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@ventanamicro.com>
-References: <DE4VJ8FBXUYQ.1L6AZ87OOAMPT@ventanamicro.com>
- <20251110123116.496-1-cp0613@linux.alibaba.com>
-In-Reply-To: <20251110123116.496-1-cp0613@linux.alibaba.com>
+        Mon, 10 Nov 2025 08:44:07 -0800 (PST)
+From: Rahul Pathak <rpathak@ventanamicro.com>
+To: opensbi@lists.infradead.org
+Cc: rpathak@ventanamicro.com,
+	rahul@summations.net
+Subject: [PATCH] Makefile: Only enable --print-gc-section for verbose(V=1) build
+Date: Mon, 10 Nov 2025 22:13:52 +0530
+Message-ID: <20251110164352.163801-1-rpathak@ventanamicro.com>
+X-Mailer: git-send-email 2.48.1
+MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251110_064134_713377_D3044471 
-X-CRM114-Status: GOOD (  23.15  )
+X-CRM114-CacheID: sfid-20251110_084408_772795_58AAE632 
+X-CRM114-Status: UNSURE (   9.28  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -96,72 +94,47 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-MjAyNS0xMS0xMFQyMDozMToxNSswODowMCwgPGNwMDYxM0BsaW51eC5hbGliYWJhLmNvbT46Cj4g
-T24gMjAyNS0xMS0xMCAwODozMiBBTSwgUmFkaW0gS3LEjW3DocWZIHdyb3RlOgo+PiAoSSBtaXNz
-ZWQgdGhhdCB0aGlzIGlzbid0IHRoZSBmaXJzdCB2ZXJzaW9uLCBwbGVhc2UgdHJ5IHRvIG1haW50
-YWluIGEKPj4gIGNoYW5nZWxvZyB3aGVuIHBvc3Rpbmcgc3Vic2VxdWVudCBtb2RpZmljYXRpb25z
-LikKPgo+IFRoYW5rcyBmb3IgdGhlIHJlbWluZGVyLCBJIHdpbGwga2VlcCBhIGNoYW5nZWxvZyBp
-biB0aGUgbmV4dCBwYXRjaC4KCihBcHByZWNpYXRlZC4gIEkgd291bGQgaGF2ZSBzZWFyY2hlZCBt
-YWlsYm94IGJlZm9yZSBwb3N0aW5nIGlmIEkgbm90aWNlZAogdGhlIHYzIGluIHRoZSBoZWFkZXIs
-IGJ1dCBoYXZpbmcgaXQgc3VtbWFyaXplZCBpcyBldmVuIGJldHRlci4pCgo+PiA+PiA+IGRpZmYg
-LS1naXQgYS9saWIvc2JpL3NiaV9kb21haW5fY29udGV4dC5jIGIvbGliL3NiaS9zYmlfZG9tYWlu
-X2NvbnRleHQuYwo+PiA+PiA+IEBAIC0xNDMsOCArMTQ1LDExIEBAIHN0YXRpYyBpbnQgc3dpdGNo
-X3RvX25leHRfZG9tYWluX2NvbnRleHQoc3RydWN0IGhhcnRfY29udGV4dCAqY3R4LAo+PiA+PiA+
-ICAgY3R4LT5zYXRwID0gY3NyX3N3YXAoQ1NSX1NBVFAsIGRvbV9jdHgtPnNhdHApOwo+PiA+PiA+
-ICAgaWYgKHNiaV9oYXJ0X3ByaXZfdmVyc2lvbihzY3JhdGNoKSA+PSBTQklfSEFSVF9QUklWX1ZF
-Ul8xXzEwKQo+PiA+PiA+ICAgIGN0eC0+c2NvdW50ZXJlbiA9IGNzcl9zd2FwKENTUl9TQ09VTlRF
-UkVOLCBkb21fY3R4LT5zY291bnRlcmVuKTsKPj4gPj4gPiAtIGlmIChzYmlfaGFydF9wcml2X3Zl
-cnNpb24oc2NyYXRjaCkgPj0gU0JJX0hBUlRfUFJJVl9WRVJfMV8xMikKPj4gPj4gPiArIGlmIChz
-YmlfaGFydF9wcml2X3ZlcnNpb24oc2NyYXRjaCkgPj0gU0JJX0hBUlRfUFJJVl9WRVJfMV8xMikg
-ewo+PiA+PiA+ICAgIGN0eC0+c2VudmNmZyA9IGNzcl9zd2FwKENTUl9TRU5WQ0ZHLCBkb21fY3R4
-LT5zZW52Y2ZnKTsKPj4gPj4gPiArICBpZiAoc2JpX2hhcnRfaGFzX2V4dGVuc2lvbihzY3JhdGNo
-LCBTQklfSEFSVF9FWFRfU1NRT1NJRCkpCj4+ID4+ID4gKyAgIGN0eC0+c3JtY2ZnID0gY3NyX3N3
-YXAoQ1NSX1NSTUNGRywgZG9tX2N0eC0+c3JtY2ZnKTsKPj4gPj4gPiArIH0KPj4gPgo+PiA+PiBX
-aHkgd291bGQgd2Ugd2FudCBTc3Fvc2lkIHRvIGRlcGVuZCBvbiBTID49IDEuMTI/Cj4+ID4KPj4g
-PiBJJ20gZ3Vlc3NpbmcgeW91IHJlYWQgdGhlIFJJU0MtViBJbnN0cnVjdGlvbiBTZXQgTWFudWFs
-LCB3aGljaCBkZXNjcmliZXMgc3Nxb2lkIGFzCj4+ID4gcmVxdWlyaW5nIHByaXYgdmVyc2lvbiAx
-LjE0LiBIb3dldmVyLCB0aGUgaGlnaGVzdCBwcml2IHZlcnNpb24gY3VycmVudGx5IHN1cHBvcnRl
-ZAo+PiA+IGJ5IE9wZW5TQkkgaXMgMS4xMi4gVGhlcmVmb3JlLCB0aGlzIGltcGxlbWVudGF0aW9u
-IGlzIGJhc2VkIG9uIHRoZSBjdXJyZW50IHNpdHVhdGlvbiwKPj4gPiBhbmQgdGhlIHByZXZpb3Vz
-IGltcGxlbWVudGF0aW9ucyBzdWNoIGFzIENUUiBhbHNvIGZvbGxvdyB0aGlzIGFwcHJvYWNoLgo+
-PiAKPj4gRG9lcyBpdD8gIFRoZXJlIGlzIGV2ZW4gYSBub24tbm9ybWF0aXZlIG5vdGU6Cj4+IAo+
-PiAgIFRoZSBTc3Fvc2lkIGV4dGVuc2lvbiBkb2VzIG5vdCByZXF1aXJlIHRoYXQgUy1tb2RlIG1v
-ZGUgYmUgaW1wbGVtZW50ZWQuCj4+IAo+PiBJIHRoaW5rIGl0J3MgYmVjYXVzZSBzcm1jZmcgaGFz
-IGVmZmVjdCBvbiBNLW1vZGUsIHNvIHRoZSBleHRlbnNpb24gaXMKPj4gY29tcGxldGVseSBpbmRl
-cGVuZGVudCB0byBhbGxvdyBpdCBpbiBwdXJlIE0gc3lzdGVtcy4KPj4gCj4+IChXZSBlbmFibGUg
-c3JtY2ZnIGluIG1zdGF0ZWVuIHJlZ2FyZGxlc3Mgb2YgUyB2ZXJzaW9uLCBzbyB0aGVyZSBpcyBh
-Cj4+ICBwb3RlbnRpYWwgYnVnIHdoZXJlIHdlIHdvdWxkbid0IGNvcnJlY3RseSBjb250ZXh0IHN3
-aXRjaCB0aGUgY3NyLCBnaXZlbgo+PiAgYSBzeXN0ZW0gd2l0aCB3ZWlyZCBjb21iaW5hdGlvbiBv
-ZiBleHRlbnNpb25zLikKCldlIG1pZ2h0IGhhdmUgdGFrZWQgcGFzdCBlYWNoIG90aGVyIGhlcmUu
-CgpJJ20gYXJndWluZyB0aGF0IFJJU0MtViBhbGxvd3MgYSBoYXJ0IHdpdGggSVNBIFMxcDExX1Nz
-cW9zaWQgdG8gZXhpc3QsCmJlY2F1c2UgU3Nxb3NpZCBkb2Vzbid0IGRlcGVuZCBvbiBTLCBzbyBv
-cGVuc2JpIHNob3VsZCBjb250ZXh0IHN3aXRjaApzcm1jZmcgb24gc3VjaCBwb3RlbnRpYWwgKGFs
-YmVpdCB1bmxpa2VseSkgbWFjaGluZS4KCk90aGVyd2lzZSBkb21haW5zIGNvdWxkIG9ic2VydmUg
-c3JtY2ZnIHNldCBieSBvdGhlciBkb21haW5zLgoKPiBJIGhhdmUgYSBkaWZmZXJlbnQgb3Bpbmlv
-biBvbiB0aGlzIHBvaW50LiBUaGlzIGV4dGVuc2lvbiBpcyBiYXNpY2FsbHkgdW5yZWxhdGVkCj4g
-dG8gTS1tb2RlLCBpbnN0ZWFkLCBpdCBydW5zIGluIFMtbW9kZS4gSXQgbWF5IGJlIG5lY2Vzc2Fy
-eSB0byBjb25zaWRlciB0aGUgYmFja2dyb3VuZAo+IG9mIHNzcW9zaWQncyBpbnRyb2R1Y3Rpb24u
-IFRoaXMgaXMgdG8gZW5zdXJlIHRoYXQgY2VydGFpbiBjcml0aWNhbCBidXNpbmVzcyBwcm9jZXNz
-ZXMKPiBjYW4gb2J0YWluIHN1ZmZpY2llbnQgaGFyZHdhcmUgcmVzb3VyY2VzIHRvIHJ1biBhbmQg
-dGh1cyBndWFyYW50ZWUgc2VydmljZSBxdWFsaXR5Lgo+Cj4gU2ltaWxhciB0ZWNobm9sb2dpZXMg
-aW5jbHVkZSBJbnRlbC1SRFQgYW5kIEFSTSBNUEFNLiBPbiB0aGUgTGludXggc2lkZSwgRHJldyBo
-YXMgYWxyZWFkeQo+IHN1Ym1pdHRlZCByZWxldmFudCBwYXRjaGVzIFsxXS4gSXQgY2FuIGJlIHNl
-ZW4gdGhhdCBpbiB0aGUgZnV0dXJlLCBpdCB3aWxsIGluZXZpdGFibHkgYmUKPiB1c2VkIGluIGNv
-bmp1bmN0aW9uIHdpdGggTGludXggcmVzY3RybCwKClllYWgsIEknbSBwbGFubmluZyB0byBsb29r
-IGF0IHRoZSBwYXRjaGVzIGFzIHdlbGwsIGJlY2F1c2UgU3Nxb3NpZCdzCmRlc2lnbiBoYXMgYSBs
-b3Qgb2YgcG90ZW50aWFsIGZvciBzaWRlLWNoYW5uZWxzLgoKPiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgc28gdGhlcmUgaXMgbm8gbmVlZCB0byBjb25zaWRlciB0aGUg
-ZXhlY3V0aW9uCj4gc2l0dWF0aW9uIGluIE0tbW9kZSwgaXQgaXMgb25seSBuZWNlc3NhcnkgdG8g
-ZW5hYmxlIHRoZSByZWxldmFudCBwZXJtaXNzaW9ucy4KClRoZSBleGVjdXRpb24gb2YgTS1tb2Rl
-IGlzIGFmZmVjdGVkIGJ5IHNybWNmZywgc28gd2UgaGF2ZSB0byBiZQpleHRyZW1lbHkgY2FyZWZ1
-bCBhYm91dCBpc29sYXRpb24gaW4gb3BlbnNiaSB0b28sIGVzcGVjaWFsbHkgd2hlbgpqdWdnbGlu
-ZyBtdWx0aXBsZSBkb21haW5zLgoKKEkgdGhpbmsgd2UgbWlnaHQgYmUgZmluZSBub3csIGJ1dCBo
-YXZpbmcgb3BlbnNiaSBzd2l0Y2ggdG8gYSBzcm1jZmcKIHRoYXQgaXNuJ3QgY29udHJvbGxlZCBi
-eSBTLW1vZGUgd2lsbCByZXN1bHQgaW4gYSBsb3QgbGVzcyBoZWFkYWNoZXMuLi4pCgpUaGFua3Mu
-CgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+Earlier this option was enabled during
+debug build which only prints the linker logs
+of removing the unused sections. Instead
+enable this for V=1 and keep the debug build
+clean.
+
+Signed-off-by: Rahul Pathak <rpathak@ventanamicro.com>
+---
+ Makefile | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 398eabe8c964..da7976d5efbb 100644
+--- a/Makefile
++++ b/Makefile
+@@ -444,11 +444,14 @@ DTSCPPFLAGS	=	$(CPPFLAGS) -nostdinc -nostdlib -fno-builtin -D__DTS__ -x assemble
+ 
+ ifneq ($(DEBUG),)
+ CFLAGS		+=	-O0
+-ELFFLAGS	+=	-Wl,--print-gc-sections
+ else
+ CFLAGS		+=	-O2
+ endif
+ 
++ifeq ($(V), 1)
++ELFFLAGS	+=	-Wl,--print-gc-sections
++endif
++
+ # Setup functions for compilation
+ define dynamic_flags
+ -I$(shell dirname $(2)) -D__OBJNAME__=$(subst -,_,$(shell basename $(1) .o))
+-- 
+2.48.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
