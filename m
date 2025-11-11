@@ -4,87 +4,65 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5AD95CD13CF
-	for <opensbi@archiver.kernel.org>; Tue, 11 Nov 2025 03:42:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id CF99BCCFA18
+	for <opensbi@archiver.kernel.org>; Tue, 11 Nov 2025 05:46:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=QsCj1VxG80scDpQENjhsPg5CvODjmVQDpHRUzyD41xQ=; b=iFeOBY3mYfKY/P
-	TtYwDhiacjaBxxYAQWxlnUo4mNDwIUHZANF1advYCddOSXDDcoksdvO6mumU9StSYRmohPT7/efT+
-	HvDwl1cgCpkOwjYKnNHFDJLXPSumTQjIsi1sESrAoVeBqAEjF8xhNsEi0XKbrbb5gSo/q2uCkKtW8
-	fD47dBFBtM+/wBJAaklP3hEVGGPxVLEE3bZq7yJWMwibkUxN7vFkvMcy5KlJ6PBtK2D6ko2HCwCd0
-	m2wFufkyGulba8z7cV2WLqpvoiDU9ihV95lSbpXL5lxtAGRWwXEUTiYxyQRYOXUP05ow9d4Tpz7NU
-	XyqDP6zLtO/Txt2v/AYw==;
+	List-Owner; bh=+awCBPho6Ppzyx6MKQYTEEBKAcUZU85f/GZgc8orCZk=; b=eW+tQUHnk6K0dI
+	ZD8vQSsF8hxWS1zZpMm6O4w02is67AbEYff0LKXGHOY3IbUNBQAPnkXc8ocd+9iXZy0fCefvorZjM
+	mPpUUSAMt0KsRyadDk+uaI9cmwDfjA8/8eVsAI0WzgrIwlTzlwx/9bBohzxN2q2cZLonE1rxG2mh0
+	3LRygCE2g3xl9k4lSpXmxhBG/UvcLLFJD/O/KJWu3MWt+5MXWTAn07E8u0oObZ1IyNEG+SofLqTZT
+	uRRg4WxCzJoM9BinLYWnsnve7E8NBJLs37XMcseKJeubpYPcCs1eMS8E10DCdr1d0hz1v4NABmfBR
+	25nONyqGztffaEtEJdcg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIfHM-00000006SP2-2340;
-	Tue, 11 Nov 2025 03:42:48 +0000
-Received: from mail-pj1-x1035.google.com ([2607:f8b0:4864:20::1035])
+	id 1vIhCb-00000006Zks-2Cso;
+	Tue, 11 Nov 2025 05:46:01 +0000
+Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIfHJ-00000006SNG-181r
+	id 1vIhCY-00000006ZkS-0iDw
 	for opensbi@lists.infradead.org;
-	Tue, 11 Nov 2025 03:42:46 +0000
-Received: by mail-pj1-x1035.google.com with SMTP id 98e67ed59e1d1-3438d4ae152so2215328a91.1
-        for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 19:42:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1762832564; x=1763437364; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HEhnv52LJc4C6PCCuil+z8EbEOh//XjrmsT6fdJvXC0=;
-        b=d5KP56Jnj3c+6osLtLu3O9hMMZh3s9yeuaMNd3gNLkj0LH2pWpqu7teDmYDsuqRlIy
-         k70wsZTut9UNVxzQ+2+++3L8t+sx1iyR3TUTB2tdlVwHZny2cNsAfYGbR461ulsvjz5X
-         OcL86GEOc6oEmeRkescgMyjPoclAqlknY60M7fr9cJBb0EzbhrkRwu9A3JOVMyHblqta
-         fOxLkIAVKojGkoI5S0BE+zdUUY8NwLj6yCgO1k7L71iRHPKNa7vUpepj01FcjhQOCDfs
-         eCO3rF1gsem3jfgemxN/1f0XUVjJuLBnx7AAm9mOpOzCarlGFQ7rmA1G2ZPi9S5i9efg
-         EWnw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762832564; x=1763437364;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=HEhnv52LJc4C6PCCuil+z8EbEOh//XjrmsT6fdJvXC0=;
-        b=qL2KulS96wLFFAA8EItZi9nzYfsi4z4iLD1Bx1J4gdrNEJWsJN0PGmT6WjL0YouxvT
-         lom7ZgGQFQIlH/9i82Qq6Ipt+d5dP1j1VMm7/41+VdBg0bNKp32sKSNS3t3/sxo1bE1B
-         GaxYXL5Los407f/hFWfwkSN+ZV1VtDH7A1aQArQ/ZM8ondu3BCP+PGbKnyAhALDj9ZpM
-         uYGydLSYWTMKfh2CpWKzI7CkrWAj9+AQeZyuogPgx2ne8mSTIeQvRfEo5am1QjmSx/A6
-         3LXr3Nz3k2i1ftv38DED+ams4lUiKaooySbKtjPHGLFxDOdqlqjsco6X6YRpPsEh1ee+
-         04EQ==
-X-Gm-Message-State: AOJu0YyeadpT6axK8T22yWQM5BgyH0zET47PfrQ/C92YNiECPNvSJfL6
-	Rdf9uyaaWVa666TXBa6gbYpg84vFtPoW0i7z2RQ3FSvuTrJhda7Vi7X9NGRsgg==
-X-Gm-Gg: ASbGnctPuk5lBCcsFgA6wQ49FQR2MNjDNdNCT/ckS4pA0k+PvLVo5aM4yPw5k2eQT3x
-	QMHU24nOKj2hFgKxO0fXI+ZJKa3Uk8J3f4X8vr3U/ffmPiLh4sYvkPDOq5EUmpqpYt4TDolSlSD
-	S4qmI3fbvZzR6GmrBmN5jvshjXNVTLRxaSq0mY82y6Ky5zRtbU2l8V/jG3fN7A++bnBR6YKPRHz
-	1495llibv3rJrHjk4qn0ssmmhuGsAwETEl89bbQFT/YU2zkcssW8x2T+QHJEtumtEHabZ4c/izA
-	H5e2SKUpNgPpBM/4EeGU0mS0BhxDcD0JCF1vlQsQeyvgkiIU3wu6fLQhahAHLC7NWiTrpbDuW7E
-	06H2gSu1UrtLFXn8sGMX125v6sHgsSHIdy2LK4PUXWAVDmGlyv5md8Kfxqft+VnDC8NhUE1lmEB
-	OCTeL6iGFJ6aIY
-X-Google-Smtp-Source: AGHT+IHV3FwUafJ0fa278O/SEnVlpF5a3PCq/XSphlHInQMYwKhWWc7KbMvROK3jvz4lt1F8VKEKXA==
-X-Received: by 2002:a17:90b:2dc8:b0:32d:dc3e:5575 with SMTP id 98e67ed59e1d1-3436cb1210fmr12527219a91.5.1762832563908;
-        Mon, 10 Nov 2025 19:42:43 -0800 (PST)
-Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-341a68bf37bsm19434060a91.7.2025.11.10.19.42.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Nov 2025 19:42:43 -0800 (PST)
-From: Bo Gan <ganboing@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: linmin@eswincomputing.com,
-	pinkesh.vaghela@einfochips.com,
-	gaohan@iscas.ac.cn,
-	samuel@sholland.org
-Subject: [PATCH 3/3] platform: generic: eswin: add EIC7700
-Date: Mon, 10 Nov 2025 19:41:11 -0800
-Message-Id: <20251111034111.43973-4-ganboing@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20251111034111.43973-1-ganboing@gmail.com>
+	Tue, 11 Nov 2025 05:46:00 +0000
+Received: from [127.0.0.1] (unknown [112.83.182.103])
+	by APP-03 (Coremail) with SMTP id rQCowABHm92PzRJpW61SAA--.17024S2;
+	Tue, 11 Nov 2025 13:45:53 +0800 (CST)
+Message-ID: <269dc97f01a69b606bfd1a3f2dcbdd9ad03ed0ac.camel@iscas.ac.cn>
+Subject: Re: [PATCH 2/3] lib: sbi: Add pmp_set_tor for setting TOR regions
+From: Xiang W <wangxiang@iscas.ac.cn>
+To: Bo Gan <ganboing@gmail.com>, opensbi@lists.infradead.org
+Cc: linmin@eswincomputing.com, pinkesh.vaghela@einfochips.com, 
+	gaohan@iscas.ac.cn, samuel@sholland.org
+Date: Tue, 11 Nov 2025 13:45:51 +0800
+In-Reply-To: <20251111034111.43973-3-ganboing@gmail.com>
 References: <20251111034111.43973-1-ganboing@gmail.com>
+	 <20251111034111.43973-3-ganboing@gmail.com>
+User-Agent: Evolution 3.56.1-1+deb13u1 
 MIME-Version: 1.0
+X-CM-TRANSID: rQCowABHm92PzRJpW61SAA--.17024S2
+X-Coremail-Antispam: 1UD129KBjvJXoW3Jw4ktF45Cr48trWUGr4rXwb_yoW7GrWUpF
+	1xK34DKrWIqryvkasxurW8XFy5Jwn7Kwn3tF47Kry093W5WF1fuFy5u3s0qr48WFWkuF47
+	A3y3Wrn7uF4DXa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUk2b7Iv0xC_tr1lb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I2
+	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
+	jxv20xvEc7CjxVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVAFwI0_Cr1j6rxdM28EF7xvwV
+	C2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC
+	0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr
+	1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcVAKI48JMxkF7I0En4kS14v26r126r1DMxAI
+	w28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr
+	4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y0x0EwIxG
+	rwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8Jw
+	CI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2
+	z280aVCY1x0267AKxVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvjxU4b4SUUUUU
+X-Originating-IP: [112.83.182.103]
+X-CM-SenderInfo: pzdqw5pldqwq5lvft2wodfhubq/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251110_194245_342954_C8509E4B 
-X-CRM114-Status: GOOD (  24.36  )
+X-CRM114-CacheID: sfid-20251110_214558_580698_9CEE6883 
+X-CRM114-Status: GOOD (  18.46  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -96,372 +74,99 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Initial platform support for ESWIN Computing EIC7700 based on public SoC
-datasheet[1] and tested on HiFive Premier P550. Vendor U-boot/Linux boots
-fine, and I've tested Geekbench 6.5.0 Preview and got scores on par with
-the vendor OpenSBI. System shutdown is not implemented due to the lack of
-public doc regarding the UART communication protocol between the SoC and
-the onboard BMC, which controls ATX power on HiFive P550. [2]
-
-The files and functions are intentionally named as eic770x in many places
-for future enhancements to support the 2-cluster/die version of the same
-SoC, namely EIC7702, seen on DC-ROMA AI PC FML13V03. (Out of scope)
-
-There're 4 build time tunable parameters added to Kconfig, and the values
-are set in custom CSRs during boot:
- - ESWIN_EIC770X_FEAT0_CFG
- - ESWIN_EIC770X_FEAT1_CFG
- - ESWIN_EIC770X_L1_HWPF_CFG
- - ESWIN_EIC770X_L2_HWPF_CFG
-
-The default values are dumped when running SiFive's vendor OpenSBI, and
-with my own tuning to address the perf regression reported by drmpeg [3]
-
-To build the firmware+u-boot blob, Use the following, and docs [4] for
-testing it with UART boot without flashing:
-
-make FW_TEXT_START=0x80000000 \
-     FW_PAYLOAD_OFFSET=0x200000 \
-     FW_PAYLOAD_PATH=u-boot-nodtb.bin \
-     FW_PAYLOAD_FDT_ADDR=0xf8000000 \
-     FW_FDT_PATH=u-boot.dtb
-
-[1] https://github.com/eswincomputing/EIC7700X-SoC-Technical-Reference-Manual
-[2] https://www.sifive.com/boards/hifive-premier-p550#documentation
-[3] https://forums.sifive.com/t/low-1-core-stream-bandwidth/7274/15
-[4] https://github.com/ganboing/EIC770x-Docs/blob/main/p550/bootchain/UART-Boot.md
-
-Signed-off-by: Bo Gan <ganboing@gmail.com>
----
- platform/generic/Kconfig                 |   5 +
- platform/generic/configs/defconfig       |   1 +
- platform/generic/eswin/Kconfig           |  29 ++++
- platform/generic/eswin/eic770x.c         | 165 +++++++++++++++++++++++
- platform/generic/eswin/objects.mk        |  11 ++
- platform/generic/include/eswin/eic770x.h |  49 +++++++
- 6 files changed, 260 insertions(+)
- create mode 100644 platform/generic/eswin/Kconfig
- create mode 100644 platform/generic/eswin/eic770x.c
- create mode 100644 platform/generic/eswin/objects.mk
- create mode 100644 platform/generic/include/eswin/eic770x.h
-
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index aedc59a5..047e13ca 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -88,7 +88,12 @@ config PLATFORM_SPACEMIT_K1
- 	select FDT_HSM_SPACEMIT
- 	default n
- 
-+config PLATFORM_ESWIN_EIC770X
-+	bool "ESWIN EIC770X support"
-+	default n
-+
- source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
-+source "$(OPENSBI_SRC_DIR)/platform/generic/eswin/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/thead/Kconfig"
- 
- endif
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 9e040ac3..60c5449e 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -10,6 +10,7 @@ CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_PLATFORM_THEAD=y
- CONFIG_PLATFORM_MIPS_P8700=y
- CONFIG_PLATFORM_SPACEMIT_K1=y
-+CONFIG_PLATFORM_ESWIN_EIC770X=y
- CONFIG_FDT_CACHE=y
- CONFIG_FDT_CACHE_SIFIVE_CCACHE=y
- CONFIG_FDT_CPPC=y
-diff --git a/platform/generic/eswin/Kconfig b/platform/generic/eswin/Kconfig
-new file mode 100644
-index 00000000..84d0f43a
---- /dev/null
-+++ b/platform/generic/eswin/Kconfig
-@@ -0,0 +1,29 @@
-+# SPDX-License-Identifier: BSD-2-Clause
-+
-+config ESWIN_EIC770X_FEAT0_CFG
-+	int "ESWIN EIC7700X Feature Disable 0 CSR Configuration"
-+	default 0x4000
-+	help
-+	 CSR Value to initialize EIC770X_FEAT0 (0x7c1) with.
-+	 Refer to EIC770X SoC TRM for recommendations.
-+
-+config ESWIN_EIC770X_FEAT1_CFG
-+	int "ESWIN EIC7700X Feature Disable 1 CSR Configuration"
-+	default 0x80
-+	help
-+	 CSR Value to initialize EIC770X_FEAT1 (0x7c2) with.
-+	 Refer to EIC770X SoC TRM for recommendations.
-+
-+config ESWIN_EIC770X_L1_HWPF_CFG
-+	int "ESWIN EIC7700X L1 HW Prefetcher CSR Configuration"
-+	default 0x1005c1be649
-+	help
-+	 CSR Value to initialize EIC770X_L1_HWPF (0x7c3) with.
-+	 Refer to EIC770X SoC TRM for recommendations.
-+
-+config ESWIN_EIC770X_L2_HWPF_CFG
-+	int "ESWIN EIC7700X L2 HW Prefetcher CSR Configuration"
-+	default 0x929f
-+	help
-+	 CSR Value to initialize EIC770X_L2_HWPF (0x7c4) with.
-+	 Refer to EIC770X SoC TRM for recommendations.
-diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
-new file mode 100644
-index 00000000..a4a11186
---- /dev/null
-+++ b/platform/generic/eswin/eic770x.c
-@@ -0,0 +1,165 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Authors:
-+ *   Bo Gan <ganboing@gmail.com>
-+ *
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/sbi_math.h>
-+#include <eswin/eic770x.h>
-+
-+static int eic770x_system_reset_check(u32 type, u32 reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		return 1;
-+	default:
-+		return 0;
-+	}
-+}
-+
-+static void eic770x_system_reset(u32 type, u32 reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		writel(EIC770X_SYSCRG_RST_VAL, (void *)EIC770X_SYSCRG_RST);
-+	}
-+
-+	sbi_printf("%s: Unable to reset system\n", __func__);
-+	sbi_hart_hang();
-+}
-+
-+static struct sbi_system_reset_device eic770x_reset = {
-+	.name = "eic770x_reset",
-+	.system_reset_check = eic770x_system_reset_check,
-+	.system_reset = eic770x_system_reset
-+};
-+
-+static int eswin_eic770x_early_init(bool cold_boot)
-+{
-+	if (cold_boot) {
-+		/* Enable bus blocker */
-+		writel(1, (void*)EIC770X_TL64D2D_OUT);
-+		writel(1, (void*)EIC770X_TL256D2D_OUT);
-+		writel(1, (void*)EIC770X_TL256D2D_IN);
-+		asm volatile ("fence o, rw");
-+	}
-+
-+	return generic_early_init(cold_boot);
-+}
-+
-+static int eswin_eic770x_final_init(bool cold_boot)
-+{
-+	if (cold_boot)
-+		sbi_system_reset_add_device(&eic770x_reset);
-+
-+	/**
-+	 * On EIC770X, we need to use PMP to block Memory Port regions that
-+	 * doesn't belong to the current hart's cluster in order to prevent
-+	 * speculative accesses or HW prefetcher (perhaps?) from generating
-+	 * bus error:
-+	 *
-+	 * 	bus error of cause event: 9, accrued: 0x220,
-+	 *	physical address: 0x24ffffffa0
-+	 */
-+#define PMP_ENTRY_FW 0
-+#define PMP_RESERVED 4
-+	if (hart_cluster(current_hartid())) {
-+		/* On cluster 1: block entire memory port except for DRAM */
-+		pmp_set(1, PMP_R | PMP_W | PMP_X,
-+			EIC770X_D1_MEM_BASE, log2roundup(EIC770X_D1_MEM_SIZE));
-+		/* Use TOR as MEMPORT_BASE is not aligned with SIZE */
-+		pmp_set_tor(3, PMP_L,
-+			    EIC770X_MEMPORT_BASE, EIC770X_MEMPORT_SIZE);
-+	} else {
-+		/* On cluster 0: block entire memory port except for DRAM */
-+		_Static_assert(EIC770X_MEMPORT_BASE == EIC770X_D0_MEM_BASE,
-+				"Should not assume D0_MEM is at MEMPORT_BASE");
-+		/* Use TORs as MEMPORT/D0_MEM_BASE is not aligned with SIZE */
-+		pmp_set_tor(2, PMP_R | PMP_W | PMP_X,
-+			    EIC770X_MEMPORT_BASE, EIC770X_D0_MEM_SIZE);
-+		pmp_set_tor(3, PMP_L,
-+			    EIC770X_MEMPORT_BASE + EIC770X_D0_MEM_SIZE,
-+			    EIC770X_MEMPORT_SIZE - EIC770X_D0_MEM_SIZE);
-+	}
-+	/**
-+	 * These must come after the setup of PMP, as we are about to
-+	 * enable speculation and HW prefetcher bits
-+	 */
-+	csr_write(EIC770X_CSR_FEAT0, CONFIG_ESWIN_EIC770X_FEAT0_CFG);
-+	csr_write(EIC770X_CSR_FEAT1, CONFIG_ESWIN_EIC770X_FEAT1_CFG);
-+	csr_write(EIC770X_CSR_L1_HWPF, CONFIG_ESWIN_EIC770X_L1_HWPF_CFG);
-+	csr_write(EIC770X_CSR_L2_HWPF, CONFIG_ESWIN_EIC770X_L2_HWPF_CFG);
-+
-+	return generic_final_init(cold_boot);
-+}
-+
-+static bool eswin_eic770x_pmp_skip(struct sbi_domain_memregion *reg,
-+				   void *data)
-+{
-+	if (SBI_DOMAIN_MEMREGION_IS_FIRMWARE(reg->flags))
-+		/* Already handled separately below */
-+		return true;
-+
-+	/**
-+	 * If we are still in short of PMP entries, we can skip
-+	 * more, such as UART/PLIC for harts in root domain, as
-+	 * they are already covered by the defult [0, ~0) memory
-+	 * region. Right now we are OK (barely), as we used up
-+	 * all PMP entries.
-+	 */
-+	return false;
-+}
-+
-+static int eswin_eic770x_pmp_configure(unsigned int pmp_count,
-+					unsigned int pmp_log2gran,
-+					unsigned long pmp_addr_max)
-+{
-+	struct sbi_domain_memregion temp_memreg;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	/* Use a single memory region to cover opensbi FW */
-+	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
-+				  (SBI_DOMAIN_MEMREGION_M_READABLE |
-+				   SBI_DOMAIN_MEMREGION_M_WRITABLE |
-+				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
-+				   SBI_DOMAIN_MEMREGION_FW),
-+				  &temp_memreg);
-+	/* This saves 1 PMP entry */
-+	pmp_set(PMP_ENTRY_FW, 0, temp_memreg.base, temp_memreg.order);
-+
-+	return sbi_hart_oldpmp_configure(sbi_scratch_thishart_ptr(),
-+					 PMP_RESERVED,
-+					 pmp_count,
-+					 pmp_log2gran,
-+					 pmp_addr_max,
-+					 eswin_eic770x_pmp_skip,
-+					 NULL);
-+}
-+
-+static int eswin_eic7700_platform_init(const void *fdt, int nodeoff,
-+					const struct fdt_match *match)
-+{
-+	generic_platform_ops.early_init = eswin_eic770x_early_init;
-+	generic_platform_ops.final_init = eswin_eic770x_final_init;
-+	generic_platform_ops.pmp_configure = eswin_eic770x_pmp_configure;
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match eswin_eic7700_match[] = {
-+	{ .compatible = "eswin,eic7700" },
-+	{ },
-+};
-+
-+const struct fdt_driver eswin_eic7700 = {
-+	.match_table = eswin_eic7700_match,
-+	.init = eswin_eic7700_platform_init,
-+};
-diff --git a/platform/generic/eswin/objects.mk b/platform/generic/eswin/objects.mk
-new file mode 100644
-index 00000000..6942a107
---- /dev/null
-+++ b/platform/generic/eswin/objects.mk
-@@ -0,0 +1,11 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+# Copyright (C) 2025 Bo Gan <ganboing@gmail.com>
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_ESWIN_EIC770X) += eswin_eic7700
-+platform-objs-$(CONFIG_PLATFORM_ESWIN_EIC770X) += eswin/eic770x.o
-+
-+FW_PAYLOAD=y
-+FW_PAYLOAD_OFFSET=0x200000
-diff --git a/platform/generic/include/eswin/eic770x.h b/platform/generic/include/eswin/eic770x.h
-new file mode 100644
-index 00000000..cec676da
---- /dev/null
-+++ b/platform/generic/include/eswin/eic770x.h
-@@ -0,0 +1,49 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Bo Gan <ganboing@gmail.com>
-+ *
-+ */
-+
-+#ifndef __EIC770X_H__
-+#define __EIC770X_H__
-+
-+/* CSRs */
-+#define EIC770X_CSR_BRPREDICT	0x7c0
-+#define EIC770X_CSR_FEAT0	0x7c1
-+#define EIC770X_CSR_FEAT1	0x7c2
-+#define EIC770X_CSR_L1_HWPF	0x7c3
-+#define EIC770X_CSR_L2_HWPF	0x7c4
-+
-+/* Hart ID to cluster/core conversion */
-+#define CPU_CORE_BITS		2
-+#define CPU_CORE_MASK		((1 << CPU_CORE_BITS) - 1)
-+#define CPU_CLUSTER_SHIFT	CPU_CORE_BITS
-+#define CPU_CLUSTER_BITS	1
-+#define CPU_CLUSTER_MASK	((1 << CPU_CLUSTER_SHIFT) - 1)
-+
-+#define hart_core(i)		((i) & CPU_CORE_MASK)
-+#define hart_cluster(i)		(((i) >> CPU_CLUSTER_SHIFT) & CPU_CLUSTER_MASK)
-+#define current_hart_core()	hart_core(current_hartid())
-+#define current_hart_cluster()	hart_cluster(current_hartid())
-+
-+/* P550 Internal, System Ports and MMIO */
-+#define EIC770X_P550_INTERNAL	(0x0 + 0x20000000UL * current_hart_cluster())
-+#define EIC770X_TL64D2D_OUT	(EIC770X_P550_INTERNAL + 0x200000)
-+#define EIC770X_TL256D2D_OUT	(EIC770X_P550_INTERNAL + 0x202000)
-+#define EIC770X_TL256D2D_IN	(EIC770X_P550_INTERNAL + 0x204000)
-+
-+#define EIC770X_SYSPORT0_BASE	(0x40000000UL + 0x20000000UL * current_hart_cluster())
-+#define EIC770X_SYSCRG		(EIC770X_SYSPORT0_BASE + 0x11828000UL)
-+#define EIC770X_SYSCRG_RST	(EIC770X_SYSCRG + 0x300UL)
-+#define EIC770X_SYSCRG_RST_VAL	0x1AC0FFE6UL
-+
-+/* Memory Ports */
-+#define EIC770X_MEMPORT_BASE	0x0080000000UL // 2G
-+#define EIC770X_MEMPORT_SIZE	0x7f80000000UL // +510G
-+#define EIC770X_D0_MEM_BASE	0x0080000000UL // 2G
-+#define EIC770X_D0_MEM_SIZE	0x0f80000000UL // +62G
-+#define EIC770X_D1_MEM_BASE	0x2000000000UL // 128G
-+#define EIC770X_D1_MEM_SIZE	0x1000000000UL // +64G
-+
-+#endif
--- 
-2.34.1
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+5ZyoIDIwMjUtMTEtMTDkuIDnmoQgMTk6NDEgLTA4MDDvvIxCbyBHYW7lhpnpgZPvvJoKPiBUT1Ig
+Y2FuIGJlIHV0aWxpemVkIHRvIGNvdmVyIG1lbW9yeSByZWdpb25zIHRoYXQgYXJlIG5vdCBhbGln
+bmVkIHdpdGgKPiB0aGVpciBzaXplcy4gR2l2ZW4gdGhhdCB0aGUgYWRkcmVzcyBtYXRjaGluZyBp
+cyBmb3JtZWQgYnQgMiBjb25zZWN1dGl2ZQo+IHBtcGFkZHIsIGkuZS4sIHBtcGFkZHIoaS0xKSBh
+bmQgcG1wYWRkcihpKSwgVE9SIHNob3VsZCBub3QgYmUgdXNlZAo+IGdlbmVyaWNhbGx5IHRvIGF2
+b2lkIHBtcGFkZHIgY29uZmxpY3Qgd2l0aCBvdGhlciBOQTQvTkFQT1QgcmVnaW9ucy4KPiAKPiBJ
+dCdzIGFkdmlzZWQgdG8gb25seSB1c2UgdGhlbSBpbiBwbGF0Zm9ybSBjb2RlIHdoZXJlIHRoZSBj
+YWxsZXIgY2FuCj4gZW5zdXJlIHRoZSBpbmRleCBhbmQgb3JkZXIgb2YgZXZlcnkgcG1wIHJlZ2lv
+biBlc3BlY2lhbGx5IHdoZW4gdGhlcmUncwo+IGEgbWl4dHVyZSBvZiBUT1IvTkE0L05BUE9ULgo+
+IAo+IFNpZ25lZC1vZmYtYnk6IEJvIEdhbiA8Z2FuYm9pbmdAZ21haWwuY29tPgoKU29tZSBzdWdn
+ZXN0aW9uczoKMS4gTWVyZ2UgcG1wX3NldF9hZGRyL3BtcF9zZXRfcG9ydCBpbnRvIAp2b2lkIHN0
+YXRpYyB2b2lkIHBtcF9zZXRfcmF3KHVuc2lnbmVkIGludCBuLCAKCQkJdW5zaWduZWQgbG9uZyBw
+b3J0LCB1bnNpZ25lZCBsb25nIHBtcGFkZHIpCgoyLiBNb2RpZnkgdGhlIGRlY2xhcmF0aW9uIG9m
+IHBtcF9zZXQgdG8KaW50IHBtcF9zZXQoYm9vbCBpc190b3IsIHVuc2lnbmVkIGludCBuLCB1bnNp
+Z25lZCBsb25nIHBvcnQsIAoJCQl1bnNpZ25lZCBsb25nIGFkZHIsIHVuc2lnbmVkIGxvbmcgb3Bh
+cXVlKQoKUmVnYXJkcywKWGlhbmcgVwo+IC0tLQo+IMKgaW5jbHVkZS9zYmkvcmlzY3ZfYXNtLmgg
+fMKgIDQgKysrCj4gwqBsaWIvc2JpL3Jpc2N2X2FzbS5jwqDCoMKgwqAgfCA3NSArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLQo+IMKgMiBmaWxlcyBjaGFuZ2VkLCA2MiBp
+bnNlcnRpb25zKCspLCAxNyBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9z
+YmkvcmlzY3ZfYXNtLmggYi9pbmNsdWRlL3NiaS9yaXNjdl9hc20uaAo+IGluZGV4IGVmNDhkYzg5
+Li5jMjNmZWFiNiAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL3NiaS9yaXNjdl9hc20uaAo+ICsrKyBi
+L2luY2x1ZGUvc2JpL3Jpc2N2X2FzbS5oCj4gQEAgLTIxOCw2ICsyMTgsMTAgQEAgaW50IGlzX3Bt
+cF9lbnRyeV9tYXBwZWQodW5zaWduZWQgbG9uZyBlbnRyeSk7Cj4gwqBpbnQgcG1wX3NldCh1bnNp
+Z25lZCBpbnQgbiwgdW5zaWduZWQgbG9uZyBwcm90LCB1bnNpZ25lZCBsb25nIGFkZHIsCj4gwqAJ
+wqDCoMKgIHVuc2lnbmVkIGxvbmcgbG9nMmxlbik7Cj4gwqAKPiArLyogVG9wIG9mIHJhbmdlIChU
+T1IpIG1hdGNoaW5nIG1vZGUuIHBtcGFkZHIobi0xKSB3aWxsIGFsc28gYmUgY2hhbmdlZCAqLwo+
+ICtpbnQgcG1wX3NldF90b3IodW5zaWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5z
+aWduZWQgbG9uZyBhZGRyLAo+ICsJCXVuc2lnbmVkIGxvbmcgc2l6ZSk7Cj4gKwo+IMKgaW50IHBt
+cF9nZXQodW5zaWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgKnByb3Rfb3V0LCB1bnNpZ25lZCBs
+b25nICphZGRyX291dCwKPiDCoAnCoMKgwqAgdW5zaWduZWQgbG9uZyAqbG9nMmxlbik7Cj4gwqAK
+PiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9yaXNjdl9hc20uYyBiL2xpYi9zYmkvcmlzY3ZfYXNtLmMK
+PiBpbmRleCAzZTQ0MzIwZi4uOGY2NGYyYjUgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9yaXNjdl9h
+c20uYwo+ICsrKyBiL2xpYi9zYmkvcmlzY3ZfYXNtLmMKPiBAQCAtMzMwLDE2ICszMzAsMTAgQEAg
+aW50IGlzX3BtcF9lbnRyeV9tYXBwZWQodW5zaWduZWQgbG9uZyBlbnRyeSkKPiDCoAlyZXR1cm4g
+ZmFsc2U7Cj4gwqB9Cj4gwqAKPiAtaW50IHBtcF9zZXQodW5zaWduZWQgaW50IG4sIHVuc2lnbmVk
+IGxvbmcgcHJvdCwgdW5zaWduZWQgbG9uZyBhZGRyLAo+IC0JwqDCoMKgIHVuc2lnbmVkIGxvbmcg
+bG9nMmxlbikKPiArc3RhdGljIHZvaWQgcG1wX3NldF9wcm90KHVuc2lnbmVkIGludCBuLCB1bnNp
+Z25lZCBsb25nIHByb3QpCj4gwqB7Cj4gLQlpbnQgcG1wY2ZnX2NzciwgcG1wY2ZnX3NoaWZ0LCBw
+bXBhZGRyX2NzcjsKPiArCWludCBwbXBjZmdfY3NyLCBwbXBjZmdfc2hpZnQ7Cj4gwqAJdW5zaWdu
+ZWQgbG9uZyBjZmdtYXNrLCBwbXBjZmc7Cj4gLQl1bnNpZ25lZCBsb25nIGFkZHJtYXNrLCBwbXBh
+ZGRyOwo+IC0KPiAtCS8qIGNoZWNrIHBhcmFtZXRlcnMgKi8KPiAtCWlmIChuID49IFBNUF9DT1VO
+VCB8fCBsb2cybGVuID4gX19yaXNjdl94bGVuIHx8IGxvZzJsZW4gPCBQTVBfU0hJRlQpCj4gLQkJ
+cmV0dXJuIFNCSV9FSU5WQUw7Cj4gwqAKPiDCoAkvKiBjYWxjdWxhdGUgUE1QIHJlZ2lzdGVyIGFu
+ZCBvZmZzZXQgKi8KPiDCoCNpZiBfX3Jpc2N2X3hsZW4gPT0gMzIKPiBAQCAtMzUxLDE1ICszNDUs
+MjkgQEAgaW50IHBtcF9zZXQodW5zaWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5z
+aWduZWQgbG9uZyBhZGRyLAo+IMKgI2Vsc2UKPiDCoCMgZXJyb3IgIlVuZXhwZWN0ZWQgX19yaXNj
+dl94bGVuIgo+IMKgI2VuZGlmCj4gLQlwbXBhZGRyX2NzciA9IENTUl9QTVBBRERSMCArIG47Cj4g
+LQo+IC0JLyogZW5jb2RlIFBNUCBjb25maWcgKi8KPiAtCXByb3QgJj0gflBNUF9BOwo+IC0JcHJv
+dCB8PSAobG9nMmxlbiA9PSBQTVBfU0hJRlQpID8gUE1QX0FfTkE0IDogUE1QX0FfTkFQT1Q7Cj4g
+wqAJY2ZnbWFzayA9IH4oMHhmZlVMIDw8IHBtcGNmZ19zaGlmdCk7Cj4gwqAJcG1wY2ZnCT0gKGNz
+cl9yZWFkX251bShwbXBjZmdfY3NyKSAmIGNmZ21hc2spOwo+IMKgCXBtcGNmZyB8PSAoKHByb3Qg
+PDwgcG1wY2ZnX3NoaWZ0KSAmIH5jZmdtYXNrKTsKPiDCoAo+ICsJY3NyX3dyaXRlX251bShwbXBj
+ZmdfY3NyLCBwbXBjZmcpOwo+ICt9Cj4gKwo+ICtzdGF0aWMgdm9pZCBwbXBfc2V0X2FkZHIodW5z
+aWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgcG1wYWRkcikKPiArewo+ICsJaW50IHBtcGFkZHJf
+Y3NyID0gQ1NSX1BNUEFERFIwICsgbjsKPiArCj4gKwljc3Jfd3JpdGVfbnVtKHBtcGFkZHJfY3Ny
+LCBwbXBhZGRyKTsKPiArfQo+ICsKPiAraW50IHBtcF9zZXQodW5zaWduZWQgaW50IG4sIHVuc2ln
+bmVkIGxvbmcgcHJvdCwgdW5zaWduZWQgbG9uZyBhZGRyLAo+ICsJwqDCoMKgIHVuc2lnbmVkIGxv
+bmcgbG9nMmxlbikKPiArewo+ICsJdW5zaWduZWQgbG9uZyBhZGRybWFzaywgcG1wYWRkcjsKPiAr
+Cj4gKwkvKiBjaGVjayBwYXJhbWV0ZXJzICovCj4gKwlpZiAobiA+PSBQTVBfQ09VTlQgfHwgbG9n
+MmxlbiA+IF9fcmlzY3ZfeGxlbiB8fCBsb2cybGVuIDwgUE1QX1NISUZUKQo+ICsJCXJldHVybiBT
+QklfRUlOVkFMOwo+ICsKPiDCoAkvKiBlbmNvZGUgUE1QIGFkZHJlc3MgKi8KPiDCoAlpZiAobG9n
+MmxlbiA9PSBQTVBfU0hJRlQpIHsKPiDCoAkJcG1wYWRkciA9IChhZGRyID4+IFBNUF9TSElGVCk7
+Cj4gQEAgLTM3MywxMCArMzgxLDQxIEBAIGludCBwbXBfc2V0KHVuc2lnbmVkIGludCBuLCB1bnNp
+Z25lZCBsb25nIHByb3QsIHVuc2lnbmVkIGxvbmcgYWRkciwKPiDCoAkJfQo+IMKgCX0KPiDCoAo+
+ICsJLyogZW5jb2RlIFBNUCBjb25maWcgKi8KPiArCXByb3QgJj0gflBNUF9BOwo+ICsJcHJvdCB8
+PSAobG9nMmxlbiA9PSBQTVBfU0hJRlQpID8gUE1QX0FfTkE0IDogUE1QX0FfTkFQT1Q7Cj4gKwo+
+IMKgCS8qIHdyaXRlIGNzcnMgKi8KPiAtCWNzcl93cml0ZV9udW0ocG1wYWRkcl9jc3IsIHBtcGFk
+ZHIpOwo+IC0JY3NyX3dyaXRlX251bShwbXBjZmdfY3NyLCBwbXBjZmcpOwo+ICsJcG1wX3NldF9h
+ZGRyKG4sIHBtcGFkZHIpOwo+ICsJcG1wX3NldF9wcm90KG4sIHByb3QpOwo+ICsJcmV0dXJuIDA7
+Cj4gK30KPiArCj4gK2ludCBwbXBfc2V0X3Rvcih1bnNpZ25lZCBpbnQgbiwgdW5zaWduZWQgbG9u
+ZyBwcm90LCB1bnNpZ25lZCBsb25nIGFkZHIsCj4gKwkJdW5zaWduZWQgbG9uZyBzaXplKQo+ICt7
+Cj4gKwl1bnNpZ25lZCBsb25nIHBtcGFkZHIsIHBtcGFkZHJwOwo+ICsKPiArCS8qIGNoZWNrIHBh
+cmFtZXRlcnMgKi8KPiArCWlmIChuID49IFBNUF9DT1VOVCkKPiArCQlyZXR1cm4gU0JJX0VJTlZB
+TDsKPiArCj4gKwlpZiAobiA9PSAwICYmIGFkZHIgIT0gMCkKPiArCQlyZXR1cm4gU0JJX0VJTlZB
+TDsKPiArCj4gKwkvKiBlbmNvZGUgUE1QIGFkZHJlc3MgKi8KPiArCXBtcGFkZHJwID0gYWRkciA+
+PiBQTVBfU0hJRlQ7Cj4gKwlwbXBhZGRyID0gKGFkZHIgKyBzaXplKSA+PiBQTVBfU0hJRlQ7Cj4g
+wqAKPiArCS8qIGVuY29kZSBQTVAgY29uZmlnICovCj4gKwlwcm90ICY9IH5QTVBfQTsKPiArCXBy
+b3QgfD0gUE1QX0FfVE9SOwo+ICsKPiArCS8qIHdyaXRlIGNzcnMgKi8KPiArCWlmIChuKQo+ICsJ
+CXBtcF9zZXRfYWRkcihuIC0gMSwgcG1wYWRkcnApOwo+ICsJcG1wX3NldF9hZGRyKG4sIHBtcGFk
+ZHIpOwo+ICsJcG1wX3NldF9wcm90KG4sIHByb3QpOwo+IMKgCXJldHVybiAwOwo+IMKgfQo+IMKg
+Cj4gQEAgLTQyMCwxMCArNDU5LDEyIEBAIGludCBwbXBfZ2V0KHVuc2lnbmVkIGludCBuLCB1bnNp
+Z25lZCBsb25nICpwcm90X291dCwgdW5zaWduZWQgbG9uZyAqYWRkcl9vdXQsCj4gwqAJCQlhZGRy
+CT0gKGFkZHIgJiB+KCgxVUwgPDwgdDEpIC0gMSkpIDw8IFBNUF9TSElGVDsKPiDCoAkJCWxlbgk9
+ICh0MSArIFBNUF9TSElGVCArIDEpOwo+IMKgCQl9Cj4gLQl9IGVsc2Ugewo+ICsJfSBlbHNlIGlm
+ICgocHJvdCAmIFBNUF9BKSA9PSBQTVBfQV9OQTQpIHsKPiDCoAkJYWRkcgk9IGNzcl9yZWFkX251
+bShwbXBhZGRyX2NzcikgPDwgUE1QX1NISUZUOwo+IMKgCQlsZW4JPSBQTVBfU0hJRlQ7Cj4gLQl9
+Cj4gKwl9IGVsc2UKPiArCQkvKiBFcnJvciBvdXQgZm9yIFRPUiByZWdpb24gKi8KPiArCQlyZXR1
+cm4gU0JJX0VJTlZBTDsKPiDCoAo+IMKgCS8qIHJldHVybiBkZXRhaWxzICovCj4gwqAJKnByb3Rf
+b3V0wqDCoMKgID0gcHJvdDsKPiAtLSAKPiAyLjM0LjEKPiAKCgotLSAKb3BlbnNiaSBtYWlsaW5n
+IGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
+b3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
