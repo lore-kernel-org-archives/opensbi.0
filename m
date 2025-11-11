@@ -4,87 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 77524CCF9E3
-	for <opensbi@archiver.kernel.org>; Tue, 11 Nov 2025 03:42:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0B053CCFA1E
+	for <opensbi@archiver.kernel.org>; Tue, 11 Nov 2025 03:42:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=+Pfzmb3vRImujuz5T21kQZKlZ8q66BLIcmiar/OP2jY=; b=W90tpEu3dab29b
-	2Q3ys05wiqwI+C5MHSrhNwGCENFOvYmc+ANr0pSu2P/USBBmsbkjh0+U46bD8cSiJaCYV8w0ZqlMW
-	7a2O/bOFhqJ7v7VSm99G5Pci2WHxb7RCBMcYzTTPCbIcvICy9K9+KZ1Dc7TuZcAcrHQt8Pwj8pNlV
-	mpsSvzW6W2SpSvHQapuGePuatylGag3BzlXgabmZBudrXCXWsmsFTJIUDv/Jh/OIOL5/p8OBcUbFt
-	R/3it+Cu09wZt57/0BE5acNyjikQNl1dIfGkY9kv/JiHog2cYEIltlzLlQb9B//v1wfWN5t78w8UE
-	p9EIpBIRFvDRcHsA+Yyw==;
+	List-Owner; bh=9fKNQxUmeWwaiCvPWnzWUZ40qRwbj8Yr5KsXa1rNkHo=; b=Dr/JSrIYxsQGCi
+	bYyQ63di8uuMDDdJBbOfSVNNchhPCkwrcOfePLmxw4pH4FJyJ38qz2OAe441s1VpfLkk0OEqrKAIS
+	lcjKAJFiasGXufB/3hv3m3ZFfVap/VxM4qAMlgxFfeKDqdo289GttO9Wxr0oY90FxNPB0eKxWXEfw
+	VklYrZW/OOrjB5C9yQJ7L7+iJiGjjENWuy9CL2vEFMZm6TwGDbdpEu8TWM03P88XCyywPoTv1Afz8
+	DIhNhHQulxagJ4LDwMV8BR6A9ysebk79bSIWQJBn9Ld+asoP02PBKaeFfDEegPqqfPcyaw+FKsG7A
+	TbVVbS/zFeIODCFG2nHA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIfHJ-00000006SNd-1cBf;
+	id 1vIfHJ-00000006SNt-402b;
 	Tue, 11 Nov 2025 03:42:45 +0000
-Received: from mail-pj1-x1033.google.com ([2607:f8b0:4864:20::1033])
+Received: from mail-pj1-x102b.google.com ([2607:f8b0:4864:20::102b])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIfHH-00000006SMP-04UJ
+	id 1vIfHI-00000006SMu-0zn9
 	for opensbi@lists.infradead.org;
-	Tue, 11 Nov 2025 03:42:44 +0000
-Received: by mail-pj1-x1033.google.com with SMTP id 98e67ed59e1d1-3438231df5fso2335846a91.2
-        for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 19:42:42 -0800 (PST)
+	Tue, 11 Nov 2025 03:42:45 +0000
+Received: by mail-pj1-x102b.google.com with SMTP id 98e67ed59e1d1-3436d6aa66dso359221a91.1
+        for <opensbi@lists.infradead.org>; Mon, 10 Nov 2025 19:42:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1762832561; x=1763437361; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1762832563; x=1763437363; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QxhMMXh+PnnoDUpNv46GKdaps2PVncOtr+qOqd1JwA0=;
-        b=kGNPTFNS9YgvVet7klto7RbDzOM5YWRp7u/o8HfM8YDEnfSYZKKcDx8TcSRyUXTkWv
-         Dco+i495P0eLgqHG1DmLWODkTBTRGDtbaTj6ARNh/ilvbl1Sl/6rFtju+PbwAghvsoWc
-         NW0jhv39f1du0jgsItj9+4kIK3cRYvIk1lfXFPhCSEADzwic3EVaCHw8TlzoV6/aG4Un
-         hnpX2y99Qi61L8zcbC4Kyf5zcFOAEHof+/eFSKvplRUrxI0l6ZNseL+48FXVobAjB/vu
-         6eHAv17hgZv8DDLjVOD42IXF+gu0f7Gu+gE3RhuRcSYqPdVgEa8DWgFFUgnpclDS8Q1u
-         +vmQ==
+        bh=YtsN4oHL+tkMoNrGpgKlH5kOFpaq5YKLolTNwo9A+E0=;
+        b=PppKrRBUHJgVhI+LCBivEC9SRaBctd59phGS6O0XLPv5ERAtd9o51sWirE+/+8hpYu
+         mJkVSpaR311C8bJ1V7CbXzAwFDh0ISLEMt3rg1d634RISXdxT57TclVJzcYOhaUHV0M3
+         bofR1P7cYfXJmUrqKWHkl9DCYToT3CPtuazsTwBEKG11OqE8mMc1sRGPWOWYlUWH34KJ
+         kN3Rjn8tB6IIMpIPyxf1TvCMWjmD06hDYigSIa/ijqq6Bcrr0/FwW0yqHhXIH3l9hSia
+         c0tAR/iF1O9TRfZ57/NoO7LhKvJ/nwR6C1CoRExMQU2fzBndKn9xdRmCA4fF66aYIPKs
+         Jt4Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762832561; x=1763437361;
+        d=1e100.net; s=20230601; t=1762832563; x=1763437363;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=QxhMMXh+PnnoDUpNv46GKdaps2PVncOtr+qOqd1JwA0=;
-        b=rVmjcif8few2uWQL+lkBurp4ZVEWkk4y97YIf8ymfQSSHynK9PTK9DyPqNitowoawR
-         t4rpqiEk6hNNDUBGxubHSESW6+WBAJ1QIRGxkcBOCf4UwAsVDEwb7TH2d5JWuW2Of9AG
-         mterkYK5ZQQqd73zB9OKoYRVIR7X7aL0dxnKUyNb20u0sDiGEBsg3aAa36c7EEqP4GD0
-         MEU06+fPUc6Yx3wzIBEH+b+ePU3hMVwbsE7bchoUjrE//5nI/VpY9J4qIaEvdC1uzyIr
-         njToFXiH2JAt6z0I3+xRcvhswAdDtJ4XSeBIgpbJP39j+i3sYDifUTiljnJCGrf+ZAtN
-         kGAA==
-X-Gm-Message-State: AOJu0YwX/VLiZvKNLdod9yYoUiih0YU+28kdiGWGSNbujL4wnkhHMNFL
-	js0zM+8D6Oy/RWyMh2nkUqJVIq71QhdWDRw+VCl3RPIHBl1QL10JGAOGxpN6Ig==
-X-Gm-Gg: ASbGncvVSvf9j+QV7pyco4UarKIrqM7TzRqDaQCcmQqtltlCwCQ7m5UUj0bQ6i5+aRV
-	sdnH3lsMCe9pkJU616oE+H6mglrtty0jLX7nQY2lEQ19Ikyjq6LKJrg9VbTSTtuQBN/5pNzZIhV
-	DCWdFxoGzwa++0Rf725FjI8AZJVUM/LhHjpainUNvpzPlesQwFJqsyxvLPbbrom5urIhEMfv3WW
-	0Wa25E43A5ukpehoyBz4Bga6ERsr24PKFdB8CvRxzKIfXGts9/fDRYUz4bvU4zVBiR9JGcnX4zK
-	rlZb9dDYoMfH211rpoCUwx2ynFOU6CGNbMDStC/39HMpGAp9zLyy18SGgFZD+o1zDH9re0otnY4
-	kM+P1TwhIi//KTDMZfv9UPxxjp7F2QclbY4/28ElJl3YYoTfykkQD/HXbkObWzjpEuONVI/44bh
-	OxH2RnWcf64nX7
-X-Google-Smtp-Source: AGHT+IEu9R3ZHIzlpjcc4ZyqlvZrpdcG+odg1HwrB43uO8WHT2qJrRFcaakPfkSlaJfpq7DT444QNQ==
-X-Received: by 2002:a17:90b:254b:b0:341:88c1:6a7d with SMTP id 98e67ed59e1d1-3436cbb3db9mr11917622a91.18.1762832561578;
-        Mon, 10 Nov 2025 19:42:41 -0800 (PST)
+        bh=YtsN4oHL+tkMoNrGpgKlH5kOFpaq5YKLolTNwo9A+E0=;
+        b=CnJdqPyYmcQZh+zczps14GXC9sSjX+MrDIHNrUcdCqXvSM5ZS4HYoHC/usCClAw+Sn
+         nxy+3NAGITrP8BEj9pNox9dHrP5HjufMq+5xxZtwjDX0TLS/A7B6y19FvHnZX/xOZj6L
+         wq9YoI1IHSflaASFM3FW1eC4eI4PAnNPG0NKeZ5vzh0lgU9DX4WimIgLOc+eN/6Y5xt3
+         z0PmuWXchU1GMN8dgTz62vO6PLkUFVakedFsusgWTLY2xQTZhof/CE0tz4RqvevRSvP7
+         92hpskgMsxxltTdUc3v1DK5gU/oVYgQkPGk9h+9m585/Nfpx68F5C2FcHDSssb+zMsgL
+         MQow==
+X-Gm-Message-State: AOJu0Yw7mcWManM3bmEOO1hGe0yJ4zSrdCft8hx/3d8yczOiDnOmTVFl
+	Vq2wG9Qf7TQMlcgqBNXw6rn+3G3/VFNIW3Unswza/WuDBY+z/5yYu/AqJT/ghQ==
+X-Gm-Gg: ASbGncv1tShT7ZBDiWBNyXyp56qfNQmISNXM2yNVoG1H1XLQ+XoGHhjyZ+6+9XyL2DX
+	F20CirvswIpXSgSQH3YRawiYYZlv2JiSbX8Motmz1L6PT4XIR0QVnUd42HbzGtTjY3DOXbvgJQ8
+	9aMBeXwIHTim1Tq1cyDEWUqlBsWzceAjee4l3tybtsgl64HjVyjYS8M9g1PuPYj+C72xqAQW+pX
+	A62necJF57sPOjn6xJ9KffUZfI2CDY1JjGM+iHEeqT7LHfrEFJxSAWTT5XSzV3oISmU4ehM+cBn
+	7bKr+il/a+KYcXEYpXoJn0qMxvOaeH1mslImMFuTOqxbAbucX2Z8n2n4WIHZw4Gs8qFikOqMub3
+	dUYgeNYvrTNBQ/A7DMlnx+T6B6GzSXA8E6ppsswm3ceVTkpjSRbpMGQGyjKCff4j0jOyIOu2O72
+	UQKQ==
+X-Google-Smtp-Source: AGHT+IHxrtZLGosCv0ICYOklwFWjztSubwLWsU2PZem0mZe8Eu3dJ/uCiUdws1FEvbBDSPLupUNiUA==
+X-Received: by 2002:a17:90b:584f:b0:343:87b3:6fbb with SMTP id 98e67ed59e1d1-343bf0bd8bdmr2087918a91.8.1762832562690;
+        Mon, 10 Nov 2025 19:42:42 -0800 (PST)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-341a68bf37bsm19434060a91.7.2025.11.10.19.42.40
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-341a68bf37bsm19434060a91.7.2025.11.10.19.42.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Nov 2025 19:42:41 -0800 (PST)
+        Mon, 10 Nov 2025 19:42:42 -0800 (PST)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: linmin@eswincomputing.com,
 	pinkesh.vaghela@einfochips.com,
 	gaohan@iscas.ac.cn,
 	samuel@sholland.org
-Subject: [PATCH 1/3] lib: sbi: allow platform to override PMP configuration
-Date: Mon, 10 Nov 2025 19:41:09 -0800
-Message-Id: <20251111034111.43973-2-ganboing@gmail.com>
+Subject: [PATCH 2/3] lib: sbi: Add pmp_set_tor for setting TOR regions
+Date: Mon, 10 Nov 2025 19:41:10 -0800
+Message-Id: <20251111034111.43973-3-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20251111034111.43973-1-ganboing@gmail.com>
 References: <20251111034111.43973-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251110_194243_066399_8D2E0EC2 
-X-CRM114-Status: GOOD (  17.39  )
+X-CRM114-CacheID: sfid-20251110_194244_283040_7CE43125 
+X-CRM114-Status: GOOD (  15.45  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -101,164 +101,153 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Platform sometimes wants to override the entire PMP configuration phase,
-not just performing additional work for each individual PMP entry. This
-allows platforms to insert SoC/core specific PMP entries in a way that
-works together with the existing ones set by lib/ code, not conflicting.
-platform can also choose to merge or skip memory regions in a reasonable
-way in case there's a shortage of PMP entries.
+TOR can be utilized to cover memory regions that are not aligned with
+their sizes. Given that the address matching is formed bt 2 consecutive
+pmpaddr, i.e., pmpaddr(i-1) and pmpaddr(i), TOR should not be used
+generically to avoid pmpaddr conflict with other NA4/NAPOT regions.
 
-In addition, `sbi_hart_oldpmp_configure` is made public and a callback
-function `skip` is added, so platform code can built on top of it to
-simplify PMP configuration override.
+It's advised to only use them in platform code where the caller can
+ensure the index and order of every pmp region especially when there's
+a mixture of TOR/NA4/NAPOT.
 
 Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- include/sbi/sbi_hart.h     |  9 +++++++++
- include/sbi/sbi_platform.h | 33 +++++++++++++++++++++++++++++++++
- lib/sbi/sbi_hart.c         | 27 +++++++++++++++++++--------
- 3 files changed, 61 insertions(+), 8 deletions(-)
+ include/sbi/riscv_asm.h |  4 +++
+ lib/sbi/riscv_asm.c     | 75 +++++++++++++++++++++++++++++++----------
+ 2 files changed, 62 insertions(+), 17 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index e66dd52f..e5a221bd 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -133,6 +133,7 @@ struct sbi_hart_features {
- };
+diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
+index ef48dc89..c23feab6 100644
+--- a/include/sbi/riscv_asm.h
++++ b/include/sbi/riscv_asm.h
+@@ -218,6 +218,10 @@ int is_pmp_entry_mapped(unsigned long entry);
+ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 	    unsigned long log2len);
  
- struct sbi_scratch;
-+struct sbi_domain_memregion;
- 
- int sbi_hart_reinit(struct sbi_scratch *scratch);
- int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
-@@ -148,6 +149,14 @@ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
- bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
-+int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
-+			      unsigned int pmp_start,
-+			      unsigned int pmp_count,
-+			      unsigned int pmp_log2gran,
-+			      unsigned long pmp_addr_max,
-+			      bool (*skip)(struct sbi_domain_memregion *reg,
-+					   void *data),
-+			      void *data);
- int sbi_hart_map_saddr(unsigned long base, unsigned long size);
- int sbi_hart_unmap_saddr(void);
- int sbi_hart_priv_version(struct sbi_scratch *scratch);
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index d75c12de..c6fc137f 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -146,6 +146,11 @@ struct sbi_platform_operations {
- 			unsigned long log2len);
- 	/** platform specific pmp disable on current HART */
- 	void (*pmp_disable)(unsigned int n);
++/* Top of range (TOR) matching mode. pmpaddr(n-1) will also be changed */
++int pmp_set_tor(unsigned int n, unsigned long prot, unsigned long addr,
++		unsigned long size);
 +
-+	/** platform pmp configure override on current HART */
-+	int (*pmp_configure)(unsigned int pmp_count,
-+			     unsigned int pmp_log2gran,
-+			     unsigned long pmp_addr_max);
- };
+ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 	    unsigned long *log2len);
  
- /** Platform default per-HART stack size for exception/interrupt handling */
-@@ -666,6 +671,34 @@ static inline void sbi_platform_pmp_disable(const struct sbi_platform *plat,
- 		sbi_platform_ops(plat)->pmp_disable(n);
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 3e44320f..8f64f2b5 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -330,16 +330,10 @@ int is_pmp_entry_mapped(unsigned long entry)
+ 	return false;
  }
  
-+/**
-+ * Check if platform wants to override PMP configuration
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ */
-+static inline bool sbi_platform_pmp_override(const struct sbi_platform *plat)
-+{
-+	return plat && sbi_platform_ops(plat)->pmp_configure;
-+}
-+
-+/**
-+ * Platform PMP configuration override
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ * @param pmp_count number of PMP entries
-+ * @param pmp_log2gran PMP granularity
-+ * @param pmp_addr_max largest value pmpaddr(x) can hold
-+ */
-+static inline int sbi_platform_pmp_configure(const struct sbi_platform *plat,
-+					     unsigned int pmp_count,
-+					     unsigned int pmp_log2gran,
-+					     unsigned long pmp_addr_max)
-+{
-+	return sbi_platform_ops(plat)->pmp_configure(pmp_count,
-+						     pmp_log2gran,
-+						     pmp_addr_max);
-+}
-+
- #endif
+-int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+-	    unsigned long log2len)
++static void pmp_set_prot(unsigned int n, unsigned long prot)
+ {
+-	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
++	int pmpcfg_csr, pmpcfg_shift;
+ 	unsigned long cfgmask, pmpcfg;
+-	unsigned long addrmask, pmpaddr;
+-
+-	/* check parameters */
+-	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
+-		return SBI_EINVAL;
  
+ 	/* calculate PMP register and offset */
+ #if __riscv_xlen == 32
+@@ -351,15 +345,29 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ #else
+ # error "Unexpected __riscv_xlen"
  #endif
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index a91703b4..4425f36b 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -433,18 +433,24 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+-	pmpaddr_csr = CSR_PMPADDR0 + n;
+-
+-	/* encode PMP config */
+-	prot &= ~PMP_A;
+-	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
+ 	cfgmask = ~(0xffUL << pmpcfg_shift);
+ 	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
+ 	pmpcfg |= ((prot << pmpcfg_shift) & ~cfgmask);
+ 
++	csr_write_num(pmpcfg_csr, pmpcfg);
++}
++
++static void pmp_set_addr(unsigned int n, unsigned long pmpaddr)
++{
++	int pmpaddr_csr = CSR_PMPADDR0 + n;
++
++	csr_write_num(pmpaddr_csr, pmpaddr);
++}
++
++int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
++	    unsigned long log2len)
++{
++	unsigned long addrmask, pmpaddr;
++
++	/* check parameters */
++	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
++		return SBI_EINVAL;
++
+ 	/* encode PMP address */
+ 	if (log2len == PMP_SHIFT) {
+ 		pmpaddr = (addr >> PMP_SHIFT);
+@@ -373,10 +381,41 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 		}
+ 	}
+ 
++	/* encode PMP config */
++	prot &= ~PMP_A;
++	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
++
+ 	/* write csrs */
+-	csr_write_num(pmpaddr_csr, pmpaddr);
+-	csr_write_num(pmpcfg_csr, pmpcfg);
++	pmp_set_addr(n, pmpaddr);
++	pmp_set_prot(n, prot);
++	return 0;
++}
++
++int pmp_set_tor(unsigned int n, unsigned long prot, unsigned long addr,
++		unsigned long size)
++{
++	unsigned long pmpaddr, pmpaddrp;
++
++	/* check parameters */
++	if (n >= PMP_COUNT)
++		return SBI_EINVAL;
++
++	if (n == 0 && addr != 0)
++		return SBI_EINVAL;
++
++	/* encode PMP address */
++	pmpaddrp = addr >> PMP_SHIFT;
++	pmpaddr = (addr + size) >> PMP_SHIFT;
+ 
++	/* encode PMP config */
++	prot &= ~PMP_A;
++	prot |= PMP_A_TOR;
++
++	/* write csrs */
++	if (n)
++		pmp_set_addr(n - 1, pmpaddrp);
++	pmp_set_addr(n, pmpaddr);
++	pmp_set_prot(n, prot);
  	return 0;
  }
  
--static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
--				     unsigned int pmp_count,
--				     unsigned int pmp_log2gran,
--				     unsigned long pmp_addr_max)
-+int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
-+			      unsigned int pmp_start,
-+			      unsigned int pmp_count,
-+			      unsigned int pmp_log2gran,
-+			      unsigned long pmp_addr_max,
-+			      bool (*skip)(struct sbi_domain_memregion *reg,
-+					   void *data),
-+			      void *data)
- {
- 	struct sbi_domain_memregion *reg;
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
--	unsigned int pmp_idx = 0;
-+	unsigned int pmp_idx = pmp_start;
- 	unsigned int pmp_flags;
- 	unsigned long pmp_addr;
+@@ -420,10 +459,12 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 			addr	= (addr & ~((1UL << t1) - 1)) << PMP_SHIFT;
+ 			len	= (t1 + PMP_SHIFT + 1);
+ 		}
+-	} else {
++	} else if ((prot & PMP_A) == PMP_A_NA4) {
+ 		addr	= csr_read_num(pmpaddr_csr) << PMP_SHIFT;
+ 		len	= PMP_SHIFT;
+-	}
++	} else
++		/* Error out for TOR region */
++		return SBI_EINVAL;
  
- 	sbi_domain_for_each_memregion(dom, reg) {
-+		if (skip && skip(reg, data))
-+			continue;
- 		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
- 			return SBI_EFAIL;
- 
-@@ -534,6 +540,7 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 	unsigned int pmp_bits, pmp_log2gran;
- 	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
- 	unsigned long pmp_addr_max;
-+	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 
- 	if (!pmp_count)
- 		return 0;
-@@ -542,12 +549,16 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
- 	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
- 
--	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
-+	if (sbi_platform_pmp_override(plat))
-+		rc = sbi_platform_pmp_configure(plat, pmp_count,
-+						pmp_log2gran, pmp_addr_max);
-+	else if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
- 		rc = sbi_hart_smepmp_configure(scratch, pmp_count,
- 						pmp_log2gran, pmp_addr_max);
- 	else
--		rc = sbi_hart_oldpmp_configure(scratch, pmp_count,
--						pmp_log2gran, pmp_addr_max);
-+		rc = sbi_hart_oldpmp_configure(scratch, 0, pmp_count,
-+						pmp_log2gran, pmp_addr_max,
-+						NULL, NULL);
- 
- 	/*
- 	 * As per section 3.7.2 of privileged specification v1.12,
+ 	/* return details */
+ 	*prot_out    = prot;
 -- 
 2.34.1
 
