@@ -4,65 +4,91 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A7D9FCCFA18
-	for <opensbi@archiver.kernel.org>; Tue, 11 Nov 2025 09:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2A33FCCFA1A
+	for <opensbi@archiver.kernel.org>; Tue, 11 Nov 2025 09:46:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=Kh7qzhjjgIhQ+5DiG6bjtuntFNPvrBDUotAkKw7HCrg=; b=JXXlVw/8O03nfE
-	Tdl/T2nXdfammnoDDCf/br1Z0yoBuTV+z+YMOqBgKvA9TceK1yP0aZGAIgtk069s7XCs/M37ucIqr
-	0d2g4zdm/+Fy8xjsHizyC+Q37ypbbV13Y5CNuEBLgYj9KIH1DlhMZm87r9BIcxfMpaBoeX3P0CeU4
-	jPs712N5YjAOHCBgLvzqJGmopcuKm3/TYYJtzvW5ntCJ95aRNqrPIEqUbWQXU9uBnp+zom/4N+D4C
-	ffZTS3a6KIq24fGUjzR76lWkVNthsrj2/HR9fRXSrdLrl0cXu9R05Eoiyo3eWehBKiTejJxg1Tehd
-	ZvvrT2pQ6yLsP2h6Rbng==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=KfJnHp8tSVDZPSOy98NW2QtEFDMQ1sQerv1uXRXgXeE=; b=lPGMGKLPyDq4Y7
+	/XD1PwxWQ20dlcgDHICDBZytnmsuKTfNXNzVkPyjG+QRWQkA8/jSBhiFeiXB08W94gmo9radavDXv
+	L3W4gZRfACvkpEi5qFYW+hXnWnfZM4P+5O63MjO7A0izVEddILjShJSuKwOFKpgOb10YDARDJwH8m
+	Cl00THuxfpzbO5XQ3O9MnwHsMJ2d9qGQInUTHfOx2yiwWf1n+NHjJro0K01kd0eJxH2n0O+gSC9pD
+	YkfoWL8fKvjruLwvX6oxnImx3alWsdbIf/UC7gwolz4Foz3MEBziaODm41i5tAbyp8zUNo8lBV47H
+	PhRfE5zcUXc8QlGNb8Gg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIkaE-00000006pnh-0yVo;
-	Tue, 11 Nov 2025 09:22:38 +0000
-Received: from esa2.hc555-34.eu.iphmx.com ([23.90.104.147])
+	id 1vIkxa-00000006rz5-3mYS;
+	Tue, 11 Nov 2025 09:46:46 +0000
+Received: from mail-pl1-x62a.google.com ([2607:f8b0:4864:20::62a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vIka9-00000006pn1-0rGm
+	id 1vIkxY-00000006ryh-1iM0
 	for opensbi@lists.infradead.org;
-	Tue, 11 Nov 2025 09:22:36 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1762852953; x=1794388953;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=e5znNxeVTfdDPrQ7Y2hNs2KsYdHFkfZTQw/Wqex27ws=;
-  b=CqNRIzj2S80IxEGrESc2+TDSE4kvt74tPvxTyjDs6zon30F0zb1e3mn7
-   TfOUWCmB2cRGmeefEMPpTA+eaLMNqBVj5Ng8hRPK2flXwoxSbuikOIEy9
-   5eL6xne1z3jdlbk38s1WHQ6ecBFZcpiAam0ItDG4DCKi09B66WCu76Nyb
-   TajR1gyHBt3cLcvVGWQawkViJzQKjZwnJmHOm4Ta8Nv78p7V+pdMZYhWC
-   iELMIWqtNAP8VerqCL/NySPGcu7hBAepbSwNKJrqXS1UpITwVElAQH+Vx
-   eZcjr47ZbuTVxu419MC/KaXseyDq6REtSI3FeQ2tCEUjyiO/OXLcwyspL
-   g==;
-X-CSE-ConnectionGUID: 8/mMVghuQ8i04GL/ZmcHeQ==
-X-CSE-MsgGUID: iZkGy8XRSoy9kJ2ljul5sQ==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces04_data.me-crop.lan) ([146.255.191.134])
-  by esa2.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2025 11:22:28 +0200
-X-CSE-ConnectionGUID: AbWjF6ywTHyxt4pAaMlsqQ==
-X-CSE-MsgGUID: nSslvonST3G9kKeq4YoVrA==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces04_data.me-crop.lan with SMTP; 11 Nov 2025 11:22:53 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Tue, 11 Nov 2025 11:22:27 +0200
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-To: Anup Patel <anup@brainfault.org>,
-	Inochi Amaoto <inochiama@outlook.com>
-Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
-	opensbi@lists.infradead.org
-Subject: [PATCH] lib/sbi: fix covered regions handling in sanitize_domain()
-Date: Tue, 11 Nov 2025 11:22:22 +0200
-Message-ID: <20251111092224.825282-1-vladimir.kondratiev@mobileye.com>
+	Tue, 11 Nov 2025 09:46:45 +0000
+Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-2981f9ce15cso22633965ad.1
+        for <opensbi@lists.infradead.org>; Tue, 11 Nov 2025 01:46:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1762854404; x=1763459204; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ylFyOujJEW14v2hs0EP5/dyfX9zo/Qw31SCRgngfQIk=;
+        b=kyVeZYDxvrZViNKtrjdENGYH0PJnkcQXNd150ilNTc531ej58IJsUB/MqDZ8X27JiU
+         blKdxmlfcxNb+eYdupZleqglpa2gzuoGZ9s+FKQFsctXAaEUBmNiiJljsW+cXZ814bKM
+         W+Y1ib4Ykb4ZEgttiVzm3sSZoUIseOvd6tatNnbRSgQUbvZM76aj3wxwfcYtcNv2+QRf
+         Sfa60hNJwg6r7789DBti8cQSBjWZ5fIePmk9sWLgj1tK7mFEDNTyp0mNTeQBtDl0VMv1
+         +6ik8tyrRCvZ9IXJ1sihzLvXhEN3e+ZgHVUorra4Cyvv33uV2OEhUOI8URydkv9GFZdd
+         wjWg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1762854404; x=1763459204;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ylFyOujJEW14v2hs0EP5/dyfX9zo/Qw31SCRgngfQIk=;
+        b=PZ/FgMJOOJv/slV9aBFA3XvUeMeLQWrRVIXvpmmUm9v0RY2yaxlLGmXtBxhUHjK4+X
+         0uClgNIqgCbuzAg4EjzRHJvMl2O1HdGNJNcUQ1fgtX/B110E8lJY9/WSz9rZaSV7CoV5
+         SC5LrEOJ957FNKrHBVXejJn38GSIO1FYoN8TwwoSQwLAv/9v6jahTtSXa8MzrRjrH0Jn
+         e5GSL30zjxIy+VoW1ry9sasMmhZRzdLpeaxL665gR+N5vIHRGa2RZtJk0Df6O4ZlSKDq
+         FYbyyA0S8xfQ3s/3XJJwN7crV6MVRTxT7wGdnZDOvgS48j9hTC/pcETpr1cyj7Y4dsoL
+         /QQQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVFQ5syUuZ7RDidvTRP2085MZzfOeWpzId685rap9dkyX2HKyIiaGGnJvxWY+bgo7qIR+361z8Y@lists.infradead.org
+X-Gm-Message-State: AOJu0YzdLPWA4kTcTTtckJKGhsW7H6S7bm0y7hXenB9GhxzLN/Kn6C5m
+	NMDlPiBO1OzcoudL8cNuk/xFhjhIfMefvXZbBKD9n63i9HKHP2N2pssc
+X-Gm-Gg: ASbGncuc36OrID7cE4ivKuMlB+qMKaYyzsnxwVqzxojwS1itPKwm3fDWP4bE5SWYsAG
+	kR1gYFPSmTPqB99fd6meSvF9UmwhDfoaeAfKSahimkg8epyecnK2W8rkmpimxbVXEWHWZwunI+0
+	EdUR292gLxJ7fm6ZmhwHXAvpiFQPqA0dJ/FSTmYA+tRrW9IwL8H3uo+mEWPe2P0G5GjjqMwrZhY
+	mOC1jG0B4t5y5tk+jj8nBV0dLSLdioAKXzu9c8gTq4h8xpX6aBNNnE2xuJUu5xubquTO0poDrBj
+	ukIyuE/WFS7axkOg3Qhe27eGsQvEqTE9VhIcpZP6Ww2VVCqfSIETxkRbhCd4X7cr4+dhiWxTxPm
+	3t16GcH/aSnyzyfRG3HEQJrMGAqdBuGYcMTK+CZiO0QoZFSmNaXEobL4KALyZ2erWLiUTF1ERcI
+	yC6pcFFXQ/o4df
+X-Google-Smtp-Source: AGHT+IGeYKHvpqRaPn51BnSRI+SDel5O05a5UhsRq89juwyX4jzgRRGS+fVBLsIN2SsQwPs/N6yvhg==
+X-Received: by 2002:a17:903:41c5:b0:295:73ce:b939 with SMTP id d9443c01a7336-297e56be24bmr167169585ad.39.1762854403475;
+        Tue, 11 Nov 2025 01:46:43 -0800 (PST)
+Received: from [192.168.0.13] ([172.92.174.155])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29650c5c6b3sm172951645ad.24.2025.11.11.01.46.42
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 11 Nov 2025 01:46:42 -0800 (PST)
+Message-ID: <03e781c3-2c3e-4d56-80c4-ba981b39767d@gmail.com>
+Date: Tue, 11 Nov 2025 01:45:21 -0800
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/3] lib: sbi: Add pmp_set_tor for setting TOR regions
+To: Xiang W <wangxiang@iscas.ac.cn>, Bo Gan <ganboing@gmail.com>,
+ opensbi@lists.infradead.org
+Cc: linmin@eswincomputing.com, pinkesh.vaghela@einfochips.com,
+ gaohan@iscas.ac.cn, samuel@sholland.org
+References: <20251111034111.43973-1-ganboing@gmail.com>
+ <20251111034111.43973-3-ganboing@gmail.com>
+ <269dc97f01a69b606bfd1a3f2dcbdd9ad03ed0ac.camel@iscas.ac.cn>
+Content-Language: en-US
+From: Bo Gan <ganboing@gmail.com>
+In-Reply-To: <269dc97f01a69b606bfd1a3f2dcbdd9ad03ed0ac.camel@iscas.ac.cn>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251111_012233_707888_E2E4DCB8 
-X-CRM114-Status: GOOD (  13.55  )
+X-CRM114-CacheID: sfid-20251111_014644_463061_3C5120C8 
+X-CRM114-Status: GOOD (  23.61  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -74,68 +100,125 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-In the sanitize_domain, code that checks for the case when one
-memory region covered by the other, was never executed. Quote:
-
-	/* Sort the memory regions */
-	for (i = 0; i < (count - 1); i++) {
-<skip>
-	}
-
-       /* Remove covered regions */
-       while(i < (count - 1)) {
-
-Here "while" loop never executed because condition "i < (count - 1)"
-is always false after the "for" loop just above.
-
-In addition, when clearing region, "root_memregs_count"
-should be adjusted as well, otherwise code that adds memory region
-in the "root_add_memregion" will use wrong position:
-
-	/* Append the memregion to root memregions */
-	nreg = &root.regions[root_memregs_count];
-
-empty entry will be created in the middle of regions array, new
-regions will be added after this empty entry while sanitizing code
-will stop when reaching empty entry.
-
-Fixing: commit 3b03cdd60ce5 ("lib: sbi: Add regions merging when sanitizing domain region")
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- lib/sbi/sbi_domain.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 8cf5fcfe4926..955bf59f877e 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -344,7 +344,7 @@ static int sanitize_domain(struct sbi_domain *dom)
- 	}
- 
- 	/* Remove covered regions */
--	while(i < (count - 1)) {
-+	for (i = 0; i < (count - 1);) {
- 		is_covered = false;
- 		reg = &dom->regions[i];
- 
-@@ -364,6 +364,7 @@ static int sanitize_domain(struct sbi_domain *dom)
- 					    &dom->regions[j + 1]);
- 			clear_region(&dom->regions[count - 1]);
- 			count--;
-+			root_memregs_count--;
- 		} else
- 			i++;
- 	}
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+SGkgWGlhbmcsCgpPbiAxMS8xMC8yNSAyMTo0NSwgWGlhbmcgVyB3cm90ZToKPiDlnKggMjAyNS0x
+MS0xMOS4gOeahCAxOTo0MSAtMDgwMO+8jEJvIEdhbuWGmemBk++8mgo+PiBUT1IgY2FuIGJlIHV0
+aWxpemVkIHRvIGNvdmVyIG1lbW9yeSByZWdpb25zIHRoYXQgYXJlIG5vdCBhbGlnbmVkIHdpdGgK
+Pj4gdGhlaXIgc2l6ZXMuIEdpdmVuIHRoYXQgdGhlIGFkZHJlc3MgbWF0Y2hpbmcgaXMgZm9ybWVk
+IGJ0IDIgY29uc2VjdXRpdmUKPj4gcG1wYWRkciwgaS5lLiwgcG1wYWRkcihpLTEpIGFuZCBwbXBh
+ZGRyKGkpLCBUT1Igc2hvdWxkIG5vdCBiZSB1c2VkCj4+IGdlbmVyaWNhbGx5IHRvIGF2b2lkIHBt
+cGFkZHIgY29uZmxpY3Qgd2l0aCBvdGhlciBOQTQvTkFQT1QgcmVnaW9ucy4KPj4KPj4gSXQncyBh
+ZHZpc2VkIHRvIG9ubHkgdXNlIHRoZW0gaW4gcGxhdGZvcm0gY29kZSB3aGVyZSB0aGUgY2FsbGVy
+IGNhbgo+PiBlbnN1cmUgdGhlIGluZGV4IGFuZCBvcmRlciBvZiBldmVyeSBwbXAgcmVnaW9uIGVz
+cGVjaWFsbHkgd2hlbiB0aGVyZSdzCj4+IGEgbWl4dHVyZSBvZiBUT1IvTkE0L05BUE9ULgo+Pgo+
+PiBTaWduZWQtb2ZmLWJ5OiBCbyBHYW4gPGdhbmJvaW5nQGdtYWlsLmNvbT4KPiAKPiBTb21lIHN1
+Z2dlc3Rpb25zOgo+IDEuIE1lcmdlIHBtcF9zZXRfYWRkci9wbXBfc2V0X3BvcnQgaW50bwo+IHZv
+aWQgc3RhdGljIHZvaWQgcG1wX3NldF9yYXcodW5zaWduZWQgaW50IG4sCj4gCQkJdW5zaWduZWQg
+bG9uZyBwb3J0LCB1bnNpZ25lZCBsb25nIHBtcGFkZHIpCj4gCj4gMi4gTW9kaWZ5IHRoZSBkZWNs
+YXJhdGlvbiBvZiBwbXBfc2V0IHRvCj4gaW50IHBtcF9zZXQoYm9vbCBpc190b3IsIHVuc2lnbmVk
+IGludCBuLCB1bnNpZ25lZCBsb25nIHBvcnQsCj4gCQkJdW5zaWduZWQgbG9uZyBhZGRyLCB1bnNp
+Z25lZCBsb25nIG9wYXF1ZSkKPiAKPiBSZWdhcmRzLAo+IFhpYW5nIFcKCkkgYXNzdW1lIHlvdSBt
+ZWFudCBwb3J0IC0+IHByb3QuIEZvciAxLCBJIGRvbid0IHF1aXRlIGxpa2UgaXQgYmVjYXVzZSBp
+dApraW5kIG9mIGFzc3VtZXMgeW91IGFsd2F5cyBjaGFuZ2UgYSBwbXBhZGRyW2ldL3BtcGNmZ1tp
+XSBwYWlyLiBJbiB0aGUgVE9SCmNhc2UsIG9mdGVuIHRpbWVzIHlvdSBjaGFuZ2UgcG1wYWRkcltp
+LTFdIGFuZCBwbXBhZGRyW2ldLCB0aGVuIHBtcGNmZ1tpXS4KQW4gZWRnZSBjYXNlIGlzIHdoZW4g
+YWRkciA9PSAwIGFuZCBuID09IDAsIGZvciBpdCB3ZSBvbmx5IHVwZGF0ZSBwbXBhZGRyMCwKdGhl
+biBwbXBjZmcwLiBQZXJoYXBzIEknbSBtaXN0YWtlbiwgYW5kIHlvdSBhcmUgc3VnZ2VzdGluZyBg
+cG1wX3NldF9yYXdgCmNhbiBoYW5kbGUgZGlmZmVyZW50IGNhc2VzIGJhc2VkIG9uIHdoZXRoZXIg
+cHJvdCBpcyBUT1I/IFRoZW4gSSdkIHNheSBpdApwcm9iYWJseSBtYWtlcyB0aGUgY29kZSBtb3Jl
+IGNvbXBsaWNhdGVkIHRoYW4gbmVjZXNzYXJ5LCBhcyB0aGUgY2hlY2sgY2FuCmFscmVhZHkgYmUg
+bWFkZSBvbiB0aGUgY2FsbGVyIHNpZGUsIG9yIG5vIFRPUiBjaGVjayBpcyBuZWNlc3Nhcnkgd2l0
+aCBteQpkaWZmZXJlbnQgZnVuY3Rpb24gYXBwcm9hY2guCgpGb3IgMiwgbXkgcmF0aW9uYWxlIG9u
+IGhhdmluZyBhIGRpZmZlcmVudCBmdW5jdGlvbiBpcyB0aGF0IEkgd2FudCB0byBrZWVwCmFsbCBl
+eGlzdGluZyBwbXBfc2V0IHRoZSBzYW1lIHdheSwgYW5kIHRyeSB0byBkaXNjb3VyYWdlIHRoZSB1
+c2Ugb2YgVE9SLgpNYXliZSBJIHNob3VsZCBoYXZlIGFkZGVkIGEgd2FybmluZyBpbiB0aGUgY29t
+bWVudCBpbiBoZWFkZXIgZmlsZS4gVGhlCnJlYXNvbiBpcyBiZWNhdXNlIFRPUiBtYWtlcyB0aGUg
+UE1QIGVudHJpZXMgZGVwZW5kZW50IG9uIHByZWNlZGluZyBvbmVzLApzbyBjYXJlIG11c3QgYmUg
+dGFrZW4gd2hlbiBwcm9ncmFtbWluZyB0aGVtLiBUaGUgY2FsbGVyIG11c3QgaGF2ZSBnbG9iYWwK
+a25vd2xlZGdlIG9mIHBvdGVudGlhbGx5IGFsbCBQTVAgZW50cmllcyB0byBiZSBwcm9ncmFtbWVk
+IGluIG9yZGVyIHRvIHVzZQppdCBwcm9wZXJseS4gSSBkb24ndCBmZWVsIGNvbWZvcnRhYmxlIHVu
+aWZ5aW5nIHRvIHRoZSBzYW1lIGludGVyZmFjZSBmb3IKVE9SIGFuZCBOQTQvTkFQT1QuCgpMZXQg
+bWUga25vdyB3aGF0IHlvdSB0aGluay4gSSdtIGhhcHB5IHRvIGxpc3Rlbi4gVGhhbmtzLgoKQm8K
+Cj4+IC0tLQo+PiAgwqBpbmNsdWRlL3NiaS9yaXNjdl9hc20uaCB8wqAgNCArKysKPj4gIMKgbGli
+L3NiaS9yaXNjdl9hc20uY8KgwqDCoMKgIHwgNzUgKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKy0tLS0tLS0tLS0KPj4gIMKgMiBmaWxlcyBjaGFuZ2VkLCA2MiBpbnNlcnRpb25zKCspLCAx
+NyBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvc2JpL3Jpc2N2X2FzbS5o
+IGIvaW5jbHVkZS9zYmkvcmlzY3ZfYXNtLmgKPj4gaW5kZXggZWY0OGRjODkuLmMyM2ZlYWI2IDEw
+MDY0NAo+PiAtLS0gYS9pbmNsdWRlL3NiaS9yaXNjdl9hc20uaAo+PiArKysgYi9pbmNsdWRlL3Ni
+aS9yaXNjdl9hc20uaAo+PiBAQCAtMjE4LDYgKzIxOCwxMCBAQCBpbnQgaXNfcG1wX2VudHJ5X21h
+cHBlZCh1bnNpZ25lZCBsb25nIGVudHJ5KTsKPj4gIMKgaW50IHBtcF9zZXQodW5zaWduZWQgaW50
+IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5zaWduZWQgbG9uZyBhZGRyLAo+PiAgwqAJwqDCoMKg
+IHVuc2lnbmVkIGxvbmcgbG9nMmxlbik7Cj4+ICAgCj4+ICsvKiBUb3Agb2YgcmFuZ2UgKFRPUikg
+bWF0Y2hpbmcgbW9kZS4gcG1wYWRkcihuLTEpIHdpbGwgYWxzbyBiZSBjaGFuZ2VkICovCj4+ICtp
+bnQgcG1wX3NldF90b3IodW5zaWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5zaWdu
+ZWQgbG9uZyBhZGRyLAo+PiArCQl1bnNpZ25lZCBsb25nIHNpemUpOwo+PiArCj4+ICDCoGludCBw
+bXBfZ2V0KHVuc2lnbmVkIGludCBuLCB1bnNpZ25lZCBsb25nICpwcm90X291dCwgdW5zaWduZWQg
+bG9uZyAqYWRkcl9vdXQsCj4+ICDCoAnCoMKgwqAgdW5zaWduZWQgbG9uZyAqbG9nMmxlbik7Cj4+
+ICAgCj4+IGRpZmYgLS1naXQgYS9saWIvc2JpL3Jpc2N2X2FzbS5jIGIvbGliL3NiaS9yaXNjdl9h
+c20uYwo+PiBpbmRleCAzZTQ0MzIwZi4uOGY2NGYyYjUgMTAwNjQ0Cj4+IC0tLSBhL2xpYi9zYmkv
+cmlzY3ZfYXNtLmMKPj4gKysrIGIvbGliL3NiaS9yaXNjdl9hc20uYwo+PiBAQCAtMzMwLDE2ICsz
+MzAsMTAgQEAgaW50IGlzX3BtcF9lbnRyeV9tYXBwZWQodW5zaWduZWQgbG9uZyBlbnRyeSkKPj4g
+IMKgCXJldHVybiBmYWxzZTsKPj4gIMKgfQo+PiAgIAo+PiAtaW50IHBtcF9zZXQodW5zaWduZWQg
+aW50IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5zaWduZWQgbG9uZyBhZGRyLAo+PiAtCcKgwqDC
+oCB1bnNpZ25lZCBsb25nIGxvZzJsZW4pCj4+ICtzdGF0aWMgdm9pZCBwbXBfc2V0X3Byb3QodW5z
+aWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCkKPj4gIMKgewo+PiAtCWludCBwbXBjZmdf
+Y3NyLCBwbXBjZmdfc2hpZnQsIHBtcGFkZHJfY3NyOwo+PiArCWludCBwbXBjZmdfY3NyLCBwbXBj
+Zmdfc2hpZnQ7Cj4+ICDCoAl1bnNpZ25lZCBsb25nIGNmZ21hc2ssIHBtcGNmZzsKPj4gLQl1bnNp
+Z25lZCBsb25nIGFkZHJtYXNrLCBwbXBhZGRyOwo+PiAtCj4+IC0JLyogY2hlY2sgcGFyYW1ldGVy
+cyAqLwo+PiAtCWlmIChuID49IFBNUF9DT1VOVCB8fCBsb2cybGVuID4gX19yaXNjdl94bGVuIHx8
+IGxvZzJsZW4gPCBQTVBfU0hJRlQpCj4+IC0JCXJldHVybiBTQklfRUlOVkFMOwo+PiAgIAo+PiAg
+wqAJLyogY2FsY3VsYXRlIFBNUCByZWdpc3RlciBhbmQgb2Zmc2V0ICovCj4+ICDCoCNpZiBfX3Jp
+c2N2X3hsZW4gPT0gMzIKPj4gQEAgLTM1MSwxNSArMzQ1LDI5IEBAIGludCBwbXBfc2V0KHVuc2ln
+bmVkIGludCBuLCB1bnNpZ25lZCBsb25nIHByb3QsIHVuc2lnbmVkIGxvbmcgYWRkciwKPj4gIMKg
+I2Vsc2UKPj4gIMKgIyBlcnJvciAiVW5leHBlY3RlZCBfX3Jpc2N2X3hsZW4iCj4+ICDCoCNlbmRp
+Zgo+PiAtCXBtcGFkZHJfY3NyID0gQ1NSX1BNUEFERFIwICsgbjsKPj4gLQo+PiAtCS8qIGVuY29k
+ZSBQTVAgY29uZmlnICovCj4+IC0JcHJvdCAmPSB+UE1QX0E7Cj4+IC0JcHJvdCB8PSAobG9nMmxl
+biA9PSBQTVBfU0hJRlQpID8gUE1QX0FfTkE0IDogUE1QX0FfTkFQT1Q7Cj4+ICDCoAljZmdtYXNr
+ID0gfigweGZmVUwgPDwgcG1wY2ZnX3NoaWZ0KTsKPj4gIMKgCXBtcGNmZwk9IChjc3JfcmVhZF9u
+dW0ocG1wY2ZnX2NzcikgJiBjZmdtYXNrKTsKPj4gIMKgCXBtcGNmZyB8PSAoKHByb3QgPDwgcG1w
+Y2ZnX3NoaWZ0KSAmIH5jZmdtYXNrKTsKPj4gICAKPj4gKwljc3Jfd3JpdGVfbnVtKHBtcGNmZ19j
+c3IsIHBtcGNmZyk7Cj4+ICt9Cj4+ICsKPj4gK3N0YXRpYyB2b2lkIHBtcF9zZXRfYWRkcih1bnNp
+Z25lZCBpbnQgbiwgdW5zaWduZWQgbG9uZyBwbXBhZGRyKQo+PiArewo+PiArCWludCBwbXBhZGRy
+X2NzciA9IENTUl9QTVBBRERSMCArIG47Cj4+ICsKPj4gKwljc3Jfd3JpdGVfbnVtKHBtcGFkZHJf
+Y3NyLCBwbXBhZGRyKTsKPj4gK30KPj4gKwo+PiAraW50IHBtcF9zZXQodW5zaWduZWQgaW50IG4s
+IHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5zaWduZWQgbG9uZyBhZGRyLAo+PiArCcKgwqDCoCB1bnNp
+Z25lZCBsb25nIGxvZzJsZW4pCj4+ICt7Cj4+ICsJdW5zaWduZWQgbG9uZyBhZGRybWFzaywgcG1w
+YWRkcjsKPj4gKwo+PiArCS8qIGNoZWNrIHBhcmFtZXRlcnMgKi8KPj4gKwlpZiAobiA+PSBQTVBf
+Q09VTlQgfHwgbG9nMmxlbiA+IF9fcmlzY3ZfeGxlbiB8fCBsb2cybGVuIDwgUE1QX1NISUZUKQo+
+PiArCQlyZXR1cm4gU0JJX0VJTlZBTDsKPj4gKwo+PiAgwqAJLyogZW5jb2RlIFBNUCBhZGRyZXNz
+ICovCj4+ICDCoAlpZiAobG9nMmxlbiA9PSBQTVBfU0hJRlQpIHsKPj4gIMKgCQlwbXBhZGRyID0g
+KGFkZHIgPj4gUE1QX1NISUZUKTsKPj4gQEAgLTM3MywxMCArMzgxLDQxIEBAIGludCBwbXBfc2V0
+KHVuc2lnbmVkIGludCBuLCB1bnNpZ25lZCBsb25nIHByb3QsIHVuc2lnbmVkIGxvbmcgYWRkciwK
+Pj4gIMKgCQl9Cj4+ICDCoAl9Cj4+ICAgCj4+ICsJLyogZW5jb2RlIFBNUCBjb25maWcgKi8KPj4g
+Kwlwcm90ICY9IH5QTVBfQTsKPj4gKwlwcm90IHw9IChsb2cybGVuID09IFBNUF9TSElGVCkgPyBQ
+TVBfQV9OQTQgOiBQTVBfQV9OQVBPVDsKPj4gKwo+PiAgwqAJLyogd3JpdGUgY3NycyAqLwo+PiAt
+CWNzcl93cml0ZV9udW0ocG1wYWRkcl9jc3IsIHBtcGFkZHIpOwo+PiAtCWNzcl93cml0ZV9udW0o
+cG1wY2ZnX2NzciwgcG1wY2ZnKTsKPj4gKwlwbXBfc2V0X2FkZHIobiwgcG1wYWRkcik7Cj4+ICsJ
+cG1wX3NldF9wcm90KG4sIHByb3QpOwo+PiArCXJldHVybiAwOwo+PiArfQo+PiArCj4+ICtpbnQg
+cG1wX3NldF90b3IodW5zaWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgcHJvdCwgdW5zaWduZWQg
+bG9uZyBhZGRyLAo+PiArCQl1bnNpZ25lZCBsb25nIHNpemUpCj4+ICt7Cj4+ICsJdW5zaWduZWQg
+bG9uZyBwbXBhZGRyLCBwbXBhZGRycDsKPj4gKwo+PiArCS8qIGNoZWNrIHBhcmFtZXRlcnMgKi8K
+Pj4gKwlpZiAobiA+PSBQTVBfQ09VTlQpCj4+ICsJCXJldHVybiBTQklfRUlOVkFMOwo+PiArCj4+
+ICsJaWYgKG4gPT0gMCAmJiBhZGRyICE9IDApCj4+ICsJCXJldHVybiBTQklfRUlOVkFMOwo+PiAr
+Cj4+ICsJLyogZW5jb2RlIFBNUCBhZGRyZXNzICovCj4+ICsJcG1wYWRkcnAgPSBhZGRyID4+IFBN
+UF9TSElGVDsKPj4gKwlwbXBhZGRyID0gKGFkZHIgKyBzaXplKSA+PiBQTVBfU0hJRlQ7Cj4+ICAg
+Cj4+ICsJLyogZW5jb2RlIFBNUCBjb25maWcgKi8KPj4gKwlwcm90ICY9IH5QTVBfQTsKPj4gKwlw
+cm90IHw9IFBNUF9BX1RPUjsKPj4gKwo+PiArCS8qIHdyaXRlIGNzcnMgKi8KPj4gKwlpZiAobikK
+Pj4gKwkJcG1wX3NldF9hZGRyKG4gLSAxLCBwbXBhZGRycCk7Cj4+ICsJcG1wX3NldF9hZGRyKG4s
+IHBtcGFkZHIpOwo+PiArCXBtcF9zZXRfcHJvdChuLCBwcm90KTsKPj4gIMKgCXJldHVybiAwOwo+
+PiAgwqB9Cj4+ICAgCj4+IEBAIC00MjAsMTAgKzQ1OSwxMiBAQCBpbnQgcG1wX2dldCh1bnNpZ25l
+ZCBpbnQgbiwgdW5zaWduZWQgbG9uZyAqcHJvdF9vdXQsIHVuc2lnbmVkIGxvbmcgKmFkZHJfb3V0
+LAo+PiAgwqAJCQlhZGRyCT0gKGFkZHIgJiB+KCgxVUwgPDwgdDEpIC0gMSkpIDw8IFBNUF9TSElG
+VDsKPj4gIMKgCQkJbGVuCT0gKHQxICsgUE1QX1NISUZUICsgMSk7Cj4+ICDCoAkJfQo+PiAtCX0g
+ZWxzZSB7Cj4+ICsJfSBlbHNlIGlmICgocHJvdCAmIFBNUF9BKSA9PSBQTVBfQV9OQTQpIHsKPj4g
+IMKgCQlhZGRyCT0gY3NyX3JlYWRfbnVtKHBtcGFkZHJfY3NyKSA8PCBQTVBfU0hJRlQ7Cj4+ICDC
+oAkJbGVuCT0gUE1QX1NISUZUOwo+PiAtCX0KPj4gKwl9IGVsc2UKPj4gKwkJLyogRXJyb3Igb3V0
+IGZvciBUT1IgcmVnaW9uICovCj4+ICsJCXJldHVybiBTQklfRUlOVkFMOwo+PiAgIAo+PiAgwqAJ
+LyogcmV0dXJuIGRldGFpbHMgKi8KPj4gIMKgCSpwcm90X291dMKgwqDCoCA9IHByb3Q7Cj4+IC0t
+IAo+PiAyLjM0LjEKPj4KPiAKCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0
+cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
+Zm8vb3BlbnNiaQo=
