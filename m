@@ -4,65 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id BC5D6CEACD6
-	for <opensbi@archiver.kernel.org>; Fri, 14 Nov 2025 20:39:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 34A72CEACCE
+	for <opensbi@archiver.kernel.org>; Fri, 14 Nov 2025 20:39:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=5mMY7K59FsZHIlCXJnSNK5H7Ml4i2A4bJtxqEd/8kdI=; b=pddUBzKYFBkWAh
-	mZ21eh77Sk/dn3eVNan2mUmCL5xpLG5mYb5j5h9srU9ILqRp7fChMGfU7XG+kvfiKWYei1M2eQX7h
-	bCk6yC7oeTsQMNwfawOUogEZAn1BsnCQci8hn2syG5lNPS817GhhTy9rx3gGG3uiQnwq1JwNPACPk
-	kkQwjxafV9et0nOCjWFXsLLayNkrxz9uJq9DsIrYDDjGXDldRrYMPJ2nqQy6WnQJohZHnRkcutesQ
-	7Zvx2p73qIP0BZVNEAcjBwseDvgD6mUokzPXr+g6KTuiLa2X5/gV+qFmjYJJGQ8i1kVtdWDxs0cc4
-	GRVxcrcniCSQS6KHObWg==;
+	List-Owner; bh=HUMcgzOQfWr6lgb4dorPsz4ogvCjH20mYl1nFZfTLC4=; b=O3gA9Orz0qbs0I
+	nIsTxnKVrUFyO0cKP13GcehWaYfaVXtxGustVtHOcUh9uUF7H84pjNLBC6h+7lvUlWiViPes4nmcC
+	XFYr6rnCO83LQ0OV8Q3ihyEjjCZ4n/NThzXOTZRXnUbSjNXVesZUUim57xc5MVsUsc0DKsvNGtvtB
+	ahdTg2yBg0HdwbS+AFcrwnjejZt30EmotCid3jklr7ZNXCAXG5m25leLOtI1+OB04Eyo5oPOrJKAe
+	11GE6IHVsiTl9XB1CKZPPWdRd8sUl00WMHUQS1OrTrRRTIG/srmg8Xb7HvCJkFl+LcIRYarAAUam5
+	0llvsYDr+eRTCemhdZUg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vK0ZP-0000000D5hB-3XeZ;
-	Fri, 14 Nov 2025 20:38:59 +0000
-Received: from mout.gmx.net ([212.227.15.15])
+	id 1vK0ZU-0000000D5kX-0iES;
+	Fri, 14 Nov 2025 20:39:04 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vK0ZM-0000000D5ep-1qNd
+	id 1vK0ZS-0000000D5hy-1mq7
+	for opensbi@bombadil.infradead.org;
+	Fri, 14 Nov 2025 20:39:02 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
+	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=6g0h7nVGRATgelfN/f3nPirrtMTjn4y/MCwWQogelgc=; b=Y1xsN6ppLx5Jvm759PCzVyKVi8
+	Jc6CBX1FnhcWr/2XPeifQFnATTKgSrWY39HqK/NCwzfw+Lf964gCld1MgvIkFPaywTFZgG6YQ7XFX
+	KjeNaTI0ZK9/SHezsf7q3rCaOzdYgGbcd+jRtj7Ox8xMncKxLi6edBlc3P/0glEg78UL5RrcRS0zL
+	IpDcflfLa10QjJjAatsPCI0RlwsT5f/I4uEM38vNCN7zLBLKRmNF0SAm0bWA+T/lCfM3ja6FRDVHR
+	qyuBoNLeKVe3EFQsd0hE8Plztl7fOf4dDsCAe2CqBx16ywejv+W+JVXBHqDQy4OPoa7kjO5s1/y19
+	g8OD+Fpw==;
+Received: from mout.gmx.net ([212.227.15.19])
+	by desiato.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vJzhl-00000003TzV-0Gyo
 	for opensbi@lists.infradead.org;
-	Fri, 14 Nov 2025 20:38:59 +0000
+	Fri, 14 Nov 2025 19:43:34 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.net;
-	s=s31663417; t=1763152734; x=1763757534; i=b.freisen@gmx.net;
-	bh=E4IxYSfBxRQv30Ahu5EHHe2H3STr4ZnfmDpKPijdto8=;
+	s=s31663417; t=1763152738; x=1763757538; i=b.freisen@gmx.net;
+	bh=6g0h7nVGRATgelfN/f3nPirrtMTjn4y/MCwWQogelgc=;
 	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-ID:In-Reply-To:
 	 References:MIME-Version:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=N7FFrvqiMv4r1tNKSP1aODR3L8WduiHGh/vIsloDI8bAqPjyLxdbEt6aF3yCt7MM
-	 +Vq9yOMmRvc8Z2YbdxpeBwhKepgefeTreqSTdtYygU7q6yTiny1xOt3kTOk99GUnD
-	 dXMF+Sa0H+8eha6DCU5Hk71PWW6VbqolkHk900FY4BQy1GP4DrcHjsfgMZc41Dm/E
-	 aIfJxcOSkI6eIAGz78uLm9/Nh3CLiDkv0v27EWu8xGh+Y1ylx7dNEPRpSkc9i/YWo
-	 rPF1XIY7aRIzu1TIxMrxD0YieNivenEOq2OjZlu9k858ZRc5UxmIrY97gKKdEKFPU
-	 Aa9Q5fl9CRoLPW07Qg==
+	b=eb4vcDwZhTcsQitDPysrATbbdmuc7DsavBGBSoHadbOG/FaDiE8781nxm6bnNwP3
+	 YpLn831+H9p9j10y6/uqecxE+0IL1TKZn1cIhcALhZPkfzWvGkukeaeIvbsboW8JJ
+	 QL5H7uKuhSVdC2ya57YQHoAR7hGueyhXOuUfpPnt1ndRV30TcT4PBqvKcWdO5L1a0
+	 MEhtFdcaoWqU4ROvkZ5sN7XbPQ0E4+3wZnCwZC2Ml65uq2XHSXUJU91dW/ScKwE9n
+	 ZeAsZSwHT7ZQph1zpr1UDBAixs+mB5AJAEl4yB+fSVrxRmLOOrHb6kI16EiehQXKa
+	 ABCmfXW70tDECgJVkA==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
 Received: from blackbox ([95.223.79.138]) by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1MTzay-1vjxPw2YvS-00Kyld; Fri, 14
- Nov 2025 21:38:54 +0100
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1N17UW-1wLE642yGg-00s6an; Fri, 14
+ Nov 2025 21:38:58 +0100
 From: Benedikt Freisen <b.freisen@gmx.net>
 To: opensbi@lists.infradead.org
 Cc: Benedikt Freisen <b.freisen@gmx.net>
-Subject: [PATCH v2 2/7] Makefile: sensible default value for OPENSBI_CC_XLEN.
-Date: Fri, 14 Nov 2025 21:38:37 +0100
-Message-ID: <20251114203842.13396-3-b.freisen@gmx.net>
+Subject: [PATCH v2 5/7] lib: sbi: Workaround for FENCE(.I) errata on C906, C910.
+Date: Fri, 14 Nov 2025 21:38:40 +0100
+Message-ID: <20251114203842.13396-6-b.freisen@gmx.net>
 X-Mailer: git-send-email 2.51.1
 In-Reply-To: <20251114203842.13396-1-b.freisen@gmx.net>
 References: <20251114203842.13396-1-b.freisen@gmx.net>
 MIME-Version: 1.0
-X-Provags-ID: V03:K1:1iZbC/mTJStj/A4khZ+aAgmxI1fKCf+gfjoTZqn99YmWMc5I3ab
- D/gRqyNMBjntTRhiVEcKQS79BxXa/2k1fmgVP4kUdXtSs6MRIu922r+XqsR+5h/UVqkRv7Q
- Tm8MeN3Vo18z+wI4Yzy9PI29uY0GvP0FL4selmBeKZTKtBks3suJmkrIQKfPZHJBCUO19xB
- 4LEAgPMWRfB9gINvfaNig==
-UI-OutboundReport: notjunk:1;M01:P0:RYf9Du26RZI=;LWZceF0R38f//WzU9EMTADeaf7q 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 hdQYVr0dScqxIY9l5p5k2Sxkax1s8Ysz4O0Yn3
+X-Provags-ID: V03:K1:CUtUWBWxBVHVjpl7GvXh0Y6973Y7h9yn895NOppFq15DwArnAhE
+ SHj1SnJvvAA20L0l93es6vtFOgTHlCDTbdJ8MYRWbISJe0hW9sUzED+kXvYAS3fVfVuJA3l
+ 3kdd9KeZDxq517PDV/o3wVwKuqBppgFY95GQqXpAXPJkxBt4n6Wm/hlV7xu13HS/jG+194+
+ zaGl/PYmmTFdcHNoVBrVg==
+UI-OutboundReport: notjunk:1;M01:P0:Fb3XtQDhzyY=;JtiIcnQASMuSGdFd3ztIod8lvLT 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 L/7maPqI=
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251114_123856_760072_32B9748A 
-X-CRM114-Status: UNSURE (   6.30  )
+X-CRM114-CacheID: sfid-20251114_194333_210713_2E839E44 
+X-CRM114-Status: UNSURE (   8.78  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -80,32 +95,62 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-If guessing the compiler's XLEN fails, use 64 rather than garbage.
-The previous behavior could silently break e.g. OPENSBI_CC_SUPPORT_VECTOR
-when cross-compiling with a system's native clang.
+According to the RISCVuzz paper by Thomas et al., the T-Head/XuanTie C906
+and C910 cores fail to ignore reserved fields in the "fence" and "fence.i"
+encodings and trigger illegal instruction traps if these fields are non-zero,
+so address that in the illegal instruction trap handler.
 
 Signed-off-by: Benedikt Freisen <b.freisen@gmx.net>
 ---
- Makefile | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/sbi/riscv_encoding.h |  4 ++++
+ lib/sbi/sbi_illegal_insn.c   | 17 +++++++++++++++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/Makefile b/Makefile
-index 398eabe..afcc544 100644
---- a/Makefile
-+++ b/Makefile
-@@ -151,6 +151,12 @@ endif
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 2970ba0..d956ebb 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -944,8 +944,12 @@
+ #define INSN_MASK_WFI			0xffffff00
+ #define INSN_MATCH_WFI			0x10500000
  
- # Guess the compiler's XLEN
- OPENSBI_CC_XLEN := $(shell TMP=`$(CC) $(CLANG_TARGET) -dumpmachine | sed 's/riscv\([0-9][0-9]\).*/\1/'`; echo $${TMP})
-+# If guessing XLEN fails, default to 64
-+ifneq ($(OPENSBI_CC_XLEN),32)
-+  ifneq ($(OPENSBI_CC_XLEN),64)
-+    OPENSBI_CC_XLEN = 64
-+  endif
-+endif
++#define INSN_MASK_FENCE			0x0000707f
++#define INSN_MATCH_FENCE		0x0000000f
+ #define INSN_MASK_FENCE_TSO		0xfff0707f
+ #define INSN_MATCH_FENCE_TSO		0x8330000f
++#define INSN_MASK_FENCE_I		0x0000707f
++#define INSN_MATCH_FENCE_I		0x0000100f
  
- # Guess the compiler's ABI and ISA
- ifneq ($(CC_IS_CLANG),y)
+ #define INSN_MASK_VECTOR_UNIT_STRIDE		0xfdf0707f
+ #define INSN_MASK_VECTOR_FAULT_ONLY_FIRST	0xfdf0707f
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index fa82264..ed51f4d 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -42,6 +42,23 @@ static int misc_mem_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 		return 0;
+ 	}
+ 
++#ifdef CONFIG_THEAD_C9XX_ERRATA
++	/* Errata workaround: C906, C910 fail to ignore reserved fields
++	 * in the `fence` and `fence.i` encodings. [Thomas2024RISCVuzz] */
++	if ((insn & INSN_MASK_FENCE) == INSN_MATCH_FENCE) {
++		/* NOTE: Emulation should ideally preserve the `pred` and
++		 * `succ` fields, but that is not easily possible here. */
++		mb();
++		regs->mepc += 4;
++		return 0;
++	}
++	if ((insn & INSN_MASK_FENCE_I) == INSN_MATCH_FENCE_I) {
++		RISCV_FENCE_I;
++		regs->mepc += 4;
++		return 0;
++	}
++#endif
++
+ 	return truly_illegal_insn(insn, regs);
+ }
+ 
 -- 
 2.51.1
 
