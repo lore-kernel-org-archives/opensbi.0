@@ -4,59 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8E0A1CF34D9
-	for <opensbi@archiver.kernel.org>; Wed, 19 Nov 2025 15:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 411DECF8577
+	for <opensbi@archiver.kernel.org>; Thu, 20 Nov 2025 09:36:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=KM+OVVGjUIomJb4iIYrGY5TG/cJzPpxS39MdwlGcKYs=; b=s83Z+SCXtIyj20
-	BQK/6BKTkTnWjEiXPvFw8VC1aJjM1RdBjepZDyHiJGMru0f68E9GbiqY4BbxJcyk+O9JM2vu3bquj
-	ZvhTvulpyoi8KI2gFnrw/ky09vWMRORHZj7cWAvK+joPu8C6o6slJqZJfiO0vDPrxSfjWxwGDDNIM
-	GYlsVtCbkZXCE/q+XEFdUB1w5kKugLQCieDOvby9/MV1aMzDFJm81/lTQ4zb5fC/O+4wSCLPthi5y
-	08RGCN/7ytLr3tTfiIJUvWYIc2SM9u7BgGYj4jfEoHiSpJsY2utLxWk+T8AEwCx9MiVd+2LXCg8Cd
-	cf+bvgJ5pjCgcX5FwQ7A==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=QlqpBsCQdRMvfkbKAv0V+/RvvklNtZ+YPrGNo4h1s3Y=; b=Er+szd6chSdo+B
+	SO4RPGA8X3fLxk2kRC+VhLHbEaxS1FsZ6jvqQzWSp4f2Jc7amS5hn9vJ/QwX9zFqFX4D9vfNuKpcC
+	MoqWtmF24NvOuU85+Ggp+xOQy3V4m7pNKJ4U2KNADGkr0R2FkQMP0sWwi19+eAPZkBvZavhZeCVrf
+	9i5dfC3WZIBxUcA3JMiu7SB7ATWEL5J4l3PKT1hZ7ppi8hR2fPTB2tsZIfEBjayxwIGY4lZRohnX4
+	HwuRdx9HoFB+uaCiB9EGVmHDAhtSZsQxtAUzRMsFBHi535gP6rMXN/F1ko0nYClU4f0oY3FG6PO6+
+	mCliv5/NjgiI+KExViig==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vLkXS-00000003brv-2nE1;
-	Wed, 19 Nov 2025 15:56:10 +0000
-Received: from m16.mail.126.com ([220.197.31.9])
+	id 1vM15h-00000006QoT-3neV;
+	Thu, 20 Nov 2025 09:36:37 +0000
+Received: from mail-pl1-x629.google.com ([2607:f8b0:4864:20::629])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vLkXN-00000003bq1-3NRb
+	id 1vM15f-00000006QnZ-3AbO
 	for opensbi@lists.infradead.org;
-	Wed, 19 Nov 2025 15:56:08 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=H2
-	GM2/zkVQOsveW5fYXLGxp9Ei0byQaVzQxm4UF4iMg=; b=Vx8WTHgOp8Ii7JMTv+
-	v8douYBxwU+SfWQ8uANBpPB5cqKOFJnyqcovMuZN8h2RZH3iYFee8n8zEY+Cs9Dj
-	bUXYZZOhGc9HERLVddrQAvUhj9yArpGdDI11VjxXoAFSgYbrK0VuMBCENBVEkTJA
-	MPuBLX/OOvRCasO0Qi+52BZtA=
-Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g0-4 (Coremail) with SMTP id _____wD3tyuP6B1pg1eRAA--.48721S2;
-	Wed, 19 Nov 2025 23:56:00 +0800 (CST)
-From: Xiang W <wxjstz@126.com>
+	Thu, 20 Nov 2025 09:36:36 +0000
+Received: by mail-pl1-x629.google.com with SMTP id d9443c01a7336-29558061c68so9496155ad.0
+        for <opensbi@lists.infradead.org>; Thu, 20 Nov 2025 01:36:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1763631394; x=1764236194; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=81eCKNJUil88K14qZyPKwgwApPc60Y5Fuyb/DfpJU30=;
+        b=TT6jGVsB9FLEF70MIvOELw2xwLjHBNxk7jIfCSPtsLwxb7ABFpcQoMJsrR4/CMcR8w
+         0UfWLNvyCO0wr216ci1SZIOa8RHhQvH+YTnj+VCG+ko6GsSAR/g17dqWcyBTqc4VlcI0
+         0vM39jmLP+ClR2szNfVK6OysxS34wl3eTymIVj3uqY2PwByWevo4JbZJVPOFyR8vW3dJ
+         65+6lmVzOdFtcoxMi6QuCp0fA7SfF0sg865z3TQSQOKoP4QkJBg/Io/OnwADG2Z5PbUu
+         U6uZssbb4hHz3+WM0d5Qkuxm8zBGt4KeHmO1oaEU304O3eKE+HZ8P1mGCdnca/K8USDi
+         KYOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763631394; x=1764236194;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=81eCKNJUil88K14qZyPKwgwApPc60Y5Fuyb/DfpJU30=;
+        b=AqZSpZNuYkyuv6UZP27oIYiHSFI2JfkqamLShsYMmEr3am/VjxDHriYOL3QCxfHxQA
+         2/sHhU/k7ZAaqYWl+6hMrHFVvLP363QdfFseXi2tUJ3bLrJ4ofsmvPDvankh+2E6ra47
+         1AeDE/OgTFRmJX3ckTW/j/IQdmHdk4Nw8+44AHuMqbVse4+Neg96/aVkTUP28XzrF5Ls
+         jrEyyi5YC6sJdB42buPM0Uy/WT2doT7jhBY+F7cp3/MEcow4dTwPVKDpeWyaEOeAjsAv
+         QYJ92TUWUt9UxGhKNqDUSDqkqPxgP69YWPNSvNIGaQzMQBWOrOqLX9W0iLF6/ZXrRKUn
+         HjNg==
+X-Gm-Message-State: AOJu0YwbFYV1c0OEgf/DdA66ux387Ou2OIPr41emjfg55NAleVa5tLYc
+	XShDyvGCn0BGEuPVvlhpuBuP8Ln05RTdTD6IO9DRB3Wy4mvqHqQLZGuN3uNbILnI
+X-Gm-Gg: ASbGnctaIHwxIGmX7hYrfxvswjVrP8r2EjVouNvTj2IlAQUww+tSz/hWi6Zez76Tbtn
+	8ApKzfYRBzt13XUxnkCU1Ke/EYdOdT4Arh0G/+9fVPvFf5fNuFpdxGvKSZRRam9smkPy9+zHRd9
+	TrmZmS6H8reEPquVpY4Bzafv8CQ0vdzeds1hCyDR2hMCPj+S+3Up4PIQkffZBbY9/STC7dtnvMx
+	35SQKCLO/sN9/HScncHVtlqRrXZou36U+Do7+rXOr8bWPPrUcI3NF6Vkjt1J+B+Nlym/N9C7py+
+	BlWuFcEHFl8m9t74LtXYqKzR89rUrhCHhquAxd+vM0Gy3oIPG6XQ/m5REiZl99uyE2+wx3bi5w9
+	CvTbmVyE/SWUCLgLJbkApHYCbGZV4x7btSt1l+RrW0au+jLldfBBoWPncDOlcS6pzM1Buxosbyt
+	NvSLRlBKUtK2msswHjpTzVnfQ=
+X-Google-Smtp-Source: AGHT+IGhk/XQ1eT7yumXNi5sSt/vvWdfN09/bbyaSPniYAzPacPMd/Y8S0xpy1RRSr30VNtoNYkPNg==
+X-Received: by 2002:a17:90b:3bc3:b0:340:ba29:d3b6 with SMTP id 98e67ed59e1d1-3472a8e9fa5mr1808978a91.6.1763631394451;
+        Thu, 20 Nov 2025 01:36:34 -0800 (PST)
+Received: from m91p.airy.home ([172.92.174.155])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-34726696b52sm2019042a91.1.2025.11.20.01.36.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Nov 2025 01:36:33 -0800 (PST)
+From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org
-Cc: Xiang W <wxjstz@126.com>,
-	Bo Gan <ganboing@gmail.com>,
-	Andreas Schwab <schwab@suse.de>,
-	Xiang W <wangxiang@iscas.ac.cn>
-Subject: [PATCH v3] lib: sbi: Add runtime stack overrun detection
-Date: Wed, 19 Nov 2025 23:55:54 +0800
-Message-ID: <20251119155556.408753-1-wxjstz@126.com>
-X-Mailer: git-send-email 2.47.3
+Cc: linmin@eswincomputing.com,
+	pinkesh.vaghela@einfochips.com,
+	gaohan@iscas.ac.cn,
+	samuel@sholland.org,
+	wangxiang@iscas.ac.cn
+Subject: [PATCH v3 1/4] lib: sbi: allow platform to override PMP (un)configuration
+Date: Thu, 20 Nov 2025 01:34:37 -0800
+Message-Id: <20251120093440.4533-2-ganboing@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20251120093440.4533-1-ganboing@gmail.com>
+References: <20251120093440.4533-1-ganboing@gmail.com>
 MIME-Version: 1.0
-X-CM-TRANSID: _____wD3tyuP6B1pg1eRAA--.48721S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxAw4DWrWfXFW5Zr1UZr1kXwb_yoWrCFWxpF
-	9xCF93Gr4kA3yrtFW3C3WFg3WfJan5ur47CFy7J34Fv3yxA3s3JrZrJ3WqvFnrJrsFy3y3
-	GasFyFySkFs8Z3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zi0Jm8UUUUU=
-X-Originating-IP: [2408:823c:b211:2d25:600c:cd2e:5300:e58c]
-X-CM-SenderInfo: pz0m23b26rjloofrz/1tbiFwsLOmkd4dJB7gAAsF
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251119_075606_208451_98BAAFF8 
-X-CRM114-Status: GOOD (  12.21  )
+X-CRM114-CacheID: sfid-20251120_013635_804898_69D070FD 
+X-CRM114-Status: GOOD (  21.95  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -73,164 +102,278 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Implement lightweight stack overrun detection using toolchain's
--finstrument-functions instrumentation
+Platform sometimes wants to override the entire PMP (un)config phase,
+not just performing additional work for each individual PMP entry. This
+allows platforms to insert SoC/core specific PMP entries in a way that
+works together with the existing ones set by lib/ code, not conflicting.
+platform can also choose to merge or skip memory regions in a reasonable
+way in case there's a shortage of PMP entries.
 
-Signed-off-by: Xiang W <wangxiang@iscas.ac.cn>
+In addition, logic for determining flags in `sbi_hart_oldpmp_configure`
+is abstracted out as sbi_domain_get_oldpmp_flags, analogous to the
+`sbi_domain_get_smepmp_flags` for smepmp. so platform with traditional
+PMP can leverage it in its own `pmp_configure`
+
+Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
-v3 changes:
-- s/Reviewed-by/Signed-off-by/
+ include/sbi/sbi_domain.h     |  7 +++++
+ include/sbi/sbi_hart.h       |  3 ++
+ include/sbi/sbi_platform.h   | 53 ++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_domain.c         | 21 ++++++++++++++
+ lib/sbi/sbi_domain_context.c | 11 +-------
+ lib/sbi/sbi_hart.c           | 45 ++++++++++++++++++------------
+ 6 files changed, 113 insertions(+), 27 deletions(-)
 
- Makefile                      |  4 +++
- firmware/fw_base.S            |  3 ++
- firmware/payloads/test_head.S | 16 +++++++++++
- lib/sbi/Kconfig               |  4 +++
- lib/sbi/objects.mk            |  2 ++
- lib/sbi/sbi_sochk.c           | 52 +++++++++++++++++++++++++++++++++++
- 6 files changed, 81 insertions(+)
- create mode 100644 lib/sbi/sbi_sochk.c
-
-diff --git a/Makefile b/Makefile
-index 398eabe8..a52f940b 100644
---- a/Makefile
-+++ b/Makefile
-@@ -449,6 +449,10 @@ else
- CFLAGS		+=	-O2
- endif
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 1196d609..3360e090 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -253,6 +253,13 @@ void sbi_domain_memregion_init(unsigned long addr,
+ 				unsigned long flags,
+ 				struct sbi_domain_memregion *reg);
  
-+ifeq ($(CONFIG_SBI_SOCHK),y)
-+CFLAGS		+=	-finstrument-functions
-+endif
-+
- # Setup functions for compilation
- define dynamic_flags
- -I$(shell dirname $(2)) -D__OBJNAME__=$(subst -,_,$(shell basename $(1) .o))
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 5300ecf2..6cd5725f 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -366,6 +366,9 @@ _start_warm:
- 	/* Setup stack */
- 	add	sp, tp, zero
- 
-+#ifdef CONFIG_SBI_SOCHK
-+	call	sbi_sochk_init
-+#endif
- 	/* Setup trap handler */
- 	lla	a4, _trap_handler
- 	csrr	a5, CSR_MISA
-diff --git a/firmware/payloads/test_head.S b/firmware/payloads/test_head.S
-index 070ce8aa..de4e334f 100644
---- a/firmware/payloads/test_head.S
-+++ b/firmware/payloads/test_head.S
-@@ -112,3 +112,19 @@ _boot_a1:
- 	.type __stack_chk_guard, %object
- __stack_chk_guard:
- 	RISCV_PTR	0x95B5FF5A
-+
-+#ifdef CONFIG_SBI_SOCHK
-+	.section .text
-+	.align 3
-+	.weak __cyg_profile_func_enter
-+	.type __cyg_profile_func_enter, %function
-+__cyg_profile_func_enter:
-+	ret
-+
-+.section .text
-+	.align 3
-+	.weak __cyg_profile_func_exit
-+	.type __cyg_profile_func_exit, %function
-+__cyg_profile_func_exit:
-+	ret
-+#endif
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index c6cc04bc..6c4d660b 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -6,6 +6,10 @@ config CONSOLE_EARLY_BUFFER_SIZE
- 	int "Early console buffer size (bytes)"
- 	default 256
- 
-+config SBI_SOCHK
-+	bool "Enable stack overrun runtime checking"
-+	default n
-+
- config SBI_ECALL_TIME
- 	bool "Timer extension"
- 	default y
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 8abe1e8e..ed6107ad 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -64,6 +64,8 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_MPXY) += ecall_mpxy
- libsbi-objs-$(CONFIG_SBI_ECALL_MPXY) += sbi_ecall_mpxy.o
- 
-+libsbi-objs-$(CONFIG_SBI_SOCHK) += sbi_sochk.o
-+
- libsbi-objs-y += sbi_bitmap.o
- libsbi-objs-y += sbi_bitops.o
- libsbi-objs-y += sbi_console.o
-diff --git a/lib/sbi/sbi_sochk.c b/lib/sbi/sbi_sochk.c
-new file mode 100644
-index 00000000..8e441ff6
---- /dev/null
-+++ b/lib/sbi/sbi_sochk.c
-@@ -0,0 +1,52 @@
-+ /*
-+ * SPDX-License-Identifier: BSD-2-Clause
++/**
++ * Return the oldpmp pmpcfg LRWX encoding for the flags in @reg.
 + *
-+ * Authors:
-+ *   Xiang W <wangxiang@iscas.ac.cn>
++ * @param reg pointer to memory region; its flags field encodes permissions.
 + */
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_types.h>
++unsigned int sbi_domain_get_oldpmp_flags(struct sbi_domain_memregion *reg);
 +
-+extern struct sbi_platform platform;
+ /**
+  * Return the Smepmp pmpcfg LRWX encoding for the flags in @reg.
+  *
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index e66dd52f..c0bf79e0 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -133,6 +133,8 @@ struct sbi_hart_features {
+ };
+ 
+ struct sbi_scratch;
++struct sbi_domain;
++struct sbi_domain_memregion;
+ 
+ int sbi_hart_reinit(struct sbi_scratch *scratch);
+ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
+@@ -147,6 +149,7 @@ unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
+ bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
++void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch);
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
+ int sbi_hart_map_saddr(unsigned long base, unsigned long size);
+ int sbi_hart_unmap_saddr(void);
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index d75c12de..a53e1797 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -146,6 +146,18 @@ struct sbi_platform_operations {
+ 			unsigned long log2len);
+ 	/** platform specific pmp disable on current HART */
+ 	void (*pmp_disable)(unsigned int n);
 +
-+static bool __scratch_init_done = false;
++	/** platform pmp configure override on current HART */
++	int (*pmp_configure)(unsigned int pmp_count,
++			     unsigned int pmp_log2gran,
++			     unsigned long pmp_addr_max);
++	/**
++	 * You need both pmp_configure/unconfigure to properly
++	 * provide platform override
++	 */
 +
-+__attribute__((no_instrument_function, weak))
-+void sbi_sochk_init(void)
++	/** platform pmp unconfigure override on current HART */
++	void (*pmp_unconfigure)(void);
+ };
+ 
+ /** Platform default per-HART stack size for exception/interrupt handling */
+@@ -666,6 +678,47 @@ static inline void sbi_platform_pmp_disable(const struct sbi_platform *plat,
+ 		sbi_platform_ops(plat)->pmp_disable(n);
+ }
+ 
++/**
++ * Check if platform wants to override PMP (un)configuration
++ *
++ * @param plat pointer to struct sbi_platform
++ */
++static inline bool sbi_platform_pmp_override(const struct sbi_platform *plat)
 +{
-+	__scratch_init_done = true;
++	return plat &&
++		sbi_platform_ops(plat)->pmp_configure &&
++		sbi_platform_ops(plat)->pmp_unconfigure;
 +}
 +
-+__attribute__((no_instrument_function, weak))
-+void __cyg_profile_func_enter(void *this_func, void *call_site)
++/**
++ * Platform PMP configuration override
++ *
++ * @param plat pointer to struct sbi_platform
++ * @param pmp_count number of PMP entries
++ * @param pmp_log2gran PMP granularity
++ * @param pmp_addr_max largest value pmpaddr(x) can hold
++ */
++static inline int sbi_platform_pmp_configure(const struct sbi_platform *plat,
++					     unsigned int pmp_count,
++					     unsigned int pmp_log2gran,
++					     unsigned long pmp_addr_max)
 +{
-+	struct sbi_scratch * scratch;
-+	void *sp, *stack_start, *stack_end;
++	return sbi_platform_ops(plat)->pmp_configure(pmp_count,
++						     pmp_log2gran,
++						     pmp_addr_max);
++}
 +
-+	if (!__scratch_init_done)
++/**
++ * Platform PMP unconfiguration override
++ *
++ * @param plat pointer to struct sbi_platform
++ */
++static inline void sbi_platform_pmp_unconfigure(
++					const struct sbi_platform *plat)
++{
++	return sbi_platform_ops(plat)->pmp_unconfigure();
++}
++
+ #endif
+ 
+ #endif
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index da0f0557..32e4c882 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -122,6 +122,27 @@ void sbi_domain_memregion_init(unsigned long addr,
+ 	}
+ }
+ 
++unsigned int sbi_domain_get_oldpmp_flags(struct sbi_domain_memregion *reg)
++{
++	unsigned int pmp_flags = 0;
++
++	/*
++	 * If permissions are to be enforced for all modes on
++	 * this region, the lock bit should be set.
++	 */
++	if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
++		pmp_flags |= PMP_L;
++
++	if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
++		pmp_flags |= PMP_R;
++	if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
++		pmp_flags |= PMP_W;
++	if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
++		pmp_flags |= PMP_X;
++
++	return pmp_flags;
++}
++
+ unsigned int sbi_domain_get_smepmp_flags(struct sbi_domain_memregion *reg)
+ {
+ 	unsigned int pmp_flags = 0;
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 74ad25e8..ea7f741b 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -102,7 +102,6 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	struct sbi_trap_context *trap_ctx;
+ 	struct sbi_domain *current_dom, *target_dom;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+-	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+ 
+ 	if (!ctx || !dom_ctx || ctx == dom_ctx)
+ 		return SBI_EINVAL;
+@@ -120,15 +119,7 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	sbi_hartmask_set_hartindex(hartindex, &target_dom->assigned_harts);
+ 	spin_unlock(&target_dom->assigned_harts_lock);
+ 
+-	/* Reconfigure PMP settings for the new domain */
+-	for (int i = 0; i < pmp_count; i++) {
+-		/* Don't revoke firmware access permissions */
+-		if (sbi_hart_smepmp_is_fw_region(i))
+-			continue;
+-
+-		sbi_platform_pmp_disable(sbi_platform_thishart_ptr(), i);
+-		pmp_disable(i);
+-	}
++	sbi_hart_pmp_unconfigure(scratch);
+ 	sbi_hart_pmp_configure(scratch);
+ 
+ 	/* Save current CSR context and restore target domain's CSR context */
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index a91703b4..b39f4de9 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -448,23 +448,9 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+ 		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
+ 			return SBI_EFAIL;
+ 
+-		pmp_flags = 0;
+-
+-		/*
+-		 * If permissions are to be enforced for all modes on
+-		 * this region, the lock bit should be set.
+-		 */
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
+-			pmp_flags |= PMP_L;
+-
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
+-			pmp_flags |= PMP_R;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
+-			pmp_flags |= PMP_W;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
+-			pmp_flags |= PMP_X;
+-
++		pmp_flags = sbi_domain_get_oldpmp_flags(reg);
+ 		pmp_addr = reg->base >> PMP_SHIFT;
++
+ 		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
+ 			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
+ 					     pmp_idx, reg->flags, pmp_flags,
+@@ -528,12 +514,34 @@ int sbi_hart_unmap_saddr(void)
+ 	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+ }
+ 
++void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
++{
++	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
++	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++
++	if (sbi_platform_pmp_override(plat)) {
++		sbi_platform_pmp_unconfigure(plat);
 +		return;
++	}
 +
-+	scratch = sbi_scratch_thishart_ptr();
++	/* Reconfigure PMP settings for the new domain */
++	for (unsigned int i = 0; i < pmp_count; i++) {
++		/* Don't revoke firmware access permissions */
++		if (sbi_hart_smepmp_is_fw_region(i))
++			continue;
 +
-+	asm volatile("mv %0, sp" : "=r"(sp));
-+	stack_start = (void *)((uintptr_t)scratch
-+			   + SBI_SCRATCH_SIZE - platform.hart_stack_size);
-+	stack_end   = scratch;
-+
-+	if (sp < stack_start || sp > stack_end) {
-+		/* Reset SP to output error messages */
-+		asm volatile("mv sp, %0"::"r"(stack_end));
-+		sbi_printf("Stack overrun detected in function 0x%p "
-+			   "(caller 0x%p), sp = 0x%p (0x%p - 0x%p)\n",
-+			   this_func, call_site, sp, stack_start, stack_end);
-+		sbi_hart_hang();
++		sbi_platform_pmp_disable(sbi_platform_thishart_ptr(), i);
++		pmp_disable(i);
 +	}
 +}
 +
-+__attribute__((no_instrument_function, weak))
-+void __cyg_profile_func_exit(void *this_func, void *call_site)
-+{
-+}
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ {
+ 	int rc;
+ 	unsigned int pmp_bits, pmp_log2gran;
+ 	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+ 	unsigned long pmp_addr_max;
++	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 
+ 	if (!pmp_count)
+ 		return 0;
+@@ -542,7 +550,10 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ 	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
+ 	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
+ 
+-	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
++	if (sbi_platform_pmp_override(plat))
++		rc = sbi_platform_pmp_configure(plat, pmp_count,
++						pmp_log2gran, pmp_addr_max);
++	else if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+ 		rc = sbi_hart_smepmp_configure(scratch, pmp_count,
+ 						pmp_log2gran, pmp_addr_max);
+ 	else
 -- 
-2.47.3
+2.34.1
 
 
 -- 
