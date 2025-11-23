@@ -4,88 +4,151 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 51366CFC518
-	for <opensbi@archiver.kernel.org>; Sun, 23 Nov 2025 09:01:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 6720ECFA46B
+	for <opensbi@archiver.kernel.org>; Sun, 23 Nov 2025 13:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:To:Subject:MIME-Version:
-	Date:Message-ID:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Owner;
-	bh=rzEjL4UkDHF812j6aHUElazS1Ai4YwOWksfJpvkfltg=; b=swVRJRpjh+UcUSqP1WkamnVBr6
-	XLMLsUEAvfzhVAilvUjaZhjSJLtkTes/ptTM007sz2bTWoPxv0ADHKlKdlA35Z6zwvtqfj9mWTpqt
-	Jm79DVflSLD0ywGQk3AgaMk8RlFbq7nVqfgJhaTJ/t1fri6P8y24CZpYT9BK+2+44hqiEvkZc1dlq
-	I0JUNT3XcEzMIy3sCC7wOwRLlgifn/FdJ8d2EqmRJMgpt/MujRKVdEIOxvFVi8l9kxDE40JAnnEpE
-	yfVVgy+HacWH8c86cX1Pojy3s3HEnA5J6iXQPPgcZHNe4WaclpLJ+btr4dWhfUorkXVKFlzUkYXt5
-	D7AcWCZQ==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:In-Reply-To:References:
+	Message-ID:Date:Subject:CC:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=FBn9xcBCc0er5giy5qzGDpbCwDIB3mNWb2scyhchnps=; b=0HaaTFn3BjyTMk
+	fysrCnZnn7wOGVbVIHcttdQAZ9LhbVEbr7aKJGBlgzW6i/IkOnZ6zfBijJ6alnC5IkmGOr6NO1cpW
+	4RpjYPBSFDcAN28td8sMN7r69ri+pEoqkDYUYjltHsnuEezK5ZsXv5dPG6KuISXZiurXdf+qjDnea
+	9kBwQTekv7v027Xkb9ZGGOV2efTzR/9N4S9TJyLBnCCOjfjs2mCHU2cEW6+aUEbhc8ZViCRFgq4tF
+	BX4hR10op4ZNCmt5hhCIbo9uiBSWUJvSfMsGx5cJazuk8kKF1Upz+glqRCk5gY4DrY+xvZFkxbxLG
+	dOTlkIkPmT2hgZ75BVZg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vN5yJ-0000000AHpK-0bio;
-	Sun, 23 Nov 2025 09:01:27 +0000
-Received: from mail-pg1-x531.google.com ([2607:f8b0:4864:20::531])
+	id 1vN9iL-0000000AQqT-10Nj;
+	Sun, 23 Nov 2025 13:01:13 +0000
+Received: from mail-swedencentralazon11013014.outbound.protection.outlook.com ([52.101.83.14] helo=GVXPR05CU001.outbound.protection.outlook.com)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vN5yF-0000000AHoo-3pTb
+	id 1vN9iI-0000000AQq1-1opR
 	for opensbi@lists.infradead.org;
-	Sun, 23 Nov 2025 09:01:25 +0000
-Received: by mail-pg1-x531.google.com with SMTP id 41be03b00d2f7-bbf2c3eccc9so2217445a12.0
-        for <opensbi@lists.infradead.org>; Sun, 23 Nov 2025 01:01:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1763888483; x=1764493283; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:to:subject:user-agent:mime-version:date:message-id:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=VLed1vjmNZZ83Leal/LSW1x59LX7+R/oWzGKkxnungY=;
-        b=dK6p3T3Ipb1w3k4iR+UZDY+Ygm80nFURpcePim+jRvwSgJ3hZ7WjpMJrOenHcmEDkl
-         WUcYokMeqsYzKHEPttvn/GSV+AHA5FSK5XZ46YARN2Hyq2nEsyOXmLrRlZsMNP+JFAQs
-         tPcOy3x5+qH3tUTtm0hU1XVNx7gXD6Cj0OrC8QeMmZJCLIniE65XsFVJvIuPjRqB0Lm3
-         auvFeyw6ZvEkYphv2PURGWrbHLsSxkMW/B4fgG1tMTGpXmtLS9z0G5SKMG5pkMCvUVkS
-         cNMYROtBSZFR+WFwGzWKI3ui9yVvHvrrzZ6dLl3Hik3cmWlJ9sXmGqCj8Pu2r6U0sM1l
-         k6+Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763888483; x=1764493283;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=VLed1vjmNZZ83Leal/LSW1x59LX7+R/oWzGKkxnungY=;
-        b=hU8Z8VAameRNjqQuviC80LVDUGvT5gzzbELTJnn4l7ovU+GOJogKIlQUpSjb7pTlO3
-         ah/zuySkIX2ElKFQP1O2XhLLk+XtSdwgivKIAwP+C65SvrKcw7WURL4CPSsTpN84nsYj
-         Hh+hZzphhUW2Ixg3pRxvhHUS8B2kniFHO+6d2upIf2ArZjwqohERGzYlfb8TUlhukTCb
-         UldubIGuu6PQH1xn8uO2JRnpAi5s867AFgIGDSyySDv/I9W75k0MAvbEbBCmKYTZJvnf
-         U7U0KWayK+I/CNZJRndHNK/3dgn1U6Scnkrhy+wFKs02zp2dhS6W/mFwrtm+GNy8CsFk
-         CfHg==
-X-Forwarded-Encrypted: i=1; AJvYcCXgOmyGYyr/XhAo/0usW2Wkxz823nlcRh6EhuwC7I2guva/+U75hWTrkCCqz3sGt16fa9Q80sxr@lists.infradead.org
-X-Gm-Message-State: AOJu0YwQhqPMieZ1pXki3dBY6c+1v7ScQ3U2COl70fn0V8av+962I6fz
-	vW71TCOVCENCDxUPlLRrFSZq1GpOVHu1GXV4crojkdDlDf00EdxHa415KBb/xdp8oPw=
-X-Gm-Gg: ASbGnct65prig0649I2ugji08Ntolr1vwcGwDfWJxHbIvp98/Uc8CCcK9DnI99R/l2k
-	wiclU3zkbyKV+wDavMRtbkCN8RV/6x6BCmRvpouBuLy4Umc/r3WEhKV+yN/Lw+H8BpE31jeAw5I
-	aLc1qoUILUjiDdCTFmZTS3qk3a+dhkooe/7t0zazuyr7zS2SsVZhrMgXqT9gh2HjCgB9mXs8uyZ
-	EetlPC9Ro4l1wxPrkVOGsbQMtr+xRTBoivEsKSvsqicsAF9stRc8Xm6L1Rl0ZgTGWjeSTIb7D37
-	rz9uQaRLgXPu76zeULjH8ZeO3N/6nOyd30y4+/vas/7T9Q4psL/H8i+PC658iSjKTLqzvIwOORX
-	2FxACPW+jTK/3gvrCzEIP69QjIoToOkZRVRdLJwWQJlMwzN9vjdUoR9226Luo21PoRlGVJRufCE
-	iMNMmNccuesErSr71Sxj+OtCPHBkfRorqF05JvfiLRJVWQtU0+YA==
-X-Google-Smtp-Source: AGHT+IFg1Cahg5GfXwFIVpWcR25GQCZZULdSLrf2sc2+XNd2+4VywlPfMJpYbouA+ufRH4eTSOutYQ==
-X-Received: by 2002:a17:902:d485:b0:24b:1585:6350 with SMTP id d9443c01a7336-29b6bf1ae09mr98777575ad.11.1763888482917;
-        Sun, 23 Nov 2025 01:01:22 -0800 (PST)
-Received: from [172.16.0.158] (1-171-39-212.dynamic-ip.hinet.net. [1.171.39.212])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29b5b138628sm103904475ad.31.2025.11.23.01.01.21
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 23 Nov 2025 01:01:22 -0800 (PST)
-Message-ID: <8e650618-dcfd-43cf-9afc-750d1cac97d8@sifive.com>
-Date: Sun, 23 Nov 2025 17:01:20 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/2] lib: utils: Use SBI_DOMAIN_MMIO to check MMIO device
- permissions
-To: Samuel Holland <samuel.holland@sifive.com>, opensbi@lists.infradead.org
-References: <20251121193808.1528050-1-samuel.holland@sifive.com>
- <20251121193808.1528050-3-samuel.holland@sifive.com>
+	Sun, 23 Nov 2025 13:01:12 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=HzHIDHxG6OkWIMVjb1Xh2cqIO0V9XBtpS4Yus/bvVnXbsjPhpzNxPPWeFeCYeP8SWv3debT6bEv2YIFraAyLgiAYrMKK0vHqsVqIf5tg9zUmHwt6gQ4Euf+VcuntM/TsIxaJX33a1gigAtPNn80vdFBNoHrnYuQndR3DJH4TZ8GbEPSbc1693a5vjH0ECpzj1uf3sfIBqtB/Av6VV79FSyCc8XVQQgkyM2xXVR9AGYd/UCQjjX8FWVJnEEINzEHKIQ6y+RLUb80mWIU8V6xwqSCzrmFv+qU/zFj+cYSsXYZ6WbsUwkD/gDuvuhTCC8W2vswBwI66m0EpC2WJS4/ZHA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=azapmxuleVoDHmUfJ3SdQdu2zj75YN+VKCoxhnM5ZHc=;
+ b=meysHMrfmmMNMHtZ9bJ5tJYO6DY/pWUbKaHlAyjYiGRyAS/GooAH2KHpIrhfHQjM0H3E2bgPyq3dQld4WVNCnpMpwdVD9bhMS13D2Bk4XChMD8V/bFzA96gh3TXeMCSWJXK88TI3wWHQQmPePFl4uGJGvyW3bRwsFg8ZYTGm7prw1A4tuXCv/BEcKWumhCIHDEJgSfYEP3gtItmy5cK0dEjVr6YYOIn2wy6yicApbzgYBar2qE2HwpllCKNNzJojXIWTRQaZ6cdOWHFwFxiXzz7RT/ehObmeGD6jkkHAovNquAk/ml4H9IzhtjMGgJcgMoPt9MG1dQ/cPpaYGiTglA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mobileye.com; dmarc=pass action=none header.from=mobileye.com;
+ dkim=pass header.d=mobileye.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mobileye.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=azapmxuleVoDHmUfJ3SdQdu2zj75YN+VKCoxhnM5ZHc=;
+ b=eIpoPDSYahcOmoBSF20taLxATfMdC7vEWqkoqbl+Lype63c6BRgTpDO9mj7Ji+oJdqkN8ZLIG1+FCL+4IzW0Ae7spUp0CsHaZFkvyce4sFFetqO8hnYWq0DZSRWzd8Y+Wt3MmlLSl7ry74nVleP1RedUrnQ5n4cW+h/ew7LMVck=
+Received: from AS2PR09MB6296.eurprd09.prod.outlook.com (2603:10a6:20b:578::5)
+ by VI2PR09MB7517.eurprd09.prod.outlook.com (2603:10a6:800:222::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9343.17; Sun, 23 Nov
+ 2025 13:00:56 +0000
+Received: from AS2PR09MB6296.eurprd09.prod.outlook.com
+ ([fe80::2f35:bc64:a118:5e0d]) by AS2PR09MB6296.eurprd09.prod.outlook.com
+ ([fe80::2f35:bc64:a118:5e0d%3]) with mapi id 15.20.9343.011; Sun, 23 Nov 2025
+ 13:00:55 +0000
+From: Vladimir Kondratiev <Vladimir.Kondratiev@mobileye.com>
+To: "anup@brainfault.org" <anup@brainfault.org>, "inochiama@outlook.com"
+	<inochiama@outlook.com>
+CC: "opensbi@lists.infradead.org" <opensbi@lists.infradead.org>
+Subject: Re: [PATCH v2 0/2] Fix domain memory regions handling
+Thread-Topic: [PATCH v2 0/2] Fix domain memory regions handling
+Thread-Index: AQHcUvgIpdvSg29K/kS7BNpDn3F6ULUAS1QB
+Date: Sun, 23 Nov 2025 13:00:55 +0000
+Message-ID: <AS2PR09MB62964380BFCB7DB8363E774994D3A@AS2PR09MB6296.eurprd09.prod.outlook.com>
+References: <20251111092224.825282-1-vladimir.kondratiev@mobileye.com>
+ <20251111104327.1170919-1-vladimir.kondratiev@mobileye.com>
+In-Reply-To: <20251111104327.1170919-1-vladimir.kondratiev@mobileye.com>
+Accept-Language: en-US
 Content-Language: en-US
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-In-Reply-To: <20251121193808.1528050-3-samuel.holland@sifive.com>
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+msip_labels: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=mobileye.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: AS2PR09MB6296:EE_|VI2PR09MB7517:EE_
+x-ms-office365-filtering-correlation-id: e587d153-c595-48da-f5b8-08de2a9056d9
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;ARA:13230040|1800799024|376014|366016|38070700021;
+x-microsoft-antispam-message-info: =?iso-8859-1?Q?Ji59BMlXj8UtF1/QOsjs+fmYwMfQRvffBc6PCX4TUX+EbUJ3RVi9VUYI4i?=
+ =?iso-8859-1?Q?GM+LC2Hn6bFo11I7sYONz3qptTBv0fBNGQcBsVYBj/8yVx591H63E3ihfe?=
+ =?iso-8859-1?Q?1/j9Ef8skGRXYjJ0TcQu4g9Syh/oxzYbvI0beu/Cbc6Px+e/4nnHN922RZ?=
+ =?iso-8859-1?Q?h/ZPGwXzIoA6ikBajBsHGrTYDwYp2mko2XUfyLCvbo809ayjzAVvLF53RN?=
+ =?iso-8859-1?Q?y0/Ry4sMuSP/Iy6hH25LliCe15Ikr3+EjFPrbz/2kdFkr4/sjX5qam1PML?=
+ =?iso-8859-1?Q?WUIMBwJMoCrlpZjupF/09TT7pLpxODlWYMPYtdoEWRE/bPVIRpb02wJPzX?=
+ =?iso-8859-1?Q?+G6lG0uzxtjXB9yZSFvgR7GX3pTSW2z/hZmZqBDagV+xoLbW110eMsw4+w?=
+ =?iso-8859-1?Q?Ap7+m3pU7k35TfRHAh9zBZKsWJhkjJt4FBM4TgJERHP2yMSWSVKbIRaUIB?=
+ =?iso-8859-1?Q?x9NeA+2DOe4TUmcaZygpq8nBGlcosVYrsBlH0YYa03jPJ4gXJAHrdvlHhG?=
+ =?iso-8859-1?Q?RgHOn1fyik8QN7HVMErf7WtrQPjfIzd8kgJrpMnWKlSWBk8JZ3WIJIC+Ul?=
+ =?iso-8859-1?Q?nDIUIQVoDZg0LP4wts2mvOa5SoJY+Y4NAB4brEXNxEjS1hRRfGWRjDVTQw?=
+ =?iso-8859-1?Q?z24UVjIpystnzWK3Aqe1P8EbkcGVxKCgjEad/0VWmtXyaL4FAgQTWJ9L0s?=
+ =?iso-8859-1?Q?NiN/TtiwgXDtFsgM3de80L2PRgmV/yE19TOnb7Q95XHPPY3BD54GKQE95S?=
+ =?iso-8859-1?Q?xWW0f5+jorO4g3LclGdJkyUp2i+lSTFOcQYRZeQrJK48LDc/VAMDDgZ/XR?=
+ =?iso-8859-1?Q?CYqrlHSrhACdGWdM3AKOFS1wMlI++kk+PpJDouzqmK2T97kPTCVPkYhjBK?=
+ =?iso-8859-1?Q?YNxI/FucABJCfueXdskyTw0lJr+HblhVovOcoBfMoDtspvlBv//Q3m9wHQ?=
+ =?iso-8859-1?Q?rVpca/2WKgcXVI1a1ih+eWLKY2+R/d1dYMTmCx05W1TR3o8cTXBJ5TtgxA?=
+ =?iso-8859-1?Q?baxGrFB0eEbiOAGrdP9lpyrWDG8peSIMrfOU3mmypwR8tT2UpE/HeUqYmJ?=
+ =?iso-8859-1?Q?8J/++g399ZjZQeJx3NJpTbBa5TFlQ8csoxlfelJleYUsY8UPGooxaszdt2?=
+ =?iso-8859-1?Q?A8bJ7lcmB2Upo+DU/e+qn2s9I6i1AxtrJQRL7zuRZkGEOov2YhAFsRfgv/?=
+ =?iso-8859-1?Q?j+ohFMLZ1uMXsqzzb6m8fm2XCF9VrQlIFN8dIQGpyzrB2XrT9A+GEJJkHj?=
+ =?iso-8859-1?Q?ByBl+iytNJRgFnCiGC+mJz2BzY2rTtVsrzXzQfDfZAuETR2rPmIIS6mpCC?=
+ =?iso-8859-1?Q?iGY8xY8+e+UydIGV30+NJfyuy0oA47J6d9e1CgdGe/WMr2v6jneeXvdwbZ?=
+ =?iso-8859-1?Q?wE08NyDbCoVfCBk44cLXbWTsdprSGvpROjhj1l2QBfn/HwF0Qzhm+m/Xik?=
+ =?iso-8859-1?Q?8oMBw7+G427+dODvvzJPO83AOE8GiBLL4NXV9RvRSlZmYjzwg58mb0Ese2?=
+ =?iso-8859-1?Q?okhATsO0k8Wc5UIvB16mC+2gNzjOovk8h8qc1hqH6S4VScCkI1ENP7VDid?=
+ =?iso-8859-1?Q?1hubiETkkZ3DarGyfIdIZBJVT7mi?=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AS2PR09MB6296.eurprd09.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(38070700021);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?g3I1xMBwQh4xfk4umsNF4//z5C7yRklA97Jl7h2DtwMMzIOwl77my6dbZ2?=
+ =?iso-8859-1?Q?8PEksZYWe5wiFYy2gw1P7kw+51iIn4JfqkcD971KeRDQhu/nnTl+onFTDn?=
+ =?iso-8859-1?Q?pu7zMYS1+zm6dcIIB4i0UJ8chEQf8lZNlPwBBWBz79rW+vg+MpreI6TlYO?=
+ =?iso-8859-1?Q?GgXALyscVmXjSaNoxvqFeYnqI5n1T0qUUbb5ERGgzf0dsoL2s25K1XPJ04?=
+ =?iso-8859-1?Q?ILAyzVnr6I2qYwBzlx7TJK21SO/nB0R4Uk02EOGJSxhZBxNYLsLfWyi5D2?=
+ =?iso-8859-1?Q?+DH6gpjNVKlSi37JUnlyL4FgtjsEo4AwZv3Ja0RgtpZmqeOBBfgRLoRylE?=
+ =?iso-8859-1?Q?o4ezAuNqtnTHJiIa2fn1MwQzWzvRQI2leIjiGTnPEkBGcXqbZ38V3RL+oU?=
+ =?iso-8859-1?Q?ulfEEOvIZz66FHvvhJbyoj+fCbkjen3bHasIvi71RgS8jKtu7ESCahloF/?=
+ =?iso-8859-1?Q?kioXaFYFKJzWtVbKkst/MXNkRP67tgcjtBmmHhwUxLQgpmJoSb4OFKwGZ/?=
+ =?iso-8859-1?Q?mI1jGbKtp/f43G1HJxy28kT4VTSmPH/vlhplwxPnswp7GLhKZ6lz6KETXy?=
+ =?iso-8859-1?Q?AkWKLQnLO6IMFU1vI46329WFURczHzuS3vkKLIdppZTnVd08/4LKcoYFd1?=
+ =?iso-8859-1?Q?5W6mC4dPfIXtnq5RRNMplYHUr3c7L4HNBa9Jb1DMtXi4XTAbC3uR8efQId?=
+ =?iso-8859-1?Q?/WFDguZXT4pDYZ1W4yZheG4l8WTabPlLSl5OdE3iM1HgWFjnY7dHrs2RxY?=
+ =?iso-8859-1?Q?qc6TPcHUiZ5aIYHq8nHmOfCKoglyy0kcze9FimA9adsY7EBszvgcyrOhN+?=
+ =?iso-8859-1?Q?/yd/f5RiqR9UZ1t4iGDdXf1fpLTrhuTwFapQwA9ZBA2h7TzMe9LCAaSiQO?=
+ =?iso-8859-1?Q?8EJFdn3YLShV39h23kgIC1iGg4XNfrE0W6HHYdwcv6MmaJ5pGmPkSCEsJ9?=
+ =?iso-8859-1?Q?tvj4dpXDkXOyBVvNLcB1Ka/b+e8g7QC6MvHO51D0rlAEipLSaEow1SOQMl?=
+ =?iso-8859-1?Q?7YsSx4Hbqf19EJBcW0BUoUaymIDvNQFKmUSFy3MvPAnJ4HsaYeEQ4cA1Rb?=
+ =?iso-8859-1?Q?Izf8Ha836642Ec4rqkAXEE72yMFXsC2YqH7MzfpVi+Yq+gqPKWPUzkechl?=
+ =?iso-8859-1?Q?AVUkehGYZnxhhKBfQb59nOlUOGOGfVJpYycZZu/7HjoMIjj+8Z2kqQ8vVl?=
+ =?iso-8859-1?Q?HlEkIjHajFfOcJTdJiNTLlzmiW8lFwiSViD4DYZyE1RZNoA/JSEtoRx/Yl?=
+ =?iso-8859-1?Q?B8/HH+fmFDZM6MYu4ket8xZjgwt1+Vair3ZoFxG9jnn/Q1YvNKvXsttZvN?=
+ =?iso-8859-1?Q?fm3s9KyVflhhUT4tv/E6PejiGNIDUT0XX8tvlr34ssNLPGAppuqF3eHFOI?=
+ =?iso-8859-1?Q?u0VfIy8sTcrz0rYc2Y4ciXUT6HqV214mPMhznVxHr3bWtkxmNDQnNdksfN?=
+ =?iso-8859-1?Q?gNS7Ec3zVjTbKmaPxPc6OOQnSxLAslFxTfZ1bpF65r3udtLw2XSeYrVuQI?=
+ =?iso-8859-1?Q?xfXyNupBZJrCAgBSZcFVEHno4WLuMfJ++M9Q40ZIBQM7as0REor7OoTkeU?=
+ =?iso-8859-1?Q?KYHBKlRK2Rw05Ij1VmwpkWujodAxJI1AFNTUUpKEHrtKeesNHtLZSm0mbn?=
+ =?iso-8859-1?Q?2TzsScr/q4xRCeAUi+3F2ROcyUmzR19wa4?=
+MIME-Version: 1.0
+X-OriginatorOrg: mobileye.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: AS2PR09MB6296.eurprd09.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e587d153-c595-48da-f5b8-08de2a9056d9
+X-MS-Exchange-CrossTenant-originalarrivaltime: 23 Nov 2025 13:00:55.3322
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 4f85ba13-6953-46a6-9c5b-7599fd80e9aa
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: iiH7OS8plEKsZk2fr+fjfXBBOYoN1aO4jyPHQZCL3IBkTPiy3cK8fKehKj/pi6v1S8jRIu5KKs96dc/0/HdR3w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI2PR09MB7517
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251123_010123_986961_F6877F4E 
-X-CRM114-Status: GOOD (  14.05  )
+X-CRM114-CacheID: sfid-20251123_050110_676831_8A189579 
+X-CRM114-Status: UNSURE (   3.86  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,56 +160,12 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-
-On 11/22/25 3:37 AM, Samuel Holland wrote:
-> Drivers or platforms may create memory regions with the MMIO flag set
-> that contain S-mode-accessible MMIO devices. This is strictly correct
-> and should be allowed, along with the existing default case of
-> S-mode-accessible MMIO devices appearing in non-MMIO memory regions.
-> When passed SBI_DOMAIN_MMIO, sbi_domain_check_addr() will perform the
-> correct set of permission checks.
->
-> Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
-Reviewed-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-> ---
->
->   lib/utils/fdt/fdt_fixup.c             | 2 +-
->   lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c | 3 ++-
->   2 files changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
-> index f3fe8af9..b0ed20c8 100644
-> --- a/lib/utils/fdt/fdt_fixup.c
-> +++ b/lib/utils/fdt/fdt_fixup.c
-> @@ -185,7 +185,7 @@ static void fdt_domain_based_fixup_one(void *fdt, int nodeoff)
->   		return;
->   
->   	if (!sbi_domain_check_addr(dom, reg_addr, dom->next_mode,
-> -				    SBI_DOMAIN_READ | SBI_DOMAIN_WRITE)) {
-> +				    SBI_DOMAIN_READ | SBI_DOMAIN_WRITE | SBI_DOMAIN_MMIO)) {
->   		rc = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
->   		if (rc < 0)
->   			return;
-> diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
-> index 94a5af8c..1dcc049e 100644
-> --- a/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
-> +++ b/lib/utils/mpxy/fdt_mpxy_rpmi_sysmsi.c
-> @@ -57,7 +57,8 @@ static int mpxy_rpmi_sysmis_xfer(void *context, struct mbox_chan *chan,
->   			sys_msi_address |= ((u64)le32_to_cpu(((u32 *)xfer->tx)[2])) << 32;
->   			if (!sbi_domain_check_addr_range(sbi_domain_thishart_ptr(),
->   							 sys_msi_address, 0x4, PRV_S,
-> -							 SBI_DOMAIN_READ | SBI_DOMAIN_WRITE)) {
-> +							 SBI_DOMAIN_READ | SBI_DOMAIN_WRITE |
-> +							 SBI_DOMAIN_MMIO)) {
->   				((u32 *)xfer->rx)[0] = cpu_to_le32(RPMI_ERR_INVALID_ADDR);
->   				args->rx_data_len = sizeof(u32);
->   				break;
-
+Gentle reminder. I need this for the MIPS p8700 platform to save number of PMP entries
 -- 
 opensbi mailing list
 opensbi@lists.infradead.org
