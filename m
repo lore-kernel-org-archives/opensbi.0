@@ -4,75 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0ABC9CFD313
-	for <opensbi@archiver.kernel.org>; Mon, 24 Nov 2025 11:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 60753CFD313
+	for <opensbi@archiver.kernel.org>; Mon, 24 Nov 2025 11:30:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
-	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=amIVdzBx3kmmiiUW6Ps0SU6yt/0/fi3eYKeB21qPN40=; b=RDuRCRafU1IkC7
-	E1zabISTpN+3a4h7NAIIK7thfyjjOJ3vCsX72Odo7lLjaDbjLfs/EqAAeAXO/ALRYVjbaKNOhmZca
-	7/Lk7OqZz9mInw/4sW7zXkR2DCP1Zq8uoepmqpD2Id8T1/0Vn9xFWI+6Ysue38I4f0neoVGTwGUv7
-	LDM0Q5g32SMkKrlPvwhk0stgCOsSOFT13DYNReRG8SqSnDVcfXoW/3wXbKXrLwvUrA9PVgNzCTLyk
-	x4Oo/1KaV2fVVBEqaOrFVNOiMxUEvKuoXQgFq/hYyNBVfysKof8XxlsjAnVGV3KtAf4NcseCh38H5
-	BBNK7tUk7AuMpGSMxNjA==;
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=Y17EFB73nWke1s4LRJz0phJV1zo9ZipsA0CRHtcCFEc=; b=UGo7C374PbACiZ
+	Rmfq2MsOmO6YMdSJ2e9BzoA04ZVkphvfzbvI7dlYPWz/g78DkpzJmmAdsQQgVPRoGQJ4cJ74aMT62
+	HPi1Xbu6e3uHyk41A/kdA36UqqYpHCYxUyErYfoTh+K8CVk0uJiIHUb4AFLplYb/DO2gtsapVGMnL
+	lkiXSMwVn2NzURM7fE1vQ6pR5S7bpVHWGYTRmjZv0BWAZ17+px508ptptmHab9r/S/fcaYkKB3KVv
+	rig+x6WoaYdV0nGxnwPbJ1OpK+JFpOmGtcdJ8E6TSGKWTEK5O72IHwUl0urNoacu4IubIcNRfqT0N
+	6WSQHcsUIanrFOkQA8pQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vNUaR-0000000BXj8-0OEG;
-	Mon, 24 Nov 2025 11:18:27 +0000
-Received: from sender3-op-o15.zoho.com ([136.143.184.15])
+	id 1vNUls-0000000BYqM-1xTI;
+	Mon, 24 Nov 2025 11:30:16 +0000
+Received: from smtpbguseast2.qq.com ([54.204.34.130])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vNUaM-0000000BXiV-0rLq
+	id 1vNUlo-0000000BYnz-0w1X
 	for opensbi@lists.infradead.org;
-	Mon, 24 Nov 2025 11:18:26 +0000
-ARC-Seal: i=1; a=rsa-sha256; t=1763983091; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=gPmau1mYPru5O6lWn1t6bF08hmUswgpiDfczupJy6qOSvCZDwFww7t8mj79VibnW6pZsviSWOUkR4u9SVmbf1wDhW5l1m+ggdIOA/hy7RhUEwB214bxEHkeMcQ5WuwXJcPmhNEzIBjSE0PnJOPvnP6l7koMiUwbDuPm7RLGpr9k=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1763983091; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=B5pZTIPB34MPNxItHYPtcxN2fd08qqlXYWPPhWMfeVs=; 
-	b=n+rdHc5/kQlN561d8Ku54Ut9rw3lhO/pbefV7BdJMjPkktEFCxv2f6S5THFzuuah3dXpVyhUqL/R6f649BSXxOaBHRZoER8XF9pgVnbM9pH/6VWuSU6BKldvbCvyxkAXeDcE89zqqFC17uXhPm0HWQEVFYkrWz9b5LTy+nC3zCc=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=pigmoral.tech;
-	spf=pass  smtp.mailfrom=junhui.liu@pigmoral.tech;
-	dmarc=pass header.from=<junhui.liu@pigmoral.tech>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1763983091;
-	s=zmail; d=pigmoral.tech; i=junhui.liu@pigmoral.tech;
-	h=From:From:Date:Date:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Message-Id:To:To:Cc:Cc:Reply-To;
-	bh=B5pZTIPB34MPNxItHYPtcxN2fd08qqlXYWPPhWMfeVs=;
-	b=L9FpK+mcQr5IgwMMhFimQ7P6PZw2Lq6afDzDVelv9iDyGKg2MPwDVbX4HwgVofTv
-	wzawbYej36Hr2sezQ/2QpgB/zbhMu4dVVGr6gRCpS/mV3spcbZZixod1XidXWlIBQNv
-	PbVQWiJ9Ib37HVKbNnF+smFiDR+H5i9j8+cVoFA4=
-Received: by mx.zohomail.com with SMTPS id 1763983088950321.2798986092489;
-	Mon, 24 Nov 2025 03:18:08 -0800 (PST)
-From: Junhui Liu <junhui.liu@pigmoral.tech>
-Date: Mon, 24 Nov 2025 19:16:32 +0800
-Subject: [PATCH] platform: generic: spacemit: add missing objects.mk
+	Mon, 24 Nov 2025 11:30:15 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
+	s=mxsw2412; t=1763983777;
+	bh=hAWwl45Wdpi6H1FkYhrQMC5Rki82zAkbyIyxhMkT/Jo=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version;
+	b=DjhJ/Pg5t7341/qh0wUJyAGeVYszSgVTGezVtW61hWnEdu8mXFqi4TQsSkvmVS+HW
+	 kQLLQ7oyP945CawpPJbeJZuKyLPBSUFCyVyIRSG3OZXlO/igJOpZDJaLMSGqsBpdCl
+	 DpE/6VIGMeGUuxi7EcfhGO4FjyjG11uC5Y4rGspw=
+X-QQ-mid: esmtpsz17t1763983772t94d24c3f
+X-QQ-Originating-IP: fZ0jTGd4WyWVTGFqd1o5pG99je12tx6wkLj0jgyqLMc=
+Received: from = ( [120.237.158.181])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Mon, 24 Nov 2025 19:29:30 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 11626773636746068601
+EX-QQ-RecipientCnt: 6
+Date: Mon, 24 Nov 2025 19:29:30 +0800
+From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+To: Junhui Liu <junhui.liu@pigmoral.tech>, opensbi@lists.infradead.org
+Cc: Troy Mitchell <troy.mitchell@linux.spacemit.com>,
+	Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
+	Anup Patel <anup@brainfault.org>, spacemit@lists.linux.dev
+Subject: Re: [PATCH] platform: generic: spacemit: add missing objects.mk
+Message-ID: <03A15D6686A3A9AE+aSRBmpkBhccbZlYJ@kernel.org>
+References: <20251124-k1-fix-v1-1-8d7e7a29379e@pigmoral.tech>
 MIME-Version: 1.0
-Message-Id: <20251124-k1-fix-v1-1-8d7e7a29379e@pigmoral.tech>
-X-B4-Tracking: v=1; b=H4sIAI8+JGkC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDI1NDQyMT3WxD3bTMCl0TY+PENAPDRPPEREsloOKColSgMNig6NjaWgBfoyj
- kWAAAAA==
-X-Change-ID: 20251124-k1-fix-433af01a7aa9
-To: opensbi@lists.infradead.org
-Cc: Troy Mitchell <troy.mitchell@linux.spacemit.com>, 
- Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
- Anup Patel <anup@brainfault.org>, Junhui Liu <junhui.liu@pigmoral.tech>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1763983083; l=958;
- i=junhui.liu@pigmoral.tech; s=20250910; h=from:subject:message-id;
- bh=r6BL0xgt54BK0eoUWR+sm6xOOGNZIGMwhxMQDFE4gj4=;
- b=mL14kHlizeayq6VLNL4xd2zE48rbTOyL/4eNWGOZaYGolG53uiSaubLtTwERrhaAxxp1WaSJk
- JUMdy+72ob9AMxKDStlnxjUbwGS4a/Ohm1OVtMewGwwojMUZSWPdY7j
-X-Developer-Key: i=junhui.liu@pigmoral.tech; a=ed25519;
- pk=cgATWSU1KfGWmdwNmkPyHGnWgofhqqhE8Vts58wyxe4=
-X-ZohoMailClient: External
+Content-Disposition: inline
+In-Reply-To: <20251124-k1-fix-v1-1-8d7e7a29379e@pigmoral.tech>
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpsz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
+X-QQ-XMAILINFO: NXAazXCEWOjYMpjkewyUuza1e177MacYmeU9Zu9ewLIYCBAxJSWYyE5S
+	vPbQlTZnaFAs/74W7pDPzvseIU9+mkkMvvrrHvD0LmWxaYTDO5A4iJHbVzAij7UD6QC0WuB
+	0GmF8dNWagPB+SJ8BhQXrDbiXZ3V3c6YOCToU/EPsq7YGb/kGX00Tiqm9/9N/2O+i2sLeXv
+	LcDZPFBy/GyW5pDPKF4kAGdkc5/aQoOkkdz7Pg/VuLq4JxzzEU1BmsUbm7U6bajNVuEbJ+u
+	D+/w3PTdGN2uNw95A4XJQ2flcxE4nNWRMX1uhvkO/LRKJzP1auV4dUaU4/0wOhgYpIKuAuY
+	2YNXDjDz9kNyq33Ynh7v4shPnoAcRzqRrY/YxEOygbJesdwPO1QNbGdPf76Dv8AEVSZ25ol
+	LToegXXJFNjd7J746ZC4aULid21+13ZMkowH0e3CaGTlktr9p8SyJcHb5ILoTgAjyC/J1Ts
+	PmQluXSU6HORBsJ9dqYW8CWfIXVXrLMJfgk6dhMoe4eWus97k/E5TNhzogtG71sAACCrhHe
+	ZOo9xzltjfY5AfiXjk4rfvcnqN1FtTyvDGnHwc3fHLW/cIelsaNfB1RVzTi9oYGK/Vv0hbF
+	hJkHhvVNQLZZzX55nRBNajN6461tisx1DcIDudU1zL6IKOn0nuLmYezIPN5TcidCVcxmKkn
+	6zoIaiEGiSjbYNw+47XbXl+hXjhGcoZHMrKCXhUgNrl8UK2+xjo5KV2NaF2kLj/Ez8DLuU1
+	s+gXtv3QbFzQfxMwqEiFOdfrIx42kD0rtC4fzyjkq0FKmPe6B2Lg07mzJuC9ioMrG2Eu5Qy
+	LEWXHbngsfWVyzVJmlnExj4trruOF9fD3X6sU1yTl2LEplffvcfSAqaMuXIS44AnHtrptGY
+	IaWur6tI3jBFQwqhxDy5qRjgBEAgWKXhuMlnkfq82bKsX2E5kpLrYEnKbSYiFyKXRXC7BEl
+	RdfhrDptDqeS1c5kEEiXeJ/+lQOvykJFSd5KNeKfLJX1HmPuYG/plBmw4lDpj7UgCsy3eY0
+	FHQSW5z/qTj3ZGnL4AcLnQ1n0pkChlf4BvHvoqo9vdthiHTokcPSM4Bxp2JeORwUkSd8OxS
+	g==
+X-QQ-XMRINFO: OWPUhxQsoeAVDbp3OJHYyFg=
+X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251124_031822_682575_63567B15 
-X-CRM114-Status: UNSURE (   7.61  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251124_033014_118323_5DF6CDDC 
+X-CRM114-Status: GOOD (  14.07  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -89,36 +95,43 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add the missing objects.mk for the SpacemiT platform, required for the
-K1 platform to be included in the build.
+On Mon, Nov 24, 2025 at 07:16:32PM +0800, Junhui Liu wrote:
+> Add the missing objects.mk for the SpacemiT platform, required for the
+> K1 platform to be included in the build.
+> 
+> Fixes: 1f84ec2a ("platform: generic: spacemit: add K1")
+> Signed-off-by: Junhui Liu <junhui.liu@pigmoral.tech>
+> ---
+>  platform/generic/spacemit/objects.mk | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/platform/generic/spacemit/objects.mk b/platform/generic/spacemit/objects.mk
+> new file mode 100644
+> index 0000000000000000000000000000000000000000..dcb37867aa661dfc559088f926cd1465bc0f7e8d
+> --- /dev/null
+> +++ b/platform/generic/spacemit/objects.mk
+> @@ -0,0 +1,6 @@
+> +#
+> +# SPDX-License-Identifier: BSD-2-Clause
+> +#
+> +
+> +carray-platform_override_modules-$(CONFIG_PLATFORM_SPACEMIT_K1) += spacemit_k1
+> +platform-objs-$(CONFIG_PLATFORM_SPACEMIT_K1) += spacemit/k1.o
+It might be that we forgot to clear temporary files during testing.
+Thanks for your fix!
+I'll give a TB tag after test it.
 
-Fixes: 1f84ec2a ("platform: generic: spacemit: add K1")
-Signed-off-by: Junhui Liu <junhui.liu@pigmoral.tech>
----
- platform/generic/spacemit/objects.mk | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/platform/generic/spacemit/objects.mk b/platform/generic/spacemit/objects.mk
-new file mode 100644
-index 0000000000000000000000000000000000000000..dcb37867aa661dfc559088f926cd1465bc0f7e8d
---- /dev/null
-+++ b/platform/generic/spacemit/objects.mk
-@@ -0,0 +1,6 @@
-+#
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_SPACEMIT_K1) += spacemit_k1
-+platform-objs-$(CONFIG_PLATFORM_SPACEMIT_K1) += spacemit/k1.o
-
----
-base-commit: fade4399d2a47a3ff9c5ecd5dd4c3cba7a4eace7
-change-id: 20251124-k1-fix-433af01a7aa9
-
-Best regards,
--- 
-Junhui Liu <junhui.liu@pigmoral.tech>
-
+Acked-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+> 
+> ---
+> base-commit: fade4399d2a47a3ff9c5ecd5dd4c3cba7a4eace7
+> change-id: 20251124-k1-fix-433af01a7aa9
+> 
+> Best regards,
+> -- 
+> Junhui Liu <junhui.liu@pigmoral.tech>
+> 
+> 
 
 -- 
 opensbi mailing list
