@@ -4,88 +4,89 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2CBB1D10F5A
-	for <opensbi@archiver.kernel.org>; Wed, 26 Nov 2025 14:19:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 32E38D10F58
+	for <opensbi@archiver.kernel.org>; Wed, 26 Nov 2025 14:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=8UmT9CipvaCTUdPazvji4JsXn9w2Wq1Kz/wDwCvVS/4=; b=txNoyqjTB0qdwd
-	waBI4zEPs2dRQz6kqh58cCIpBIJM9ZrZ0doFeCSYckuA7SrsFgrIL8/J5nRZEhZaTIWUycga+0hh/
-	jCXJvJqMyPKySP1B+M6n1kRO9/4nbRDjdk6QPFSQZpyMCjF09oaF5q3gepgIB2h9HGKeocwhVM4Rt
-	qHbidoK5hOCXuqGAh+3qHZvr95Ain3tCwd6y8IyTbdA3tijJDvlnR1r96dJgmNUfSu87FQkKDtgWH
-	R3uj7VjQuYaCUT6mQXpvkbI+dU7ziB7irpbeoXOLzva1hrzDMzN3G3feY7BgNAUNmV9TyQxuFzCHM
-	1Az8a0VTTwKDQ+yfTvKQ==;
+	List-Owner; bh=Qz0DkhjpY6xsIf9BC1VZ1Z0/bOxjNabBJqNpb67uonA=; b=cXYfo1pduSqY62
+	lAL89fftyaFkQz26hwDswG6Gg0FnndhjHhSvBh0pyFqUoUE1gOylD7HS7vfVR6Hd5Zrkn6eTTt6qK
+	/UKDaVkB4G2RzSX98yxK9yx5fZnN+4JRV/oht7BmwE0yMAFIAWiN/4jcz2vyCyl33wy9HvuH3NhsK
+	qiTxPBTBqf6KCcoE91cERudUmh0uA2+JVpNwi4pDmUmJYSw0msucw5d0W3ve1uxVeaAC/Mm4vym4L
+	X4KQiVVg2tDiTQ9HQFSAnBfnWJmfk+0ZDsNLWsQVcRwUVTNERyALm2i7IRo2zA/QmAg2vyGiJNVvw
+	c8cZc8s9i/V6DR3PP9Uw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOGMT-0000000F5nU-0dmT;
-	Wed, 26 Nov 2025 14:19:13 +0000
-Received: from mail-pg1-x52b.google.com ([2607:f8b0:4864:20::52b])
+	id 1vOGMW-0000000F5pF-3Azz;
+	Wed, 26 Nov 2025 14:19:16 +0000
+Received: from mail-dy1-x1344.google.com ([2607:f8b0:4864:20::1344])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOGMQ-0000000F5mG-0x1N
+	id 1vOGMT-0000000F5ny-3cUC
 	for opensbi@lists.infradead.org;
-	Wed, 26 Nov 2025 14:19:11 +0000
-Received: by mail-pg1-x52b.google.com with SMTP id 41be03b00d2f7-bd1ce1b35e7so4599868a12.0
-        for <opensbi@lists.infradead.org>; Wed, 26 Nov 2025 06:19:10 -0800 (PST)
+	Wed, 26 Nov 2025 14:19:15 +0000
+Received: by mail-dy1-x1344.google.com with SMTP id 5a478bee46e88-2a484a0b7cfso1136971eec.1
+        for <opensbi@lists.infradead.org>; Wed, 26 Nov 2025 06:19:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1764166749; x=1764771549; darn=lists.infradead.org;
+        d=ventanamicro.com; s=google; t=1764166753; x=1764771553; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=jmxqJuR9o/clGg+StXObN7Rf2CS6g+0NtkkBgutMzqQ=;
-        b=LYEmZL82lp32C1pre7J1pwN0RBvPpPq1TrUV6c2/uJoDBI3eg6azTFcJJfSRnH3/Nm
-         e/F8kk5v0lkwaM+9lCyNPtTDb4gGKPuuWKHYjgCxlCLxWNUFqhI+MKYpQkXDvAxL2BaS
-         VXEiCM5Vj1suU0w3LJuHnZDV818+gyTYerY8PRS1DngtCsxtfgc1zcAUJwqZNg44ICPi
-         H4LMGZtHAajO9RzUhKgSTRnPePel0sPoHAy3lx2ZTZs3VEr1nUqowk/suXtVSapVlIAx
-         yWSp5r0s3PoWw+Dlu2FM8xIE7E4gK1mjLsjl99uthe0n2kG4j33UL833LbHG43rSoVdx
-         rKIw==
+        bh=fE7mnYa+ZiWmS5EiOpi+0p9mvbo4yW9AXn9e7Dsc+DI=;
+        b=n90QlR0gr2Z9BI15MrfPABJE0nw6r9qx3MRMQjfQcaoc8Q7sxJRPyFYChf3rtpdR+R
+         D9KhzOJt8SayxuoYaCMevZuQbIfkOc21oCCm7kA+P5c36HW7CeixOaFw4zcd1uReukPH
+         jVHeAxdpjESusB21laejl2ld2v5arQAKPoPLOZHjsxxgEKrFVlfn3hrfaUfHP9e3WI0w
+         Y/iOa8yRE1h2bOoFWuRSfxa7Oh8X/9icgmNkQ9ygQPNFT7do4Zj5n8VYKnUQ5776sZ19
+         ftGlUMo469SUbRv+Wpi4OX5KW9NBqnnLMqccMEp5EuVAxTfFeg3nM79OdR0RHwzW/Zb7
+         Z/Lg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764166749; x=1764771549;
+        d=1e100.net; s=20230601; t=1764166753; x=1764771553;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=jmxqJuR9o/clGg+StXObN7Rf2CS6g+0NtkkBgutMzqQ=;
-        b=PSiZ4+slQVmsrH9vCImjav/Yl6v4rul9YvV8vDg6zI2pTJtgsCAKg5HcYAuvSmNLMe
-         CHp7D0ibOXwiN724f5gay+ORzHO+rPJUMayxsoffBfEkmb8L3hIJlcQV/bNIxd6dWLHf
-         Ke3jRmsGvTC5+NKxM5BlInpO5mmCpJ2FzRJFmDc1ljbQUtLCNqNWExd21xwvVivlg9UR
-         YViUHZOBa/O7On49Xmy//Mk9NIa0iQUJ1B3CGrDHRg6Jyt8hFqBVmwu5wGDBk9iCPAT6
-         0sHI5iUr9PDGauCrgZCLF/zluBR1EVk5hoBr6+C4UHjmSe5lavO9xBkosEXum7MPMzJw
-         ZGvg==
-X-Forwarded-Encrypted: i=1; AJvYcCV4d36lGiZE3TikG2bHF0iLhbZWmvZbNRTU4AvP3opPpcM6qTU3sbBxMlZvzDIz5Z1kRZY5gM/z@lists.infradead.org
-X-Gm-Message-State: AOJu0Yx9vHMxwptoO61rC6K1Rm+nAe3w5v7Lsm8tFJwiq6mI87Atk0I6
-	SHjGYJZMllJ2UaRRIdIcjRgIz+3dfXZdB3VE1535ahyeXwNprt+Uqud8zQbw0mZw/K0=
-X-Gm-Gg: ASbGncvnVa5UT1+QJFI8YgWg7OAmQoH8TepV7D9ocymkqhmgQPl0Sq913Me8JspOTie
-	vnBpN7DRoK24qM6xkxX3BgGGFX6o97RG2gR6nkaIOigFXzBphjh6ABsnqQM9xs0Fj771H/rjbvY
-	229k84T0Q/BDzMIitV9jw/bIJWPtIEVz+6zmzw81ThoYijnTcRbrj2aqwj53efhfjVP8iAnQsyT
-	Nn1wQ2s670FxAqDGqgbzjfVwRCBM7EcHgu4acfFWgc0ijSqHKkFQ0poixxahVzBZFpF/OeocwiV
-	PUdfyl39bTTfNIoqmxlA93BQXbkPbDyXTqJK66orN4QfLWbF7HEcsOd3mQII+o6WZxR+Mqz/EWL
-	iLXIs+ezI97SzpqxMHWI8yZxmjizcg30CHLu24lde+911jbHfU9bYrvwFK76JUXPXEBACGcNCUc
-	v5aibbJ6UiI09RBhbbcOUiKbVoBcwpdfCrBAl7ChSAQcn7ea4sSxLL1JGqmZnT
-X-Google-Smtp-Source: AGHT+IELQjOmE5TRLpjotDj+bxPcELXQEFvJSIIft6FIWEBieUqs7gHvkKXx80MuNTLCBOpbebOYMg==
-X-Received: by 2002:a05:7300:106:b0:2a4:630b:c789 with SMTP id 5a478bee46e88-2a7192da0e8mr8690991eec.37.1764166748994;
-        Wed, 26 Nov 2025 06:19:08 -0800 (PST)
+        bh=fE7mnYa+ZiWmS5EiOpi+0p9mvbo4yW9AXn9e7Dsc+DI=;
+        b=mJ/dTe9d8ldqVc2uhl0cIdyoaWZAOTBuBVETTOQvdUYDq5fhnrUu+Osa9Ps8cth2VI
+         bZrXC7MyWncdl/LdDPlcw125rP4hTSgRSIX5WzDfaUQ6Q5R5FXRM/imRn/bQkkuBmlXL
+         LEWXpSCZAjwkllCwDxhNvNvnAN6H4haazRRBiykIsllC2fVrJRm5C8cyQ3/sTg2cs/JE
+         Iy5GSZ0+7hmh43UVppOmtI0cC03SZDRcMesmnltT9uZNira0xKM6GEIJ+10ThzbPjM6t
+         77pyNmphZWLRx2YjhVlHqWmH5Buj903CMyWsMNiu1e/DzQfe02sMYv22/xzAU2w3z7Bi
+         KoWg==
+X-Forwarded-Encrypted: i=1; AJvYcCUGMNl9J49AJHN2v6eOw/7z1OEF7NmVba+K4o5CnH7wpkB/b5v41xyMjGgn3tzqDId2H7F48Xw4@lists.infradead.org
+X-Gm-Message-State: AOJu0YxmW71A/cXxIZAUpw6n24C7y2FhV5V/M+o1mKPSPnv1JKj+f1ci
+	9bIw/R+Zhfwf2YfXC+C6vkpeRBKfD0Fkmlp4t1VjRNQLCHzHTps8GsQDRRmfmv7AROJM1sb7/57
+	iPNStq/KcdtNU
+X-Gm-Gg: ASbGncslIXx7Isr6U41sd5BSzFEi0MjUqybTl1uj/dRTxsGayPk6aEIVfG9MwsJTgFQ
+	ZOvarlTslkY6V4G+7SQ6vA2UWLwyQfeRHR8pxNm1LrZQdes3ED8bXdiPJZe68TTNRVKyTjmhi+R
+	SoPxZ0EwQ3jZDZYvX71Ua+zRKAo8ghGQhC1rOtNICcx82Y+XtA4Fl3yFa6RD2BCN+I892UfM6CS
+	JbARVluSjfkkzkyJmhZE+lXpcmhSP609pmrPqKfxJ6tlhcWmdTBRVVoZR0I0pXqKG9M+fmhGs8H
+	L9hHzIjHtDtCETXpUdqvzLvwiGzFsHebcqx3ZW0Tve1pSqlAx9haS2NBNQXKOp620BDAxGPOUBy
+	2ME3wQPumNTS5phcTc26IzclpiT8Tu+MkB5MiRVf3xW/hrYV+OT/FZZfFjg9DzNjCzTIejHGaBR
+	nnwGBEGW34fdBlJhtHI1gp/IqzwqNJaRMvikKc0KakUUcszAgjVA==
+X-Google-Smtp-Source: AGHT+IHAvD3SRukzrI3mdrymQp/FPCO+PxpQfWjhULmU08us4C8uUu5NEQ1IwQQLJ3PMYUZllVvACw==
+X-Received: by 2002:a05:7301:4382:b0:2a4:5ff6:4438 with SMTP id 5a478bee46e88-2a6ff5307b5mr9853141eec.1.1764166752672;
+        Wed, 26 Nov 2025 06:19:12 -0800 (PST)
 Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2a6fc3d0bb6sm103679339eec.2.2025.11.26.06.19.05
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2a6fc3d0bb6sm103679339eec.2.2025.11.26.06.19.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Nov 2025 06:19:08 -0800 (PST)
+        Wed, 26 Nov 2025 06:19:12 -0800 (PST)
 From: Anup Patel <apatel@ventanamicro.com>
 To: Atish Patra <atishp@rivosinc.com>
 Cc: Andrew Jones <ajones@ventanamicro.com>,
 	Anup Patel <anup@brainfault.org>,
 	opensbi@lists.infradead.org,
 	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH 4/5] lib: sbi: Replace sbi_hart_pmp_xyz() and sbi_hart_map/unmap_addr()
-Date: Wed, 26 Nov 2025 19:48:43 +0530
-Message-ID: <20251126141845.248697-5-apatel@ventanamicro.com>
+Subject: [PATCH 5/5] lib: sbi: Factor-out PMP programming into separate sources
+Date: Wed, 26 Nov 2025 19:48:44 +0530
+Message-ID: <20251126141845.248697-6-apatel@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20251126141845.248697-1-apatel@ventanamicro.com>
 References: <20251126141845.248697-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251126_061910_293174_881480DF 
-X-CRM114-Status: GOOD (  20.19  )
+X-CRM114-CacheID: sfid-20251126_061913_932729_4BE6BEB2 
+X-CRM114-Status: GOOD (  26.15  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,488 +103,855 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The sbi_hart_pmp_xyz() and sbi_hart_map/unmap_addr() functions can
-now be replaced by various sbi_hart_protection_xyz() functions.
+The PMP programming is a significant part of sbi_hart.c so factor-out
+this into separate sources sbi_hart_pmp.c and sbi_hart_pmp.h for better
+maintainability.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_hart.h       |  8 ++------
- lib/sbi/sbi_dbtr.c           | 33 ++++++++++++++++++++-------------
- lib/sbi/sbi_domain_context.c |  5 +++--
- lib/sbi/sbi_ecall_dbcn.c     |  6 +++---
- lib/sbi/sbi_hart.c           | 34 +---------------------------------
- lib/sbi/sbi_init.c           | 16 ++++++++--------
- lib/sbi/sbi_mpxy.c           | 25 +++++++++++++------------
- lib/sbi/sbi_pmu.c            |  5 +++--
- lib/sbi/sbi_sse.c            |  9 +++++----
- 9 files changed, 58 insertions(+), 83 deletions(-)
+ include/sbi/sbi_hart.h     |  22 +--
+ include/sbi/sbi_hart_pmp.h |  20 +++
+ lib/sbi/objects.mk         |   1 +
+ lib/sbi/sbi_hart.c         | 335 +---------------------------------
+ lib/sbi/sbi_hart_pmp.c     | 356 +++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_init.c         |   1 +
+ 6 files changed, 383 insertions(+), 352 deletions(-)
+ create mode 100644 include/sbi/sbi_hart_pmp.h
+ create mode 100644 lib/sbi/sbi_hart_pmp.c
 
 diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 93682880..539f95de 100644
+index 539f95de..81019f73 100644
 --- a/include/sbi/sbi_hart.h
 +++ b/include/sbi/sbi_hart.h
-@@ -115,8 +115,8 @@ enum sbi_hart_csrs {
-  * When shared memory access is required, the physical address
-  * should be programmed into the first PMP entry with R/W
-  * permissions to the M-mode. Once the work is done, it should be
-- * unmapped. sbi_hart_map_saddr/sbi_hart_unmap_saddr function
-- * pair should be used to map/unmap the shared memory.
-+ * unmapped. sbi_hart_protection_map_range/sbi_hart_protection_unmap_range
-+ * function pair should be used to map/unmap the shared memory.
-  */
- #define SBI_SMEPMP_RESV_ENTRY		0
+@@ -105,21 +105,6 @@ enum sbi_hart_csrs {
+ 	SBI_HART_CSR_MAX,
+ };
  
-@@ -147,10 +147,6 @@ unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
- unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+-/*
+- * Smepmp enforces access boundaries between M-mode and
+- * S/U-mode. When it is enabled, the PMPs are programmed
+- * such that M-mode doesn't have access to S/U-mode memory.
+- *
+- * To give M-mode R/W access to the shared memory between M and
+- * S/U-mode, first entry is reserved. It is disabled at boot.
+- * When shared memory access is required, the physical address
+- * should be programmed into the first PMP entry with R/W
+- * permissions to the M-mode. Once the work is done, it should be
+- * unmapped. sbi_hart_protection_map_range/sbi_hart_protection_unmap_range
+- * function pair should be used to map/unmap the shared memory.
+- */
+-#define SBI_SMEPMP_RESV_ENTRY		0
+-
+ struct sbi_hart_features {
+ 	bool detected;
+ 	int priv_version;
+@@ -132,6 +117,9 @@ struct sbi_hart_features {
+ 	unsigned int mhpm_bits;
+ };
+ 
++extern unsigned long hart_features_offset;
++#define sbi_hart_features_ptr(__s)	sbi_scratch_offset_ptr(__s, hart_features_offset)
++
+ struct sbi_scratch;
+ 
+ int sbi_hart_reinit(struct sbi_scratch *scratch);
+@@ -142,11 +130,7 @@ extern void (*sbi_hart_expected_trap)(void);
+ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
+ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+ 			      const char *prefix, const char *suffix);
+-unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
+-unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
+-unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
  unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
- bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
--int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
--void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch);
--int sbi_hart_map_saddr(unsigned long base, unsigned long size);
--int sbi_hart_unmap_saddr(void);
+-bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
  int sbi_hart_priv_version(struct sbi_scratch *scratch);
  void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
  				   char *version_str, int nvstr);
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 656a6261..8bcb4312 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -16,6 +16,7 @@
- #include <sbi/sbi_trap.h>
- #include <sbi/sbi_dbtr.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_hart_protection.h>
- #include <sbi/riscv_encoding.h>
- #include <sbi/riscv_asm.h>
- 
-@@ -558,8 +559,8 @@ int sbi_dbtr_read_trig(unsigned long smode,
- 
- 	shmem_base = hart_shmem_base(hs);
- 
--	sbi_hart_map_saddr((unsigned long)shmem_base,
--			   trig_count * sizeof(*entry));
-+	sbi_hart_protection_map_range((unsigned long)shmem_base,
-+				      trig_count * sizeof(*entry));
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
- 		xmit = &entry->data;
- 		trig = INDEX_TO_TRIGGER((_idx + trig_idx_base));
-@@ -572,7 +573,8 @@ int sbi_dbtr_read_trig(unsigned long smode,
- 		xmit->tdata2 = cpu_to_lle(trig->tdata2);
- 		xmit->tdata3 = cpu_to_lle(trig->tdata3);
- 	}
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+					trig_count * sizeof(*entry));
- 
- 	return SBI_SUCCESS;
- }
-@@ -596,8 +598,8 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 		return SBI_ERR_NO_SHMEM;
- 
- 	shmem_base = hart_shmem_base(hs);
--	sbi_hart_map_saddr((unsigned long)shmem_base,
--			   trig_count * sizeof(*entry));
-+	sbi_hart_protection_map_range((unsigned long)shmem_base,
-+				      trig_count * sizeof(*entry));
- 
- 	/* Check requested triggers configuration */
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-@@ -606,20 +608,23 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 
- 		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl))) {
- 			*out = _idx;
--			sbi_hart_unmap_saddr();
-+			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+							trig_count * sizeof(*entry));
- 			return SBI_ERR_FAILED;
- 		}
- 
- 		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
- 			*out = _idx;
--			sbi_hart_unmap_saddr();
-+			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+							trig_count * sizeof(*entry));
- 			return SBI_ERR_FAILED;
- 		}
- 	}
- 
- 	if (hs->available_trigs < trig_count) {
- 		*out = hs->available_trigs;
--		sbi_hart_unmap_saddr();
-+		sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+					       trig_count * sizeof(*entry));
- 		return SBI_ERR_FAILED;
- 	}
- 
-@@ -639,7 +644,9 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 		xmit->idx = cpu_to_lle(trig->index);
- 
- 	}
--	sbi_hart_unmap_saddr();
+diff --git a/include/sbi/sbi_hart_pmp.h b/include/sbi/sbi_hart_pmp.h
+new file mode 100644
+index 00000000..f54e8b2a
+--- /dev/null
++++ b/include/sbi/sbi_hart_pmp.h
+@@ -0,0 +1,20 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 Ventana Micro Systems Inc.
++ */
 +
-+	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+					trig_count * sizeof(*entry));
- 
- 	return SBI_SUCCESS;
- }
-@@ -712,23 +719,23 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 		return SBI_ERR_BAD_RANGE;
- 
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
--		sbi_hart_map_saddr((unsigned long)entry, sizeof(*entry));
-+		sbi_hart_protection_map_range((unsigned long)entry, sizeof(*entry));
- 		trig_idx = entry->id.idx;
- 
- 		if (trig_idx >= hs->total_trigs) {
--			sbi_hart_unmap_saddr();
-+			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
- 			return SBI_ERR_INVALID_PARAM;
- 		}
- 
- 		trig = INDEX_TO_TRIGGER(trig_idx);
- 
- 		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED))) {
--			sbi_hart_unmap_saddr();
-+			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
- 			return SBI_ERR_FAILED;
- 		}
- 
- 		dbtr_trigger_setup(trig, &entry->data);
--		sbi_hart_unmap_saddr();
-+		sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
- 		dbtr_trigger_enable(trig);
- 	}
- 
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 8cf47323..f12be049 100644
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -10,6 +10,7 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
-@@ -120,8 +121,8 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 	spin_unlock(&target_dom->assigned_harts_lock);
- 
- 	/* Reconfigure PMP settings for the new domain */
--	sbi_hart_pmp_unconfigure(scratch);
--	sbi_hart_pmp_configure(scratch);
-+	sbi_hart_protection_unconfigure(scratch);
-+	sbi_hart_protection_configure(scratch);
- 
- 	/* Save current CSR context and restore target domain's CSR context */
- 	ctx->sstatus	= csr_swap(CSR_SSTATUS, dom_ctx->sstatus);
-diff --git a/lib/sbi/sbi_ecall_dbcn.c b/lib/sbi/sbi_ecall_dbcn.c
-index 1b0aebdc..75c8455d 100644
---- a/lib/sbi/sbi_ecall_dbcn.c
-+++ b/lib/sbi/sbi_ecall_dbcn.c
-@@ -14,7 +14,7 @@
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_trap.h>
- #include <sbi/riscv_asm.h>
--#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_protection.h>
- 
- static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
- 				  struct sbi_trap_regs *regs,
-@@ -46,12 +46,12 @@ static int sbi_ecall_dbcn_handler(unsigned long extid, unsigned long funcid,
- 					regs->a1, regs->a0, smode,
- 					SBI_DOMAIN_READ|SBI_DOMAIN_WRITE))
- 			return SBI_ERR_INVALID_PARAM;
--		sbi_hart_map_saddr(regs->a1, regs->a0);
-+		sbi_hart_protection_map_range(regs->a1, regs->a0);
- 		if (funcid == SBI_EXT_DBCN_CONSOLE_WRITE)
- 			out->value = sbi_nputs((const char *)regs->a1, regs->a0);
- 		else
- 			out->value = sbi_ngets((char *)regs->a1, regs->a0);
--		sbi_hart_unmap_saddr();
-+		sbi_hart_protection_unmap_range(regs->a1, regs->a0);
- 		return 0;
- 	case SBI_EXT_DBCN_CONSOLE_WRITE_BYTE:
- 		sbi_putc(regs->a0);
++#ifndef __SBI_HART_PMP_H__
++#define __SBI_HART_PMP_H__
++
++#include <sbi/sbi_types.h>
++
++struct sbi_scratch;
++
++unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
++unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
++unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
++bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
++int sbi_hart_pmp_init(struct sbi_scratch *scratch);
++
++#endif
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 51588cd1..07d13229 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -75,6 +75,7 @@ libsbi-objs-y += sbi_emulate_csr.o
+ libsbi-objs-y += sbi_fifo.o
+ libsbi-objs-y += sbi_fwft.o
+ libsbi-objs-y += sbi_hart.o
++libsbi-objs-y += sbi_hart_pmp.o
+ libsbi-objs-y += sbi_hart_protection.o
+ libsbi-objs-y += sbi_heap.o
+ libsbi-objs-y += sbi_math.o
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 8869839d..3fdf1047 100644
+index 3fdf1047..d9151569 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -556,39 +556,7 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
- 	return 0;
+@@ -13,26 +13,21 @@
+ #include <sbi/riscv_fp.h>
+ #include <sbi/sbi_bitops.h>
+ #include <sbi/sbi_console.h>
+-#include <sbi/sbi_domain.h>
+ #include <sbi/sbi_csr_detect.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
+-#include <sbi/sbi_hart_protection.h>
+-#include <sbi/sbi_math.h>
++#include <sbi/sbi_hart_pmp.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_pmu.h>
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_trap.h>
+-#include <sbi/sbi_hfence.h>
+ 
+ extern void __sbi_expected_trap(void);
+ extern void __sbi_expected_trap_hext(void);
+ 
+ void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
+ 
+-static unsigned long hart_features_offset;
+-static DECLARE_BITMAP(fw_smepmp_ids, PMP_COUNT);
+-static bool fw_smepmp_ids_inited;
++unsigned long hart_features_offset;
+ 
+ static void mstatus_init(struct sbi_scratch *scratch)
+ {
+@@ -272,30 +267,6 @@ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch)
+ 	return hfeatures->mhpm_mask;
  }
  
--int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
+-unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
 -{
--	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+-	struct sbi_hart_features *hfeatures =
+-			sbi_scratch_offset_ptr(scratch, hart_features_offset);
 -
--	/* If Smepmp is not supported no special mapping is required */
--	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
--		return SBI_OK;
--
--	return sbi_hart_smepmp_map_range(scratch, addr, size);
+-	return hfeatures->pmp_count;
 -}
 -
--int sbi_hart_unmap_saddr(void)
+-unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch)
 -{
--	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+-	struct sbi_hart_features *hfeatures =
+-			sbi_scratch_offset_ptr(scratch, hart_features_offset);
 -
--	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
--		return SBI_OK;
--
--	return sbi_hart_smepmp_unmap_range(scratch, 0, 0);
+-	return hfeatures->pmp_log2gran;
 -}
 -
--int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+-unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
 -{
+-	struct sbi_hart_features *hfeatures =
+-			sbi_scratch_offset_ptr(scratch, hart_features_offset);
+-
+-	return hfeatures->pmp_addr_bits;
+-}
+-
+ unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_hart_features *hfeatures =
+@@ -304,308 +275,6 @@ unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
+ 	return hfeatures->mhpm_bits;
+ }
+ 
+-bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx)
+-{
+-	if (!fw_smepmp_ids_inited)
+-		return false;
+-
+-	return bitmap_test(fw_smepmp_ids, pmp_idx) ? true : false;
+-}
+-
+-static void sbi_hart_pmp_fence(void)
+-{
+-	/*
+-	 * As per section 3.7.2 of privileged specification v1.12,
+-	 * virtual address translations can be speculatively performed
+-	 * (even before actual access). These, along with PMP traslations,
+-	 * can be cached. This can pose a problem with CPU hotplug
+-	 * and non-retentive suspend scenario because PMP states are
+-	 * not preserved.
+-	 * It is advisable to flush the caching structures under such
+-	 * conditions.
+-	 */
+-	if (misa_extension('S')) {
+-		__asm__ __volatile__("sfence.vma");
+-
+-		/*
+-		 * If hypervisor mode is supported, flush caching
+-		 * structures in guest mode too.
+-		 */
+-		if (misa_extension('H'))
+-			__sbi_hfence_gvma_all();
+-	}
+-}
+-
+-static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
+-				struct sbi_domain *dom,
+-				struct sbi_domain_memregion *reg,
+-				unsigned int pmp_idx,
+-				unsigned int pmp_flags,
+-				unsigned int pmp_log2gran,
+-				unsigned long pmp_addr_max)
+-{
+-	unsigned long pmp_addr = reg->base >> PMP_SHIFT;
+-
+-	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
+-		sbi_platform_pmp_set(sbi_platform_ptr(scratch),
+-				     pmp_idx, reg->flags, pmp_flags,
+-				     reg->base, reg->order);
+-		pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
+-	} else {
+-		sbi_printf("Can not configure pmp for domain %s because"
+-			   " memory region address 0x%lx or size 0x%lx "
+-			   "is not in range.\n", dom->name, reg->base,
+-			   reg->order);
+-	}
+-}
+-
+-static bool is_valid_pmp_idx(unsigned int pmp_count, unsigned int pmp_idx)
+-{
+-	if (pmp_count > pmp_idx)
+-		return true;
+-
+-	sbi_printf("error: insufficient PMP entries\n");
+-	return false;
+-}
+-
+-static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
+-{
+-	struct sbi_domain_memregion *reg;
+-	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	unsigned int pmp_log2gran, pmp_bits;
+-	unsigned int pmp_idx, pmp_count;
+-	unsigned long pmp_addr_max;
+-	unsigned int pmp_flags;
+-
+-	pmp_count = sbi_hart_pmp_count(scratch);
+-	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
+-	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
+-	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
+-
+-	/*
+-	 * Set the RLB so that, we can write to PMP entries without
+-	 * enforcement even if some entries are locked.
+-	 */
+-	csr_set(CSR_MSECCFG, MSECCFG_RLB);
+-
+-	/* Disable the reserved entry */
+-	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+-
+-	/* Program M-only regions when MML is not set. */
+-	pmp_idx = 0;
+-	sbi_domain_for_each_memregion(dom, reg) {
+-		/* Skip reserved entry */
+-		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+-			pmp_idx++;
+-		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
+-			return SBI_EFAIL;
+-
+-		/* Skip shared and SU-only regions */
+-		if (!SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
+-			pmp_idx++;
+-			continue;
+-		}
+-
+-		/*
+-		 * Track firmware PMP entries to preserve them during
+-		 * domain switches. Under SmePMP, M-mode requires
+-		 * explicit PMP entries to access firmware code/data.
+-		 * These entries must remain enabled across domain
+-		 * context switches to prevent M-mode access faults.
+-		 */
+-		if (SBI_DOMAIN_MEMREGION_IS_FIRMWARE(reg->flags)) {
+-			if (fw_smepmp_ids_inited) {
+-				/* Check inconsistent firmware region */
+-				if (!sbi_hart_smepmp_is_fw_region(pmp_idx))
+-					return SBI_EINVAL;
+-			} else {
+-				bitmap_set(fw_smepmp_ids, pmp_idx, 1);
+-			}
+-		}
+-
+-		pmp_flags = sbi_domain_get_smepmp_flags(reg);
+-
+-		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
+-				    pmp_log2gran, pmp_addr_max);
+-	}
+-
+-	fw_smepmp_ids_inited = true;
+-
+-	/* Set the MML to enforce new encoding */
+-	csr_set(CSR_MSECCFG, MSECCFG_MML);
+-
+-	/* Program shared and SU-only regions */
+-	pmp_idx = 0;
+-	sbi_domain_for_each_memregion(dom, reg) {
+-		/* Skip reserved entry */
+-		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
+-			pmp_idx++;
+-		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
+-			return SBI_EFAIL;
+-
+-		/* Skip M-only regions */
+-		if (SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
+-			pmp_idx++;
+-			continue;
+-		}
+-
+-		pmp_flags = sbi_domain_get_smepmp_flags(reg);
+-
+-		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
+-				    pmp_log2gran, pmp_addr_max);
+-	}
+-
+-	/*
+-	 * All entries are programmed.
+-	 * Keep the RLB bit so that dynamic mappings can be done.
+-	 */
+-
+-	sbi_hart_pmp_fence();
+-	return 0;
+-}
+-
+-static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
+-				     unsigned long addr, unsigned long size)
+-{
+-	/* shared R/W access for M and S/U mode */
+-	unsigned int pmp_flags = (PMP_W | PMP_X);
+-	unsigned long order, base = 0;
+-
+-	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
+-		return SBI_ENOSPC;
+-
+-	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
+-	     order <= __riscv_xlen; order++) {
+-		if (order < __riscv_xlen) {
+-			base = addr & ~((1UL << order) - 1UL);
+-			if ((base <= addr) &&
+-			    (addr < (base + (1UL << order))) &&
+-			    (base <= (addr + size - 1UL)) &&
+-			    ((addr + size - 1UL) < (base + (1UL << order))))
+-				break;
+-		} else {
+-			return SBI_EFAIL;
+-		}
+-	}
+-
+-	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
+-			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
+-			     pmp_flags, base, order);
+-	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
+-
+-	return SBI_OK;
+-}
+-
+-static int sbi_hart_smepmp_unmap_range(struct sbi_scratch *scratch,
+-				       unsigned long addr, unsigned long size)
+-{
+-	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
+-	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+-}
+-
+-static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
+-{
+-	struct sbi_domain_memregion *reg;
+-	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	unsigned long pmp_addr, pmp_addr_max;
+-	unsigned int pmp_log2gran, pmp_bits;
+-	unsigned int pmp_idx, pmp_count;
+-	unsigned int pmp_flags;
+-
+-	pmp_count = sbi_hart_pmp_count(scratch);
+-	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
+-	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
+-	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
+-
+-	pmp_idx = 0;
+-	sbi_domain_for_each_memregion(dom, reg) {
+-		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
+-			return SBI_EFAIL;
+-
+-		pmp_flags = 0;
+-
+-		/*
+-		 * If permissions are to be enforced for all modes on
+-		 * this region, the lock bit should be set.
+-		 */
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
+-			pmp_flags |= PMP_L;
+-
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
+-			pmp_flags |= PMP_R;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
+-			pmp_flags |= PMP_W;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
+-			pmp_flags |= PMP_X;
+-
+-		pmp_addr = reg->base >> PMP_SHIFT;
+-		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
+-			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
+-					     pmp_idx, reg->flags, pmp_flags,
+-					     reg->base, reg->order);
+-			pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
+-		} else {
+-			sbi_printf("Can not configure pmp for domain %s because"
+-				   " memory region address 0x%lx or size 0x%lx "
+-				   "is not in range.\n", dom->name, reg->base,
+-				   reg->order);
+-		}
+-	}
+-
+-	sbi_hart_pmp_fence();
+-	return 0;
+-}
+-
+-static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
+-{
+-	int i, pmp_count = sbi_hart_pmp_count(scratch);
+-
+-	for (i = 0; i < pmp_count; i++) {
+-		/* Don't revoke firmware access permissions */
+-		if (sbi_hart_smepmp_is_fw_region(i))
+-			continue;
+-
+-		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
+-		pmp_disable(i);
+-	}
+-}
+-
+-static struct sbi_hart_protection pmp_protection = {
+-	.name = "pmp",
+-	.rating = 100,
+-	.configure = sbi_hart_oldpmp_configure,
+-	.unconfigure = sbi_hart_pmp_unconfigure,
+-};
+-
+-static struct sbi_hart_protection epmp_protection = {
+-	.name = "epmp",
+-	.rating = 200,
+-	.configure = sbi_hart_smepmp_configure,
+-	.unconfigure = sbi_hart_pmp_unconfigure,
+-	.map_range = sbi_hart_smepmp_map_range,
+-	.unmap_range = sbi_hart_smepmp_unmap_range,
+-};
+-
+-static int sbi_hart_pmp_init(struct sbi_scratch *scratch)
+-{
+-	int rc;
+-
 -	if (!sbi_hart_pmp_count(scratch))
 -		return 0;
 -
--	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
--		return sbi_hart_smepmp_configure(scratch);
--	else
--		return sbi_hart_oldpmp_configure(scratch);
+-	rc = sbi_hart_protection_register(&pmp_protection);
+-	if (rc)
+-		return rc;
+-
+-	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP)) {
+-		rc = sbi_hart_protection_register(&epmp_protection);
+-		if (rc)
+-			return rc;
+-	}
+-
+-	return 0;
 -}
 -
--void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
-+static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
+ int sbi_hart_priv_version(struct sbi_scratch *scratch)
  {
- 	int i, pmp_count = sbi_hart_pmp_count(scratch);
- 
+ 	struct sbi_hart_features *hfeatures =
+diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
+new file mode 100644
+index 00000000..ab96e2fa
+--- /dev/null
++++ b/lib/sbi/sbi_hart_pmp.c
+@@ -0,0 +1,356 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 Ventana Micro Systems Inc.
++ */
++
++#include <sbi/sbi_bitmap.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_hart.h>
++#include <sbi/sbi_hart_protection.h>
++#include <sbi/sbi_hfence.h>
++#include <sbi/sbi_math.h>
++#include <sbi/sbi_platform.h>
++#include <sbi/riscv_asm.h>
++
++/*
++ * Smepmp enforces access boundaries between M-mode and
++ * S/U-mode. When it is enabled, the PMPs are programmed
++ * such that M-mode doesn't have access to S/U-mode memory.
++ *
++ * To give M-mode R/W access to the shared memory between M and
++ * S/U-mode, first entry is reserved. It is disabled at boot.
++ * When shared memory access is required, the physical address
++ * should be programmed into the first PMP entry with R/W
++ * permissions to the M-mode. Once the work is done, it should be
++ * unmapped. sbi_hart_protection_map_range/sbi_hart_protection_unmap_range
++ * function pair should be used to map/unmap the shared memory.
++ */
++#define SBI_SMEPMP_RESV_ENTRY		0
++
++static DECLARE_BITMAP(fw_smepmp_ids, PMP_COUNT);
++static bool fw_smepmp_ids_inited;
++
++unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
++{
++	struct sbi_hart_features *hfeatures = sbi_hart_features_ptr(scratch);
++
++	return hfeatures->pmp_count;
++}
++
++unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch)
++{
++	struct sbi_hart_features *hfeatures = sbi_hart_features_ptr(scratch);
++
++	return hfeatures->pmp_log2gran;
++}
++
++unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
++{
++	struct sbi_hart_features *hfeatures = sbi_hart_features_ptr(scratch);
++
++	return hfeatures->pmp_addr_bits;
++}
++
++bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx)
++{
++	if (!fw_smepmp_ids_inited)
++		return false;
++
++	return bitmap_test(fw_smepmp_ids, pmp_idx) ? true : false;
++}
++
++static void sbi_hart_pmp_fence(void)
++{
++	/*
++	 * As per section 3.7.2 of privileged specification v1.12,
++	 * virtual address translations can be speculatively performed
++	 * (even before actual access). These, along with PMP traslations,
++	 * can be cached. This can pose a problem with CPU hotplug
++	 * and non-retentive suspend scenario because PMP states are
++	 * not preserved.
++	 * It is advisable to flush the caching structures under such
++	 * conditions.
++	 */
++	if (misa_extension('S')) {
++		__asm__ __volatile__("sfence.vma");
++
++		/*
++		 * If hypervisor mode is supported, flush caching
++		 * structures in guest mode too.
++		 */
++		if (misa_extension('H'))
++			__sbi_hfence_gvma_all();
++	}
++}
++
++static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
++				struct sbi_domain *dom,
++				struct sbi_domain_memregion *reg,
++				unsigned int pmp_idx,
++				unsigned int pmp_flags,
++				unsigned int pmp_log2gran,
++				unsigned long pmp_addr_max)
++{
++	unsigned long pmp_addr = reg->base >> PMP_SHIFT;
++
++	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
++		sbi_platform_pmp_set(sbi_platform_ptr(scratch),
++				     pmp_idx, reg->flags, pmp_flags,
++				     reg->base, reg->order);
++		pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
++	} else {
++		sbi_printf("Can not configure pmp for domain %s because"
++			   " memory region address 0x%lx or size 0x%lx "
++			   "is not in range.\n", dom->name, reg->base,
++			   reg->order);
++	}
++}
++
++static bool is_valid_pmp_idx(unsigned int pmp_count, unsigned int pmp_idx)
++{
++	if (pmp_count > pmp_idx)
++		return true;
++
++	sbi_printf("error: insufficient PMP entries\n");
++	return false;
++}
++
++static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
++{
++	struct sbi_domain_memregion *reg;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
++	unsigned int pmp_log2gran, pmp_bits;
++	unsigned int pmp_idx, pmp_count;
++	unsigned long pmp_addr_max;
++	unsigned int pmp_flags;
++
++	pmp_count = sbi_hart_pmp_count(scratch);
++	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
++	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
++	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
++
++	/*
++	 * Set the RLB so that, we can write to PMP entries without
++	 * enforcement even if some entries are locked.
++	 */
++	csr_set(CSR_MSECCFG, MSECCFG_RLB);
++
++	/* Disable the reserved entry */
++	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++
++	/* Program M-only regions when MML is not set. */
++	pmp_idx = 0;
++	sbi_domain_for_each_memregion(dom, reg) {
++		/* Skip reserved entry */
++		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
++			pmp_idx++;
++		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
++			return SBI_EFAIL;
++
++		/* Skip shared and SU-only regions */
++		if (!SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
++			pmp_idx++;
++			continue;
++		}
++
++		/*
++		 * Track firmware PMP entries to preserve them during
++		 * domain switches. Under SmePMP, M-mode requires
++		 * explicit PMP entries to access firmware code/data.
++		 * These entries must remain enabled across domain
++		 * context switches to prevent M-mode access faults.
++		 */
++		if (SBI_DOMAIN_MEMREGION_IS_FIRMWARE(reg->flags)) {
++			if (fw_smepmp_ids_inited) {
++				/* Check inconsistent firmware region */
++				if (!sbi_hart_smepmp_is_fw_region(pmp_idx))
++					return SBI_EINVAL;
++			} else {
++				bitmap_set(fw_smepmp_ids, pmp_idx, 1);
++			}
++		}
++
++		pmp_flags = sbi_domain_get_smepmp_flags(reg);
++
++		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
++				    pmp_log2gran, pmp_addr_max);
++	}
++
++	fw_smepmp_ids_inited = true;
++
++	/* Set the MML to enforce new encoding */
++	csr_set(CSR_MSECCFG, MSECCFG_MML);
++
++	/* Program shared and SU-only regions */
++	pmp_idx = 0;
++	sbi_domain_for_each_memregion(dom, reg) {
++		/* Skip reserved entry */
++		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
++			pmp_idx++;
++		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
++			return SBI_EFAIL;
++
++		/* Skip M-only regions */
++		if (SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
++			pmp_idx++;
++			continue;
++		}
++
++		pmp_flags = sbi_domain_get_smepmp_flags(reg);
++
++		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
++				    pmp_log2gran, pmp_addr_max);
++	}
++
++	/*
++	 * All entries are programmed.
++	 * Keep the RLB bit so that dynamic mappings can be done.
++	 */
++
++	sbi_hart_pmp_fence();
++	return 0;
++}
++
++static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
++				     unsigned long addr, unsigned long size)
++{
++	/* shared R/W access for M and S/U mode */
++	unsigned int pmp_flags = (PMP_W | PMP_X);
++	unsigned long order, base = 0;
++
++	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
++		return SBI_ENOSPC;
++
++	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
++	     order <= __riscv_xlen; order++) {
++		if (order < __riscv_xlen) {
++			base = addr & ~((1UL << order) - 1UL);
++			if ((base <= addr) &&
++			    (addr < (base + (1UL << order))) &&
++			    (base <= (addr + size - 1UL)) &&
++			    ((addr + size - 1UL) < (base + (1UL << order))))
++				break;
++		} else {
++			return SBI_EFAIL;
++		}
++	}
++
++	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
++			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
++			     pmp_flags, base, order);
++	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
++
++	return SBI_OK;
++}
++
++static int sbi_hart_smepmp_unmap_range(struct sbi_scratch *scratch,
++				       unsigned long addr, unsigned long size)
++{
++	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
++	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++}
++
++static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
++{
++	struct sbi_domain_memregion *reg;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
++	unsigned long pmp_addr, pmp_addr_max;
++	unsigned int pmp_log2gran, pmp_bits;
++	unsigned int pmp_idx, pmp_count;
++	unsigned int pmp_flags;
++
++	pmp_count = sbi_hart_pmp_count(scratch);
++	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
++	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
++	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
++
++	pmp_idx = 0;
++	sbi_domain_for_each_memregion(dom, reg) {
++		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
++			return SBI_EFAIL;
++
++		pmp_flags = 0;
++
++		/*
++		 * If permissions are to be enforced for all modes on
++		 * this region, the lock bit should be set.
++		 */
++		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
++			pmp_flags |= PMP_L;
++
++		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
++			pmp_flags |= PMP_R;
++		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
++			pmp_flags |= PMP_W;
++		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
++			pmp_flags |= PMP_X;
++
++		pmp_addr = reg->base >> PMP_SHIFT;
++		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
++			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
++					     pmp_idx, reg->flags, pmp_flags,
++					     reg->base, reg->order);
++			pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
++		} else {
++			sbi_printf("Can not configure pmp for domain %s because"
++				   " memory region address 0x%lx or size 0x%lx "
++				   "is not in range.\n", dom->name, reg->base,
++				   reg->order);
++		}
++	}
++
++	sbi_hart_pmp_fence();
++	return 0;
++}
++
++static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
++{
++	int i, pmp_count = sbi_hart_pmp_count(scratch);
++
++	for (i = 0; i < pmp_count; i++) {
++		/* Don't revoke firmware access permissions */
++		if (sbi_hart_smepmp_is_fw_region(i))
++			continue;
++
++		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
++		pmp_disable(i);
++	}
++}
++
++static struct sbi_hart_protection pmp_protection = {
++	.name = "pmp",
++	.rating = 100,
++	.configure = sbi_hart_oldpmp_configure,
++	.unconfigure = sbi_hart_pmp_unconfigure,
++};
++
++static struct sbi_hart_protection epmp_protection = {
++	.name = "epmp",
++	.rating = 200,
++	.configure = sbi_hart_smepmp_configure,
++	.unconfigure = sbi_hart_pmp_unconfigure,
++	.map_range = sbi_hart_smepmp_map_range,
++	.unmap_range = sbi_hart_smepmp_unmap_range,
++};
++
++int sbi_hart_pmp_init(struct sbi_scratch *scratch)
++{
++	int rc;
++
++	if (!sbi_hart_pmp_count(scratch))
++		return 0;
++
++	rc = sbi_hart_protection_register(&pmp_protection);
++	if (rc)
++		return rc;
++
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP)) {
++		rc = sbi_hart_protection_register(&epmp_protection);
++		if (rc)
++			return rc;
++	}
++
++	return 0;
++}
 diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index b161d1c1..e01d26bf 100644
+index e01d26bf..5259064b 100644
 --- a/lib/sbi/sbi_init.c
 +++ b/lib/sbi/sbi_init.c
-@@ -389,12 +389,12 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	}
- 
- 	/*
--	 * Configure PMP at last because if SMEPMP is detected,
--	 * M-mode access to the S/U space will be rescinded.
-+	 * Configure hart isolation at last because if SMEPMP is,
-+	 * detected, M-mode access to the S/U space will be rescinded.
- 	 */
--	rc = sbi_hart_pmp_configure(scratch);
-+	rc = sbi_hart_protection_configure(scratch);
- 	if (rc) {
--		sbi_printf("%s: PMP configure failed (error %d)\n",
-+		sbi_printf("%s: hart isolation configure failed (error %d)\n",
- 			   __func__, rc);
- 		sbi_hart_hang();
- 	}
-@@ -468,10 +468,10 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
- 		sbi_hart_hang();
- 
- 	/*
--	 * Configure PMP at last because if SMEPMP is detected,
--	 * M-mode access to the S/U space will be rescinded.
-+	 * Configure hart isolation at last because if SMEPMP is,
-+	 * detected, M-mode access to the S/U space will be rescinded.
- 	 */
--	rc = sbi_hart_pmp_configure(scratch);
-+	rc = sbi_hart_protection_configure(scratch);
- 	if (rc)
- 		sbi_hart_hang();
- 
-@@ -492,7 +492,7 @@ static void __noreturn init_warm_resume(struct sbi_scratch *scratch,
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_hart_pmp_configure(scratch);
-+	rc = sbi_hart_protection_configure(scratch);
- 	if (rc)
- 		sbi_hart_hang();
- 
-diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
-index 681cfbe9..a83cf16c 100644
---- a/lib/sbi/sbi_mpxy.c
-+++ b/lib/sbi/sbi_mpxy.c
-@@ -11,6 +11,7 @@
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
+@@ -18,6 +18,7 @@
+ #include <sbi/sbi_fwft.h>
  #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_mpxy.h>
-@@ -375,10 +376,10 @@ int sbi_mpxy_set_shmem(unsigned long shmem_phys_lo,
- 	if (flags == SBI_EXT_MPXY_SHMEM_FLAG_OVERWRITE_RETURN) {
- 		ret_buf = (unsigned long *)(ulong)SHMEM_PHYS_ADDR(shmem_phys_hi,
- 								  shmem_phys_lo);
--		sbi_hart_map_saddr((unsigned long)ret_buf, mpxy_shmem_size);
-+		sbi_hart_protection_map_range((unsigned long)ret_buf, mpxy_shmem_size);
- 		ret_buf[0] = cpu_to_lle(ms->shmem.shmem_addr_lo);
- 		ret_buf[1] = cpu_to_lle(ms->shmem.shmem_addr_hi);
--		sbi_hart_unmap_saddr();
-+		sbi_hart_protection_unmap_range((unsigned long)ret_buf, mpxy_shmem_size);
- 	}
- 
- 	/** Setup the new shared memory */
-@@ -407,7 +408,7 @@ int sbi_mpxy_get_channel_ids(u32 start_index)
- 		return SBI_ERR_INVALID_PARAM;
- 
- 	shmem_base = hart_shmem_base(ms);
--	sbi_hart_map_saddr((unsigned long)hart_shmem_base(ms), mpxy_shmem_size);
-+	sbi_hart_protection_map_range((unsigned long)hart_shmem_base(ms), mpxy_shmem_size);
- 
- 	/** number of channel ids which can be stored in shmem adjusting
- 	 * for remaining and returned fields */
-@@ -434,7 +435,7 @@ int sbi_mpxy_get_channel_ids(u32 start_index)
- 	shmem_base[0] = cpu_to_le32(remaining);
- 	shmem_base[1] = cpu_to_le32(returned);
- 
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range((unsigned long)hart_shmem_base(ms), mpxy_shmem_size);
- 
- 	return SBI_SUCCESS;
- }
-@@ -465,7 +466,7 @@ int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
- 	shmem_base = hart_shmem_base(ms);
- 	end_id = base_attr_id + attr_count - 1;
- 
--	sbi_hart_map_saddr((unsigned long)hart_shmem_base(ms), mpxy_shmem_size);
-+	sbi_hart_protection_map_range((unsigned long)hart_shmem_base(ms), mpxy_shmem_size);
- 
- 	/* Standard attributes range check */
- 	if (mpxy_is_std_attr(base_attr_id)) {
-@@ -504,7 +505,7 @@ int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
- 					       base_attr_id, attr_count);
- 	}
- out:
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range((unsigned long)hart_shmem_base(ms), mpxy_shmem_size);
- 	return ret;
- }
- 
-@@ -616,7 +617,7 @@ int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
- 	shmem_base = hart_shmem_base(ms);
- 	end_id = base_attr_id + attr_count - 1;
- 
--	sbi_hart_map_saddr((unsigned long)shmem_base, mpxy_shmem_size);
-+	sbi_hart_protection_map_range((unsigned long)shmem_base, mpxy_shmem_size);
- 
- 	mem_ptr = (u32 *)shmem_base;
- 
-@@ -673,7 +674,7 @@ int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
- 					       base_attr_id, attr_count);
- 	}
- out:
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range((unsigned long)shmem_base, mpxy_shmem_size);
- 	return ret;
- }
- 
-@@ -705,7 +706,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
- 		return SBI_ERR_INVALID_PARAM;
- 
- 	shmem_base = hart_shmem_base(ms);
--	sbi_hart_map_saddr((unsigned long)shmem_base, mpxy_shmem_size);
-+	sbi_hart_protection_map_range((unsigned long)shmem_base, mpxy_shmem_size);
- 
- 	if (resp_data_len) {
- 		resp_buf = shmem_base;
-@@ -722,7 +723,7 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
- 							     msg_data_len);
- 	}
- 
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range((unsigned long)shmem_base, mpxy_shmem_size);
- 
- 	if (ret == SBI_ERR_TIMEOUT || ret == SBI_ERR_IO)
- 		return ret;
-@@ -752,12 +753,12 @@ int sbi_mpxy_get_notification_events(u32 channel_id, unsigned long *events_len)
- 		return SBI_ERR_NOT_SUPPORTED;
- 
- 	shmem_base = hart_shmem_base(ms);
--	sbi_hart_map_saddr((unsigned long)shmem_base, mpxy_shmem_size);
-+	sbi_hart_protection_map_range((unsigned long)shmem_base, mpxy_shmem_size);
- 	eventsbuf = shmem_base;
- 	ret = channel->get_notification_events(channel, eventsbuf,
- 					       mpxy_shmem_size,
- 					       events_len);
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range((unsigned long)shmem_base, mpxy_shmem_size);
- 
- 	if (ret)
- 		return ret;
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 70c49abc..b943d99c 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_pmu.h>
-@@ -1034,7 +1035,7 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 					 SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
- 		return SBI_ERR_INVALID_ADDRESS;
- 
--	sbi_hart_map_saddr(shmem_phys_lo, shmem_size);
-+	sbi_hart_protection_map_range(shmem_phys_lo, shmem_size);
- 
- 	einfo = (struct sbi_pmu_event_info *)(shmem_phys_lo);
- 	for (i = 0; i < num_events; i++) {
-@@ -1068,7 +1069,7 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 		}
- 	}
- 
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range(shmem_phys_lo, shmem_size);
- 
- 	return 0;
- }
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 986b7701..a14754f8 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -15,6 +15,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_fifo.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_protection.h>
+ #include <sbi/sbi_hartmask.h>
++#include <sbi/sbi_hart_pmp.h>
+ #include <sbi/sbi_hart_protection.h>
  #include <sbi/sbi_heap.h>
  #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_ipi.h>
-@@ -1036,7 +1037,7 @@ int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
- 	if (ret)
- 		return ret;
- 
--	sbi_hart_map_saddr(output_phys_lo, sizeof(unsigned long) * attr_count);
-+	sbi_hart_protection_map_range(output_phys_lo, sizeof(unsigned long) * attr_count);
- 
- 	/*
- 	 * Copy all attributes at once since struct sse_event_attrs is matching
-@@ -1049,7 +1050,7 @@ int sbi_sse_read_attrs(uint32_t event_id, uint32_t base_attr_id,
- 	attrs = (unsigned long *)output_phys_lo;
- 	copy_attrs(attrs, &e_attrs[base_attr_id], attr_count);
- 
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range(output_phys_lo, sizeof(unsigned long) * attr_count);
- 
- 	sse_event_put(e);
- 
-@@ -1064,7 +1065,7 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
- 	uint32_t id, end_id = base_attr_id + attr_count;
- 	unsigned long *attrs = (unsigned long *)input_phys;
- 
--	sbi_hart_map_saddr(input_phys, sizeof(unsigned long) * attr_count);
-+	sbi_hart_protection_map_range(input_phys, sizeof(unsigned long) * attr_count);
- 
- 	for (id = base_attr_id; id < end_id; id++) {
- 		val = attrs[attr++];
-@@ -1080,7 +1081,7 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
- 	}
- 
- out:
--	sbi_hart_unmap_saddr();
-+	sbi_hart_protection_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
- 
- 	return ret;
- }
 -- 
 2.43.0
 
