@@ -4,86 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id F123ED10F5A
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id ED9E5D10F59
 	for <opensbi@archiver.kernel.org>; Wed, 26 Nov 2025 14:19:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=4zLC3X7039mT38mahgz7jTmJMRST/mJhzgHQnPWDx9M=; b=HsJjCY1ZdsVMAv
-	weHAFaAl9ofpPmSIY8eLa3MAMyb7IT4Z48h9ely+uQzjWb7MNhVXZZ15wXVSMR8Z9IyNneXfWfZT4
-	zNTkYs8PN378bMpVcKhmvaAA7UaSrvW47aXw3m+U86tZq0zW5mbhWgGDKxfqgFatn7u6aEMIZY712
-	8O/7IEm8C7X3YKHXptqq9Eb/LVbhoGI8gqMI1zxnNaqmsUd3mGyGLcSR+0eCMAhx3WqSPpMuCi9If
-	8cieQsqeSZGFwba99GlATH79P61MRObMGKlQLTQYzSSBsSdZfDQ0xt1rf1xsUNm7mtjjHLDWPQcDU
-	KGtRy+DuNdGPjD2qg4ng==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=MboRfxdXSqMc53mIE/BA9p0FcLEybn03JX5KfqUfe0Q=; b=gGjyg/6Xyisjhm
+	JCpxf8cIGVGjUOPofcAb9CIIzthkHebMkOUDk6cPgaGjeSOoWfCBf8YdP5LWK9L1PEn+Gvb8lrlCO
+	4TcGGMHgr4+GtLwCZOOnnN2f93jn64G0t3lMkK4V8b0Cpa/b7QR0XAtlMKCMjYMduICJcNta22RFO
+	RJCrw/bL1Ph5HYT7DU5TuFbJM5GtrO1sOLj1Ga5u0NqOBjVNpGwkzvfi3BAbgqKKMYso+mcTZAglx
+	xdCGJycbTw3haRGQnqcnCxcgRa64+/7XmNHQZJrfrzWb8QqBvc3ly7UVTDdV3hDgucuS7qrOA3+wN
+	vw2LhNjhWufLSGSEBD/Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOGMG-0000000F5jG-1LHn;
-	Wed, 26 Nov 2025 14:19:00 +0000
-Received: from mail-dl1-x1242.google.com ([2607:f8b0:4864:20::1242])
+	id 1vOGMH-0000000F5jX-2fTt;
+	Wed, 26 Nov 2025 14:19:01 +0000
+Received: from mail-pf1-x436.google.com ([2607:f8b0:4864:20::436])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOGMC-0000000F5ie-0yYn
+	id 1vOGMF-0000000F5j2-0ZZp
 	for opensbi@lists.infradead.org;
-	Wed, 26 Nov 2025 14:18:57 +0000
-Received: by mail-dl1-x1242.google.com with SMTP id a92af1059eb24-11beb0a7bd6so1006276c88.1
-        for <opensbi@lists.infradead.org>; Wed, 26 Nov 2025 06:18:55 -0800 (PST)
+	Wed, 26 Nov 2025 14:19:00 +0000
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-7aad4823079so5999696b3a.0
+        for <opensbi@lists.infradead.org>; Wed, 26 Nov 2025 06:18:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1764166735; x=1764771535; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=MBMuM7cetMy9NZmUgPj7x8vMvL1vu70oKo4uelf7q/g=;
-        b=e1Jq/dmLTbc5lZsqRgF4TBNnUz2SFASElRCP8Cl2CpuVVyNoXG0IyU6sdAthv1FpFK
-         AHk0Mdb7Dj6WnPshn/VP+X4Wg83FJTPPQ9syGJWt0s+VoJ0NHzthlEY48VLIyo2nC9oG
-         WATPEbmRam2CRqWOWXnaBsIbJ/EiDDUGCWzOjKmvJuKsp4A6i8v6vKlL60QF/jdemVP5
-         toBtfT2j+4mYpaxd/kztMahCMLnYXQap/DOYCGibi21a3Rsqkz6Bj76kd5JahMo7hcTF
-         X0qKCwez5RBwmLenHyoJmjb1EF0oGLyr/LIQ5OCinAfxExXGgdr0FTJF7AY50r4yTpYb
-         SVZw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764166735; x=1764771535;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=ventanamicro.com; s=google; t=1764166738; x=1764771538; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MBMuM7cetMy9NZmUgPj7x8vMvL1vu70oKo4uelf7q/g=;
-        b=oowkvU8uCFeah/sho5bQEbirPBFapjMZB5pp8H9da6s8Xb/3vvBNagGZMzLK46Ufj+
-         iShKcZ6pN/+KYnAbegbQ7xUpBX10BuAjDWPmVPDqa2L91RxDd1AVlUM0GvK+SYFYlIrU
-         W8cJrdEfPXRaBTWofXkeVR5kPHA7mbZjhE5cIS3hC6XyBKOQvLHhpo000bxxXGlsVhjv
-         uLhpmt6uEf8hmqGJLAecrwvNkZYLfwHJSqGWWriT6Yndv1XKfyl9QVlvEcboIiZRSoh0
-         pnAMdC2lyQL5fGk1XnCTabidVCXwOTXtlzZlu+01lPwXDHo2EqbeNag9MAVRwKXtjO0x
-         BA+g==
-X-Forwarded-Encrypted: i=1; AJvYcCVOor8D3yvin64Niaw/XoVAXDraNpXENY4H27eQqsQ39+tFNdokfCYy+B2DcSR4wWEYU9iPu84B@lists.infradead.org
-X-Gm-Message-State: AOJu0Yz7YpSXJ428re3GBSY2dZthWyWTI7VH2BN7m9PuEphnaU1mXrrn
-	c+LZH5bhJ8xDmFuJaiCB6/uiWgpu2JVtLUmpdf7gBvHacaSr9B0hL5whIEplkSJqBqY=
-X-Gm-Gg: ASbGncuMfIcXFvbZlbA7lAgjfM1vK2xmg83eSwf3k5JoWd+1xpulCfPteiPsjewrR/F
-	5Vr3MNvjPrgHuwLhoPQE0DaNaVKLFCh8gyOc1DZIvfnco38Wtosv+YboEQFDXX5bkCQkUdj3wdX
-	zl/ny2kNdrn1sscr0zXrzPGJlpfuSvZZSf7+0DG+7Ss23HJoSbZBP7rGv4zoWSAYc0IjWqELdJg
-	4AArCmgj0JpXkNKmhdtERGvQkAXeN2PlTY+TR31vJDB1xwQuz3rFU/Mdr2AaGcGbHuJ/FZ1lu7y
-	3oHtiy0SYYMiPFQfDVChQg/GOKMmWkWMUAl6VeIToDnipiyGy40Fm3wtYRFD8miMs4MB7SIPfUH
-	i1ktxHbzGKZbw+i+IgYOhwsWNDxPysOci5lJg70Xm/HM4B/ssUW9Rn+dPQznU6CDvQCuWR28IRb
-	+JhVX/YP/J9/KsfJw9i6tC7eOnhRoTpDhgPRv8HGnhYFJzX4M6/g==
-X-Google-Smtp-Source: AGHT+IFbnDxHymCLcG4dZmijXVdILnM621BxwhwZIo1CC9CQyOkVlE/jd5gJ/fo305ALWzH20VwoHw==
-X-Received: by 2002:a05:7022:3d0e:b0:11b:3eb7:f9d7 with SMTP id a92af1059eb24-11c94b601c2mr13510612c88.14.1764166734700;
-        Wed, 26 Nov 2025 06:18:54 -0800 (PST)
+        bh=+cFwXfhfp1wCMHESPLdJhiM9PgUZte6lD2l18H52g5M=;
+        b=dp0dED1x1e99hK8hav9wGcx7jsdNI0MnNbjRIHYux+UWA4qQexHqSZHtjLHitlHAoi
+         NyhP4DX6Y90DimrFwaflkHyfKor90H8TG8VxDyF+P8ET2ZqmQTwftS9VH/O6j+JfACEj
+         ToCaRz2Bw5vw4rfKFlxhHSc86hjYp1XL+qFwcK06LmQVYxSxbosdJpkLrskZQHMHLQZv
+         qcYRAqY43b0nzoZbWbYJ53WL6fPYUnzTffSxqjrV2/9rWxiKXUT5mNSQ7XMJxRoSDWKq
+         qdkZ28QDBi/bW8QVWQ/b5M8P1FqnQK/l6MNO7s5PaRrzJKnCC9GeP2bNNf3GrgNYxeZY
+         27hg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1764166738; x=1764771538;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=+cFwXfhfp1wCMHESPLdJhiM9PgUZte6lD2l18H52g5M=;
+        b=kCtZOpP2raC+BIjdHLILTXRzrk4VXX4HbyZeOpTtmLUNWcxZqS/Xlq/SPikP5Da3je
+         bLdINRvZhjyu3uz4jvewz7675+MWm3ILXe24B79u3/skaGRKPb6tI9V9yUaC8wrY931p
+         jeYVpKEXxwbeZYIG0scEzSWIAhWSmtvNNj9FDINs+6qo8/8pbU6pfCQWlDnux9RDmqxL
+         AQbJe7wFaZ4kBXOcnQ3WHbnpzEo/MqpHuc8Jj/0cN8sWYjfQOA7leDZx3aLuvnjE7BOJ
+         Ooqp1TfuqWdM2SeyGy3nfy1tCAIFyVjcCiz1mDKEhg4p57dLeIWAA5o5A9p0ZfVhuNMm
+         B7Jg==
+X-Forwarded-Encrypted: i=1; AJvYcCU9X3GsUonHYitAA8cdv+x2hDFSddmZ13ExsnMSn0IWq1pzohm68YT4afeK/Txl4BAAIpebZDrn@lists.infradead.org
+X-Gm-Message-State: AOJu0YyDDNFLy1l46MQEqfqjDJW6FtN/LV0qfba0E6ZU4wpt7WU+BnJO
+	ecBu8jThn7bh1/woKbRcb6slG9/uw5q3zQFLnaCOITmQ9t9rNHK9r8kMnjS/o/HIGkQ=
+X-Gm-Gg: ASbGnct/wkJMPV8zizr7zahFKk6oKC1agpdnEYmU2XHFfj/hybo6AB2d+d8J0enTCDE
+	ZgefXtX07k21BEbc6R//42sj5oG92exUpZaJICrVaZbA3AN4bdgXPmXT4apZrbyeI7pSTjsaZmb
+	7uFpKATDKX+X5/D4t1lG4cMQCLRjLnhkg3sSSkeiARnOGXdxKm6DyK+xbbw9b7j38Ab4TJDkdFX
+	ATiuethH4ZFZ1PmXLsn7lhJHiO26wcqCSHgshUm++i1qOP+YmEwCX+qko0zUh0bqdw9LTEZhUqv
+	o+w1ytS/peurWBXVYkQf+CiRAX9ALZVhyDm/+f4XqWJAyXLrHRk7iC1Swv+qeCBou5WlUvZOjxf
+	IloiNxpjWEQCe9Tpx35a8CalsvH46Wqb4Jav/uXFby4Dwx+J408Ewjdh/o+gZ4XjvTOuyS6k5KW
+	y3qllXsg8PoWRdEhFOjUIE8oJ5awXKtcUxvz+Xo4R1f0YoGLQX8g==
+X-Google-Smtp-Source: AGHT+IEDvfkYhvalXX0GpOUj40sjIsivFOTaOgAeJGLgHq8tJLbLO4ciUkC4vSewqu2tRVsYAay6Cw==
+X-Received: by 2002:a05:7022:ec16:b0:119:e56b:91da with SMTP id a92af1059eb24-11c9d811990mr12679543c88.11.1764166738201;
+        Wed, 26 Nov 2025 06:18:58 -0800 (PST)
 Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2a6fc3d0bb6sm103679339eec.2.2025.11.26.06.18.51
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2a6fc3d0bb6sm103679339eec.2.2025.11.26.06.18.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Nov 2025 06:18:54 -0800 (PST)
+        Wed, 26 Nov 2025 06:18:57 -0800 (PST)
 From: Anup Patel <apatel@ventanamicro.com>
 To: Atish Patra <atishp@rivosinc.com>
 Cc: Andrew Jones <ajones@ventanamicro.com>,
 	Anup Patel <anup@brainfault.org>,
 	opensbi@lists.infradead.org,
 	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH 0/5] OpenSBI hart protection abstraction
-Date: Wed, 26 Nov 2025 19:48:39 +0530
-Message-ID: <20251126141845.248697-1-apatel@ventanamicro.com>
+Subject: [PATCH 1/5] lib: sbi: Introduce sbi_hart_pmp_unconfigure() function
+Date: Wed, 26 Nov 2025 19:48:40 +0530
+Message-ID: <20251126141845.248697-2-apatel@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20251126141845.248697-1-apatel@ventanamicro.com>
+References: <20251126141845.248697-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251126_061856_338160_18112F83 
-X-CRM114-Status: UNSURE (   9.34  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251126_061859_189598_BDC98925 
+X-CRM114-Status: GOOD (  13.06  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -100,42 +102,85 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Currently, PMP and ePMP are the only hart protection mechanisms
-available in OpenSBI but new protection mechanisms (such as Smmpt)
-will be added in the near future. This series adds hart protection
-abstraction and related APIs for allowing multiple hart protection
-mechanisms.
+Currently, the unconfiguring PMP is implemented directly inside
+switch_to_next_domain_context() whereas rest of the PMP programming
+is done via functions implemented in sbi_hart.c.
 
-These patches can also found in hart_protection_v1 branch at:
-https://github.com/avpatel/opensbi.git
+Introduce a separate sbi_hart_pmp_unconfigure() function so that
+all PMP programming is in one place.
 
-Anup Patel (5):
-  lib: sbi: Introduce sbi_hart_pmp_unconfigure() function
-  lib: sbi: Introduce hart protection abstraction
-  lib: sbi: Implement hart protection for PMP and ePMP
-  lib: sbi: Replace sbi_hart_pmp_xyz() and sbi_hart_map/unmap_addr()
-  lib: sbi: Factor-out PMP programming into separate sources
+Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+---
+ include/sbi/sbi_hart.h       |  1 +
+ lib/sbi/sbi_domain_context.c | 10 +---------
+ lib/sbi/sbi_hart.c           | 14 ++++++++++++++
+ 3 files changed, 16 insertions(+), 9 deletions(-)
 
- include/sbi/sbi_hart.h            |  25 +--
- include/sbi/sbi_hart_pmp.h        |  20 ++
- include/sbi/sbi_hart_protection.h |  88 ++++++++
- lib/sbi/objects.mk                |   2 +
- lib/sbi/sbi_dbtr.c                |  33 +--
- lib/sbi/sbi_domain_context.c      |  13 +-
- lib/sbi/sbi_ecall_dbcn.c          |   6 +-
- lib/sbi/sbi_hart.c                | 308 +-------------------------
- lib/sbi/sbi_hart_pmp.c            | 356 ++++++++++++++++++++++++++++++
- lib/sbi/sbi_hart_protection.c     | 110 +++++++++
- lib/sbi/sbi_init.c                |  22 +-
- lib/sbi/sbi_mpxy.c                |  25 ++-
- lib/sbi/sbi_pmu.c                 |   5 +-
- lib/sbi/sbi_sse.c                 |   9 +-
- 14 files changed, 648 insertions(+), 374 deletions(-)
- create mode 100644 include/sbi/sbi_hart_pmp.h
- create mode 100644 include/sbi/sbi_hart_protection.h
- create mode 100644 lib/sbi/sbi_hart_pmp.c
- create mode 100644 lib/sbi/sbi_hart_protection.c
-
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index e66dd52f..93682880 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -148,6 +148,7 @@ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
+ unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
+ bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
++void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch);
+ int sbi_hart_map_saddr(unsigned long base, unsigned long size);
+ int sbi_hart_unmap_saddr(void);
+ int sbi_hart_priv_version(struct sbi_scratch *scratch);
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 74ad25e8..8cf47323 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -102,7 +102,6 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	struct sbi_trap_context *trap_ctx;
+ 	struct sbi_domain *current_dom, *target_dom;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+-	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+ 
+ 	if (!ctx || !dom_ctx || ctx == dom_ctx)
+ 		return SBI_EINVAL;
+@@ -121,14 +120,7 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	spin_unlock(&target_dom->assigned_harts_lock);
+ 
+ 	/* Reconfigure PMP settings for the new domain */
+-	for (int i = 0; i < pmp_count; i++) {
+-		/* Don't revoke firmware access permissions */
+-		if (sbi_hart_smepmp_is_fw_region(i))
+-			continue;
+-
+-		sbi_platform_pmp_disable(sbi_platform_thishart_ptr(), i);
+-		pmp_disable(i);
+-	}
++	sbi_hart_pmp_unconfigure(scratch);
+ 	sbi_hart_pmp_configure(scratch);
+ 
+ 	/* Save current CSR context and restore target domain's CSR context */
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index a91703b4..c5a8d248 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -573,6 +573,20 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ 	return rc;
+ }
+ 
++void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
++{
++	int i, pmp_count = sbi_hart_pmp_count(scratch);
++
++	for (i = 0; i < pmp_count; i++) {
++		/* Don't revoke firmware access permissions */
++		if (sbi_hart_smepmp_is_fw_region(i))
++			continue;
++
++		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
++		pmp_disable(i);
++	}
++}
++
+ int sbi_hart_priv_version(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_hart_features *hfeatures =
 -- 
 2.43.0
 
