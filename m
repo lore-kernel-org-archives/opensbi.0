@@ -4,89 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 32E38D10F58
-	for <opensbi@archiver.kernel.org>; Wed, 26 Nov 2025 14:19:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E9E4DD10F5A
+	for <opensbi@archiver.kernel.org>; Wed, 26 Nov 2025 14:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Qz0DkhjpY6xsIf9BC1VZ1Z0/bOxjNabBJqNpb67uonA=; b=cXYfo1pduSqY62
-	lAL89fftyaFkQz26hwDswG6Gg0FnndhjHhSvBh0pyFqUoUE1gOylD7HS7vfVR6Hd5Zrkn6eTTt6qK
-	/UKDaVkB4G2RzSX98yxK9yx5fZnN+4JRV/oht7BmwE0yMAFIAWiN/4jcz2vyCyl33wy9HvuH3NhsK
-	qiTxPBTBqf6KCcoE91cERudUmh0uA2+JVpNwi4pDmUmJYSw0msucw5d0W3ve1uxVeaAC/Mm4vym4L
-	X4KQiVVg2tDiTQ9HQFSAnBfnWJmfk+0ZDsNLWsQVcRwUVTNERyALm2i7IRo2zA/QmAg2vyGiJNVvw
-	c8cZc8s9i/V6DR3PP9Uw==;
+	List-Owner; bh=NTA7Ti7RVbeuh3gfZqcrQO/UAUTZBW8eBEr6BYioDOY=; b=nu2Ziz2QST923h
+	n4SUZ6rGjGUA7YAN8vTX0kh5EkwFvGbicJHRyAwISOJp3eCpg7xrynNr47p3hNISNcg/ELWBOg5kR
+	9QJMajFfmoYDbe+DlETWFQlDXnJKRQl6lbUggw3U5ppsV2RfCqClEGT4yADn1u169OwraW/js2qC0
+	sFIGmHDjSo5FOD4qdDeGyHmlpNDB0e1TGm29Np/CGdqdj+gsSKTn8nyO8P+SRLaViOYQ8uiHa5xqp
+	g4y67kmNiS5KaXIhhXfMt1bJfx7lraXuuTcqKZkcYO65h53Zr/JakI0AimgpSPn7rvPpsE+arXRXh
+	xqTTXhLQU9oEQs1o/qtQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOGMW-0000000F5pF-3Azz;
-	Wed, 26 Nov 2025 14:19:16 +0000
-Received: from mail-dy1-x1344.google.com ([2607:f8b0:4864:20::1344])
+	id 1vOGQc-0000000F6Z4-0qj8;
+	Wed, 26 Nov 2025 14:23:30 +0000
+Received: from mail-il1-x12e.google.com ([2607:f8b0:4864:20::12e])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOGMT-0000000F5ny-3cUC
+	id 1vOGQY-0000000F6Yb-1p1O
 	for opensbi@lists.infradead.org;
-	Wed, 26 Nov 2025 14:19:15 +0000
-Received: by mail-dy1-x1344.google.com with SMTP id 5a478bee46e88-2a484a0b7cfso1136971eec.1
-        for <opensbi@lists.infradead.org>; Wed, 26 Nov 2025 06:19:13 -0800 (PST)
+	Wed, 26 Nov 2025 14:23:28 +0000
+Received: by mail-il1-x12e.google.com with SMTP id e9e14a558f8ab-43321629a25so26794765ab.3
+        for <opensbi@lists.infradead.org>; Wed, 26 Nov 2025 06:23:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1764166753; x=1764771553; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1764167005; x=1764771805; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=fE7mnYa+ZiWmS5EiOpi+0p9mvbo4yW9AXn9e7Dsc+DI=;
-        b=n90QlR0gr2Z9BI15MrfPABJE0nw6r9qx3MRMQjfQcaoc8Q7sxJRPyFYChf3rtpdR+R
-         D9KhzOJt8SayxuoYaCMevZuQbIfkOc21oCCm7kA+P5c36HW7CeixOaFw4zcd1uReukPH
-         jVHeAxdpjESusB21laejl2ld2v5arQAKPoPLOZHjsxxgEKrFVlfn3hrfaUfHP9e3WI0w
-         Y/iOa8yRE1h2bOoFWuRSfxa7Oh8X/9icgmNkQ9ygQPNFT7do4Zj5n8VYKnUQ5776sZ19
-         ftGlUMo469SUbRv+Wpi4OX5KW9NBqnnLMqccMEp5EuVAxTfFeg3nM79OdR0RHwzW/Zb7
-         Z/Lg==
+        bh=IQKy8JeyTB9zpgy9WJTY96jdSUlG0ml8b1j3E0Ma/ww=;
+        b=ku/WU2Du/Z2fiBG2e45Eczq3BMT/UpmKLEM8ETQDzjPrOon5fAxvQ2SZeNXTI5E0ym
+         E+3psp0sBlMsb6+ZFdufyR4w0w7WsQkxoMkJllpnlkS4JK0ZIOYIwDeq1bAPDwnFBhK1
+         G+196JivXMHdmhnVuA9fIPrek7jBpH1O94/6nwlJHQgJiP4e7Apqpw8Q1LfdUw3ncgW9
+         QroYOdsYOufnvtb234CEyJRkO9PWHO4YFx4x579Fu1OCjebM5RLn4JCIMh7vuvab0k6L
+         UhZyAcwM6Va/ps3YvLq+0Wa+kl43jYjc0QxfjwBLc2x781lCJDF/W7MGB3jtYRnjciYe
+         wYkA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764166753; x=1764771553;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20230601; t=1764167005; x=1764771805;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=fE7mnYa+ZiWmS5EiOpi+0p9mvbo4yW9AXn9e7Dsc+DI=;
-        b=mJ/dTe9d8ldqVc2uhl0cIdyoaWZAOTBuBVETTOQvdUYDq5fhnrUu+Osa9Ps8cth2VI
-         bZrXC7MyWncdl/LdDPlcw125rP4hTSgRSIX5WzDfaUQ6Q5R5FXRM/imRn/bQkkuBmlXL
-         LEWXpSCZAjwkllCwDxhNvNvnAN6H4haazRRBiykIsllC2fVrJRm5C8cyQ3/sTg2cs/JE
-         Iy5GSZ0+7hmh43UVppOmtI0cC03SZDRcMesmnltT9uZNira0xKM6GEIJ+10ThzbPjM6t
-         77pyNmphZWLRx2YjhVlHqWmH5Buj903CMyWsMNiu1e/DzQfe02sMYv22/xzAU2w3z7Bi
-         KoWg==
-X-Forwarded-Encrypted: i=1; AJvYcCUGMNl9J49AJHN2v6eOw/7z1OEF7NmVba+K4o5CnH7wpkB/b5v41xyMjGgn3tzqDId2H7F48Xw4@lists.infradead.org
-X-Gm-Message-State: AOJu0YxmW71A/cXxIZAUpw6n24C7y2FhV5V/M+o1mKPSPnv1JKj+f1ci
-	9bIw/R+Zhfwf2YfXC+C6vkpeRBKfD0Fkmlp4t1VjRNQLCHzHTps8GsQDRRmfmv7AROJM1sb7/57
-	iPNStq/KcdtNU
-X-Gm-Gg: ASbGncslIXx7Isr6U41sd5BSzFEi0MjUqybTl1uj/dRTxsGayPk6aEIVfG9MwsJTgFQ
-	ZOvarlTslkY6V4G+7SQ6vA2UWLwyQfeRHR8pxNm1LrZQdes3ED8bXdiPJZe68TTNRVKyTjmhi+R
-	SoPxZ0EwQ3jZDZYvX71Ua+zRKAo8ghGQhC1rOtNICcx82Y+XtA4Fl3yFa6RD2BCN+I892UfM6CS
-	JbARVluSjfkkzkyJmhZE+lXpcmhSP609pmrPqKfxJ6tlhcWmdTBRVVoZR0I0pXqKG9M+fmhGs8H
-	L9hHzIjHtDtCETXpUdqvzLvwiGzFsHebcqx3ZW0Tve1pSqlAx9haS2NBNQXKOp620BDAxGPOUBy
-	2ME3wQPumNTS5phcTc26IzclpiT8Tu+MkB5MiRVf3xW/hrYV+OT/FZZfFjg9DzNjCzTIejHGaBR
-	nnwGBEGW34fdBlJhtHI1gp/IqzwqNJaRMvikKc0KakUUcszAgjVA==
-X-Google-Smtp-Source: AGHT+IHAvD3SRukzrI3mdrymQp/FPCO+PxpQfWjhULmU08us4C8uUu5NEQ1IwQQLJ3PMYUZllVvACw==
-X-Received: by 2002:a05:7301:4382:b0:2a4:5ff6:4438 with SMTP id 5a478bee46e88-2a6ff5307b5mr9853141eec.1.1764166752672;
-        Wed, 26 Nov 2025 06:19:12 -0800 (PST)
-Received: from anup-ubuntu-vm.localdomain ([103.97.166.196])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2a6fc3d0bb6sm103679339eec.2.2025.11.26.06.19.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Nov 2025 06:19:12 -0800 (PST)
-From: Anup Patel <apatel@ventanamicro.com>
-To: Atish Patra <atishp@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>,
-	Anup Patel <anup@brainfault.org>,
-	opensbi@lists.infradead.org,
-	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH 5/5] lib: sbi: Factor-out PMP programming into separate sources
-Date: Wed, 26 Nov 2025 19:48:44 +0530
-Message-ID: <20251126141845.248697-6-apatel@ventanamicro.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20251126141845.248697-1-apatel@ventanamicro.com>
-References: <20251126141845.248697-1-apatel@ventanamicro.com>
+        bh=IQKy8JeyTB9zpgy9WJTY96jdSUlG0ml8b1j3E0Ma/ww=;
+        b=JcPLPsL08Iz5j+u4eC7xJCMFXdjJyJuYJOjiS49YtAMf4B/uzvgZ4ovGjFkhXGrJio
+         4cu4ubOk9R4tosVSMRSiOX8C+ntsFkWMxM2Hti9MLQzwhGnUpshZxkS+tizRJSkBRcqV
+         w55rAs9NY8vmSck6WieXKg/6RgMf5v4CV3eIrMatxYzZVoGGklQBiJUKl6Jq7XrfCRxt
+         sfGcGJ93O0PKMsnoHFWEO890QY+WABZvzdy3ZQ1asz26ilIP+4VLt9ZzoN3Jc0iOA7UP
+         NChrKY0HX4+RgtAAuQgo4A+ZdmopDgZFW2JNLaS1IA0esI4hqMOktoOXS3Wurx9+hmNy
+         MU/w==
+X-Gm-Message-State: AOJu0YxyOCmx9kwJpMOEE5xn8iMBbLlCRwuVXVqV7OkXfIjrKf3G+VoF
+	INQ+1ym/qHrsQFIFG8FmJkdA0kMAx57ykjvOnUTufOdvuvFD94nXCnONlaPMfLxwAFmU0W1ohYs
+	wza6g6MYihM3vpYXpHihY/TJUhD2ekiz4pwYwxyYu1w==
+X-Gm-Gg: ASbGncuwK/gsUL7a+CTQVFjccCInWsucEwBjb8GvVvaaSJRHd9EvZWQWWv2pqsyAqJU
+	3dcldRDn5+ShgB/QcHjIm1CDRF4bcY/JpYXaoH1qSM4tmLpHUU6nQ8pP2PCzWiSA3Gtk6Ja12E4
+	6ASAGk/fWDv9qehZdo9O3gq7G6L9UhzE3j4QGTt0K3l9d08H5Esc/SYIlgTNhja6TOq51dbhBYF
+	hyNRXfWqWuLQtqZ0ep6OGsdEPeIQy5nzTMVqPLfDDnNvlC2oOiI+3VVzOPBUpZgitGUQWj/MbcS
+	rV2x76g=
+X-Google-Smtp-Source: AGHT+IEn9dDMqo8UGswBPfVJfgCY6lPsmhzTt3IBGXxsYsmiJI/WHA096WLPQLBhdSbIj3uMidgH4ooBlRXmB/bS89Y=
+X-Received: by 2002:a05:6e02:3811:b0:435:b35b:4b4b with SMTP id
+ e9e14a558f8ab-435b9845cf4mr156250815ab.3.1764167004947; Wed, 26 Nov 2025
+ 06:23:24 -0800 (PST)
 MIME-Version: 1.0
+References: <20251120093440.4533-1-ganboing@gmail.com>
+In-Reply-To: <20251120093440.4533-1-ganboing@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 26 Nov 2025 19:53:14 +0530
+X-Gm-Features: AWmQ_bkTUHTo3XXv6LmnJ3cu36_b-8Oj79bse07npKpQ9slGGJ-pa2Jo3S2XVcI
+Message-ID: <CAAhSdy1fEUk=2GWAWf12SR2r5vc3R+heg7sZMniTgYTjdu5Rjg@mail.gmail.com>
+Subject: Re: [PATCH v3 0/4] Initial ESWIN/EIC7700 support
+To: Bo Gan <ganboing@gmail.com>
+Cc: opensbi@lists.infradead.org, linmin@eswincomputing.com, 
+	pinkesh.vaghela@einfochips.com, gaohan@iscas.ac.cn, samuel@sholland.org, 
+	wangxiang@iscas.ac.cn
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251126_061913_932729_4BE6BEB2 
-X-CRM114-Status: GOOD (  26.15  )
+X-CRM114-CacheID: sfid-20251126_062326_669033_E0D7D2C1 
+X-CRM114-Status: GOOD (  26.02  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,865 +91,165 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The PMP programming is a significant part of sbi_hart.c so factor-out
-this into separate sources sbi_hart_pmp.c and sbi_hart_pmp.h for better
-maintainability.
-
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
----
- include/sbi/sbi_hart.h     |  22 +--
- include/sbi/sbi_hart_pmp.h |  20 +++
- lib/sbi/objects.mk         |   1 +
- lib/sbi/sbi_hart.c         | 335 +---------------------------------
- lib/sbi/sbi_hart_pmp.c     | 356 +++++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_init.c         |   1 +
- 6 files changed, 383 insertions(+), 352 deletions(-)
- create mode 100644 include/sbi/sbi_hart_pmp.h
- create mode 100644 lib/sbi/sbi_hart_pmp.c
-
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 539f95de..81019f73 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -105,21 +105,6 @@ enum sbi_hart_csrs {
- 	SBI_HART_CSR_MAX,
- };
- 
--/*
-- * Smepmp enforces access boundaries between M-mode and
-- * S/U-mode. When it is enabled, the PMPs are programmed
-- * such that M-mode doesn't have access to S/U-mode memory.
-- *
-- * To give M-mode R/W access to the shared memory between M and
-- * S/U-mode, first entry is reserved. It is disabled at boot.
-- * When shared memory access is required, the physical address
-- * should be programmed into the first PMP entry with R/W
-- * permissions to the M-mode. Once the work is done, it should be
-- * unmapped. sbi_hart_protection_map_range/sbi_hart_protection_unmap_range
-- * function pair should be used to map/unmap the shared memory.
-- */
--#define SBI_SMEPMP_RESV_ENTRY		0
--
- struct sbi_hart_features {
- 	bool detected;
- 	int priv_version;
-@@ -132,6 +117,9 @@ struct sbi_hart_features {
- 	unsigned int mhpm_bits;
- };
- 
-+extern unsigned long hart_features_offset;
-+#define sbi_hart_features_ptr(__s)	sbi_scratch_offset_ptr(__s, hart_features_offset)
-+
- struct sbi_scratch;
- 
- int sbi_hart_reinit(struct sbi_scratch *scratch);
-@@ -142,11 +130,7 @@ extern void (*sbi_hart_expected_trap)(void);
- unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
- void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
- 			      const char *prefix, const char *suffix);
--unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
--unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
--unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
--bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
- int sbi_hart_priv_version(struct sbi_scratch *scratch);
- void sbi_hart_get_priv_version_str(struct sbi_scratch *scratch,
- 				   char *version_str, int nvstr);
-diff --git a/include/sbi/sbi_hart_pmp.h b/include/sbi/sbi_hart_pmp.h
-new file mode 100644
-index 00000000..f54e8b2a
---- /dev/null
-+++ b/include/sbi/sbi_hart_pmp.h
-@@ -0,0 +1,20 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Ventana Micro Systems Inc.
-+ */
-+
-+#ifndef __SBI_HART_PMP_H__
-+#define __SBI_HART_PMP_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+struct sbi_scratch;
-+
-+unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
-+unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
-+unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
-+bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
-+int sbi_hart_pmp_init(struct sbi_scratch *scratch);
-+
-+#endif
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 51588cd1..07d13229 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -75,6 +75,7 @@ libsbi-objs-y += sbi_emulate_csr.o
- libsbi-objs-y += sbi_fifo.o
- libsbi-objs-y += sbi_fwft.o
- libsbi-objs-y += sbi_hart.o
-+libsbi-objs-y += sbi_hart_pmp.o
- libsbi-objs-y += sbi_hart_protection.o
- libsbi-objs-y += sbi_heap.o
- libsbi-objs-y += sbi_math.o
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 3fdf1047..d9151569 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -13,26 +13,21 @@
- #include <sbi/riscv_fp.h>
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_console.h>
--#include <sbi/sbi_domain.h>
- #include <sbi/sbi_csr_detect.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
--#include <sbi/sbi_hart_protection.h>
--#include <sbi/sbi_math.h>
-+#include <sbi/sbi_hart_pmp.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_pmu.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_trap.h>
--#include <sbi/sbi_hfence.h>
- 
- extern void __sbi_expected_trap(void);
- extern void __sbi_expected_trap_hext(void);
- 
- void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
- 
--static unsigned long hart_features_offset;
--static DECLARE_BITMAP(fw_smepmp_ids, PMP_COUNT);
--static bool fw_smepmp_ids_inited;
-+unsigned long hart_features_offset;
- 
- static void mstatus_init(struct sbi_scratch *scratch)
- {
-@@ -272,30 +267,6 @@ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch)
- 	return hfeatures->mhpm_mask;
- }
- 
--unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
--{
--	struct sbi_hart_features *hfeatures =
--			sbi_scratch_offset_ptr(scratch, hart_features_offset);
--
--	return hfeatures->pmp_count;
--}
--
--unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch)
--{
--	struct sbi_hart_features *hfeatures =
--			sbi_scratch_offset_ptr(scratch, hart_features_offset);
--
--	return hfeatures->pmp_log2gran;
--}
--
--unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
--{
--	struct sbi_hart_features *hfeatures =
--			sbi_scratch_offset_ptr(scratch, hart_features_offset);
--
--	return hfeatures->pmp_addr_bits;
--}
--
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
- {
- 	struct sbi_hart_features *hfeatures =
-@@ -304,308 +275,6 @@ unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch)
- 	return hfeatures->mhpm_bits;
- }
- 
--bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx)
--{
--	if (!fw_smepmp_ids_inited)
--		return false;
--
--	return bitmap_test(fw_smepmp_ids, pmp_idx) ? true : false;
--}
--
--static void sbi_hart_pmp_fence(void)
--{
--	/*
--	 * As per section 3.7.2 of privileged specification v1.12,
--	 * virtual address translations can be speculatively performed
--	 * (even before actual access). These, along with PMP traslations,
--	 * can be cached. This can pose a problem with CPU hotplug
--	 * and non-retentive suspend scenario because PMP states are
--	 * not preserved.
--	 * It is advisable to flush the caching structures under such
--	 * conditions.
--	 */
--	if (misa_extension('S')) {
--		__asm__ __volatile__("sfence.vma");
--
--		/*
--		 * If hypervisor mode is supported, flush caching
--		 * structures in guest mode too.
--		 */
--		if (misa_extension('H'))
--			__sbi_hfence_gvma_all();
--	}
--}
--
--static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
--				struct sbi_domain *dom,
--				struct sbi_domain_memregion *reg,
--				unsigned int pmp_idx,
--				unsigned int pmp_flags,
--				unsigned int pmp_log2gran,
--				unsigned long pmp_addr_max)
--{
--	unsigned long pmp_addr = reg->base >> PMP_SHIFT;
--
--	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
--		sbi_platform_pmp_set(sbi_platform_ptr(scratch),
--				     pmp_idx, reg->flags, pmp_flags,
--				     reg->base, reg->order);
--		pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
--	} else {
--		sbi_printf("Can not configure pmp for domain %s because"
--			   " memory region address 0x%lx or size 0x%lx "
--			   "is not in range.\n", dom->name, reg->base,
--			   reg->order);
--	}
--}
--
--static bool is_valid_pmp_idx(unsigned int pmp_count, unsigned int pmp_idx)
--{
--	if (pmp_count > pmp_idx)
--		return true;
--
--	sbi_printf("error: insufficient PMP entries\n");
--	return false;
--}
--
--static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
--{
--	struct sbi_domain_memregion *reg;
--	struct sbi_domain *dom = sbi_domain_thishart_ptr();
--	unsigned int pmp_log2gran, pmp_bits;
--	unsigned int pmp_idx, pmp_count;
--	unsigned long pmp_addr_max;
--	unsigned int pmp_flags;
--
--	pmp_count = sbi_hart_pmp_count(scratch);
--	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
--	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
--	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
--
--	/*
--	 * Set the RLB so that, we can write to PMP entries without
--	 * enforcement even if some entries are locked.
--	 */
--	csr_set(CSR_MSECCFG, MSECCFG_RLB);
--
--	/* Disable the reserved entry */
--	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
--
--	/* Program M-only regions when MML is not set. */
--	pmp_idx = 0;
--	sbi_domain_for_each_memregion(dom, reg) {
--		/* Skip reserved entry */
--		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
--			pmp_idx++;
--		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
--			return SBI_EFAIL;
--
--		/* Skip shared and SU-only regions */
--		if (!SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
--			pmp_idx++;
--			continue;
--		}
--
--		/*
--		 * Track firmware PMP entries to preserve them during
--		 * domain switches. Under SmePMP, M-mode requires
--		 * explicit PMP entries to access firmware code/data.
--		 * These entries must remain enabled across domain
--		 * context switches to prevent M-mode access faults.
--		 */
--		if (SBI_DOMAIN_MEMREGION_IS_FIRMWARE(reg->flags)) {
--			if (fw_smepmp_ids_inited) {
--				/* Check inconsistent firmware region */
--				if (!sbi_hart_smepmp_is_fw_region(pmp_idx))
--					return SBI_EINVAL;
--			} else {
--				bitmap_set(fw_smepmp_ids, pmp_idx, 1);
--			}
--		}
--
--		pmp_flags = sbi_domain_get_smepmp_flags(reg);
--
--		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
--				    pmp_log2gran, pmp_addr_max);
--	}
--
--	fw_smepmp_ids_inited = true;
--
--	/* Set the MML to enforce new encoding */
--	csr_set(CSR_MSECCFG, MSECCFG_MML);
--
--	/* Program shared and SU-only regions */
--	pmp_idx = 0;
--	sbi_domain_for_each_memregion(dom, reg) {
--		/* Skip reserved entry */
--		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
--			pmp_idx++;
--		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
--			return SBI_EFAIL;
--
--		/* Skip M-only regions */
--		if (SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
--			pmp_idx++;
--			continue;
--		}
--
--		pmp_flags = sbi_domain_get_smepmp_flags(reg);
--
--		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
--				    pmp_log2gran, pmp_addr_max);
--	}
--
--	/*
--	 * All entries are programmed.
--	 * Keep the RLB bit so that dynamic mappings can be done.
--	 */
--
--	sbi_hart_pmp_fence();
--	return 0;
--}
--
--static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
--				     unsigned long addr, unsigned long size)
--{
--	/* shared R/W access for M and S/U mode */
--	unsigned int pmp_flags = (PMP_W | PMP_X);
--	unsigned long order, base = 0;
--
--	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
--		return SBI_ENOSPC;
--
--	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
--	     order <= __riscv_xlen; order++) {
--		if (order < __riscv_xlen) {
--			base = addr & ~((1UL << order) - 1UL);
--			if ((base <= addr) &&
--			    (addr < (base + (1UL << order))) &&
--			    (base <= (addr + size - 1UL)) &&
--			    ((addr + size - 1UL) < (base + (1UL << order))))
--				break;
--		} else {
--			return SBI_EFAIL;
--		}
--	}
--
--	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
--			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
--			     pmp_flags, base, order);
--	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
--
--	return SBI_OK;
--}
--
--static int sbi_hart_smepmp_unmap_range(struct sbi_scratch *scratch,
--				       unsigned long addr, unsigned long size)
--{
--	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
--	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
--}
--
--static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
--{
--	struct sbi_domain_memregion *reg;
--	struct sbi_domain *dom = sbi_domain_thishart_ptr();
--	unsigned long pmp_addr, pmp_addr_max;
--	unsigned int pmp_log2gran, pmp_bits;
--	unsigned int pmp_idx, pmp_count;
--	unsigned int pmp_flags;
--
--	pmp_count = sbi_hart_pmp_count(scratch);
--	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
--	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
--	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
--
--	pmp_idx = 0;
--	sbi_domain_for_each_memregion(dom, reg) {
--		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
--			return SBI_EFAIL;
--
--		pmp_flags = 0;
--
--		/*
--		 * If permissions are to be enforced for all modes on
--		 * this region, the lock bit should be set.
--		 */
--		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
--			pmp_flags |= PMP_L;
--
--		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
--			pmp_flags |= PMP_R;
--		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
--			pmp_flags |= PMP_W;
--		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
--			pmp_flags |= PMP_X;
--
--		pmp_addr = reg->base >> PMP_SHIFT;
--		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
--			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
--					     pmp_idx, reg->flags, pmp_flags,
--					     reg->base, reg->order);
--			pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
--		} else {
--			sbi_printf("Can not configure pmp for domain %s because"
--				   " memory region address 0x%lx or size 0x%lx "
--				   "is not in range.\n", dom->name, reg->base,
--				   reg->order);
--		}
--	}
--
--	sbi_hart_pmp_fence();
--	return 0;
--}
--
--static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
--{
--	int i, pmp_count = sbi_hart_pmp_count(scratch);
--
--	for (i = 0; i < pmp_count; i++) {
--		/* Don't revoke firmware access permissions */
--		if (sbi_hart_smepmp_is_fw_region(i))
--			continue;
--
--		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
--		pmp_disable(i);
--	}
--}
--
--static struct sbi_hart_protection pmp_protection = {
--	.name = "pmp",
--	.rating = 100,
--	.configure = sbi_hart_oldpmp_configure,
--	.unconfigure = sbi_hart_pmp_unconfigure,
--};
--
--static struct sbi_hart_protection epmp_protection = {
--	.name = "epmp",
--	.rating = 200,
--	.configure = sbi_hart_smepmp_configure,
--	.unconfigure = sbi_hart_pmp_unconfigure,
--	.map_range = sbi_hart_smepmp_map_range,
--	.unmap_range = sbi_hart_smepmp_unmap_range,
--};
--
--static int sbi_hart_pmp_init(struct sbi_scratch *scratch)
--{
--	int rc;
--
--	if (!sbi_hart_pmp_count(scratch))
--		return 0;
--
--	rc = sbi_hart_protection_register(&pmp_protection);
--	if (rc)
--		return rc;
--
--	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP)) {
--		rc = sbi_hart_protection_register(&epmp_protection);
--		if (rc)
--			return rc;
--	}
--
--	return 0;
--}
--
- int sbi_hart_priv_version(struct sbi_scratch *scratch)
- {
- 	struct sbi_hart_features *hfeatures =
-diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
-new file mode 100644
-index 00000000..ab96e2fa
---- /dev/null
-+++ b/lib/sbi/sbi_hart_pmp.c
-@@ -0,0 +1,356 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Ventana Micro Systems Inc.
-+ */
-+
-+#include <sbi/sbi_bitmap.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_protection.h>
-+#include <sbi/sbi_hfence.h>
-+#include <sbi/sbi_math.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi/riscv_asm.h>
-+
-+/*
-+ * Smepmp enforces access boundaries between M-mode and
-+ * S/U-mode. When it is enabled, the PMPs are programmed
-+ * such that M-mode doesn't have access to S/U-mode memory.
-+ *
-+ * To give M-mode R/W access to the shared memory between M and
-+ * S/U-mode, first entry is reserved. It is disabled at boot.
-+ * When shared memory access is required, the physical address
-+ * should be programmed into the first PMP entry with R/W
-+ * permissions to the M-mode. Once the work is done, it should be
-+ * unmapped. sbi_hart_protection_map_range/sbi_hart_protection_unmap_range
-+ * function pair should be used to map/unmap the shared memory.
-+ */
-+#define SBI_SMEPMP_RESV_ENTRY		0
-+
-+static DECLARE_BITMAP(fw_smepmp_ids, PMP_COUNT);
-+static bool fw_smepmp_ids_inited;
-+
-+unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch)
-+{
-+	struct sbi_hart_features *hfeatures = sbi_hart_features_ptr(scratch);
-+
-+	return hfeatures->pmp_count;
-+}
-+
-+unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch)
-+{
-+	struct sbi_hart_features *hfeatures = sbi_hart_features_ptr(scratch);
-+
-+	return hfeatures->pmp_log2gran;
-+}
-+
-+unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch)
-+{
-+	struct sbi_hart_features *hfeatures = sbi_hart_features_ptr(scratch);
-+
-+	return hfeatures->pmp_addr_bits;
-+}
-+
-+bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx)
-+{
-+	if (!fw_smepmp_ids_inited)
-+		return false;
-+
-+	return bitmap_test(fw_smepmp_ids, pmp_idx) ? true : false;
-+}
-+
-+static void sbi_hart_pmp_fence(void)
-+{
-+	/*
-+	 * As per section 3.7.2 of privileged specification v1.12,
-+	 * virtual address translations can be speculatively performed
-+	 * (even before actual access). These, along with PMP traslations,
-+	 * can be cached. This can pose a problem with CPU hotplug
-+	 * and non-retentive suspend scenario because PMP states are
-+	 * not preserved.
-+	 * It is advisable to flush the caching structures under such
-+	 * conditions.
-+	 */
-+	if (misa_extension('S')) {
-+		__asm__ __volatile__("sfence.vma");
-+
-+		/*
-+		 * If hypervisor mode is supported, flush caching
-+		 * structures in guest mode too.
-+		 */
-+		if (misa_extension('H'))
-+			__sbi_hfence_gvma_all();
-+	}
-+}
-+
-+static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
-+				struct sbi_domain *dom,
-+				struct sbi_domain_memregion *reg,
-+				unsigned int pmp_idx,
-+				unsigned int pmp_flags,
-+				unsigned int pmp_log2gran,
-+				unsigned long pmp_addr_max)
-+{
-+	unsigned long pmp_addr = reg->base >> PMP_SHIFT;
-+
-+	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
-+		sbi_platform_pmp_set(sbi_platform_ptr(scratch),
-+				     pmp_idx, reg->flags, pmp_flags,
-+				     reg->base, reg->order);
-+		pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
-+	} else {
-+		sbi_printf("Can not configure pmp for domain %s because"
-+			   " memory region address 0x%lx or size 0x%lx "
-+			   "is not in range.\n", dom->name, reg->base,
-+			   reg->order);
-+	}
-+}
-+
-+static bool is_valid_pmp_idx(unsigned int pmp_count, unsigned int pmp_idx)
-+{
-+	if (pmp_count > pmp_idx)
-+		return true;
-+
-+	sbi_printf("error: insufficient PMP entries\n");
-+	return false;
-+}
-+
-+static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
-+{
-+	struct sbi_domain_memregion *reg;
-+	struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	unsigned int pmp_log2gran, pmp_bits;
-+	unsigned int pmp_idx, pmp_count;
-+	unsigned long pmp_addr_max;
-+	unsigned int pmp_flags;
-+
-+	pmp_count = sbi_hart_pmp_count(scratch);
-+	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
-+	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
-+	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
-+
-+	/*
-+	 * Set the RLB so that, we can write to PMP entries without
-+	 * enforcement even if some entries are locked.
-+	 */
-+	csr_set(CSR_MSECCFG, MSECCFG_RLB);
-+
-+	/* Disable the reserved entry */
-+	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
-+
-+	/* Program M-only regions when MML is not set. */
-+	pmp_idx = 0;
-+	sbi_domain_for_each_memregion(dom, reg) {
-+		/* Skip reserved entry */
-+		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
-+			pmp_idx++;
-+		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
-+			return SBI_EFAIL;
-+
-+		/* Skip shared and SU-only regions */
-+		if (!SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
-+			pmp_idx++;
-+			continue;
-+		}
-+
-+		/*
-+		 * Track firmware PMP entries to preserve them during
-+		 * domain switches. Under SmePMP, M-mode requires
-+		 * explicit PMP entries to access firmware code/data.
-+		 * These entries must remain enabled across domain
-+		 * context switches to prevent M-mode access faults.
-+		 */
-+		if (SBI_DOMAIN_MEMREGION_IS_FIRMWARE(reg->flags)) {
-+			if (fw_smepmp_ids_inited) {
-+				/* Check inconsistent firmware region */
-+				if (!sbi_hart_smepmp_is_fw_region(pmp_idx))
-+					return SBI_EINVAL;
-+			} else {
-+				bitmap_set(fw_smepmp_ids, pmp_idx, 1);
-+			}
-+		}
-+
-+		pmp_flags = sbi_domain_get_smepmp_flags(reg);
-+
-+		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
-+				    pmp_log2gran, pmp_addr_max);
-+	}
-+
-+	fw_smepmp_ids_inited = true;
-+
-+	/* Set the MML to enforce new encoding */
-+	csr_set(CSR_MSECCFG, MSECCFG_MML);
-+
-+	/* Program shared and SU-only regions */
-+	pmp_idx = 0;
-+	sbi_domain_for_each_memregion(dom, reg) {
-+		/* Skip reserved entry */
-+		if (pmp_idx == SBI_SMEPMP_RESV_ENTRY)
-+			pmp_idx++;
-+		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
-+			return SBI_EFAIL;
-+
-+		/* Skip M-only regions */
-+		if (SBI_DOMAIN_MEMREGION_M_ONLY_ACCESS(reg->flags)) {
-+			pmp_idx++;
-+			continue;
-+		}
-+
-+		pmp_flags = sbi_domain_get_smepmp_flags(reg);
-+
-+		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
-+				    pmp_log2gran, pmp_addr_max);
-+	}
-+
-+	/*
-+	 * All entries are programmed.
-+	 * Keep the RLB bit so that dynamic mappings can be done.
-+	 */
-+
-+	sbi_hart_pmp_fence();
-+	return 0;
-+}
-+
-+static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
-+				     unsigned long addr, unsigned long size)
-+{
-+	/* shared R/W access for M and S/U mode */
-+	unsigned int pmp_flags = (PMP_W | PMP_X);
-+	unsigned long order, base = 0;
-+
-+	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
-+		return SBI_ENOSPC;
-+
-+	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
-+	     order <= __riscv_xlen; order++) {
-+		if (order < __riscv_xlen) {
-+			base = addr & ~((1UL << order) - 1UL);
-+			if ((base <= addr) &&
-+			    (addr < (base + (1UL << order))) &&
-+			    (base <= (addr + size - 1UL)) &&
-+			    ((addr + size - 1UL) < (base + (1UL << order))))
-+				break;
-+		} else {
-+			return SBI_EFAIL;
-+		}
-+	}
-+
-+	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
-+			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
-+			     pmp_flags, base, order);
-+	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
-+
-+	return SBI_OK;
-+}
-+
-+static int sbi_hart_smepmp_unmap_range(struct sbi_scratch *scratch,
-+				       unsigned long addr, unsigned long size)
-+{
-+	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
-+	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
-+}
-+
-+static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
-+{
-+	struct sbi_domain_memregion *reg;
-+	struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	unsigned long pmp_addr, pmp_addr_max;
-+	unsigned int pmp_log2gran, pmp_bits;
-+	unsigned int pmp_idx, pmp_count;
-+	unsigned int pmp_flags;
-+
-+	pmp_count = sbi_hart_pmp_count(scratch);
-+	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
-+	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
-+	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
-+
-+	pmp_idx = 0;
-+	sbi_domain_for_each_memregion(dom, reg) {
-+		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
-+			return SBI_EFAIL;
-+
-+		pmp_flags = 0;
-+
-+		/*
-+		 * If permissions are to be enforced for all modes on
-+		 * this region, the lock bit should be set.
-+		 */
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
-+			pmp_flags |= PMP_L;
-+
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
-+			pmp_flags |= PMP_R;
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
-+			pmp_flags |= PMP_W;
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
-+			pmp_flags |= PMP_X;
-+
-+		pmp_addr = reg->base >> PMP_SHIFT;
-+		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
-+			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
-+					     pmp_idx, reg->flags, pmp_flags,
-+					     reg->base, reg->order);
-+			pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
-+		} else {
-+			sbi_printf("Can not configure pmp for domain %s because"
-+				   " memory region address 0x%lx or size 0x%lx "
-+				   "is not in range.\n", dom->name, reg->base,
-+				   reg->order);
-+		}
-+	}
-+
-+	sbi_hart_pmp_fence();
-+	return 0;
-+}
-+
-+static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
-+{
-+	int i, pmp_count = sbi_hart_pmp_count(scratch);
-+
-+	for (i = 0; i < pmp_count; i++) {
-+		/* Don't revoke firmware access permissions */
-+		if (sbi_hart_smepmp_is_fw_region(i))
-+			continue;
-+
-+		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
-+		pmp_disable(i);
-+	}
-+}
-+
-+static struct sbi_hart_protection pmp_protection = {
-+	.name = "pmp",
-+	.rating = 100,
-+	.configure = sbi_hart_oldpmp_configure,
-+	.unconfigure = sbi_hart_pmp_unconfigure,
-+};
-+
-+static struct sbi_hart_protection epmp_protection = {
-+	.name = "epmp",
-+	.rating = 200,
-+	.configure = sbi_hart_smepmp_configure,
-+	.unconfigure = sbi_hart_pmp_unconfigure,
-+	.map_range = sbi_hart_smepmp_map_range,
-+	.unmap_range = sbi_hart_smepmp_unmap_range,
-+};
-+
-+int sbi_hart_pmp_init(struct sbi_scratch *scratch)
-+{
-+	int rc;
-+
-+	if (!sbi_hart_pmp_count(scratch))
-+		return 0;
-+
-+	rc = sbi_hart_protection_register(&pmp_protection);
-+	if (rc)
-+		return rc;
-+
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP)) {
-+		rc = sbi_hart_protection_register(&epmp_protection);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index e01d26bf..5259064b 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -18,6 +18,7 @@
- #include <sbi/sbi_fwft.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hartmask.h>
-+#include <sbi/sbi_hart_pmp.h>
- #include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_hsm.h>
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gVGh1LCBOb3YgMjAsIDIwMjUgYXQgMzowNuKAr1BNIEJvIEdhbiA8Z2FuYm9pbmdAZ21haWwu
+Y29tPiB3cm90ZToKPgo+IEVJQzc3MDAgaXMgdGhlIFNvQyB1c2VkIGluIEhpRml2ZSBQNTUwIGFu
+ZCBNaWxrLVYgTWVncmV6LiBUaGlzIFNvQyBpcwo+IGN1cnJlbnRseSBvbmUgb2YgdGhlIG9ubHkg
+b2ZmLXRoZS1zaGVsZiBib2FyZC9jaGlwcyB0aGF0IHN1cHBvcnQgSAo+IGV4dGVuc2lvbiwgYWx0
+aG91Z2ggaXQncyB2MC42LjEuIEl0IGFsc28gc3VwcG9ydHMgcHJlLXJhdGlmaWVkIE4tdHJhY2Uu
+Cj4gQWRkIHN1cHBvcnQgZm9yIGl0IHNvIHBlb3BsZSBjYW4gYmVuZWZpdCBmcm9tIGxhdGVzdCBP
+cGVuU0JJIGZlYXR1cmVzLgo+Cj4gVGhlIGRldmljZS10cmVlIG9mIEhpRml2ZSBQNTUwIGhhcyBi
+ZWVuIHVwc3RyZWFtZWQgdG8gTGludXg6Cj4gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsLzIw
+MjUwODI1MTMyNDI3LjE2MTgwODktMS1waW5rZXNoLnZhZ2hlbGFAZWluZm9jaGlwcy5jb20vCj4g
+SG93ZXZlciBVLWJvb3QgaXMgbm90LCBhbmQgdGhlcmUgYXJlIGJ1Z3MgaW4gdmVuZG9yIFUtYm9v
+dCBkZXZpY2UtdHJlZSwKPiBhbmQgYWxzbyBpbmNvbnNpc3RlbmNpZXMgYmV0d2VlbiB0aGUgdHdv
+LiBUaHVzLCB0aGlzIHBhdGNoIGlzIGNvZGVkIHdpdGgKPiB0aGUgdXBzdHJlYW1lZCBkZXZpY2Ut
+dHJlZSBhcyB0aGUgcmVmZXJlbmNlLCBidXQgdGVzdGVkIHdpdGggdGhlIHBhdGNoZWQKPiB2ZW5k
+b3IgVS1ib290IGRldmljZSB0cmVlIGFzIGBGV19GRFRfUEFUSGAuIFRoZSBwYXRjaGVkIHZlbmRv
+ciBVLWJvb3QgaXMKPiBob3N0ZWQgaGVyZTogaHR0cHM6Ly9naXRodWIuY29tL2dhbmJvaW5nL3Ut
+Ym9vdC1laWM3eC90cmVlL2VpYzd4LWR0LWZpeAo+IFJlZmVyIHRvIHRoZSBsYXN0IFBBVENIIGZv
+ciB0aGUgaW5zdHJ1Y3Rpb25zIG9uIGJ1aWxkaW5nIHRoZSBmaXJtd2FyZQo+IGJsb2IgYW5kIGxh
+dW5jaCBpdCB0aHJvdWdoIFVBUlQgYm9vdC4KPgo+IFRoZSBtYWpvciBjb21wbGljYXRpb24gb2Yg
+dGhpcyBjaGlwIGlzIHRoYXQgaXQgcmVxdWlyZXMgY2VydGFpbiBtZW1vcnkKPiByZWdpb25zIHRv
+IGJlIGJsb2NrZWQgd2l0aCBQTVAgZW50cmllcyB0byBwcmV2ZW50IHNwZWN1bGF0aXZlIGV4ZWN1
+dGlvbgo+IG9yIEhXIHByZWZldGNoZXIgZnJvbSB0b3VjaGluZyB0aGUgZGF0YS1jYWNoZWFibGUg
+cmVnaW9ucyB3aXRoaW4gdG8KPiBhdm9pZCBidXMgZXJyb3JzLiBEdWUgdG8gdGhlIGZhY3QgdGhh
+dCB0aGlzIFNvQyBoYW5kbGVzIGNhY2hlIGluY29oZXJlbnQKPiBETUEgYnkgbWFwcGluZyBtZW1v
+cnkgdHdpY2UsIG9uZSBhcyBjYWNoZWQsIGFuZCB0aGUgb3RoZXIgYXMgdW5jYWNoZWQsCj4gd2Ug
+YWxzbyBuZWVkIGFuIGV4dHJhIFBNUCB0byBwcm90ZWN0IHRoZSBPcGVuU0JJIGluIHRoZSB1bmNh
+Y2hlZCBwb3J0aW9uCj4gaW4gYWRkcmVzcyBzcGFjZS4gVGhlIFBNUCBoYW5kbGluZyBpcyB0cmlj
+a3ksIHNvIEkgZG9jdW1lbnRlZCBpdCB2ZXJ5Cj4gZXh0ZW5zaXZlbHkgZm9yIHBlb3BsZSB0byBy
+ZWFzb24gYWJvdXQgaXQuIEkgbWFuYWdlZCB0byBnZXQgaXQgZG9uZSB3aXRoCj4gb25seSBOQVBP
+VCBQTVAgZW50cmllcyBhbmQgc3RpbGwgZ290IDEgZnJlZSBQTVAgZm9yIHJvb3QgaGFydHMgZm9y
+IGRpZSAwCj4gKE5vIGZyZWUgUE1QIGZvciBkaWUgMSByb290IGhhcnRzKS4gVGhpcyBldmVuIHBl
+cm1pdHMgYSB1ZG9tYWluL3Rkb21haW4KPiBsaWtlIHBhcnRpdGlvbmluZywgc28gd2UgY2FuIGV2
+ZW4gdHJ5IG91dCBURUVzLiBTYW1wbGUgYm9vdCBsb2c6Cj4KPiBPcGVuU0JJIHYxLjctNzMtZzVj
+MjM1ZTVkCj4gICAgX19fXyAgICAgICAgICAgICAgICAgICAgX19fX18gX19fXyBfX19fXwo+ICAg
+LyBfXyBcICAgICAgICAgICAgICAgICAgLyBfX19ffCAgXyBcXyAgIF98Cj4gIHwgfCAgfCB8XyBf
+XyAgIF9fXyBfIF9fIHwgKF9fXyB8IHxfKSB8fCB8Cj4gIHwgfCAgfCB8ICdfIFwgLyBfIFwgJ18g
+XCBcX19fIFx8ICBfIDwgfCB8Cj4gIHwgfF9ffCB8IHxfKSB8ICBfXy8gfCB8IHxfX19fKSB8IHxf
+KSB8fCB8Xwo+ICAgXF9fX18vfCAuX18vIFxfX198X3wgfF98X19fX18vfF9fX18vX19fX198Cj4g
+ICAgICAgICB8IHwKPiAgICAgICAgIHxffAo+Cj4gUGxhdGZvcm0gTmFtZSAgICAgICAgICAgICAg
+IDogU2lGaXZlIEhpRml2ZSBQcmVtaWVyIFA1NTAKPiBQbGF0Zm9ybSBGZWF0dXJlcyAgICAgICAg
+ICAgOiBtZWRlbGVnCj4gUGxhdGZvcm0gSEFSVCBDb3VudCAgICAgICAgIDogNAo+IFBsYXRmb3Jt
+IElQSSBEZXZpY2UgICAgICAgICA6IGFjbGludC1tc3dpCj4gUGxhdGZvcm0gVGltZXIgRGV2aWNl
+ICAgICAgIDogYWNsaW50LW10aW1lciBAIDEwMDAwMDBIego+IFBsYXRmb3JtIENvbnNvbGUgRGV2
+aWNlICAgICA6IHVhcnQ4MjUwCj4gUGxhdGZvcm0gSFNNIERldmljZSAgICAgICAgIDogLS0tCj4g
+UGxhdGZvcm0gUE1VIERldmljZSAgICAgICAgIDogLS0tCj4gUGxhdGZvcm0gUmVib290IERldmlj
+ZSAgICAgIDogZWljNzcweF9yZXNldAo+IFBsYXRmb3JtIFNodXRkb3duIERldmljZSAgICA6IC0t
+LQo+IFBsYXRmb3JtIFN1c3BlbmQgRGV2aWNlICAgICA6IC0tLQo+IFBsYXRmb3JtIENQUEMgRGV2
+aWNlICAgICAgICA6IC0tLQo+IEZpcm13YXJlIEJhc2UgICAgICAgICAgICAgICA6IDB4ODAwMDAw
+MDAKPiBGaXJtd2FyZSBTaXplICAgICAgICAgICAgICAgOiA2MTMgS0IKPiBGaXJtd2FyZSBSVyBP
+ZmZzZXQgICAgICAgICAgOiAweDgwMDAwCj4gRmlybXdhcmUgUlcgU2l6ZSAgICAgICAgICAgIDog
+MTAxIEtCCj4gRmlybXdhcmUgSGVhcCBPZmZzZXQgICAgICAgIDogMHg4ZDAwMAo+IEZpcm13YXJl
+IEhlYXAgU2l6ZSAgICAgICAgICA6IDQ5IEtCICh0b3RhbCksIDEgS0IgKHJlc2VydmVkKSwgMTQg
+S0IgKHVzZWQpLCAzMyBLQiAoZnJlZSkKPiBGaXJtd2FyZSBTY3JhdGNoIFNpemUgICAgICAgOiA0
+MDk2IEIgKHRvdGFsKSwgNDI0IEIgKHVzZWQpLCAzNjcyIEIgKGZyZWUpCj4gUnVudGltZSBTQkkg
+VmVyc2lvbiAgICAgICAgIDogMy4wCj4gU3RhbmRhcmQgU0JJIEV4dGVuc2lvbnMgICAgIDogdGlt
+ZSxyZm5jLGlwaSxiYXNlLGhzbSxzcnN0LHBtdSxkYmNuLGZ3ZnQsbGVnYWN5LGRidHIsc3NlCj4g
+RXhwZXJpbWVudGFsIFNCSSBFeHRlbnNpb25zIDogbm9uZQo+Cj4gRG9tYWluMCBOYW1lICAgICAg
+ICAgICAgICAgIDogcm9vdAo+IERvbWFpbjAgQm9vdCBIQVJUICAgICAgICAgICA6IDAKPiBEb21h
+aW4wIEhBUlRzICAgICAgICAgICAgICAgOiAwKiwxKiwyKiwzKgo+IERvbWFpbjAgUmVnaW9uMDAg
+ICAgICAgICAgICA6IDB4MDAwMDAwMDA4MDAwMDAwMC0weDAwMDAwMDAwODAwZmZmZmYgTTogKEYs
+UixXLFgpIFMvVTogKCkKPiBEb21haW4wIFJlZ2lvbjAxICAgICAgICAgICAgOiAweDAwMDAwMGMw
+MDAwMDAwMDAtMHgwMDAwMDBjMDAwMGZmZmZmIE06IChGLFIsVyxYKSBTL1U6ICgpCj4gRG9tYWlu
+MCBSZWdpb24wMiAgICAgICAgICAgIDogMHgwMDAwMDAwMDAyMDAwMDAwLTB4MDAwMDAwMDAwMjAw
+ZmZmZiBNOiAoSSxSLFcpIFMvVTogKCkKPiBEb21haW4wIFJlZ2lvbjAzICAgICAgICAgICAgOiAw
+eDAwMDAwMDAwMDAwMDAwMDAtMHgwMDAwMDAwMDdmZmZmZmZmIE06IChJLFIsVykgUy9VOiAoUixX
+KQo+IERvbWFpbjAgUmVnaW9uMDQgICAgICAgICAgICA6IDB4MDAwMDAwMDAwMDAwMDAwMC0weDAw
+MDAwMDBmZmZmZmZmZmYgTTogKFIsVykgUy9VOiAoUixXLFgpCj4gRG9tYWluMCBSZWdpb24wNSAg
+ICAgICAgICAgIDogMHgwMDAwMDAwMDAwMDAwMDAwLTB4MDAwMDAwN2ZmZmZmZmZmZiBNOiAoSSkg
+Uy9VOiAoKQo+IERvbWFpbjAgUmVnaW9uMDYgICAgICAgICAgICA6IDB4MDAwMDAwMDAwMDAwMDAw
+MC0weGZmZmZmZmZmZmZmZmZmZmYgTTogKCkgUy9VOiAoUixXLFgpCj4gRG9tYWluMCBOZXh0IEFk
+ZHJlc3MgICAgICAgIDogMHgwMDAwMDAwMDgwMjAwMDAwCj4gRG9tYWluMCBOZXh0IEFyZzEgICAg
+ICAgICAgIDogMHgwMDAwMDAwMGY4MDAwMDAwCj4gRG9tYWluMCBOZXh0IE1vZGUgICAgICAgICAg
+IDogUy1tb2RlCj4gRG9tYWluMCBTeXNSZXNldCAgICAgICAgICAgIDogeWVzCj4gRG9tYWluMCBT
+eXNTdXNwZW5kICAgICAgICAgIDogeWVzCj4KPiBEb21haW4xIE5hbWUgICAgICAgICAgICAgICAg
+OiB0cnVzdGVkLWRvbWFpbgo+IERvbWFpbjEgQm9vdCBIQVJUICAgICAgICAgICA6IC0xCj4gRG9t
+YWluMSBIQVJUcyAgICAgICAgICAgICAgIDoKPiBEb21haW4xIFJlZ2lvbjAwICAgICAgICAgICAg
+OiAweDAwMDAwMDAwODAwMDAwMDAtMHgwMDAwMDAwMDgwMGZmZmZmIE06IChGLFIsVyxYKSBTL1U6
+ICgpCj4gRG9tYWluMSBSZWdpb24wMSAgICAgICAgICAgIDogMHgwMDAwMDBjMDAwMDAwMDAwLTB4
+MDAwMDAwYzAwMDBmZmZmZiBNOiAoRixSLFcsWCkgUy9VOiAoKQo+IERvbWFpbjEgUmVnaW9uMDIg
+ICAgICAgICAgICA6IDB4MDAwMDAwMDA1MDkxMDAwMC0weDAwMDAwMDAwNTA5MTBmZmYgTTogKEks
+UixXKSBTL1U6IChSLFcpCj4gRG9tYWluMSBSZWdpb24wMyAgICAgICAgICAgIDogMHgwMDAwMDAw
+MDAyMDAwMDAwLTB4MDAwMDAwMDAwMjAwZmZmZiBNOiAoSSxSLFcpIFMvVTogKCkKPiBEb21haW4x
+IFJlZ2lvbjA0ICAgICAgICAgICAgOiAweDAwMDAwMDA0N2ZmMDAwMDAtMHgwMDAwMDAwNDdmZmZm
+ZmZmIE06ICgpIFMvVTogKFIsVyxYKQo+IERvbWFpbjEgUmVnaW9uMDUgICAgICAgICAgICA6IDB4
+MDAwMDAwMDAwMDAwMDAwMC0weDAwMDAwMDAwN2ZmZmZmZmYgTTogKEksUixXKSBTL1U6ICgpCj4g
+RG9tYWluMSBSZWdpb24wNiAgICAgICAgICAgIDogMHgwMDAwMDAwMDAwMDAwMDAwLTB4MDAwMDAw
+N2ZmZmZmZmZmZiBNOiAoSSkgUy9VOiAoKQo+IERvbWFpbjEgTmV4dCBBZGRyZXNzICAgICAgICA6
+IDB4MDAwMDAwMDQ3ZmYwMDAwMAo+IERvbWFpbjEgTmV4dCBBcmcxICAgICAgICAgICA6IDB4MDAw
+MDAwMDAwMDAwMDAwMAo+IERvbWFpbjEgTmV4dCBNb2RlICAgICAgICAgICA6IFMtbW9kZQo+IERv
+bWFpbjEgU3lzUmVzZXQgICAgICAgICAgICA6IG5vCj4gRG9tYWluMSBTeXNTdXNwZW5kICAgICAg
+ICAgIDogbm8KPgo+IERvbWFpbjIgTmFtZSAgICAgICAgICAgICAgICA6IHVudHJ1c3RlZC1kb21h
+aW4KPiBEb21haW4yIEJvb3QgSEFSVCAgICAgICAgICAgOiAtMQo+IERvbWFpbjIgSEFSVHMgICAg
+ICAgICAgICAgICA6Cj4gRG9tYWluMiBSZWdpb24wMCAgICAgICAgICAgIDogMHgwMDAwMDAwMDgw
+MDAwMDAwLTB4MDAwMDAwMDA4MDBmZmZmZiBNOiAoRixSLFcsWCkgUy9VOiAoKQo+IERvbWFpbjIg
+UmVnaW9uMDEgICAgICAgICAgICA6IDB4MDAwMDAwYzAwMDAwMDAwMC0weDAwMDAwMGMwMDAwZmZm
+ZmYgTTogKEYsUixXLFgpIFMvVTogKCkKPiBEb21haW4yIFJlZ2lvbjAyICAgICAgICAgICAgOiAw
+eDAwMDAwMDAwMDIwMDAwMDAtMHgwMDAwMDAwMDAyMDBmZmZmIE06IChJLFIsVykgUy9VOiAoKQo+
+IERvbWFpbjIgUmVnaW9uMDMgICAgICAgICAgICA6IDB4MDAwMDAwMDQ3ZmYwMDAwMC0weDAwMDAw
+MDA0N2ZmZmZmZmYgTTogKCkgUy9VOiAoKQo+IERvbWFpbjIgUmVnaW9uMDQgICAgICAgICAgICA6
+IDB4MDAwMDAwMDAwMDAwMDAwMC0weDAwMDAwMDBmZmZmZmZmZmYgTTogKFIsVykgUy9VOiAoUixX
+LFgpCj4gRG9tYWluMiBSZWdpb24wNSAgICAgICAgICAgIDogMHgwMDAwMDAwMDAwMDAwMDAwLTB4
+MDAwMDAwN2ZmZmZmZmZmZiBNOiAoSSkgUy9VOiAoKQo+IERvbWFpbjIgUmVnaW9uMDYgICAgICAg
+ICAgICA6IDB4MDAwMDAwMDAwMDAwMDAwMC0weGZmZmZmZmZmZmZmZmZmZmYgTTogKCkgUy9VOiAo
+UixXLFgpCj4gRG9tYWluMiBOZXh0IEFkZHJlc3MgICAgICAgIDogMHgwMDAwMDAwMDgwMDAwMDAw
+Cj4gRG9tYWluMiBOZXh0IEFyZzEgICAgICAgICAgIDogMHgwMDAwMDAwMGY4MDAwMDAwCj4gRG9t
+YWluMiBOZXh0IE1vZGUgICAgICAgICAgIDogUy1tb2RlCj4gRG9tYWluMiBTeXNSZXNldCAgICAg
+ICAgICAgIDogbm8KPiBEb21haW4yIFN5c1N1c3BlbmQgICAgICAgICAgOiBubwo+Cj4gQm9vdCBI
+QVJUIElEICAgICAgICAgICAgICAgIDogMAo+IEJvb3QgSEFSVCBEb21haW4gICAgICAgICAgICA6
+IHJvb3QKPiBCb290IEhBUlQgUHJpdiBWZXJzaW9uICAgICAgOiB2MS4xMQo+IEJvb3QgSEFSVCBC
+YXNlIElTQSAgICAgICAgICA6IHJ2NjRpbWFmZGNoeAo+IEJvb3QgSEFSVCBJU0EgRXh0ZW5zaW9u
+cyAgICA6IHNzY29mcG1mLHppaHBtLHNkdHJpZwo+IEJvb3QgSEFSVCBQTVAgQ291bnQgICAgICAg
+ICA6IDgKPiBCb290IEhBUlQgUE1QIEdyYW51bGFyaXR5ICAgOiAxMiBiaXRzCj4gQm9vdCBIQVJU
+IFBNUCBBZGRyZXNzIEJpdHMgIDogMzkKPiBCb290IEhBUlQgTUhQTSBJbmZvICAgICAgICAgOiA0
+ICgweDAwMDAwMDc4KQo+IEJvb3QgSEFSVCBEZWJ1ZyBUcmlnZ2VycyAgICA6IDQgdHJpZ2dlcnMK
+PiBCb290IEhBUlQgTUlERUxFRyAgICAgICAgICAgOiAweDAwMDAwMDAwMDAwMDI2NjYKPiBCb290
+IEhBUlQgTUVERUxFRyAgICAgICAgICAgOiAweDAwMDAwMDAwMDBmMGI1MDkKPgo+Cj4gU2lnbmVk
+LW9mZi1ieTogQm8gR2FuIDxnYW5ib2luZ0BnbWFpbC5jb20+Cj4gLS0tCj4gQ2hhbmdlcyBpbiB2
+MzoKPiAtIEZpZ3VyZSBvdXQgdGhlIGNhdXNlIGJlaGluZCBidXMgZXJyb3IsIGFuZCBkb2N1bWVu
+dCBpdCBwcm9wZXJseQo+IC0gRHJvcCB0aGUgY29uc29saWRhdGlvbiBsb2dpYyBhbmQgbGV0IHRo
+ZSBsaWIvbWVtcmVnaW9uIGxvZ2ljIHRvCj4gICBvcHRpbWl6ZSBvdXQgdW5uZWNlc3NhcnkgcmVn
+aW9ucyAtLSBzaW1wbGlmaWVzIG1hbnkgdGhpbmdzLgo+IC0gQmV0dGVyIGFuZCBtb3JlIGNvbXBy
+ZWhlbnNpdmUgY29tbWVudHMgaW4gc291cmNlIGNvZGUuCj4gLSBTdXBwb3J0IHRkb21haW4vdWRv
+bWFpbiBsaWtlIHVzZSBjYXNlcyBvbiBkaWUgMC4KPgo+IENoYW5nZXMgaW4gdjI6Cj4gLSBNYWpv
+ciBlbmhhbmNlbWVudCBvZiBQTVAgY29uc29saWRhdGlvbiBsb2dpYy4gQWxzbyBmaXhlZCBhIExp
+bnV4Cj4gICBQYW5pYyBidWcgZHVlIHRvIHRoZSBtaXNtYXRjaCBiZXR3ZWVuIFBNUCBzZXR0aW5n
+cyBhbmQgcmVzZXJ2ZWQKPiAgIG1lbW9yeSByZWdpb25zIHBhc3NlZCB0byBMaW51eCB2aWEgRkRU
+Lgo+IC0gQWxzbyBwcm90ZWN0cyB0aGUgT3BlblNCSSBmaXJtd2FyZSBpbiB1bmNhY2hlZCBtZW1v
+cnkgcG9ydGlvbiBvZgo+ICAgYWRkcmVzcyBzcGFjZS4KPiAtIE1vcmUgZGV0YWlsZWQgZG9jdW1l
+bnRhdGlvbiBvbiBFSUM3NzBYL1A1NTAKPgo+IC0tLQo+IEJvIEdhbiAoNCk6Cj4gICBsaWI6IHNi
+aTogYWxsb3cgcGxhdGZvcm0gdG8gb3ZlcnJpZGUgUE1QICh1biljb25maWd1cmF0aW9uCgpJbnN0
+ZWFkIG9mIHBsYXRmb3JtIHNwZWNpZmljIFBNUCAodW4pY29uZmlndXJhdGlvbiBvdmVycmlkZSwg
+eW91CmNhbiByZWJhc2UgdGhpcyBzZXJpZXMgdXBvbiAiT3BlblNCSSBoYXJ0IHByb3RlY3Rpb24g
+YWJzdHJhY3Rpb24iCnNlcmllcyBhbmQgaW1wbGVtZW50IEVJQzc3MFggc3BlY2lmaWMgaGFydCBw
+cm90ZWN0aW9uIHVzaW5nIFBNUC4KCj4gICBsaWI6IHNiaTogZ2l2ZSBwbGF0Zm9ybSBjaG9pY2Ug
+b2YgdXNpbmcgc2luZ2xlIG1lbXJlZ2lvbiB0byBjb3Zlcgo+ICAgICBPcGVuU0JJCj4gICBpbmNs
+dWRlOiBzYmlfZG9tYWluOiBtYWtlIGlzX3JlZ2lvbl9zdWJzZXQgcHVibGljCj4gICBwbGF0Zm9y
+bTogZ2VuZXJpYzogZXN3aW46IGFkZCBFSUM3NzAwCj4KPiAgaW5jbHVkZS9zYmkvc2JpX2RvbWFp
+bi5oICAgICAgICAgICAgICAgICB8ICAyOSArKwo+ICBpbmNsdWRlL3NiaS9zYmlfaGFydC5oICAg
+ICAgICAgICAgICAgICAgIHwgICAzICsKPiAgaW5jbHVkZS9zYmkvc2JpX3BsYXRmb3JtLmggICAg
+ICAgICAgICAgICB8ICA3NCArKysrKwo+ICBsaWIvc2JpL3NiaV9kb21haW4uYyAgICAgICAgICAg
+ICAgICAgICAgIHwgIDgwICsrKy0tCj4gIGxpYi9zYmkvc2JpX2RvbWFpbl9jb250ZXh0LmMgICAg
+ICAgICAgICAgfCAgMTEgKy0KPiAgbGliL3NiaS9zYmlfaGFydC5jICAgICAgICAgICAgICAgICAg
+ICAgICB8ICA0NSArKy0KPiAgcGxhdGZvcm0vZ2VuZXJpYy9LY29uZmlnICAgICAgICAgICAgICAg
+ICB8ICAgNSArCj4gIHBsYXRmb3JtL2dlbmVyaWMvY29uZmlncy9kZWZjb25maWcgICAgICAgfCAg
+IDEgKwo+ICBwbGF0Zm9ybS9nZW5lcmljL2Vzd2luL0tjb25maWcgICAgICAgICAgIHwgIDI5ICsr
+Cj4gIHBsYXRmb3JtL2dlbmVyaWMvZXN3aW4vZWljNzcweC5jICAgICAgICAgfCAzODUgKysrKysr
+KysrKysrKysrKysrKysrKysKPiAgcGxhdGZvcm0vZ2VuZXJpYy9lc3dpbi9vYmplY3RzLm1rICAg
+ICAgICB8ICAxMSArCj4gIHBsYXRmb3JtL2dlbmVyaWMvaW5jbHVkZS9lc3dpbi9laWM3NzB4Lmgg
+fCAgNzMgKysrKysKPiAgMTIgZmlsZXMgY2hhbmdlZCwgNjg3IGluc2VydGlvbnMoKyksIDU5IGRl
+bGV0aW9ucygtKQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgcGxhdGZvcm0vZ2VuZXJpYy9lc3dpbi9L
+Y29uZmlnCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBwbGF0Zm9ybS9nZW5lcmljL2Vzd2luL2VpYzc3
+MHguYwo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgcGxhdGZvcm0vZ2VuZXJpYy9lc3dpbi9vYmplY3Rz
+Lm1rCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvZXN3aW4v
+ZWljNzcweC5oCj4KPiAtLQo+IDIuMzQuMQo+Cj4KPiAtLQo+IG9wZW5zYmkgbWFpbGluZyBsaXN0
+Cj4gb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCj4gaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
+cmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCgpSZWdhcmRzLApBbnVwCgotLSAKb3BlbnNiaSBt
+YWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
+YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
