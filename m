@@ -4,89 +4,90 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A5FC0D116EA
-	for <opensbi@archiver.kernel.org>; Thu, 27 Nov 2025 11:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9E8C7CFD376
+	for <opensbi@archiver.kernel.org>; Sun, 30 Nov 2025 11:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=0a4MWonPl+xnOBAvB3lxdvbrkeE+Ju9Tmqj2jHl3vCw=; b=ehZKzYzaD84LrP
-	LCxr7DAtcZiR7+7PROGzMaaIKoIj7rMzk1LhinhHpFg24g9/nEBKt63OPXsF3h8g5dDvVXyWdhKqD
-	siGXDLMb6P12jysg/nBP59bcQdk65UkTr3xIyA/nVQADmxRpOP4bUDJOIIHeZ0j35HMTdk4MZIjxX
-	lCSG1XEQVQ6ukP/XdNEFegYTn3vOGyXodS+xZ30jFKMA0XvDaibdjBEF58k5k7sFOpiC7nGAlv+Uj
-	oEDLfQ9baKFTw8djU7jrVBWYNfGWNQLjm1Tp+l7bFMGeootAhqL0WFBw4llrjFy+7Lw2Uwh6keNFb
-	PWX9AdF7jECxIYiHgMLA==;
+	List-Owner; bh=X5q96gpa5+tCaXMhqRY0FVSu+y9hRa1yvZgRbJzq7zQ=; b=wqdhtZYX8EYRd3
+	YYJ99QNPv7S6+S+rYI0sc6sGdvxbTotw1enRZCNZXDkEojNflRrFCgc3M1qjapD42CBhh5IcAV91s
+	0993iZLSD4Niug6yeTDvIYEciDPIlpGPfKxGERNo+530zBefDMmGCUcxhPhRN5d8Jhc00RJw3ozly
+	btYlgzyIGylQj7zuuLdiji+NfR+G1M49GTBKABtSx/TRlqZ8iVxAVNaRaNbyoI8nBaug8mq1W0OYd
+	5TsKvr3cuLDuBEGftdjtFwy9cKckwoU6aW2OS2VUP25LdiQn+UgJHOos/SwfwJ7s7vQfkSfILKaOE
+	0gaoCIJlmV3opplh4zSw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOa4E-0000000GRng-1n9D;
-	Thu, 27 Nov 2025 11:21:42 +0000
-Received: from mail-pl1-x62f.google.com ([2607:f8b0:4864:20::62f])
+	id 1vPfQH-00000002F9Q-0PXy;
+	Sun, 30 Nov 2025 11:16:57 +0000
+Received: from mail-pf1-x435.google.com ([2607:f8b0:4864:20::435])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vOa4C-0000000GRmq-2V5R
+	id 1vPfQE-00000002F8M-3QJS
 	for opensbi@lists.infradead.org;
-	Thu, 27 Nov 2025 11:21:41 +0000
-Received: by mail-pl1-x62f.google.com with SMTP id d9443c01a7336-29558061c68so10697755ad.0
-        for <opensbi@lists.infradead.org>; Thu, 27 Nov 2025 03:21:40 -0800 (PST)
+	Sun, 30 Nov 2025 11:16:55 +0000
+Received: by mail-pf1-x435.google.com with SMTP id d2e1a72fcca58-7aad4823079so2717655b3a.0
+        for <opensbi@lists.infradead.org>; Sun, 30 Nov 2025 03:16:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1764242500; x=1764847300; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1764501414; x=1765106214; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=nSuWCCNaBBQN5d+PiGRxMZNhJaccHTwC/uwm54t0YBs=;
-        b=SSDzsYk8SHNWp4JdlXmCMl1ZMHKLFWtjLQB5k57UQbCXg8lltZkFraacp1Y74QUVHJ
-         5hsww8Nofm1dnVYBJHPGd7kG4+6p8Z3XVg3RlJGSnyPiVk12fWtXUB901P1LW8YirwDi
-         bDjUaqQA6B5IIpZOJ4ZvhA/9DHhJ0fkQnfmf3x6qia9ojGQrHbixEBzVaOvzoyMYMw2o
-         UTYDAbR6nJ15mRmaCzAdpMvn7Oq09AjLZhte8pzjLYHuXTwM8GbOy6YCWfhSLWic1bZN
-         m1FxGQxxnziSyHY6uYcXPa3oi8UVpnwOBddhZvqwfL3RK70Cdg9fjjw7tubbr7DE8URj
-         tUdw==
+        bh=B2K/DM9m5h9l9iIVTbzgC8xy6M0vcGUoDtw8u6byowc=;
+        b=X5cNWNDvjQWIyH+cF3p6DjfAOTUEdse2CGGbQY+psZ0uzi1Jy6nuVmDfez6xQbT5yh
+         QiT/6Y+K71Ur2WHQxfh3lsCIELtWQBCpfR8vqmqLaJ4e6yOkfgTZT2/OfdRKWbMVVGmG
+         d98iL2WeHJdZEv3siE64uS4pSfidFkN9a8Bf1NwwEnRyC7XoFLNDs90efK5DgGDUMzxI
+         Uz36Wfj+FHEBgJKEqTSh/dTsuC+8HJ9VbBFvE2k4VypJjDj9OaIzs6ZB6jbYK32549in
+         UfeLFgkr0Hc/w9hYHVMY5Dw9WlrvRSJxv5/+u1y1yO9s5zPvs0AvxPesWPxnbv0oZpT6
+         yMfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764242500; x=1764847300;
+        d=1e100.net; s=20230601; t=1764501414; x=1765106214;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=nSuWCCNaBBQN5d+PiGRxMZNhJaccHTwC/uwm54t0YBs=;
-        b=kcjx5Izt3VZR0l5JUNiOF7DTLiL9n+pBFbCU31NnmcVGEznuFqRU15NaqJLb0YTkQB
-         tcCOq3TYeg9Ob52YGYrt9j1SuT9NrYSHje6cmkKogKKZF+OEbAcnxvt0AMxrFmoqFBzx
-         SWXJiBn0cuLBbVRLd0syM/m9Sgug/Ehfi1LNIJT0k3iPI8CvyAGFlmHsDJKAj+F8Yw3+
-         RrRFNCxxTSyJC5SsSxe0jnc4Uh0QN4FMTk8HZKVun9Fox8BFW8RAAtLXd46Z2wr7Z4ID
-         cwodzXLqk0RgZHbDaF88/zh/sg4AyWMOHZCvxhRKfr6qwQuTVWnxfG9FUvz7VKQog0Xv
-         pUxw==
-X-Forwarded-Encrypted: i=1; AJvYcCWlWlUJiSLazx7SIrTY96ZSKWZjbEYJu9bO0C/H7y4sOMUeGLVEJLJe5XgNRlsIdp8qbnDSTWpz@lists.infradead.org
-X-Gm-Message-State: AOJu0YxhDKEf1MdF9dzO/7O5PukxQHlhqPn4Ae+C3BhKtsncctQ7bJKB
-	TYOx3KmOCLJF0pSf/8qAP1d5TOtWL0L5CZ6zjEK3mpOIRtLDSkhbSFnTrvmPM6PqSHE=
-X-Gm-Gg: ASbGncvVlC7nJiofNmqJ/87xuozcLPTS5AjidII8Z5TzhuNUTo8Epu8Io3bj7sgXERH
-	3wTUnkvMC3zH6y7MBTfs90rGKb5RxiWXmnPnlbYBknWXAAld2Ooy2sB9HzsE7dAFUxPfAkFrpP3
-	HmRLND4krA6IfM2fuicQShLi1yutnWJG7uxdAD7KSMlyx6Seh1SjECCrXyHaNIxKOcM60/N3QPf
-	Jmhf9Gc9hmOCiV3b0ryKatYT3zcILR2So/mSr2Cmj7CPzdSupJu3EqWXh4pWm8dNn2w+pBteOT0
-	B07wWibERkGuDmxWj8WbTk/tbQ8id9i0mlzxUVcY2Ta1ivL/gqYE8b1gcmnTyia1Rf8zGb6/2zB
-	J1DCNa0mEf6G+3VPBQ2fKxRsx4o7pmudCYmVpHw35CfQ/qtih+caANNnc2OP4MfG0qC9gg5uBEh
-	PVxnk95q4LhODfHJ+RAbZJKrWu9EBxHObnSXwIYMttmQ==
-X-Google-Smtp-Source: AGHT+IHA3kQdaJQmDSbXii7Z+jNEncddlyOVsJ/0s1mdRBEFQ6cHfxLKXKNMT/9l3iIN45ZxbjeN8g==
-X-Received: by 2002:a17:903:11c5:b0:298:1422:510d with SMTP id d9443c01a7336-29b6bf7c9e5mr247990905ad.48.1764242499617;
-        Thu, 27 Nov 2025 03:21:39 -0800 (PST)
-Received: from localhost.localdomain ([122.171.21.60])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29bceb27598sm15194125ad.62.2025.11.27.03.21.37
+        bh=B2K/DM9m5h9l9iIVTbzgC8xy6M0vcGUoDtw8u6byowc=;
+        b=AM4Xc57W3PsE6IQmX+8yEpoJXp987ADt9fGLEZDi75f6bPFgb5bcAp6vpsgBd2mkLq
+         JNQm2cDWRouBw5vmUbTMJtLePrn8j1WltkDw7K1/dxIaR4qzdRkM33M/5Xbt603RL5bM
+         Oefl0UbEz13HTDEzgVfEK05LOOcof1SPPmXK63mXyolQTsQZQVWFpfLX1PcptDTCOtu9
+         pI/lJVI2dL3LYQoD4Axu/iE9g6olXGHf1WN3u+1Ffje/XBbg2prAOAOtwvk66pLbvo1g
+         Wd1367I6L+2dPSg25a/2+wuI7gSYSFp/qg9E3sCT5Y/pnfbrEfT6ttSFDfv6peMljS9k
+         Q18A==
+X-Gm-Message-State: AOJu0YzTbxb2xYHPj9Cenbm31uZviKD1jspN0NgnMX3ol2TcYzKJKUJ0
+	eZri2SekBsEgdHOWWIgVNgp3u9R694KK13U41lS1i0WRattdecUtKIfyGHKiUU/yapCDXizWhD3
+	d3s8m2Ctr6UwqhlIvo9oMIdERmbm+Xpvhr0e04Lk1P/3riPfuaxV3rEBISVqHY3aEaODdN/NTfe
+	GKm0xixE+ZFE1n4zdsZpC8qlRsWFMhrWPXaFCBVOLiUtcpKAil
+X-Gm-Gg: ASbGncusWw1h1XVhbZ//OZjB+Ijo+1lTFb1pBrbCbd6QhHsbXUz/GhFLyKwyr/JhEZm
+	nODw0L7TUbK2lWQQojGerrHfRHTv3jK/i349gI45EUfnpUrRelNf2hhIF5A4aWUsrtM57CdVqJK
+	WEsUc9qLCpY/2Bp2Z2XJyLJ1CGBza4Rkbd7fCc3YdDEd0CcWzULSatgR0pUxMu10tpa7wIgS915
+	GkLDuboN8sJFb5XbvFBPKmAfD/v+pl+JaqB3lyuQb41zGScY9lyNPN6VqKLwTLrAN91yRuU+QEM
+	EFAZRdA/XWO/iPcd5nFDXFtoNR1xsal1bjFQW4jTt6LVt6rfj49ogXPeXoLDS90ohXqzt1nU1E3
+	ek4zFPXCpTbBBgmoTLuG9UH/Jqu9ku1aJ/5X1H3o0gef8qEa+yo3gH8iDUaLPuQZKLocFde+qvf
+	xyhzM9iYTjMH+Lmj3ZQvXC2SZs8EdU2Sn29f0=
+X-Google-Smtp-Source: AGHT+IEWG9slAKcMZgtN/c35ML0NdLxU+1ZwOfes5ISHQ+xotxGFnMQrSjdgFf4Qwu+1AFdEq7hAxA==
+X-Received: by 2002:a05:6a00:bd81:b0:7ad:4136:944f with SMTP id d2e1a72fcca58-7c58c89cbe5mr35886911b3a.8.1764501413720;
+        Sun, 30 Nov 2025 03:16:53 -0800 (PST)
+Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7d1819277c5sm10027050b3a.4.2025.11.30.03.16.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Nov 2025 03:21:39 -0800 (PST)
-From: Anup Patel <apatel@ventanamicro.com>
-To: Atish Patra <atishp@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>,
-	Anup Patel <anup@brainfault.org>,
-	opensbi@lists.infradead.org,
-	Andrew Waterman <andrew@sifive.com>,
-	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH 2/2] lib: sbi: Flush TLBs upon FWFT ADUE change
-Date: Thu, 27 Nov 2025 16:51:21 +0530
-Message-ID: <20251127112121.334023-3-apatel@ventanamicro.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20251127112121.334023-1-apatel@ventanamicro.com>
-References: <20251127112121.334023-1-apatel@ventanamicro.com>
+        Sun, 30 Nov 2025 03:16:53 -0800 (PST)
+From: Yu-Chien Peter Lin <peter.lin@sifive.com>
+To: opensbi@lists.infradead.org
+Cc: zong.li@sifive.com,
+	greentime.hu@sifive.com,
+	samuel.holland@sifive.com,
+	Yu-Chien Peter Lin <peter.lin@sifive.com>
+Subject: [RFC PATCH v3 2/6] lib: sbi_init: print total and reserved PMP counts
+Date: Sun, 30 Nov 2025 19:16:39 +0800
+Message-ID: <20251130111643.1291462-3-peter.lin@sifive.com>
+X-Mailer: git-send-email 2.48.0
+In-Reply-To: <20251130111643.1291462-1-peter.lin@sifive.com>
+References: <20251130111643.1291462-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251127_032140_737800_F0D090BF 
-X-CRM114-Status: GOOD (  12.25  )
+X-CRM114-CacheID: sfid-20251130_031654_862942_7537F2DB 
+X-CRM114-Status: UNSURE (   8.03  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -103,57 +104,40 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Andrew Waterman <andrew@sifive.com>
+Show both total and reserved PMP counts in boot log.
 
-A clarification has been added to the RISC-V privileged specification
-regarding synchronization requirements when xenvcfg.ADUE changes.
-(Refer, the following commit in the RISC-V Privileged ISA spec
-https://github.com/riscv/riscv-isa-manual/commit/4e540263db8ae3a27d132a1752cc0fad222facd8)
-
-As-per these requirements, the SBI FWFT ADUE implementation must
-flush TLBs upon changes in ADUE state on a hart.
-
-Signed-off-by: Andrew Waterman <andrew@sifive.com>
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- lib/sbi/sbi_fwft.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_init.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_fwft.c b/lib/sbi/sbi_fwft.c
-index a2aefb9a..373140b7 100644
---- a/lib/sbi/sbi_fwft.c
-+++ b/lib/sbi/sbi_fwft.c
-@@ -13,8 +13,10 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_hfence.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
-+#include <sbi/sbi_tlb.h>
- #include <sbi/sbi_types.h>
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 663b486b..bb449d49 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -163,6 +163,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+ 	int xlen;
+ 	char str[256];
+ 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
++	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
  
- #include <sbi/riscv_asm.h>
-@@ -167,7 +169,16 @@ static int fwft_adue_supported(struct fwft_config *conf)
- 
- static int fwft_set_adue(struct fwft_config *conf, unsigned long value)
- {
--	return fwft_menvcfg_set_bit(value, ENVCFG_ADUE_SHIFT);
-+	int res = fwft_menvcfg_set_bit(value, ENVCFG_ADUE_SHIFT);
-+
-+	if (res == SBI_OK) {
-+		__sbi_sfence_vma_all();
-+
-+		if (misa_extension('H'))
-+			__sbi_hfence_gvma_all();
-+	}
-+
-+	return res;
- }
- 
- static int fwft_get_adue(struct fwft_config *conf, unsigned long *value)
+ 	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
+ 		return;
+@@ -183,8 +184,10 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
+ 	sbi_printf("Boot HART Base ISA          : %s\n", str);
+ 	sbi_hart_get_extensions_str(scratch, str, sizeof(str));
+ 	sbi_printf("Boot HART ISA Extensions    : %s\n", str);
+-	sbi_printf("Boot HART PMP Count         : %d\n",
+-		   sbi_hart_pmp_count(scratch));
++	sbi_printf("Boot HART PMP Count         : "
++		   "%d (total), %d (reserved)\n",
++		   sbi_hart_pmp_count(scratch),
++		   sbi_platform_reserved_pmp_count(plat));
+ 	sbi_printf("Boot HART PMP Granularity   : %u bits\n",
+ 		   sbi_hart_pmp_log2gran(scratch));
+ 	sbi_printf("Boot HART PMP Address Bits  : %d\n",
 -- 
-2.43.0
+2.39.3
 
 
 -- 
