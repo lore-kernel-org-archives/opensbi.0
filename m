@@ -4,89 +4,89 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id DF025D116E2
-	for <opensbi@archiver.kernel.org>; Mon,  1 Dec 2025 08:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 187E1D116F3
+	for <opensbi@archiver.kernel.org>; Mon,  1 Dec 2025 22:11:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
 	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
 	List-Unsubscribe:List-Id:In-Reply-To:From:References:To:Subject:MIME-Version:
 	Date:Message-ID:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:
 	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Owner;
-	bh=+tvqQNHrkByEFZG0cXVFy4uSCp3fqiSurseYNdH+yNg=; b=pIkmTCxgB22hhoy1K74DtVGc3H
-	fHWx0aYZ+SUl77YJrV6q9NwulMwFy+hYzOj6kWGU4KAX6Anpl5dDcI60x3vlzkXYSHoohEGGuDzjb
-	6K6QZY5cHS1CfNcveleAKOb9Q9HK5mSPPB/XnqJLwe/KIAIUGiYubUcGZugaKVeSkP2VJLj5trJhM
-	MO0KPGqgge8ywqWK3pSHiz8ZzTxiGb/D5WrE/eI8o9CaN2SNqdBPHJGlYjt+5Rc0B/hXbzacpYGZB
-	QyOUaDvJ8eaCmUcBb1RspADTnQpdH6rFZQXuWWSguihXViaRrXMlOGpoPyKeh0PKhfxeuVtpbq2gM
-	cAyl0sjA==;
+	bh=HN/bhnidKLaqHxy6tgDe3v5U0heDXmv8BN5VIx6nvDY=; b=1pi1kgW/UHgg32S1H1/qqOX2R9
+	T2x6gaVZktT14fUGFrFqowKVFZQnx4XFv/zL0L80vWlKcykvs2j+4gPs5DK+Le88aGHb3xEcNrShb
+	AExH9EaQSUP3cx5C3YbD5pMaYGBwo1UEMf6pbzrF3+oP5sunkNTpYO9k4VH9VL3fjBwyzTPI7ll/Y
+	Lz0L3ADcYe1Y8xmQ/jIWTG9lHVv8s6VAgE+aB1l6cw/hGtmGod3XWyBj8Yr+PcgUak63KnaPckX1i
+	LIpGHhQ9KBIOnylroT+hoK6JNa/uvoPnTfk4U0Nn6Ey0z1g4Tnvex66g9uKO79rrNzKGnRn1BFdvG
+	b+VdLMgA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vPz0s-000000036La-2G6s;
-	Mon, 01 Dec 2025 08:12:02 +0000
-Received: from mail-pl1-x634.google.com ([2607:f8b0:4864:20::634])
+	id 1vQC7S-00000004ZsR-2aFP;
+	Mon, 01 Dec 2025 22:11:42 +0000
+Received: from mail-pl1-x635.google.com ([2607:f8b0:4864:20::635])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vPz0q-000000036L8-2uwr
+	id 1vQC7N-00000004Zrw-2YIw
 	for opensbi@lists.infradead.org;
-	Mon, 01 Dec 2025 08:12:02 +0000
-Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-29558061c68so47738785ad.0
-        for <opensbi@lists.infradead.org>; Mon, 01 Dec 2025 00:12:00 -0800 (PST)
+	Mon, 01 Dec 2025 22:11:38 +0000
+Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-298456bb53aso62487445ad.0
+        for <opensbi@lists.infradead.org>; Mon, 01 Dec 2025 14:11:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1764576720; x=1765181520; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1764627096; x=1765231896; darn=lists.infradead.org;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:to:subject:user-agent:mime-version:date:message-id:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=zNz0+dBdb08qQsHiqGTX7c4giKJG8VafU53mDx2njoU=;
-        b=mhkOi+cFnVTyJ8CAEdCxV/lOmspPFTSqzj2bjzs28tEUgbWFwKanPswO6L5Rgkph3H
-         nT8gaF8YO/ygGZCGwnO4Qf68dZWzAICc4CO8al3apyvNf3Z4qPnnhiQVCNTpnMYoKKK5
-         d3e7JNZnfnmjq8EFC5Wtw/w4BMcYifJc3r504cCVh+iKhMAjHwvrn1KlCG7EaYqmJQwq
-         7NfwZgKjJQCVp0iY1ShIo76+ezIvXtVlo79aaOZ8gWC7BJte0q4KS3kIJArResuSnU+B
-         TzQCzLn5T8wU/hmM+9jeJEfTTWkrdk8bSwoChHdS3SWR4ewKLqkvphgdq1+Sqx4ooSQq
-         352g==
+        bh=vqGAadmbcQwycn7AJzjXKfCBTXQARYS/3lWKDoixVAk=;
+        b=cKeum7geEWjoKTUnG8tC2LOcgFPDvjW1bv1Lwv8TcEL5/gv7Hz+olqmiOSJcaNXO4O
+         +uEy6MS6RuYX84vjqg0jnDz/spYbmxU4S+S2uAqJS4Oa1erxiHIxB7i8YEO16p4HHY/G
+         QEnaGtb88dIE++XuskE75esCxclvD6NVtBKuqiCcZZ5G6j3Boh32jI3kcisB6IZzZkku
+         xiHhNrJ5tqT7RtoZhXkvk3wSlhIYqSj4XY+dMEopJ1x4RGCHnnNf9poA3Ibq4tPpCnYI
+         vEqCrC2zEzWEBwDdYiRwtLowsXTYxYi4mzqu1iCdhfOVBgxtIZC/6R/DeNjQCirVe4H7
+         lshQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764576720; x=1765181520;
+        d=1e100.net; s=20230601; t=1764627096; x=1765231896;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:to:subject:user-agent:mime-version:date:message-id
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=zNz0+dBdb08qQsHiqGTX7c4giKJG8VafU53mDx2njoU=;
-        b=pNSEm8d64mOrQHAlgR4HYNw5I3rINSouFTuxwJALrEzvgv7p54bl4gDV6XlFa6lAh5
-         NXf55QezACne3rx4sfYULnGu5auL5q24l3S/gQMhrQ9vJooOIJFzVK5JjZHqhpBM14Ne
-         vnMkl/ZaUHAKDW09hToRAalNMuyRl8aAJIIL6yi869j2mR7c6e/gMAIdsQAqI9ZxxPgZ
-         2cT+qa+OuaBwmaW5JXUxKnza6r9klURsmXMgSZVWxRogDWlxldfXkxHOq/8oy5Sqg8GL
-         XH6zL34oaAMqSfSkJqyQZJASncrPPuobnFkpG0c9iBKxFIx7DxiqYWndq1soU1pSu77D
-         uNBg==
-X-Gm-Message-State: AOJu0Yzx9isVHqty1oOjqs3hwXH5AF89Yv0AyYI9Y1QJiTGDtHNRNtHH
-	DrS7XpYOqO8ajs4xGDb0+VNwERea+jkl5ki1LCnqGeIfvcDuy42t3TR32hRcNvsiNTIlVBrSCsk
-	TqKUbw6q2MB1gs42P4nXl/BKq7kSEHsCKggPKCzg6HBKFYX6sOsFQbYXIKj9P+PNJGahdmDPOAX
-	JByiXlSpDEekT+0P/tQNND4JkSyawRlbWqGYfEF8Tx975GYW4KQUUAQA==
-X-Gm-Gg: ASbGncvxkMR5AOmTQexT5ZXEPU3Ba2nLzb836nI8PTMa619NREGoVHUfNC7i/CIVG4o
-	Nz4/yJcEUJFXWfq8imBc6C1SDZ9MArwZ7WrB2ziaJRIp/g+n2QS1QcRbtZHc5ak2pDBBXHa5Xdh
-	CRd8uhdfBVpwjFwvhNeC7QbN6PmA1l2pvuy662QX4dEbX1agfqLFTxU3AqfEmRuWgBGlAzrlT2u
-	cqI9Dt2SRbCHulzRjmcy+6CT0ipbltozes6D5nX9yPh1Jnhwd4EUb7zpcJf7BehjqRMjQKpSOFT
-	pm8kz+upvNOORA5uRm22Z5pvBP/1oczdhWDR0UyMCLRLlXe6exEtilFIYccM1UA9uMtut5iF6hU
-	9Xvak+3WD8Qde0L7JAKal47YmwrSJPpHk5kiY3lCyp06lKLd7WOyEVIoRSqnt4Iom4114GhZSG/
-	tZqNZZRuNP0f+DB/QHKy1sKARCVnZNiBKtD6OgKg0u9R6JRJ+kDtww153ygA==
-X-Google-Smtp-Source: AGHT+IHgUSi9LKt74TAECskCb6cI3iiNh8M2GoUUipYr2Z3rKHPQ2DA4NOrSLZPlTXlInuI1FBPvbg==
-X-Received: by 2002:a17:903:298e:b0:295:9b3a:16b7 with SMTP id d9443c01a7336-29b6be8b678mr415099795ad.4.1764576719397;
-        Mon, 01 Dec 2025 00:11:59 -0800 (PST)
-Received: from [172.16.0.158] (1-171-54-99.dynamic-ip.hinet.net. [1.171.54.99])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29bce442744sm114111025ad.23.2025.12.01.00.11.58
+        bh=vqGAadmbcQwycn7AJzjXKfCBTXQARYS/3lWKDoixVAk=;
+        b=mG039TH97HEfei0lz0EanD2V0LzERFROSgi6Td3ZiA9V+LzdCc4VPfatNWzpMCzMWA
+         f2s1RasU6xUp4B0C/jVRDYPwx4YaT0c84CwBDa47lxxrLYTfg9QPmNSqnBEa8/KQy8zC
+         b8gZb7SiYlSbNGZSIe96JbnMv8IGSrCy0lXXpteu/EcB1SlV2serIlX+wL/KffFjOuMK
+         5wR63aJJh70CmNUh+wbFleP+Vl4WT6mu243JTiOHeAys0lkoZD0tMHBCIX8YKw9jeS5+
+         lz0k3jDnPOZADv1/7hbgTxxleXH3qfVLbrOIkTCY0VR15r+mWOAFdBuDG7HIK7nDRAwo
+         SSZQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXrX4a2Gr4+KZRSSjMYN1iNEvhDzA3FGeWRUSNUEdTsT7VTYeHTNr+FNU3vXikjOeob017dTB94@lists.infradead.org
+X-Gm-Message-State: AOJu0Yxeup29fV9fYP39ODiVuMwt7YZruEyYib1ey6pAdK9OW7mdbqrp
+	GzsF40WOEliXJ1O7sypJRHB+xOdoKXP0x2yhajZsuxTF6AbFkSRE89dB
+X-Gm-Gg: ASbGncvIAq6EMPensZlrcRVRTh2ptknBt3ku9gl8x0u8EQbhjwmZ730lcDf4Ukue8nw
+	XpQo4qh50xnl8V6kNHIffmzyrvyDwb52jbCUCmDKXZ+Da3W9GGoNCV7ru34uSNf80i+2Ym8T5aP
+	yP+I3QayOTB5owwuHPwp+Dn3S1sjMuGGNXGCdfUkKJDNgCEIKfkZ662M9te8YFAIIbsfnkW3gPs
+	WCNOUatANmi3461jSskKBx0QlJ3x5lSm19YK87PsqT5wLp4sLaGHaCo3B6r/C3MTpcitIkGjkqn
+	a7J4bhle3EIG9BBlNJu6qL/eB6xoipfR7vop+VMWzjkCY0lDPqL7K3pJorKHaNGfnWCT4P9K6/6
+	hOMSdJoco04EQ9mCYqNgMAqpJURebUxInk91CedNNYHTnxyQ/DLLWaacziqj9C1W+QilLnvLQA1
+	utp6dJf2Z1TXSp1piI55TSrRjSL2CTpZexdqo=
+X-Google-Smtp-Source: AGHT+IGBmhZ38Hl4JhaIVw0bmUtWfDIV2oH0A12LeEXrfUCUVKMTAz1J8+H+zwr2yDPHpmLpecKd/Q==
+X-Received: by 2002:a17:903:2c9:b0:298:33c9:ed99 with SMTP id d9443c01a7336-29b6c684bfamr442800105ad.30.1764627096218;
+        Mon, 01 Dec 2025 14:11:36 -0800 (PST)
+Received: from [172.16.0.242] ([192.19.161.250])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29bceb27648sm133712805ad.52.2025.12.01.14.11.34
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 01 Dec 2025 00:11:58 -0800 (PST)
-Message-ID: <aa81c0c1-9688-46f0-8254-cf39a61b5049@sifive.com>
-Date: Mon, 1 Dec 2025 16:11:56 +0800
+        Mon, 01 Dec 2025 14:11:35 -0800 (PST)
+Message-ID: <4ea45365-1360-4a75-9024-1d51855cc7d6@gmail.com>
+Date: Mon, 1 Dec 2025 14:15:49 -0800
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 2/4] lib: sbi: give platform choice of using single
- memregion to cover OpenSBI
-To: opensbi@lists.infradead.org, ganboing@gmail.com
+Subject: Re: [PATCH v3 4/4] platform: generic: eswin: add EIC7700
+To: Yu-Chien Peter Lin <peter.lin@sifive.com>, opensbi@lists.infradead.org,
+ ganboing@gmail.com, anup@brainfault.org
 References: <20251120093440.4533-1-ganboing@gmail.com>
- <20251120093440.4533-3-ganboing@gmail.com>
+ <20251120093440.4533-5-ganboing@gmail.com>
+ <e288c418-8676-4703-b1e8-e3788ebbfc2b@sifive.com>
 Content-Language: en-US
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-In-Reply-To: <20251120093440.4533-3-ganboing@gmail.com>
+From: Bo Gan <ganboing@gmail.com>
+In-Reply-To: <e288c418-8676-4703-b1e8-e3788ebbfc2b@sifive.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251201_001200_752566_12346F0A 
-X-CRM114-Status: GOOD (  25.65  )
+X-CRM114-CacheID: sfid-20251201_141137_660601_152319D7 
+X-CRM114-Status: GOOD (  24.14  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,143 +98,187 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SGkgQm8sCgpNYXliZSB1c2UgYSBGVyBvcHRpb24gdG8gZW5hYmxlIHNpbmdsZSBGVyByZWdpb24g
-YXQgY29tcGlsZQpvciBydW50aW1lIG9wdGlvbnMuCgpjb21waWxlIHRpbWUgWzFdOgptYWtlIFBM
-QVRGT1JNPWdlbmVyaWMgRldfT1BUSU9OUz0weDQKCnJ1bnRpbWUgWzJdOgpVc2UgZncgZHluYW1p
-YyBhbmQgcGFzcyAweDQgdmlhICgoc3RydWN0IGZ3X2R5bmFtaWNfaW5mbyAqKSRhMiktPm9wdGlv
-bnMKClsxXSAKaHR0cHM6Ly9naXRodWIuY29tL3Jpc2N2LXNvZnR3YXJlLXNyYy9vcGVuc2JpL2Js
-b2IvbWFzdGVyL2RvY3MvZmlybXdhcmUvZncubWQjb3B0aW9ucy1mb3Itb3BlbnNiaS1maXJtd2Fy
-ZS1iZWhhdmlvcnMKWzJdIApodHRwczovL2dpdGh1Yi5jb20vcmlzY3Ytc29mdHdhcmUtc3JjL29w
-ZW5zYmkvYmxvYi84MjVkMGU5MThhOWU0MWNjNTcwOTdhOGNiOTEzZjI2NTUwNjk5OTExL2RvY3Mv
-ZmlybXdhcmUvZndfZHluYW1pYy5tZD9wbGFpbj0xI0wxMAoKZGlmZiAtLWdpdCBhL2luY2x1ZGUv
-c2JpL3NiaV9zY3JhdGNoLmggYi9pbmNsdWRlL3NiaS9zYmlfc2NyYXRjaC5oCmluZGV4IGYxYjQx
-NTVkLi40ZjQwZmVkZCAxMDA2NDQKLS0tIGEvaW5jbHVkZS9zYmkvc2JpX3NjcmF0Y2guaAorKysg
-Yi9pbmNsdWRlL3NiaS9zYmlfc2NyYXRjaC5oCkBAIC0xMTUsNiArMTE1LDEzIEBAIGVudW0gc2Jp
-X3NjcmF0Y2hfb3B0aW9ucyB7CiDCoCDCoCDCoCDCoCBTQklfU0NSQVRDSF9OT19CT09UX1BSSU5U
-UyA9ICgxIDw8IDApLAogwqAgwqAgwqAgwqAgLyoqIEVuYWJsZSBydW50aW1lIGRlYnVnIHByaW50
-cyAqLwogwqAgwqAgwqAgwqAgU0JJX1NDUkFUQ0hfREVCVUdfUFJJTlRTID0gKDEgPDwgMSksCivC
-oCDCoCDCoCDCoC8qKgorwqAgwqAgwqAgwqAgKiBVc2Ugc2luZ2xlIFBNUCBlbnRyeSBjb3Zlcmlu
-ZyBlbnRpcmUgZmlybXdhcmUgcmVnaW9uLgorwqAgwqAgwqAgwqAgKiBTYXZlcyBvbmUgUE1QIGVu
-dHJ5IG9uIG5vbi1TbWVwbXAgcGxhdGZvcm1zIGF0IHRoZSBjb3N0CivCoCDCoCDCoCDCoCAqIG9m
-IGNvYXJzZXIgUE1QIGdyYW51bGFyaXR5LgorwqAgwqAgwqAgwqAgKiBOb3QgY29tcGF0aWJsZSB3
-aXRoIFNtZXBtcCAoTS1tb2RlIFJXWCBpcyBub3Qgc3VwcG9ydGVkKS4KK8KgIMKgIMKgIMKgICov
-CivCoCDCoCDCoCDCoFNCSV9TQ1JBVENIX1NJTkdMRV9GV19QTVAgPSAoMSA8PCAyKSwKIMKgfTsK
-CiDCoC8qKiBHZXQgcG9pbnRlciB0byBzYmlfc2NyYXRjaCBmb3IgY3VycmVudCBIQVJUICovCmRp
-ZmYgLS1naXQgYS9saWIvc2JpL3NiaV9kb21haW4uYyBiL2xpYi9zYmkvc2JpX2RvbWFpbi5jCmlu
-ZGV4IGRhMGYwNTU3Li4wMjIyY2E5MyAxMDA2NDQKLS0tIGEvbGliL3NiaS9zYmlfZG9tYWluLmMK
-KysrIGIvbGliL3NiaS9zYmlfZG9tYWluLmMKQEAgLTkwNCwxOCArOTA0LDI3IEBAIGludCBzYmlf
-ZG9tYWluX2luaXQoc3RydWN0IHNiaV9zY3JhdGNoICpzY3JhdGNoLCAKdTMyIGNvbGRfaGFydGlk
-KQogwqAgwqAgwqAgwqAgcm9vdC5wb3NzaWJsZV9oYXJ0cyA9IHJvb3RfaG1hc2s7CgogwqAgwqAg
-wqAgwqAgLyogUm9vdCBkb21haW4gZmlybXdhcmUgbWVtb3J5IHJlZ2lvbiAqLwotwqAgwqAgwqAg
-wqBzYmlfZG9tYWluX21lbXJlZ2lvbl9pbml0KHNjcmF0Y2gtPmZ3X3N0YXJ0LCBzY3JhdGNoLT5m
-d19yd19vZmZzZXQsCi3CoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoChTQklfRE9NQUlOX01FTVJFR0lPTl9NX1JFQURBQkxFIHwKLSBTQklfRE9NQUlOX01F
-TVJFR0lPTl9NX0VYRUNVVEFCTEUgfAotwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgU0JJX0RPTUFJTl9NRU1SRUdJT05fRlcpLAotIMKgJnJvb3RfbWVt
-cmVnc1tyb290X21lbXJlZ3NfY291bnQrK10pOwotCi3CoCDCoCDCoCDCoHNiaV9kb21haW5fbWVt
-cmVnaW9uX2luaXQoKHNjcmF0Y2gtPmZ3X3N0YXJ0ICsgCnNjcmF0Y2gtPmZ3X3J3X29mZnNldCks
-Ci3CoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoChzY3Jh
-dGNoLT5md19zaXplIC0gCnNjcmF0Y2gtPmZ3X3J3X29mZnNldCksCi3CoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoChTQklfRE9NQUlOX01FTVJFR0lPTl9N
-X1JFQURBQkxFIHwKLcKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIFNCSV9ET01BSU5fTUVNUkVHSU9OX01fV1JJVEFCTEUgfAotwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgU0JJX0RPTUFJTl9NRU1SRUdJT05f
-RlcpLAotIMKgJnJvb3RfbWVtcmVnc1tyb290X21lbXJlZ3NfY291bnQrK10pOworwqAgwqAgwqAg
-wqBpZiAoc2NyYXRjaC0+b3B0aW9ucyAmIFNCSV9TQ1JBVENIX1NJTkdMRV9GV19QTVApIHsKK8Kg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgc2JpX2RvbWFpbl9tZW1yZWdpb25faW5pdChzY3JhdGNoLT5m
-d19zdGFydCwgCnNjcmF0Y2gtPmZ3X3NpemUsCisgwqAoU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9S
-RUFEQUJMRSB8CisgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9XUklUQUJMRSB8CisgU0JJX0RPTUFJ
-Tl9NRU1SRUdJT05fTV9FWEVDVVRBQkxFIHwKKyBTQklfRE9NQUlOX01FTVJFR0lPTl9GVyksCisg
-wqAmcm9vdF9tZW1yZWdzW3Jvb3RfbWVtcmVnc19jb3VudCsrXSk7CivCoCDCoCDCoCDCoH0gZWxz
-ZSB7CivCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHNiaV9kb21haW5fbWVtcmVnaW9uX2luaXQoc2Ny
-YXRjaC0+Zndfc3RhcnQsIApzY3JhdGNoLT5md19yd19vZmZzZXQsCisgwqAoU0JJX0RPTUFJTl9N
-RU1SRUdJT05fTV9SRUFEQUJMRSB8CisgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9FWEVDVVRBQkxF
-IHwKKyBTQklfRE9NQUlOX01FTVJFR0lPTl9GVyksCisgwqAmcm9vdF9tZW1yZWdzW3Jvb3RfbWVt
-cmVnc19jb3VudCsrXSk7CisKK8KgIMKgIMKgIMKgIMKgIMKgIMKgIMKgc2JpX2RvbWFpbl9tZW1y
-ZWdpb25faW5pdCgoc2NyYXRjaC0+Zndfc3RhcnQgKyAKc2NyYXRjaC0+Zndfcndfb2Zmc2V0KSwK
-K8KgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgKHNjcmF0Y2gtPmZ3X3NpemUgLSAKc2NyYXRjaC0+Zndfcndfb2Zmc2V0KSwKKyDCoChT
-QklfRE9NQUlOX01FTVJFR0lPTl9NX1JFQURBQkxFIHwKKyBTQklfRE9NQUlOX01FTVJFR0lPTl9N
-X1dSSVRBQkxFIHwKKyBTQklfRE9NQUlOX01FTVJFR0lPTl9GVyksCisgwqAmcm9vdF9tZW1yZWdz
-W3Jvb3RfbWVtcmVnc19jb3VudCsrXSk7CivCoCDCoCDCoCDCoH0KCiDCoCDCoCDCoCDCoCByb290
-LmZ3X3JlZ2lvbl9pbml0ZWQgPSB0cnVlOwoKQmVzdCByZWdhcmRzLApQZXRlciBMaW4KCk9uIDEx
-LzIwLzI1IDU6MzQgUE0sIEJvIEdhbiB3cm90ZToKPiBCeSBkZWZhdWx0IHRoZSBPcGVuU0JJIGl0
-c2VsZiBpcyBjb3ZlcmVkIGJ5IDIgbWVtcmVnaW9ucyBmb3IgUlgvUlcKPiBzZWN0aW9ucy4gVGhp
-cyBpcyByZXF1aXJlZCBieSBwbGF0Zm9ybXMgd2l0aCBTbWVwbXAgdG8gZW5mb3JjZQo+IHByb3Bl
-ciBwZXJtaXNzaW9ucyBpbiBNIG1vZGUuIE5vdGU6IE0tbW9kZSBvbmx5IHJlZ2lvbnMgY2FuJ3QK
-PiBoYXZlIFJXWCBwZXJtaXNzaW9ucyB3aXRoIFNtZXBtcC4gUGxhdGZvcm1zIHdpdGggdHJhZGl0
-aW9uYWwgUE1Qcwo+IHdvbid0IGJlIGFibGUgdG8gYmVuZWZpdCBmcm9tIGl0LCBhcyBib3RoIHJl
-Z2lvbnMgYXJlIGVmZmVjdGl2ZWx5Cj4gUldYIGluIE0gbW9kZSwgYnV0IHVzdWFsbHkgaXQncyBo
-YXJtbGVzcyB0byBzby4gTm93IHdlIHByb3ZpZGUKPiB0aGVzZSBwbGF0Zm9ybXMgd2l0aCBhbiBv
-cHRpb24gdG8gZGlzYWJsZSB0aGlzIGxvZ2ljLiBJdCBzYXZlcyAxCj4gUE1QIGVudHJ5LiBGb3Ig
-cGxhdGZvcm1zIHJlYWxseSBpbiBzaG9ydCBvZiBQTVBzLCBpdCBkb2VzIG1ha2UgYQo+IGRpZmZl
-cmVuY2UuCj4KPiBOb3RlOiBQbGF0Zm9ybSByZXF1ZXN0aW5nIHNpbmdsZSBPcGVuU0JJIG1lbXJl
-Z2lvbiBtdXN0IGJlIHVzaW5nCj4gICAgICAgIHRyYWRpdGlvbmFsIChvbGQpIFBNUC4gV2UgZXhw
-ZWN0IHRoZSBwbGF0Zm9ybSBjb2RlIHRvIGRvCj4gICAgICAgIHRoZSByaWdodCB0aGluZy4KPgo+
-IFNpZ25lZC1vZmYtYnk6IEJvIEdhbiA8Z2FuYm9pbmdAZ21haWwuY29tPgo+IC0tLQo+ICAgaW5j
-bHVkZS9zYmkvc2JpX3BsYXRmb3JtLmggfCAyMSArKysrKysrKysrKysrKysrKysrKysKPiAgIGxp
-Yi9zYmkvc2JpX2RvbWFpbi5jICAgICAgIHwgMzYgKysrKysrKysrKysrKysrKysrKysrKysrLS0t
-LS0tLS0tLS0tCj4gICAyIGZpbGVzIGNoYW5nZWQsIDQ1IGluc2VydGlvbnMoKyksIDEyIGRlbGV0
-aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvc2JpL3NiaV9wbGF0Zm9ybS5oIGIvaW5j
-bHVkZS9zYmkvc2JpX3BsYXRmb3JtLmgKPiBpbmRleCBhNTNlMTc5Ny4uZjQxNDUxNGYgMTAwNjQ0
-Cj4gLS0tIGEvaW5jbHVkZS9zYmkvc2JpX3BsYXRmb3JtLmgKPiArKysgYi9pbmNsdWRlL3NiaS9z
-YmlfcGxhdGZvcm0uaAo+IEBAIC03Niw2ICs3Niw5IEBAIHN0cnVjdCBzYmlfcGxhdGZvcm1fb3Bl
-cmF0aW9ucyB7Cj4gICAJLyogQ2hlY2sgaWYgc3BlY2lmaWVkIEhBUlQgaXMgYWxsb3dlZCB0byBk
-byBjb2xkIGJvb3QgKi8KPiAgIAlib29sICgqY29sZF9ib290X2FsbG93ZWQpKHUzMiBoYXJ0aWQp
-Owo+ICAgCj4gKwkvKiBDaGVjayBpZiBwbGF0Zm9ybSByZXF1aXJlcyBzaW5nbGUgZmlybXdhcmUg
-cmVnaW9uICovCj4gKwlib29sICgqc2luZ2xlX2Z3X3JlZ2lvbikodm9pZCk7Cj4gKwo+ICAgCS8q
-IFBsYXRmb3JtIG5hc2NlbnQgaW5pdGlhbGl6YXRpb24gKi8KPiAgIAlpbnQgKCpuYXNjZW50X2lu
-aXQpKHZvaWQpOwo+ICAgCj4gQEAgLTM1OSw2ICszNjIsMjQgQEAgc3RhdGljIGlubGluZSBib29s
-IHNiaV9wbGF0Zm9ybV9jb2xkX2Jvb3RfYWxsb3dlZCgKPiAgIAlyZXR1cm4gdHJ1ZTsKPiAgIH0K
-PiAgIAo+ICsvKioKPiArICogQ2hlY2sgd2hldGhlciBwbGF0Zm9ybSByZXF1aXJlcyBzaW5nbGUg
-ZmlybXdhcmUgcmVnaW9uCj4gKyAqCj4gKyAqIE5vdGU6IFNpbmdsZSBmaXJtd2FyZSByZWdpb24g
-b25seSB3b3JrcyB3aXRoIGxlZ2FjeSBQTVAgYmVjYXVzZSB3aXRoCj4gKyAqIFNtZXBtcCBNLW1v
-ZGUgb25seSByZWdpb25zIGNhbid0IGhhdmUgUldYIHBlcm1pc3Npb25zLgo+ICsgKgo+ICsgKiBA
-cGFyYW0gcGxhdCBwb2ludGVyIHRvIHN0cnVjdCBzYmlfcGxhdGZvcm0KPiArICoKPiArICogQHJl
-dHVybiB0cnVlIGlmIHNpbmdsZSBmaXJtd2FyZSByZWdpb24gcmVxdWlyZWQgYW5kIGZhbHNlIG90
-aGVyd2lzZQo+ICsgKi8KPiArc3RhdGljIGlubGluZSBib29sIHNiaV9wbGF0Zm9ybV9zaW5nbGVf
-ZndfcmVnaW9uKAo+ICsJCQkJCWNvbnN0IHN0cnVjdCBzYmlfcGxhdGZvcm0gKnBsYXQpCj4gK3sK
-PiArCWlmIChwbGF0ICYmIHNiaV9wbGF0Zm9ybV9vcHMocGxhdCktPnNpbmdsZV9md19yZWdpb24p
-Cj4gKwkJcmV0dXJuIHNiaV9wbGF0Zm9ybV9vcHMocGxhdCktPnNpbmdsZV9md19yZWdpb24oKTsK
-PiArCXJldHVybiBmYWxzZTsKPiArfQo+ICsKPiAgIC8qKgo+ICAgICogTmFzY2VudCAodmVyeSBl
-YXJseSkgaW5pdGlhbGl6YXRpb24gZm9yIGN1cnJlbnQgSEFSVAo+ICAgICoKPiBkaWZmIC0tZ2l0
-IGEvbGliL3NiaS9zYmlfZG9tYWluLmMgYi9saWIvc2JpL3NiaV9kb21haW4uYwo+IGluZGV4IDMy
-ZTRjODgyLi5hZmRhNzM2NSAxMDA2NDQKPiAtLS0gYS9saWIvc2JpL3NiaV9kb21haW4uYwo+ICsr
-KyBiL2xpYi9zYmkvc2JpX2RvbWFpbi5jCj4gQEAgLTkyNSwxOCArOTI1LDMwIEBAIGludCBzYmlf
-ZG9tYWluX2luaXQoc3RydWN0IHNiaV9zY3JhdGNoICpzY3JhdGNoLCB1MzIgY29sZF9oYXJ0aWQp
-Cj4gICAJcm9vdC5wb3NzaWJsZV9oYXJ0cyA9IHJvb3RfaG1hc2s7Cj4gICAKPiAgIAkvKiBSb290
-IGRvbWFpbiBmaXJtd2FyZSBtZW1vcnkgcmVnaW9uICovCj4gLQlzYmlfZG9tYWluX21lbXJlZ2lv
-bl9pbml0KHNjcmF0Y2gtPmZ3X3N0YXJ0LCBzY3JhdGNoLT5md19yd19vZmZzZXQsCj4gLQkJCQkg
-IChTQklfRE9NQUlOX01FTVJFR0lPTl9NX1JFQURBQkxFIHwKPiAtCQkJCSAgIFNCSV9ET01BSU5f
-TUVNUkVHSU9OX01fRVhFQ1VUQUJMRSB8Cj4gLQkJCQkgICBTQklfRE9NQUlOX01FTVJFR0lPTl9G
-VyksCj4gLQkJCQkgICZyb290X21lbXJlZ3Nbcm9vdF9tZW1yZWdzX2NvdW50KytdKTsKPiAtCj4g
-LQlzYmlfZG9tYWluX21lbXJlZ2lvbl9pbml0KChzY3JhdGNoLT5md19zdGFydCArIHNjcmF0Y2gt
-PmZ3X3J3X29mZnNldCksCj4gLQkJCQkgIChzY3JhdGNoLT5md19zaXplIC0gc2NyYXRjaC0+Zndf
-cndfb2Zmc2V0KSwKPiAtCQkJCSAgKFNCSV9ET01BSU5fTUVNUkVHSU9OX01fUkVBREFCTEUgfAo+
-IC0JCQkJICAgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9XUklUQUJMRSB8Cj4gLQkJCQkgICBTQklf
-RE9NQUlOX01FTVJFR0lPTl9GVyksCj4gLQkJCQkgICZyb290X21lbXJlZ3Nbcm9vdF9tZW1yZWdz
-X2NvdW50KytdKTsKPiArCWlmIChzYmlfcGxhdGZvcm1fc2luZ2xlX2Z3X3JlZ2lvbihzYmlfcGxh
-dGZvcm1fcHRyKHNjcmF0Y2gpKSkgewo+ICsJCXNiaV9kb21haW5fbWVtcmVnaW9uX2luaXQoc2Ny
-YXRjaC0+Zndfc3RhcnQsIHNjcmF0Y2gtPmZ3X3NpemUsCj4gKwkJCQkJICAoU0JJX0RPTUFJTl9N
-RU1SRUdJT05fTV9SRUFEQUJMRSB8Cj4gKwkJCQkJICAgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9X
-UklUQUJMRSB8Cj4gKwkJCQkJICAgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9FWEVDVVRBQkxFIHwK
-PiArCQkJCQkgICBTQklfRE9NQUlOX01FTVJFR0lPTl9GVyksCj4gKwkJCQkJICAmcm9vdF9tZW1y
-ZWdzW3Jvb3RfbWVtcmVnc19jb3VudCsrXSk7Cj4gKwl9IGVsc2Ugewo+ICsJCXNiaV9kb21haW5f
-bWVtcmVnaW9uX2luaXQoc2NyYXRjaC0+Zndfc3RhcnQsCj4gKwkJCQkJICBzY3JhdGNoLT5md19y
-d19vZmZzZXQsCj4gKwkJCQkJICAoU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9SRUFEQUJMRSB8Cj4g
-KwkJCQkJICAgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9FWEVDVVRBQkxFIHwKPiArCQkJCQkgICBT
-QklfRE9NQUlOX01FTVJFR0lPTl9GVyksCj4gKwkJCQkJICAmcm9vdF9tZW1yZWdzW3Jvb3RfbWVt
-cmVnc19jb3VudCsrXSk7Cj4gKwo+ICsJCXNiaV9kb21haW5fbWVtcmVnaW9uX2luaXQoKHNjcmF0
-Y2gtPmZ3X3N0YXJ0ICsKPiArCQkJCQkgICBzY3JhdGNoLT5md19yd19vZmZzZXQpLAo+ICsJCQkJ
-CSAgKHNjcmF0Y2gtPmZ3X3NpemUgLQo+ICsJCQkJCSAgIHNjcmF0Y2gtPmZ3X3J3X29mZnNldCks
-Cj4gKwkJCQkJICAoU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9SRUFEQUJMRSB8Cj4gKwkJCQkJICAg
-U0JJX0RPTUFJTl9NRU1SRUdJT05fTV9XUklUQUJMRSB8Cj4gKwkJCQkJICAgU0JJX0RPTUFJTl9N
-RU1SRUdJT05fRlcpLAo+ICsJCQkJCSAgJnJvb3RfbWVtcmVnc1tyb290X21lbXJlZ3NfY291bnQr
-K10pOwo+ICsJfQo+ICAgCj4gICAJcm9vdC5md19yZWdpb25faW5pdGVkID0gdHJ1ZTsKPiAgIAoK
-LS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
-Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+Hi Peter,
+
+Thanks for the review. I saw your other reply, but let me still reply here,
+while trying to fix the formatting:
+
+On 11/30/25 23:35, Yu-Chien Peter Lin wrote:
+ > Hi Bo,
+ >
+ > On 11/20/25 5:34 PM, Bo Gan wrote:
+ >> ...
+ >> +/**
+ >> + * EIC7700 special arrangement of PMP entries:
+ >> + *
+ >> + * We have to use extra PMPs to block data cacheable regions that
+ >> + * that doesn't belong to the current hart's die in order to prevent
+ >> + * speculative accesses or HW prefetcher from generating bus error:
+ >> + *
+ >> + *     bus error of cause event: 9, accrued: 0x220,
+ >> + *    physical address: 0x24ffffffa0
+ >> + *
+ >> + * The data cacheable regions (per datasheet) include:
+ >> + *
+ >> + *   - [0x1a000000,    0x1a400000) -- Die 0 L3 zero device
+ >> + *   - [0x3a000000,    0x3a400000) -- Die 1 L3 zero device
+ >> + *   - [0x80000000, 0x80_00000000) -- memory port
+ >> + *
+ >> + * To make the blocker effective for M mode too, the extra PMPs need
+ >> + * LOCK bit to be set, and once set, we can't change them later.
+ >> + * We also have to to use 1 extra PMP to protect OpenSBI in uncached
+ >> + * memory. EIC770X maps main memory (DRAM) twice -- one in memory
+ >> + * port (cached), the other in system port (uncached). P550 doesn't
+ >> + * support Svpbmt, so EIC770X use the uncached window to handle DMA
+ >> + * that are cache incoherent -- pretty much all peripherals
+ >> + *
+ >> + * Final PMP configuration:
+ >> + *
+ >> + * From die 0 point of view, block
+ >> + *   -         [0x3a000000,    0x3a400000) -- Die 1 L3 zero device
+ >> + *   -      [0x10_00000000, 0x80_00000000) -- Die 1 cached mem + holes
+ >> + *
+ >> + * Root domain Harts:
+ >> + *  PMP[0]: [   0x80000000,    0x80080000) ____ Firmware in cached mem
+ >> + *  PMP[1]: [0xc0_00000000, 0xc0_00080000) ____ Firmware in uncached
+ >> + *  PMP[2]: [   0x3a000000,    0x3a400000) L___ Die 1 L3 zero device
+ >> + *  PMP[3]: [    0x2000000      0x2010000) ____ CLINT
+ >> + *  PMP[4]: [          0x0, 0x10_00000000) _RWX P550/System/Die 0 cached mem
+ >> + *  PMP[5]: <Free>
+ >> + *  PMP[6]: [          0x0, 0x80_00000000) L___ P550/System/Memory Port
+ >> + *  PMP[7]: [     0x0, 0xffffffffffffffff] _RWX Everything
+ >>
+ > I noticed that some PMP entries such as PMP[2] and PMP[6] are configured
+ > with pmpcfg.L set. During domain context switch, all PMP entries managed by
+ > OpenSBI domain will be disabled [1], so locked entries will remain active,
+ > and if a hole entry not using identical PMP id across domains, other regions
+ > that program the locked PMP id cannot be applied. This will block the use
+ > of e.g. OP-TEE which relies on domain context switch mechanism.
+
+The non-root domains shouldn't have ENF_PERMISSIONS (locked PMP entries).
+I'll add docs for EIC7700 in subsequent patchsets. In short, it's a user
+error to do that in EIC7700's case, or perhaps even applies for all plat
+OP-TEE is supported (to some extent), and the boot log from cover letter
+demonstrates a t/u-domain like setup. It, however, does require hacks to
+existing code by reverting this patch from Himanshu Chauhan
+
+   lib: utils: Disallow non-root domains from adding M-mode regions
+
+Thus, I left it for future work. FYI, the domains are:
+
+opensbi-domains {
+   compatible = "opensbi,domain,config";
+
+   tmem: tmem {
+     compatible = "opensbi,domain,memregion";
+     base = <0x4 0x7ff00000>;
+     order = <20>;
+   };
+
+   tuart: tuart {
+     compatible = "opensbi,domain,memregion";
+     base = <0x0 0x50910000>;
+     order = <12>;
+     mmio;
+   };
+
+   p550_sys: p550_sys {
+     compatible = "opensbi,domain,memregion";
+     base = <0x0 0x0>;
+     order = <31>;
+     mmio;
+   };
+
+   p550_sys_mem: p550_sys_mem {
+     compatible = "opensbi,domain,memregion";
+     base = <0x0 0x0>;
+     order = <36>;
+   };
+
+   allmem: allmem {
+     compatible = "opensbi,domain,memregion";
+     base = <0x0 0x0>;
+     order = <64>;
+   };
+
+   tdomain: trusted-domain {
+     compatible = "opensbi,domain,instance";
+     possible-harts = <>;
+     regions = <&tuart (MEM_MRW | MEM_SURW)>,
+               <&p550_sys MEM_MRW>,
+               <&tmem MEM_SURWX>;
+     next-addr = <0x4 0x7ff00000>;
+     next-arg1 = <0x0 0x0>;
+     next-mode = <0x1>;
+   };
+
+   udomain: untrusted-domain {
+     compatible = "opensbi,domain,instance";
+     possible-harts = <>;
+     regions = <&p550_sys_mem (MEM_MRW | MEM_SURWX)>,
+               <&tmem 0>,
+               <&allmem MEM_SURWX>;
+   };
+};
+
+In short, there's no need to match the PMP entry id from non-root domains
+The pmp_configure will figure out the order of programming PMPs, and the
+pmp_unconfigure will reset everything to a state where OpenSBI can still
+function before the next pmp_configure(). The memory region config in the
+domain instance has indeed became a little bit tedious, where it needs to
+explicitly allow certain regions, but I hope it's acceptable.
+
+ >
+ > I am proposing reserved PMP allocator [2]. Hopefully, it can address this requirement.
+ > By specifying reserved 3 entries on P550 platform, the PMP usage should become:
+ >
+ > PMP[0]: Reserved NAPOT [   0x3a000000,    0x3a400000) L___ Die 1 L3 zero device
+ > PMP[1]: Reserved TOR1  [0x10_00000000,                L___ Die 1 cached mem + holes
+ > PMP[2]: Reserved TOR2                  0x80_00000000) L___ Die 1 cached mem + holes
+ > PMP[3]: Domain0Region0 [   0x80000000,    0x80080000) ____ Firmware in cached mem
+ > PMP[4]: Domain0Region1 [0xc0_00000000, 0xc0_00080000) ____ Firmware in uncached
+ > PMP[5]: Domain0Region2 [    0x2000000      0x2010000) ____ CLINT
+ > PMP[6]: Domain0Region3 [     0x0, 0xffffffffffffffff] _RWX Everything
+ > PMP[7]: unused
+ >
+
+Sounds reasonable to me, but there are 2 concerns.
+
+1. My v2 change was using PMP TOR, and it's NAK'ed by Anup. Perhaps I
+    should wait and see his feedback on this one, and your other change,
+    before moving forward.
+
+2. From die 1 POV, it's not easy to block those "hole" ranges using PMP
+    at the beginning. Even with TOR, we'll run out of PMPs, because die
+    1 needs to have 2 ranges in memory port blocked. It'll inevitably be
+    done with reserved PMP and domain PMP interleaved, like what I have
+    here.
+
+ > One aspect that requires careful attention is CPU suspend with power gating scenarios.
+ > When reserved PMP states can be removed, additional reserved PMP management
+ > (save/restore operations for PMPs that protect holes) must be included in the
+ > suspend/resume flow.
+ >
+ > [1] https://github.com/riscv-software-src/opensbi/blob/825d0e918a9e41cc57097a8cb913f26550699911/lib/sbi/sbi_domain_context.c#L123-L131
+ > [2] https://lore.kernel.org/all/20251130111643.1291462-7-peter.lin@sifive.com/
+
+This can be enhanced in future pathsets. My plan is to have a HSM that
+restores the PMP blocking those "holes". Actually it also needs to restore
+those feature enable/disable CSRs. This patchset is the "initial support"
+for EIC7700, and I'm not precluding future improvements.
+
+ >> ...
+
+I'll fix the RV32 build issue for sure. Thanks again.
+
+Bo.
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
