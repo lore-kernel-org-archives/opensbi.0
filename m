@@ -4,88 +4,90 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8B736D2CE17
-	for <opensbi@archiver.kernel.org>; Sun,  7 Dec 2025 10:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3335FD1CDC6
+	for <opensbi@archiver.kernel.org>; Sun,  7 Dec 2025 10:59:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
 	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=HUNIOQXew+wztDyqdctxbbdBXbuJCw4IlgPKCI54Li8=; b=z37Y8Ty2vpVzQy
-	TU6USAld103Nyk1q3wzfexnHOY99ghtrYMmHKOJQKBhujzusZ4OobzsdH+lr09OFJmvwswF7aiNT5
-	lI0x/Q9TdsUmiVnIX2+NmTxu+HfWJ3sQJ2ecPmEABCbOCcVIpQ5OOpD0deJjr9Ma0FFLNllAQqOli
-	zzzMegCLFQrI4kMzGKt2f8G2RtpyUPa7USvFWhvkdPfVPX3JjY5WxLnSYJOK/C+k4WTqBcS3D8/Bn
-	yT6ltIPdFv1NtIkk7b3nhw4UJ2Egf97UpfwYVgoiEyoUkDnEDe6tiOoSkdNirTnpbqmA9Y93ftNCD
-	C4Z3SrVbBcMgBMBEMBRw==;
+	List-Owner; bh=hep/E63YcP42LHXXg5xFmeLeB5XqLXTI6eRhVzbZJH0=; b=05K/T6oQ3vtkjW
+	/I4n43O2OImt/LfHMe8oQVYCfNjGob6udwd6R8jICr3DZDkBsJbRzQtCW0WwWIFknwNHMkPEWofUI
+	onmgjXAL+/0uEjV395Ngi5as9OKgjO/iLw6Fb5Jbue52DXz9Obp4wvxLR4aY/18DCvb6BNhDDXCnL
+	53qdycBfqVlEQcNFQJRDXx3WqqbOd7IgUg3Omq+sW5K9X32bA7mgN9lqE6M4MaCm09OdTdDAjIknb
+	IID63PRpKkCWU+lbaGiafKdTw/huKfumByrAqws7YCu6OhRMEgFiqm5ZywBwRJ1mfOAMXtaLV4IFQ
+	NBG0U5NLzOvpcySGAPmg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSCTN-0000000BgTd-1l9b;
-	Sun, 07 Dec 2025 10:58:37 +0000
-Received: from mail-pj1-x1035.google.com ([2607:f8b0:4864:20::1035])
+	id 1vSCUE-0000000BgcY-0Vzt;
+	Sun, 07 Dec 2025 10:59:30 +0000
+Received: from mail-pl1-x62c.google.com ([2607:f8b0:4864:20::62c])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSCTL-0000000BgTG-1DOl
+	id 1vSCUB-0000000BgbB-0nsf
 	for opensbi@lists.infradead.org;
-	Sun, 07 Dec 2025 10:58:36 +0000
-Received: by mail-pj1-x1035.google.com with SMTP id 98e67ed59e1d1-340bb1cb9ddso2903273a91.2
-        for <opensbi@lists.infradead.org>; Sun, 07 Dec 2025 02:58:34 -0800 (PST)
+	Sun, 07 Dec 2025 10:59:28 +0000
+Received: by mail-pl1-x62c.google.com with SMTP id d9443c01a7336-2984dfae0acso67236235ad.0
+        for <opensbi@lists.infradead.org>; Sun, 07 Dec 2025 02:59:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1765105114; x=1765709914; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
+        d=sifive.com; s=google; t=1765105166; x=1765709966; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=Q/gKtniuCBqv6s3G5+bGOqjfQon7KayCF7feBx23eYw=;
-        b=WgniJRDv5CAHKhgW01G37/jt60F7OzoIduRCxTMGwoDHW7giHcHkd3qJhE8uWD8CDn
-         uz6QYAJnXjhdrvchrw38vIDsi0kvTGJZZj40SQyoIGtsoSuTQzVEEakpMgCiARV7NdCW
-         uR1P/szi94MMI/+3+HDXKTSpJVYmdIUJDkMkLrcURSY6sr8+fmRJ31JhE5+0RFdZZsqP
-         OFC/uhmQk0mIV6D74d+B0tP+eSq7mLLU6f6DXGijIAzeE/P05T+fe0cah/cDLAZ3izz0
-         V+P/MxTwki7F0JBVaa44Pd2UibKioqPIOIqNdZgWpLhpUpjvqq7DiWfu+QKrB3PC0Sdb
-         CgaQ==
+        bh=PXRjpV+4G86SSs4bXSoMxHaIh4HCiA9THbzh8k0djKo=;
+        b=S5yWLDkiQR5/qlQOTkYp7WURiMsReGCQbjP7pHxIbhFytMfYYRdCJrCwGrRf51lOKt
+         H96T7NjmcP5uwuLSyxuQ7R1wapZaeNZWqN2cHPxK2JVNI8ZgeRxpO99xnLLLf2kl6vY/
+         UFUF4koLgRJRQVU+bbvTKqcw6LAntQD13/5vZ/CyQJXDJnHWIiDoYyAswBkXsJbBXP5x
+         46h7O02MsFIKhtudMJkDW+Cqmv0ZZ6NLpbV8be3vN4c0vC+ahbmROE96RzVVwVP19W6S
+         moTTf0PQZf8rFAntaTyR8CApYQ4zn7ALuRnQLEOq6fzicPGh4lZVlF9O4oeTiWSz5nGi
+         Rt4A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765105114; x=1765709914;
-        h=content-transfer-encoding:in-reply-to:from:content-language
+        d=1e100.net; s=20230601; t=1765105166; x=1765709966;
+        h=content-transfer-encoding:in-reply-to:content-language:from
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Q/gKtniuCBqv6s3G5+bGOqjfQon7KayCF7feBx23eYw=;
-        b=u2m2HL0g3amHQj4sRVt2OomMdc8EoiaUB3CXIMqL1t1FzRSc0VDRCgifjl7/WLENk2
-         2m4o1BMhBYbeFJLholvAZuNbAx6k4ju7I8ht9ZC0cstrlVFS0hLyzE93aMaHrTrObHcd
-         yLE6Sm4RHfWCqnMrAzWmnzQKK0JEUXyQOWQZfq4VY1yk9lby6udgB0Q6WdEfW1jvksEz
-         xs4I09+bOuhLcJxc9S6F0XQS9J35tGlbzC/dgMSWcodBHYhm1yaI10jg4UQUr6zS4RR3
-         0SAjXIZkq8kZXK3NVMKWFxzW0GOxiUdjiu0W2j1dM+QFg0ocVlDQ0X0jAprafxnP4sX1
-         Djzw==
-X-Forwarded-Encrypted: i=1; AJvYcCVjA25uTWwEaF7oAiuzMaqIv1CQVn0UJbf+f0A/SRYc/sbOs55G3lqkZni50wHmDaw0izc/H2Ef@lists.infradead.org
-X-Gm-Message-State: AOJu0YxuUX1tabBButhlxHtC+P2wsPbmq77kfeGgTQv74l4hFmvjDoN7
-	IehcH7GlDQ0Em4Zmaa9/VD84FZS1v6mBQCUr4nEyZ7C85BgzyL2b5irM5+QneFllcOE=
-X-Gm-Gg: ASbGncuqJ/d4n9n9LhvelsIythXYBkOgRu1VMIuFD/MAUux++Id6p0r1OxFYm+7BJ34
-	c3ITTf2WpidILJlhvJNuG2l+U3hZi+AJWp1MTurf/DHuLdFwZGh/yBfQ3ER2iuxv4UX/xCuA78K
-	9R5sCv4jLcI52Z7qw67ie2e0a/Bm8UFoT1fenStRn3AkItiL9cu6VK18bcpLPtQDzSMwTDp6eve
-	CGEgOIhhrfNpaep+jyp9Apmy3K21tDc+7VEueuv36RwfzDJd8hOCAmWMJqKEJBpD/F3G3wikKz0
-	0kcq7pmk/I9+NSJorGPkc+IScp1u6pzI+DSI7NhcYWXah3oiIYIsF9ymQ8PThDMzjkEjHCgnMp9
-	xLDDpD6jQIFLGWZi91jOdwIE1NsRefC2a5leoZWU7O5z5Og9h1mdrQbKGWPNPmDn7o+cRI0peXT
-	f8JbY4ikqSCLw6odeu7u5Qd3ZFl0Uuxpw=
-X-Google-Smtp-Source: AGHT+IFZWUb2ikdthIarRo1dFWgQ8rXX7olhBaYrqp8dInag6UpEMhvMyjIIcF3lMoeykKvaVZLvZw==
-X-Received: by 2002:a17:90b:1a8b:b0:343:f509:aa4a with SMTP id 98e67ed59e1d1-349a260a9d0mr3717162a91.36.1765105113858;
-        Sun, 07 Dec 2025 02:58:33 -0800 (PST)
+        bh=PXRjpV+4G86SSs4bXSoMxHaIh4HCiA9THbzh8k0djKo=;
+        b=fuuNJDVqJKwqFT4M1I4giD+/Ix6uFR7wuWIxx/EDwXYo2M5Znp/5V8Zglmt99PFJJR
+         bx8OO+jAJ75aHXK+xkbjQ6GLh8r/cYQ4FM5GYkFuTN3VmOIHjBr9ug4l7RM3/4BeWYyk
+         21XRgzr6YkrAiAPZmC6a88XloI9sJCKlDJqQ+rBQkALDKouuYx0r15EpkWLicUZ2mjxZ
+         2RCi8zoNZTxAHwucTEdpLI12o4PnephibukAuSwFp4ECWn7PEO3BMkOonmKJ2vVW1Exm
+         7U46fLoYyk8aPve/TmNAQsX8MESgXcDqtxVxNxGSeE6DnnvycFKt5ye3gjHuf5isijL+
+         teRw==
+X-Forwarded-Encrypted: i=1; AJvYcCWuM+vpdA9tbLvY+vH98YRiMSPudXTxnEAr7S5Ff1LbV7QzcwwKZsmeh8dJ63OayX+na+lIdyVp@lists.infradead.org
+X-Gm-Message-State: AOJu0YzHLpj9q1DG3HmTPlmGfsu9DmG14CvXDM15wH2YFfB3vowboLoR
+	W0w1aJCvp1LRSAgeiHFXdUeL+W4D7fWBO+xBhMopix5744u3cIr4CJ3c7q8d0NAUF9zpSU350EE
+	DVhKkbSc=
+X-Gm-Gg: ASbGncuk1LIW07PJXyenLQ1H/ofJJytMo0bF7dJBNt0y5jH/LtK0A0P4D3u+YurwFYc
+	4czJPR0LsJAB1EYIWnOUjzw1vOvo7KRs+JIIuR//i4ObH4P8X1R1BFmPc0/1O/GlM7RQyqYk1O1
+	7i5VTFMZ6253olFGlYt4rtMrQuZDTnV5GxncqLKBy8XCtiKX+SrpMyjsLF4odGo5qsEeXyaI0Rs
+	Avki7q8EujVtSzugEGPlf8Vcy47mMus2OY0GAZz6L9SJUUX8iod1dGQt02iOw/Ip0eFSCZvu14W
+	LNMUSRwvGmTMYpgilC0+XarZ3LzRnmcZ1GfCUL2urTedgmcvRDvSNYZ3FJBaaVXSJh/VdN8tlCj
+	0AirzgNx9zxg2xzwrBXMzjbQydwunvPy9jUI/P97SM5Xa6+5v1CJj962kTvmpNRlMCMZG0D53ye
+	zwrJTRqlwF+shD1wI=
+X-Google-Smtp-Source: AGHT+IEZ7ZOPEwIZYiMrIgAmtJlp3zkxy+s3Cb/B/GzKL0YfCjRK0HFHEU4MNYIXi8QcX2Ljhb1cWA==
+X-Received: by 2002:a17:902:f546:b0:295:34ba:7afa with SMTP id d9443c01a7336-29df5deb3ecmr39498725ad.43.1765105166361;
+        Sun, 07 Dec 2025 02:59:26 -0800 (PST)
 Received: from [100.64.0.1] ([165.225.110.109])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-34912b5cd2asm7679085a91.1.2025.12.07.02.58.32
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29dae99eab5sm97204985ad.51.2025.12.07.02.59.24
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 07 Dec 2025 02:58:33 -0800 (PST)
-Message-ID: <21b9d402-7a40-49f1-a477-25e4e8bf493a@sifive.com>
-Date: Sun, 7 Dec 2025 04:58:30 -0600
+        Sun, 07 Dec 2025 02:59:25 -0800 (PST)
+Message-ID: <3e201cb2-6955-42c4-a566-ba85a32760fb@sifive.com>
+Date: Sun, 7 Dec 2025 04:59:23 -0600
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] lib: sbi: restore platform CSR when suspend
+Subject: Re: [PATCH 2/2] platform: thead: restore platform CSR when suspend
 To: Xiang W <wxjstz@126.com>, opensbi@lists.infradead.org
-Cc: peter.lin@sifive.com, Xiang W <wangxiang@iscas.ac.cn>
+Cc: peter.lin@sifive.com, David Li <davidli.li@linux.alibaba.com>,
+ Xiang W <wangxiang@iscas.ac.cn>
 References: <20251204145901.411369-1-wxjstz@126.com>
- <20251204145901.411369-2-wxjstz@126.com>
-Content-Language: en-US
+ <20251204145901.411369-3-wxjstz@126.com>
 From: Samuel Holland <samuel.holland@sifive.com>
-In-Reply-To: <20251204145901.411369-2-wxjstz@126.com>
+Content-Language: en-US
+In-Reply-To: <20251204145901.411369-3-wxjstz@126.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251207_025835_377195_3A894383 
-X-CRM114-Status: GOOD (  23.33  )
+X-CRM114-CacheID: sfid-20251207_025927_238094_3AFE0145 
+X-CRM114-Status: GOOD (  20.19  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -105,181 +107,132 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 Hi Xiang,
 
 On 2025-12-04 8:58 AM, Xiang W wrote:
-> When HART enters suspend mode, some platforms require specific CSRs
-> to be saved for recovery. This patch add interface for this.
+> Some CSRs in Thead need to be backed up and restored during HART
+> suspend.
 > 
+> Signed-off-by: David Li <davidli.li@linux.alibaba.com>
 > Signed-off-by: Xiang W <wangxiang@iscas.ac.cn>
 > ---
->  include/sbi/sbi_platform.h | 60 ++++++++++++++++++++++++++++++++++++++
->  lib/sbi/sbi_hsm.c          | 12 +++++++-
->  2 files changed, 71 insertions(+), 1 deletion(-)
+>  .../generic/include/thead/c9xx_encoding.h     |  1 +
+>  platform/generic/thead/thead-generic.c        | 53 +++++++++++++++++++
+>  2 files changed, 54 insertions(+)
 > 
-> diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> index d75c12de..175ec1e2 100644
-> --- a/include/sbi/sbi_platform.h
-> +++ b/include/sbi/sbi_platform.h
-> @@ -41,6 +41,9 @@
->  #define SBI_PLATFORM_HART_INDEX2ID_OFFSET (0x60 + (__SIZEOF_POINTER__ * 2))
->  /** Offset of cbom_block_size in struct sbi_platform */
->  #define SBI_PLATFORM_CBOM_BLOCK_SIZE_OFFSET (0x60 + (__SIZEOF_POINTER__ * 3))
-> +/** Offset of suspend_backup_csr_count in struct sbi_platform */
-> +#define SBI_PLATFORM_SUSPEND_BACKUP_CSR_COUNT_OFFSET \
-> +					    (0x60 + (__SIZEOF_POINTER__ * 4))
+> diff --git a/platform/generic/include/thead/c9xx_encoding.h b/platform/generic/include/thead/c9xx_encoding.h
+> index a45b171e..bcbd9e24 100644
+> --- a/platform/generic/include/thead/c9xx_encoding.h
+> +++ b/platform/generic/include/thead/c9xx_encoding.h
+> @@ -16,6 +16,7 @@
+>  #define THEAD_C9XX_CSR_MCOUNTEROF	0x7cb
+>  #define THEAD_C9XX_CSR_MHINT2		0x7cc
+>  #define THEAD_C9XX_CSR_MHINT3		0x7cd
+> +#define THEAD_C9XX_CSR_MHINT4		0x7ce
+>  #define THEAD_C9XX_CSR_MRADDR		0x7e0
+>  #define THEAD_C9XX_CSR_MEXSTATUS	0x7e1
+>  #define THEAD_C9XX_CSR_MNMICAUSE	0x7e2
+> diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
+> index ddb4f0bf..63e33849 100644
+> --- a/platform/generic/thead/thead-generic.c
+> +++ b/platform/generic/thead/thead-generic.c
+> @@ -7,6 +7,7 @@
+>   */
 >  
->  #define SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT		(1UL << 12)
+>  #include <platform_override.h>
+> +#include <thead/c9xx_encoding.h>
+>  #include <thead/c9xx_errata.h>
+>  #include <thead/c9xx_pmu.h>
+>  #include <sbi/sbi_const.h>
+> @@ -15,10 +16,61 @@
+>  #include <sbi/sbi_string.h>
+>  #include <sbi_utils/fdt/fdt_helper.h>
 >  
-> @@ -146,6 +149,12 @@ struct sbi_platform_operations {
->  			unsigned long log2len);
->  	/** platform specific pmp disable on current HART */
->  	void (*pmp_disable)(unsigned int n);
+> +/* redefine CSR register */
+> +#define CSR_MXSTATUS	THEAD_C9XX_CSR_MXSTATUS
+> +#define CSR_MHCR	THEAD_C9XX_CSR_MHCR
+> +#define CSR_MCCR2	THEAD_C9XX_CSR_MCCR2
+> +#define CSR_MHINT	THEAD_C9XX_CSR_MHINT
+> +#define CSR_MHINT2_E	THEAD_C9XX_CSR_MHINT2
+> +#define CSR_MHINT4	THEAD_C9XX_CSR_MHINT4
+> +#define CSR_MSMPR	THEAD_C9XX_CSR_MSMPR
+> +#define CSR_SMPEN	CSR_MSMPR
 > +
-> +	/** Save platform specific CSR before suspend */
-> +	void (*suspend_non_ret_save)(unsigned long *data);
-> +
-> +	/** Restore platform specific CSR after suspend */
-> +	void (*suspend_non_ret_restore)(unsigned long *data);
+>  struct thead_generic_quirks {
+>  	u64	errata;
 >  };
 >  
->  /** Platform default per-HART stack size for exception/interrupt handling */
-> @@ -198,6 +207,13 @@ struct sbi_platform {
->  	const u32 *hart_index2id;
->  	/** Allocation alignment for Scratch */
->  	unsigned long cbom_block_size;
+> +extern struct sbi_platform platform;
 > +
-> +	/**
-> +	 * When HART enters suspend mode, some platforms require specific CSRs
-> +	 * to be saved for recovery. This variable tracks how many CSRs need to
-> +	 *  be backed up for this platform.
-
-There's an extra space before "be".
-
-> +	 */
-> +	unsigned long suspend_backup_csr_count;
->  };
->  
->  /**
-> @@ -216,6 +232,8 @@ assert_member_offset(struct sbi_platform, platform_ops_addr, SBI_PLATFORM_OPS_OF
->  assert_member_offset(struct sbi_platform, firmware_context, SBI_PLATFORM_FIRMWARE_CONTEXT_OFFSET);
->  assert_member_offset(struct sbi_platform, hart_index2id, SBI_PLATFORM_HART_INDEX2ID_OFFSET);
->  assert_member_offset(struct sbi_platform, cbom_block_size, SBI_PLATFORM_CBOM_BLOCK_SIZE_OFFSET);
-> +assert_member_offset(struct sbi_platform, suspend_backup_csr_count, SBI_PLATFORM_SUSPEND_BACKUP_CSR_COUNT_OFFSET);
-> +
->  
->  /** Get pointer to sbi_platform for sbi_scratch pointer */
->  #define sbi_platform_ptr(__s) \
-> @@ -666,6 +684,48 @@ static inline void sbi_platform_pmp_disable(const struct sbi_platform *plat,
->  		sbi_platform_ops(plat)->pmp_disable(n);
->  }
->  
-> +/**
-> + * Platform specific CSR count to backup during suspend.
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + *
-> + * @return csr count need backup
-> + */
-> +static inline unsigned long sbi_platform_suspend_backup_csr_count(
-> +					    const struct sbi_platform *plat)
+> +static inline bool thead_has_hotplug(void)
 > +{
-> +	if (plat)
-> +		return plat->suspend_backup_csr_count;
-> +	return 0;
+> +	return platform.hart_count > 1;
+> +}
+
+Why is non-retentive suspend not applicable when there is only one hart?
+
+> +
+> +static void thead_suspend_non_ret_save(unsigned long *data)
+> +{
+> +	data[0] = csr_read(CSR_SMPEN);
+> +	data[1] = csr_read(CSR_MCCR2);
+> +	data[2] = csr_read(CSR_MXSTATUS);
+> +	data[3] = csr_read(CSR_MHINT);
+> +	data[4] = csr_read(CSR_MHCR);
+> +	data[5] = csr_read(CSR_MHINT2_E);
+> +	data[6] = csr_read(CSR_MHINT4);
+> +}
+
+This logic is used by both C908 and C910. Do they both have all of these CSRs?
+
+Also, it looks like similar logic is needed for C906 in
+platform/generic/allwinner/sun20i-d1.c.
+
+> +
+> +static void thead_suspend_non_ret_restore(unsigned long *data)
+> +{
+> +	csr_write(CSR_SMPEN, data[0]);
+> +	csr_write(CSR_MCCR2, data[1]);
+> +	csr_write(CSR_MXSTATUS, data[2]);
+> +	csr_write(CSR_MHINT, data[3]);
+> +	csr_write(CSR_MHCR, data[4]);
+> +	csr_write(CSR_MHINT2_E, data[5]);
+> +	csr_write(CSR_MHINT4, data[6]);
 > +}
 > +
-> +/**
-> + * Save platform specific CSR before suspend
-> + *
-> + * @param plat pointer to struct sbi_platform
-> + * @param data buffer used to save CSR
-> + */
-> +static inline void sbi_platform_suspend_non_ret_save(
-> +					    const struct sbi_platform *plat,
-> +					    unsigned long *data)
+> +static int thead_nascent_init(void)
 > +{
-> +	if (plat && sbi_platform_ops(plat)->suspend_non_ret_save)
-> +		sbi_platform_ops(plat)->suspend_non_ret_save(data);
-> +}
 > +
-> +/**
-> + * Restore platform specific CSR after suspend
-> + * @param plat pointer to struct sbi_platform
-> + * @param data buffer used to restore CSR
-> + */
-> +static inline void sbi_platform_suspend_non_ret_restore(
-> +					    const struct sbi_platform *plat,
-> +					    unsigned long *data)
-> +{
-> +	if (plat && sbi_platform_ops(plat)->suspend_non_ret_restore)
-> +		sbi_platform_ops(plat)->suspend_non_ret_restore(data);
-> +}
-> +
->  #endif
->  
->  #endif
-> diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-> index 0a355f9c..949f7aaf 100644
-> --- a/lib/sbi/sbi_hsm.c
-> +++ b/lib/sbi/sbi_hsm.c
-> @@ -21,6 +21,7 @@
->  #include <sbi/sbi_hsm.h>
->  #include <sbi/sbi_init.h>
->  #include <sbi/sbi_ipi.h>
-> +#include <sbi/sbi_platform.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_system.h>
->  #include <sbi/sbi_timer.h>
-> @@ -50,6 +51,7 @@ struct sbi_hsm_data {
->  	unsigned long saved_mideleg;
->  	u64 saved_menvcfg;
->  	atomic_t start_ticket;
-> +	unsigned long platform_saved[0];
+> +	if (thead_has_hotplug()) {
+> +		platform.suspend_backup_csr_count = 7;
+> +		generic_platform_ops.suspend_non_ret_save = thead_suspend_non_ret_save;
+> +		generic_platform_ops.suspend_non_ret_restore = thead_suspend_non_ret_restore;
 
-Please use the standard flexible array member syntax (no zero) instead of the
-GNU extension.
+Please modify generic_platform_ops only from inside thead_generic_platform_init.
+The nascent_init hook is called on every hart on every entry (including warm
+resume), so this is inefficient, and it would crash if we implement a
+ro_after_init feature.
 
->  };
->  
->  bool sbi_hsm_hart_change_state(struct sbi_scratch *scratch, long oldstate,
-> @@ -249,9 +251,13 @@ int sbi_hsm_init(struct sbi_scratch *scratch, bool cold_boot)
->  {
->  	struct sbi_scratch *rscratch;
->  	struct sbi_hsm_data *hdata;
-> +	unsigned long n;
->  
->  	if (cold_boot) {
-> -		hart_data_offset = sbi_scratch_alloc_offset(sizeof(*hdata));
-> +		n = sbi_platform_suspend_backup_csr_count(
-> +			sbi_platform_ptr(scratch));
-> +		hart_data_offset = sbi_scratch_alloc_offset(sizeof(*hdata) +
-> +							    n * sizeof(long));
->  		if (!hart_data_offset)
->  			return SBI_ENOMEM;
->  
-> @@ -430,6 +436,8 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
->  	hdata->saved_mideleg = csr_read(CSR_MIDELEG);
->  	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
->  		hdata->saved_menvcfg = csr_read64(CSR_MENVCFG);
-> +
-> +	sbi_platform_suspend_non_ret_save(sbi_platform_ptr(scratch), hdata->platform_saved);
->  }
->  
->  static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
-> @@ -443,6 +451,8 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
->  	csr_write(CSR_MEDELEG, hdata->saved_medeleg);
->  	csr_write(CSR_MIE, hdata->saved_mie);
->  	csr_set(CSR_MIP, (hdata->saved_mip & (MIP_SSIP | MIP_STIP)));
-> +
-> +	sbi_platform_suspend_non_ret_restore(sbi_platform_ptr(scratch), hdata->platform_saved);
-
-The suspend/restore functions operate in reverse/LIFO order. I would suggest to
-maintain this property.
+Since you need to access platform.hart_count, you can move the
+fdt_driver_init_by_offset() call later in fw_platform_init(). This should be
+safe for all existing platform overrides.
 
 Regards,
 Samuel
 
->  }
+> +	}
+> +
+> +	return generic_nascent_init();
+> +}
+> +
+>  static int thead_tlb_flush_early_init(bool cold_boot)
+>  {
+>  	thead_register_tlb_flush_trap_handler();
+> @@ -44,6 +96,7 @@ static int thead_generic_platform_init(const void *fdt, int nodeoff,
+>  {
+>  	const struct thead_generic_quirks *quirks = match->data;
 >  
->  void sbi_hsm_hart_resume_start(struct sbi_scratch *scratch)
+> +	generic_platform_ops.nascent_init = thead_nascent_init;
+>  	if (quirks->errata & THEAD_QUIRK_ERRATA_TLB_FLUSH)
+>  		generic_platform_ops.early_init = thead_tlb_flush_early_init;
+>  	if (quirks->errata & THEAD_QUIRK_ERRATA_THEAD_PMU)
 
 
 -- 
