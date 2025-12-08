@@ -4,65 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E54CDD3B7E2
-	for <opensbi@archiver.kernel.org>; Mon,  8 Dec 2025 09:45:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AD115D3B7DE
+	for <opensbi@archiver.kernel.org>; Mon,  8 Dec 2025 11:02:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=2gKa1KXAbEEl+bXciAKLnhEFdiAWqrLOA8Qx/iU9EGE=; b=YymQ0j3/KfUz9o
-	r8XRl8eYTbJpBu8hAYHXxPwL7OHkqf/D2L3LNNngVCQ8oIncDi/IlM1SWIgDHK8GslskEqrzr2xzC
-	mNDdwkC9xn4xKdyfpZ0PduazhswWmAKDtnoVEuS9npx2Wo08TuWVq64q5PhGThRU/6a2KeWmjt9V3
-	3HfOJD1hcGMRAPupWgFI/ynXiM5oTSTLlMrGm82iLLw4mLJiCkzr6iwpEJoftyNnOzHihLlN1dima
-	uUXCzytXlYqWwdwHLYvojpbQH8EMTqFHSyiSqzdNTQdmvf/kN/dYP8/Ed2WOCDERrgxIqV28qeJSy
-	dTc7qBHhGcT4U/SGgt+g==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=ToTpCr7a45MtfzYblExFGdBsyTE12sPXyLPjOgmBMxQ=; b=3LbPM88sD8MZqj
+	gfsWeevDykbxIRCi5ZX44GxCjD50YuxISy04cE4v2BomaPqLfxdJtJQxddZl8phxinhzyJ35Qpy/Z
+	NzvB81r7cdWYKDI/rUBIv5xXjdiv6rHWZ7NkzsHVNqj7ZiGcaJtD9zR+/bHKHnD4GpHJrCYYjJlFf
+	X/rMlaVGT89ehn9p3g8GYaMAjsEdKxJYVeXBjX5Dwe7kbTnbil5PVCvS9KtRHwV17gTj/zaziWjrp
+	xjTWUYZDSETNarmZQqKa45O3WJmRnbTozMaxM8CeUKAol/41gWW6fiVyePdA6BaDqEBvpIMjZ158F
+	HtbO1ftjDlrzB7MGxj/Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSXns-0000000CuPz-2jtM;
-	Mon, 08 Dec 2025 09:45:12 +0000
-Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
+	id 1vSZ0s-0000000CyzH-3TtS;
+	Mon, 08 Dec 2025 11:02:42 +0000
+Received: from mail-oo1-xc2e.google.com ([2607:f8b0:4864:20::c2e])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSXnq-0000000CuPV-0kPW
+	id 1vSZ0q-0000000Cyyt-2FDm
 	for opensbi@lists.infradead.org;
-	Mon, 08 Dec 2025 09:45:11 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1765187110; x=1796723110;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=JJySkQBW4dCkJ3bkSP7r9vYHKaPPQ4nkgr6hUqEcmRA=;
-  b=jeisybxkwnu6VlIzw4bUXXR8TInkZlXywQ4Q2Sv7WItf2GY0cqCODhcX
-   IN5Yb+sSWJdXpwPm/y8Msczo3ztJZ3bYGV/CWn76dsFbiyWmtw7EDIKyE
-   cisqfdABV/xJPjLE5gw5jgC4FpeH/6WesTiNIMFPJlzn2aAcuJ4ipEDa5
-   g5L2QwRNdYjZr31WKkwr56/q6OhPvmdz/u8IFcjwqJC/yfJqedoD7cByD
-   dCX7oOi8pa7jvjunM1Lw/KsTF7l4No3hpPhpJZCnutF20/rALj5QjEu6G
-   qkbBg0+Lum+pc74QHD/0V40+yak1OF7Yhk2O9dCJFWquXlFuTHUKw9bpZ
-   w==;
-X-CSE-ConnectionGUID: ewkkJbrGRAG+HiFJdlyMwA==
-X-CSE-MsgGUID: NRWsYZ+VTbuYNFoZVRM+LA==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2025 11:45:07 +0200
-X-CSE-ConnectionGUID: zpHO3cjDRkGnnZZTwZ/Img==
-X-CSE-MsgGUID: lk+ZOKwWQHKZ4fuH8AXeDA==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces02_data.me-corp.lan with SMTP; 08 Dec 2025 11:46:08 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 08 Dec 2025 11:45:06 +0200
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-To: Anup Patel <anup@brainfault.org>,
-	Inochi Amaoto <inochiama@outlook.com>
-Cc: opensbi@lists.infradead.org,
-	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Subject: [PATCH] lib/sbi: optimize domain memory regions copying
-Date: Mon,  8 Dec 2025 11:45:04 +0200
-Message-ID: <20251208094504.1254011-1-vladimir.kondratiev@mobileye.com>
+	Mon, 08 Dec 2025 11:02:41 +0000
+Received: by mail-oo1-xc2e.google.com with SMTP id 006d021491bc7-65791c35134so2273166eaf.1
+        for <opensbi@lists.infradead.org>; Mon, 08 Dec 2025 03:02:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1765191759; x=1765796559; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fMnsziePPtbLw0iRceEuONbN55yxkcfWMKJ5zksOdXg=;
+        b=Pe7e4VIVWTt+rC75BW428BnV+oL4t13nmBpFftOGuXCiTGzfATwr+OhgrwBxUZgKFJ
+         qSr1ACqEFsAzaCsZoqTnOfFxAC7MzilQHfzgm1HEYC4IYP3Z5AhAMiJ5gbKFYQfnCeti
+         /cuCVpgMGClAU3ryfUiZJhzGGPO2jHcni+YAFByLnEH8A16gx7CCDp5ZGb7G7f8MkkYh
+         AnFAe9FW1mdkfzi6+w6jcQHpNOqecBKeLOKWG6o4VKTmnbdrEoBsh00BDMDc+b5r/4gI
+         KLC/xFfTtWkeA8kiuDHDN2ARq+e7A4Rivs7YT9ZhIRvoy1k7JdlP+fkwHy2OlCoJlYAI
+         afww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765191759; x=1765796559;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=fMnsziePPtbLw0iRceEuONbN55yxkcfWMKJ5zksOdXg=;
+        b=I2UM3/6VMJg5YhFW540O17lOw5P5M9AjSSqZNBbkIlXR+s9fY4xMnmtvAuaeTST1Sq
+         PHQXpfuEUBYu8qCb3zbcY+08gk+AZC3rvwEwjjLXEQ3mMSejPggrCie015drwkMbWCZZ
+         2bbcYMEoD1bWsvwzZum/Kq19QKcsoH1xXckfP7CL0OfjEwLzyVUROpNsFewaacr7h+sO
+         2yhUDzm/Ow5C7yuEFhtfIHw+YE2q4mUm8QehO1rxoPxf8zwvYq4Knb08N11R4E+fYKl4
+         SRq+pN1LT7Yl6WLHSnlyke3qfOvaG56k/W/iObj4Za6LQt+bfQZX+vKQyQbjRd+632Ux
+         nX9A==
+X-Gm-Message-State: AOJu0YwNOHXuXTM2+TjlYgbfhzh4YHD9VAmi+7ANMqNNb6hKJz7tRV7S
+	1d6PitM/l0w8iRl1iRSYfOWaRKhpKtV+1cROam8uvgaa/i3gdsbIbJaULzo1Gv372HJYKIBN4i8
+	Cf+GsSJwFabcOp9rvsPmqOuuMn5VsFAxZHipoqDFYtQ==
+X-Gm-Gg: ASbGncvYmXjY1dmWf7RiAoFVepEDjH+MZJ7f4iNW0xRhbssgISJJRjJgmpiSYkb1vhs
+	VKPOLZzlW/wuLpV3Rj1Bw8vMx7LFckmwfrizbc+RqigjOSXXz64YqmwUfma0BwmCVr8qIhlLIX0
+	iA14i5VGSEMhr2dlhrE+HIL8YG3sV5fVvCYZXoL9c319DyOVmo0/D4uYxvYicSIdf2GolqUIzMU
+	8eAzI95iUNmmIDPFz1U2hgpym0qnR2JFdc+YReCrdg0SbY+PLALjrqiq+tXoJ1R1s2jwEtI
+X-Google-Smtp-Source: AGHT+IGFuE3+lrbiQ7JM0SFSz+Mebcfgyfi2SJgQE821SH+9hHDYIojBcAvPJP01vF7bVPEa1LFy/0pa3aXeTRjqLbE=
+X-Received: by 2002:a05:6820:1ca4:b0:659:9a49:8e98 with SMTP id
+ 006d021491bc7-6599a8c42b9mr3381907eaf.28.1765191759015; Mon, 08 Dec 2025
+ 03:02:39 -0800 (PST)
 MIME-Version: 1.0
+References: <20251114-sifive-cache-drivers-v1-0-8423a721924c@sifive.com> <20251114-sifive-cache-drivers-v1-1-8423a721924c@sifive.com>
+In-Reply-To: <20251114-sifive-cache-drivers-v1-1-8423a721924c@sifive.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 8 Dec 2025 16:32:28 +0530
+X-Gm-Features: AQt7F2roi5oj_b1wLeCYdeJQ4gkVZp57-6pce8ql9hwYs-8c2wepF7vN1d_B-us
+Message-ID: <CAAhSdy2LZmyehLHNfS8W5_8+fA6iOFBTOFeUzEiX7SNTO8LFqg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] lib: utils/cache: Handle last-level cache correctly
+ in fdt_cache_add()
+To: Nick Hu <nick.hu@sifive.com>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251208_014510_522127_352FD642 
-X-CRM114-Status: GOOD (  10.12  )
+X-CRM114-CacheID: sfid-20251208_030240_705212_45D85B6E 
+X-CRM114-Status: GOOD (  17.13  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -74,81 +89,34 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-There are 2 locations where memory regions moved in a bulk,
-but this implemented in a region-by region move or even swap.
-
-Use more effective way. Note, last entry, dom->regions[count], always
-exists and is empty, copying it replaces clear_region()
-
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- lib/sbi/sbi_domain.c | 19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
-
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 99f453f9e5ac..f6753b06ebdc 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -362,11 +362,6 @@ static void swap_region(struct sbi_domain_memregion* reg1,
- 	sbi_memcpy(reg2, &treg, sizeof(treg));
- }
- 
--static void clear_region(struct sbi_domain_memregion* reg)
--{
--	sbi_memset(reg, 0x0, sizeof(*reg));
--}
--
- static int sbi_domain_used_memregions(const struct sbi_domain *dom)
- {
- 	int count = 0;
-@@ -454,10 +449,7 @@ static int sanitize_domain(struct sbi_domain *dom)
- 
- 		/* find a region is superset of reg, remove reg */
- 		if (is_covered) {
--			for (j = i; j < (count - 1); j++)
--				swap_region(&dom->regions[j],
--					    &dom->regions[j + 1]);
--			clear_region(&dom->regions[count - 1]);
-+			sbi_memmove(reg, reg + 1, sizeof(*reg) * (count - i));
- 			count--;
- 		} else
- 			i++;
-@@ -699,7 +691,7 @@ static int root_add_memregion(const struct sbi_domain_memregion *reg)
- {
- 	int rc;
- 	bool reg_merged;
--	struct sbi_domain_memregion *nreg, *nreg1, *nreg2;
-+	struct sbi_domain_memregion *nreg, *nreg1;
- 	int root_memregs_count = sbi_domain_used_memregions(&root);
- 
- 	/* Sanity checks */
-@@ -741,12 +733,9 @@ static int root_add_memregion(const struct sbi_domain_memregion *reg)
- 			    (nreg->base + BIT(nreg->order)) == nreg1->base &&
- 			    nreg->order == nreg1->order &&
- 			    nreg->flags == nreg1->flags) {
-+				int i1 = nreg1 - dom->regions;
- 				nreg->order++;
--				while (nreg1->order) {
--					nreg2 = nreg1 + 1;
--					sbi_memcpy(nreg1, nreg2, sizeof(*nreg1));
--					nreg1++;
--				}
-+				sbi_memmove(nreg1, nreg1 + 1, sizeof(*nreg1) * (count - i1));
- 				reg_merged = true;
- 				root_memregs_count--;
- 			}
-
-base-commit: de376252f4f3e3df4998bd14893cb687821b4102
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gRnJpLCBOb3YgMTQsIDIwMjUgYXQgODo0NuKAr0FNIE5pY2sgSHUgPG5pY2suaHVAc2lmaXZl
+LmNvbT4gd3JvdGU6Cj4KPiBUaGUgZmR0X2NhY2hlX2FkZCgpIGhlbHBlciBhdHRlbXB0cyB0byBy
+ZXRyaWV2ZSB0aGUgbmV4dC1sZXZlbCBjYWNoZSBhbmQKPiByZXR1cm5zIFNCSV9FTk9FTlQgd2hl
+biB0aGVyZSBpcyBub25lLiBTaW5jZSB0aGlzIGNvbmRpdGlvbiBvbmx5IGluZGljYXRlcwo+IHRo
+YXQgdGhlIGN1cnJlbnQgY2FjaGUgaXMgdGhlIGxhc3QtbGV2ZWwgY2FjaGUsIHRoZSBoZWxwZXIg
+c2hvdWxkIG5vdAo+IHRyZWF0IGl0IGFzIGFuIGVycm9yLgo+Cj4gU2lnbmVkLW9mZi1ieTogTmlj
+ayBIdSA8bmljay5odUBzaWZpdmUuY29tPgoKTEdUTS4KClJldmlld2VkLWJ5OiBBbnVwIFBhdGVs
+IDxhbnVwQGJyYWluZmF1bHQub3JnPgoKQXBwbGllZCB0aGlzIHBhdGNoIHRvIHRoZSByaXNjdi9v
+cGVuc2JpIHJlcG8uCgpUaGFua3MsCkFudXAKCgo+IC0tLQo+ICBsaWIvdXRpbHMvY2FjaGUvZmR0
+X2NhY2hlLmMgfCA0ICsrKy0KPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMSBk
+ZWxldGlvbigtKQo+Cj4gZGlmZiAtLWdpdCBhL2xpYi91dGlscy9jYWNoZS9mZHRfY2FjaGUuYyBi
+L2xpYi91dGlscy9jYWNoZS9mZHRfY2FjaGUuYwo+IGluZGV4IGFlYWE2MTM4MzA5NjBiNjdiZjVm
+NTEyYTEwMWYwMjQyZDg2OTI4NzIuLjJhOWU4YTZkZDUzYzAwOGVlYzhmMzE5ZDBlMTljNTZlYTFk
+MTFhMWEgMTAwNjQ0Cj4gLS0tIGEvbGliL3V0aWxzL2NhY2hlL2ZkdF9jYWNoZS5jCj4gKysrIGIv
+bGliL3V0aWxzL2NhY2hlL2ZkdF9jYWNoZS5jCj4gQEAgLTIzLDcgKzIzLDkgQEAgaW50IGZkdF9j
+YWNoZV9hZGQoY29uc3Qgdm9pZCAqZmR0LCBpbnQgbm9mZiwgc3RydWN0IGNhY2hlX2RldmljZSAq
+ZGV2KQo+ICAgICAgICAgc2JpX2RwcmludGYoIiVzOiAlc1xuIiwgX19mdW5jX18sIGRldi0+bmFt
+ZSk7Cj4KPiAgICAgICAgIHJjID0gZmR0X25leHRfY2FjaGVfZ2V0KGZkdCwgbm9mZiwgJmRldi0+
+bmV4dCk7Cj4gLSAgICAgICBpZiAocmMpCj4gKyAgICAgICBpZiAocmMgPT0gU0JJX0VOT0VOVCkK
+PiArICAgICAgICAgICAgICAgZGV2LT5uZXh0ID0gTlVMTDsKPiArICAgICAgIGVsc2UgaWYgKHJj
+KQo+ICAgICAgICAgICAgICAgICByZXR1cm4gcmM7Cj4KPiAgICAgICAgIHJldHVybiBjYWNoZV9h
+ZGQoZGV2KTsKPgo+IC0tCj4gMi4zNC4xCj4KPgo+IC0tCj4gb3BlbnNiaSBtYWlsaW5nIGxpc3QK
+PiBvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVu
+c2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9vcGVuc2JpCg==
