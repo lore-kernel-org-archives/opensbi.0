@@ -4,88 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5DFC3D3B7EA
-	for <opensbi@archiver.kernel.org>; Tue,  9 Dec 2025 13:53:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 55DE3D3B7EA
+	for <opensbi@archiver.kernel.org>; Tue,  9 Dec 2025 13:53:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Z6ftR7mvr7lwNlokhcjgfAhqsW0OW/fK75mfBKvDzdQ=; b=IrhrXpv+kpQzWy
-	teWh9CGzMGiSiVQzSvtgHqG9fl0W46Yn/roAjWWy7JgiqK4hLTX+2QrHYT/HkA83nWIloiqw7gRvk
-	7oQfVVlHXCpyLNXLw8quYB02i8b5aPUOJZuP9CmFK7ADIDBRXCuMdGPGAomPIF3nRzuSOhU9ORQnX
-	AJX2DdXLjeuH8XtojJN6MqEKBG/Jco/xWr+rGPK4yqhXdGWk+S41zgNNd/BBXwRqML3l/hKGxqRkk
-	pzxFUpnIWlVmAWZbn5klKAQ0l2BfKD8BbNdicBuxKSr20uH0KSQrFxCkt30Gax1Nys97Jw2Z2WxvS
-	BABVdikfr44UrThVtvKQ==;
+	List-Owner; bh=gRR7mk90hakZHCbmlEmZX0wSxVQdo94hsfVRuEdj0Jg=; b=0mQi6OmechzN7P
+	WwgPjGSviB0nceig0sD46c13pmbJ9bd7+3KkBszMBQ88AuXYUZ4whBJUG2Uzc4zSuBhj9o8CACpCl
+	aBGtidKph2PuP8nDflp/k4y3ANRVXUgV0ae0IQmBvIjEEhc/zfWsQ/1IW5/wa7+N1mMNdQ7+vfEOp
+	tjMKGjepPmcdXhbcki/6qGWR8SYLAzzKDjtVGhXV67a5yPt67peJpV+y4xXFB5RhIxUzL8UnEVN5B
+	j7ZiSx2kSweRK0O+HNcDV2KEoXaL9elE7O0PChDOSrhJMGwEgxRsd6kMKPRhsdH7hn/kodyU2jgW7
+	7hNe+1PjhxVa6iQy1jEA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSy9A-0000000ELYN-3yXT;
-	Tue, 09 Dec 2025 13:52:56 +0000
-Received: from mail-pj1-x1033.google.com ([2607:f8b0:4864:20::1033])
+	id 1vSy9H-0000000ELaY-1wFr;
+	Tue, 09 Dec 2025 13:53:03 +0000
+Received: from mail-pf1-x42c.google.com ([2607:f8b0:4864:20::42c])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSy98-0000000ELXs-32fp
+	id 1vSy9F-0000000ELZn-0cHR
 	for opensbi@lists.infradead.org;
-	Tue, 09 Dec 2025 13:52:55 +0000
-Received: by mail-pj1-x1033.google.com with SMTP id 98e67ed59e1d1-349ff18445aso1798804a91.3
-        for <opensbi@lists.infradead.org>; Tue, 09 Dec 2025 05:52:54 -0800 (PST)
+	Tue, 09 Dec 2025 13:53:02 +0000
+Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-7bb3092e4d7so5985321b3a.0
+        for <opensbi@lists.infradead.org>; Tue, 09 Dec 2025 05:53:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1765288374; x=1765893174; darn=lists.infradead.org;
+        d=ventanamicro.com; s=google; t=1765288380; x=1765893180; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=XnazCmWnlIeB+/6Bc/UOVFGKA1OZP/DN5+kgJSrLIqk=;
-        b=C8TKFzWATu7GL23FdQiMrDHNVtpwBFE6N7VVT34846eMALNMC7JNuhrxE/QRRCXUEx
-         n9GC2Sk/G7/ICXbT9Sv6dw0mwE4NdKUXsmgvHY6S5nTHvilIVRqDGlyncqQNFEDTKfru
-         5PIWPioIVBmng/XzXjKUXni+kjeChP0eYduY8vFDAMZSWLQTd37ZWDZWFqF9N1XFz5pf
-         PxJTU9AgdDBC41xQChw2GXzUCjbgQDxruvG+7MfEOGSYxk8ZuCH6bRVRA+CL7OIy3+Us
-         uXftegUogt7Ks0X2HdM+I/TYhLdjYxfW0OZzI8OvZN+itZq2DQi2QzhB6wtnyV7mZYny
-         6YAg==
+        bh=HfWsfNnWr87I5Rp6jZ7+baov1SLUFH2KvoUSQXXRZUs=;
+        b=Wu+gFNSwcQikl2JQK5M2wd5y9U4HTCwYgQ7sIQ3UhGelfjdUXhXGMz91vgpRTx5dDZ
+         CbBNQXF57vOHZL/9QHl5lV/GajIWtP7KhaZ7MoprZgLC3Sri/Vn4uqmxRxx+KjlqYDbZ
+         4uKlWrixzdZitpZP4u6IqwRi4S+uoILu9HscZDByME8f4Xbm37u+t6EjLsOOrF79fGe3
+         HnM4ngaiRgM9iQ7iHIh5+lRHx6ehS8xqWFYO2F9t4iuOZ+s4FvvvGJUdaEx68565Qjid
+         hoIjaVg8jG/AL+HrPtkfckmYPpUANt9Tadkm1bDXJ4KbZKpi8QvrayefV2Htzr8a2Zfn
+         GVyQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765288374; x=1765893174;
+        d=1e100.net; s=20230601; t=1765288380; x=1765893180;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=XnazCmWnlIeB+/6Bc/UOVFGKA1OZP/DN5+kgJSrLIqk=;
-        b=BSMCRn+c09UhaZkqNQ+NPVuOd9c/cj64G0XzOG8u3wIJ5GYOZModq3DS0dPqQwM8Xn
-         Wx+SD28zDK3isUT0/j3SwS/uWIHcKVh46SoQBGmhOekmg2rTl5T0LHGlZ3t9dwkv6kNt
-         M++wg6UKrNWFavUIh7Jo5vradBUKp4kEwLJcgju0PSM5VSYanz8PCP4pg2GlYj4Cfkp9
-         HBGwS0xQT5a2Ndbrj2mhx6cywOHWT6iVlWAOt1ePxuCVdb88L0i2wbzh2IBqFnBXMuvv
-         ZNRQTrkcfW5OEGexD4dklrJhVPr9Vcwo5m3HVk0NHKnui765VErplzGvlGaGaGpt/RnS
-         2Zpw==
-X-Forwarded-Encrypted: i=1; AJvYcCWG2GOlE2fK23lzKMzLn0t/EFiamMdYm9wh+9ImfzDJWdJS0+oxXj22bENuaVIsuzqFFj3h1wG8@lists.infradead.org
-X-Gm-Message-State: AOJu0YwqlBeMIQB4ps23zPTHMv6J5I0KFO55pWMohr24ziqHo5/x9llx
-	4EdjO3yuyx02C2QDpUKADKSEAq1wk4FDH8ZDEyiT7EoviJ1h2WmdizOSfYuZRl2YN6g=
-X-Gm-Gg: AY/fxX7jOnY+GZZLJeBGLKY/cyfaglQQD+B6UkYYgHyJ+C5WmXSyz82nQ7SJoxRyZtK
-	HlelmPmnN2J8+A3akSJAoJMud5D9Hg0ToPLRVN/EP49Y0sVfIIs0+/Lr22nzP221i64dzMVcEpd
-	KWQvIbHk3mzGQcQ+ItNlHDY8NciJhwViGCyX/KHhgzCRwYfjhQFOei8344wStb7PGlSYXa7o6JZ
-	rwaGfVfLjkGMTOxaxID260a9T5szX/LARtPcAaG8Q7s6IZXy5G5n3zVQw8lPHYQLRlBMh1iJYgu
-	bUJeRZ/SEFyqhk+TgTlGq51i5L57STBDfUGcB97ME6DCzjGXVUJTth3m4NZCLI89Aa+iK5sde8w
-	VHwodQiol9kmUeQbTBEm5fcVTXhbXuEH+GTjIGs5pQeKqAcFvVre0/zQznekRTNB1mNIxEYxhmQ
-	AfVqx+d5wKwNZrUCO1OMlmvBbNYo1fxGHJXOV1uBTtwpFc4ULl
-X-Google-Smtp-Source: AGHT+IGgUaAymBUzWqeqR2sCSjZ3EeLCBnSInLqWxXPwmWBYaNjR6SMphxsnNa/UyXGTMj1Nemg1Lg==
-X-Received: by 2002:a17:90a:d902:b0:343:6108:1712 with SMTP id 98e67ed59e1d1-349a25fb8e1mr7342552a91.18.1765288373878;
-        Tue, 09 Dec 2025 05:52:53 -0800 (PST)
+        bh=HfWsfNnWr87I5Rp6jZ7+baov1SLUFH2KvoUSQXXRZUs=;
+        b=XL+SYvFJhwz6WhCM0F0DgnhF5qU0jB7dCqA2wLvFpwTcVmYJYn75i0hwgyjlwOxv69
+         mQwfWETj6VT6kcG50zuJW3iR39jmMLYbW1HlnypSzBaFIcTU7EWyqZmX+FuGB0Amg2U/
+         40g0TJ8naIe0GExE1cRToABwFyFTvckJA260x88ugh7aO+tlol2SoTAqv8gd6eoBx6Gk
+         oquyhGD2TbHUqbsNPdGz3koQaMMpV7GUYjFKQYwprPtZmIyoI6KsVOBuKuthViXJXI2w
+         Zzjh8SfRj5n64xEoolvQ8oCDu6zLyLMNMUqYh+dYJ+Dzkq9OUOGysPl5H/WAbxydRl/7
+         B8rg==
+X-Forwarded-Encrypted: i=1; AJvYcCXas+vySkdoVyqh4Kwo1rCXDujpjlSnTGRr0rXaPYuVYThqPCz9Xvn/QDlfMKtm8ipiaorvT5A3@lists.infradead.org
+X-Gm-Message-State: AOJu0YwVlGcc7wVeeluhsjzXII5WfYKEhEZQ5726mvumWwtx1+eiDFhX
+	7qW0Oe892rw0Y+WI+UexFcxUUvfEBqb0rioqJ4M2V4O/DVnLxxCQcdV44vCCa8ZPI+A=
+X-Gm-Gg: ASbGncsd0P1qZj2fA8SE7bCW6H9qXj/uPB0Sf9YJFG9Zok6v1Qhiq2sp8mo5dXgmT4G
+	2VbkMP+5dKjFeVDHEh0sDI/k5cgHqVnSCS2EIPKID9AWDcNxlQpOLFM8PyilSohMv58uuPKyHnR
+	hwcTksZklLzoVQZ3NxDsGzQmFFiAC6vCMweN1GPu/Eo8zrk8+Sq7S/48l9wfcOFFH02C8fsHslg
+	/iUb8UzcrSQ+rQchdkqOYmTvMSJKGBavYz52zMiXtWWd1q2eQaR2vhpCCmduiHTvrg43H2VM4l5
+	07Qx6KfCsEaXpgqXGhD9kbhKPT466ZBWWaKVWeBnTvnF+XagQkbZY8wdpkq7d7Z/eAAMC3zUDsQ
+	tnM3VopqMM4Z2mFdCxK0QOa7umEJw5gxKXkMDuesAxrOgn8MXJQWFICwO4s+IqIRM2wNF4x/m+p
+	JAuEtusOVAyoWqI215lp5u0Wav4I00hOhBkypRVD5YaIR2Nxo0
+X-Google-Smtp-Source: AGHT+IHLloKwmZUcqZsnEnRpkH5F/0H+avh2r6J+S95ShOGmN/8Phr+E30wwPKFWOSwlaynhmdar/Q==
+X-Received: by 2002:a05:6a20:6a13:b0:35e:7605:56a4 with SMTP id adf61e73a8af0-36617f035f1mr10546083637.51.1765288380224;
+        Tue, 09 Dec 2025 05:53:00 -0800 (PST)
 Received: from anup-ubuntu-vm.localdomain ([122.171.23.69])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bf681738a34sm15023827a12.4.2025.12.09.05.52.47
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bf681738a34sm15023827a12.4.2025.12.09.05.52.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 Dec 2025 05:52:49 -0800 (PST)
+        Tue, 09 Dec 2025 05:52:56 -0800 (PST)
 From: Anup Patel <apatel@ventanamicro.com>
 To: Atish Patra <atishp@rivosinc.com>
 Cc: Andrew Jones <ajones@ventanamicro.com>,
 	Anup Patel <anup@brainfault.org>,
 	opensbi@lists.infradead.org,
 	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH v2 1/5] lib: sbi: Introduce sbi_hart_pmp_unconfigure() function
-Date: Tue,  9 Dec 2025 19:22:31 +0530
-Message-ID: <20251209135235.423391-2-apatel@ventanamicro.com>
+Subject: [PATCH v2 2/5] lib: sbi: Introduce hart protection abstraction
+Date: Tue,  9 Dec 2025 19:22:32 +0530
+Message-ID: <20251209135235.423391-3-apatel@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20251209135235.423391-1-apatel@ventanamicro.com>
 References: <20251209135235.423391-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251209_055254_768235_C8B4408A 
-X-CRM114-Status: GOOD (  12.98  )
+X-CRM114-CacheID: sfid-20251209_055301_191984_4224824B 
+X-CRM114-Status: GOOD (  20.40  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,85 +102,273 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Currently, the unconfiguring PMP is implemented directly inside
-switch_to_next_domain_context() whereas rest of the PMP programming
-is done via functions implemented in sbi_hart.c.
+Currently, PMP and ePMP are the only hart protection mechanisms
+available in OpenSBI but new protection mechanisms (such as Smmpt)
+will be added in the near future.
 
-Introduce a separate sbi_hart_pmp_unconfigure() function so that
-all PMP programming is in one place.
+To allow multiple hart protection mechanisms, introduce hart
+protection abstraction and related APIs.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_hart.h       |  1 +
- lib/sbi/sbi_domain_context.c | 10 +---------
- lib/sbi/sbi_hart.c           | 14 ++++++++++++++
- 3 files changed, 16 insertions(+), 9 deletions(-)
+ include/sbi/sbi_hart_protection.h | 100 ++++++++++++++++++++++++++++++
+ lib/sbi/objects.mk                |   1 +
+ lib/sbi/sbi_hart_protection.c     |  96 ++++++++++++++++++++++++++++
+ lib/sbi/sbi_init.c                |   5 ++
+ 4 files changed, 202 insertions(+)
+ create mode 100644 include/sbi/sbi_hart_protection.h
+ create mode 100644 lib/sbi/sbi_hart_protection.c
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index c51b0689..d313527a 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -150,6 +150,7 @@ unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
- unsigned int sbi_hart_mhpm_bits(struct sbi_scratch *scratch);
- bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
- int sbi_hart_pmp_configure(struct sbi_scratch *scratch);
-+void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch);
- int sbi_hart_map_saddr(unsigned long base, unsigned long size);
- int sbi_hart_unmap_saddr(void);
- int sbi_hart_priv_version(struct sbi_scratch *scratch);
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index a66438e4..adfd271b 100644
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -104,7 +104,6 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 	struct sbi_trap_context *trap_ctx;
- 	struct sbi_domain *current_dom, *target_dom;
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
--	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
- 
- 	if (!ctx || !dom_ctx || ctx == dom_ctx)
- 		return SBI_EINVAL;
-@@ -123,14 +122,7 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 	spin_unlock(&target_dom->assigned_harts_lock);
- 
- 	/* Reconfigure PMP settings for the new domain */
--	for (int i = 0; i < pmp_count; i++) {
--		/* Don't revoke firmware access permissions */
--		if (sbi_hart_smepmp_is_fw_region(i))
--			continue;
--
--		sbi_platform_pmp_disable(sbi_platform_thishart_ptr(), i);
--		pmp_disable(i);
--	}
-+	sbi_hart_pmp_unconfigure(scratch);
- 	sbi_hart_pmp_configure(scratch);
- 
- 	/* Save current CSR context and restore target domain's CSR context */
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 295a6783..4ec7a611 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -578,6 +578,20 @@ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
- 	return rc;
- }
- 
-+void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
+diff --git a/include/sbi/sbi_hart_protection.h b/include/sbi/sbi_hart_protection.h
+new file mode 100644
+index 00000000..d65f32ca
+--- /dev/null
++++ b/include/sbi/sbi_hart_protection.h
+@@ -0,0 +1,100 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 Ventana Micro Systems Inc.
++ */
++
++#ifndef __SBI_HART_PROTECTION_H__
++#define __SBI_HART_PROTECTION_H__
++
++#include <sbi/sbi_types.h>
++#include <sbi/sbi_list.h>
++
++struct sbi_scratch;
++
++/** Representation of hart protection mechanism */
++struct sbi_hart_protection {
++	/** List head */
++	struct sbi_dlist head;
++
++	/** Name of the hart protection mechanism */
++	char name[32];
++
++	/** Ratings of the hart protection mechanism (higher is better) */
++	unsigned long rating;
++
++	/** Configure protection for current HART (Mandatory) */
++	int (*configure)(struct sbi_scratch *scratch);
++
++	/** Unconfigure protection for current HART (Mandatory) */
++	void (*unconfigure)(struct sbi_scratch *scratch);
++
++	/** Create temporary mapping to access address range on current HART (Optional) */
++	int (*map_range)(struct sbi_scratch *scratch,
++			 unsigned long base, unsigned long size);
++
++	/** Destroy temporary mapping on current HART (Optional) */
++	int (*unmap_range)(struct sbi_scratch *scratch,
++			   unsigned long base, unsigned long size);
++};
++
++/**
++ * Get the best hart protection mechanism
++ *
++ * @return pointer to best hart protection mechanism
++ */
++struct sbi_hart_protection *sbi_hart_protection_best(void);
++
++/**
++ * Register a hart protection mechanism
++ *
++ * @param hprot pointer to hart protection mechanism
++ *
++ * @return 0 on success and negative error code on failure
++ */
++int sbi_hart_protection_register(struct sbi_hart_protection *hprot);
++
++/**
++ * Unregister a hart protection mechanism
++ *
++ * @param hprot pointer to hart protection mechanism
++ */
++void sbi_hart_protection_unregister(struct sbi_hart_protection *hprot);
++
++/**
++ * Configure protection for current HART
++ *
++ * @param scratch pointer to scratch space of current HART
++ *
++ * @return 0 on success and negative error code on failure
++ */
++int sbi_hart_protection_configure(struct sbi_scratch *scratch);
++
++/**
++ * Unconfigure protection for current HART
++ *
++ * @param scratch pointer to scratch space of current HART
++ */
++void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch);
++
++/**
++ * Create temporary mapping to access address range on current HART
++ *
++ * @param base base address of the temporary mapping
++ * @param size size of the temporary mapping
++ *
++ * @return 0 on success and negative error code on failure
++ */
++int sbi_hart_protection_map_range(unsigned long base, unsigned long size);
++
++/**
++ * Destroy temporary mapping to access address range on current HART
++ *
++ * @param base base address of the temporary mapping
++ * @param size size of the temporary mapping
++ *
++ * @return 0 on success and negative error code on failure
++ */
++int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size);
++
++#endif /* __SBI_HART_PROTECTION_H__ */
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 8abe1e8e..51588cd1 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -75,6 +75,7 @@ libsbi-objs-y += sbi_emulate_csr.o
+ libsbi-objs-y += sbi_fifo.o
+ libsbi-objs-y += sbi_fwft.o
+ libsbi-objs-y += sbi_hart.o
++libsbi-objs-y += sbi_hart_protection.o
+ libsbi-objs-y += sbi_heap.o
+ libsbi-objs-y += sbi_math.o
+ libsbi-objs-y += sbi_hfence.o
+diff --git a/lib/sbi/sbi_hart_protection.c b/lib/sbi/sbi_hart_protection.c
+new file mode 100644
+index 00000000..306f5afb
+--- /dev/null
++++ b/lib/sbi/sbi_hart_protection.c
+@@ -0,0 +1,96 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 Ventana Micro Systems Inc.
++ */
++
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_hart_protection.h>
++#include <sbi/sbi_scratch.h>
++
++static SBI_LIST_HEAD(hart_protection_list);
++
++struct sbi_hart_protection *sbi_hart_protection_best(void)
 +{
-+	int i, pmp_count = sbi_hart_pmp_count(scratch);
++	if (sbi_list_empty(&hart_protection_list))
++		return NULL;
 +
-+	for (i = 0; i < pmp_count; i++) {
-+		/* Don't revoke firmware access permissions */
-+		if (sbi_hart_smepmp_is_fw_region(i))
-+			continue;
-+
-+		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
-+		pmp_disable(i);
-+	}
++	return sbi_list_first_entry(&hart_protection_list, struct sbi_hart_protection, head);
 +}
 +
- int sbi_hart_priv_version(struct sbi_scratch *scratch)
- {
- 	struct sbi_hart_features *hfeatures =
++int sbi_hart_protection_register(struct sbi_hart_protection *hprot)
++{
++	struct sbi_hart_protection *pos = NULL;
++	bool found_pos = false;
++
++	if (!hprot)
++		return SBI_EINVAL;
++
++	sbi_list_for_each_entry(pos, &hart_protection_list, head) {
++		if (hprot->rating > pos->rating) {
++			found_pos = true;
++			break;
++		}
++	}
++
++	if (found_pos)
++		sbi_list_add_tail(&hprot->head, &pos->head);
++	else
++		sbi_list_add_tail(&hprot->head, &hart_protection_list);
++
++	return 0;
++}
++
++void sbi_hart_protection_unregister(struct sbi_hart_protection *hprot)
++{
++	if (!hprot)
++		return;
++
++	sbi_list_del(&hprot->head);
++}
++
++int sbi_hart_protection_configure(struct sbi_scratch *scratch)
++{
++	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
++
++	if (!hprot)
++		return SBI_EINVAL;
++	if (!hprot->configure)
++		return SBI_ENOSYS;
++
++	return hprot->configure(scratch);
++}
++
++void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch)
++{
++	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
++
++	if (!hprot || !hprot->unconfigure)
++		return;
++
++	hprot->unconfigure(scratch);
++}
++
++int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
++{
++	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
++
++	if (!hprot)
++		return SBI_EINVAL;
++	if (!hprot->map_range)
++		return 0;
++
++	return hprot->map_range(sbi_scratch_thishart_ptr(), base, size);
++}
++
++int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size)
++{
++	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
++
++	if (!hprot)
++		return SBI_EINVAL;
++	if (!hprot->unmap_range)
++		return 0;
++
++	return hprot->unmap_range(sbi_scratch_thishart_ptr(), base, size);
++}
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 663b486b..b161d1c1 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -18,6 +18,7 @@
+ #include <sbi/sbi_fwft.h>
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_hartmask.h>
++#include <sbi/sbi_hart_protection.h>
+ #include <sbi/sbi_heap.h>
+ #include <sbi/sbi_hsm.h>
+ #include <sbi/sbi_ipi.h>
+@@ -74,6 +75,7 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
+ 	const struct sbi_hsm_device *hdev;
+ 	const struct sbi_ipi_device *idev;
+ 	const struct sbi_timer_device *tdev;
++	const struct sbi_hart_protection *hprot;
+ 	const struct sbi_console_device *cdev;
+ 	const struct sbi_system_reset_device *srdev;
+ 	const struct sbi_system_suspend_device *susp_dev;
+@@ -90,6 +92,9 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
+ 	sbi_printf("Platform Features           : %s\n", str);
+ 	sbi_printf("Platform HART Count         : %u\n",
+ 		   sbi_platform_hart_count(plat));
++	hprot = sbi_hart_protection_best();
++	sbi_printf("Platform HART Protection    : %s\n",
++		   (hprot) ? hprot->name : "---");
+ 	idev = sbi_ipi_get_device();
+ 	sbi_printf("Platform IPI Device         : %s\n",
+ 		   (idev) ? idev->name : "---");
 -- 
 2.43.0
 
