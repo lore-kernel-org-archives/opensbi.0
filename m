@@ -4,88 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 55DE3D3B7EA
-	for <opensbi@archiver.kernel.org>; Tue,  9 Dec 2025 13:53:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0BCDDD3B7EA
+	for <opensbi@archiver.kernel.org>; Tue,  9 Dec 2025 13:53:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=gRR7mk90hakZHCbmlEmZX0wSxVQdo94hsfVRuEdj0Jg=; b=0mQi6OmechzN7P
-	WwgPjGSviB0nceig0sD46c13pmbJ9bd7+3KkBszMBQ88AuXYUZ4whBJUG2Uzc4zSuBhj9o8CACpCl
-	aBGtidKph2PuP8nDflp/k4y3ANRVXUgV0ae0IQmBvIjEEhc/zfWsQ/1IW5/wa7+N1mMNdQ7+vfEOp
-	tjMKGjepPmcdXhbcki/6qGWR8SYLAzzKDjtVGhXV67a5yPt67peJpV+y4xXFB5RhIxUzL8UnEVN5B
-	j7ZiSx2kSweRK0O+HNcDV2KEoXaL9elE7O0PChDOSrhJMGwEgxRsd6kMKPRhsdH7hn/kodyU2jgW7
-	7hNe+1PjhxVa6iQy1jEA==;
+	List-Owner; bh=RQ6Y0NyWJbw7p1m3CVmUuO2eqwJiGXOnxMSOiFudGTA=; b=qBnppUFbtuD9V1
+	7KrE5Ef5makcb6SBY0F4vgSWSpipelZJhwKnDlz8ZqOPY33LaAVBi5nQE0cI995w8e3BBSOL5RqIV
+	/hOOf2JL7R7r7sc24YWWlfqIQN77mO1FZ9ezjCdYJCezr5XhqFOd/HrFix0Asl8Hou040Xl6s1K9y
+	zMkJYVbJ85QFsEadIk+/ssRS8JR+1RI0nI5Db982zHBmgrYxu+gPf0Jhzq5hgX9nefCfphmOUgWzI
+	iLBmVKvWM2a3pnDySmFBSkn7GY8UY1DH/H+jlzWUWAbR6tW1qZNOhRgc8fg2HvOxLb4TKNrMfUtRG
+	ZlfDUWSVn6Fb3KrN3Xnw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSy9H-0000000ELaY-1wFr;
-	Tue, 09 Dec 2025 13:53:03 +0000
-Received: from mail-pf1-x42c.google.com ([2607:f8b0:4864:20::42c])
+	id 1vSy9M-0000000ELcB-36kN;
+	Tue, 09 Dec 2025 13:53:08 +0000
+Received: from mail-pf1-x433.google.com ([2607:f8b0:4864:20::433])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vSy9F-0000000ELZn-0cHR
+	id 1vSy9K-0000000ELb8-1XJD
 	for opensbi@lists.infradead.org;
-	Tue, 09 Dec 2025 13:53:02 +0000
-Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-7bb3092e4d7so5985321b3a.0
-        for <opensbi@lists.infradead.org>; Tue, 09 Dec 2025 05:53:00 -0800 (PST)
+	Tue, 09 Dec 2025 13:53:07 +0000
+Received: by mail-pf1-x433.google.com with SMTP id d2e1a72fcca58-7acd9a03ba9so6047270b3a.1
+        for <opensbi@lists.infradead.org>; Tue, 09 Dec 2025 05:53:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1765288380; x=1765893180; darn=lists.infradead.org;
+        d=ventanamicro.com; s=google; t=1765288385; x=1765893185; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=HfWsfNnWr87I5Rp6jZ7+baov1SLUFH2KvoUSQXXRZUs=;
-        b=Wu+gFNSwcQikl2JQK5M2wd5y9U4HTCwYgQ7sIQ3UhGelfjdUXhXGMz91vgpRTx5dDZ
-         CbBNQXF57vOHZL/9QHl5lV/GajIWtP7KhaZ7MoprZgLC3Sri/Vn4uqmxRxx+KjlqYDbZ
-         4uKlWrixzdZitpZP4u6IqwRi4S+uoILu9HscZDByME8f4Xbm37u+t6EjLsOOrF79fGe3
-         HnM4ngaiRgM9iQ7iHIh5+lRHx6ehS8xqWFYO2F9t4iuOZ+s4FvvvGJUdaEx68565Qjid
-         hoIjaVg8jG/AL+HrPtkfckmYPpUANt9Tadkm1bDXJ4KbZKpi8QvrayefV2Htzr8a2Zfn
-         GVyQ==
+        bh=c/uWLSfLpLTYmPXd2g339d4RP2K2Yy3HVsnKB1mx9hI=;
+        b=DezUGYou+NcIHQBOLbli2u9MZeKM/IqCzBCDaY+lVXn/UIqjFsVF/6ayO2zqjz3JG0
+         o2Iuejej1gyadJ+PJg4yMIzVeCT+Vhld+5OZ+nr8Jqn8TxiDjMO4k+DDGsfhI73VY97s
+         u6JQTHv4QvKmP57Bf/cTkkVOkdfgMG25XpxCQMxFWB+bn2BF4xFihAOwX+ViooZrAFiU
+         IpekzqGjrgRPgpN67bFxxUYVz+GwbbwLav7rqgnSOaCcI4he46xsGUawXLshXWe/62sQ
+         N7G5ahgPWxtnUyCNRf5p2Lv4YKgzhqUJbjhjvbhug/soWQeNOMkdksWCx8F+Sr3yKepv
+         w+WQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765288380; x=1765893180;
+        d=1e100.net; s=20230601; t=1765288385; x=1765893185;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=HfWsfNnWr87I5Rp6jZ7+baov1SLUFH2KvoUSQXXRZUs=;
-        b=XL+SYvFJhwz6WhCM0F0DgnhF5qU0jB7dCqA2wLvFpwTcVmYJYn75i0hwgyjlwOxv69
-         mQwfWETj6VT6kcG50zuJW3iR39jmMLYbW1HlnypSzBaFIcTU7EWyqZmX+FuGB0Amg2U/
-         40g0TJ8naIe0GExE1cRToABwFyFTvckJA260x88ugh7aO+tlol2SoTAqv8gd6eoBx6Gk
-         oquyhGD2TbHUqbsNPdGz3koQaMMpV7GUYjFKQYwprPtZmIyoI6KsVOBuKuthViXJXI2w
-         Zzjh8SfRj5n64xEoolvQ8oCDu6zLyLMNMUqYh+dYJ+Dzkq9OUOGysPl5H/WAbxydRl/7
-         B8rg==
-X-Forwarded-Encrypted: i=1; AJvYcCXas+vySkdoVyqh4Kwo1rCXDujpjlSnTGRr0rXaPYuVYThqPCz9Xvn/QDlfMKtm8ipiaorvT5A3@lists.infradead.org
-X-Gm-Message-State: AOJu0YwVlGcc7wVeeluhsjzXII5WfYKEhEZQ5726mvumWwtx1+eiDFhX
-	7qW0Oe892rw0Y+WI+UexFcxUUvfEBqb0rioqJ4M2V4O/DVnLxxCQcdV44vCCa8ZPI+A=
-X-Gm-Gg: ASbGncsd0P1qZj2fA8SE7bCW6H9qXj/uPB0Sf9YJFG9Zok6v1Qhiq2sp8mo5dXgmT4G
-	2VbkMP+5dKjFeVDHEh0sDI/k5cgHqVnSCS2EIPKID9AWDcNxlQpOLFM8PyilSohMv58uuPKyHnR
-	hwcTksZklLzoVQZ3NxDsGzQmFFiAC6vCMweN1GPu/Eo8zrk8+Sq7S/48l9wfcOFFH02C8fsHslg
-	/iUb8UzcrSQ+rQchdkqOYmTvMSJKGBavYz52zMiXtWWd1q2eQaR2vhpCCmduiHTvrg43H2VM4l5
-	07Qx6KfCsEaXpgqXGhD9kbhKPT466ZBWWaKVWeBnTvnF+XagQkbZY8wdpkq7d7Z/eAAMC3zUDsQ
-	tnM3VopqMM4Z2mFdCxK0QOa7umEJw5gxKXkMDuesAxrOgn8MXJQWFICwO4s+IqIRM2wNF4x/m+p
-	JAuEtusOVAyoWqI215lp5u0Wav4I00hOhBkypRVD5YaIR2Nxo0
-X-Google-Smtp-Source: AGHT+IHLloKwmZUcqZsnEnRpkH5F/0H+avh2r6J+S95ShOGmN/8Phr+E30wwPKFWOSwlaynhmdar/Q==
-X-Received: by 2002:a05:6a20:6a13:b0:35e:7605:56a4 with SMTP id adf61e73a8af0-36617f035f1mr10546083637.51.1765288380224;
-        Tue, 09 Dec 2025 05:53:00 -0800 (PST)
+        bh=c/uWLSfLpLTYmPXd2g339d4RP2K2Yy3HVsnKB1mx9hI=;
+        b=iw452A3IhfQa4U7MSjqFeyV+tBlfoAIpPbAjIubrSNehKGNGmhhLwFtuRa+yrOSKRZ
+         FvPyOZ8LHJRG3RwvFIYpcIIKQ3RQEZRprEFTdbTEeTGY8f/c8jJYF5kEx/o+sJUQDVk9
+         TxwxtO+SotXxLEUQeKvI+9TfCpH5eIFxUfQnlPd00FML3AZMoaqbOEgJpV/V/f1yfQwj
+         uV7EvXnCwazJcZ9Q/kaVFJHVghOzcErIAUi0TkO+ReX0JxSuLjg0lldBSIMPhtUnIRLe
+         my9nMihbwH7OI1FQX4wh7+vLUfiL4+vhAQn4SMNd2H0C+ejzxNNp/txBz8gSsMPfN9zK
+         22Uw==
+X-Forwarded-Encrypted: i=1; AJvYcCVkMx5j1+URR0Ys/Wy+lXAbLUJ/kgv0gQ6Zxr/IkiykDK263FpM/qKvbSMzk32SJ7mE+ItsB4JD@lists.infradead.org
+X-Gm-Message-State: AOJu0YzpIW/3YarG8+gzD56Wo7DGnmHQVB/vWBvDl+m81WdglnFEt+Dc
+	kq3wSK0yBwe6wF7kan6geSSO6cL7P8q9449xFY6krVHn4J9sznRKwgo+d4aTNtVf/zM=
+X-Gm-Gg: ASbGncvCem64f6x3dOhOtidtm0xAx/HxqaNcmZtUd3TmF7eIjdaHdirVC1wZnFRhRn+
+	+eUX+wod8yo7DpC/pxfBQ9rxP7BkYA3QiHNZrs9V0SHygO4vr7N4L9+Xxrr7oy97e6Mu7xtq/WS
+	8IEbclz2GESgkJr9yjOwYXMfIF3aExkzcDCv/gUrwzrSUvn5map63ayjm+eWCqRlmwJzY8M2stw
+	0quKBn87Bg8Y3Rt2SjEs5oPwG/7TU9ZRhv4m4dzzImbSAe+ytApjCSGCb+Z19k5gpRnxhU1plaO
+	vTPtu8NjxQMQN6CnQANC37JXIXP40dL+db9+hkFmjIe3meNfdJskk+QlUDyjLiSmjAPMfgMsSoL
+	Wo0k9pywZPmH/WtTljByux0MMX1savVQijio44PsmClIeAdKQspj2fl5rkLTyxtwuczKJLPx+BX
+	IjoMYeztehIkPAfSlMKglvFpe7T8maGtekHROuY0D4T8ULFsI0
+X-Google-Smtp-Source: AGHT+IHi9RiCrp3FT2S6gz5vXA/Cdxns8BaFqT5D7XgfejHyfbgBuAi0RNxanE7qVu+08rvpM7mY+g==
+X-Received: by 2002:a05:6a21:33a1:b0:35d:8881:e6c6 with SMTP id adf61e73a8af0-36617e6c205mr11024842637.19.1765288385442;
+        Tue, 09 Dec 2025 05:53:05 -0800 (PST)
 Received: from anup-ubuntu-vm.localdomain ([122.171.23.69])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bf681738a34sm15023827a12.4.2025.12.09.05.52.54
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bf681738a34sm15023827a12.4.2025.12.09.05.53.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 Dec 2025 05:52:56 -0800 (PST)
+        Tue, 09 Dec 2025 05:53:02 -0800 (PST)
 From: Anup Patel <apatel@ventanamicro.com>
 To: Atish Patra <atishp@rivosinc.com>
 Cc: Andrew Jones <ajones@ventanamicro.com>,
 	Anup Patel <anup@brainfault.org>,
 	opensbi@lists.infradead.org,
 	Anup Patel <apatel@ventanamicro.com>
-Subject: [PATCH v2 2/5] lib: sbi: Introduce hart protection abstraction
-Date: Tue,  9 Dec 2025 19:22:32 +0530
-Message-ID: <20251209135235.423391-3-apatel@ventanamicro.com>
+Subject: [PATCH v2 3/5] lib: sbi: Implement hart protection for PMP and ePMP
+Date: Tue,  9 Dec 2025 19:22:33 +0530
+Message-ID: <20251209135235.423391-4-apatel@ventanamicro.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20251209135235.423391-1-apatel@ventanamicro.com>
 References: <20251209135235.423391-1-apatel@ventanamicro.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251209_055301_191984_4224824B 
-X-CRM114-Status: GOOD (  20.40  )
+X-CRM114-CacheID: sfid-20251209_055306_513685_FEACC9AB 
+X-CRM114-Status: GOOD (  20.93  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,273 +102,313 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Currently, PMP and ePMP are the only hart protection mechanisms
-available in OpenSBI but new protection mechanisms (such as Smmpt)
-will be added in the near future.
-
-To allow multiple hart protection mechanisms, introduce hart
-protection abstraction and related APIs.
+Implement PMP and ePMP based hart protection abstraction so
+that usage of sbi_hart_pmp_xyz() functions can be replaced
+with sbi_hart_protection_xyz() functions.
 
 Signed-off-by: Anup Patel <apatel@ventanamicro.com>
 ---
- include/sbi/sbi_hart_protection.h | 100 ++++++++++++++++++++++++++++++
- lib/sbi/objects.mk                |   1 +
- lib/sbi/sbi_hart_protection.c     |  96 ++++++++++++++++++++++++++++
- lib/sbi/sbi_init.c                |   5 ++
- 4 files changed, 202 insertions(+)
- create mode 100644 include/sbi/sbi_hart_protection.h
- create mode 100644 lib/sbi/sbi_hart_protection.c
+ lib/sbi/sbi_hart.c | 208 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 132 insertions(+), 76 deletions(-)
 
-diff --git a/include/sbi/sbi_hart_protection.h b/include/sbi/sbi_hart_protection.h
-new file mode 100644
-index 00000000..d65f32ca
---- /dev/null
-+++ b/include/sbi/sbi_hart_protection.h
-@@ -0,0 +1,100 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Ventana Micro Systems Inc.
-+ */
-+
-+#ifndef __SBI_HART_PROTECTION_H__
-+#define __SBI_HART_PROTECTION_H__
-+
-+#include <sbi/sbi_types.h>
-+#include <sbi/sbi_list.h>
-+
-+struct sbi_scratch;
-+
-+/** Representation of hart protection mechanism */
-+struct sbi_hart_protection {
-+	/** List head */
-+	struct sbi_dlist head;
-+
-+	/** Name of the hart protection mechanism */
-+	char name[32];
-+
-+	/** Ratings of the hart protection mechanism (higher is better) */
-+	unsigned long rating;
-+
-+	/** Configure protection for current HART (Mandatory) */
-+	int (*configure)(struct sbi_scratch *scratch);
-+
-+	/** Unconfigure protection for current HART (Mandatory) */
-+	void (*unconfigure)(struct sbi_scratch *scratch);
-+
-+	/** Create temporary mapping to access address range on current HART (Optional) */
-+	int (*map_range)(struct sbi_scratch *scratch,
-+			 unsigned long base, unsigned long size);
-+
-+	/** Destroy temporary mapping on current HART (Optional) */
-+	int (*unmap_range)(struct sbi_scratch *scratch,
-+			   unsigned long base, unsigned long size);
-+};
-+
-+/**
-+ * Get the best hart protection mechanism
-+ *
-+ * @return pointer to best hart protection mechanism
-+ */
-+struct sbi_hart_protection *sbi_hart_protection_best(void);
-+
-+/**
-+ * Register a hart protection mechanism
-+ *
-+ * @param hprot pointer to hart protection mechanism
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_hart_protection_register(struct sbi_hart_protection *hprot);
-+
-+/**
-+ * Unregister a hart protection mechanism
-+ *
-+ * @param hprot pointer to hart protection mechanism
-+ */
-+void sbi_hart_protection_unregister(struct sbi_hart_protection *hprot);
-+
-+/**
-+ * Configure protection for current HART
-+ *
-+ * @param scratch pointer to scratch space of current HART
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_hart_protection_configure(struct sbi_scratch *scratch);
-+
-+/**
-+ * Unconfigure protection for current HART
-+ *
-+ * @param scratch pointer to scratch space of current HART
-+ */
-+void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch);
-+
-+/**
-+ * Create temporary mapping to access address range on current HART
-+ *
-+ * @param base base address of the temporary mapping
-+ * @param size size of the temporary mapping
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_hart_protection_map_range(unsigned long base, unsigned long size);
-+
-+/**
-+ * Destroy temporary mapping to access address range on current HART
-+ *
-+ * @param base base address of the temporary mapping
-+ * @param size size of the temporary mapping
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size);
-+
-+#endif /* __SBI_HART_PROTECTION_H__ */
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 8abe1e8e..51588cd1 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -75,6 +75,7 @@ libsbi-objs-y += sbi_emulate_csr.o
- libsbi-objs-y += sbi_fifo.o
- libsbi-objs-y += sbi_fwft.o
- libsbi-objs-y += sbi_hart.o
-+libsbi-objs-y += sbi_hart_protection.o
- libsbi-objs-y += sbi_heap.o
- libsbi-objs-y += sbi_math.o
- libsbi-objs-y += sbi_hfence.o
-diff --git a/lib/sbi/sbi_hart_protection.c b/lib/sbi/sbi_hart_protection.c
-new file mode 100644
-index 00000000..306f5afb
---- /dev/null
-+++ b/lib/sbi/sbi_hart_protection.c
-@@ -0,0 +1,96 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Ventana Micro Systems Inc.
-+ */
-+
-+#include <sbi/sbi_error.h>
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 4ec7a611..20ad3c6a 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -17,6 +17,7 @@
+ #include <sbi/sbi_csr_detect.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
 +#include <sbi/sbi_hart_protection.h>
-+#include <sbi/sbi_scratch.h>
-+
-+static SBI_LIST_HEAD(hart_protection_list);
-+
-+struct sbi_hart_protection *sbi_hart_protection_best(void)
+ #include <sbi/sbi_math.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_pmu.h>
+@@ -316,6 +317,30 @@ bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx)
+ 	return bitmap_test(fw_smepmp_ids, pmp_idx) ? true : false;
+ }
+ 
++static void sbi_hart_pmp_fence(void)
 +{
-+	if (sbi_list_empty(&hart_protection_list))
-+		return NULL;
++	/*
++	 * As per section 3.7.2 of privileged specification v1.12,
++	 * virtual address translations can be speculatively performed
++	 * (even before actual access). These, along with PMP traslations,
++	 * can be cached. This can pose a problem with CPU hotplug
++	 * and non-retentive suspend scenario because PMP states are
++	 * not preserved.
++	 * It is advisable to flush the caching structures under such
++	 * conditions.
++	 */
++	if (misa_extension('S')) {
++		__asm__ __volatile__("sfence.vma");
 +
-+	return sbi_list_first_entry(&hart_protection_list, struct sbi_hart_protection, head);
++		/*
++		 * If hypervisor mode is supported, flush caching
++		 * structures in guest mode too.
++		 */
++		if (misa_extension('H'))
++			__sbi_hfence_gvma_all();
++	}
 +}
 +
-+int sbi_hart_protection_register(struct sbi_hart_protection *hprot)
+ static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
+ 				struct sbi_domain *dom,
+ 				struct sbi_domain_memregion *reg,
+@@ -348,14 +373,19 @@ static bool is_valid_pmp_idx(unsigned int pmp_count, unsigned int pmp_idx)
+ 	return false;
+ }
+ 
+-static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+-				     unsigned int pmp_count,
+-				     unsigned int pmp_log2gran,
+-				     unsigned long pmp_addr_max)
++static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_domain_memregion *reg;
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	unsigned int pmp_idx, pmp_flags;
++	unsigned int pmp_log2gran, pmp_bits;
++	unsigned int pmp_idx, pmp_count;
++	unsigned long pmp_addr_max;
++	unsigned int pmp_flags;
++
++	pmp_count = sbi_hart_pmp_count(scratch);
++	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
++	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
++	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
+ 
+ 	/*
+ 	 * Set the RLB so that, we can write to PMP entries without
+@@ -435,20 +465,64 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch,
+ 	 * Keep the RLB bit so that dynamic mappings can be done.
+ 	 */
+ 
++	sbi_hart_pmp_fence();
+ 	return 0;
+ }
+ 
+-static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+-				     unsigned int pmp_count,
+-				     unsigned int pmp_log2gran,
+-				     unsigned long pmp_addr_max)
++static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
++				     unsigned long addr, unsigned long size)
 +{
-+	struct sbi_hart_protection *pos = NULL;
-+	bool found_pos = false;
++	/* shared R/W access for M and S/U mode */
++	unsigned int pmp_flags = (PMP_W | PMP_X);
++	unsigned long order, base = 0;
 +
-+	if (!hprot)
-+		return SBI_EINVAL;
++	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
++		return SBI_ENOSPC;
 +
-+	sbi_list_for_each_entry(pos, &hart_protection_list, head) {
-+		if (hprot->rating > pos->rating) {
-+			found_pos = true;
-+			break;
++	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
++	     order <= __riscv_xlen; order++) {
++		if (order < __riscv_xlen) {
++			base = addr & ~((1UL << order) - 1UL);
++			if ((base <= addr) &&
++			    (addr < (base + (1UL << order))) &&
++			    (base <= (addr + size - 1UL)) &&
++			    ((addr + size - 1UL) < (base + (1UL << order))))
++				break;
++		} else {
++			return SBI_EFAIL;
 +		}
 +	}
 +
-+	if (found_pos)
-+		sbi_list_add_tail(&hprot->head, &pos->head);
-+	else
-+		sbi_list_add_tail(&hprot->head, &hart_protection_list);
++	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
++			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
++			     pmp_flags, base, order);
++	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
++
++	return SBI_OK;
++}
++
++static int sbi_hart_smepmp_unmap_range(struct sbi_scratch *scratch,
++				       unsigned long addr, unsigned long size)
++{
++	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
++	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++}
++
++static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_domain_memregion *reg;
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+-	unsigned int pmp_idx = 0;
++	unsigned long pmp_addr, pmp_addr_max;
++	unsigned int pmp_log2gran, pmp_bits;
++	unsigned int pmp_idx, pmp_count;
+ 	unsigned int pmp_flags;
+-	unsigned long pmp_addr;
+ 
++	pmp_count = sbi_hart_pmp_count(scratch);
++	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
++	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
++	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
++
++	pmp_idx = 0;
+ 	sbi_domain_for_each_memregion(dom, reg) {
+ 		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
+ 			return SBI_EFAIL;
+@@ -483,43 +557,19 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch,
+ 		}
+ 	}
+ 
++	sbi_hart_pmp_fence();
+ 	return 0;
+ }
+ 
+ int sbi_hart_map_saddr(unsigned long addr, unsigned long size)
+ {
+-	/* shared R/W access for M and S/U mode */
+-	unsigned int pmp_flags = (PMP_W | PMP_X);
+-	unsigned long order, base = 0;
+ 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+ 
+ 	/* If Smepmp is not supported no special mapping is required */
+ 	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+ 		return SBI_OK;
+ 
+-	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
+-		return SBI_ENOSPC;
+-
+-	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
+-	     order <= __riscv_xlen; order++) {
+-		if (order < __riscv_xlen) {
+-			base = addr & ~((1UL << order) - 1UL);
+-			if ((base <= addr) &&
+-			    (addr < (base + (1UL << order))) &&
+-			    (base <= (addr + size - 1UL)) &&
+-			    ((addr + size - 1UL) < (base + (1UL << order))))
+-				break;
+-		} else {
+-			return SBI_EFAIL;
+-		}
+-	}
+-
+-	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
+-			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
+-			     pmp_flags, base, order);
+-	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
+-
+-	return SBI_OK;
++	return sbi_hart_smepmp_map_range(scratch, addr, size);
+ }
+ 
+ int sbi_hart_unmap_saddr(void)
+@@ -529,53 +579,18 @@ int sbi_hart_unmap_saddr(void)
+ 	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+ 		return SBI_OK;
+ 
+-	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
+-	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++	return sbi_hart_smepmp_unmap_range(scratch, 0, 0);
+ }
+ 
+ int sbi_hart_pmp_configure(struct sbi_scratch *scratch)
+ {
+-	int rc;
+-	unsigned int pmp_bits, pmp_log2gran;
+-	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
+-	unsigned long pmp_addr_max;
+-
+-	if (!pmp_count)
++	if (!sbi_hart_pmp_count(scratch))
+ 		return 0;
+ 
+-	pmp_log2gran = sbi_hart_pmp_log2gran(scratch);
+-	pmp_bits = sbi_hart_pmp_addrbits(scratch) - 1;
+-	pmp_addr_max = (1UL << pmp_bits) | ((1UL << pmp_bits) - 1);
+-
+ 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP))
+-		rc = sbi_hart_smepmp_configure(scratch, pmp_count,
+-						pmp_log2gran, pmp_addr_max);
++		return sbi_hart_smepmp_configure(scratch);
+ 	else
+-		rc = sbi_hart_oldpmp_configure(scratch, pmp_count,
+-						pmp_log2gran, pmp_addr_max);
+-
+-	/*
+-	 * As per section 3.7.2 of privileged specification v1.12,
+-	 * virtual address translations can be speculatively performed
+-	 * (even before actual access). These, along with PMP traslations,
+-	 * can be cached. This can pose a problem with CPU hotplug
+-	 * and non-retentive suspend scenario because PMP states are
+-	 * not preserved.
+-	 * It is advisable to flush the caching structures under such
+-	 * conditions.
+-	 */
+-	if (misa_extension('S')) {
+-		__asm__ __volatile__("sfence.vma");
+-
+-		/*
+-		 * If hypervisor mode is supported, flush caching
+-		 * structures in guest mode too.
+-		 */
+-		if (misa_extension('H'))
+-			__sbi_hfence_gvma_all();
+-	}
+-
+-	return rc;
++		return sbi_hart_oldpmp_configure(scratch);
+ }
+ 
+ void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
+@@ -592,6 +607,41 @@ void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
+ 	}
+ }
+ 
++static struct sbi_hart_protection pmp_protection = {
++	.name = "pmp",
++	.rating = 100,
++	.configure = sbi_hart_oldpmp_configure,
++	.unconfigure = sbi_hart_pmp_unconfigure,
++};
++
++static struct sbi_hart_protection epmp_protection = {
++	.name = "epmp",
++	.rating = 200,
++	.configure = sbi_hart_smepmp_configure,
++	.unconfigure = sbi_hart_pmp_unconfigure,
++	.map_range = sbi_hart_smepmp_map_range,
++	.unmap_range = sbi_hart_smepmp_unmap_range,
++};
++
++static int sbi_hart_pmp_init(struct sbi_scratch *scratch)
++{
++	int rc;
++
++	if (sbi_hart_pmp_count(scratch)) {
++		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMEPMP)) {
++			rc = sbi_hart_protection_register(&epmp_protection);
++			if (rc)
++				return rc;
++		} else {
++			rc = sbi_hart_protection_register(&pmp_protection);
++			if (rc)
++				return rc;
++		}
++	}
 +
 +	return 0;
 +}
 +
-+void sbi_hart_protection_unregister(struct sbi_hart_protection *hprot)
-+{
-+	if (!hprot)
-+		return;
+ int sbi_hart_priv_version(struct sbi_scratch *scratch)
+ {
+ 	struct sbi_hart_features *hfeatures =
+@@ -1057,6 +1107,12 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+ 	if (rc)
+ 		return rc;
+ 
++	if (cold_boot) {
++		rc = sbi_hart_pmp_init(scratch);
++		if (rc)
++			return rc;
++	}
 +
-+	sbi_list_del(&hprot->head);
-+}
-+
-+int sbi_hart_protection_configure(struct sbi_scratch *scratch)
-+{
-+	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+
-+	if (!hprot)
-+		return SBI_EINVAL;
-+	if (!hprot->configure)
-+		return SBI_ENOSYS;
-+
-+	return hprot->configure(scratch);
-+}
-+
-+void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch)
-+{
-+	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+
-+	if (!hprot || !hprot->unconfigure)
-+		return;
-+
-+	hprot->unconfigure(scratch);
-+}
-+
-+int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
-+{
-+	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+
-+	if (!hprot)
-+		return SBI_EINVAL;
-+	if (!hprot->map_range)
-+		return 0;
-+
-+	return hprot->map_range(sbi_scratch_thishart_ptr(), base, size);
-+}
-+
-+int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size)
-+{
-+	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+
-+	if (!hprot)
-+		return SBI_EINVAL;
-+	if (!hprot->unmap_range)
-+		return 0;
-+
-+	return hprot->unmap_range(sbi_scratch_thishart_ptr(), base, size);
-+}
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 663b486b..b161d1c1 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -18,6 +18,7 @@
- #include <sbi/sbi_fwft.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hartmask.h>
-+#include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_ipi.h>
-@@ -74,6 +75,7 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
- 	const struct sbi_hsm_device *hdev;
- 	const struct sbi_ipi_device *idev;
- 	const struct sbi_timer_device *tdev;
-+	const struct sbi_hart_protection *hprot;
- 	const struct sbi_console_device *cdev;
- 	const struct sbi_system_reset_device *srdev;
- 	const struct sbi_system_suspend_device *susp_dev;
-@@ -90,6 +92,9 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
- 	sbi_printf("Platform Features           : %s\n", str);
- 	sbi_printf("Platform HART Count         : %u\n",
- 		   sbi_platform_hart_count(plat));
-+	hprot = sbi_hart_protection_best();
-+	sbi_printf("Platform HART Protection    : %s\n",
-+		   (hprot) ? hprot->name : "---");
- 	idev = sbi_ipi_get_device();
- 	sbi_printf("Platform IPI Device         : %s\n",
- 		   (idev) ? idev->name : "---");
+ 	rc = delegate_traps(scratch);
+ 	if (rc)
+ 		return rc;
 -- 
 2.43.0
 
