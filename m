@@ -4,57 +4,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A528BD3C920
-	for <opensbi@archiver.kernel.org>; Wed, 10 Dec 2025 15:11:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8984DD5B149
+	for <opensbi@archiver.kernel.org>; Sat, 13 Dec 2025 10:42:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=GWahgZMr2O45jXztxgQ07ey1WQ0KDqg/8qCQ/bJSZvY=; b=nWnDPT2avmlQ3s
-	pA3BJtwFrokdXWqP1vfYsHi61i/HuXYEcMXJhgpo6x50N9g1KlAhkMPXIn/Vq0Siizj4UbHq3bjUt
-	xiLQs0xHgkXVs/jHS2kbh6EjKOUZQDYDGCjuLH9v9PlFUK+1HpoIgdXtGZTBpYXgrYhu6r53mvNdT
-	r6p533gBNNY9oq6sxYn3zGLtJRfBZnkEDjbAxFaGD0m0tEsPzcf2jQZintZM9plBWKcSojMqMId9o
-	3gIsOmLyJkGxSympzfduOmI3gyLk835c1U7GllOKP7zfcySXPKraNA9cSqteBVuY9iQ/N2fqRkU6D
-	REAUOH749MnSaLOumVDQ==;
+	List-Owner; bh=ku+AsI3ADCwBzHiMLH22SFYrZMwUYrsX8TVjjVSm6/0=; b=qJhHwa/J4DOtpz
+	FAbxf4V/jQKp7TiWK2+UfFFBEnZbLWsgqKbGw5lD+EJ2veIFYp5UOgTXu7MD5Z8UebNDeO6+CHJBK
+	S4DqpxW/0dXIiPv19vwANMvd1zzjxi0/9D8j4Wh5QWGr2YLkt273nAs9SjrIKtDzlMrcrEWPuvh0o
+	DAbi72wGsNegh//W0rpo8JSXDV6TXIQEMkjUVQp/Xmyxc93FoKOR7Ft1xItgfzoDockLDLD/qmb51
+	+zKoGGK3NlS9ewAlQadIm4cnWikOPWSEYBjmEQ1ElkwD3R4tihzyHUsPt0H1h71EjMrSxD211o4uv
+	MG/fl5eruQGwx/lTY62Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vTLqU-0000000FXnX-0zRl;
-	Wed, 10 Dec 2025 15:11:14 +0000
-Received: from m16.mail.126.com ([117.135.210.9])
+	id 1vUN4W-00000001as4-41xm;
+	Sat, 13 Dec 2025 10:41:56 +0000
+Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vTLqP-0000000FXn4-2WGE
+	id 1vUN4V-00000001are-0JOf
 	for opensbi@lists.infradead.org;
-	Wed, 10 Dec 2025 15:11:13 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=IU
-	ZclAO3tWOJsRkwVQMs+7bh1C9HW3wYVfp9Sagf7FE=; b=e6V0X6X4kdu6wwqms2
-	AmWIOzYgpLDb9aeRkUwYaBsRKYlnCjXj36vtON9jcSTHnhPTbYlQhmBxY38pVKwJ
-	jDFmc7s6AggOWNPaQvDhtMxXrQh5ga/zS+QO3qk3CL/YNPy04r5vd7EZ9GfEkVCK
-	DS2HGOxmBW8qNqYc5iQPD8ang=
-Received: from T490.lan (unknown [])
-	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD39yV4jTlp3t5NAA--.34275S2;
-	Wed, 10 Dec 2025 23:10:49 +0800 (CST)
-From: Xiang W <wxjstz@126.com>
+	Sat, 13 Dec 2025 10:41:56 +0000
+Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-2a09a3bd9c5so2265305ad.3
+        for <opensbi@lists.infradead.org>; Sat, 13 Dec 2025 02:41:54 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1765622513; x=1766227313; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=7rnhr9PX56GwU/1BnFqy+Hp80Lnj3/UE+zWypi5qGJA=;
+        b=DHDPhMUlkLeruO49tll/ZPFMCOXwLX7Gmj44EMe/z20GWdhiGYFkGkdTU29hWIV0CK
+         hb/zqdLk955DVksa1aGKkrO0av8Jn+YJ/k9Rs4Usz504poLTr134sc3qVNqUc6kVqdVJ
+         IEMH/zrjR8hz8ilhXH+Wq4QgRRcpW1UciRq6Cs7SXgeVzoXUZ2MrgAtmFHY7bDNdYB5r
+         vDNNlHR0knTILCcsY4UzifS+FeqHd5E2huqwotH4bKfft2B/oRrC00fyre3c0HyGaEKC
+         aSUZBGInUQ/mcZcbIFz792rNPjN5jy93GjXxGdG64l5bbujZEqN4R/2RF0jbRw9CTPyY
+         wl7A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765622513; x=1766227313;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7rnhr9PX56GwU/1BnFqy+Hp80Lnj3/UE+zWypi5qGJA=;
+        b=xTLMx0Plos+Bgo1GDX1Dxh2qLQMMWjXeDMz7+Z82Rutpbwi/0wdcCbAptsssBq5si/
+         VKcfoKxPVa2DH5uUZ8ay8ctDRisBp5qosWMjEIbANFczJMY4iHaAJ7lhELL8gIUE7vnD
+         X9aUUPlebZx6RUTDXnwTl/x8XrAotcljhedvFEFvbt7FBUjMba4n9AYGu5v/fdR+zrQY
+         5MEur535znllkgBqN6j8dXkTyLPdnX+FQpzp190Bf7YAcEfvNLIa3hxFLLPz7phOSDAp
+         +adrsGSoYw6iHf2hdIdMc6B25kjffOr1YIYR/Iz8KPlrqS7CGyQFJ5cAk3/gbYM8kdle
+         x+0w==
+X-Gm-Message-State: AOJu0YxZKfGw2U+goFRTCDYWGqB/UgqR8Gk3RSxntRplQTeepsmk7UrS
+	ULHKrefGmQUZCsBSn7Xes5mmnuVXGLI6gdM0LZw7febh8PsLWRLJoRO6NFB8a92T
+X-Gm-Gg: AY/fxX61glFPD3neQwiYOyI2MsSC6qrUTrT3nVyfdpTmUhPGKrqmnHJLhnNBXuZwQdp
+	k8IPkmFX/VjaOz2B4Ts2BJdrAQrDhklnPUUernf+D+DDfuiXBTlFtMEDTsactQv0sCQYD2wqwOp
+	H9FdpFjxeYvAl3iHjYX3YNS0W99KGn9Ig2SIr66MrGOclH0hXPmR/AyuAmAL+OGGmnJ41CLm8CK
+	6UcIIe+dLWE9UBwoHEwNnn2fA2arafDq3FjtdOMqcJ0dzoIPnvaGaiUSqYSjkColNXsDe/EhFW/
+	mFv4e50f0DBHqPyR8onsHkf29Jgc+d6oP3pob+GcireFbYx8d/zhPNwpcKuSpU9NHXRaXNviYmX
+	FeEEG0QBY4u9fCfxNBEVIsIwSREfnBXnd3S6Sc6dLEGcFZFusv7xrvUzLRH2PE/i5aREiOJ4FHD
+	3m17U4OMq7eZfHvT85Zw==
+X-Google-Smtp-Source: AGHT+IGfztYSVHsyk+7PmZRCC418j2Z5ytdNIW6OjrqL8wBX3jPmHA4GjtS2WiyRag6ngwwSNlaJTg==
+X-Received: by 2002:a17:903:4b47:b0:2a0:acf6:3de9 with SMTP id d9443c01a7336-2a0acf64436mr1635775ad.58.1765622513024;
+        Sat, 13 Dec 2025 02:41:53 -0800 (PST)
+Received: from JRT-PC.. ([111.94.147.48])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-29eea0169dfsm79620505ad.51.2025.12.13.02.41.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 13 Dec 2025 02:41:52 -0800 (PST)
+From: James Raphael Tiovalen <jamestiotio@gmail.com>
 To: opensbi@lists.infradead.org
-Cc: Xiang W <wxjstz@126.com>,
-	anup@brainfault.org
-Subject: [PATCH v2 1/1] firmware: Initialize stack guard via Zkr
-Date: Wed, 10 Dec 2025 23:10:45 +0800
-Message-ID: <20251210151046.37177-1-wxjstz@126.com>
-X-Mailer: git-send-email 2.47.3
+Cc: andrew.jones@linux.dev,
+	atishp@rivosinc.com,
+	James Raphael Tiovalen <jamestiotio@gmail.com>
+Subject: [PATCH] lib: sbi: sbi_pmu: Fix multiple start and stop operations of FW counters
+Date: Sat, 13 Dec 2025 18:41:46 +0800
+Message-ID: <20251213104146.422972-1-jamestiotio@gmail.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-X-CM-TRANSID: _____wD39yV4jTlp3t5NAA--.34275S2
-X-Coremail-Antispam: 1Uf129KBjvdXoW7Jry8Jw4kuw1rWrWxJFWxtFb_yoWkCrXEya
-	1fCas7uw1YvFWjqF93CFyxCrWrGw48X34v9F1DCw17t3Wag3y8XryDCr1Dtr17Wr17Kr1Y
-	ya4DZws3Kr9a9jkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRWq2MJUUUUU==
-X-Originating-IP: [61.170.161.214]
-X-CM-SenderInfo: pz0m23b26rjloofrz/xtbBshkqZGk5jXmsagAA3H
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251210_071110_073270_4A2479A9 
-X-CRM114-Status: UNSURE (   4.35  )
+X-CRM114-CacheID: sfid-20251213_024155_116038_359C0AE7 
+X-CRM114-Status: UNSURE (   8.43  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -72,53 +98,45 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Try to initialize stack protection guard via the zkr extension.
+Currently, OpenSBI returns SBI_ERR_ALREADY_STARTED when attempting to
+start a HW counter that is already started and SBI_ERR_ALREADY_STOPPED
+when attempting to stop a HW counter that is already stopped. However,
+this is not yet implemented for FW counters.
 
-Signed-off-by: Xiang W <wxjstz@126.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Add the necessary checks to return the same error codes when attempting
+the same actions on FW counters.
+
+Signed-off-by: James Raphael Tiovalen <jamestiotio@gmail.com>
 ---
-v2 changes: add '[PATCH]'
+ lib/sbi/sbi_pmu.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
- firmware/fw_base.S | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
-
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 5300ecf2..953fba95 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -107,6 +107,30 @@ _bss_zero:
- 	add	s4, s4, __SIZEOF_POINTER__
- 	blt	s4, s5, _bss_zero
- 
-+	/* Trying to initialize the stack guard via the Zkr extension */
-+	lla	t0, __stack_chk_guard_done
-+	csrw	CSR_MTVEC, t0
-+	li	t0, 0
-+	li	t3, 2
-+	li	t4, 0xffff
-+	li	t5, __SIZEOF_POINTER__
-+__stack_chk_guard_loop:
-+	csrrw	t1, CSR_SEED, x0
-+	srli	t2, t1, 30
-+	andi	t2, t2, 3
-+	bgt	t2, t3, __stack_chk_guard_done
-+	blt	t2, t3, __stack_chk_guard_loop
-+	and	t1, t1, t4
-+	slli	t0, t0, 16
-+	or	t0, t0, t1
-+	addi	t5, t5, -2
-+	bgtz	t5, __stack_chk_guard_loop
-+	lla	t1, __stack_chk_guard
-+	REG_S	t0, 0(t1)
-+	j	__stack_chk_guard_done
-+	.align 3
-+__stack_chk_guard_done:
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index e24e485d..0218c921 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -468,6 +468,9 @@ static int pmu_ctr_start_fw(struct sbi_pmu_hart_state *phs,
+ 						 cidx - num_hw_ctrs,
+ 						 event_data);
+ 	} else {
++		if (phs->fw_counters_started & BIT(cidx - num_hw_ctrs))
++			return SBI_EALREADY_STARTED;
 +
- 	/* Setup temporary trap handler */
- 	lla	s4, _start_hang
- 	csrw	CSR_MTVEC, s4
+ 		if (ival_update)
+ 			phs->fw_counters_data[cidx - num_hw_ctrs] = ival;
+ 	}
+@@ -629,6 +632,9 @@ static int pmu_ctr_stop_fw(struct sbi_pmu_hart_state *phs,
+ 			return ret;
+ 	}
+ 
++	if (!(phs->fw_counters_started & BIT(cidx - num_hw_ctrs)))
++			return SBI_EALREADY_STOPPED;
++
+ 	phs->fw_counters_started &= ~BIT(cidx - num_hw_ctrs);
+ 
+ 	return 0;
 -- 
-2.47.3
+2.43.0
 
 
 -- 
