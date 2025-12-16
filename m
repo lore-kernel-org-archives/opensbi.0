@@ -4,80 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 03385D5B857
-	for <opensbi@archiver.kernel.org>; Mon, 15 Dec 2025 17:12:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0182BD5C0C0
+	for <opensbi@archiver.kernel.org>; Tue, 16 Dec 2025 05:27:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=zEiG8Ktx00MvKWQ1w3TMqBW1QsNF6y4WNdbyt7uIk9Q=; b=dWL2mAmnsNq1d8
-	V+8R3820Ark5FSPQsTLdvsu5I2pmH/hWmglCAqQVdWg1YPCWpJMmjBkk8Vuvil4PHHbDAI3BvBxwW
-	WEmJKkC4nUZu+3FKGlXNeW4QaRjHcyKp0uYACHYyAIAgQ8a3pu46qZ3597o6NWINZKMOZIaGIqZDH
-	XSD7EtBBK9nVYmd5yZL2kEVgHDzB8T/ydezUyB2dRJ/tKN2GJnNlwbTbC9adcB7yi8a3e1Gj81PD4
-	Smun/k0qVfnhvVGIOnaHoLhVjCOOkfLfFxeMGuFQO1F3JMF9cAVFQQkmSYpK5O6uhoWAr3QAIAa/t
-	QR0XKzdmc4R3FIw//IuQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:To
+	:From:Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=60w89dOyozQRrE9nMDxfaLI5a6AyANsPG83Wpi1dfDM=; b=DIMJLPvf72zh0e
+	/h2M9V8kdqDlOYgVbNN3Go/yjG64cUQj7mR8glQ03pg4p80yTxzHSKTNu2SFzl1cwVgSimlNFn8ax
+	FxuSNxiH9Amh56J5yBf3isxADl3YBnOvVmJxB0GnZwACQPTNQwEkwTgdvF8f0R+2vTBOrIe8GbCyc
+	ufi7vUljp7hb3/z9XvJyRTo8FSHIB1Sm2mA9q9Z7Gdp+WPtImlx0boJsBNheTgESE3vogW+kwqilN
+	s0i3HUJ5TTwNYxnIwiaXz6Qf73I+VZ1oktn74YZBqdoA3D7vXEqRH3g5jrtcVZd1BCKOJIK6GP2bi
+	k6batW8UyUdmJVYLm/UQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vVC7p-000000043eC-1Alc;
-	Mon, 15 Dec 2025 17:12:45 +0000
-Received: from mail-oo1-xc33.google.com ([2607:f8b0:4864:20::c33])
+	id 1vVNar-00000004iWs-0JL2;
+	Tue, 16 Dec 2025 05:27:29 +0000
+Received: from mail-pf1-x430.google.com ([2607:f8b0:4864:20::430])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vVC7n-000000043dm-1P2S
+	id 1vVNao-00000004iWU-1AHK
 	for opensbi@lists.infradead.org;
-	Mon, 15 Dec 2025 17:12:44 +0000
-Received: by mail-oo1-xc33.google.com with SMTP id 006d021491bc7-65b3843853bso2351343eaf.2
-        for <opensbi@lists.infradead.org>; Mon, 15 Dec 2025 09:12:42 -0800 (PST)
+	Tue, 16 Dec 2025 05:27:27 +0000
+Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-7f121c00dedso5164995b3a.0
+        for <opensbi@lists.infradead.org>; Mon, 15 Dec 2025 21:27:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1765818762; x=1766423562; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/xeXuoGw5XeztjlB2K4b8jJTPJBLZ558R4F0jxExPPs=;
-        b=nNIq3I1arKT1eVMig/gQXi6is6acrxXiuZZErt2JCSOjN9l/Q8yF2W1PnStOH7+Eyl
-         1I8b7L+OlUTJlXYjmha1Kq5a8V8co+0ZNQi36hWqwyuDRYw4zRJjey7c8PLl5iWgyPf6
-         wAf/SDmr2CsBC7+U7PhZwI5xFUtNB2SuWNRmBUAQR15Fg0ybXcQqdFN6ouDVP7JkL6bN
-         n++5SyV26AnAGf4OUa3QKhxv4KXY+6rVTx05aCqBfrHjoeci+HZEykfz1KGBIwD4QuUC
-         cCA+CK/JaXZBpmWvoTMqeP0J+jD+sH6WbqG7gPQXx4X3E4l9Z3romZXBsAxVqMHXgus8
-         O2Ew==
+        d=gmail.com; s=20230601; t=1765862844; x=1766467644; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Y5s4OoveLHstQd7shsJWNMwZeEuodfcOsV8suToVoWQ=;
+        b=Ptq2uClXRsccs5c2en4/gYhTKhAER/EC9AdGqP0B8EfnebHdFmGzv3bSZaW3exDDqN
+         rP8ARGCoRX6rsxvpC9bwwMhQRc3Kufroyzdz7wz+MmXnW8KrJcmYvQkr7IJMCz3hlNSu
+         UfO1vSHPzv3JTYJjgAKJF9xK89c5yBDrcAJboLDPV+k5wXsvFDOfgwBhSeJrildxXNVU
+         bRnsw5M4qwB9v2obXbzaOHjU1K+WsR9QBSkgbQSYYy59BOCg3srRALxSdIPllOJq0weW
+         ZE8+yDaGROEmbYvdayJd+PdMqrm2KIpO5mhiOcWMFrickSTO6Tv/CGkSUrAFUy6JWuoS
+         Psqg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765818762; x=1766423562;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=/xeXuoGw5XeztjlB2K4b8jJTPJBLZ558R4F0jxExPPs=;
-        b=Lr0yKThBalqqh71A9rRK9wvaH/tOJGgyQXdjz4mPLUHiMifjmTOrfFdp9e3Jtaq46U
-         M96h5kMGOF8GxuizSXdhiUpK47pXpVqKD1H5erTMFdLTgv6KHnzzGcGYmfuB24cPKvSc
-         gOG5g4Zb0ZvH7OZs7iknZMyyCdU+vkC7ZU3Ph5wcVIPOz9gyx8nCXksDvzD4Gf9x8HlM
-         olFZibk6tEg+7clPh1jU1dZUowayATRy2TSxUAzYRntEZkMPlitQlEAkbq+HtkxnSsmd
-         +ITfsQf9lD4hZltxUjvccpE4MpVYxwbmQxefLu36OxQ8hKhxjkbunaY1vCjMX6181RsA
-         9WVg==
-X-Gm-Message-State: AOJu0YwD+dsue4baRJ/7nl5FxiAiT/NiXA5OUTWWfFRBc52ne09uUm8q
-	aVENrvp4A5Ywn2MrWBGNXw7KgQTSJkWmR7yPPTzyYS/iKM21v/+abG82XPdluog+myVTWjoeC29
-	hTvqnN50OpNG1muCtnUiT+4obrOXmjfN5QVDHjlHumg==
-X-Gm-Gg: AY/fxX4oK6HAmQVr0FiMXmTUbMEIERoY8i2xOOvUMwHncnymW1P6mQtzFxJxEJOdqog
-	FJ0Na1Ghtffs7isf+C3sZgzj1OBEAf3VMoYGsbsuFsj1RrFup1Gi2HCWyS0MCPBd6JrPFvrhAlT
-	cOBIjvGbzIyCppb6pdZ6sx0llLlnscYCROttkrDDZMEZSxbIyif/a5wdN2WtGn54++fozop7fMA
-	fFl7ZW4eJ2biIGGCs7Xqm0RnhLx1nHd6fqVZLlFU6/O0T80zXRVwCsLl8NzyM8VRDujOLss7Dv4
-	Iyj3xpsoZbQ2Rqvu2Nep6F9vq2/MNQ==
-X-Google-Smtp-Source: AGHT+IFOLbdUoxwTeRsvcVid28uWnRb5oi6t0MX1pYb+v9HJ+B5WBtt8cSEtyxLPc+DtfIr9HIPsb6elpvOZo68MiLM=
-X-Received: by 2002:a05:6820:168d:b0:657:6905:56f5 with SMTP id
- 006d021491bc7-65b44fd4b3amr5498590eaf.0.1765818760936; Mon, 15 Dec 2025
- 09:12:40 -0800 (PST)
+        d=1e100.net; s=20230601; t=1765862844; x=1766467644;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Y5s4OoveLHstQd7shsJWNMwZeEuodfcOsV8suToVoWQ=;
+        b=fjn7XDLK5zaWnB61+O9W4Lppun06QP5IXZnULCUYR8WCPWrW465BRN4GXwa4boXNAg
+         aOsymPu5zh9KSUbS0tCkUWpWn98uqgu6EOx2rnaQeCXXV2vw0KevuDdlt8eKEi/vX2t7
+         rRKJ1p67JmaA2F+ILSNTaMpZAyB63PVOLqca/x7sQVmixXOwZpwgeU726VV3kfrInydc
+         2h54vXhG848TJlHBr+j1GDu+TiW32Zv/ze4tWcnYIrRwnnWOfU7XhrhpkkEfy6N/w/iz
+         mipteXUsPBDjRpXxdRlFCz0b/5CVyPjWCBFPXRTq6iqVYZhSJjvGJcBSUOroP+QipdjB
+         bMww==
+X-Gm-Message-State: AOJu0YwTyHnGceZqeXWs+hDZyaiSCGsJrwFuyf7VgeEsY8by/Nrix/aJ
+	WoXBEvQQOFGP0t+J/C9bbruh+a/iSfGjNkySuNg4hS41WlhISAItR/S9aeo1kxH+
+X-Gm-Gg: AY/fxX52qsY9zjMnP2/9gZfUyc6+pXFq8bPibV5k8Egycpvv5Af6Ik7qI/GoozD9e/5
+	LXjuCBshpRhY7xUw6D49joDAHxnjmeg0JpIz9Ub34T0cYjumsRJieehivm+v5cwf9iVVghPp2ra
+	pzuLk1kt95jRRko3xkc+u8Bi7a3ER8wRecqtKOWZwGvKslwldfYieACObXU9uJyw3hdjoxqimM7
+	jmEcjW57bCH/n0mWVsREwmqYrF9qI77NRkJaQ7qQhBwmtxsOAVtJCtPN6YE6DZ7tv2hPSDxz4tS
+	KzVe3lX+zDxhij22nJ/HYEUuRmFW3TXpos1hqf33zPx/37dx38PNb4ApMFrG5kSGWA/RHHlaQLg
+	NK79PIihBup7AOfuTqrkJEY3XrvtAmIVIXy5ti4KknZhtRLOd3+WhgJFaVrUXyU1mP5Pbheqy0X
+	kZfjfQ4EXuhePx
+X-Google-Smtp-Source: AGHT+IEigrRZcZ5ITarGtLlfdEYe3jIrTbXE064yz1TRp/KFpw1ZzyfGPfDxdCydh9xov8LNmPopxg==
+X-Received: by 2002:a05:6a00:414c:b0:7e2:839e:84e0 with SMTP id d2e1a72fcca58-7f667931a15mr12997328b3a.17.1765862844374;
+        Mon, 15 Dec 2025 21:27:24 -0800 (PST)
+Received: from m91p.airy.home ([172.92.174.155])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7f4c2773749sm14264999b3a.19.2025.12.15.21.27.23
+        for <opensbi@lists.infradead.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 15 Dec 2025 21:27:23 -0800 (PST)
+From: Bo Gan <ganboing@gmail.com>
+To: opensbi@lists.infradead.org
+Subject: [PATCH] include: riscv_asm: Optimize csr_xyz() macros to reduce stack usage
+Date: Mon, 15 Dec 2025 21:25:28 -0800
+Message-Id: <20251216052528.18896-1-ganboing@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-References: <20251114203842.13396-1-b.freisen@gmx.net>
-In-Reply-To: <20251114203842.13396-1-b.freisen@gmx.net>
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 15 Dec 2025 22:42:30 +0530
-X-Gm-Features: AQt7F2qYaQ0Ug4c_hCt-0T1QKTVvvAcWU4AZBMQZAZiipy-xb_RjRSZ6sh0fTvY
-Message-ID: <CAAhSdy0rdLGhmB__3d0v0L112YT7Jd2ZS0=duJAgBA1D6R96uw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/7] Add trap-based ISA extension emulation
-To: Benedikt Freisen <b.freisen@gmx.net>
-Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251215_091243_623136_4C5A4524 
-X-CRM114-Status: GOOD (  13.33  )
+X-CRM114-CacheID: sfid-20251215_212726_321611_C508F085 
+X-CRM114-Status: UNSURE (   8.03  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -89,51 +91,91 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gU2F0LCBOb3YgMTUsIDIwMjUgYXQgMjowOeKAr0FNIEJlbmVkaWt0IEZyZWlzZW4gPGIuZnJl
-aXNlbkBnbXgubmV0PiB3cm90ZToKPgo+IFRoaXMgcGF0Y2ggc2VyaWVzIHNlZWtzIHRvIGFkZCB0
-cmFwLWJhc2VkIGVtdWxhdGlvbiBmdW5jdGlvbmFsaXR5IGZvciB2YXJpb3VzIElTQSBleHRlbnNp
-b25zIHJlbGV2YW50IHRvIFJWQTIyLCBSVkIyMyBhbmQgUlZBMjMuCj4gVGhlIGVtdWxhdGlvbiBm
-dW5jdGlvbmFsaXR5IGNvbnRhaW5lZCBoZXJlaW4gaGFzIGJlZW4gZGVtb25zdHJhdGVkIHRvIGUu
-Zy4gYWxsb3cgdGhlIFZpc2lvbkZpdmUgMidzIEpINzExMCB0byBydW4gc29mdHdhcmUgdXNpbmcg
-dGhlIFJWQTIyVTY0IGFuZCBSVkIyM1U2NCBwcm9maWxlcywgYWxsb3cgdGhlIE9yYW5nZSBQaSBS
-VjIncyBLeSBYMSAoYSBTcGFjZW1pVCBLMSBkZXJpdmF0aXZlKSB0byBydW4gVWJ1bnR1IDI1LjEw
-IChSVkEyM1U2NCkgaW4gYSBkb2NrZXIgY29udGFpbmVyLCBhbmQgYWxsb3cgdGhlIFRlbnN0b3Jy
-ZW50IEJsYWNraG9sZSdzIFNpRml2ZSBYMjgwIChHZW4uIDEpIHRvIGJvb3QgaW50byBVYnVudHUg
-MjUuMTAuCj4KPiBUaGlzIGZvbGxvdy11cCB2ZXJzaW9uIGluY29ycG9yYXRlcyB0aGUgZm9sbG93
-aW5nIGNoYW5nZXM6Cj4KPiBQYXRjaCAxIGlzIHRoZSB1bm1vZGlmaWVkLCByZXZpZXdlZCBwYXRj
-aCB2MSAzLgo+IFBhdGNoZXMgNCBhbmQgNSAocHJldmlvdXNseSBwYXRjaCB2MSAyKSBub3cgaW5j
-bHVkZSBpbnN0cnVjdGlvbiBtYXNrIGdlbmVyYWxpemF0aW9ucyBhbmQgY29uZGl0aW9uYWwgY29t
-cGlsYXRpb24gc3VnZ2VzdGVkIGJ5IFJhZGltIEtyxI1tw6HFmS4KPiBQYXRjaGVzIDYgYW5kIDcg
-KHNwbGl0IGZyb20gcGF0Y2ggdjEgNSkgYWRkIGZpbmUtZ3JhaW5lZCBLY29uZmlnIG9wdGlvbnMg
-cGVyIElTQSBleHRlbnNpb24gZm9yIGNvbmRpdGlvbmFsIGNvbXBpbGF0aW9uLCBhcyBzdWdnZXN0
-ZWQgYnkgSW5vY2hpIEFtYW90by4KPiBUaGUgQ01PIGZ1bmN0aW9uYWxpdHkgaW4gcGF0Y2ggNiBu
-b3cgdXNlcyB0aGUgbmV3IGNhY2hlIG1hbmFnZW1lbnQgbGlicmFyeSByYXRoZXIgdGhhbiBzZXBh
-cmF0ZSBhZC1ob2MgY29kZS4KPiBUaGUgU3VwbSBpbXBsZW1lbnRhdGlvbiBpbiBwYXRjaCA2IHJl
-Y2VpdmVkIGJ1ZyBmaXhlcywgYnV0IGNvbnRpbnVlcyB0byBmZWVsIHNvbWV3aGF0IHVudGlkeS4g
-RmVlbCBmcmVlIHRvIHN1Z2dlc3QgYmV0dGVyIHBsYWNlcyBmb3IgaXRzIGZ1bmN0aW9uYWxpdHku
-Cj4gUGF0Y2ggNyAodGhlIFp2YmIgcGFydCBvZiBwYXRjaCB2MSA1KSBhZGRzIHRoZSBPUEVOU0JJ
-X0NDX1NVUFBPUlRfVkVDVE9SIGNoZWNrIHJlcXVlc3RlZCBieSBYaWFuZyBXLCBuZWNlc3NpdGF0
-aW5nIHRoZSBNYWtlZmlsZSBidWcgZml4IGluIHBhdGNoIDIgaW4gbXkgY3Jvc3MtY29tcGlsYXRp
-b24gZW52aXJvbm1lbnQuCj4KPiBHcmVldGluZ3MsCj4gQmVuZWRpa3QgRnJlaXNlbgo+Cj4gQmVu
-ZWRpa3QgRnJlaXNlbiAoNyk6Cj4gICBpbmNsdWRlOiBzYmk6IE1ha2UgInM4IiBhY3R1YWxseSBz
-aWduZWQuCj4gICBNYWtlZmlsZTogc2Vuc2libGUgZGVmYXVsdCB2YWx1ZSBmb3IgT1BFTlNCSV9D
-Q19YTEVOLgo+ICAgaW5jbHVkZTogc2JpOiBGaXggdGFiIGFsaWdubWVudC4KPiAgIGluY2x1ZGU6
-IHNiaTogSWdub3JlIHJzMSBhbmQgcmQgZmllbGRzIGluIEZFTkNFLlRTTy4KPiAgIGxpYjogc2Jp
-OiBXb3JrYXJvdW5kIGZvciBGRU5DRSguSSkgZXJyYXRhIG9uIEM5MDYsIEM5MTAuCj4gICBsaWI6
-IHNiaTogSVNBIGV4dGVuc2lvbiBlbXVsYXRpb24uCj4gICBsaWI6IHNiaTogSVNBIGV4dGVuc2lv
-biBlbXVsYXRpb24gKFp2YmIpLgoKSSBoYXZlIG1lcmdlZCBQQVRDSDEgdG8gUEFUQ0g0IGFuZCBQ
-QVRDSDUgaGFzCmEgbWlub3IgY29tbWVudC4KClJlZ2FyZGluZyBQQVRDSDYgYW5kIFBBVENINywg
-bXkgd29ycnkgaXMgdGhhdAp0aGlzIElTQSBleHRlbnNpb25zIGVtdWxhdGlvbiB3aWxsIHByZXR0
-eSBzb29uIGJlY29tZQpyZWR1bmRhbnQgYXMgbW9yZSBhbmQgbW9yZSBSVkEyMyBIVyBzaG93cyB1
-cC4KQWxzbywgZXhpc3Rpbmcgbm9uLVJWQTIzIEhXIGNhbiBhbHdheXMgdXNlClVidW50dS0yNS4w
-NCAob3Igb2xkZXIpIGFuZCBvdGhlciBkaXN0cm9zIGFzIHdlbGwuCgpNeSBpbmNsaW5hdGlvbiBp
-cyB0byBub3QgcnVzaCBpbnRvIG1lcmdpbmcgUEFUQ0g2CmFuZCBQQVRDSDcuIElmIHJlcXVpcmVk
-IHdlIGNhbiBoYXZlIGV4cGVyaW1lbnRhbApicmFuY2ggaW4gcmlzY3Yvb3BlbnNiaSByZXBvIHdp
-dGggdGhlc2UgdHdvIHBhdGNoZXMuCgpSZWdhcmRzLApBbnVwCgotLSAKb3BlbnNiaSBtYWlsaW5n
-IGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+When using debug builds, aka., DEBUG=1, csr_write_num() function can
+trigger stack overflow. This is caused by the large amount of macro
+expansion of csr_write(...), which, under debug builds, will generate
+massive amount of stack variables (tested with GCC 13.2.0). The issue
+is masked previously as we didn't have too many csr_write()'s before
+commit 55296fd27c0c, but now, it does overflow the default 4KB stack.
+
+The csr_read(relaxed) macros already use the "register" modifier to
+optimize stack usage (perhaps unknowingly?), so this patch just
+follows suit.
+
+Fixes: 55296fd27c0c ("lib: Allow custom CSRs in csr_read_num() and csr_write_num()")
+Signed-off-by: Bo Gan <ganboing@gmail.com>
+---
+ include/sbi/riscv_asm.h | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
+index ef48dc89..0cf3fc37 100644
+--- a/include/sbi/riscv_asm.h
++++ b/include/sbi/riscv_asm.h
+@@ -83,7 +83,7 @@
+ 
+ #define csr_swap(csr, val)                                              \
+ 	({                                                              \
+-		unsigned long __v = (unsigned long)(val);               \
++		register unsigned long __v = (unsigned long)(val);      \
+ 		__asm__ __volatile__("csrrw %0, " __ASM_STR(csr) ", %1" \
+ 				     : "=r"(__v)                        \
+ 				     : "rK"(__v)                        \
+@@ -111,7 +111,7 @@
+ 
+ #define csr_write(csr, val)                                        \
+ 	({                                                         \
+-		unsigned long __v = (unsigned long)(val);          \
++		register unsigned long __v = (unsigned long)(val); \
+ 		__asm__ __volatile__("csrw " __ASM_STR(csr) ", %0" \
+ 				     :                             \
+ 				     : "rK"(__v)                   \
+@@ -120,7 +120,7 @@
+ 
+ #define csr_read_set(csr, val)                                          \
+ 	({                                                              \
+-		unsigned long __v = (unsigned long)(val);               \
++		register unsigned long __v = (unsigned long)(val);      \
+ 		__asm__ __volatile__("csrrs %0, " __ASM_STR(csr) ", %1" \
+ 				     : "=r"(__v)                        \
+ 				     : "rK"(__v)                        \
+@@ -130,7 +130,7 @@
+ 
+ #define csr_set(csr, val)                                          \
+ 	({                                                         \
+-		unsigned long __v = (unsigned long)(val);          \
++		register unsigned long __v = (unsigned long)(val); \
+ 		__asm__ __volatile__("csrs " __ASM_STR(csr) ", %0" \
+ 				     :                             \
+ 				     : "rK"(__v)                   \
+@@ -139,7 +139,7 @@
+ 
+ #define csr_read_clear(csr, val)                                        \
+ 	({                                                              \
+-		unsigned long __v = (unsigned long)(val);               \
++		register unsigned long __v = (unsigned long)(val);      \
+ 		__asm__ __volatile__("csrrc %0, " __ASM_STR(csr) ", %1" \
+ 				     : "=r"(__v)                        \
+ 				     : "rK"(__v)                        \
+@@ -149,7 +149,7 @@
+ 
+ #define csr_clear(csr, val)                                        \
+ 	({                                                         \
+-		unsigned long __v = (unsigned long)(val);          \
++		register unsigned long __v = (unsigned long)(val); \
+ 		__asm__ __volatile__("csrc " __ASM_STR(csr) ", %0" \
+ 				     :                             \
+ 				     : "rK"(__v)                   \
+-- 
+2.34.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
