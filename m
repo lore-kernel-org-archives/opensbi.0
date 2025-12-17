@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5510DD65C46
-	for <opensbi@archiver.kernel.org>; Wed, 17 Dec 2025 13:32:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0C156D65C4F
+	for <opensbi@archiver.kernel.org>; Wed, 17 Dec 2025 13:32:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=KEmrynXiQYis7qTw4N/IKvLY7vBO7ZmEU2usUuc/qTc=; b=CPENaKWtErxFmW
-	rhYqGLqDo1EGf6UcWwa15wpWY6cE5BGjCEIazMoNp4z8sDcueoM9aCIhuhs06UhBJkPBU/8eQU/60
-	kXJ19YvM+V0/bu/GJDXkg1Q7g+Y/EcnIetUGKDU/D3lv/3rAtVoyab0+k6IKoSVwS1996sRYc3T3V
-	Wsn/gq0v43HRIX+wYYYCwvT4mQeL2KIx9Zivbq9iKiHpaeLJHxXSCubio7m3JsWVNLYBWxKD/jWk8
-	cEOjNk8elqNevssU3ZbPCtE1HPacBtvXI3/3nhlPw3mXqb3hnilG6Wlde1B2xoEYNmbTENVzH3USn
-	tT9V0KvmpqBOdvDaGYbw==;
+	List-Owner; bh=2nfz38FNpAx3W/lpGmASinZqwNhtm2NxkSTFmyFE6L0=; b=RsAnE56Vl3BtKo
+	cuBk6Dx5yPaVZCbuQOxZXS1hk0I8cRZy1NMuxzVPDbyl9IBv+fIfBrdp8NF0tT13k1QyJ5S6lK3Zx
+	Ms1IgmvRywmUblsx4veYl/LSqi4zrcwhFdYOLJgIJrTmt8aNSkpYvtAnUaMmFIiduLbRCLxBODx/9
+	swg/INa1xIu6HUABfUcafmYc4n7nVgou7jZNM1ttFGEG8X1YsGzUTjP8r7OEQV+JLi5a5ugZl8BrC
+	yjTIdAEFudi6rGwggz6yC7DhjlBbASUWdGEFcDvYFOgoW7hPugk3Tev9/Mel3k9BIllog+EGUeo64
+	oVrPgrNIr2pv26j/eN1g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vVrd6-00000006r0k-3bug;
-	Wed, 17 Dec 2025 13:31:48 +0000
-Received: from mail-pf1-x432.google.com ([2607:f8b0:4864:20::432])
+	id 1vVrdB-00000006r3V-4Bmd;
+	Wed, 17 Dec 2025 13:31:54 +0000
+Received: from mail-pf1-x434.google.com ([2607:f8b0:4864:20::434])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vVrd4-00000006r00-22ZJ
+	id 1vVrd9-00000006r1b-0KfO
 	for opensbi@lists.infradead.org;
-	Wed, 17 Dec 2025 13:31:47 +0000
-Received: by mail-pf1-x432.google.com with SMTP id d2e1a72fcca58-7ba55660769so4602721b3a.1
-        for <opensbi@lists.infradead.org>; Wed, 17 Dec 2025 05:31:46 -0800 (PST)
+	Wed, 17 Dec 2025 13:31:52 +0000
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-7d26a7e5639so6539724b3a.1
+        for <opensbi@lists.infradead.org>; Wed, 17 Dec 2025 05:31:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1765978305; x=1766583105; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1765978310; x=1766583110; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=EDzwK0Mtm7yPyEjl5uEK/H1TTT4dfwzDLrYmM6RpVAE=;
-        b=YUwgD5oORVvgi6U296BX1aaHIkf/9WINMeAQbcI1s7JpobJpJR47DYX+rE7Hl/a861
-         m8NEw3yz/Xx3bOCqRjY9X7zVwh1JyhMwWOeBAaj7VxTdrepWuvS5rq5yYJhrUqXLgUHq
-         exeC0asS4wVMi5N9Z3v+XLTKSJssuGRChAUNwiAv40B5WMZ4GFhv634DUhvLIM7d8WDn
-         SBPIOBHsBwxoCY3oBDNqdH97nnhFc3Us5IkKpJfTa1DcokjGfsFd5MKpLajhLvQTYu0z
-         VqmQEIW6PvXeadstpTZ+EF3ZK8ptn1UnIQD2vOE+oBRw0ThiMCkjMVCpiiUjQFdLdBsT
-         6amA==
+        bh=W2hsTq8w/WzfYOcHXKGHmf3j6fEqMXj5p0XzGLliv9k=;
+        b=dPk3yxbu1hur4T+dx8F9rZRo47k0Ppv0SNvgkklFsGH2Nlk71gtA73P53ZcrPrw70x
+         47AQ+Zy4H7+oCIgmqT3CgCJVsiVItx8FFXMpQrJe0fRsJmJoRbcAYbqbNNsbDb5hhMkP
+         N+aOuEqTDjzeJ88GQmhiIa0EghE7eh+aea4os1H48ax9Qwg1H68RrlCDy3vRx0WDEdqM
+         tK3RvjmNS8HdMQ7xmTRhqOVjNyOts4PnOvi4qiDK6g7NqIAH8k/WH/rQIdozr13P5yDe
+         7RDbH6fyKr2lrmf+KVgZJobdfPfOrywzQxlrMkMq4juLIG1nvaDFBiWwx8ujRwDAl7mS
+         i5Xg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765978305; x=1766583105;
+        d=1e100.net; s=20230601; t=1765978310; x=1766583110;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=EDzwK0Mtm7yPyEjl5uEK/H1TTT4dfwzDLrYmM6RpVAE=;
-        b=Fi4G1UsSX2nVNDC/+mxpGQZQLzDr52OwvtJy/5CU+G8Ku5jJOLlt8e6SdZDzYAhKdm
-         H/s/2fcpbibN3c5/lW9LHOOU0Rhsn29lIS3Y9P7TcsNUrvWoKrHhvwACSjV5+Nk3/3lx
-         uZCm+EiaXhoIGRyG2uDPGhH+GT/UeumMFO+THMQlpFGclLQAW/6FR51W9Q8MPD8TRQl/
-         pLyq6S4n++Fpzp6HQXMz1rtOQHciaB9SZFdw30Sg6OPW6rgey+DdjB3p24rOtwVHPw98
-         SaQLd5VdBBzyqMWplaaXI5SrgLIr/F4iuBOxuHn96WQ8dWmXtxdk3cUgeEleKcyhuy4g
-         B1XA==
-X-Gm-Message-State: AOJu0Yz8hC07OdiB3wu2HQ9FXI1ElUoUhM6K8K56+nbSlo0qsJcbVGj+
-	0Fs17GnwV7murRz/MeQHGNgDAztCk75IZ9wrd4x9Yoo3T1M2vcV4XmIg8mP8MA==
-X-Gm-Gg: AY/fxX72Bht7M6YvKuCnNH/fDuOGc8MP5R7fhN3r2nTbG7ieHE+/BePclrtTNWhBDnv
-	NXm5iLA92Xs4s7JEhShWuAhFljojTwKj1KhJRrkYCUpOhFXIty04lbFxrUNepuykoy7NeFSGSrN
-	nkPgAdIFW4NbiNqTOYCRPEChyq01gqqjaoBMt9ZPV+1URWdluxylGHGyY8Imvyl9kHIu34zhImx
-	+JIUBoHRqkG6bvYStW7/yGV0QoIrJ0kzq/CU0stKabkhRlLjgn31TqiGfjE4I7WdEY0swvmUdRn
-	2YmnSy8rq+kWpGs1qq1mpJhe2D0L39R8aqSmkJ5s0bg9BQ7hXgf30oG9zDs6uMlr/HJ1kJaHuFs
-	fnkEtWjccpJVtMNKX6ujO/aFaMMS1cuUrcs94EK6B0nul/idP9f2//X7c462/xw6q4Ea4448tNZ
-	SMyukvx8fuXyBI
-X-Google-Smtp-Source: AGHT+IHstk9BaIoisnm1EWO7AFlsnynfnU82cgGQxnefodP3sdauVRlOhBKTT8P7N6xsxmEmJRGZKA==
-X-Received: by 2002:a05:6a00:2a06:b0:7e8:4471:8d7 with SMTP id d2e1a72fcca58-7f669e80b7dmr16048095b3a.56.1765978304859;
-        Wed, 17 Dec 2025 05:31:44 -0800 (PST)
+        bh=W2hsTq8w/WzfYOcHXKGHmf3j6fEqMXj5p0XzGLliv9k=;
+        b=jZUbcKtNXAr1A1tJAdfYMZKJaF8o4MjxhJXOanNl6UgS1xnPW+RVuo9uIB6ZrstMcx
+         Neig6cFAaPyzdg/TEEpa381+PchrbgHQylRJpGAHtOXq/sJHXoQafJqX8zkOuXQK0IUs
+         FN9F7+WCKaRDEUuyKPL0tA9M+ZopXar2q/hsRHRL0n3Q1tSFzqGSCRTIEiK8ZQoKd5fK
+         hrmneguQSag4xWP7l/T+bqv6ikWDrXd9gaOFaAvJ31cswPdcrYRsQm1qHkwtLzlcJ0cr
+         miUHE5qBO4tbZ9E13JISt5I1CfoQl7f4o/cJK1YLEkSbOVOQB64DAAiRd1EWLfIbJ5zb
+         zmVw==
+X-Gm-Message-State: AOJu0Ywf1XH9uB8xrdwOa8yLi1YRLTsUoDrmdFHQrdqpmC5BpDihQfA0
+	dhSoeMdpjVaFdbJgx5csAwcJ65hUDF3GDYf5EvqrCDETihjSAeyPDEEsvPaNRw==
+X-Gm-Gg: AY/fxX6g7vU1R2Jz9pJ/n0fI5xKjVqUYdC0KpUfSqRWDWhJBOcoiCSviWuZUTXU7LkN
+	C9nRdELDhNG9h5YM/8kEnom+0USkHbbC4LV2NMPqlMHbBpg6s3+jk8PK47qLgX2BXjaJXXW0M0o
+	ZfM9fAgdTIGXclRE7NsAXV+pljmCYDxkBskldVYcO75YgjNX+4Sr+ZxTKNruMHyYwFKsCb4LnAr
+	JXBfjQK/2INO/orzXvgE7+qUukY4/ULmygj3KKev+bgE4BLc1nEvJqxgH0t6IqkoaaKaELv8J7b
+	USE/cjpO0jfR3OyEGS6x5KDbShQuKRBNcuTcNV0UKvfLOs33wGEk/pWCFmP5bbiN8TpF0EghfiT
+	ymZRa7QLJNvWJGKbyA4rd9GM0e90fU+btXqPIW4Etz9rbxoxXZtnBBxv0tc20ynuv+pQkTaxGVz
+	Fycl+P4ybcf50g
+X-Google-Smtp-Source: AGHT+IEdL7xDPoKgEcAniPoGXaYqT6MMJFPWMJVvDPMa8dhixjJyHqlT9QfkqUtHT/i7caTXPpgw2g==
+X-Received: by 2002:a05:6a21:6da8:b0:34f:7454:b977 with SMTP id adf61e73a8af0-369b6aae3e0mr18819648637.48.1765978309571;
+        Wed, 17 Dec 2025 05:31:49 -0800 (PST)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7fcbc1c4ef2sm2809104b3a.65.2025.12.17.05.31.43
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7fcbc1c4ef2sm2809104b3a.65.2025.12.17.05.31.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 17 Dec 2025 05:31:43 -0800 (PST)
+        Wed, 17 Dec 2025 05:31:48 -0800 (PST)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: linmin@eswincomputing.com,
@@ -76,17 +76,16 @@ Cc: linmin@eswincomputing.com,
 	gaohan@iscas.ac.cn,
 	samuel@sholland.org,
 	wangxiang@iscas.ac.cn
-Subject: [PATCH v5 1/7] lib: sbi_hart_pmp: make sbi_hart_pmp_fence public
-Date: Wed, 17 Dec 2025 05:29:53 -0800
-Message-Id: <20251217132959.545197-2-ganboing@gmail.com>
+Subject: [PATCH v5 4/7] lib: sbi: give platform choice of using single memregion to cover OpenSBI
+Date: Wed, 17 Dec 2025 05:29:56 -0800
+Message-Id: <20251217132959.545197-5-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20251217132959.545197-1-ganboing@gmail.com>
 References: <20251217132959.545197-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251217_053146_532795_6120C92F 
-X-CRM114-Status: UNSURE (   8.98  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20251217_053151_125069_6F1B69BA 
+X-CRM114-Status: GOOD (  14.78  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -103,40 +102,112 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_hart_pmp_fence can now be utilized by other hart-protection
-implementation.
+By default the OpenSBI itself is covered by 2 memregions for RX/RW
+sections. This is required by platforms with Smepmp to enforce
+proper permissions in M mode. Note: M-mode only regions can't
+have RWX permissions with Smepmp. Platforms with traditional PMPs
+won't be able to benefit from it, as both regions are effectively
+RWX in M mode, but usually it's harmless to so. Now we provide
+these platforms with an option to disable this logic. It saves 1
+PMP entry. For platforms really in short of PMPs, it does make a
+difference.
+
+Note: Platform requesting single OpenSBI memregion must be using
+      traditional (old) PMP. We expect the platform code to do
+      the right thing.
 
 Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- include/sbi/sbi_hart_pmp.h | 1 +
- lib/sbi/sbi_hart_pmp.c     | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ include/sbi/sbi_platform.h | 21 +++++++++++++++++++++
+ lib/sbi/sbi_domain.c       | 36 ++++++++++++++++++++++++------------
+ 2 files changed, 45 insertions(+), 12 deletions(-)
 
-diff --git a/include/sbi/sbi_hart_pmp.h b/include/sbi/sbi_hart_pmp.h
-index f54e8b2a..a7765d17 100644
---- a/include/sbi/sbi_hart_pmp.h
-+++ b/include/sbi/sbi_hart_pmp.h
-@@ -15,6 +15,7 @@ unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
- unsigned int sbi_hart_pmp_log2gran(struct sbi_scratch *scratch);
- unsigned int sbi_hart_pmp_addrbits(struct sbi_scratch *scratch);
- bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx);
-+void sbi_hart_pmp_fence(void);
- int sbi_hart_pmp_init(struct sbi_scratch *scratch);
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index d75c12de..e65d9877 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -76,6 +76,9 @@ struct sbi_platform_operations {
+ 	/* Check if specified HART is allowed to do cold boot */
+ 	bool (*cold_boot_allowed)(u32 hartid);
  
- #endif
-diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
-index 62bc859a..7f970ca3 100644
---- a/lib/sbi/sbi_hart_pmp.c
-+++ b/lib/sbi/sbi_hart_pmp.c
-@@ -62,7 +62,7 @@ bool sbi_hart_smepmp_is_fw_region(unsigned int pmp_idx)
- 	return bitmap_test(fw_smepmp_ids, pmp_idx) ? true : false;
++	/* Check if platform requires single firmware region */
++	bool (*single_fw_region)(void);
++
+ 	/* Platform nascent initialization */
+ 	int (*nascent_init)(void);
+ 
+@@ -347,6 +350,24 @@ static inline bool sbi_platform_cold_boot_allowed(
+ 	return true;
  }
  
--static void sbi_hart_pmp_fence(void)
-+void sbi_hart_pmp_fence(void)
- {
- 	/*
- 	 * As per section 3.7.2 of privileged specification v1.12,
++/**
++ * Check whether platform requires single firmware region
++ *
++ * Note: Single firmware region only works with legacy PMP because with
++ * Smepmp M-mode only regions can't have RWX permissions.
++ *
++ * @param plat pointer to struct sbi_platform
++ *
++ * @return true if single firmware region required and false otherwise
++ */
++static inline bool sbi_platform_single_fw_region(
++					const struct sbi_platform *plat)
++{
++	if (plat && sbi_platform_ops(plat)->single_fw_region)
++		return sbi_platform_ops(plat)->single_fw_region();
++	return false;
++}
++
+ /**
+  * Nascent (very early) initialization for current HART
+  *
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index a19bf25b..90cbb540 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -923,18 +923,30 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	root.possible_harts = root_hmask;
+ 
+ 	/* Root domain firmware memory region */
+-	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
+-				  (SBI_DOMAIN_MEMREGION_M_READABLE |
+-				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
+-				   SBI_DOMAIN_MEMREGION_FW),
+-				  &root_memregs[root_memregs_count++]);
+-
+-	sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
+-				  (scratch->fw_size - scratch->fw_rw_offset),
+-				  (SBI_DOMAIN_MEMREGION_M_READABLE |
+-				   SBI_DOMAIN_MEMREGION_M_WRITABLE |
+-				   SBI_DOMAIN_MEMREGION_FW),
+-				  &root_memregs[root_memregs_count++]);
++	if (sbi_platform_single_fw_region(sbi_platform_ptr(scratch))) {
++		sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
++					  (SBI_DOMAIN_MEMREGION_M_READABLE |
++					   SBI_DOMAIN_MEMREGION_M_WRITABLE |
++					   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
++					   SBI_DOMAIN_MEMREGION_FW),
++					  &root_memregs[root_memregs_count++]);
++	} else {
++		sbi_domain_memregion_init(scratch->fw_start,
++					  scratch->fw_rw_offset,
++					  (SBI_DOMAIN_MEMREGION_M_READABLE |
++					   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
++					   SBI_DOMAIN_MEMREGION_FW),
++					  &root_memregs[root_memregs_count++]);
++
++		sbi_domain_memregion_init((scratch->fw_start +
++					   scratch->fw_rw_offset),
++					  (scratch->fw_size -
++					   scratch->fw_rw_offset),
++					  (SBI_DOMAIN_MEMREGION_M_READABLE |
++					   SBI_DOMAIN_MEMREGION_M_WRITABLE |
++					   SBI_DOMAIN_MEMREGION_FW),
++					  &root_memregs[root_memregs_count++]);
++	}
+ 
+ 	root.fw_region_inited = true;
+ 
 -- 
 2.34.1
 
