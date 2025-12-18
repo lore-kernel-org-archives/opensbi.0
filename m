@@ -4,81 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0E00CD6D22D
-	for <opensbi@archiver.kernel.org>; Thu, 18 Dec 2025 14:39:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C0E63D711C4
+	for <opensbi@archiver.kernel.org>; Thu, 18 Dec 2025 21:19:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=M7ZZek/qrFFhP2wgb3PT2aBGT2fHKtgiyNCxHyYUvnc=; b=NwONfGZrxgMyXg
-	+9k+794gJTRP+zmUb5vBgrrnhhpg1s9yccA+ukMX5sGvq+lnfEwwbauIE4Q9bqxyn9GTn+4HoFmrq
-	dBVFWdPAFqeM74lurHNdQeeeVeTH1eosMfy3dPbLjAKUeQWrZ6JAtDl/8Fnq5vFhL330TGWRFkGH5
-	ZLfMV/a1taYtaf8SxQjtLPIj0o1K0V6c6Frf9t1+Sp30hl8yz1qVK/kAPEyH7qCvYfQGNZhELMWIJ
-	mdCmK5LkHq+n8898NSUptuQCEd5wHyDC/J1dugIz4LDKv+LsfI95sVcFygqBC3nsFIe1klMKtWFjK
-	ILxjx1Vyl8T/LTMF+ToQ==;
+	List-Owner; bh=CSAdOQM0XssoZKzNPHMdjUvoG0WT6Q2ctA1gaf2SM2A=; b=ygemBGcfurznvT
+	6QTeLQdPe2qQrTd/05BAdKiIxRgeZy1+ilVShPZ3RxRlJAdjva+wMWnEFG9MAZV9hP0QVFH41FrnC
+	8EG9i2UhmK4bP2p0VohGowgCiqe5ePN7CVBN7NCGntJNhrgEWzW+3QDn2+VFFakGxOSeCtUiYZ7U6
+	ZcaM3H8oEpLJHnqBSSPVxCY7b6k9K8HXpAvoJUtXe8Af5QfziYOeW7gPi55rVlLiB9897IZvd4ZtW
+	Kzk6CWiwpI/4p8vlbnDK1t9AHUwQWKU/CZlPX9SIAussyEodLTh1ZGfhXKnAvMr4mr0zKMDctUfGx
+	te+OPTJ4qY/i4uqRqGdw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vWF9m-00000008cpZ-3BXh;
-	Thu, 18 Dec 2025 14:39:06 +0000
-Received: from mail-ot1-x333.google.com ([2607:f8b0:4864:20::333])
+	id 1vWLOm-00000009Cfm-1jD6;
+	Thu, 18 Dec 2025 21:19:00 +0000
+Received: from mail-pj1-x102f.google.com ([2607:f8b0:4864:20::102f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vWF9j-00000008cp0-1iZf
+	id 1vWLOj-00000009CfP-1pm4
 	for opensbi@lists.infradead.org;
-	Thu, 18 Dec 2025 14:39:04 +0000
-Received: by mail-ot1-x333.google.com with SMTP id 46e09a7af769-7c75fc222c3so309743a34.0
-        for <opensbi@lists.infradead.org>; Thu, 18 Dec 2025 06:39:03 -0800 (PST)
+	Thu, 18 Dec 2025 21:18:58 +0000
+Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-34c213f7690so907686a91.2
+        for <opensbi@lists.infradead.org>; Thu, 18 Dec 2025 13:18:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1766068742; x=1766673542; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IvhIEY892+uNxvtPwa0Nk3hioyN7NALwo8LVS6w7XYU=;
-        b=afwWxl2G8V8sY9WsQzkLqtH6PHGKyPH1gxSf2kafCUOcueM7FE0dFsxLL067Hd2nbZ
-         w3rzTGOzws//XR7IhlEsD9OGJ75y/OOQuivYxPK7DLRPNFTVy0APKmUf0CwYvRgNthmz
-         6EepHsu7xetfM8JCr1WdvxkCeofNnypsatHd6Cn9H9E2oUKI5/wmmRDxcwcT/EN+0o7n
-         Y3q9ah999HcDkEQ3CXaciV2vtSwjoYVe4uy+kuy4qixmUNcaBSA4cQjcL7xcjthjZfgd
-         U+qwEhJ25FLaE8Z1VcM60pz534NYlqF3yYcAZqudfjQtlI+HTAWLYCUDJDLkTipaUtB2
-         xtzQ==
+        d=gmail.com; s=20230601; t=1766092736; x=1766697536; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=b4+i7PJencsgpj0AE9bv13bvSFIsTTTLQH1HjaLL200=;
+        b=liN1IeERJMGnM+rqLcY0wd+DRKfpHkTUCHMuw5201nFEy1bw7SA883TjquC7kLL1Y6
+         /osrAsdIk5YOjconrqM34l7U4ljQKizALbIvBYaCj+jASIxgey5nrofYyPobmNoG0EN6
+         kwis3tZ/vSdWiGw5G4rFX6YndG43z7kqjckO/chtTMqIYBNbha/rLT/jLJNUA+6O91j5
+         VFRLrGo5wODYs0rHNh2Yy240uStZfeudt/5HKY/wvaaF1XHTKqWtgFNZuce6494eEFQy
+         Vz6DsdDWw1QTFCfmZu6JOXxTxaCX2zJ6d9lL6RNyFPT2QwVXr7NzE6+I++Ys1PbTDYP/
+         EJkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766068742; x=1766673542;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=IvhIEY892+uNxvtPwa0Nk3hioyN7NALwo8LVS6w7XYU=;
-        b=qBPKp8xazu4BHhik2BSlMIRd8x395bv1M7XbBWrfMuhrdX25aaZ3NbtS7vS4mv1HLb
-         w1W/iXgeu6PRXIPEaDmNhQjqgHACucmpO01amqRMiN7hVN2iTDTsTF1PwoIY/8d0n7lQ
-         Y5etEKCn+jl7NBTMOiK0h0e6F9hJISYB7CuexucZ/i6stOZInvux+CUb3OtN3nJ1oVOV
-         bGyK+D6URJWwJ2LGXaOj7maM4tQaC9JK0BjCsG4V1+GfFmosRTkne6ASBRhh1Fi+JLql
-         5fuYH/FliCuj3D2PktiZKp/bismLxnHc4aQ5bcIihnHa3aGyaLxOeXOK4qAlqFsWBfdO
-         LlkA==
-X-Gm-Message-State: AOJu0YwONs+IvOwGHGeh5YyifhMZFCjfC9nDPvmpJpsTbHIXbIlRd8dn
-	mYamIwCYp5pY8K0ZX+E7+H1THa1LNujYjvQTJ8XJz3x0ftOhFJ9b46f8fr6YN4GbT4Oob2O9QHJ
-	YMYXMzgp3GTSizUDyO9a40pa2X0HY5KIkQFb6rPicUg==
-X-Gm-Gg: AY/fxX76IY+cVGBfM9jV/pTYUwIPxD8O7QDrV/3sihSluJmGDf7bNU3pRtc9nifjLBx
-	EWb51VFGWQxHOtVYd/5eU18/LFajM+jS6EUEHvocRKGOODpTZTg6ngpAXBOEPFxrNOl/odtpflh
-	t0HjGvPaScGE/pjszfshff4XtVqRAKYOaCRpmzSMH8W9/NveWD0PefkWvh5RhlIJRYDmN24ERYf
-	oy5oiBDiACj1OqpLCSHzQsjood6Z8UHwOVg1JZV+zl26nP7QiM/N5WNkze2mCAwzU6CvLMH
-X-Google-Smtp-Source: AGHT+IFLh7bpkWfQf8V/h9J0097gz8OPQ/7PIeahcoQewIhjDrDhYO9HD7pIEMHhwFi4V6qW29s3IL/zJroK5Xc0GRg=
-X-Received: by 2002:a05:6820:609:b0:65d:c8e:8408 with SMTP id
- 006d021491bc7-65d0c8e8683mr76023eaf.46.1766068742320; Thu, 18 Dec 2025
- 06:39:02 -0800 (PST)
+        d=1e100.net; s=20230601; t=1766092736; x=1766697536;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=b4+i7PJencsgpj0AE9bv13bvSFIsTTTLQH1HjaLL200=;
+        b=JwFvYLf6nXCzDdObQH8m1ef+1tJMlzi2FW7e8phNXiFS0rJqMqI32D01aC7AR5I/kN
+         2vKy76OCcEj/2z5W+kzWI0xfPbD6Fjuna8kYAQNLgqaW5zO7HE6bPnanYrBLoP6U0Se4
+         PPtjJYwMkWxhluHzHR6Uzxgdj+1Pc/y2q6bl32jbXBavZZOAPtdAEIr/9vFZR/cq0OwP
+         UhkVrlvXVa36VAw4gb+VQPaoARP7w2FETt34TaatDDjMRgujQq4JxFfFa2a8vyytE7E6
+         9KSG89I2aLg3cC/ZHHAbzsaUK2/8MbxWtdNSSrT4Btxxr7/MkkI0tw0f/id97itLx/MI
+         VRTQ==
+X-Gm-Message-State: AOJu0YwdGZP0TcZA2oJba2X0JDEsInAzxexGv9u+TYPB9com9Si+90qN
+	m8fxjkFTSmCVWhSweKVcle1V4dqtPvesYlZILNmV+RJ0F56JyuxqPZxejiGehw==
+X-Gm-Gg: AY/fxX75Fs3DT4uUSVzZEcVoL3Bl1NAmplUOxBzKrTllpLtFMUDmt31c/nNge6bnKRu
+	SWnYpZJWQUF325KWWJBI7LPTRJCdNMxK40jgogIPRJuORLefohq0G1cF4lwNCes82Nr7oVBOE6m
+	SAeYG61+wSmX5+mC1YZuqdCD+bh98z4z6xviKp0GpUEA50MLpZSKg+P906q/x0y+whrKyDfP4h5
+	4gHLNsp+M0waoFNEXxowX78jN3bGC4KFVlID1nTyEUjLdAAqEEP334m/dYATnx73gFJtHweF3ad
+	v/KI9RR3TlY0/o5FxnxFrq7oDMov/atBFj9SnOH98hJBE50R4dl1imo539sVQ+fGSl8EepGer6u
+	ZRazgmM2sV0sX8Ua18UdLRGTFU+6c+mnckfOcNPCVahbrh5CH7VLChDV9RFAeHykigDQjNF+uLy
+	tEtg8gioDNzZqK
+X-Google-Smtp-Source: AGHT+IExrnNf4msieG2cUoCzQl7U/pRaag1PFtdUKYScclu7zsH5EZFNsELswxdTOi0FEPUJrcA/SA==
+X-Received: by 2002:a17:90b:4c07:b0:34c:2db6:57f1 with SMTP id 98e67ed59e1d1-34e921e62b6mr514925a91.30.1766092736199;
+        Thu, 18 Dec 2025 13:18:56 -0800 (PST)
+Received: from [192.168.0.13] ([172.92.174.155])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-34e70d676b8sm3310867a91.8.2025.12.18.13.18.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 18 Dec 2025 13:18:55 -0800 (PST)
+Message-ID: <e1906c35-c28a-429b-896b-fe80920ec5f4@gmail.com>
+Date: Thu, 18 Dec 2025 13:17:16 -0800
 MIME-Version: 1.0
-References: <20251218104243.562667-1-ganboing@gmail.com> <20251218104243.562667-4-ganboing@gmail.com>
-In-Reply-To: <20251218104243.562667-4-ganboing@gmail.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Thu, 18 Dec 2025 20:08:51 +0530
-X-Gm-Features: AQt7F2odx2_cDe1tAIGQD6kXWt-vl_6KhkW36upHCnVpNk4hPbOGQkXEJQ06rpo
-Message-ID: <CAAhSdy2QA6P8ncANEEM422e1uBOLq+c=VaPv0rfOowuTowGyCw@mail.gmail.com>
-Subject: Re: [PATCH v6 3/7] lib: sbi_domain: make is_region_subset public
-To: Bo Gan <ganboing@gmail.com>
-Cc: opensbi@lists.infradead.org, linmin@eswincomputing.com, 
-	pinkesh.vaghela@einfochips.com, gaohan@iscas.ac.cn, samuel@sholland.org, 
-	wangxiang@iscas.ac.cn
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] p8700: don't use AMO instructions
+To: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
+ anup@brainfault.org
+Cc: opensbi@lists.infradead.org
+References: <20251218114705.1650842-1-vladimir.kondratiev@mobileye.com>
+Content-Language: en-US
+From: Bo Gan <ganboing@gmail.com>
+In-Reply-To: <20251218114705.1650842-1-vladimir.kondratiev@mobileye.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251218_063903_453298_7F2C2862 
-X-CRM114-Status: GOOD (  19.83  )
+X-CRM114-CacheID: sfid-20251218_131857_511117_0C9B1C0B 
+X-CRM114-Status: GOOD (  11.41  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -90,80 +96,44 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVGh1LCBEZWMgMTgsIDIwMjUgYXQgNDoxNOKAr1BNIEJvIEdhbiA8Z2FuYm9pbmdAZ21haWwu
-Y29tPiB3cm90ZToKPgo+IFRoZSBoZWxwZXIgZnVuY3Rpb24gaXMgcmVuYW1lZCBhcyBzYmlfZG9t
-YWluX21lbXJlZ2lvbl9pc19zdWJzZXQsCj4gYW5kIG1hZGUgcHVibGljIGluIGhlYWRlciBmaWxl
-Lgo+Cj4gQWxzbyBhZGQgYSBjb252ZW5pZW50IGhlbHBlciBvZiBzYmlfZG9tYWluX2Zvcl9lYWNo
-X21lbXJlZ2lvbl9pZHguCj4KPiBTaWduZWQtb2ZmLWJ5OiBCbyBHYW4gPGdhbmJvaW5nQGdtYWls
-LmNvbT4KCkxHVE0uCgpSZXZpZXdlZC1ieTogQW51cCBQYXRlbCA8YW51cEBicmFpbmZhdWx0Lm9y
-Zz4KClJlZ2FyZHMsCkFudXAKCj4gLS0tCj4gIGluY2x1ZGUvc2JpL3NiaV9kb21haW4uaCB8IDIy
-ICsrKysrKysrKysrKysrKysrKysrKysKPiAgbGliL3NiaS9zYmlfZG9tYWluLmMgICAgIHwgMjMg
-KysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAgMiBmaWxlcyBjaGFuZ2VkLCAyNSBpbnNlcnRpb25z
-KCspLCAyMCBkZWxldGlvbnMoLSkKPgo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3NiaS9zYmlfZG9t
-YWluLmggYi9pbmNsdWRlL3NiaS9zYmlfZG9tYWluLmgKPiBpbmRleCAzMzYwZTA5MC4uYzhhNmRh
-OTkgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9zYmkvc2JpX2RvbWFpbi5oCj4gKysrIGIvaW5jbHVk
-ZS9zYmkvc2JpX2RvbWFpbi5oCj4gQEAgLTE2NCw2ICsxNjQsMjUgQEAgc3RydWN0IHNiaV9kb21h
-aW5fbWVtcmVnaW9uIHsKPiAgICAgICAgIHVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4gIH07Cj4KPiAr
-LyoqIENoZWNrIGlmIHJlZ2lvbkEgaXMgc3ViLXJlZ2lvbiBvZiByZWdpb25CICovCj4gK3N0YXRp
-YyBpbmxpbmUgYm9vbCBzYmlfZG9tYWluX21lbXJlZ2lvbl9pc19zdWJzZXQoCj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbl9tZW1yZWdpb24g
-KnJlZ0EsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3Qgc2Jp
-X2RvbWFpbl9tZW1yZWdpb24gKnJlZ0IpCj4gK3sKPiArICAgICAgIHVsb25nIHJlZ0Ffc3RhcnQg
-PSByZWdBLT5iYXNlOwo+ICsgICAgICAgdWxvbmcgcmVnQV9lbmQgPSByZWdBLT5iYXNlICsgKEJJ
-VChyZWdBLT5vcmRlcikgLSAxKTsKPiArICAgICAgIHVsb25nIHJlZ0Jfc3RhcnQgPSByZWdCLT5i
-YXNlOwo+ICsgICAgICAgdWxvbmcgcmVnQl9lbmQgPSByZWdCLT5iYXNlICsgKEJJVChyZWdCLT5v
-cmRlcikgLSAxKTsKPiArCj4gKyAgICAgICBpZiAoKHJlZ0Jfc3RhcnQgPD0gcmVnQV9zdGFydCkg
-JiYKPiArICAgICAgICAgICAocmVnQV9zdGFydCA8IHJlZ0JfZW5kKSAmJgo+ICsgICAgICAgICAg
-IChyZWdCX3N0YXJ0IDwgcmVnQV9lbmQpICYmCj4gKyAgICAgICAgICAgKHJlZ0FfZW5kIDw9IHJl
-Z0JfZW5kKSkKPiArICAgICAgICAgICAgICAgcmV0dXJuIHRydWU7Cj4gKwo+ICsgICAgICAgcmV0
-dXJuIGZhbHNlOwo+ICt9Cj4gKwo+ICAvKiogUmVwcmVzZW50YXRpb24gb2YgT3BlblNCSSBkb21h
-aW4gKi8KPiAgc3RydWN0IHNiaV9kb21haW4gewo+ICAgICAgICAgLyoqIE5vZGUgaW4gbGlua2Vk
-IGxpc3Qgb2YgZG9tYWlucyAqLwo+IEBAIC0yMjIsNiArMjQxLDkgQEAgZXh0ZXJuIHN0cnVjdCBz
-YmlfZGxpc3QgZG9tYWluX2xpc3Q7Cj4gICNkZWZpbmUgc2JpX2RvbWFpbl9mb3JfZWFjaF9tZW1y
-ZWdpb24oX19kLCBfX3IpIFwKPiAgICAgICAgIGZvciAoKF9fcikgPSAoX19kKS0+cmVnaW9uczsg
-KF9fciktPm9yZGVyOyAoX19yKSsrKQo+Cj4gKyNkZWZpbmUgc2JpX2RvbWFpbl9mb3JfZWFjaF9t
-ZW1yZWdpb25faWR4KF9fZCwgX19yLCBfX2kpIFwKPiArICAgICAgIGZvciAoKF9fcikgPSAoX19k
-KS0+cmVnaW9ucywgKF9faSkgPSAwOyAoX19yKS0+b3JkZXI7IChfX3IpKyssIChfX2kpKyspCj4g
-Kwo+ICAvKioKPiAgICogQ2hlY2sgd2hldGhlciBnaXZlbiBIQVJUIGlzIGFzc2lnbmVkIHRvIHNw
-ZWNpZmllZCBkb21haW4KPiAgICogQHBhcmFtIGRvbSBwb2ludGVyIHRvIGRvbWFpbgo+IGRpZmYg
-LS1naXQgYS9saWIvc2JpL3NiaV9kb21haW4uYyBiL2xpYi9zYmkvc2JpX2RvbWFpbi5jCj4gaW5k
-ZXggNzRjYzFlM2YuLmExOWJmMjViIDEwMDY0NAo+IC0tLSBhL2xpYi9zYmkvc2JpX2RvbWFpbi5j
-Cj4gKysrIGIvbGliL3NiaS9zYmlfZG9tYWluLmMKPiBAQCAtMjg1LDI5ICsyODUsMTIgQEAgc3Rh
-dGljIGJvb2wgaXNfcmVnaW9uX3ZhbGlkKGNvbnN0IHN0cnVjdCBzYmlfZG9tYWluX21lbXJlZ2lv
-biAqcmVnKQo+ICAgICAgICAgcmV0dXJuIHRydWU7Cj4gIH0KPgo+IC0vKiogQ2hlY2sgaWYgcmVn
-aW9uQSBpcyBzdWItcmVnaW9uIG9mIHJlZ2lvbkIgKi8KPiAtc3RhdGljIGJvb2wgaXNfcmVnaW9u
-X3N1YnNldChjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbl9tZW1yZWdpb24gKnJlZ0EsCj4gLSAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbl9tZW1yZWdpb24g
-KnJlZ0IpCj4gLXsKPiAtICAgICAgIHVsb25nIHJlZ0Ffc3RhcnQgPSByZWdBLT5iYXNlOwo+IC0g
-ICAgICAgdWxvbmcgcmVnQV9lbmQgPSByZWdBLT5iYXNlICsgKEJJVChyZWdBLT5vcmRlcikgLSAx
-KTsKPiAtICAgICAgIHVsb25nIHJlZ0Jfc3RhcnQgPSByZWdCLT5iYXNlOwo+IC0gICAgICAgdWxv
-bmcgcmVnQl9lbmQgPSByZWdCLT5iYXNlICsgKEJJVChyZWdCLT5vcmRlcikgLSAxKTsKPiAtCj4g
-LSAgICAgICBpZiAoKHJlZ0Jfc3RhcnQgPD0gcmVnQV9zdGFydCkgJiYKPiAtICAgICAgICAgICAo
-cmVnQV9zdGFydCA8IHJlZ0JfZW5kKSAmJgo+IC0gICAgICAgICAgIChyZWdCX3N0YXJ0IDwgcmVn
-QV9lbmQpICYmCj4gLSAgICAgICAgICAgKHJlZ0FfZW5kIDw9IHJlZ0JfZW5kKSkKPiAtICAgICAg
-ICAgICAgICAgcmV0dXJuIHRydWU7Cj4gLQo+IC0gICAgICAgcmV0dXJuIGZhbHNlOwo+IC19Cj4g
-LQo+ICAvKiogQ2hlY2sgaWYgcmVnaW9uQSBjYW4gYmUgcmVwbGFjZWQgYnkgcmVnaW9uQiAqLwo+
-ICBzdGF0aWMgYm9vbCBpc19yZWdpb25fY29tcGF0aWJsZShjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFp
-bl9tZW1yZWdpb24gKnJlZ0EsCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29u
-c3Qgc3RydWN0IHNiaV9kb21haW5fbWVtcmVnaW9uICpyZWdCKQo+ICB7Cj4gLSAgICAgICBpZiAo
-aXNfcmVnaW9uX3N1YnNldChyZWdBLCByZWdCKSAmJiByZWdBLT5mbGFncyA9PSByZWdCLT5mbGFn
-cykKPiArICAgICAgIGlmIChzYmlfZG9tYWluX21lbXJlZ2lvbl9pc19zdWJzZXQocmVnQSwgcmVn
-QikgJiYKPiArICAgICAgICAgICByZWdBLT5mbGFncyA9PSByZWdCLT5mbGFncykKPiAgICAgICAg
-ICAgICAgICAgcmV0dXJuIHRydWU7Cj4KPiAgICAgICAgIHJldHVybiBmYWxzZTsKPiBAQCAtMzY3
-LDcgKzM1MCw3IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgc2JpX2RvbWFpbl9tZW1yZWdpb24gKmZp
-bmRfbmV4dF9zdWJzZXRfcmVnaW9uKAo+Cj4gICAgICAgICBzYmlfZG9tYWluX2Zvcl9lYWNoX21l
-bXJlZ2lvbihkb20sIHNyZWcpIHsKPiAgICAgICAgICAgICAgICAgaWYgKHNyZWcgPT0gcmVnIHx8
-IChzcmVnLT5iYXNlIDw9IGFkZHIpIHx8Cj4gLSAgICAgICAgICAgICAgICAgICAhaXNfcmVnaW9u
-X3N1YnNldChzcmVnLCByZWcpKQo+ICsgICAgICAgICAgICAgICAgICAgIXNiaV9kb21haW5fbWVt
-cmVnaW9uX2lzX3N1YnNldChzcmVnLCByZWcpKQo+ICAgICAgICAgICAgICAgICAgICAgICAgIGNv
-bnRpbnVlOwo+Cj4gICAgICAgICAgICAgICAgIGlmICghcmV0IHx8IChzcmVnLT5iYXNlIDwgcmV0
-LT5iYXNlKSB8fAo+IC0tCj4gMi4zNC4xCj4KPgo+IC0tCj4gb3BlbnNiaSBtYWlsaW5nIGxpc3QK
-PiBvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVu
-c2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9vcGVuc2JpCg==
+Why not override PLATFORM_RISCV_ISA at build time? I think this change is
+going to affect the entire generic/ platform. Specifically jh7110 won't
+even boot with lrsc. The Hart 0 (S7 core) only support AMO, not LR/SC,
+the opposite of your p8700.
+
+Bo
+
+On 12/18/25 03:47, Vladimir Kondratiev wrote:
+> P8700 supports LR/SC but not AMO instructions.
+> Tell this to the compiler, it will in turn
+> define __riscv_zalrsc and undefine __riscv_atomic
+> that used in the code to generate appropriate instructions
+> 
+> Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+> ---
+>   platform/generic/mips/objects.mk | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/platform/generic/mips/objects.mk b/platform/generic/mips/objects.mk
+> index a08c4c632997..84e21b7995bc 100644
+> --- a/platform/generic/mips/objects.mk
+> +++ b/platform/generic/mips/objects.mk
+> @@ -5,4 +5,5 @@
+>   ifeq ($(PLATFORM_RISCV_XLEN), 64)
+>   carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700) += mips_p8700
+>   platform-objs-$(CONFIG_PLATFORM_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
+> +PLATFORM_RISCV_ISA = rv64imfdc_zalrsc_zicsr_zifencei
+>   endif
+> 
+> base-commit: 111738090c6cdf2d852717b3ad15b65e2085d237
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
