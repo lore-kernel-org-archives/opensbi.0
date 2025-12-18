@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 30F26D6ACE6
-	for <opensbi@archiver.kernel.org>; Thu, 18 Dec 2025 10:44:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B8BDCD6ACE2
+	for <opensbi@archiver.kernel.org>; Thu, 18 Dec 2025 10:44:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=2nfz38FNpAx3W/lpGmASinZqwNhtm2NxkSTFmyFE6L0=; b=UYznPWBWrHAM0x
-	qrU6+N83E4ojLhhj196GY0t8/vzGz8WTrYRPGRPlq+sU+Ktirqke+Ypn9divE2aCABrc5VWPFE/s5
-	0omeh8y8uQ3iU644tl6XAVHqaPLRrPHZyLP1my6CEY4NUXAFjl3BYbJggGH8h4wBWw2Nk6EHB98A3
-	oWhVxTEbn/pZ3c/mD9SFsytBTqbhfSky/CnCmFoJnspAmVsqKYMSv/NRm4IWOiEBBsRtnzTOMxsM6
-	1ByAYx52FRt0NAYTyAApMHpGfX0/VViYAjDZweNHKeEotpLEr60RdKhptvYo+f8b4wFOYjnkP2Qxf
-	DW4ILYxRr7ERiCwmc/hA==;
+	List-Owner; bh=ZzUDw+bMDT59Fug23avqMGOTXFowKyqxK/vy02WZF/Y=; b=sIcFp3AvxR0wvP
+	RvtTnTMVFZR71o/0iD48GZAmDFNkHL69ZJ/8bC7fXpLpFa2eebq67iTrNHYF5Wdr7hWKxQjJ0gWpC
+	fElfDVqCg13y5hS1lntsrX+PLNuH7Yl8nnqRvhZU9UxIsP1R4E3zfU/hpPR6vSZQSV7qa49SFOQVl
+	iD37qbKwWFSNq1z5eKHVZ8YAkQw5IyJWRw2KNhyAn6ZowWWq8Uvgg+SfWuItrFIdhyI2Lt43r+EZz
+	s4r5AVd8/ecRh4KbVKvqORpjisJV9nEyfL8oriKTMkSndcjS6ptqTFCE8d46b7QKR+EBv1/6oGEjZ
+	Q+w4aOvGmTD0bdMJOCRg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vWBV2-00000008Fj1-2tro;
-	Thu, 18 Dec 2025 10:44:48 +0000
-Received: from mail-pf1-x431.google.com ([2607:f8b0:4864:20::431])
+	id 1vWBV0-00000008Fha-3TIN;
+	Thu, 18 Dec 2025 10:44:46 +0000
+Received: from mail-pf1-x436.google.com ([2607:f8b0:4864:20::436])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vWBV0-00000008FhB-2FcF
+	id 1vWBUx-00000008Ffe-3ULW
 	for opensbi@lists.infradead.org;
-	Thu, 18 Dec 2025 10:44:47 +0000
-Received: by mail-pf1-x431.google.com with SMTP id d2e1a72fcca58-7e1651ae0d5so415215b3a.1
-        for <opensbi@lists.infradead.org>; Thu, 18 Dec 2025 02:44:46 -0800 (PST)
+	Thu, 18 Dec 2025 10:44:45 +0000
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-7f0da2dfeaeso551545b3a.1
+        for <opensbi@lists.infradead.org>; Thu, 18 Dec 2025 02:44:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1766054685; x=1766659485; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1766054682; x=1766659482; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=W2hsTq8w/WzfYOcHXKGHmf3j6fEqMXj5p0XzGLliv9k=;
-        b=e3H21+KcMf6IkbqEgL1kNS+mIEgw6yMThFNzgV4WUk5TqRLRstkBP6F8UX1tAyI8+x
-         ydDId3ze2duTPU9tgt7W26wrxjK7vPYAp/0YbEjcXxcHFHV7Dg/+GoP8OPvmiJiqmJao
-         j//KDaSPnyeQFeWw1Pzs5QOw8LCbI6BS+X64vRewqbouWU3LgIo48Ra1606316CYe7cx
-         W9O44KsZzbtXRkiSkOmveqkkGW4lZtMRqfPai5mG8cHd3xn3bF+7R8ech2SCeYf5eJb/
-         uEvsUYo79yI0swKjlJQ+9zWST6CsDJ7j7BVmgX7CYVPxs/icayGv+YAvVoWBtQ+CDScr
-         7YMQ==
+        bh=jLqiYGeyjnoGN73zOcEqpTcaaxyhihIkzIsJb/2ZsyA=;
+        b=F2Scu2UGLYNEWuklpETmfwYdj1y98lzG57AfGMvVYwOuOpRpbUluOPEdj/FFwAz7Kq
+         BX5V2PrbiWsYGTrGBRRdgNI8xPyzlzhRkVRezSDQdVq1m2z7jT/BklyDjpnLH7mSEyP2
+         R3gYimyaHh8LyTMf7aVjGXqFw4iIBvlfgx5zH4MI9gbOweUWBcdUkJ7rDL1l+CFNU9FX
+         h+qvhk+KOb30rvGXSfAM44sx2kHf16PZk4VczuNssRBQlUKT80BOgey6FAfQxcY61mTX
+         ebHYy21Hxae+0SsohQ/nBVESt/gyXwPX7LhT8+NwMYO2NX8HNsBXfL3DwNgznZ+/K8+D
+         Bj9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766054685; x=1766659485;
+        d=1e100.net; s=20230601; t=1766054682; x=1766659482;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=W2hsTq8w/WzfYOcHXKGHmf3j6fEqMXj5p0XzGLliv9k=;
-        b=BEd0JdE/s9smzlmgPTwhKmjj6iOHUsXtQXPg0uPjxpXj48Cwq1c+Xetq97GfbwXNTi
-         tTmKFgMZ8BN7olFMXHXXGqEl/VtBHPwyhsZtfkNXG2ZHs4Yi+OxL0/aSVcDm5v1b1GkX
-         Ls/8BppB8md4L0cMtzCCAqLvnKTaQJh46llnbnsn7ObA3Ke1bEuhvWKEmIYVNCi0rPwK
-         ogVgpKzZ+gPJ+IfBYj/qwM6AM/b6AflKoKpsY0lOUoEYXxRlxEi+tSPzLdn1CB1xcpDC
-         LnML9e7TP4xE7xBUb5MQaDALy8jme6afuCbX2XPxAu9nAFGM1DKUkLStFQz4/dSh4ADX
-         NB+Q==
-X-Gm-Message-State: AOJu0Yy9PWLBEgxMbjg6Nm256mEw8b0e5Qr7PXfdkirpDTqz+Oat0PNm
-	/LNDvLbGBQeDXVm5rMZH9WTx+tR0tU0sTU7HjQ52VzAUrJtcwcOK+DnXofWApw==
-X-Gm-Gg: AY/fxX47nmeXZKViD9u8irUBESWh9NRxiHwWjpRsqTLWa91Sh76bOVvhlsoZCaZl69O
-	msxCO2ZYeGL6eEx7YVTjYewRUVyupMuE6SHQVfVz2BkkeODfcb0MlEvaPQBeY0ImJ0YLTxih9RN
-	CwREhZxQh5o2MSPt/Uamk+PpK37Ny9tDZdbhWe7JpG+RFvfd78anj88fMb0nowqKx7+48oemb/m
-	4+pKCIoWFoI+4hmqhqtyCBVE9rQ7wTMSuiyYV9GERsORHU169mBbTS59+FR4AfcHv6SsRtDAn1/
-	KjEStkRP0QuDHzxCQkJA66boj6ekoF9HVbhsnMJKJxn/o7t1sEZWo4ymPuv78BbpUfmOtyeu9wB
-	P8bp/59kE9ak48nrdWa4rPTkyKxBlLKSRGFVALgnhOG9mZoorpe7XR26vA/Ma4N1WQ0FbLGUY3Q
-	UrTzklJT2x2rzX
-X-Google-Smtp-Source: AGHT+IFNQtl+z3GN1UDZI4vntpuMoWjTWNkH3SBe4PxYYsz+yhWXSrN7GlJOq7HXyBJNSSNTAqEGug==
-X-Received: by 2002:a05:6a00:94f4:b0:7e8:4587:e8b9 with SMTP id d2e1a72fcca58-7f6693a58bfmr17983436b3a.44.1766054685390;
-        Thu, 18 Dec 2025 02:44:45 -0800 (PST)
+        bh=jLqiYGeyjnoGN73zOcEqpTcaaxyhihIkzIsJb/2ZsyA=;
+        b=b95BmSwI4MWTYaqpWAddRcVU6aqIhSRzqI/dxyoYC/RjuIIWouFpaX9a9l1IHxbgFt
+         JNJ4wUwRZnDSjI0ZiG0yc3hku+zPVtiG+KBS0jJqEqovXwBfMVORC8b5V8RE76SEUSy8
+         P2+u/hptga8TYQl90jpJ1wjv8VwbdYexvivakZh6YVSZOUjvHOezg5DOBQvKEbVfbD5/
+         GeCH8dtO9jwD4YX7XQ9sMKWm+rFvkROxrjdkciBM1IJkbuRSx4ygsm67HhDh/hxeBRZp
+         wysBuAS2NW9X9LapgaZUqwEo60020JKpAvNpm0kL5/XL1hTgcM2d1PEUdp/NnsrsOfih
+         5b6g==
+X-Gm-Message-State: AOJu0Yxt91Vg4ierbJU0riwdJvoX7/U9S+TIzl2PsN2s+xfc3wCimj46
+	SFgMJdbRd9lKRYJU/kv2C16wKvz102JnFMokfpAPuO0uevmB1FqFd7wY6G1K0Q==
+X-Gm-Gg: AY/fxX61KWQZ1gzTKDZf5bd/iNPHJ3OOEaVRAybfrEG4uNPL3FmidF5yI7qKHVzAHnm
+	C6UQ1UIJgqN2O4rR71JMBMFcWhL8FQXKQQJpYjDQEl5IjY8YP/CaB7LKQYuHJjnANGcKC7aSBaL
+	7RmIX65HuYV4zUniDF32S7jLHdUwsFErkUoX+VPFhmI/ENkP4sz8P/Bym6ti57sIsHSzFhh5Se3
+	XGSK3+go/t7OF84lp1LAPyQAMIsopYiBuYaQmSc6I99ZX+uw9OW4TqF/FT4FL4oBtVYiY5J3Exo
+	3GMSy8sjDq6K6lZwmxERO7LF3KVsJIyUI/jHghO2H9WwSRO4Az3cFkC0HDn8HrBCoIXHuepcmQv
+	tMb6qh0ceeyyu1pD48aw/I4LW+LGRDe55UPBob9CyExHe5hhPFSBzZl9cyZg33SZza0mylpF+Z6
+	VCxcBWq1DTFHkS
+X-Google-Smtp-Source: AGHT+IETBVtLYIa8pbqtYKWq7FXq1NXF56NIRRV9SgU2tOdoNi7JBeeVo0ICXAfyUKKfaYqE9pQF3A==
+X-Received: by 2002:a05:6a00:340b:b0:7f1:4:66b with SMTP id d2e1a72fcca58-7f6692aae7cmr19097512b3a.44.1766054682321;
+        Thu, 18 Dec 2025 02:44:42 -0800 (PST)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7fe11d3e004sm2264795b3a.15.2025.12.18.02.44.43
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7fe11d3e004sm2264795b3a.15.2025.12.18.02.44.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Dec 2025 02:44:44 -0800 (PST)
+        Thu, 18 Dec 2025 02:44:41 -0800 (PST)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: linmin@eswincomputing.com,
@@ -76,16 +76,16 @@ Cc: linmin@eswincomputing.com,
 	gaohan@iscas.ac.cn,
 	samuel@sholland.org,
 	wangxiang@iscas.ac.cn
-Subject: [PATCH v6 4/7] lib: sbi: give platform choice of using single memregion to cover OpenSBI
-Date: Thu, 18 Dec 2025 02:42:40 -0800
-Message-Id: <20251218104243.562667-5-ganboing@gmail.com>
+Subject: [PATCH v6 2/7] lib: sbi_domain: add sbi_domain_get_oldpmp_flags
+Date: Thu, 18 Dec 2025 02:42:38 -0800
+Message-Id: <20251218104243.562667-3-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20251218104243.562667-1-ganboing@gmail.com>
 References: <20251218104243.562667-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251218_024446_587739_305C980C 
-X-CRM114-Status: GOOD (  14.93  )
+X-CRM114-CacheID: sfid-20251218_024443_874834_C6FB5C26 
+X-CRM114-Status: GOOD (  12.14  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,112 +102,96 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-By default the OpenSBI itself is covered by 2 memregions for RX/RW
-sections. This is required by platforms with Smepmp to enforce
-proper permissions in M mode. Note: M-mode only regions can't
-have RWX permissions with Smepmp. Platforms with traditional PMPs
-won't be able to benefit from it, as both regions are effectively
-RWX in M mode, but usually it's harmless to so. Now we provide
-these platforms with an option to disable this logic. It saves 1
-PMP entry. For platforms really in short of PMPs, it does make a
-difference.
-
-Note: Platform requesting single OpenSBI memregion must be using
-      traditional (old) PMP. We expect the platform code to do
-      the right thing.
+Factor out logic in `sbi_hart_oldpmp_configure` into function
+`sbi_domain_get_oldpmp_flags`, analogous to `sbi_domain_get_smepmp_flags`.
+Platform specific hart-protection implementation can now leverage it.
 
 Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- include/sbi/sbi_platform.h | 21 +++++++++++++++++++++
- lib/sbi/sbi_domain.c       | 36 ++++++++++++++++++++++++------------
- 2 files changed, 45 insertions(+), 12 deletions(-)
+ include/sbi/sbi_domain.h |  7 +++++++
+ lib/sbi/sbi_domain.c     | 22 ++++++++++++++++++++++
+ lib/sbi/sbi_hart_pmp.c   | 17 +----------------
+ 3 files changed, 30 insertions(+), 16 deletions(-)
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index d75c12de..e65d9877 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -76,6 +76,9 @@ struct sbi_platform_operations {
- 	/* Check if specified HART is allowed to do cold boot */
- 	bool (*cold_boot_allowed)(u32 hartid);
- 
-+	/* Check if platform requires single firmware region */
-+	bool (*single_fw_region)(void);
-+
- 	/* Platform nascent initialization */
- 	int (*nascent_init)(void);
- 
-@@ -347,6 +350,24 @@ static inline bool sbi_platform_cold_boot_allowed(
- 	return true;
- }
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 1196d609..3360e090 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -253,6 +253,13 @@ void sbi_domain_memregion_init(unsigned long addr,
+ 				unsigned long flags,
+ 				struct sbi_domain_memregion *reg);
  
 +/**
-+ * Check whether platform requires single firmware region
++ * Return the oldpmp pmpcfg LRWX encoding for the flags in @reg.
 + *
-+ * Note: Single firmware region only works with legacy PMP because with
-+ * Smepmp M-mode only regions can't have RWX permissions.
-+ *
-+ * @param plat pointer to struct sbi_platform
-+ *
-+ * @return true if single firmware region required and false otherwise
++ * @param reg pointer to memory region; its flags field encodes permissions.
 + */
-+static inline bool sbi_platform_single_fw_region(
-+					const struct sbi_platform *plat)
-+{
-+	if (plat && sbi_platform_ops(plat)->single_fw_region)
-+		return sbi_platform_ops(plat)->single_fw_region();
-+	return false;
-+}
++unsigned int sbi_domain_get_oldpmp_flags(struct sbi_domain_memregion *reg);
 +
  /**
-  * Nascent (very early) initialization for current HART
+  * Return the Smepmp pmpcfg LRWX encoding for the flags in @reg.
   *
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index a19bf25b..90cbb540 100644
+index 96d10c76..74cc1e3f 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
-@@ -923,18 +923,30 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 	root.possible_harts = root_hmask;
+@@ -121,6 +121,28 @@ void sbi_domain_memregion_init(unsigned long addr,
+ 	}
+ }
  
- 	/* Root domain firmware memory region */
--	sbi_domain_memregion_init(scratch->fw_start, scratch->fw_rw_offset,
--				  (SBI_DOMAIN_MEMREGION_M_READABLE |
--				   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
--				   SBI_DOMAIN_MEMREGION_FW),
--				  &root_memregs[root_memregs_count++]);
--
--	sbi_domain_memregion_init((scratch->fw_start + scratch->fw_rw_offset),
--				  (scratch->fw_size - scratch->fw_rw_offset),
--				  (SBI_DOMAIN_MEMREGION_M_READABLE |
--				   SBI_DOMAIN_MEMREGION_M_WRITABLE |
--				   SBI_DOMAIN_MEMREGION_FW),
--				  &root_memregs[root_memregs_count++]);
-+	if (sbi_platform_single_fw_region(sbi_platform_ptr(scratch))) {
-+		sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
-+					  (SBI_DOMAIN_MEMREGION_M_READABLE |
-+					   SBI_DOMAIN_MEMREGION_M_WRITABLE |
-+					   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
-+					   SBI_DOMAIN_MEMREGION_FW),
-+					  &root_memregs[root_memregs_count++]);
-+	} else {
-+		sbi_domain_memregion_init(scratch->fw_start,
-+					  scratch->fw_rw_offset,
-+					  (SBI_DOMAIN_MEMREGION_M_READABLE |
-+					   SBI_DOMAIN_MEMREGION_M_EXECUTABLE |
-+					   SBI_DOMAIN_MEMREGION_FW),
-+					  &root_memregs[root_memregs_count++]);
++unsigned int sbi_domain_get_oldpmp_flags(struct sbi_domain_memregion *reg)
++{
 +
-+		sbi_domain_memregion_init((scratch->fw_start +
-+					   scratch->fw_rw_offset),
-+					  (scratch->fw_size -
-+					   scratch->fw_rw_offset),
-+					  (SBI_DOMAIN_MEMREGION_M_READABLE |
-+					   SBI_DOMAIN_MEMREGION_M_WRITABLE |
-+					   SBI_DOMAIN_MEMREGION_FW),
-+					  &root_memregs[root_memregs_count++]);
-+	}
++	unsigned int pmp_flags = 0;
++
++	/*
++	 * If permissions are to be enforced for all modes on
++	 * this region, the lock bit should be set.
++	 */
++	if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
++		pmp_flags |= PMP_L;
++
++	if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
++		pmp_flags |= PMP_R;
++	if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
++		pmp_flags |= PMP_W;
++	if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
++		pmp_flags |= PMP_X;
++
++	return pmp_flags;
++}
++
+ unsigned int sbi_domain_get_smepmp_flags(struct sbi_domain_memregion *reg)
+ {
+ 	unsigned int pmp_flags = 0;
+diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
+index 7f970ca3..be459129 100644
+--- a/lib/sbi/sbi_hart_pmp.c
++++ b/lib/sbi/sbi_hart_pmp.c
+@@ -272,22 +272,7 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
+ 		if (!is_valid_pmp_idx(pmp_count, pmp_idx))
+ 			return SBI_EFAIL;
  
- 	root.fw_region_inited = true;
- 
+-		pmp_flags = 0;
+-
+-		/*
+-		 * If permissions are to be enforced for all modes on
+-		 * this region, the lock bit should be set.
+-		 */
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
+-			pmp_flags |= PMP_L;
+-
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
+-			pmp_flags |= PMP_R;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
+-			pmp_flags |= PMP_W;
+-		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
+-			pmp_flags |= PMP_X;
+-
++		pmp_flags = sbi_domain_get_oldpmp_flags(reg);
+ 		pmp_addr = reg->base >> PMP_SHIFT;
+ 		if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max) {
+ 			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
 -- 
 2.34.1
 
