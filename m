@@ -4,87 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C0E63D711C4
-	for <opensbi@archiver.kernel.org>; Thu, 18 Dec 2025 21:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4D71BD68BD5
+	for <opensbi@archiver.kernel.org>; Sun, 21 Dec 2025 06:51:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
 	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	List-Unsubscribe:List-Id:In-Reply-To:References:Cc:To:From:Subject:
 	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=CSAdOQM0XssoZKzNPHMdjUvoG0WT6Q2ctA1gaf2SM2A=; b=ygemBGcfurznvT
-	6QTeLQdPe2qQrTd/05BAdKiIxRgeZy1+ilVShPZ3RxRlJAdjva+wMWnEFG9MAZV9hP0QVFH41FrnC
-	8EG9i2UhmK4bP2p0VohGowgCiqe5ePN7CVBN7NCGntJNhrgEWzW+3QDn2+VFFakGxOSeCtUiYZ7U6
-	ZcaM3H8oEpLJHnqBSSPVxCY7b6k9K8HXpAvoJUtXe8Af5QfziYOeW7gPi55rVlLiB9897IZvd4ZtW
-	Kzk6CWiwpI/4p8vlbnDK1t9AHUwQWKU/CZlPX9SIAussyEodLTh1ZGfhXKnAvMr4mr0zKMDctUfGx
-	te+OPTJ4qY/i4uqRqGdw==;
+	List-Owner; bh=/Lwnhxc+7Ulch6xnT/tckGnjGbUVuXDQFqcuZKW8/1o=; b=Sqbu5KFrcvoeNf
+	x2/i23iHYUodgIZZHC1jJtfrENgmY/0ADmXacYgFZl7Cv2j0orNqdtn8PCSo1Msj2eBuLsLjtDK+/
+	jXhlyO9De+LPDgJyO76BA1YseyiaKGOIyUDGjJjtGD3RNAXXWLNLv4YWYBsmz3saFO4pRLisGWAZQ
+	bL5sgCJgrdaXz7RibFCJyU6yF0I2yvzM8VXA5GUWNBzIcjUzHs600JrDCs6gLgocpwFHb/NU6BAD3
+	zfELo5wmsQK7LAV30cdS3BpvKIG8CB6hQnEpc+jIAB6Zi7W8B6c1pVXaeXO0bqvn4+sID7K1yWd3K
+	i6+v4hdVRE+/+twa7nLQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vWLOm-00000009Cfm-1jD6;
-	Thu, 18 Dec 2025 21:19:00 +0000
-Received: from mail-pj1-x102f.google.com ([2607:f8b0:4864:20::102f])
+	id 1vXDHa-0000000CBrZ-0wRe;
+	Sun, 21 Dec 2025 06:51:10 +0000
+Received: from mail-pj1-x1030.google.com ([2607:f8b0:4864:20::1030])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vWLOj-00000009CfP-1pm4
+	id 1vXDHX-0000000CBr7-1SIr
 	for opensbi@lists.infradead.org;
-	Thu, 18 Dec 2025 21:18:58 +0000
-Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-34c213f7690so907686a91.2
-        for <opensbi@lists.infradead.org>; Thu, 18 Dec 2025 13:18:56 -0800 (PST)
+	Sun, 21 Dec 2025 06:51:08 +0000
+Received: by mail-pj1-x1030.google.com with SMTP id 98e67ed59e1d1-34c93e0269cso2052493a91.1
+        for <opensbi@lists.infradead.org>; Sat, 20 Dec 2025 22:51:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1766092736; x=1766697536; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=b4+i7PJencsgpj0AE9bv13bvSFIsTTTLQH1HjaLL200=;
-        b=liN1IeERJMGnM+rqLcY0wd+DRKfpHkTUCHMuw5201nFEy1bw7SA883TjquC7kLL1Y6
-         /osrAsdIk5YOjconrqM34l7U4ljQKizALbIvBYaCj+jASIxgey5nrofYyPobmNoG0EN6
-         kwis3tZ/vSdWiGw5G4rFX6YndG43z7kqjckO/chtTMqIYBNbha/rLT/jLJNUA+6O91j5
-         VFRLrGo5wODYs0rHNh2Yy240uStZfeudt/5HKY/wvaaF1XHTKqWtgFNZuce6494eEFQy
-         Vz6DsdDWw1QTFCfmZu6JOXxTxaCX2zJ6d9lL6RNyFPT2QwVXr7NzE6+I++Ys1PbTDYP/
-         EJkQ==
+        d=gmail.com; s=20230601; t=1766299864; x=1766904664; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:content-language:references
+         :cc:to:from:subject:user-agent:mime-version:date:message-id:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=x3anu2DJxCxslJE8rSdk3/kSzVX7lDJLxUOWrNwrQdw=;
+        b=PvteYqqwvImBMYCjUpeaSNVgdsw5oTV7tWKe/QUtl5hFJD9/MD9xsAav30Na93O0zJ
+         DquiYizh6oPOg3d7lpKZh3Sbz+4lcxPJzJ15+N6NylZqcspIjNrMQeoGvka9Kkuc4+qB
+         xuE+eCX/4zgKwlpyPMEGyAMLC8cHY28PrDwwNxN8qWhF0vE6zlpwbUsneDshTU/bLQEy
+         qL7ctYbHDh3XoikL/xErCpFREQRT76YGk+HVnSZ6rdXGRESm47dQD98f8HMMreD6vQ8G
+         n6W1xHPdHAnhbEAlsPVcAqLY6bLwzSCiXdZiiFdqz41Nsw8L4xtKPjfM4pgKv/80RfHc
+         xTUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766092736; x=1766697536;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=b4+i7PJencsgpj0AE9bv13bvSFIsTTTLQH1HjaLL200=;
-        b=JwFvYLf6nXCzDdObQH8m1ef+1tJMlzi2FW7e8phNXiFS0rJqMqI32D01aC7AR5I/kN
-         2vKy76OCcEj/2z5W+kzWI0xfPbD6Fjuna8kYAQNLgqaW5zO7HE6bPnanYrBLoP6U0Se4
-         PPtjJYwMkWxhluHzHR6Uzxgdj+1Pc/y2q6bl32jbXBavZZOAPtdAEIr/9vFZR/cq0OwP
-         UhkVrlvXVa36VAw4gb+VQPaoARP7w2FETt34TaatDDjMRgujQq4JxFfFa2a8vyytE7E6
-         9KSG89I2aLg3cC/ZHHAbzsaUK2/8MbxWtdNSSrT4Btxxr7/MkkI0tw0f/id97itLx/MI
-         VRTQ==
-X-Gm-Message-State: AOJu0YwdGZP0TcZA2oJba2X0JDEsInAzxexGv9u+TYPB9com9Si+90qN
-	m8fxjkFTSmCVWhSweKVcle1V4dqtPvesYlZILNmV+RJ0F56JyuxqPZxejiGehw==
-X-Gm-Gg: AY/fxX75Fs3DT4uUSVzZEcVoL3Bl1NAmplUOxBzKrTllpLtFMUDmt31c/nNge6bnKRu
-	SWnYpZJWQUF325KWWJBI7LPTRJCdNMxK40jgogIPRJuORLefohq0G1cF4lwNCes82Nr7oVBOE6m
-	SAeYG61+wSmX5+mC1YZuqdCD+bh98z4z6xviKp0GpUEA50MLpZSKg+P906q/x0y+whrKyDfP4h5
-	4gHLNsp+M0waoFNEXxowX78jN3bGC4KFVlID1nTyEUjLdAAqEEP334m/dYATnx73gFJtHweF3ad
-	v/KI9RR3TlY0/o5FxnxFrq7oDMov/atBFj9SnOH98hJBE50R4dl1imo539sVQ+fGSl8EepGer6u
-	ZRazgmM2sV0sX8Ua18UdLRGTFU+6c+mnckfOcNPCVahbrh5CH7VLChDV9RFAeHykigDQjNF+uLy
-	tEtg8gioDNzZqK
-X-Google-Smtp-Source: AGHT+IExrnNf4msieG2cUoCzQl7U/pRaag1PFtdUKYScclu7zsH5EZFNsELswxdTOi0FEPUJrcA/SA==
-X-Received: by 2002:a17:90b:4c07:b0:34c:2db6:57f1 with SMTP id 98e67ed59e1d1-34e921e62b6mr514925a91.30.1766092736199;
-        Thu, 18 Dec 2025 13:18:56 -0800 (PST)
+        d=1e100.net; s=20230601; t=1766299864; x=1766904664;
+        h=content-transfer-encoding:in-reply-to:content-language:references
+         :cc:to:from:subject:user-agent:mime-version:date:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=x3anu2DJxCxslJE8rSdk3/kSzVX7lDJLxUOWrNwrQdw=;
+        b=eV85bT2zKn70pCl9NuXcf1gmvHk/HNfnlyEgWzgVksI5mvocWzUcC+xuqMfS5y7j9q
+         gzBtHhYIaZLFQneU7C0hEo7d/hCebRVbKrk66rzSfv+EzK2sKBz3jFMHWy92Z0f/8iDc
+         +AuUa7MTne9MGkiqiicBBdLvgvCo4Ywi81lck3N5ZG7yK+7XTtTGeMISTyAN+d1xHzGc
+         7kmppPkWCbITZF+5d4dUm6CgbZzB5T6EhrdHQi5eyFksfrvgErL22GqaYMU/eLXSUB4R
+         EzaQr1YJd0sf3El6cgW24oiF+iHJrDVmlLONbORwjWqUibhuycYuEOWZxGp/sdsWlzrD
+         /RzA==
+X-Gm-Message-State: AOJu0Yz+kio275PEx5VUjuD9bxWhwtdBrARiHn5fRWGwjZSJ6CqsaRaH
+	VSzqsLM8M9AJTnatLeJ9UDmUMz2FWeTrZj23oKh3rsDf+7jOLPvuq6f0nI7JBw==
+X-Gm-Gg: AY/fxX6dZGObNto3jFA7f6HKnXzHedSCLC24FXyE3rWt6yIRce+nHSnhdBYoYm/jSuE
+	i5vrCsrCM1BtSBp0laGZz1rKsYhQKDJFV9UnDD33j4BSoHaLXaKZcOnrVrnmT1tT9/vDHpUyM6L
+	ce2yyLvKjn70X/uEHre2OOMGyW2dmIMQwm7mFtStcixOlUPMrRRGjOTleyKrjUJCZaB8BlomZnH
+	KrZUrsq3LPdJSp2LQTtLs4mZoXCTyn8g15PCu3v/OyUkAVLxemL0Ep/bKApXuZAAPBw5mb82V4X
+	w9Tyx/Z8vaIhZ1o+oZeZ8Sy837Er6TfTcA/JHzKxxGS7VoTy9gW9ZCCYarj+VOA6jB3hw13J7q3
+	o88E2we2WZDxPcPqHAihHl0vBZL+b5FIkg/E9ocLLs+xuB819FIP01c3O/xwPaCgXwzNXD81Zzc
+	WNwSNVXfaP4S7N
+X-Google-Smtp-Source: AGHT+IE5eMQd8ieJCaFw+KqHxr6ft/0MYpw1OGA+Zn0ljd2PnJKBmBT/CoZ/2ooUy6rNMNyIu+L4+w==
+X-Received: by 2002:a17:90a:d00c:b0:34a:c671:50df with SMTP id 98e67ed59e1d1-34e71e60b02mr9747078a91.17.1766299863617;
+        Sat, 20 Dec 2025 22:51:03 -0800 (PST)
 Received: from [192.168.0.13] ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-34e70d676b8sm3310867a91.8.2025.12.18.13.18.55
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-34e70c932casm9599466a91.0.2025.12.20.22.51.02
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 18 Dec 2025 13:18:55 -0800 (PST)
-Message-ID: <e1906c35-c28a-429b-896b-fe80920ec5f4@gmail.com>
-Date: Thu, 18 Dec 2025 13:17:16 -0800
+        Sat, 20 Dec 2025 22:51:02 -0800 (PST)
+Message-ID: <151b04b0-034b-4deb-a7ac-277aa9add673@gmail.com>
+Date: Sat, 20 Dec 2025 22:49:28 -0800
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] p8700: don't use AMO instructions
-To: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
- anup@brainfault.org
-Cc: opensbi@lists.infradead.org
-References: <20251218114705.1650842-1-vladimir.kondratiev@mobileye.com>
-Content-Language: en-US
+Subject: Re: [PATCH v6 7/7] platform: generic: eswin: Add shutdown/reboot
+ support for Hifive Premier P550
 From: Bo Gan <ganboing@gmail.com>
-In-Reply-To: <20251218114705.1650842-1-vladimir.kondratiev@mobileye.com>
+To: opensbi@lists.infradead.org
+Cc: linmin@eswincomputing.com, pinkesh.vaghela@einfochips.com,
+ gaohan@iscas.ac.cn, samuel@sholland.org, wangxiang@iscas.ac.cn
+References: <20251218104243.562667-1-ganboing@gmail.com>
+ <20251218104243.562667-8-ganboing@gmail.com>
+Content-Language: en-US
+In-Reply-To: <20251218104243.562667-8-ganboing@gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251218_131857_511117_0C9B1C0B 
-X-CRM114-Status: GOOD (  11.41  )
+X-CRM114-CacheID: sfid-20251220_225107_436935_AD6D2FBC 
+X-CRM114-Status: GOOD (  13.67  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -101,37 +102,37 @@ Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Why not override PLATFORM_RISCV_ISA at build time? I think this change is
-going to affect the entire generic/ platform. Specifically jh7110 won't
-even boot with lrsc. The Hart 0 (S7 core) only support AMO, not LR/SC,
-the opposite of your p8700.
+I just found I made a typo.
+
+On 12/18/25 02:42, Bo Gan wrote:
+> Hifive Premier P550[1] is a Mini-DTX form factor board with EIC7700X.
+> It has a STM32F407VET6 onboard MCU acting as the BMC, controlling
+> ATX power on/off while providing remote management features. The
+> EIC7700X SoC/SoM communicates with the BMC via UART2, using ESWIN's
+> protocol. The messages transmitted are fixed sizes (267 bytes), and
+> depending on the type, can be directional or bi-directional. The
+> shutdown and cold reboot requests are directional messages from SoC
+> to BMC (NOTIFY type) with CMD_POWER_OFF or CMD_RESTART. The payload
+> of shutdown/cold reboot requests should be empty and are ignored by
+> the BMC at the moment. A HFP (Hifive Premier) specific reset device
+> is registered in addition to the SoC reset device. For shutdown and
+> cold reboot, the board-level reset takes precedence.
+> 
+> The definitions of the SoC <-> BMC message protocol is taken from
+> ESWIN's repo [2]. The only file used from that repo is `hf_common.h`
+> It's disjunctively dual licensed as (GPL-2.0-only OR BSD-2-Clause),
+> hence, compatible with the license of OpenSBI. It's heavily modified
+> and renamed as platform/generic/include/eswin/hfp.h. The author and
+> copyright in the original file are retained.
+> 
+> Validated shutdown/core reboot working on Hifive Premier P550.
+
+core reboot -> cold reboot.
+
+@Anup Would you mind help me fix it when merging? Or I'll fix it in v7
+and later if there's any comment I need to address. Thanks!
 
 Bo
-
-On 12/18/25 03:47, Vladimir Kondratiev wrote:
-> P8700 supports LR/SC but not AMO instructions.
-> Tell this to the compiler, it will in turn
-> define __riscv_zalrsc and undefine __riscv_atomic
-> that used in the code to generate appropriate instructions
-> 
-> Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-> ---
->   platform/generic/mips/objects.mk | 1 +
->   1 file changed, 1 insertion(+)
-> 
-> diff --git a/platform/generic/mips/objects.mk b/platform/generic/mips/objects.mk
-> index a08c4c632997..84e21b7995bc 100644
-> --- a/platform/generic/mips/objects.mk
-> +++ b/platform/generic/mips/objects.mk
-> @@ -5,4 +5,5 @@
->   ifeq ($(PLATFORM_RISCV_XLEN), 64)
->   carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700) += mips_p8700
->   platform-objs-$(CONFIG_PLATFORM_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
-> +PLATFORM_RISCV_ISA = rv64imfdc_zalrsc_zicsr_zifencei
->   endif
-> 
-> base-commit: 111738090c6cdf2d852717b3ad15b65e2085d237
-
 
 -- 
 opensbi mailing list
