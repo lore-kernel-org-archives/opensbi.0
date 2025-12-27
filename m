@@ -4,81 +4,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9A8A6E8FDD5
-	for <opensbi@archiver.kernel.org>; Sat, 27 Dec 2025 09:09:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B90ECE8FDD0
+	for <opensbi@archiver.kernel.org>; Sat, 27 Dec 2025 10:09:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=ms4PcdlBFH+xDxve7HjkA/rzbV4n7Rvf+lk3h8EY9xc=; b=TgVq897ig0serP
-	oaI8QekCO/4KwkmipE8AIa2SLrrDKt2t8yuMwzYEUS2DWQIbvF9DqedsX4fLzQ5qw/O6TY+OInSco
-	946QHRkzE+oBUmRQ1ie0NMU/Z8aJzlgk+sz4zS//QyQsmYqbBgYswes1d3l7eAHsQLnsOc3T7ohHE
-	X6eOV2XPQZcnGl56lhXKaJ9EJoZXv1CAW6GK0Qh9ygLXKE+UNOjfOeXrSU+gCMDd0dFD7Ukm4jGuC
-	UKF8IOzraeggZkW7DItim/3KSx1suvhP0Ohh4ojQeY1sgafrPFpBxWpdQqgnGd44AMxx+HJFJdpWJ
-	YXBf9hH/C73O4VKU1IbA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=xYyx2RipuW8LEjx8r+8wFZ/CGDiWi2S8rBsD40ffr+A=; b=Bv5UZPj+uYQEt/
+	p3OiZlFTl2/kmNK9Y9v4mImoNeG3sXeaayd5g5FIBfXyCO0mMAAsQqjpRzwoaJs8y/kpG/EXEzz5t
+	LhjutuZ8ywpLokWUxxJq6D/QLj2tcC4WVs7jhog9v4+xcWndZ+TnwCUfyrKUVadmpnPoY5LEyUODI
+	/TRZWsh/ZP1UcXhN6AByPuFGDMwU+4TD0PhjsOE8qh/K7CsRgKlh//qwyKTapiw1FQoCUHf2i9D3L
+	3dxEQfGe+xMLV7U9itchhJdKNc+M3BFZ0K3vH7Yi1ixaYuogBX9aXdCheJyijVDECVUDmK6TGFgEr
+	6sEu83+N56obIwNmGV9g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vZQIy-00000001otp-2nXB;
-	Sat, 27 Dec 2025 09:09:44 +0000
-Received: from mail-ot1-x331.google.com ([2607:f8b0:4864:20::331])
+	id 1vZREm-00000001qj1-3gJD;
+	Sat, 27 Dec 2025 10:09:28 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vZQIv-00000001ot0-0v6K
+	id 1vZREj-00000001qif-3ixx
 	for opensbi@lists.infradead.org;
-	Sat, 27 Dec 2025 09:09:42 +0000
-Received: by mail-ot1-x331.google.com with SMTP id 46e09a7af769-7cae2330765so5543343a34.0
-        for <opensbi@lists.infradead.org>; Sat, 27 Dec 2025 01:09:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1766826580; x=1767431380; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UeU3K77GriJgwoN7bEVBK6lTQDYcJLQFt6v/LFTc6fQ=;
-        b=Q867aih+KTlUrrp2PlW6MamBJiA96vkwMvuIaMGP5jDB755Cmxlep6pHSRYJl2nnuR
-         NqFNV5W+Ci4MT1qquL3xbzw8EKBdhgAKSDJS5HQgN8BMhTk1x1UZfrtEE2iFtplCzVLC
-         T9cL8Da11Rga14p6tsLaomadzepCssKaJQkQQlYPQafNqQSrIRSIwTV9cpiIgPnJK5MI
-         JCaORDJE2QGUtkQggcrmwcwYwHLEKsPFoG85wlPW77Llh7eQdSDLg4cbeNlJaKC3jTYU
-         jQ4pY5Z+3uVySkMgsFnGP5FtQkv/kxhg9VNW+yjaXhovtkkZKFQhKYIrUWRKaaFX8Rc1
-         Atvg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766826580; x=1767431380;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=UeU3K77GriJgwoN7bEVBK6lTQDYcJLQFt6v/LFTc6fQ=;
-        b=F5ygtfsAXsf3Nr1lLrEU5/8EHE62vPXGTgrrE7TlYgLKp+Brpx2TZsXzOqvZKFsLSK
-         me5szRNRrG/7Q7zs5jHGR2OLRPN42SrxjP2q7uajLDoZH6NYpFhG8DAg+8v1rAn/bQXC
-         mVwSSuzfaA+Pw3Pw9g1gtfdyIzRVMD9eEmmh9rhvVyrdyb/Gh3DXxhb7MzdG6scPxkK+
-         8G82aLt3T+WNvxdkyThgWjDgNE2XVVEV75tj7vtggSixByFIeQbtq9leJUG5WEeX/tIB
-         hdEakL0Ctbb3vnE7/Q7+Xx41vZe15fdhvX51m0Ns51Fp4DSaQ3PhPXgubCqemZmwg85U
-         nXRA==
-X-Gm-Message-State: AOJu0YypOPS5e6rrD6fCTypgXjrSDpKYNWzYHJf54CXZ032JB7UPdtnF
-	b6GTad6yakxwzwO9RbR0nwnMthCo5jiByL4Hyei2xPXV9J5M4WvqjKJHAV4zHWrAVH6jfIWUzIb
-	eNF7CUXtIF8JILpskaxznZjVXX06VJomTxjD7wY492GU+0rTY1MD0gb+ECg==
-X-Gm-Gg: AY/fxX7TOokk79eW21q2LxaCAgzVLaiwF1BIkg7jwmGa6n6kh1svmvYsm8npXtk5zyn
-	ky9kCT5YBo2pbXJkLoZGMzKx49uaVor4hWCk3lJmVTuWDlPp+rF9uhb7V32EezSqv7TCpBwb6eP
-	9eLf7Lamgzsq52WDBHNRaTSIy+nIw+kiXYUjqxNeszoLd8h28Vy2RlxEuVE66cdfv7occ+a17yC
-	xPO47czWzkrczJxbUVgKhX/CvgSV8b0uTpvg++7moDXaHjSdvPDJmKV/6dBuzhRMYSQxNBntJo1
-	XaAwm4A2w9roRMBZs5qA04/z8sJGFVzw6+HbIFKXagyNvDn4/y1UKOTwag==
-X-Google-Smtp-Source: AGHT+IGXrK32uXTvhQh1qd38dzh88jl2Ut4S0FL6GGmYF1SK2GsF/QANkvA78LDyyCVkOUutRyEBGzBwi/JDLCWyEWk=
-X-Received: by 2002:a4a:c90c:0:b0:65d:1636:5439 with SMTP id
- 006d021491bc7-65d16365bc8mr7489527eaf.40.1766826579949; Sat, 27 Dec 2025
- 01:09:39 -0800 (PST)
+	Sat, 27 Dec 2025 10:09:27 +0000
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 5BR3Vqnq3565425;
+	Sat, 27 Dec 2025 10:09:21 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=cZr3JaAPitMmlC4pKGsFqeEEIHkV3Bw/TIH
+	cGWqJvFs=; b=f4xw10CALCUamdlq36zqmXwJaiP5kCQ6MyhdNwtbVGYC+BbZXQL
+	G5qBa53ESpu1cbWKPOKlyC2cjIUFtn5Bwrg3Kc+AnlFMOgnJiTYpHYFyfi9Q60O7
+	F2ryqwYJ3uAUTctTKO85tRB5PdvUbADZ/NuVnaxgvhoZWFfJEczQAgUmcCAxpLGO
+	IGybJKvN5mImnBh/v6WMdpm5lZZqvY0buKX72pc+4CbyK5YC0ipO+NaM9F+zObFZ
+	ufjqgNTiWZAZAtOr1kK1BRXaxP/1vlwQn2ZOQnYqiZSKjfrY9J2vLc8z8oR/+yaS
+	Estz9DEa48E5kljrJ7/7pHDddqyZaWd2HoA==
+Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ba6f60g19-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 27 Dec 2025 10:09:21 +0000 (GMT)
+Received: from pps.filterd (APBLRPPMTA01.qualcomm.com [127.0.0.1])
+	by APBLRPPMTA01.qualcomm.com (8.18.1.2/8.18.1.2) with ESMTP id 5BRA9ILH018296;
+	Sat, 27 Dec 2025 10:09:18 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4ba8hk9wbn-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 27 Dec 2025 10:09:18 +0000
+Received: from APBLRPPMTA01.qualcomm.com (APBLRPPMTA01.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 5BRA9Hso018291;
+	Sat, 27 Dec 2025 10:09:17 GMT
+Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 5BRA9HYN018290
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 27 Dec 2025 10:09:17 +0000
+Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
+	id EBA5A21A4A; Sat, 27 Dec 2025 15:39:16 +0530 (+0530)
+From: Anup Patel <anup.patel@oss.qualcomm.com>
+To: Atish Patra <atish.patra@linux.dev>
+Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
+        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
+        Anup Patel <anup.patel@oss.qualcomm.com>
+Subject: [PATCH] include: Fix LLVM compile error in sbi_utils/hsm/fdt_hsm_sifive_inst.h
+Date: Sat, 27 Dec 2025 15:39:16 +0530
+Message-ID: <20251227100916.327524-1-anup.patel@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-References: <20251216052528.18896-1-ganboing@gmail.com>
-In-Reply-To: <20251216052528.18896-1-ganboing@gmail.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 27 Dec 2025 14:39:28 +0530
-X-Gm-Features: AQt7F2pSSnP3zwRCqXWMsmmb7ip0tjqFv-0kX75pi7qjAcQSYQZOKkHjdBNs_Co
-Message-ID: <CAAhSdy1Rrj85RAms7_wHw72WSoefpuERY8t+cZLmKWHY3QTxaQ@mail.gmail.com>
-Subject: Re: [PATCH] include: riscv_asm: Optimize csr_xyz() macros to reduce
- stack usage
-To: Bo Gan <ganboing@gmail.com>
-Cc: opensbi@lists.infradead.org
+X-QCInternal: smtphost
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-GUID: nAnLAHQLRWglENzt123koqH6xX38c-2Y
+X-Proofpoint-ORIG-GUID: nAnLAHQLRWglENzt123koqH6xX38c-2Y
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMjI3MDA5MyBTYWx0ZWRfX410eMFqiqJa6
+ och0sdqQWm3+hsGMN6Q/ch48gvr8bku1S6PDYsTrN7FuXmCBdgZgatMzVVJe9kyqdwA5H1oJlVH
+ xzrOC/2Cf+8cw4BG+I0AW2gnuX1z2iUPyjBXgDCXxRvJrwuhYJ3/MsuBGCQa80I5bMN7MwePdUb
+ ZL1XsgOPUFEX32zAS0jiDxrBdQOaUPlj2YdJg9vp80Pug9lJ9zhbRC5cA7IzhDYriR5IeUNI+z6
+ JxPa7og/rFwyO7RQmPNCQuhrkTOaKODzvw6OhYKNtjWiQCLq8GcazInE72X7yiKaTtY+JijwQ2a
+ AljESgz4NGpn/lC81m0LKM5tyrj4xDASAiRM2EZXKQkZYsXVoqbbT1A2mtXL35umjaraiX4Fcr4
+ TIyN3wg3lUAjUx6zx9+5e5LxbFECiUxVyRqxqtlFzsM8xjaPfzpTQ4x4jJwUmLw4EZ6H9/PdaF3
+ 6Y1LdHrb0QKD0Pg1D4g==
+X-Authority-Analysis: v=2.4 cv=YuEChoYX c=1 sm=1 tr=0 ts=694fb051 cx=c_pps
+ a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=wP3pNCr1ah4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=EUspDBNiAAAA:8
+ a=e8dQ48STw3_EGemJetoA:9
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
+ definitions=2025-12-27_03,2025-12-26_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ suspectscore=0 lowpriorityscore=0 priorityscore=1501 malwarescore=0
+ adultscore=0 phishscore=0 spamscore=0 clxscore=1011 impostorscore=0
+ bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2512120000
+ definitions=main-2512270093
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251227_010941_522548_81F920EB 
-X-CRM114-Status: GOOD (  15.53  )
+X-CRM114-CacheID: sfid-20251227_020926_056923_911B160C 
+X-CRM114-Status: GOOD (  11.43  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -90,90 +110,62 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVHVlLCBEZWMgMTYsIDIwMjUgYXQgMTA6NTfigK9BTSBCbyBHYW4gPGdhbmJvaW5nQGdtYWls
-LmNvbT4gd3JvdGU6Cj4KPiBXaGVuIHVzaW5nIGRlYnVnIGJ1aWxkcywgYWthLiwgREVCVUc9MSwg
-Y3NyX3dyaXRlX251bSgpIGZ1bmN0aW9uIGNhbgo+IHRyaWdnZXIgc3RhY2sgb3ZlcmZsb3cuIFRo
-aXMgaXMgY2F1c2VkIGJ5IHRoZSBsYXJnZSBhbW91bnQgb2YgbWFjcm8KPiBleHBhbnNpb24gb2Yg
-Y3NyX3dyaXRlKC4uLiksIHdoaWNoLCB1bmRlciBkZWJ1ZyBidWlsZHMsIHdpbGwgZ2VuZXJhdGUK
-PiBtYXNzaXZlIGFtb3VudCBvZiBzdGFjayB2YXJpYWJsZXMgKHRlc3RlZCB3aXRoIEdDQyAxMy4y
-LjApLiBUaGUgaXNzdWUKPiBpcyBtYXNrZWQgcHJldmlvdXNseSBhcyB3ZSBkaWRuJ3QgaGF2ZSB0
-b28gbWFueSBjc3Jfd3JpdGUoKSdzIGJlZm9yZQo+IGNvbW1pdCA1NTI5NmZkMjdjMGMsIGJ1dCBu
-b3csIGl0IGRvZXMgb3ZlcmZsb3cgdGhlIGRlZmF1bHQgNEtCIHN0YWNrLgo+Cj4gVGhlIGNzcl9y
-ZWFkKHJlbGF4ZWQpIG1hY3JvcyBhbHJlYWR5IHVzZSB0aGUgInJlZ2lzdGVyIiBtb2RpZmllciB0
-bwo+IG9wdGltaXplIHN0YWNrIHVzYWdlIChwZXJoYXBzIHVua25vd2luZ2x5PyksIHNvIHRoaXMg
-cGF0Y2gganVzdAo+IGZvbGxvd3Mgc3VpdC4KPgo+IEZpeGVzOiA1NTI5NmZkMjdjMGMgKCJsaWI6
-IEFsbG93IGN1c3RvbSBDU1JzIGluIGNzcl9yZWFkX251bSgpIGFuZCBjc3Jfd3JpdGVfbnVtKCki
-KQo+IFNpZ25lZC1vZmYtYnk6IEJvIEdhbiA8Z2FuYm9pbmdAZ21haWwuY29tPgoKTEdUTS4KClJl
-dmlld2VkLWJ5OiBBbnVwIFBhdGVsIDxhbnVwQGJyYWluZmF1bHQub3JnPgoKQXBwbGllZCB0aGlz
-IHBhdGNoIHRvIHRoZSByaXNjdi9vcGVuc2JpIHJlcG8uCgpUaGFua3MsCkFudXAKCj4gLS0tCj4g
-IGluY2x1ZGUvc2JpL3Jpc2N2X2FzbS5oIHwgMTIgKysrKysrLS0tLS0tCj4gIDEgZmlsZSBjaGFu
-Z2VkLCA2IGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvaW5j
-bHVkZS9zYmkvcmlzY3ZfYXNtLmggYi9pbmNsdWRlL3NiaS9yaXNjdl9hc20uaAo+IGluZGV4IGVm
-NDhkYzg5Li4wY2YzZmMzNyAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL3NiaS9yaXNjdl9hc20uaAo+
-ICsrKyBiL2luY2x1ZGUvc2JpL3Jpc2N2X2FzbS5oCj4gQEAgLTgzLDcgKzgzLDcgQEAKPgo+ICAj
-ZGVmaW5lIGNzcl9zd2FwKGNzciwgdmFsKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBcCj4gICAgICAgICAoeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+IC0gICAgICAgICAgICAgICB1bnNp
-Z25lZCBsb25nIF9fdiA9ICh1bnNpZ25lZCBsb25nKSh2YWwpOyAgICAgICAgICAgICAgIFwKPiAr
-ICAgICAgICAgICAgICAgcmVnaXN0ZXIgdW5zaWduZWQgbG9uZyBfX3YgPSAodW5zaWduZWQgbG9u
-ZykodmFsKTsgICAgICBcCj4gICAgICAgICAgICAgICAgIF9fYXNtX18gX192b2xhdGlsZV9fKCJj
-c3JydyAlMCwgIiBfX0FTTV9TVFIoY3NyKSAiLCAlMSIgXAo+ICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICA6ICI9ciIoX192KSAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOiAicksiKF9fdikgICAgICAgICAg
-ICAgICAgICAgICAgICBcCj4gQEAgLTExMSw3ICsxMTEsNyBAQAo+Cj4gICNkZWZpbmUgY3NyX3dy
-aXRlKGNzciwgdmFsKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4g
-ICAgICAgICAoeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIFwKPiAtICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBfX3YgPSAodW5zaWdu
-ZWQgbG9uZykodmFsKTsgICAgICAgICAgXAo+ICsgICAgICAgICAgICAgICByZWdpc3RlciB1bnNp
-Z25lZCBsb25nIF9fdiA9ICh1bnNpZ25lZCBsb25nKSh2YWwpOyBcCj4gICAgICAgICAgICAgICAg
-IF9fYXNtX18gX192b2xhdGlsZV9fKCJjc3J3ICIgX19BU01fU1RSKGNzcikgIiwgJTAiIFwKPiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgXAo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6ICJySyIo
-X192KSAgICAgICAgICAgICAgICAgICBcCj4gQEAgLTEyMCw3ICsxMjAsNyBAQAo+Cj4gICNkZWZp
-bmUgY3NyX3JlYWRfc2V0KGNzciwgdmFsKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIFwKPiAgICAgICAgICh7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gLSAgICAgICAgICAgICAgIHVuc2lnbmVk
-IGxvbmcgX192ID0gKHVuc2lnbmVkIGxvbmcpKHZhbCk7ICAgICAgICAgICAgICAgXAo+ICsgICAg
-ICAgICAgICAgICByZWdpc3RlciB1bnNpZ25lZCBsb25nIF9fdiA9ICh1bnNpZ25lZCBsb25nKSh2
-YWwpOyAgICAgIFwKPiAgICAgICAgICAgICAgICAgX19hc21fXyBfX3ZvbGF0aWxlX18oImNzcnJz
-ICUwLCAiIF9fQVNNX1NUUihjc3IpICIsICUxIiBcCj4gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIDogIj1yIihfX3YpICAgICAgICAgICAgICAgICAgICAgICAgXAo+ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6ICJySyIoX192KSAgICAgICAgICAgICAg
-ICAgICAgICAgIFwKPiBAQCAtMTMwLDcgKzEzMCw3IEBACj4KPiAgI2RlZmluZSBjc3Jfc2V0KGNz
-ciwgdmFsKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAgICAg
-ICAgICh7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgXAo+IC0gICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIF9fdiA9ICh1bnNpZ25lZCBs
-b25nKSh2YWwpOyAgICAgICAgICBcCj4gKyAgICAgICAgICAgICAgIHJlZ2lzdGVyIHVuc2lnbmVk
-IGxvbmcgX192ID0gKHVuc2lnbmVkIGxvbmcpKHZhbCk7IFwKPiAgICAgICAgICAgICAgICAgX19h
-c21fXyBfX3ZvbGF0aWxlX18oImNzcnMgIiBfX0FTTV9TVFIoY3NyKSAiLCAlMCIgXAo+ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6ICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBcCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogInJLIihfX3Yp
-ICAgICAgICAgICAgICAgICAgIFwKPiBAQCAtMTM5LDcgKzEzOSw3IEBACj4KPiAgI2RlZmluZSBj
-c3JfcmVhZF9jbGVhcihjc3IsIHZhbCkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgXAo+ICAgICAgICAgKHsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAtICAgICAgICAgICAgICAgdW5zaWduZWQgbG9u
-ZyBfX3YgPSAodW5zaWduZWQgbG9uZykodmFsKTsgICAgICAgICAgICAgICBcCj4gKyAgICAgICAg
-ICAgICAgIHJlZ2lzdGVyIHVuc2lnbmVkIGxvbmcgX192ID0gKHVuc2lnbmVkIGxvbmcpKHZhbCk7
-ICAgICAgXAo+ICAgICAgICAgICAgICAgICBfX2FzbV9fIF9fdm9sYXRpbGVfXygiY3NycmMgJTAs
-ICIgX19BU01fU1RSKGNzcikgIiwgJTEiIFwKPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgOiAiPXIiKF9fdikgICAgICAgICAgICAgICAgICAgICAgICBcCj4gICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogInJLIihfX3YpICAgICAgICAgICAgICAgICAg
-ICAgICAgXAo+IEBAIC0xNDksNyArMTQ5LDcgQEAKPgo+ICAjZGVmaW5lIGNzcl9jbGVhcihjc3Is
-IHZhbCkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+ICAgICAgICAg
-KHsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBcCj4gLSAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgX192ID0gKHVuc2lnbmVkIGxvbmcp
-KHZhbCk7ICAgICAgICAgIFwKPiArICAgICAgICAgICAgICAgcmVnaXN0ZXIgdW5zaWduZWQgbG9u
-ZyBfX3YgPSAodW5zaWduZWQgbG9uZykodmFsKTsgXAo+ICAgICAgICAgICAgICAgICBfX2FzbV9f
-IF9fdm9sYXRpbGVfXygiY3NyYyAiIF9fQVNNX1NUUihjc3IpICIsICUwIiBcCj4gICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IFwKPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOiAicksiKF9fdikgICAg
-ICAgICAgICAgICAgICAgXAo+IC0tCj4gMi4zNC4xCj4KPgo+IC0tCj4gb3BlbnNiaSBtYWlsaW5n
-IGxpc3QKPiBvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5mcmFk
-ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlz
-dApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+Currently, OpenSBI fails to compile for LLVM=1 using 2025.11.27
+riscv-gnu-toolchain with the following error:
+
+In file included from opensbi/lib/utils/suspend/fdt_suspend_sifive_smc0.c:20:
+opensbi/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h:17:23: error: expected instruction format
+   17 |         __asm__ __volatile__(".insn 0xfc000073" ::: "memory");
+      |                              ^
+<inline asm>:1:8: note: instantiated into assembly here
+    1 |         .insn 0xfc000073
+      |               ^
+In file included from opensbi/lib/utils/suspend/fdt_suspend_sifive_smc0.c:20:
+opensbi/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h:12:23: error: expected instruction format
+   12 |         __asm__ __volatile__(".insn 0x30500073" ::: "memory");
+      |                              ^
+<inline asm>:1:8: note: instantiated into assembly here
+    1 |         .insn 0x30500073
+      |               ^
+2 errors generated.
+
+To fix this compile error, use ".word" in-place ".insn".
+
+Fixes: 1514a327306b ("lib: utils/hsm: Add SiFive TMC0 driver")
+Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
+---
+ include/sbi_utils/hsm/fdt_hsm_sifive_inst.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h b/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h
+index de8aba19..7e9180ea 100644
+--- a/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h
++++ b/include/sbi_utils/hsm/fdt_hsm_sifive_inst.h
+@@ -9,12 +9,12 @@
+ 
+ static inline void sifive_cease(void)
+ {
+-	__asm__ __volatile__(".insn 0x30500073" ::: "memory");
++	__asm__ __volatile__(".word 0x30500073" ::: "memory");
+ }
+ 
+ static inline void sifive_cflush(void)
+ {
+-	__asm__ __volatile__(".insn 0xfc000073" ::: "memory");
++	__asm__ __volatile__(".word 0xfc000073" ::: "memory");
+ }
+ 
+ #endif
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
