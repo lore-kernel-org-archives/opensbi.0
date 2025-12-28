@@ -4,67 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 23972E784BE
-	for <opensbi@archiver.kernel.org>; Sun, 28 Dec 2025 07:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 54DF9E784BE
+	for <opensbi@archiver.kernel.org>; Sun, 28 Dec 2025 15:17:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=eNOqh+1KdrnjliLudj7NlfeBf6JOf/BLm3chXOL+vwA=; b=LvW5GWNZ7g1qtP
-	SUbdxH+qbt3vnZmvygtt6lb+qpG8/DKMOV5lhVqmZLHWYhy7qCPKwVnfKAOBvlmgccoRhbPdyRSS3
-	i3qHlHJcv7O+66dBdp6HdnU/kUv0q0tZHgTWliTUFWRTYtfGIrednwKw+fhU9s1jNa1twBrJ1sa2k
-	LOWCBJI9NU/reAG+WZY9cQM0blzKe8yB/Xobh23XvYkI9NQHVic2BhIvr+RNaIsYBBbYf1RU/YWrW
-	wruNVul0nVIm+rFGcv2gRhw02/tYy7x4QUAs5EXIEuiQodal071F5jb40ppmIHCni7yKi0ZTQzNZr
-	78xRf71El6UcgirioDWQ==;
+	List-Owner; bh=h35AjD+gkJ2SrMdw8T7F0lfisPgCA7769MmW/Kzvszs=; b=H1RWmbY7lgyiKr
+	z+DkHPy/S+ODKpwz17Wm22CVFeSqhMyw1EAAcT1vtAYViFK7LVuNdMEIaDM24tm1uPrUnt+7oy8TP
+	cuQneOydCsJ97KKx6wVV/FnBEObQIVMSiDWdYGGzjxcKfqNWg4Xxp4f2ktIh/EPplIFJ8PfiCDMZF
+	D0v88vSFf//Yk2X/ecIedpZ1S4Y+UTpGHKxfjfgxhugb/9yP1SFmmv+n8EzXGQXOU6+f8CQx23Bh8
+	JZvqCfwjaoFypxzTxXcDbXu1lSb33Aq0BB6aulu3FLXTJ9PKE780EkXNhEClDlvTEG4TOnpyLwJha
+	O0ZKT5rtuzvrIwyaJG4Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vZlHb-00000002ZlS-09z6;
-	Sun, 28 Dec 2025 07:33:43 +0000
-Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
+	id 1vZsVx-00000002ppX-1EW9;
+	Sun, 28 Dec 2025 15:17:01 +0000
+Received: from mail-oa1-x29.google.com ([2001:4860:4864:20::29])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vZlHW-00000002Zl3-2JJt
+	id 1vZsVu-00000002pp9-3MJc
 	for opensbi@lists.infradead.org;
-	Sun, 28 Dec 2025 07:33:41 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1766907218; x=1798443218;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=AR6KBAsW9MNQfqkAwq/0o7LCQQniqmonopVp7a7bUBs=;
-  b=YfHl4HGDJ7+Y5Ar8WLf2xPLHajLzXJmroaHxHSrjmfb2EPpk2kCGRoyj
-   FEMYCn0IF3KKJ812mKyDgWjpdr9M5gBLk+1ckSeNZZ6G3pD/z+yGUtgxy
-   W+0WV1du8P2G5sLlmTA5dWJyC+fiTYYr+OHWU1w1UAqELjTm/kms2C4RN
-   ZzzhIMrAbqhF4NHzF8/KEW0Wj+kLdQXox80aXk1ijOB/b8HZ05we9MuGg
-   D2JTmFrLca4l981ZNtWOxU1ybM4gUUgVPL7isxVpEMdV/X5PkusBXKEfj
-   CNNPad/ZDJWAl5VfEDCX+TGCU8R1WRW42MLQ1KChh4G2m9DTej4DH01/U
-   A==;
-X-CSE-ConnectionGUID: WegDAhtaQhOgFuNe8U20Xw==
-X-CSE-MsgGUID: HjcuXokuQoGioRXP8Xjfqw==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces01_data.me-corp.lan) ([146.255.191.134])
-  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Dec 2025 09:33:32 +0200
-X-CSE-ConnectionGUID: iLI/wNFVR2uWRyUeCOS0kA==
-X-CSE-MsgGUID: gKHLaHD7S/SwQ4yRTBfxzg==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces01_data.me-corp.lan with SMTP; 28 Dec 2025 09:34:57 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 28 Dec 2025 09:33:31 +0200
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-To: anup@brainfault.org
-Cc: opensbi@lists.infradead.org,
-	vladimir.kondratiev@mobileye.com,
-	Xiang W <wxjstz@126.com>
-Subject: [PATCH v2] atomics: fix AMO test macros
-Date: Sun, 28 Dec 2025 09:33:21 +0200
-Message-ID: <20251228073321.1533844-1-vladimir.kondratiev@mobileye.com>
-In-Reply-To: <CAAhSdy1WfBK=0rdY23NysLANsix_XoOYz1nedrgMqeHZPN0VXA@mail.gmail.com>
-References: <CAAhSdy1WfBK=0rdY23NysLANsix_XoOYz1nedrgMqeHZPN0VXA@mail.gmail.com>
+	Sun, 28 Dec 2025 15:17:00 +0000
+Received: by mail-oa1-x29.google.com with SMTP id 586e51a60fabf-3f5ec7636e2so2797368fac.2
+        for <opensbi@lists.infradead.org>; Sun, 28 Dec 2025 07:16:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1766935017; x=1767539817; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=1ZT6HtfMw9r3+SUXbjK+NX/iLWIM4qKf2THUktbQS5Y=;
+        b=Limm0FUGJiMQ0Ldm4hC7N/IhZ/0SZMzgMwc1+34PPiytmPdv36duSkwYXUR0OpIWOf
+         1FJjUL0wSNm/MX5gGRjMtyl/AJdmU/xuBNAdhQTMQvPi7UJDEJAg11qSmk3Ip3PIhJYl
+         geYyeBxxrwauCLPjUVRVLJDE7nf/X5fIMsoMBMbcNLoE7S4w/kQSym5Z5idG1uUxXfcx
+         jE5jA7Rv2V5GyW+LbvFOdmyLu7jPopVRmjF20pJiPb5vbeZHQ9VKrDJcSMl54J6Uck3t
+         0eslTg2qA/I5m6FWy3Hb46Y+E7rX5dJjw6RWJ7vrzERNIDb75zpFENUf1nbEReOUD13C
+         CniQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1766935017; x=1767539817;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=1ZT6HtfMw9r3+SUXbjK+NX/iLWIM4qKf2THUktbQS5Y=;
+        b=boGmeKKgaFmUVZNgcuMtj00KlJBunfQkO6t97ZylF9w0XIOW8T0/3EV9dUpXyj97mR
+         o2DWuyJG+p7+IqhI4bnvPZf8ywD0QXT9LWcNELeoKQaM/+VTzyiVzdE1OTNEYTHQlnGY
+         8doCcmWgSX5rCNFHDpIJ/nKQ692IDhZpdA+wOuYcSFY7Z6QtlkAc+62QcLZMVoQkX87w
+         Noo7gl8QFdeAatVLT+ifEBEaF/QdqxQ0nSUfKC7A7spkDNWayPC7pOVsYhQ+FEaUrrvY
+         I7trXzxa+a4RUrjUtxcDssNToykInHEd7Zt+7Pfiq2//Jm1d01kuKZTbQxrRkLef6zXA
+         fAcQ==
+X-Gm-Message-State: AOJu0YzX3I5h16l3bUfVDtkvoU8YG3790Mg1eyABjmuVX0kKe7j+pwg1
+	paaY2Zirwkt/H0crk4MoTpadw0v3vF6BCV2nuC3Ewl2PhbEIZbrI1waSR0I1dXhDByzdqlUZFdr
+	HHx4n72k3FHFo+1FkNfsRZ5Iq4mD9XOqTaQJL9rkR5g==
+X-Gm-Gg: AY/fxX5NtqU0Elv9pBrrnBQw3RkobTySLhOkfcOtwnLxwjcZuTCLg7KiisnFTUIQNEJ
+	OAesGwqNny3wW9SRPhpaDn+cxMhwj0Dpk8N+knQWE66st/gmRoJXKyxnpcVdh+dyfO+oPDjc+lk
+	/8UTJ5GOM4x6AFqq8Auenm+baUOmCvc8oSOvOmt1nqA29NHbFlxPTnqKOI12dUe30ErzATFQYZl
+	urp2t+HIN0/aNYO0MBlOhRguJ9jqUFw4BL+79+WbVa9jY390PEfT2vQoUnCfDkjip/oB6ekDeXW
+	e4EUsX4KsArhgGmh35FWjLLT3NH5zqX5pv7ZvxUtoo+wpki6q6qYoIV7Cg==
+X-Google-Smtp-Source: AGHT+IEWvUZ7PylXg00Y2Xbt0BcpR7CdBF34pYs6iozDGoieWGpf1SniFWSi0bv+zd495+ixATVJxziWTpadUs/rGe8=
+X-Received: by 2002:a4a:dcc8:0:b0:65d:7e5:d49d with SMTP id
+ 006d021491bc7-65d0eade78cmr9232374eaf.72.1766935017301; Sun, 28 Dec 2025
+ 07:16:57 -0800 (PST)
 MIME-Version: 1.0
+References: <CAAhSdy1WfBK=0rdY23NysLANsix_XoOYz1nedrgMqeHZPN0VXA@mail.gmail.com>
+ <20251228073321.1533844-1-vladimir.kondratiev@mobileye.com>
+In-Reply-To: <20251228073321.1533844-1-vladimir.kondratiev@mobileye.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Sun, 28 Dec 2025 20:46:46 +0530
+X-Gm-Features: AQt7F2ro1J_nlUljUadihrjIjCoNqJJSZmNm5LdoeMWZPyKLbGeGClOJ9lIRZnY
+Message-ID: <CAAhSdy0TPK5TJzmLfoE+2S-hvZ9vbgMg_eLhnZnSYYPOJmbBCA@mail.gmail.com>
+Subject: Re: [PATCH v2] atomics: fix AMO test macros
+To: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+Cc: opensbi@lists.infradead.org, Xiang W <wxjstz@126.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20251227_233339_075668_C35ACE50 
-X-CRM114-Status: GOOD (  13.54  )
+X-CRM114-CacheID: sfid-20251228_071659_121460_B2156426 
+X-CRM114-Status: GOOD (  21.94  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -76,198 +90,146 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The "RISC-V C API" [1] defines architecture extension test macros
-says naming rule for the test macros is __riscv_<ext_name>,
-where <ext_name> is all lower-case.
-3 extensions dealing with atomics implementation,
-"zaamo" consists of AMO instructions, "zalrsc" - LR/SC,
-"a" extension means both "zaamo" and "zalrsc"
-Test macros are __riscv_a, __riscv_zaamo and __riscv_zalrsc.
-Alternative to the __riscv_a macro name, __riscv_atomic, is deprecated.
-
-Use correct test macro __riscv_zaamo for the AMO variant of atomics.
-It used to be __riscv_atomic that is both deprecated and incorrect
-because it tests for the "a" extension; i.e. both "zaamo" and "zalrsc"
-If ISA enables only zaamo but not zalrsc, code as it was would not compile.
-
-Older toolchains may have neither __riscv_zaamo nor __riscv_zalrsc, so
-query __riscv_atomic - it should be treated as both __riscv_zaamo and
-__riscv_zalrsc, in all present cases __riscv_zaamo is more favorable
-so take is as alternative for __riscv_zaamo
-
-[1] https://github.com/riscv-non-isa/riscv-c-api-doc
-
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- firmware/fw_base.S            |  4 ++--
- firmware/payloads/test_head.S |  4 ++--
- lib/sbi/riscv_atomic.c        | 16 ++++++++--------
- lib/sbi/riscv_locks.c         |  6 +++---
- lib/sbi/sbi_illegal_atomic.c  |  8 ++++----
- 5 files changed, 19 insertions(+), 19 deletions(-)
-
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 5300ecf22e0c..bce9e2268424 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -59,10 +59,10 @@ _try_lottery:
- 	/* Jump to relocation wait loop if we don't get relocation lottery */
- 	lla	a6, _boot_lottery
- 	li	a7, BOOT_LOTTERY_ACQUIRED
--#ifdef __riscv_atomic
-+#if defined(__riscv_atomic) || defined(__riscv_zaamo)
- 	amoswap.w a6, a7, (a6)
- 	bnez	a6, _wait_for_boot_hart
--#elif __riscv_zalrsc
-+#elif defined(__riscv_zalrsc)
- _sc_fail:
- 	lr.w	t0, (a6)
- 	sc.w	t1, a7, (a6)
-diff --git a/firmware/payloads/test_head.S b/firmware/payloads/test_head.S
-index 070ce8aa98be..9a87e56fcf5d 100644
---- a/firmware/payloads/test_head.S
-+++ b/firmware/payloads/test_head.S
-@@ -30,9 +30,9 @@ _start:
- 	/* Pick one hart to run the main boot sequence */
- 	lla	a3, _hart_lottery
- 	li	a2, 1
--#ifdef __riscv_atomic
-+#if defined(__riscv_atomic) || defined(__riscv_zaamo)
- 	amoadd.w a3, a2, (a3)
--#elif __riscv_zalrsc
-+#elif defined(__riscv_zalrsc)
- _sc_fail:
- 	lr.w	t0, (a3)
- 	addw	t1, t0, a2
-diff --git a/lib/sbi/riscv_atomic.c b/lib/sbi/riscv_atomic.c
-index df16a2eb159e..a7756a00c35c 100644
---- a/lib/sbi/riscv_atomic.c
-+++ b/lib/sbi/riscv_atomic.c
-@@ -12,8 +12,8 @@
- #include <sbi/riscv_atomic.h>
- #include <sbi/riscv_barrier.h>
- 
--#if !defined(__riscv_atomic) && !defined(__riscv_zalrsc)
--#error "opensbi strongly relies on the A extension of RISC-V"
-+#if !defined(__riscv_atomic) && !defined(__riscv_zaamo) && !defined(__riscv_zalrsc)
-+#error "opensbi strongly relies on the zaamo or zalrsc extension of RISC-V"
- #endif
- 
- long atomic_read(atomic_t *atom)
-@@ -31,7 +31,7 @@ void atomic_write(atomic_t *atom, long value)
- 
- long atomic_add_return(atomic_t *atom, long value)
- {
--#ifdef __riscv_atomic
-+#if defined(__riscv_atomic) || defined(__riscv_zaamo)
- 	long ret;
- #if __SIZEOF_LONG__ == 4
- 	__asm__ __volatile__("	amoadd.w.aqrl  %1, %2, %0"
-@@ -44,7 +44,7 @@ long atomic_add_return(atomic_t *atom, long value)
- 			     : "r"(value)
- 			     : "memory");
- #endif
--#elif __riscv_zalrsc
-+#elif defined(__riscv_zalrsc)
- 	long ret, temp;
- #if __SIZEOF_LONG__ == 4
- 	__asm__ __volatile__("1:lr.w.aqrl	%1,%0\n"
-@@ -64,7 +64,7 @@ long atomic_add_return(atomic_t *atom, long value)
- 			     : "memory");
- #endif
- #else
--#error "need a or zalrsc"
-+#error "need a/zaamo or zalrsc"
- #endif
- 
- 	return ret + value;
-@@ -75,7 +75,7 @@ long atomic_sub_return(atomic_t *atom, long value)
- 	return atomic_add_return(atom, -value);
- }
- 
--#ifdef __riscv_atomic
-+#if defined(__riscv_atomic) || defined(__riscv_zaamo)
- #define __axchg(ptr, new, size)							\
- 	({									\
- 		__typeof__(ptr) __ptr = (ptr);					\
-@@ -101,7 +101,7 @@ long atomic_sub_return(atomic_t *atom, long value)
- 		}								\
- 		__ret;								\
- 	})
--#elif __riscv_zalrsc
-+#elif defined(__riscv_zalrsc)
- #define __axchg(ptr, new, size)							\
- 	({									\
- 		__typeof__(ptr) __ptr = (ptr);					\
-@@ -132,7 +132,7 @@ long atomic_sub_return(atomic_t *atom, long value)
- 		__ret;								\
- 	})
- #else
--#error "need a or zalrsc"
-+#error "need a/zaamo or zalrsc"
- #endif
- 
- #define axchg(ptr, x)								\
-diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
-index 41e8fabd08be..02ecb4e4189b 100644
---- a/lib/sbi/riscv_locks.c
-+++ b/lib/sbi/riscv_locks.c
-@@ -53,15 +53,15 @@ void spin_lock(spinlock_t *lock)
- 
- 	__asm__ __volatile__(
- 		/* Atomically increment the next ticket. */
--#ifdef __riscv_atomic
-+#if defined(__riscv_atomic) || defined(__riscv_zaamo)
- 		"	amoadd.w.aqrl	%0, %4, %3\n"
--#elif __riscv_zalrsc
-+#elif defined(__riscv_zalrsc)
- 		"3:	lr.w.aqrl	%0, %3\n"
- 		"	addw	%1, %0, %4\n"
- 		"	sc.w.aqrl	%1, %1, %3\n"
- 		"	bnez	%1, 3b\n"
- #else
--#error "need a or zalrsc"
-+#error "need a/zaamo or zalrsc"
- #endif
- 
- 		/* Did we get the lock? */
-diff --git a/lib/sbi/sbi_illegal_atomic.c b/lib/sbi/sbi_illegal_atomic.c
-index 8fd6c5575bfb..dd4ea2ed34c1 100644
---- a/lib/sbi/sbi_illegal_atomic.c
-+++ b/lib/sbi/sbi_illegal_atomic.c
-@@ -11,18 +11,18 @@
- #include <sbi/sbi_illegal_atomic.h>
- #include <sbi/sbi_illegal_insn.h>
- 
--#if !defined(__riscv_atomic) && !defined(__riscv_zalrsc)
--#error "opensbi strongly relies on the A extension of RISC-V"
-+#if !defined(__riscv_atomic) && !defined(__riscv_zaamo) && !defined(__riscv_zalrsc)
-+#error "opensbi strongly relies on the zaamo or zalrsc extension of RISC-V"
- #endif
- 
--#ifdef __riscv_atomic
-+#if defined(__riscv_atomic) || defined(__riscv_zaamo)
- 
- int sbi_illegal_atomic(ulong insn, struct sbi_trap_regs *regs)
- {
- 	return truly_illegal_insn(insn, regs);
- }
- 
--#elif __riscv_zalrsc
-+#elif defined(__riscv_zalrsc)
- 
- #define DEFINE_UNPRIVILEGED_LR_FUNCTION(type, aqrl, insn)			\
- 	static type lr_##type##aqrl(const type *addr,				\
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gU3VuLCBEZWMgMjgsIDIwMjUgYXQgMTowM+KAr1BNIFZsYWRpbWlyIEtvbmRyYXRpZXYKPHZs
+YWRpbWlyLmtvbmRyYXRpZXZAbW9iaWxleWUuY29tPiB3cm90ZToKPgo+IFRoZSAiUklTQy1WIEMg
+QVBJIiBbMV0gZGVmaW5lcyBhcmNoaXRlY3R1cmUgZXh0ZW5zaW9uIHRlc3QgbWFjcm9zCj4gc2F5
+cyBuYW1pbmcgcnVsZSBmb3IgdGhlIHRlc3QgbWFjcm9zIGlzIF9fcmlzY3ZfPGV4dF9uYW1lPiwK
+PiB3aGVyZSA8ZXh0X25hbWU+IGlzIGFsbCBsb3dlci1jYXNlLgo+IDMgZXh0ZW5zaW9ucyBkZWFs
+aW5nIHdpdGggYXRvbWljcyBpbXBsZW1lbnRhdGlvbiwKPiAiemFhbW8iIGNvbnNpc3RzIG9mIEFN
+TyBpbnN0cnVjdGlvbnMsICJ6YWxyc2MiIC0gTFIvU0MsCj4gImEiIGV4dGVuc2lvbiBtZWFucyBi
+b3RoICJ6YWFtbyIgYW5kICJ6YWxyc2MiCj4gVGVzdCBtYWNyb3MgYXJlIF9fcmlzY3ZfYSwgX19y
+aXNjdl96YWFtbyBhbmQgX19yaXNjdl96YWxyc2MuCj4gQWx0ZXJuYXRpdmUgdG8gdGhlIF9fcmlz
+Y3ZfYSBtYWNybyBuYW1lLCBfX3Jpc2N2X2F0b21pYywgaXMgZGVwcmVjYXRlZC4KPgo+IFVzZSBj
+b3JyZWN0IHRlc3QgbWFjcm8gX19yaXNjdl96YWFtbyBmb3IgdGhlIEFNTyB2YXJpYW50IG9mIGF0
+b21pY3MuCj4gSXQgdXNlZCB0byBiZSBfX3Jpc2N2X2F0b21pYyB0aGF0IGlzIGJvdGggZGVwcmVj
+YXRlZCBhbmQgaW5jb3JyZWN0Cj4gYmVjYXVzZSBpdCB0ZXN0cyBmb3IgdGhlICJhIiBleHRlbnNp
+b247IGkuZS4gYm90aCAiemFhbW8iIGFuZCAiemFscnNjIgo+IElmIElTQSBlbmFibGVzIG9ubHkg
+emFhbW8gYnV0IG5vdCB6YWxyc2MsIGNvZGUgYXMgaXQgd2FzIHdvdWxkIG5vdCBjb21waWxlLgo+
+Cj4gT2xkZXIgdG9vbGNoYWlucyBtYXkgaGF2ZSBuZWl0aGVyIF9fcmlzY3ZfemFhbW8gbm9yIF9f
+cmlzY3ZfemFscnNjLCBzbwo+IHF1ZXJ5IF9fcmlzY3ZfYXRvbWljIC0gaXQgc2hvdWxkIGJlIHRy
+ZWF0ZWQgYXMgYm90aCBfX3Jpc2N2X3phYW1vIGFuZAo+IF9fcmlzY3ZfemFscnNjLCBpbiBhbGwg
+cHJlc2VudCBjYXNlcyBfX3Jpc2N2X3phYW1vIGlzIG1vcmUgZmF2b3JhYmxlCj4gc28gdGFrZSBp
+cyBhcyBhbHRlcm5hdGl2ZSBmb3IgX19yaXNjdl96YWFtbwo+Cj4gWzFdIGh0dHBzOi8vZ2l0aHVi
+LmNvbS9yaXNjdi1ub24taXNhL3Jpc2N2LWMtYXBpLWRvYwo+Cj4gU2lnbmVkLW9mZi1ieTogVmxh
+ZGltaXIgS29uZHJhdGlldiA8dmxhZGltaXIua29uZHJhdGlldkBtb2JpbGV5ZS5jb20+CgpJIGRp
+ZCBzb21lIG1pbm9yIGNvc21ldGljIGNoYW5nZXMgdG8gY29tbWl0IGRlc2NyaXB0aW9uCmF0IHRo
+ZSB0aW1lIG9mIG1lcmdpbmcgdGhpcyBwYXRjaC4KClJldmlld2VkLWJ5OiBBbnVwIFBhdGVsIDxh
+bnVwQGJyYWluZmF1bHQub3JnPgoKQXBwbGllZCB0aGlzIHBhdGNoIHRvIHRoZSByaXNjdi9vcGVu
+c2JpIHJlcG8uCgpUaGFua3MsCkFudXAKCj4gLS0tCj4gIGZpcm13YXJlL2Z3X2Jhc2UuUyAgICAg
+ICAgICAgIHwgIDQgKystLQo+ICBmaXJtd2FyZS9wYXlsb2Fkcy90ZXN0X2hlYWQuUyB8ICA0ICsr
+LS0KPiAgbGliL3NiaS9yaXNjdl9hdG9taWMuYyAgICAgICAgfCAxNiArKysrKysrKy0tLS0tLS0t
+Cj4gIGxpYi9zYmkvcmlzY3ZfbG9ja3MuYyAgICAgICAgIHwgIDYgKysrLS0tCj4gIGxpYi9zYmkv
+c2JpX2lsbGVnYWxfYXRvbWljLmMgIHwgIDggKysrKy0tLS0KPiAgNSBmaWxlcyBjaGFuZ2VkLCAx
+OSBpbnNlcnRpb25zKCspLCAxOSBkZWxldGlvbnMoLSkKPgo+IGRpZmYgLS1naXQgYS9maXJtd2Fy
+ZS9md19iYXNlLlMgYi9maXJtd2FyZS9md19iYXNlLlMKPiBpbmRleCA1MzAwZWNmMjJlMGMuLmJj
+ZTllMjI2ODQyNCAxMDA2NDQKPiAtLS0gYS9maXJtd2FyZS9md19iYXNlLlMKPiArKysgYi9maXJt
+d2FyZS9md19iYXNlLlMKPiBAQCAtNTksMTAgKzU5LDEwIEBAIF90cnlfbG90dGVyeToKPiAgICAg
+ICAgIC8qIEp1bXAgdG8gcmVsb2NhdGlvbiB3YWl0IGxvb3AgaWYgd2UgZG9uJ3QgZ2V0IHJlbG9j
+YXRpb24gbG90dGVyeSAqLwo+ICAgICAgICAgbGxhICAgICBhNiwgX2Jvb3RfbG90dGVyeQo+ICAg
+ICAgICAgbGkgICAgICBhNywgQk9PVF9MT1RURVJZX0FDUVVJUkVECj4gLSNpZmRlZiBfX3Jpc2N2
+X2F0b21pYwo+ICsjaWYgZGVmaW5lZChfX3Jpc2N2X2F0b21pYykgfHwgZGVmaW5lZChfX3Jpc2N2
+X3phYW1vKQo+ICAgICAgICAgYW1vc3dhcC53IGE2LCBhNywgKGE2KQo+ICAgICAgICAgYm5leiAg
+ICBhNiwgX3dhaXRfZm9yX2Jvb3RfaGFydAo+IC0jZWxpZiBfX3Jpc2N2X3phbHJzYwo+ICsjZWxp
+ZiBkZWZpbmVkKF9fcmlzY3ZfemFscnNjKQo+ICBfc2NfZmFpbDoKPiAgICAgICAgIGxyLncgICAg
+dDAsIChhNikKPiAgICAgICAgIHNjLncgICAgdDEsIGE3LCAoYTYpCj4gZGlmZiAtLWdpdCBhL2Zp
+cm13YXJlL3BheWxvYWRzL3Rlc3RfaGVhZC5TIGIvZmlybXdhcmUvcGF5bG9hZHMvdGVzdF9oZWFk
+LlMKPiBpbmRleCAwNzBjZThhYTk4YmUuLjlhODdlNTZmY2Y1ZCAxMDA2NDQKPiAtLS0gYS9maXJt
+d2FyZS9wYXlsb2Fkcy90ZXN0X2hlYWQuUwo+ICsrKyBiL2Zpcm13YXJlL3BheWxvYWRzL3Rlc3Rf
+aGVhZC5TCj4gQEAgLTMwLDkgKzMwLDkgQEAgX3N0YXJ0Ogo+ICAgICAgICAgLyogUGljayBvbmUg
+aGFydCB0byBydW4gdGhlIG1haW4gYm9vdCBzZXF1ZW5jZSAqLwo+ICAgICAgICAgbGxhICAgICBh
+MywgX2hhcnRfbG90dGVyeQo+ICAgICAgICAgbGkgICAgICBhMiwgMQo+IC0jaWZkZWYgX19yaXNj
+dl9hdG9taWMKPiArI2lmIGRlZmluZWQoX19yaXNjdl9hdG9taWMpIHx8IGRlZmluZWQoX19yaXNj
+dl96YWFtbykKPiAgICAgICAgIGFtb2FkZC53IGEzLCBhMiwgKGEzKQo+IC0jZWxpZiBfX3Jpc2N2
+X3phbHJzYwo+ICsjZWxpZiBkZWZpbmVkKF9fcmlzY3ZfemFscnNjKQo+ICBfc2NfZmFpbDoKPiAg
+ICAgICAgIGxyLncgICAgdDAsIChhMykKPiAgICAgICAgIGFkZHcgICAgdDEsIHQwLCBhMgo+IGRp
+ZmYgLS1naXQgYS9saWIvc2JpL3Jpc2N2X2F0b21pYy5jIGIvbGliL3NiaS9yaXNjdl9hdG9taWMu
+Ywo+IGluZGV4IGRmMTZhMmViMTU5ZS4uYTc3NTZhMDBjMzVjIDEwMDY0NAo+IC0tLSBhL2xpYi9z
+YmkvcmlzY3ZfYXRvbWljLmMKPiArKysgYi9saWIvc2JpL3Jpc2N2X2F0b21pYy5jCj4gQEAgLTEy
+LDggKzEyLDggQEAKPiAgI2luY2x1ZGUgPHNiaS9yaXNjdl9hdG9taWMuaD4KPiAgI2luY2x1ZGUg
+PHNiaS9yaXNjdl9iYXJyaWVyLmg+Cj4KPiAtI2lmICFkZWZpbmVkKF9fcmlzY3ZfYXRvbWljKSAm
+JiAhZGVmaW5lZChfX3Jpc2N2X3phbHJzYykKPiAtI2Vycm9yICJvcGVuc2JpIHN0cm9uZ2x5IHJl
+bGllcyBvbiB0aGUgQSBleHRlbnNpb24gb2YgUklTQy1WIgo+ICsjaWYgIWRlZmluZWQoX19yaXNj
+dl9hdG9taWMpICYmICFkZWZpbmVkKF9fcmlzY3ZfemFhbW8pICYmICFkZWZpbmVkKF9fcmlzY3Zf
+emFscnNjKQo+ICsjZXJyb3IgIm9wZW5zYmkgc3Ryb25nbHkgcmVsaWVzIG9uIHRoZSB6YWFtbyBv
+ciB6YWxyc2MgZXh0ZW5zaW9uIG9mIFJJU0MtViIKPiAgI2VuZGlmCj4KPiAgbG9uZyBhdG9taWNf
+cmVhZChhdG9taWNfdCAqYXRvbSkKPiBAQCAtMzEsNyArMzEsNyBAQCB2b2lkIGF0b21pY193cml0
+ZShhdG9taWNfdCAqYXRvbSwgbG9uZyB2YWx1ZSkKPgo+ICBsb25nIGF0b21pY19hZGRfcmV0dXJu
+KGF0b21pY190ICphdG9tLCBsb25nIHZhbHVlKQo+ICB7Cj4gLSNpZmRlZiBfX3Jpc2N2X2F0b21p
+Ywo+ICsjaWYgZGVmaW5lZChfX3Jpc2N2X2F0b21pYykgfHwgZGVmaW5lZChfX3Jpc2N2X3phYW1v
+KQo+ICAgICAgICAgbG9uZyByZXQ7Cj4gICNpZiBfX1NJWkVPRl9MT05HX18gPT0gNAo+ICAgICAg
+ICAgX19hc21fXyBfX3ZvbGF0aWxlX18oIiAgYW1vYWRkLncuYXFybCAgJTEsICUyLCAlMCIKPiBA
+QCAtNDQsNyArNDQsNyBAQCBsb25nIGF0b21pY19hZGRfcmV0dXJuKGF0b21pY190ICphdG9tLCBs
+b25nIHZhbHVlKQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOiAiciIodmFsdWUpCj4g
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6ICJtZW1vcnkiKTsKPiAgI2VuZGlmCj4gLSNl
+bGlmIF9fcmlzY3ZfemFscnNjCj4gKyNlbGlmIGRlZmluZWQoX19yaXNjdl96YWxyc2MpCj4gICAg
+ICAgICBsb25nIHJldCwgdGVtcDsKPiAgI2lmIF9fU0laRU9GX0xPTkdfXyA9PSA0Cj4gICAgICAg
+ICBfX2FzbV9fIF9fdm9sYXRpbGVfXygiMTpsci53LmFxcmwgICAgICAgJTEsJTBcbiIKPiBAQCAt
+NjQsNyArNjQsNyBAQCBsb25nIGF0b21pY19hZGRfcmV0dXJuKGF0b21pY190ICphdG9tLCBsb25n
+IHZhbHVlKQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOiAibWVtb3J5Iik7Cj4gICNl
+bmRpZgo+ICAjZWxzZQo+IC0jZXJyb3IgIm5lZWQgYSBvciB6YWxyc2MiCj4gKyNlcnJvciAibmVl
+ZCBhL3phYW1vIG9yIHphbHJzYyIKPiAgI2VuZGlmCj4KPiAgICAgICAgIHJldHVybiByZXQgKyB2
+YWx1ZTsKPiBAQCAtNzUsNyArNzUsNyBAQCBsb25nIGF0b21pY19zdWJfcmV0dXJuKGF0b21pY190
+ICphdG9tLCBsb25nIHZhbHVlKQo+ICAgICAgICAgcmV0dXJuIGF0b21pY19hZGRfcmV0dXJuKGF0
+b20sIC12YWx1ZSk7Cj4gIH0KPgo+IC0jaWZkZWYgX19yaXNjdl9hdG9taWMKPiArI2lmIGRlZmlu
+ZWQoX19yaXNjdl9hdG9taWMpIHx8IGRlZmluZWQoX19yaXNjdl96YWFtbykKPiAgI2RlZmluZSBf
+X2F4Y2hnKHB0ciwgbmV3LCBzaXplKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgXAo+ICAgICAgICAgKHsgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+ICAgICAg
+ICAgICAgICAgICBfX3R5cGVvZl9fKHB0cikgX19wdHIgPSAocHRyKTsgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgXAo+IEBAIC0xMDEsNyArMTAxLDcgQEAgbG9uZyBhdG9taWNfc3Vi
+X3JldHVybihhdG9taWNfdCAqYXRvbSwgbG9uZyB2YWx1ZSkKPiAgICAgICAgICAgICAgICAgfSAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIFwKPiAgICAgICAgICAgICAgICAgX19yZXQ7ICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAgICAgICAgIH0pCj4gLSNlbGlmIF9f
+cmlzY3ZfemFscnNjCj4gKyNlbGlmIGRlZmluZWQoX19yaXNjdl96YWxyc2MpCj4gICNkZWZpbmUg
+X19heGNoZyhwdHIsIG5ldywgc2l6ZSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIFwKPiAgICAgICAgICh7ICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAgICAg
+ICAgICAgICAgICAgX190eXBlb2ZfXyhwdHIpIF9fcHRyID0gKHB0cik7ICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIFwKPiBAQCAtMTMyLDcgKzEzMiw3IEBAIGxvbmcgYXRvbWljX3N1
+Yl9yZXR1cm4oYXRvbWljX3QgKmF0b20sIGxvbmcgdmFsdWUpCj4gICAgICAgICAgICAgICAgIF9f
+cmV0OyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBcCj4gICAgICAgICB9KQo+ICAjZWxzZQo+IC0jZXJyb3IgIm5lZWQgYSBvciB6YWxyc2Mi
+Cj4gKyNlcnJvciAibmVlZCBhL3phYW1vIG9yIHphbHJzYyIKPiAgI2VuZGlmCj4KPiAgI2RlZmlu
+ZSBheGNoZyhwdHIsIHgpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIFwKPiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9yaXNjdl9sb2Nrcy5jIGIv
+bGliL3NiaS9yaXNjdl9sb2Nrcy5jCj4gaW5kZXggNDFlOGZhYmQwOGJlLi4wMmVjYjRlNDE4OWIg
+MTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9yaXNjdl9sb2Nrcy5jCj4gKysrIGIvbGliL3NiaS9yaXNj
+dl9sb2Nrcy5jCj4gQEAgLTUzLDE1ICs1MywxNSBAQCB2b2lkIHNwaW5fbG9jayhzcGlubG9ja190
+ICpsb2NrKQo+Cj4gICAgICAgICBfX2FzbV9fIF9fdm9sYXRpbGVfXygKPiAgICAgICAgICAgICAg
+ICAgLyogQXRvbWljYWxseSBpbmNyZW1lbnQgdGhlIG5leHQgdGlja2V0LiAqLwo+IC0jaWZkZWYg
+X19yaXNjdl9hdG9taWMKPiArI2lmIGRlZmluZWQoX19yaXNjdl9hdG9taWMpIHx8IGRlZmluZWQo
+X19yaXNjdl96YWFtbykKPiAgICAgICAgICAgICAgICAgIiAgICAgICBhbW9hZGQudy5hcXJsICAg
+JTAsICU0LCAlM1xuIgo+IC0jZWxpZiBfX3Jpc2N2X3phbHJzYwo+ICsjZWxpZiBkZWZpbmVkKF9f
+cmlzY3ZfemFscnNjKQo+ICAgICAgICAgICAgICAgICAiMzogICAgIGxyLncuYXFybCAgICAgICAl
+MCwgJTNcbiIKPiAgICAgICAgICAgICAgICAgIiAgICAgICBhZGR3ICAgICUxLCAlMCwgJTRcbiIK
+PiAgICAgICAgICAgICAgICAgIiAgICAgICBzYy53LmFxcmwgICAgICAgJTEsICUxLCAlM1xuIgo+
+ICAgICAgICAgICAgICAgICAiICAgICAgIGJuZXogICAgJTEsIDNiXG4iCj4gICNlbHNlCj4gLSNl
+cnJvciAibmVlZCBhIG9yIHphbHJzYyIKPiArI2Vycm9yICJuZWVkIGEvemFhbW8gb3IgemFscnNj
+Igo+ICAjZW5kaWYKPgo+ICAgICAgICAgICAgICAgICAvKiBEaWQgd2UgZ2V0IHRoZSBsb2NrPyAq
+Lwo+IGRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9pbGxlZ2FsX2F0b21pYy5jIGIvbGliL3NiaS9z
+YmlfaWxsZWdhbF9hdG9taWMuYwo+IGluZGV4IDhmZDZjNTU3NWJmYi4uZGQ0ZWEyZWQzNGMxIDEw
+MDY0NAo+IC0tLSBhL2xpYi9zYmkvc2JpX2lsbGVnYWxfYXRvbWljLmMKPiArKysgYi9saWIvc2Jp
+L3NiaV9pbGxlZ2FsX2F0b21pYy5jCj4gQEAgLTExLDE4ICsxMSwxOCBAQAo+ICAjaW5jbHVkZSA8
+c2JpL3NiaV9pbGxlZ2FsX2F0b21pYy5oPgo+ICAjaW5jbHVkZSA8c2JpL3NiaV9pbGxlZ2FsX2lu
+c24uaD4KPgo+IC0jaWYgIWRlZmluZWQoX19yaXNjdl9hdG9taWMpICYmICFkZWZpbmVkKF9fcmlz
+Y3ZfemFscnNjKQo+IC0jZXJyb3IgIm9wZW5zYmkgc3Ryb25nbHkgcmVsaWVzIG9uIHRoZSBBIGV4
+dGVuc2lvbiBvZiBSSVNDLVYiCj4gKyNpZiAhZGVmaW5lZChfX3Jpc2N2X2F0b21pYykgJiYgIWRl
+ZmluZWQoX19yaXNjdl96YWFtbykgJiYgIWRlZmluZWQoX19yaXNjdl96YWxyc2MpCj4gKyNlcnJv
+ciAib3BlbnNiaSBzdHJvbmdseSByZWxpZXMgb24gdGhlIHphYW1vIG9yIHphbHJzYyBleHRlbnNp
+b24gb2YgUklTQy1WIgo+ICAjZW5kaWYKPgo+IC0jaWZkZWYgX19yaXNjdl9hdG9taWMKPiArI2lm
+IGRlZmluZWQoX19yaXNjdl9hdG9taWMpIHx8IGRlZmluZWQoX19yaXNjdl96YWFtbykKPgo+ICBp
+bnQgc2JpX2lsbGVnYWxfYXRvbWljKHVsb25nIGluc24sIHN0cnVjdCBzYmlfdHJhcF9yZWdzICpy
+ZWdzKQo+ICB7Cj4gICAgICAgICByZXR1cm4gdHJ1bHlfaWxsZWdhbF9pbnNuKGluc24sIHJlZ3Mp
+Owo+ICB9Cj4KPiAtI2VsaWYgX19yaXNjdl96YWxyc2MKPiArI2VsaWYgZGVmaW5lZChfX3Jpc2N2
+X3phbHJzYykKPgo+ICAjZGVmaW5lIERFRklORV9VTlBSSVZJTEVHRURfTFJfRlVOQ1RJT04odHlw
+ZSwgYXFybCwgaW5zbikgICAgICAgICAgICAgICAgICAgICAgXAo+ICAgICAgICAgc3RhdGljIHR5
+cGUgbHJfIyN0eXBlIyNhcXJsKGNvbnN0IHR5cGUgKmFkZHIsICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgXAo+IC0tCj4gMi40My4wCj4KCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2Jp
+QGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9vcGVuc2JpCg==
