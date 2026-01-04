@@ -4,101 +4,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 99A77C2A069
-	for <opensbi@archiver.kernel.org>; Sun,  4 Jan 2026 05:25:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 65FE2C2A06C
+	for <opensbi@archiver.kernel.org>; Sun,  4 Jan 2026 06:39:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=uxGzAYwww4FnLZYOBQ3PT/TbpD9pWXunU+WjK35my7c=; b=xWEqpJq9UgV55E
-	6P3lfqtEpqosy+pXMc9HApB/wQ51H9QN3QxUG50dySF89lAmmHhkUCaFFWkDTZC8a8Hus3jf95fIg
-	s4hMHtn3wiM0JKdlf4AxBJrI8IIhgb1G55zFasYltAcyPgIjuMggmkMKmF0XtLYjQka9oHOcjLGWP
-	iBj+LzNUCxneLWok0i2WEUEU6jwtmUNVp6AhTHPZy1zdcgWttdOcXYSdpbG+eMq8gKUEr/ksCCm5l
-	cPFm34ABWRtsZ7Ei5FN4JznjnoEp7MGK2ySFn5acTMurlqFmM4ndFjTtp45rmDGrqawvTns5V3INC
-	GRDGK9xFA0DWQWWrP31g==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=Z1iKLMpxATUB6QCHjC8pdGAFE3LipDI+E4LBOTwyJWY=; b=1/hNtumHrnm62+
+	zTCRg/xw5ggGLXLR/l9ZMPQ/OZBt2fqHsX0I4l2ewVZgfGV7l/0zQiHuZyFBPIghpc4itZMhy6zu9
+	3X5ByRGX2D/x5LOz2sf7/gdFlMeDb2L3LdUXBLOkHLOeH8bMQhuofJY8aSHaYzaJ84dcZjlD00+zR
+	jWRIqHwa4H1Ax1PGVzSbckwaQ56h/ExCCP+YF8EHFyn5D5nmfmpunQKLMUWq9JqOUyaImxm0dh1RV
+	bKCZxOkVtqRqxNIGpO0knqEp2ZPzROndRrBnjsVxOYJaOS5yn3qNF6EdqMrdEeVf0uDtmF7Jjm1BU
+	QvFziN3ImXoLtjPAxvKw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vcGcc-0000000A2Jh-0W5E;
-	Sun, 04 Jan 2026 05:25:46 +0000
-Received: from m16.mail.126.com ([220.197.31.6])
+	id 1vcHlV-0000000A3pW-1vJX;
+	Sun, 04 Jan 2026 06:39:01 +0000
+Received: from m16.mail.126.com ([220.197.31.9])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vcGcY-0000000A2Il-2IPv
+	id 1vcHlS-0000000A3of-3KrP
 	for opensbi@lists.infradead.org;
-	Sun, 04 Jan 2026 05:25:44 +0000
+	Sun, 04 Jan 2026 06:39:00 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
-	MIME-Version; bh=t1SRYDgRcSkOT1QVqpC7DerBg7MulGFqjTN8E+McoKc=;
-	b=FE18Msc3IWoW+6GH2PZwb/SJwB/xKmxPRebInzapqcoRqxUAp8oRHhSpBTFx6p
-	qAMVEE09Inhq7xVlM1Pp+JICDvqAE4H7To1DTI7iOR5gvyZVFp+9eIE+ftjJ3Ms4
-	+J90HUHYdsq8PyNS0ydmanIC5qlAXcWTZgx71fxJr91so=
-Received: from [127.0.0.1] (unknown [])
-	by gzsmtp5 (Coremail) with SMTP id QCkvCgDnnBjL+Vlp_GDZEA--.1511S2;
-	Sun, 04 Jan 2026 13:25:31 +0800 (CST)
-Message-ID: <492747afda3a3948384d5162d06aa455bfe44a70.camel@126.com>
-Subject: Re: [PATCH v3 1/1] firmware: Initialize stack guard via Zkr
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=bh
+	50ZufYhqzgZ55MKuvys7U4fXDHIHURsHSi0OWXd3U=; b=HMEvT93F44oC+T293V
+	/zE7HP140h4AtdDr86Mr6pqgWoTlSGYbZzNWY5WCcsmmDowJBF9XEncX+20k7OAW
+	h/+GUVkt5xJbAFt8NFcM1yEVBD2iTNcQPkxKutdTnKcWxfobVTByGG2PP8Adhatc
+	FJ4QY70GxTkSOHniBa8yi8xyI=
+Received: from T490.lan (unknown [])
+	by gzsmtp5 (Coremail) with SMTP id QCkvCgDnr6HCClpp0VHbEA--.1099S2;
+	Sun, 04 Jan 2026 14:37:55 +0800 (CST)
 From: Xiang W <wxjstz@126.com>
 To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org
-Date: Sun, 04 Jan 2026 13:25:31 +0800
-In-Reply-To: <20260104040726.106760-1-wxjstz@126.com>
-References: <20260104040726.106760-1-wxjstz@126.com>
-Autocrypt: addr=wxjstz@126.com; prefer-encrypt=mutual;
- keydata=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
-User-Agent: Evolution 3.56.2-0+deb13u1 
+Cc: anup@brainfault.org,
+	Xiang W <wxjstz@126.com>,
+	Xiang W <wangxiang@iscas.ac.cn>
+Subject: [PATCH] firmware: generate __stack_chk_guard at compile time
+Date: Sun,  4 Jan 2026 14:37:42 +0800
+Message-ID: <20260104063742.148141-1-wxjstz@126.com>
+X-Mailer: git-send-email 2.47.3
 MIME-Version: 1.0
-X-CM-TRANSID: QCkvCgDnnBjL+Vlp_GDZEA--.1511S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7tF17JFy7tr48JF1xJFWkJFb_yoW8uw43pF
-	s5AF1akryjqFyxJ343KF1rXr15Xw4kGFsxKa9FgryDAw47C3Z5Wrn0qFsxXr1j9F4kA34Y
-	gFn3X3409wsIgaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRJEfwUUUUU=
+X-CM-TRANSID: QCkvCgDnr6HCClpp0VHbEA--.1099S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tw1fGrW3Jw45Wr45uw48JFb_yoW8Ar1Dpa
+	s5GF43tFWUGw1Sq398JF4fuF4UWws5K39I9ayjyFn3Jwn7C3s2qry3tFWvgF1DJrWjy3y3
+	WF1Dtrs5tFWq9a7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zETa0tUUUUU=
 X-Originating-IP: [2408:823c:b211:2b25:ee18:b7b:4892:3815]
-X-CM-SenderInfo: pz0m23b26rjloofrz/xtbBpQ5inGlZ+c4qqAAA3Q
+X-CM-SenderInfo: pz0m23b26rjloofrz/xtbBsgOj3WlaCsPfDAAA3m
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260103_212542_971990_52D83129 
-X-CRM114-Status: UNSURE (   8.96  )
+X-CRM114-CacheID: sfid-20260103_223859_257304_C2B5777A 
+X-CRM114-Status: UNSURE (   6.08  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -111,49 +68,64 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-5ZyoIDIwMjYtMDEtMDTml6XnmoQgMTI6MDcgKzA4MDDvvIxYaWFuZyBX5YaZ6YGT77yaCj4gVHJ5
-IHRvIGluaXRpYWxpemUgc3RhY2sgcHJvdGVjdGlvbiBndWFyZCB2aWEgdGhlIHprciBleHRlbnNp
-b24uCj4gCj4gU2lnbmVkLW9mZi1ieTogWGlhbmcgVyA8d3hqc3R6QDEyNi5jb20+Cj4gLS0tCj4g
-wqBmaXJtd2FyZS9md19iYXNlLlPCoMKgwqDCoMKgwqDCoMKgwqDCoCB8IDI0ICsrKysrKysrKysr
-KysrKysrKysrKysrKwo+IMKgaW5jbHVkZS9zYmkvcmlzY3ZfZW5jb2RpbmcuaCB8IDEwICsrKysr
-KysrKysKPiDCoDIgZmlsZXMgY2hhbmdlZCwgMzQgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1n
-aXQgYS9maXJtd2FyZS9md19iYXNlLlMgYi9maXJtd2FyZS9md19iYXNlLlMKPiBpbmRleCBiY2U5
-ZTIyNi4uMTZlMmUyODMgMTAwNjQ0Cj4gLS0tIGEvZmlybXdhcmUvZndfYmFzZS5TCj4gKysrIGIv
-ZmlybXdhcmUvZndfYmFzZS5TCj4gQEAgLTEwNyw2ICsxMDcsMzAgQEAgX2Jzc196ZXJvOgo+IMKg
-CWFkZAlzNCwgczQsIF9fU0laRU9GX1BPSU5URVJfXwo+IMKgCWJsdAlzNCwgczUsIF9ic3NfemVy
-bwo+IMKgCj4gKwkvKiBUcnlpbmcgdG8gaW5pdGlhbGl6ZSB0aGUgc3RhY2sgZ3VhcmQgdmlhIHRo
-ZSBaa3IgZXh0ZW5zaW9uICovCj4gKwlsbGEJdDAsIF9fc3RhY2tfY2hrX2d1YXJkX2RvbmUKPiAr
-CWNzcncJQ1NSX01UVkVDLCB0MAo+ICsJbGkJdDAsIDAKPiArCWxpCXQzLCBTRUVEX09QVFNfRVMx
-Ngo+ICsJbGkJdDQsIFNFRURfRU5UUk9QWV9NQVNLCj4gKwlsaQl0NSwgX19TSVpFT0ZfUE9JTlRF
-Ul9fCj4gK19fc3RhY2tfY2hrX2d1YXJkX2xvb3A6Cj4gKwljc3Jydwl0MSwgQ1NSX1NFRUQsIHgw
-Cj4gKwlsaQl0MiwgU0VFRF9PUFRTX01BU0sKPiArCWFuZGkJdDIsIHQyLCB0MQpzL2FkZGkvYWRk
-LwpuZXcgcGF0Y2ggYXQgaHR0cHM6Ly9saXN0cy5pbmZyYWRlYWQub3JnL3BpcGVybWFpbC9vcGVu
-c2JpLzIwMjYtSmFudWFyeS8wMDkzMDMuaHRtbAoKUmVnYXJkcywKWGlhbmcgVwo+ICsJYmd0dQl0
-MiwgdDMsIF9fc3RhY2tfY2hrX2d1YXJkX2RvbmUKPiArCWJsdHUJdDIsIHQzLCBfX3N0YWNrX2No
-a19ndWFyZF9sb29wCj4gKwlhbmQJdDEsIHQxLCB0NAo+ICsJc2xsaQl0MCwgdDAsIDE2Cj4gKwlv
-cgl0MCwgdDAsIHQxCj4gKwlhZGRpCXQ1LCB0NSwgLTIKPiArCWJndHoJdDUsIF9fc3RhY2tfY2hr
-X2d1YXJkX2xvb3AKPiArCWxsYQl0MSwgX19zdGFja19jaGtfZ3VhcmQKPiArCVJFR19TCXQwLCAw
-KHQxKQo+ICsJaglfX3N0YWNrX2Noa19ndWFyZF9kb25lCj4gKwkuYWxpZ24gMwo+ICtfX3N0YWNr
-X2Noa19ndWFyZF9kb25lOgo+ICsKPiDCoAkvKiBTZXR1cCB0ZW1wb3JhcnkgdHJhcCBoYW5kbGVy
-ICovCj4gwqAJbGxhCXM0LCBfc3RhcnRfaGFuZwo+IMKgCWNzcncJQ1NSX01UVkVDLCBzNAo+IGRp
-ZmYgLS1naXQgYS9pbmNsdWRlL3NiaS9yaXNjdl9lbmNvZGluZy5oIGIvaW5jbHVkZS9zYmkvcmlz
-Y3ZfZW5jb2RpbmcuaAo+IGluZGV4IGI1YTRjZTgxLi4zYzFkNTI1NiAxMDA2NDQKPiAtLS0gYS9p
-bmNsdWRlL3NiaS9yaXNjdl9lbmNvZGluZy5oCj4gKysrIGIvaW5jbHVkZS9zYmkvcmlzY3ZfZW5j
-b2RpbmcuaAo+IEBAIC0yNjEsNiArMjYxLDE2IEBACj4gwqAjZGVmaW5lIENTUl9GUk0JCQkJMHgw
-MDIKPiDCoCNkZWZpbmUgQ1NSX0ZDU1IJCQkweDAwMwo+IMKgCj4gKy8qIFVzZXIgZW50cm9weSBz
-b3VyY2UgKi8KPiArI2RlZmluZSBDU1JfU0VFRAkJCTB4MDE1Cj4gKyNkZWZpbmUgU0VFRF9PUFRT
-X1NISUZUCQkJMzAKPiArI2RlZmluZSBTRUVEX09QVFNfTUFTSwkJCShfVUwoMykgPDwgU0VFRF9P
-UFRTX1NISUZUKQo+ICsjZGVmaW5lIFNFRURfT1BUU19CSVNUCQkJKF9VTCgwKSA8PCBTRUVEX09Q
-VFNfU0hJRlQpCj4gKyNkZWZpbmUgU0VFRF9PUFRTX1dBSVQJCQkoX1VMKDEpIDw8IFNFRURfT1BU
-U19TSElGVCkKPiArI2RlZmluZSBTRUVEX09QVFNfRVMxNgkJCShfVUwoMikgPDwgU0VFRF9PUFRT
-X1NISUZUKQo+ICsjZGVmaW5lIFNFRURfT1BUU19ERUFECQkJKF9VTCgzKSA8PCBTRUVEX09QVFNf
-U0hJRlQpCj4gKyNkZWZpbmUgU0VFRF9FTlRST1BZX01BU0sJCTB4ZmZmZgo+ICsKPiDCoC8qIFVz
-ZXIgQ291bnRlcnMvVGltZXJzICovCj4gwqAjZGVmaW5lIENTUl9DWUNMRQkJCTB4YzAwCj4gwqAj
-ZGVmaW5lIENTUl9USU1FCQkJMHhjMDEKPiAtLSAKPiAyLjQ3LjMKPiAKCgotLSAKb3BlbnNiaSBt
-YWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
-YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+Replace 0x95B5FF5A with a random number generated by Python during
+compilation as the __stack_chk_guard.
+
+Signed-off-by: Xiang W <wangxiang@iscas.ac.cn>
+---
+ firmware/fw_base.S            | 2 +-
+ firmware/objects.mk           | 7 +++++++
+ firmware/payloads/test_head.S | 2 +-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 63bb4473..040fbd2b 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -779,7 +779,7 @@ __stack_chk_fail:
+ 	.globl __stack_chk_guard
+ 	.type __stack_chk_guard, %object
+ __stack_chk_guard:
+-	RISCV_PTR	0x95B5FF5A
++	RISCV_PTR	STACK_CHK_GUARD
+ 
+ #ifdef FW_FDT_PATH
+ 	.section .rodata
+diff --git a/firmware/objects.mk b/firmware/objects.mk
+index bfec4671..c4dad9ba 100644
+--- a/firmware/objects.mk
++++ b/firmware/objects.mk
+@@ -75,3 +75,10 @@ else
+ stack-protector-cflags-y := -fno-stack-protector
+ endif
+ firmware-cflags-y += $(stack-protector-cflags-y)
++
++ifeq ($(PLATFORM_RISCV_XLEN),32)
++STACK_CHK_GUARD := $(shell python3 -c 'import random; print(random.randint(1, 0xffffffff))')
++else
++STACK_CHK_GUARD := $(shell python3 -c 'import random; print(random.randint(1, 0xffffffffffffffff))')
++endif
++firmware-genflags-y += -DSTACK_CHK_GUARD=$(STACK_CHK_GUARD)
+diff --git a/firmware/payloads/test_head.S b/firmware/payloads/test_head.S
+index 9a87e56f..fdc1deb9 100644
+--- a/firmware/payloads/test_head.S
++++ b/firmware/payloads/test_head.S
+@@ -111,4 +111,4 @@ _boot_a1:
+ 	.globl __stack_chk_guard
+ 	.type __stack_chk_guard, %object
+ __stack_chk_guard:
+-	RISCV_PTR	0x95B5FF5A
++	RISCV_PTR	STACK_CHK_GUARD
+-- 
+2.47.3
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
