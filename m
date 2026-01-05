@@ -4,61 +4,77 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CF211C2A06C
-	for <opensbi@archiver.kernel.org>; Sun,  4 Jan 2026 06:55:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7293EC79FA7
+	for <opensbi@archiver.kernel.org>; Mon,  5 Jan 2026 17:43:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=9Lm7pDZRDh3IjRPToX3zFllJDz0GxE9R1pnW2tla/6Y=; b=UwwGOTcZr6sJnB
-	dMiSvjF47rgULs9ggeuWTKZd4sx/Voo03v1Rl3ewBnGnHv5DB/6Je7YoKsoG1ltss9nVLv+7/3zLg
-	arF7IWNr83lh0sK23G79NBL6xI1NhfDXR/ckYfnzolDSiVu4Sgm+Eaaw5DkV9XzolUFwEgR5jJRD5
-	x8QvdGZvDX2X5juvmYSRCMBmei0rU37zcuEuhxDRsx+aUHpNqrNKDkA5DabNQypSBaYGnHuFOZio4
-	jp2O3wy8JkDAScWoQGVTRgPbLjUoqdEHsKtd3DI7HJ4HbxCYe+xaR9a+XSLxsrmwFY+z3T/SGlR34
-	y9k3HQx4L7Ts4IUg/aoQ==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	List-Subscribe:List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:
+	MIME-Version:Date:Cc:To:From:Subject:Message-ID:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:
+	References:List-Owner; bh=jHct4/JwMZH5S5062EMowQCMi7pN+2MA60WwXpNJ+3c=; b=ExY
+	hB08Utsyy0TfR8M0OO82vZczFbrApvmh0kdh2qevdiw4y9zxfURjYyKZVEfuF6TIl2XFyQQun8ECV
+	QpHFym2nMJlpqDWZBgunKKOSf2djisk7jWY6ydTHLhQ0PqevKMJF0u27qbuZpiNYRy3W0GFm8SICT
+	REOF+MbUbz45FSq+vVEBjHYWx9596GiT9e4Bf6hG0X5PTPgKiiG/lpAOkJ0pk+SpMIlI5ODfPNJpm
+	e/QLVrWVDGd4I8j89keb0Qrv370QwUnJGsmwT4sFOPUIrVB8j42GNFcxFcB8SlHdaOFoiNEx1SY2N
+	5r6CsTxtdeuaER7MXatRttcliI3mTOQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vcI1F-0000000A4Ev-42sj;
-	Sun, 04 Jan 2026 06:55:17 +0000
-Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
+	id 1vcobk-0000000BrOt-3RNk;
+	Mon, 05 Jan 2026 17:43:08 +0000
+Received: from smtpout-02.galae.net ([185.246.84.56])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vcI1C-0000000A4EW-37pW
+	id 1vcobh-0000000BrM8-3dn4
 	for opensbi@lists.infradead.org;
-	Sun, 04 Jan 2026 06:55:16 +0000
-Received: from edelgard.fodlan.icenowy.me (unknown [112.94.103.158])
-	by APP-03 (Coremail) with SMTP id rQCowAA3T9bLDlppUrRSAw--.64369S2;
-	Sun, 04 Jan 2026 14:55:08 +0800 (CST)
-From: Icenowy Zheng <zhengxingda@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: Icenowy Zheng <zhengxingda@iscas.ac.cn>
-Subject: [PATCH] lib: utils/serial: Add support for Altera JTAG UART
-Date: Sun,  4 Jan 2026 14:55:06 +0800
-Message-ID: <20260104065506.70182-1-zhengxingda@iscas.ac.cn>
-X-Mailer: git-send-email 2.52.0
+	Mon, 05 Jan 2026 17:43:07 +0000
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 9C2E01A2666
+	for <opensbi@lists.infradead.org>; Mon,  5 Jan 2026 17:43:02 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 6930A60726;
+	Mon,  5 Jan 2026 17:43:02 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id D3F9F103C833F;
+	Mon,  5 Jan 2026 18:43:00 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1767634981;
+	h=from:subject:date:message-id:to:cc:mime-version:content-type:autocrypt;
+	bh=8fJP1eoAhcCEePVcQigflE/Zszj3tDC99oN3Cllj054=;
+	b=SG/ugnBj+vW9vRRbIrsBfXvbFIGfl3X51+/WUyf1xJ4uhYPsoSmSQ+w+nrEyJx2wDV1WiX
+	ZsMDfxHA1UEBdaM43j2UGVhT9/859Hzvabdw5CVqqWHizepowRqe0WfXLt5P9tvNacC2l/
+	xAfb4YtyzHH/DJ9C3aWaUcVgA63LfAuq1PzY+9rNZJGcAkG/zlI17kz+2CXUz+iSNACx6Q
+	fSEIM1sJ0UIsqUAuLLD8ITX+i1g4t4SD0aZKRSw3UtyvYVHLgMkU2NlEhxep3javzgiYaU
+	I99nVlNPP5ZDS/7wb3e5WiV66FN2QuKwxvr/qAxic9QXntcIACwpdclm2fHSsA==
+Message-ID: <bd8cc9b22f496b06e4c874253ba964f306c8f575.camel@bootlin.com>
+Subject: Hart isolation configuration failure (error -3) with OpenSBI 1.8 on
+ QEMU 10.1.3 rva22s64/rva23s64 profiles
+From: Thomas Perrot <thomas.perrot@bootlin.com>
+To: OpenSBI <opensbi@lists.infradead.org>, qemu-riscv@nongnu.org
+Cc: thomas.perrot@bootlin.com
+Date: Mon, 05 Jan 2026 18:42:58 +0100
+Autocrypt: addr=thomas.perrot@bootlin.com; prefer-encrypt=mutual;
+ keydata=mQGNBF+/ZOUBDAC2DghCjZvmgYcve02OG7dGZ7Iy58uEwne3LB7w7nRwdAxKw7ZaiVqwY
+ O+yNGVi+GVx7oA6Wn4pv46z+QDRLQiq6OseuXhkSGCg7U/yBCUq12B/GRGO1Qt2Qi1mJJT1s+1qZ5
+ Gxv6Nypz9qKVn94GM2bR1hXBga0t87vBpebThOHmX5d/0dqIcVxRCM7onNb0dDyRoVgLS5rBhQzrL
+ CMrJaCy39xZUy0J1SOlH4Mgk6EhJIPYY4wlzikGX6urg+Tc9EjGd78ry0e0p5U5qgjFR5QGJDy1Gn
+ U3CfwbT9sowdCASDbQDUoltlv2iWJCLa0xl97KVchCa0pr7HKbFA3J5SLKqFYUBCkFL+5WudYlz2n
+ XxiUgyviMQxyK+ij66kEi6/2zFDAecd43pHV7790ptqZBC3Jc67Emj7Vo3ShX6RXPPxxbeCTOF2uk
+ I45aJ9XcVFH/MFE96NjXj8uahnIsiTPyuCUoJu8tj7TSQyue874qJqVQvqlFyt2aZYJZ8ruq8AEQE
+ AAbQpVGhvbWFzIFBlcnJvdCA8dGhvbWFzLnBlcnJvdEBib290bGluLmNvbT6JAc4EEwEIADgCGwMF
+ CwkIBwIGFQoJCAsCBBYCAwECHgECF4AWIQSHQHfGpqMKIwOoEiGfwAsFcf4K7QUCX79mdwAKCRCfw
+ AsFcf4K7fhbC/wP0kSl6id2E/K3+UdXk6CLMVRbCFLCREzQs5WFpQ6l/I0WGOamhrOgegdszheiVF
+ orlUP8d37XSpFAqydhKGaN78V5Dps0Wmwm4lIlS4MtQXJtSLUHXDJLIZLW0pw8tiPLKsd1o/yDkXE
+ dnpsjJTRG6SdDSHnyOB2/gh4p+yTaLytFdARk/r4/P26+L+FiH0fFl+RnBt19LPklfKgeDc7GwIif
+ ja+nIWpp3W23DAUuI6xduEut25Q89yu7Ci8CliLfAiLy9bIGjBQWU2Y+1/j/7KuPj6VbBsZWLTZY0
+ hUmpJSTnWAqc9SMsNxo7NSQuddgviz5e2tqucaRqxP02FGzNa8U4NAKdWaXrlHG5Dglj9XH0DK+SH
+ +c96qqFewYD8VPQ6XAGxQcXbrtJmiMor1R2DfziispLRvJcfYs8xqabbCtoS3ouXB9XRi8hn7A2kh
+ ME1ryS+Oh63JshXHnw6bmjCpVd/p+fGLIGU6A47pJOpviKR4jEO84pl2ejtDZ3Tc=
+User-Agent: Evolution 3.56.2 (3.56.2-2.fc42) 
 MIME-Version: 1.0
-X-CM-TRANSID: rQCowAA3T9bLDlppUrRSAw--.64369S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxKr1DtrWxAFW7XFy7Cr4fGrg_yoW3GrW5pr
-	1DKFsrtw18tFyfu3yvyF1Yga1aq3ZYyry29ry7ZryftFySyw4ftFs2yFZrtrykXrZrAFW7
-	Ar95urZakFnYqaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUyv14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
-	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCF04k20xvY0x0EwIxG
-	rwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4
-	vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jrv_JF1lIxkGc2Ij64vIr41lIxAIcVC0I7IY
-	x2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26c
-	xKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAF
-	wI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUbrMaUUUUUU==
-X-Originating-IP: [112.94.103.158]
-X-CM-SenderInfo: x2kh0wp0lqwv3d6l2u1dvotugofq/
+X-Last-TLS-Session-Version: TLSv1.3
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260103_225515_199849_596DCE2A 
-X-CRM114-Status: GOOD (  17.43  )
+X-CRM114-CacheID: sfid-20260105_094306_046801_E4B3432F 
+X-CRM114-Status: UNSURE (   8.41  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -70,250 +86,175 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2453636235348803285=="
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Altera provides a JTAG UART core that provides virtual UART over JTAG
-and can coexist with their virtual JTAG. [1] This core has already been
-supported by Linux and the programming interface has always been stable.
 
-Add support for it to OpenSBI to ease JTAG prototype bringing up.
+--===============2453636235348803285==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-8OSXYm0yJpz05HVEcSe1"
 
-The driver follows the device tree binding in mainline Linux. [2]
 
-[1] https://docs.altera.com/r/docs/683130/25.3/embedded-peripherals-ip-user-guide/jtag-uart-core
-[2] https://github.com/torvalds/linux/blob/v6.19-rc1/Documentation/devicetree/bindings/serial/altr%2Cjuart-1.0.yaml
+--=-8OSXYm0yJpz05HVEcSe1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Icenowy Zheng <zhengxingda@iscas.ac.cn>
----
- include/sbi_utils/serial/altr-juart.h    | 17 ++++++
- lib/utils/serial/Kconfig                 |  9 +++
- lib/utils/serial/altr-juart.c            | 74 ++++++++++++++++++++++++
- lib/utils/serial/fdt_serial_altr_juart.c | 40 +++++++++++++
- lib/utils/serial/objects.mk              |  4 ++
- platform/generic/configs/defconfig       |  1 +
- 6 files changed, 145 insertions(+)
- create mode 100644 include/sbi_utils/serial/altr-juart.h
- create mode 100644 lib/utils/serial/altr-juart.c
- create mode 100644 lib/utils/serial/fdt_serial_altr_juart.c
+Hello,
 
-diff --git a/include/sbi_utils/serial/altr-juart.h b/include/sbi_utils/serial/altr-juart.h
-new file mode 100644
-index 00000000..1304ee08
---- /dev/null
-+++ b/include/sbi_utils/serial/altr-juart.h
-@@ -0,0 +1,17 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 ISCAS
-+ *
-+ * Authors:
-+ *   Icenowy Zheng <zhengxingda@iscas.ac.cn>
-+ */
-+
-+#ifndef __SERIAL_ALTR_JUART_H__
-+#define __SERIAL_ALTR_JUART_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+int altr_juart_init(unsigned long base);
-+
-+#endif
-diff --git a/lib/utils/serial/Kconfig b/lib/utils/serial/Kconfig
-index e3589cac..21619d0d 100644
---- a/lib/utils/serial/Kconfig
-+++ b/lib/utils/serial/Kconfig
-@@ -9,6 +9,11 @@ config FDT_SERIAL
- 
- if FDT_SERIAL
- 
-+config FDT_SERIAL_ALTR_JUART
-+	bool "Altera JTAG UART FDT driver"
-+	select SERIAL_ALTR_JUART
-+	default n
-+
- config FDT_SERIAL_CADENCE
- 	bool "Cadence UART FDT driver"
- 	select SERIAL_CADENCE
-@@ -56,6 +61,10 @@ config FDT_SERIAL_XILINX_UARTLITE
- 
- endif
- 
-+config SERIAL_ALTR_JUART
-+	bool "Altera JTAG UART support"
-+	default n
-+
- config SERIAL_CADENCE
- 	bool "Cadence UART support"
- 	default n
-diff --git a/lib/utils/serial/altr-juart.c b/lib/utils/serial/altr-juart.c
-new file mode 100644
-index 00000000..a230a561
---- /dev/null
-+++ b/lib/utils/serial/altr-juart.c
-@@ -0,0 +1,74 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 ISCAS
-+ *
-+ * Authors:
-+ *   Icenowy Zheng <zhengxingda@iscas.ac.cn>
-+ */
-+
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi_utils/serial/altr-juart.h>
-+
-+/* clang-format off */
-+
-+#define JUART_DATA_OFFSET		0x00
-+# define JUART_DATA_DATA_MASK		0x000000ff
-+# define JUART_DATA_RVALID		(1 << 15)
-+# define JUART_DATA_RAVAIL_MASK		0xffff0000
-+# define JUART_DATA_RAVAIL_SHIFT	16
-+#define JUART_CTRL_OFFSET		0x04
-+# define JUART_CTRL_RE			(1 << 0)
-+# define JUART_CTRL_WE			(1 << 1)
-+# define JUART_CTRL_RI			(1 << 8)
-+# define JUART_CTRL_WI			(1 << 9)
-+# define JUART_CTRL_AC			(1 << 10)
-+# define JUART_CTRL_WSPACE_MASK		0xffff0000
-+# define JUART_CTRL_WSPACE_SHIFT	16
-+
-+/* clang-format on */
-+
-+static volatile char *altr_juart_base;
-+
-+static u32 get_reg(u32 offset)
-+{
-+	return readl(altr_juart_base + offset);
-+}
-+
-+static void set_reg(u32 offset, u32 val)
-+{
-+	writel(val, altr_juart_base + offset);
-+}
-+
-+static void altr_juart_putc(char ch)
-+{
-+	while(!(get_reg(JUART_CTRL_OFFSET) & JUART_CTRL_WSPACE_MASK))
-+		;
-+
-+	set_reg(JUART_DATA_OFFSET, (unsigned char)ch);
-+}
-+
-+static int altr_juart_getc(void)
-+{
-+	u32 reg = get_reg(JUART_DATA_OFFSET);
-+	if (reg & JUART_DATA_RVALID)
-+		return reg & JUART_DATA_DATA_MASK;
-+
-+	return -1;
-+}
-+
-+static struct sbi_console_device altr_juart_console = {
-+	.name = "altr-juart",
-+	.console_putc = altr_juart_putc,
-+	.console_getc = altr_juart_getc
-+};
-+
-+int altr_juart_init(unsigned long base)
-+{
-+	altr_juart_base = (volatile char *)base;
-+
-+	sbi_console_set_device(&altr_juart_console);
-+
-+	return 0;
-+}
-diff --git a/lib/utils/serial/fdt_serial_altr_juart.c b/lib/utils/serial/fdt_serial_altr_juart.c
-new file mode 100644
-index 00000000..7901aa57
---- /dev/null
-+++ b/lib/utils/serial/fdt_serial_altr_juart.c
-@@ -0,0 +1,40 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 ISCAS
-+ *
-+ * Authors:
-+ *   Icenowy Zheng <zhengxingda@iscas.ac.cn>
-+ */
-+
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/serial/fdt_serial.h>
-+#include <sbi_utils/serial/altr-juart.h>
-+
-+static int serial_altr_juart_init(const void *fdt, int nodeoff,
-+				  const struct fdt_match *match)
-+{
-+	uint64_t reg_addr, reg_size;
-+	int rc;
-+
-+	if (nodeoff < 0 || !fdt)
-+		return SBI_ENODEV;
-+
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &reg_addr, &reg_size);
-+	/* Two 32-bit registers */
-+	if (rc < 0 || !reg_addr || !reg_size || reg_size < 0x8)
-+		return SBI_ENODEV;
-+
-+	return altr_juart_init(reg_addr);
-+}
-+
-+static const struct fdt_match serial_altr_juart_match[] = {
-+	{ .compatible = "altr,juart-1.0" },
-+	{ },
-+};
-+
-+const struct fdt_driver fdt_serial_altr_juart = {
-+	.match_table = serial_altr_juart_match,
-+	.init = serial_altr_juart_init,
-+};
-diff --git a/lib/utils/serial/objects.mk b/lib/utils/serial/objects.mk
-index 7c973c83..94cf3a4b 100644
---- a/lib/utils/serial/objects.mk
-+++ b/lib/utils/serial/objects.mk
-@@ -10,6 +10,9 @@
- libsbiutils-objs-$(CONFIG_FDT_SERIAL) += serial/fdt_serial.o
- libsbiutils-objs-$(CONFIG_FDT_SERIAL) += serial/fdt_serial_drivers.carray.o
- 
-+carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_ALTR_JUART) += fdt_serial_altr_juart
-+libsbiutils-objs-$(CONFIG_FDT_SERIAL_ALTR_JUART) += serial/fdt_serial_altr_juart.o
-+
- carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_CADENCE) += fdt_serial_cadence
- libsbiutils-objs-$(CONFIG_FDT_SERIAL_CADENCE) += serial/fdt_serial_cadence.o
- 
-@@ -37,6 +40,7 @@ libsbiutils-objs-$(CONFIG_FDT_SERIAL_UART8250) += serial/fdt_serial_uart8250.o
- carray-fdt_serial_drivers-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += fdt_serial_xlnx_uartlite
- libsbiutils-objs-$(CONFIG_FDT_SERIAL_XILINX_UARTLITE) += serial/fdt_serial_xlnx_uartlite.o
- 
-+libsbiutils-objs-$(CONFIG_SERIAL_ALTR_JUART) += serial/altr-juart.o
- libsbiutils-objs-$(CONFIG_SERIAL_CADENCE) += serial/cadence-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_GAISLER) += serial/gaisler-uart.o
- libsbiutils-objs-$(CONFIG_SERIAL_RENESAS_SCIF) += serial/renesas_scif.o
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index aab1560f..9d977960 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -49,6 +49,7 @@ CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
- CONFIG_FDT_RESET_SUNXI_WDT=y
- CONFIG_FDT_RESET_SYSCON=y
- CONFIG_FDT_SERIAL=y
-+CONFIG_FDT_SERIAL_ALTR_JUART=y
- CONFIG_FDT_SERIAL_CADENCE=y
- CONFIG_FDT_SERIAL_GAISLER=y
- CONFIG_FDT_SERIAL_HTIF=y
--- 
-2.52.0
+Happy New Year!
 
+I'm facing a hart isolation configuration error when running OpenSBI
+1.8 on QEMU 10.1.3 with the RISC-V application profiles rva22s64 and
+rva23s64:
+
+    init_coldboot: hart isolation configure failed (error -3)
+
+No issue occurs when using the rv64 profile. The system continues to
+boot after the error, but I'd like to understand the root cause.
+
+I haven't tested OpenSBI 1.8 on real hardware yet - that's my next
+step.
+
+Is there a known QEMU issue? Is there a recommended workaround besides
+using rv64?
+
+Below is the complete trace:
+
+qemu-system-riscv64 -device virtio-net-
+device,netdev=3Dnet0,mac=3D52:54:00:12:35:02 -netdev
+user,id=3Dnet0,hostfwd=3Dtcp:127.0.0.1:2222-:22,hostfwd=3Dtcp:127.0.0.1:232=
+3-
+:23,tftp=3D/src/build/tmp/deploy/images/qemuriscv64 -object rng-
+random,filename=3D/dev/urandom,id=3Drng0 -device virtio-rng-pci,rng=3Drng0 =
+-
+drive id=3Ddisk0,file=3D/src/build/tmp/deploy/images/qemuriscv64/core-
+image-minimal-qemuriscv64.rootfs-20260105173847.ext4,if=3Dnone,format=3Draw
+-device virtio-blk-device,drive=3Ddisk0 -device qemu-xhci -device usb-
+tablet -device usb-kbd  -machine virt -cpu rva23s64 -smp 4 -m 256 -
+snapshot -serial mon:stdio -serial null -nographic -device bochs-
+display -bios /src/build/tmp/deploy/images/qemuriscv64/fw_jump.elf -
+kernel /src/build/tmp/deploy/images/qemuriscv64/Image -append
+'root=3D/dev/vda rw  mem=3D256M ip=3Ddhcp console=3DttyS0 console=3Dhvc0
+earlycon=3Dsbi swiotlb=3D0
+
+OpenSBI v1.8
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 4
+Platform HART Protection    : ---
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 357 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 101 KB
+Firmware Heap Offset        : 0x4d000
+Firmware Heap Size          : 49 KB (total), 0 KB (reserved), 13 KB
+(used), 35 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1464 B (used), 2632 B
+(free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     :
+time,rfnc,ipi,base,hsm,srst,pmu,dbcn,fwft,legacy,dbtr,sse
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*,1*,2*,3*
+Domain0 Region00            : 0x0000000080040000-0x000000008005ffff M:
+(F,R,W) S/U: ()
+Domain0 Region01            : 0x0000000080000000-0x000000008003ffff M:
+(F,R,X) S/U: ()
+Domain0 Region02            : 0x0000000000100000-0x0000000000100fff M:
+(I,R,W) S/U: (R,W)
+Domain0 Region03            : 0x0000000010000000-0x0000000010000fff M:
+(I,R,W) S/U: (R,W)
+Domain0 Region04            : 0x0000000002000000-0x000000000200ffff M:
+(I,R,W) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M:
+(I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M:
+(I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M:
+() S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000082200000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdcbvh
+Boot HART ISA Extensions    :
+smstateen,sscofpmf,sstc,zicntr,zihpm,zicboz,zicbom,svpbmt,sdtrig,svade,
+smnpm,ssstateen
+Boot HART PMP Count         : 0
+Boot HART PMP Granularity   : 0 bits
+Boot HART PMP Address Bits  : 0
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000003666
+Boot HART MEDELEG           : 0x0000000000f4b509
+init_coldboot: hart isolation configure failed (error -3)
+
+Kind regards,
+Thomas Perrot
+--=20
+Thomas Perrot, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
+
+--=-8OSXYm0yJpz05HVEcSe1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCAAdFiEEh0B3xqajCiMDqBIhn8ALBXH+Cu0FAmlb+CIACgkQn8ALBXH+
+Cu1/YAv+L9yTrGJDy1PjG8qiHbLsziER7F7r1P8Tz/fO/KCS1TL1i7C5638K5+uf
+cB9ViOqpYYnF7dE34d+oms7xn3MDDMZIYowlRz1/sr1UfZc751CibuGvVpZEPzQp
+/Hqigx2hqe9hPO9qNYZfu6tYYdgYE7CB5BZOByubxNY2XfaxcSLrU7SpFe5s5D4G
+FDKu4RPSKHPinTb/dS/9vd6M+3GLH8quVUfjBpKwqOwDEtSXQmL6J6n/revjY6LN
+arIMj+RRLU3SGS+ihj3lWYhLe77T5Evg1wsJDM3DIbaFWDDHB+Z0zB2YZmOFLjWM
+4Bh4FZ/myxwptJtK+2pZZfjLz7seTkl7YOHlWpKXuhefnZs/M2T7kSKgIxSe+Uv4
+92tQ/3g47Ul03xsM3hWs648lSk3IzzKCxHC5iqeqm2l8NHnTVzMyBJ3RLUEt3nXJ
+GKFYGKs67omYe6qpENoevP5YkwNvrRwRAc6ydmNVBf8oOZ345TnjYB/AxzAGx1Ys
+dVUxbzB5
+=jEj7
+-----END PGP SIGNATURE-----
+
+--=-8OSXYm0yJpz05HVEcSe1--
+
+
+--===============2453636235348803285==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 -- 
 opensbi mailing list
 opensbi@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/opensbi
+
+--===============2453636235348803285==--
+
