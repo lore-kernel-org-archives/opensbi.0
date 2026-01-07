@@ -4,133 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8DBF7CFD65B
-	for <opensbi@archiver.kernel.org>; Wed,  7 Jan 2026 16:05:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1C9F5D0D141
+	for <opensbi@archiver.kernel.org>; Wed,  7 Jan 2026 17:02:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:CC
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=TAqy+bfU7oVNzG+f7rSlhjYmw1Z6orJAw5kp+KVZYAo=; b=XgY5Vua3ahVsRd
-	z5DUXLyJuojruNZhGhGUiDrMmtc9Pf67g+NdU5hBITdGIDUgW/LixTVn11D4p2CHas/zrPqYlFwxk
-	0IKFwqtMt/9DwxRs0kFEm2QoZTP98RNDyCD+fxocM7bsHwOVFxU1OZcYuqNw+25xUU+A3LOek6syU
-	NUXA5QNwdzgaD+zWCinvV5l1rfsL+K0QCJDLJx25rQ9F5iOSu3Big1G2Y57DwCfZvwN2tTY71eCmS
-	60BViBo53jNlfSpwdnDHjs9paDy6S6KqHbS9pU4VmyrPpapWHzjrl6X3lYx1DP6IH5Z+np17N4Hgn
-	B2CfwWWJZ+1lqZZcen9A==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=nU+JkToCO8qvUfYSR67fCZt3Z4IuxakR5kgzsXwYUXA=; b=pu2a3GJ6/Dvz+A
+	BLKxm1MSuwcmtyvc/p6PKKUcJ5QRa+NVE8mleFWk7CeDtBBQQ7ta1yNlQbOOiPFmST6n3hTmOXVER
+	1Ot7gXdcO7OiAZbqjEJmO2jRJC2qs62yDAlLvMiU316FkWSVtr+7912ukMPB0OVJ3QpMM3qhW5RcF
+	oHpeqsWdO+DnYoSK5zK8ppJkLtrjewjwHeMBCuX2l+hsZ1SzsxIp5MBFk+qPLPwJORdEwdpNv2nmo
+	QC3YfLBLLfwPN+YCP38orOFnbFhoKd+GBfm/HzgGlWFpks6PGvoWNZB6NPaG8WAPQo0jFI0YkkwS3
+	F/0+gg/JfLVkE/ULtkKw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vdW29-0000000FE6a-2INq;
-	Wed, 07 Jan 2026 16:05:17 +0000
-Received: from mail-southcentralusazon11012057.outbound.protection.outlook.com ([40.93.195.57] helo=SN4PR2101CU001.outbound.protection.outlook.com)
+	id 1vdWvg-0000000FLjZ-1W8Q;
+	Wed, 07 Jan 2026 17:02:40 +0000
+Received: from mail-ot1-x32f.google.com ([2607:f8b0:4864:20::32f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vdW26-0000000FE66-1eFV
+	id 1vdWvd-0000000FLht-1hmW
 	for opensbi@lists.infradead.org;
-	Wed, 07 Jan 2026 16:05:15 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cvBu+h+JZdOe8pnJZc7u5slBxi4DP9738phsE7lkz4rE3ZOpnJyx/KR4fKaIf93C2q+rX1i+WjdxA77YAlftMQon6yp0O8kcly6JtmRuMeDtKWkk8rZ1Kz7mNjBgKH7BxO7GWDLI9R5Er9u9EURy46rPd+hRmTdZWR9tDzFAu3PB4PB4IgUKBnjOJwi9rJyiQGLA1JJFey+iEPr0/T7eqXX0I7yDA++vIK0i6Nyrq53l1S0k2LQZuah4cjyGy4tJkbUMAgpV0ZfLpv0AS0gMU6mojjZQ/x67/aKGvujUCrzDTkuYUmLLv+Cv3vU1q4rVYRchIOVOQWoCytPOgkIUsg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9c6vPLTEte8PzG+aJZkhVPjtgIrjqgJnIfLALK4uB3Q=;
- b=xNBBuUL2ZokcFiwYHT0SyksJ4zbOBVYPZhuAuTjeojuf+dWSOdfAG1oT4xKgKl+H3JvgifxXyS6XnxMMGnfnrgMKOi1b3EJhNGB7gRUFH1Nb5sm4+zRDGryzY8h+JcLhAflKkT+w35hQOdHeW0gjhrEmXEw95I8YmYlGCjXJ2+ETP7kK7GYP/ocUi1BnR0h9wvnyiixYV7NTCNe0pFvEa9aFBDdzgg96IUHnGdkl0wqXNc03RQB/yTRjp+XQv57aqlXihUZJOh4uxGiLNCq6+Hum8dIN10LxODQXrWMv7Ezd1s7lOcrTBCt0hfDImF8l2USC38+dQXOx8Z7iaNEbeA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=temperror (sender ip
- is 165.204.84.17) smtp.rcpttodomain=lists.infradead.org
- smtp.mailfrom=amd.com; dmarc=temperror action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9c6vPLTEte8PzG+aJZkhVPjtgIrjqgJnIfLALK4uB3Q=;
- b=Ch8DNkr3aCzRLKk8RTz3HuJOX8JJMB6btXkSgNNkR/NsHO6v/zC/cuax8We53KaWGdMdNm5/tJDIKB3iAZFg+d6wTm0eUmqtb0VXdfMS7exGaGLccmslJ9l6Rw4Niv1b+PVqpWWeoDIf4yq4gdvOr2R9RXDWjQu6jG9izu1IyMc=
-Received: from BL0PR1501CA0028.namprd15.prod.outlook.com
- (2603:10b6:207:17::41) by DM6PR12MB4075.namprd12.prod.outlook.com
- (2603:10b6:5:21d::8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9499.2; Wed, 7 Jan
- 2026 16:05:08 +0000
-Received: from MN1PEPF0000ECD5.namprd02.prod.outlook.com
- (2603:10b6:207:17:cafe::ac) by BL0PR1501CA0028.outlook.office365.com
- (2603:10b6:207:17::41) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9499.2 via Frontend Transport; Wed, 7
- Jan 2026 16:05:07 +0000
-X-MS-Exchange-Authentication-Results: spf=temperror (sender IP is
- 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=temperror action=none header.from=amd.com;
-Received-SPF: TempError (protection.outlook.com: error in processing during
- lookup of amd.com: DNS Timeout)
-Received: from satlexmb07.amd.com (165.204.84.17) by
- MN1PEPF0000ECD5.mail.protection.outlook.com (10.167.242.133) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9499.1 via Frontend Transport; Wed, 7 Jan 2026 16:05:06 +0000
-Received: from SATLEXMB04.amd.com (10.181.40.145) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.17; Wed, 7 Jan
- 2026 10:05:05 -0600
-Received: from satlexmb08.amd.com (10.181.42.217) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Wed, 7 Jan
- 2026 10:05:05 -0600
-Received: from localhost (10.180.168.240) by satlexmb08.amd.com
- (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17 via Frontend
- Transport; Wed, 7 Jan 2026 10:05:05 -0600
-From: Michal Simek <michal.simek@amd.com>
-To: <opensbi@lists.infradead.org>
-CC: Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v2] lib: sbi: Fix behavior on platform without HART protection
-Date: Wed, 7 Jan 2026 17:04:56 +0100
-Message-ID: <bb8641e5f82654e3989537cea85f165f67a7044e.1767801896.git.michal.simek@amd.com>
-X-Mailer: git-send-email 2.43.0
+	Wed, 07 Jan 2026 17:02:38 +0000
+Received: by mail-ot1-x32f.google.com with SMTP id 46e09a7af769-7cc50eb0882so961337a34.3
+        for <opensbi@lists.infradead.org>; Wed, 07 Jan 2026 09:02:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1767805355; x=1768410155; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=A/BL/I7gsy9TavF+QVzXJX7E8CoIeRBFTOOoZFE7hgk=;
+        b=njmLf4TUWgTtbyEvThEuX9IFTb1Dx68F+tY2EcRqzGaY8hwV1T2lsE/OiwtRNsTp65
+         bQBJGxQpl/cFaI0xzjHa3ypO7GzmNEf/PwLb+9RmZTJ/Q6HPbpjCOQE6m2JQ5tJ3lgrr
+         H82A++UO3dxC4AkhI0BSACwf7jMqrK2pwIbVPtwptjYJ15Q1wfLYgon/pDsn7qxCOvfy
+         XN2CEp9AlFe/P1slcVYJ1dcoDBDAHZ2PHTy5YVOGTU2boMf4YiNDHN61ldJSsF9guSqX
+         MyWakJjzsaV8RdldFMW05hwrcTo15jaUML77XePxU+4Czm5V/ryTYm4Y9XoaKKmoEbHQ
+         CW+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767805355; x=1768410155;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=A/BL/I7gsy9TavF+QVzXJX7E8CoIeRBFTOOoZFE7hgk=;
+        b=p7HiCM13fOQbjyha34OkeSE9Z2++DAGgcr2p32v5FcvlZjVA4VpCbcAX0qyiJ3Yu0O
+         2rOzm7/Kq6ItysAdrG+76PixzA8yYj5vq9V4xXa2SHK1Jc6mjtPsRdXaRyvLB2TUQjGO
+         zScX6+GMrx/QbnsVlxLM9dizKuqbJQbG+VS+FHrXpqgw32hD3eBDx+cMMeGJg2x8FFt0
+         +LxIOc8tPP8J0yYgiTW8QH1TEg8GxkXtFR6RDIKCd9duRBO7PGhQRNRZtB0XLDaFny62
+         fNYoVpwvCi6P2+reMJ6+i+fh1Ja72GVNt+khdiGWtnAUNPUyu0M6BiUlBDu4R9xbY+xJ
+         b+nw==
+X-Gm-Message-State: AOJu0Yx9u71PYzWnRKhWaN//5HMdtlX0IjBrxew+wclgJdCCoirkp56s
+	oxMfms8CHAAAs2rKBB1lrXtSdldlEeuzNQUAGCPDEERVz3E3Sm11gLlnqD02aBGynBRqya/DoUP
+	V9j56tehI4GwQ0Ms3OOR11wP/elZB4ue/czYy15wXWA==
+X-Gm-Gg: AY/fxX4dBnCfXsbkOX1N7VbsmgfItJorIO/CiP35MhQsSD5uvSXpzzrFDCkJk/85tYZ
+	tUXkWdUQ98rg59m2jBfLjkL7U0ClY08dqjkiebhjxnRack6nkfW69QEw9y66gJS3O3fSi0UIhrn
+	IzhvA0691b9E/+UCPWZXtLJajJyb/pPzqw1QLFNfK+SW3wyHIZLkVntOl4pfDbFOVLZnsU79a4S
+	D8fx8uujnov6Yq4CssaG7cwLwUKon8qxF8iYv2yoH5KfgdHb8XcWcXtx33M5TZM7UzRowDHcyMz
+	mc60jkyXNJIJfQ+jrxQTKeUrr6B69j+vq6Cm9QA9voJ3I9M0swSgJ7MeLVnEHNkwvt0kEg==
+X-Google-Smtp-Source: AGHT+IHzd6ctsB1LsAwo1xg+CQRwelNwQPR9ldSct1fpI/hIIx4GLDUJJg8YuEXpQkkiSSGPHmhnMtXIuSa8jOKHpic=
+X-Received: by 2002:a05:6820:530a:b0:659:9a49:8e3a with SMTP id
+ 006d021491bc7-65f54ed1d51mr859442eaf.10.1767805354358; Wed, 07 Jan 2026
+ 09:02:34 -0800 (PST)
 MIME-Version: 1.0
-Received-SPF: None (SATLEXMB04.amd.com: michal.simek@amd.com does not
- designate permitted sender hosts)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN1PEPF0000ECD5:EE_|DM6PR12MB4075:EE_
-X-MS-Office365-Filtering-Correlation-Id: 308bf165-f61d-4f3b-ef21-08de4e06864d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|36860700013|82310400026|1800799024;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?vSYCtx+YqV4CbCRFwb9lPtGwVwj/4aWfQkL4QEKql693SypWot3KrAO5QB2/?=
- =?us-ascii?Q?TFAfXlnWTr5BN0UUHf+i+GyIYxBobxEwLgXOeK7W9JohJFFXRujFojUnoSCG?=
- =?us-ascii?Q?iOBxJlhcwFRPuq6Jv/CKsCxJkWjNmy2fprEoPEVH+twTdQo0ArjC8T3AmJYW?=
- =?us-ascii?Q?X7NAFShwIXi2QBZvzDTCMeZNCcfVPcnsLsskD8jJq4kKl2/64FcEj0IKHkOY?=
- =?us-ascii?Q?eGPs5vDCfobW5c1zZRBPss56BRvoWKn6uyCUGnkWe6PCuUnJHB1cBq6kuCFg?=
- =?us-ascii?Q?B5ixQ9Bb1cggR1yRegd1RC9HPAa5Re8L4IlnP96iwBo2kUTwLH5T1YMNiD7p?=
- =?us-ascii?Q?V1Wcy7FTsZlnL9hsdqDron38kWSf5VvkoGTfuhcRSxy08CeDA2u858KrDE92?=
- =?us-ascii?Q?D4viI32GSuuXPsxdUXkjMj1hl7WUDiMwTEGZoQ7H/m4X8RWwwY0odGVBCdnp?=
- =?us-ascii?Q?gTU3UePZYtmnq6QI2YpPRQpDdANyCbKwPUzbPp39q8inzCLLB/4kvpnXiQ6D?=
- =?us-ascii?Q?YfTM5e7Wx/bSoO2bj1opDSdmM0m62kgRoVokKw1eilkZIYLjQJvIuVRzShlD?=
- =?us-ascii?Q?JzD//Rc0fkWKTey4+6UEg2+o6oqOLHwIDHhK0CDQ+59s47oAz6mv8OOETaFu?=
- =?us-ascii?Q?0znSk9ghKG6hDPm6qXEshpXZz7tbgb5GvXwFDDgAhQ3LMbjykYTSSc7dQhVU?=
- =?us-ascii?Q?MC3i/JtrNesKYlYTJZdM2LiF3znlV9MYL51Dlg7soCIMnkmkK/WcORVsesJ9?=
- =?us-ascii?Q?4bUP1/G24vZ4bD5q+qL1DnZFdfPYrEU478bFbW5bSFZyy8p0rqquE5VdAC7K?=
- =?us-ascii?Q?xZpj3Ll3v2Uc09OdtR3roDG3CuqxTl2Khzcaesh2Nj/Qgunb7rdyqd6EwIrT?=
- =?us-ascii?Q?A6ZeJZ8lLv/nfupkiDg4KUPzkocMZeq0xRBkJUZ8OfgDALF0KzpGX1JoaEgg?=
- =?us-ascii?Q?AUdYJIEntiHAuBVEadPh0gieoz/uJ0fhvSdElkPOmyWrNRxB564UGpT9sSTb?=
- =?us-ascii?Q?8rGJypAeGEei3phW0JfgPj884in48Su7D5KTQ8MhrctddARJ6fx/M01Xh1ey?=
- =?us-ascii?Q?IzNcr5ul3dG0C8rgQ0K4lk7M7wvPf6jXdLGEolPRT4DLbslYE/RktpokhbEK?=
- =?us-ascii?Q?Pdjrkd+dxfTkWSpWZs0jcYxvnuDmrr8im81xeGeo2udfnlfFAg6tAlo9uVX5?=
- =?us-ascii?Q?Gk3hJIl/jZg4/zJmCVI9zBWo5fM81UAFDNxdCekU7+VUbK+tlM9Cy0u8vq2g?=
- =?us-ascii?Q?L5qIi1ck0yX2VkL+uHLlVwr8uq9A9zjdsa5rMjuxxDTMrsogeDlplWkqIlQp?=
- =?us-ascii?Q?/nlj4n1NJ9lkHihqCCLcz0yiiO5pyAOREKXfooPHvTMlfRW4t0xlHTag3bq5?=
- =?us-ascii?Q?wsquiL3s8f6VBEkXOxD62sRBAfQlHafdKbQ2mKhDgdlr2FjOSElvR7OccSj8?=
- =?us-ascii?Q?B4kxTdI3Koq6RGoFcD90psiqb6cWd9TnIuTfZ+xTwgMi/potjE01ELt2zQNG?=
- =?us-ascii?Q?Syc22NUn2sUJAPirXl4f/pBTLw7ZWc/PaCqZRw7Oo/cPCgYzakeb7Xpe7kAW?=
- =?us-ascii?Q?P8vJ2N3JEXXx9+Pnow0=3D?=
-X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(36860700013)(82310400026)(1800799024);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Jan 2026 16:05:06.2739
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 308bf165-f61d-4f3b-ef21-08de4e06864d
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource: MN1PEPF0000ECD5.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4075
+References: <bb8641e5f82654e3989537cea85f165f67a7044e.1767801896.git.michal.simek@amd.com>
+In-Reply-To: <bb8641e5f82654e3989537cea85f165f67a7044e.1767801896.git.michal.simek@amd.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 7 Jan 2026 22:32:23 +0530
+X-Gm-Features: AQt7F2rIyIm4sth6aE3ZADdvUriM5ekJxVe8MLYh2i3P415w2xvMPkxfZM4ChbU
+Message-ID: <CAAhSdy3bh-rf50qoKyoogD920QZYFuhvToOzdRGyYi8+-NJzSg@mail.gmail.com>
+Subject: Re: [PATCH v2] lib: sbi: Fix behavior on platform without HART protection
+To: Michal Simek <michal.simek@amd.com>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260107_080514_498360_7823E6F6 
-X-CRM114-Status: GOOD (  11.15  )
+X-CRM114-CacheID: sfid-20260107_090237_661996_D230DFE0 
+X-CRM114-Status: GOOD (  19.34  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -142,67 +89,52 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The commit 42139bb9b7dc ("lib: sbi: Replace sbi_hart_pmp_xyz() and
-sbi_hart_map/unmap_addr()") changed logic by calling
-sbi_hart_protection_configure(). But when protection doesn't exist the
-function is returning SBI_EINVAL.
-But on systems without protection this is correct configuration that's why
-do not hang when system don't have any HART protection.
-
-Fixes: 42139bb9b7dc ("lib: sbi: Replace sbi_hart_pmp_xyz() and sbi_hart_map/unmap_addr()")
-Signed-off-by: Michal Simek <michal.simek@amd.com>
----
-
-Changes in v2:
-- Also update
-  sbi_hart_protection_map_range()/sbi_hart_protection_unmap_range()
-
- lib/sbi/sbi_hart_protection.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/lib/sbi/sbi_hart_protection.c b/lib/sbi/sbi_hart_protection.c
-index 306f5afbdaea..e10c856460a4 100644
---- a/lib/sbi/sbi_hart_protection.c
-+++ b/lib/sbi/sbi_hart_protection.c
-@@ -54,7 +54,7 @@ int sbi_hart_protection_configure(struct sbi_scratch *scratch)
- 	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
- 
- 	if (!hprot)
--		return SBI_EINVAL;
-+		return 0;
- 	if (!hprot->configure)
- 		return SBI_ENOSYS;
- 
-@@ -76,7 +76,7 @@ int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
- 	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
- 
- 	if (!hprot)
--		return SBI_EINVAL;
-+		return 0;
- 	if (!hprot->map_range)
- 		return 0;
- 
-@@ -88,7 +88,7 @@ int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size)
- 	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
- 
- 	if (!hprot)
--		return SBI_EINVAL;
-+		return 0;
- 	if (!hprot->unmap_range)
- 		return 0;
- 
--- 
-2.43.0
-
-base-commit: e7fa66c2160ec139de1853a00f669c09320a9256
-branch: track
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gV2VkLCBKYW4gNywgMjAyNiBhdCA5OjM14oCvUE0gTWljaGFsIFNpbWVrIDxtaWNoYWwuc2lt
+ZWtAYW1kLmNvbT4gd3JvdGU6Cj4KPiBUaGUgY29tbWl0IDQyMTM5YmI5YjdkYyAoImxpYjogc2Jp
+OiBSZXBsYWNlIHNiaV9oYXJ0X3BtcF94eXooKSBhbmQKPiBzYmlfaGFydF9tYXAvdW5tYXBfYWRk
+cigpIikgY2hhbmdlZCBsb2dpYyBieSBjYWxsaW5nCj4gc2JpX2hhcnRfcHJvdGVjdGlvbl9jb25m
+aWd1cmUoKS4gQnV0IHdoZW4gcHJvdGVjdGlvbiBkb2Vzbid0IGV4aXN0IHRoZQo+IGZ1bmN0aW9u
+IGlzIHJldHVybmluZyBTQklfRUlOVkFMLgo+IEJ1dCBvbiBzeXN0ZW1zIHdpdGhvdXQgcHJvdGVj
+dGlvbiB0aGlzIGlzIGNvcnJlY3QgY29uZmlndXJhdGlvbiB0aGF0J3Mgd2h5Cj4gZG8gbm90IGhh
+bmcgd2hlbiBzeXN0ZW0gZG9uJ3QgaGF2ZSBhbnkgSEFSVCBwcm90ZWN0aW9uLgo+Cj4gRml4ZXM6
+IDQyMTM5YmI5YjdkYyAoImxpYjogc2JpOiBSZXBsYWNlIHNiaV9oYXJ0X3BtcF94eXooKSBhbmQg
+c2JpX2hhcnRfbWFwL3VubWFwX2FkZHIoKSIpCj4gU2lnbmVkLW9mZi1ieTogTWljaGFsIFNpbWVr
+IDxtaWNoYWwuc2ltZWtAYW1kLmNvbT4KCkxHVE0uCgpSZXZpZXdlZC1ieTogQW51cCBQYXRlbCA8
+YW51cEBicmFpbmZhdWx0Lm9yZz4KClNpbmNlIHRoaXMgcGF0Y2ggYWxzbyBmaXhlcyBPcGVuU0JJ
+IHJ1bm5pbmcgb24gUUVNVSB2aXJ0Cm1hY2hpbmUgd2l0aCBydmEyM3M2NCBhbmQgcnZhMjJzNjQg
+Q1BVIHR5cGVzLCBJIHRoaW5rCndlIHNob3VsZCBoYXZlIGFuIGluY3JlbWVudGFsIHYxLjguMSBy
+ZWxlYXNlLgoKUmVnYXJkcywKQW51cAoKCj4gLS0tCj4KPiBDaGFuZ2VzIGluIHYyOgo+IC0gQWxz
+byB1cGRhdGUKPiAgIHNiaV9oYXJ0X3Byb3RlY3Rpb25fbWFwX3JhbmdlKCkvc2JpX2hhcnRfcHJv
+dGVjdGlvbl91bm1hcF9yYW5nZSgpCj4KPiAgbGliL3NiaS9zYmlfaGFydF9wcm90ZWN0aW9uLmMg
+fCA2ICsrKy0tLQo+ICAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9u
+cygtKQo+Cj4gZGlmZiAtLWdpdCBhL2xpYi9zYmkvc2JpX2hhcnRfcHJvdGVjdGlvbi5jIGIvbGli
+L3NiaS9zYmlfaGFydF9wcm90ZWN0aW9uLmMKPiBpbmRleCAzMDZmNWFmYmRhZWEuLmUxMGM4NTY0
+NjBhNCAxMDA2NDQKPiAtLS0gYS9saWIvc2JpL3NiaV9oYXJ0X3Byb3RlY3Rpb24uYwo+ICsrKyBi
+L2xpYi9zYmkvc2JpX2hhcnRfcHJvdGVjdGlvbi5jCj4gQEAgLTU0LDcgKzU0LDcgQEAgaW50IHNi
+aV9oYXJ0X3Byb3RlY3Rpb25fY29uZmlndXJlKHN0cnVjdCBzYmlfc2NyYXRjaCAqc2NyYXRjaCkK
+PiAgICAgICAgIHN0cnVjdCBzYmlfaGFydF9wcm90ZWN0aW9uICpocHJvdCA9IHNiaV9oYXJ0X3By
+b3RlY3Rpb25fYmVzdCgpOwo+Cj4gICAgICAgICBpZiAoIWhwcm90KQo+IC0gICAgICAgICAgICAg
+ICByZXR1cm4gU0JJX0VJTlZBTDsKPiArICAgICAgICAgICAgICAgcmV0dXJuIDA7Cj4gICAgICAg
+ICBpZiAoIWhwcm90LT5jb25maWd1cmUpCj4gICAgICAgICAgICAgICAgIHJldHVybiBTQklfRU5P
+U1lTOwo+Cj4gQEAgLTc2LDcgKzc2LDcgQEAgaW50IHNiaV9oYXJ0X3Byb3RlY3Rpb25fbWFwX3Jh
+bmdlKHVuc2lnbmVkIGxvbmcgYmFzZSwgdW5zaWduZWQgbG9uZyBzaXplKQo+ICAgICAgICAgc3Ry
+dWN0IHNiaV9oYXJ0X3Byb3RlY3Rpb24gKmhwcm90ID0gc2JpX2hhcnRfcHJvdGVjdGlvbl9iZXN0
+KCk7Cj4KPiAgICAgICAgIGlmICghaHByb3QpCj4gLSAgICAgICAgICAgICAgIHJldHVybiBTQklf
+RUlOVkFMOwo+ICsgICAgICAgICAgICAgICByZXR1cm4gMDsKPiAgICAgICAgIGlmICghaHByb3Qt
+Pm1hcF9yYW5nZSkKPiAgICAgICAgICAgICAgICAgcmV0dXJuIDA7Cj4KPiBAQCAtODgsNyArODgs
+NyBAQCBpbnQgc2JpX2hhcnRfcHJvdGVjdGlvbl91bm1hcF9yYW5nZSh1bnNpZ25lZCBsb25nIGJh
+c2UsIHVuc2lnbmVkIGxvbmcgc2l6ZSkKPiAgICAgICAgIHN0cnVjdCBzYmlfaGFydF9wcm90ZWN0
+aW9uICpocHJvdCA9IHNiaV9oYXJ0X3Byb3RlY3Rpb25fYmVzdCgpOwo+Cj4gICAgICAgICBpZiAo
+IWhwcm90KQo+IC0gICAgICAgICAgICAgICByZXR1cm4gU0JJX0VJTlZBTDsKPiArICAgICAgICAg
+ICAgICAgcmV0dXJuIDA7Cj4gICAgICAgICBpZiAoIWhwcm90LT51bm1hcF9yYW5nZSkKPiAgICAg
+ICAgICAgICAgICAgcmV0dXJuIDA7Cj4KPiAtLQo+IDIuNDMuMAo+Cj4gYmFzZS1jb21taXQ6IGU3
+ZmE2NmMyMTYwZWMxMzlkZTE4NTNhMDBmNjY5YzA5MzIwYTkyNTYKPiBicmFuY2g6IHRyYWNrCj4K
+PiAtLQo+IG9wZW5zYmkgbWFpbGluZyBsaXN0Cj4gb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3Jn
+Cj4gaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCgot
+LSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
+Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
