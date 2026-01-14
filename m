@@ -4,27 +4,27 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B3D24D31A2E
-	for <opensbi@archiver.kernel.org>; Wed, 14 Jan 2026 09:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 450D9D31A2A
+	for <opensbi@archiver.kernel.org>; Wed, 14 Jan 2026 09:21:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=kgBeM2syLkuCeV6+EFNf2+apxt56UJaIEGgOjXj7H/w=; b=KMxQjn3jVH0AFB
-	dIak14XqGqpdFEzCgLaSyktQ90bAqJK33rNpaUpDMD1+rHB5a9qKJy/FDTrmUiudY5IlZI9I/1C+2
-	L3FEYUf3IYHb83LcwP2mjqOhDY7VI4WIhMGAP9awSu3HJ4lCA6K19a8ZIK+a2PKd0YJ2NxVO5QeIx
-	dpY2VTj9p9QA6M+ea1BvoQN3FTeJFi8CAi6KxqVAHT5ZzEQWfletr1XKWJO/hWp1IJmAw7kxUEbVr
-	L+oOqYf/FSOJCDuJd+XCySxSzc1INvLyNlQmTuAUqAq3NrbdDV4yhM2XJxkir59kh63H58T2s7TP+
-	3CpTMm2BTv0or10CjjHA==;
+	List-Owner; bh=XV7P9rdNLSfCvqtytHBhYHuYcmpMbo/MzTTefTipATg=; b=mF34r2dT1tm4/2
+	PA3lFMFBW/rUV3UW0/Dp3JX4nW1PAE5/pcj6YEivjtyrECF+a1JHM6t2kSsGMIxplTqzg6C6BImxc
+	cgVMVOjiO1Hjkbp0NuBz5pIWThgpp6Wv/LJoSHnuQvIxUUo/IrqicingdR2hTSOojawzVmkDxgY9K
+	fHeLoXA0Amho8UpnKQPFCEKGG0leWjviLIu6yV0WXIMkyktY13jnJo48yIq/oxXOWM29P4HTToeK7
+	Q4hs7W9sYmQ8AIdznWL+rG/LUH7nslp1ktm829nxzL8Go+3I6xGg6T1bKZBCz+uR1rWgRK7p1b8UB
+	UZqLh4DKbs4ZTDQyAN5A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vfx4R-00000008Vrb-2fH4;
-	Wed, 14 Jan 2026 09:21:43 +0000
+	id 1vfx4P-00000008VqK-3xOB;
+	Wed, 14 Jan 2026 09:21:41 +0000
 Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vfx4M-00000008Vcr-3iQG
+	id 1vfx4M-00000008Vdu-39Fx
 	for opensbi@lists.infradead.org;
 	Wed, 14 Jan 2026 09:21:40 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
@@ -32,40 +32,40 @@ DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   t=1768382498; x=1799918498;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=W/wHlR60pBAzQwPBMxf1xEIu/pT1QossauQRtStVXyc=;
-  b=ALto4p2XqB/2Eu32qnyPbdin/zDF6o0VbmRvV89fw11vzcNyVswZYiy9
-   QlGH7sriL51WhgGXJ8HLng4Yotb0lyeOHoJXuG5OIcPOFzS4ZAwY2Rbse
-   KQsXO+D4Kk84pvZFK6sXvdrq603vrvMV7wz33U6umoqHD/E6U8SN8/il5
-   OswoSjCbQPMUXfH+sWvyNLGfyUBe+2oS/EJ9tn69x8AjoNstb3pVj7JNY
-   3hh927BOJ/QGeosRb1hsl2gsoPmgd5bMteMX7H5GrC/QkV8PtVMZom2sv
-   aqJ2kr8UuJbQX8VAfhmrV14C9rE0sGrlZHYqtB7ELwgSHvSww0JDvsF84
-   A==;
+  bh=vt2kSZHtIPFESVfVujAF2YhsakyGt9tSpTyDmTLC/EM=;
+  b=lccO7hdtmwbzPEfF7KjtiTS060a+3W9u+6NDauh/JBiNTGyHoSb5hCzr
+   NJ/7VrY9M03nQdioYkZ5+2a2ft8SYyqPQKI4FqiCx6BXwPbHuVDqg7oHh
+   uBwEGW11Dp030Gd63qUKaggHIiNIWj/MUazQaAr4ZGpJ8XuRFW8z9U8vi
+   hv00dYOCTmR0Hb23bau66iktfsFGFgcFtApKyJ30/5jhDnC7FuNWTlxhi
+   RKLP/rPMjVCjZTLYukjALYrfdjCQKTwviT0tc4kHIkSnGUOBphw9H4naT
+   3lLER1JjAELd87fkDMlCKp90QiStN2rZyjpE3TIRwNUbPqiPTSq9PE29X
+   w==;
 X-CSE-ConnectionGUID: JjjogeVFQUedD1i4Z4GxwQ==
-X-CSE-MsgGUID: 0tFBk8EbTCCQNHT0oB22Yg==
+X-CSE-MsgGUID: wtytjPdHQ6G8M5RA5mQiqQ==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 11:21:32 +0200
-X-CSE-ConnectionGUID: i/KuIkMHRSiYEthCbRzz+w==
-X-CSE-MsgGUID: vfA6jRrRTl2Y86+OHF5+NA==
+  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 11:21:28 +0200
+X-CSE-ConnectionGUID: a20G0je+ThuKN0VFSv3Nvg==
+X-CSE-MsgGUID: SnD8Y3F1QM2QRM3qD+/u2g==
 Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
-  by ces02_data.me-corp.lan with SMTP; 14 Jan 2026 11:23:22 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Wed, 14 Jan 2026 11:21:31 +0200
+  by ces02_data.me-corp.lan with SMTP; 14 Jan 2026 11:23:18 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Wed, 14 Jan 2026 11:21:26 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: cfu@mips.com,
 	opensbi@lists.infradead.org,
 	benoit.monin@bootlin.com,
 	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Subject: [PATCH 10/22] platform: generic: mips p8700: access CM registers via match data
-Date: Wed, 14 Jan 2026 11:21:06 +0200
-Message-ID: <20260114092118.1315581-11-vladimir.kondratiev@mobileye.com>
+Subject: [PATCH 06/22] platform: generic: mips p8700: use detected PMP count
+Date: Wed, 14 Jan 2026 11:21:02 +0200
+Message-ID: <20260114092118.1315581-7-vladimir.kondratiev@mobileye.com>
 In-Reply-To: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
 References: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260114_012139_307656_E51A44A4 
-X-CRM114-Status: GOOD (  17.76  )
+X-CRM114-CacheID: sfid-20260114_012139_188543_CE2EEC29 
+X-CRM114-Status: GOOD (  12.17  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -77,105 +77,73 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-TW9kaWZ5IHRoZSBjb2hlcmVuY2UgbWFuYWdlciByZWdpc3RlciBhY2Nlc3NvcnMgdG8gdXNlIHRo
-ZSBnbG9iYWwgdmFyaWFibGUKcDg3MDBfY21faW5mbyBpbnN0ZWFkIG9mIHRoZSBzdGF0aWNhbGx5
-IGRlY2xhcmVkIEdMT0JBTF9DTV9CQVNFIGFycmF5LgoKQWxzbyB1c2UgcDg3MDBfY21faW5mbyB0
-byBnZXQgdGhlIG51bWJlciBvZiBjb2hlcmVuY2UgbWFuYWdlcnMgYW5kIHRoZWlyCmJhc2UgYWRk
-cmVzc2VzIGluIG1pcHNfcDg3MDBfZWFybHlfaW5pdCgpIGFuZCBtaXBzX3A4NzAwX25hc2NlbnRf
-aW5pdCgpLgoKQ2xlYW4gdXAgdGhlIGhhcmQtY29kZWQgdmFsdWVzIGluIG1pcHMvYm9hcmQuaCwg
-YWNjZXNzIHRvIHRoZSBjb2hlcmVuY2UKbWFuYWdlciBpcyBub3cgZnVsbHkgYmFzZWQgb24gaW5m
-b3JtYXRpb24gcHJvdmlkZWQgYnkgcGxhdGZvcm0gY29tcGF0aWJsZQpmcm9tIHRoZSBkZXZpY2Ug
-dHJlZS4KClNpZ25lZC1vZmYtYnk6IEJlbm/DrnQgTW9uaW4gPGJlbm9pdC5tb25pbkBib290bGlu
-LmNvbT4KLS0tCiBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9ib2FyZC5oICAgfCAxNSAt
-LS0tLS0tLS0tLS0tCiBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9taXBzLWNtLmggfCAg
-OSArKysrLS0tLQogcGxhdGZvcm0vZ2VuZXJpYy9taXBzL3A4NzAwLmMgICAgICAgICAgIHwgMjgg
-KysrKysrKysrKysrKy0tLS0tLS0tLS0tLQogMyBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25z
-KCspLCAzMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL2luY2x1
-ZGUvbWlwcy9ib2FyZC5oIGIvcGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL21pcHMvYm9hcmQuaApp
-bmRleCA2ZmU3YjhiNjhmZjYuLmI3MmQ3N2Q2YzkwNiAxMDA2NDQKLS0tIGEvcGxhdGZvcm0vZ2Vu
-ZXJpYy9pbmNsdWRlL21pcHMvYm9hcmQuaAorKysgYi9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUv
-bWlwcy9ib2FyZC5oCkBAIC0xMCwyMSArMTAsNiBAQAogCiAvKiBQbGVhc2UgcmV2aWV3IGFsbCBk
-ZWZpbmVzIHRvIGNoYW5nZSBmb3IgeW91ciBib2FyZC4gKi8KIAotLyogVXNlIGluIHN0dy5TLCBw
-ODcwMC5jLCBwODcwMC5oLCBtaXBzLWNtLmggKi8KLSNkZWZpbmUgQ01fQkFTRQkJCTB4MTYxMDAw
-MDAKLQotLyogVXNlIGluIG1pcHMtY20uaCwgcDg3MDAuYyAqLwotI2RlZmluZSBDTFVTVEVSU19J
-Tl9QTEFURk9STQkxCi0jaWYgQ0xVU1RFUlNfSU5fUExBVEZPUk0gPiAxCi0vKiBEZWZpbmUgZ2xv
-YmFsIENNIGJhc2VzIGZvciBjbHVzdGVyIDAsIDEsIDIsIGFuZCBtb3JlLiAqLwotI2RlZmluZSBH
-TE9CQUxfQ01fQkFTRTAJCTAKLSNkZWZpbmUgR0xPQkFMX0NNX0JBU0UxCQkwCi0jZGVmaW5lIEdM
-T0JBTF9DTV9CQVNFMgkJMAotI2VuZGlmCi0KLS8qIFVzZSBpbiBzdHcuUyAqLwotI2RlZmluZSBU
-SU1FUl9BRERSCQkoQ01fQkFTRSArIDB4ODA1MCkKLQogLyogVXNlIGluIGNwcy12ZWMuUyAqLwog
-I2RlZmluZSBEUkFNX0FERFJFU1MJCTB4ODAwMDAwMDAKICNkZWZpbmUgRFJBTV9TSVpFCQkweDgw
-MDAwMDAwCmRpZmYgLS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9taXBzLWNt
-LmggYi9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9taXBzLWNtLmgKaW5kZXggNjI0Mjk4
-ZjM3M2FjLi5iM2UwNTZlOGY5YTYgMTAwNjQ0Ci0tLSBhL3BsYXRmb3JtL2dlbmVyaWMvaW5jbHVk
-ZS9taXBzL21pcHMtY20uaAorKysgYi9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9taXBz
-LWNtLmgKQEAgLTE0LDE2ICsxNCwxNCBAQAogLyogRGVmaW5lIDEgdG8gcHJpbnQgb3V0IENNIHJl
-YWQgYW5kIHdyaXRlIGluZm8gKi8KICNkZWZpbmUgREVCVUdfQ00gMAogCi1leHRlcm4gbG9uZyBH
-TE9CQUxfQ01fQkFTRVtdOwotCi0KICNkZWZpbmUgQ1BTX0FDQ0VTU09SX1IodW5pdCwgc3osIG9m
-ZiwgbmFtZSkJCQkJXAogc3RhdGljIGlubGluZSB1IyNzeiByZWFkXyMjdW5pdCMjXyMjbmFtZSh1
-MzIgaGFydGlkKQkJCVwKIHsJCQkJCQkJCQlcCiAJdSMjc3ogdmFsdWU7CQkJCQkJCVwKIAlpbnQg
-Y2wgPSBjcHVfY2x1c3RlcihoYXJ0aWQpOwkJCQkJXAogCWludCBjbyA9IGNwdV9jb3JlKGhhcnRp
-ZCk7CQkJCQlcCi0JbG9uZyBjbWRfcmVnID0gR0xPQkFMX0NNX0JBU0VbY2xdICsgKGNvIDw8IENN
-X0JBU0VfQ09SRV9TSElGVCkJXAorCWxvbmcgY21kX3JlZyA9IHA4NzAwX2NtX2luZm8tPmdjcl9i
-YXNlW2NsXQkJCVwKKwkJICAgICAgICsgKGNvIDw8IENNX0JBU0VfQ09SRV9TSElGVCkJCQlcCiAJ
-CSAgKyBvZmY7CQkJCQkJXAogCWlmIChERUJVR19DTSkJCQkJCQkJXAogCQlzYmlfcHJpbnRmKCJD
-TV9SRUFEJWQoMHglbHgpIC4uLlxuIiwgc3osIGNtZF9yZWcpOwlcCkBAIC00Miw3ICs0MCw4IEBA
-IHN0YXRpYyBpbmxpbmUgdm9pZCB3cml0ZV8jI3VuaXQjI18jI25hbWUodTMyIGhhcnRpZCwgdSMj
-c3ogdmFsdWUpCVwKIHsJCQkJCQkJCQlcCiAJaW50IGNsID0gY3B1X2NsdXN0ZXIoaGFydGlkKTsJ
-CQkJCVwKIAlpbnQgY28gPSBjcHVfY29yZShoYXJ0aWQpOwkJCQkJXAotCWxvbmcgY21kX3JlZyA9
-IEdMT0JBTF9DTV9CQVNFW2NsXSArIChjbyA8PCBDTV9CQVNFX0NPUkVfU0hJRlQpCVwKKwlsb25n
-IGNtZF9yZWcgPSBwODcwMF9jbV9pbmZvLT5nY3JfYmFzZVtjbF0JCQlcCisJCSAgICAgICArIChj
-byA8PCBDTV9CQVNFX0NPUkVfU0hJRlQpCQkJXAogCQkgICsgb2ZmOwkJCQkJCVwKIAlpZiAoREVC
-VUdfQ00pCQkJCQkJCVwKIAkJc2JpX3ByaW50ZigiQ01fV1JJVEUlZCgweCVseCwgMHglbHgpXG4i
-LCBzeiwgCVwKZGlmZiAtLWdpdCBhL3BsYXRmb3JtL2dlbmVyaWMvbWlwcy9wODcwMC5jIGIvcGxh
-dGZvcm0vZ2VuZXJpYy9taXBzL3A4NzAwLmMKaW5kZXggYzViZjQ5ZjZmZjhiLi4yNWU2MDc1NTgx
-ZTggMTAwNjQ0Ci0tLSBhL3BsYXRmb3JtL2dlbmVyaWMvbWlwcy9wODcwMC5jCisrKyBiL3BsYXRm
-b3JtL2dlbmVyaWMvbWlwcy9wODcwMC5jCkBAIC0yNCw5ICsyNCw2IEBAIGV4dGVybiB2b2lkIG1p
-cHNfd2FybV9ib290KHZvaWQpOwogI2RlZmluZSBNTUlPX0JBU0UgMHgwMDAwMDAwMAogI2RlZmlu
-ZSBNTUlPX1NJWkUgMHg4MDAwMDAwMAogCi0vKiBGSVhNRSEgUGxlYXNlIGNoYW5nZSBHTE9CQUxf
-Q01fQkFTRSBmb3IgeW91ciBwbGF0Zm9ybSAqLwotbG9uZyBHTE9CQUxfQ01fQkFTRVtDTFVTVEVS
-U19JTl9QTEFURk9STV0gPSB7Q01fQkFTRX07Ci0KIHN0YXRpYyB2b2lkIG1pcHNfcDg3MDBfcG1w
-X3NldCh1bnNpZ25lZCBpbnQgbiwgdW5zaWduZWQgbG9uZyBmbGFncywKIAkJCSAgICAgICB1bnNp
-Z25lZCBsb25nIHByb3QsIHVuc2lnbmVkIGxvbmcgYWRkciwKIAkJCSAgICAgICB1bnNpZ25lZCBs
-b25nIGxvZzJsZW4pCkBAIC01MCw5ICs0NywxMCBAQCBzdGF0aWMgdm9pZCBtaXBzX3A4NzAwX3Bt
-cF9zZXQodW5zaWduZWQgaW50IG4sIHVuc2lnbmVkIGxvbmcgZmxhZ3MsCiBzdGF0aWMgdm9pZCBw
-b3dlcl91cF9vdGhlcl9jbHVzdGVyKHUzMiBoYXJ0aWQpCiB7CiAJdW5zaWduZWQgaW50IGNsID0g
-Y3B1X2NsdXN0ZXIoaGFydGlkKTsKKwl1bnNpZ25lZCBsb25nIGNtX2Jhc2UgPSBwODcwMF9jbV9p
-bmZvLT5nY3JfYmFzZVtjbF07CiAKIAkvKiByZW1hcCBsb2NhbCBjbHVzdGVyIGFkZHJlc3MgdG8g
-aXRzIGdsb2JhbCBhZGRyZXNzICovCi0Jd3JpdGVxKEdMT0JBTF9DTV9CQVNFW2NsXSwgKHZvaWQq
-KUdMT0JBTF9DTV9CQVNFW2NsXSArIEdDUl9CQVNFX09GRlNFVCk7CisJd3JpdGVxKGNtX2Jhc2Us
-ICh2b2lkKiljbV9iYXNlICsgR0NSX0JBU0VfT0ZGU0VUKTsKIAl3bWIoKTsKIAkvKiBQb3dlciB1
-cCBDTSBpbiBjbHVzdGVyICovCiAJd3JpdGVfY3BjX3B3cnVwX2N0bChoYXJ0aWQsIDEpOwpAQCAt
-MjA1LDEzICsyMDMsMTcgQEAgc3RhdGljIGludCBtaXBzX3A4NzAwX2Vhcmx5X2luaXQoYm9vbCBj
-b2xkX2Jvb3QpCiAJaWYgKCFjb2xkX2Jvb3QpCiAJCXJldHVybiAwOwogCi0Jc2JpX2RwcmludGYo
-IlJlbWFwIENsdXN0ZXIgJWQgQ00gMHglbHggLT4gMHglbHhcbiIsIDAsCi0JCSAgICByZWFkcSgo
-dm9pZCopR0xPQkFMX0NNX0JBU0VbMF0gKyBHQ1JfQkFTRV9PRkZTRVQpLAotCQkgICAgR0xPQkFM
-X0NNX0JBU0VbMF0pOwotCXdyaXRlcShHTE9CQUxfQ01fQkFTRVswXSwgKHZvaWQqKUdMT0JBTF9D
-TV9CQVNFWzBdICsgR0NSX0JBU0VfT0ZGU0VUKTsKLQl3bWIoKTsKKwl7IC8vIGNsdXN0ZXIgMCAt
-IG9ubHkgcmVtYXAsIGFscmVhZHkgdXAKKwkJdW5zaWduZWQgbG9uZyBjbV9iYXNlID0gcDg3MDBf
-Y21faW5mby0+Z2NyX2Jhc2VbMF07CisKKwkJc2JpX2RwcmludGYoIlJlbWFwIENsdXN0ZXIgJWQg
-Q00gMHglbHggLT4gMHglbHhcbiIsIDAsCisJCQkgICAgcmVhZHEoKHZvaWQqKWNtX2Jhc2UgKyBH
-Q1JfQkFTRV9PRkZTRVQpLAorCQkJICAgIGNtX2Jhc2UpOworCQl3cml0ZXEoY21fYmFzZSwgKHZv
-aWQqKWNtX2Jhc2UgKyBHQ1JfQkFTRV9PRkZTRVQpOworCQl3bWIoKTsKKwl9CiAJLyogUG93ZXIg
-dXAgb3RoZXIgY2x1c3RlcnMgaW4gdGhlIHBsYXRmb3JtLiAqLwotCWZvciAoaSA9IDE7IGkgPCBD
-TFVTVEVSU19JTl9QTEFURk9STTsgaSsrKSB7CisJZm9yIChpID0gMTsgaSA8IHA4NzAwX2NtX2lu
-Zm8tPm51bV9jbTsgaSsrKSB7CiAJCXBvd2VyX3VwX290aGVyX2NsdXN0ZXIoaSA8PCBORVdfQ0xV
-U1RFUl9TSElGVCk7CiAJfQogCkBAIC0yMjksOCArMjMxLDggQEAgc3RhdGljIGludCBtaXBzX3A4
-NzAwX2Vhcmx5X2luaXQoYm9vbCBjb2xkX2Jvb3QpCiAgKiAweDEwXzAwMDAwMDAwICAweDIwXzAw
-MDAwMDAwICAgTTotLS0tIFM6SVJXLSBQQ0k2NCBCQVJzCiAgKi8KIAotCWZvciAoaSA9IDA7IGkg
-PCBDTFVTVEVSU19JTl9QTEFURk9STTsgaSsrKSB7Ci0JCXVuc2lnbmVkIGxvbmcgY21fYmFzZSA9
-IEdMT0JBTF9DTV9CQVNFW2ldOworCWZvciAoaSA9IDA7IGkgPCBwODcwMF9jbV9pbmZvLT5udW1f
-Y207IGkrKykgeworCQl1bnNpZ25lZCBsb25nIGNtX2Jhc2UgPSBwODcwMF9jbV9pbmZvLT5nY3Jf
-YmFzZVtpXTsKIAogCQkvKiBDTSBhbmQgTVRJTUVSICovCiAJCXJjID0gc2JpX2RvbWFpbl9yb290
-X2FkZF9tZW1yYW5nZShjbV9iYXNlLCBTSVpFX0ZPUl9DUENfTVRJTUUsCkBAIC0yNjksNyArMjcx
-LDcgQEAgc3RhdGljIGludCBtaXBzX3A4NzAwX25hc2NlbnRfaW5pdCh2b2lkKQogewogCXU2NCBo
-YXJ0aWQgPSBjdXJyZW50X2hhcnRpZCgpOwogCWludCBjbCA9IGNwdV9jbHVzdGVyKGhhcnRpZCk7
-Ci0JdTY0IGNtX2Jhc2UgPSBHTE9CQUxfQ01fQkFTRVtjbF07CisJdTY0IGNtX2Jhc2UgPSBwODcw
-MF9jbV9pbmZvLT5nY3JfYmFzZVtjbF07CiAJaW50IGk7CiAKIAkvKiBDb2hlcmVuY2UgZW5hYmxl
-IGZvciBldmVyeSBjb3JlICovCi0tIAoyLjQzLjAKCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QK
-b3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
-aWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+When fixing up PMP regions, no need in #define for PMP region
+count, we now have correct result by sbi_hart_pmp_count()
+thanks to
+56e93b4b91bf ("lib: sbi: fix number of PMP entries detection")
+
+Fixing: ae3e994c30dd ("eq7: Prohibit accessing memory beyond DRAM")
+
+Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+---
+ platform/generic/mips/p8700.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
+index 1fb6ece3ab68..b4aef5fa7e36 100644
+--- a/platform/generic/mips/p8700.c
++++ b/platform/generic/mips/p8700.c
+@@ -21,7 +21,6 @@
+ extern void mips_warm_boot(void);
+ #define MMIO_BASE 0x00000000
+ #define MMIO_SIZE 0x80000000
+-#define PMP_REGION_MAX (16)
+ 
+ static void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
+ 			       unsigned long prot, unsigned long addr,
+@@ -144,15 +143,20 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
+ 
+ static int mips_p8700_final_init(bool cold_boot)
+ {
++	struct sbi_scratch *scratch;
+ 	const struct sbi_domain *dom;
+ 	struct sbi_domain_memregion *reg;
+ 	const unsigned long end_of_dram = 0x1000000000LU;
+-	unsigned long gran = sbi_hart_pmp_log2gran(sbi_scratch_thishart_ptr());
++	unsigned long pmp_gran;
++	int pmp_count;
+ 
+ 	if (!cold_boot)
+ 		return 0;
+ 
+ 	sbi_hsm_set_device(&mips_hsm);
++	scratch = sbi_scratch_thishart_ptr();
++	pmp_gran = sbi_hart_pmp_log2gran(scratch);
++	pmp_count = sbi_hart_pmp_count(scratch);
+ 
+ 	/*
+ 	 * sbi_domain_init adds last "all-inclusive" memory region
+@@ -171,8 +175,8 @@ static int mips_p8700_final_init(bool cold_boot)
+ 	 * SBI code don't let to disable PMP region, so configure it to
+ 	 * some fake values. order should be valid or region won't be set.
+ 	 */
+-	for (++reg; reg < &dom->regions[PMP_REGION_MAX]; reg++) {
+-		reg->order = gran; // order should be not 0, this is minimum valid
++	for (++reg; reg < &dom->regions[pmp_count]; reg++) {
++		reg->order = pmp_gran; // order should be not 0, this is minimum valid
+ 		reg->base = 0;
+ 		reg->flags = SBI_DOMAIN_MEMREGION_MMIO; // disable cache & prefetch
+ 	}
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
