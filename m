@@ -4,68 +4,68 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 450D9D31A2A
-	for <opensbi@archiver.kernel.org>; Wed, 14 Jan 2026 09:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 095D1D31A30
+	for <opensbi@archiver.kernel.org>; Wed, 14 Jan 2026 09:21:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=XV7P9rdNLSfCvqtytHBhYHuYcmpMbo/MzTTefTipATg=; b=mF34r2dT1tm4/2
-	PA3lFMFBW/rUV3UW0/Dp3JX4nW1PAE5/pcj6YEivjtyrECF+a1JHM6t2kSsGMIxplTqzg6C6BImxc
-	cgVMVOjiO1Hjkbp0NuBz5pIWThgpp6Wv/LJoSHnuQvIxUUo/IrqicingdR2hTSOojawzVmkDxgY9K
-	fHeLoXA0Amho8UpnKQPFCEKGG0leWjviLIu6yV0WXIMkyktY13jnJo48yIq/oxXOWM29P4HTToeK7
-	Q4hs7W9sYmQ8AIdznWL+rG/LUH7nslp1ktm829nxzL8Go+3I6xGg6T1bKZBCz+uR1rWgRK7p1b8UB
-	UZqLh4DKbs4ZTDQyAN5A==;
+	List-Owner; bh=2tF/ekxTYzeWOwV9f6gwUmLp/JmlFKWJufX/y+rvzb4=; b=HdSkJvHEyXQa7r
+	FrsyrcirIVGCi6zV2ItO1eyXEcvEfBu2oEdI/8htm7J+U74/ZtVKBlgrbJ9hg0NzPE582nAk+2m6/
+	Ggk1y7LcBXfx7k9Ts4qK4mo+OwXwUPsTcD8xjW8EbbCrInWuajg5LJOJ1UGUxEhutsx+c4Kxhgpgf
+	9gdLx4G+8dwh6wdgi7RUAFtXaz3zqrWjdvkzGFfpMOPy6wr1UlT+EqQnzbpKhX+StpNlgsl+kwhbu
+	uud+Gxq53uKYSM+L1GBNuuIXwlBJphNFMCzdNz/HKdK6LVYuuf48uw+gN0gYfgBfUQNuMyrhBUnOx
+	JO/ZtIMgL3TxnDqPXXLw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vfx4P-00000008VqK-3xOB;
-	Wed, 14 Jan 2026 09:21:41 +0000
+	id 1vfx4V-00000008Vwl-0xUO;
+	Wed, 14 Jan 2026 09:21:47 +0000
 Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vfx4M-00000008Vdu-39Fx
+	id 1vfx4P-00000008Vcr-19jM
 	for opensbi@lists.infradead.org;
-	Wed, 14 Jan 2026 09:21:40 +0000
+	Wed, 14 Jan 2026 09:21:43 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1768382498; x=1799918498;
+  t=1768382501; x=1799918501;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=vt2kSZHtIPFESVfVujAF2YhsakyGt9tSpTyDmTLC/EM=;
-  b=lccO7hdtmwbzPEfF7KjtiTS060a+3W9u+6NDauh/JBiNTGyHoSb5hCzr
-   NJ/7VrY9M03nQdioYkZ5+2a2ft8SYyqPQKI4FqiCx6BXwPbHuVDqg7oHh
-   uBwEGW11Dp030Gd63qUKaggHIiNIWj/MUazQaAr4ZGpJ8XuRFW8z9U8vi
-   hv00dYOCTmR0Hb23bau66iktfsFGFgcFtApKyJ30/5jhDnC7FuNWTlxhi
-   RKLP/rPMjVCjZTLYukjALYrfdjCQKTwviT0tc4kHIkSnGUOBphw9H4naT
-   3lLER1JjAELd87fkDMlCKp90QiStN2rZyjpE3TIRwNUbPqiPTSq9PE29X
+  bh=4hfgjgPuUhTycFeKjrbWL2+EiR+twR8Z+fY/3dbcBk8=;
+  b=IIYR8CM6qGHELqBraJ6RLPdjkumqMUl5t8D+2JvG7YwZu5M+awIiZncC
+   l6fVdo8wPTdvz8zXFoTXY2eKQL4IqWcZUcpvrL1Y038g/Cuzk79gwkzun
+   Q7egcXrgEjTV6SNSNjgvRF60l5K+QqEb6mXwN5uALEV+YtQimAsBmjWAQ
+   aDa72PY8+4vF5yA1R914JvWg+qWEl5RgJfgTZQL/wlhF2EZxmFToCLX2F
+   gXkzs/+NTbYcgBtiaJ7W8hhpR+/uNqlPb8hE9rvU2V6ydEx1YnTIY35aQ
+   dYdtlkNDJxrTgt64U2YANekheoLhxFFJS2tNizqERGHIiXFwb7O84HyJy
    w==;
-X-CSE-ConnectionGUID: JjjogeVFQUedD1i4Z4GxwQ==
-X-CSE-MsgGUID: wtytjPdHQ6G8M5RA5mQiqQ==
+X-CSE-ConnectionGUID: Fi5jE+wlQrK2V2arXC2B4A==
+X-CSE-MsgGUID: SDC8dcAZR0ukulplN/ikww==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 11:21:28 +0200
-X-CSE-ConnectionGUID: a20G0je+ThuKN0VFSv3Nvg==
-X-CSE-MsgGUID: SnD8Y3F1QM2QRM3qD+/u2g==
+Received: from unknown (HELO ces04_data.me-crop.lan) ([146.255.191.134])
+  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 11:21:40 +0200
+X-CSE-ConnectionGUID: uVTxfYtOT7+ZA7Y6plgg0A==
+X-CSE-MsgGUID: FYRTpUwGQbqNsmjCcQPqPA==
 Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
-  by ces02_data.me-corp.lan with SMTP; 14 Jan 2026 11:23:18 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Wed, 14 Jan 2026 11:21:26 +0200
+  by ces04_data.me-crop.lan with SMTP; 14 Jan 2026 11:23:25 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Wed, 14 Jan 2026 11:21:39 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: cfu@mips.com,
 	opensbi@lists.infradead.org,
 	benoit.monin@bootlin.com,
 	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Subject: [PATCH 06/22] platform: generic: mips p8700: use detected PMP count
-Date: Wed, 14 Jan 2026 11:21:02 +0200
-Message-ID: <20260114092118.1315581-7-vladimir.kondratiev@mobileye.com>
+Subject: [PATCH 18/22] platform: generic: mips p8700: use SBI bitfield manipulator macros
+Date: Wed, 14 Jan 2026 11:21:14 +0200
+Message-ID: <20260114092118.1315581-19-vladimir.kondratiev@mobileye.com>
 In-Reply-To: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
 References: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260114_012139_188543_CE2EEC29 
-X-CRM114-Status: GOOD (  12.17  )
+X-CRM114-CacheID: sfid-20260114_012141_630740_AB789A8C 
+X-CRM114-Status: GOOD (  13.55  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -82,63 +82,124 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-When fixing up PMP regions, no need in #define for PMP region
-count, we now have correct result by sbi_hart_pmp_count()
-thanks to
-56e93b4b91bf ("lib: sbi: fix number of PMP entries detection")
-
-Fixing: ae3e994c30dd ("eq7: Prohibit accessing memory beyond DRAM")
+Switch to GENMASK, EXTRACT_BITFIELD, INSERT_BITFIELD
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/mips/p8700.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ platform/generic/include/mips/p8700.h | 49 ++++++++++-----------------
+ platform/generic/mips/eyeq7h.c        |  2 +-
+ platform/generic/mips/p8700.c         |  4 +--
+ 3 files changed, 21 insertions(+), 34 deletions(-)
 
+diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
+index 4cda183ec0a2..169181642716 100644
+--- a/platform/generic/include/mips/p8700.h
++++ b/platform/generic/include/mips/p8700.h
+@@ -21,16 +21,16 @@ struct p8700_cm_info {
+ extern const struct p8700_cm_info *p8700_cm_info;
+ 
+ /* PMA */
+-#define CSR_MIPSPMACFG0	0x7e0
+-#define CSR_MIPSPMACFG1	0x7e1
+-#define CSR_MIPSPMACFG2	0x7e2
+-#define CSR_MIPSPMACFG3	0x7e3
+-#define CSR_MIPSPMACFG4	0x7e4
+-#define CSR_MIPSPMACFG5	0x7e5
+-#define CSR_MIPSPMACFG6	0x7e6
+-#define CSR_MIPSPMACFG7	0x7e7
+-#define CSR_MIPSPMACFG8	0x7e8
+-#define CSR_MIPSPMACFG9	0x7e9
++#define CSR_MIPSPMACFG0		0x7e0
++#define CSR_MIPSPMACFG1		0x7e1
++#define CSR_MIPSPMACFG2		0x7e2
++#define CSR_MIPSPMACFG3		0x7e3
++#define CSR_MIPSPMACFG4		0x7e4
++#define CSR_MIPSPMACFG5		0x7e5
++#define CSR_MIPSPMACFG6		0x7e6
++#define CSR_MIPSPMACFG7		0x7e7
++#define CSR_MIPSPMACFG8		0x7e8
++#define CSR_MIPSPMACFG9		0x7e9
+ #define CSR_MIPSPMACFG10	0x7ea
+ #define CSR_MIPSPMACFG11	0x7eb
+ #define CSR_MIPSPMACFG12	0x7ec
+@@ -68,26 +68,13 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ 
+ #define MIPSCONFIG5_MTW		4
+ 
+-#define GEN_MASK(h, l)	(((1ul << ((h) + 1 - (l))) - 1) << (l))
+-#define EXT(val, mask)	(((val) & (mask)) >> (__builtin_ffs(mask) - 1))
+-
+-/*
+- * We allocate the number of bits to encode clusters, cores, and harts
+- * from the original mhartid to a new dense index.
+- */
+-#define NUM_OF_BITS_FOR_CLUSTERS	4
+-#define NUM_OF_BITS_FOR_CORES		12
+-#define NUM_OF_BITS_FOR_HARTS		4
+-
+-/* To get the field from new/hashed mhartid */
+-#define NEW_CLUSTER_SHIFT	(NUM_OF_BITS_FOR_CORES + NUM_OF_BITS_FOR_HARTS)
+-#define NEW_CLUSTER_MASK	((1 << NUM_OF_BITS_FOR_CLUSTERS) - 1)
+-#define NEW_CORE_SHIFT		NUM_OF_BITS_FOR_HARTS
+-#define NEW_CORE_MASK		((1 << NUM_OF_BITS_FOR_CORES) - 1)
+-#define NEW_HART_MASK		((1 << NUM_OF_BITS_FOR_HARTS) - 1)
+-#define cpu_cluster(i)		(((i) >> NEW_CLUSTER_SHIFT) & NEW_CLUSTER_MASK)
+-#define cpu_core(i)		(((i) >> NEW_CORE_SHIFT) & NEW_CORE_MASK)
+-#define cpu_hart(i)		((i) & NEW_HART_MASK)
++/* mhartID structure */
++#define P8700_HARTID_CLUSTER	GENMASK(19, 16)
++#define P8700_HARTID_CORE	GENMASK(11, 4)
++#define P8700_HARTID_HART	GENMASK(3, 0)
++#define cpu_cluster(i)		EXTRACT_FIELD(i, P8700_HARTID_CLUSTER)
++#define cpu_core(i)		EXTRACT_FIELD(i, P8700_HARTID_CORE)
++#define cpu_hart(i)		EXTRACT_FIELD(i, P8700_HARTID_HART)
+ 
+ #define CPC_OFFSET		(0x8000)
+ 
+@@ -172,7 +159,7 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ #define CPC_Cx_CMD_RESET	0x4
+ 
+ #define CPC_Cx_STAT_CONF	0x0008
+-#define CPC_Cx_STAT_CONF_SEQ_STATE	GEN_MASK(22, 19)
++#define CPC_Cx_STAT_CONF_SEQ_STATE	GENMASK(22, 19)
+ #define CPC_Cx_STAT_CONF_SEQ_STATE_U5	6
+ #define CPC_Cx_STAT_CONF_SEQ_STATE_U6	7
+ 
+diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
+index 0cdb93ba0fe7..b4b03bf95eb3 100644
+--- a/platform/generic/mips/eyeq7h.c
++++ b/platform/generic/mips/eyeq7h.c
+@@ -292,7 +292,7 @@ static void eyeq7h_init_clusters(void)
+ 	sbi_dprintf("Use %d clusters\n", num_clusters);
+ 	/* Power up other clusters in the platform. */
+ 	for (int i = 1; i < num_clusters; i++) {
+-		eyeq7h_power_up_other_cluster(i << NEW_CLUSTER_SHIFT);
++		eyeq7h_power_up_other_cluster(INSERT_FIELD(0, P8700_HARTID_CLUSTER, i));
+ 	}
+ 	eyeq7h_active_clusters = num_clusters;
+ }
 diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
-index 1fb6ece3ab68..b4aef5fa7e36 100644
+index 01826b1e308a..8258cd882532 100644
 --- a/platform/generic/mips/p8700.c
 +++ b/platform/generic/mips/p8700.c
-@@ -21,7 +21,6 @@
- extern void mips_warm_boot(void);
- #define MMIO_BASE 0x00000000
- #define MMIO_SIZE 0x80000000
--#define PMP_REGION_MAX (16)
+@@ -48,7 +48,7 @@ void mips_p8700_power_up_other_cluster(u32 hartid)
+ 	for (int i = 100; i > 0; i--) {
+ 		u32 stat = read_cpc_cm_stat_conf(hartid);
  
- static void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
- 			       unsigned long prot, unsigned long addr,
-@@ -144,15 +143,20 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
+-		stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
++		stat = EXTRACT_FIELD(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
+ 		if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U5)
+ 			return;
+ 		cpu_relax();
+@@ -68,7 +68,7 @@ static bool mips_hart_reached_state(void *arg)
+ 	struct mips_boot_params *p = arg;
+ 	u32 stat = read_cpc_co_stat_conf(p->hartid);
  
- static int mips_p8700_final_init(bool cold_boot)
- {
-+	struct sbi_scratch *scratch;
- 	const struct sbi_domain *dom;
- 	struct sbi_domain_memregion *reg;
- 	const unsigned long end_of_dram = 0x1000000000LU;
--	unsigned long gran = sbi_hart_pmp_log2gran(sbi_scratch_thishart_ptr());
-+	unsigned long pmp_gran;
-+	int pmp_count;
+-	stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
++	stat = EXTRACT_FIELD(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
+ 	return stat == p->target_state;
+ }
  
- 	if (!cold_boot)
- 		return 0;
- 
- 	sbi_hsm_set_device(&mips_hsm);
-+	scratch = sbi_scratch_thishart_ptr();
-+	pmp_gran = sbi_hart_pmp_log2gran(scratch);
-+	pmp_count = sbi_hart_pmp_count(scratch);
- 
- 	/*
- 	 * sbi_domain_init adds last "all-inclusive" memory region
-@@ -171,8 +175,8 @@ static int mips_p8700_final_init(bool cold_boot)
- 	 * SBI code don't let to disable PMP region, so configure it to
- 	 * some fake values. order should be valid or region won't be set.
- 	 */
--	for (++reg; reg < &dom->regions[PMP_REGION_MAX]; reg++) {
--		reg->order = gran; // order should be not 0, this is minimum valid
-+	for (++reg; reg < &dom->regions[pmp_count]; reg++) {
-+		reg->order = pmp_gran; // order should be not 0, this is minimum valid
- 		reg->base = 0;
- 		reg->flags = SBI_DOMAIN_MEMREGION_MMIO; // disable cache & prefetch
- 	}
 -- 
 2.43.0
 
