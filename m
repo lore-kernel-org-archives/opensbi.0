@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 6C1C6D31A35
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DB971D31A36
 	for <opensbi@archiver.kernel.org>; Wed, 14 Jan 2026 09:29:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,60 +12,60 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=GPH+G0N+BIKuYrv83GqkLpXYhPiUrLq2vYPNVznUAbk=; b=HYp+o/0kGLAARx
-	DU9D6C4+QjBmu8hO/YtenOW1tmL5U0ejWoBsqM9j1sfuBrTF73nAubYwZIQodS5NKzjCz8y+kc8Jj
-	P94Z6kq8ZqCwHd2QsStzGu7nKUK4SFVywbgDHlu2HZO0ht7kReo633in84Jl9BNMvWkiSrwY5jdoJ
-	9AU2nBsKWX1iGmxIgUc0QHzhcBaMVJrsYzy34HVDkIdpArqsi4runLTT4oYPP/hK8bWTdsCVxgbhp
-	MBZoiGvFuu2jv04zbj3n++NETYclaypIkHNc/ENRcMo/NA6gQQ4Pm+ZjEvrf2wSjaiT9rceivvlnY
-	cGw5YNEvkxcQEIUMOyrg==;
+	List-Owner; bh=WeByENb6ONoo+gjA4K5XWUk7D41wdH5fa5J2zxPrKjs=; b=KIo8RGr5JpAp6Q
+	C3yolpCSMIK7yUXBvbX+Qo1jmqL2CjKR2nxSQ2rdcE910MuE1DVpzNPSIDBV26xndq1NkVJjejcjm
+	wROuueBsxKQov11sXjkK0tHJ43fbcdLLbVPK+LQVORbBkfwLnKicQ5ckrh52Rm2Jwx+u32SsC2LOR
+	fbDjeVevyldc34NxBLB6J/ENRy0ciTQoM79+JAJz0Jqo5epWdxU5wBcGsq+4d75NyvqAddmTEBr6F
+	cavE8NDEMx0/vIHI2IsOssdEJYuqLNab1wa/e+npqHW5J3wN0gzrJEjDHT7N0dVV8m9TfmsyycPZM
+	j3rfNlApdZa+xZblm/HQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vfxBM-00000008YTk-3m6u;
+	id 1vfxBM-00000008YTQ-2Z95;
 	Wed, 14 Jan 2026 09:28:52 +0000
 Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vfxBI-00000008YPE-2I4p
+	id 1vfxBI-00000008YO6-2Qmo
 	for opensbi@lists.infradead.org;
-	Wed, 14 Jan 2026 09:28:51 +0000
+	Wed, 14 Jan 2026 09:28:50 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
   t=1768382928; x=1799918928;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=OJy22t9kJ5sLLWM7l3jYnrc5ARmyVOJgnMq5OZVNrew=;
-  b=FgEgebC1wHE7ABQTW8kMBY56S1UVgxrlyCkUgzO24QQ4e8G0KwgeTUe0
-   ICB/VUbl0lFSdzy8C/BDbxzLNJozwkBRXHE7i1mmWRc08Qmze7RjpDEtR
-   MtAq/OQKoHr/OIVLORL0wiERnxt6t2M7LJdamZl1DEiRR8afzyldm9A9r
-   DQWFwqYQAUDDNPQcgGMRMF8zKvDwu9q0/YXS1NpuhJ/sHgw8EUUKY0s9j
-   cI3j9g6gG1fvCwomtMaxsaJ/XohSxelvPr9p+YC+R0GeRB4rmxlb50L8o
-   7jFJXOUy+xtxAkSJdc1ic6dfKF/uF4em7fZB4NAbyXawJ2fr9A+YWsqN8
-   Q==;
+  bh=drba4itfQ+5i4dn+Wwnhst75fWY83WhLUmqcmIgRm/A=;
+  b=OEDLjvEjOoc6gWfCvQNzRhAC7VDGhPtNFq3lcKWmfzMUgsLde7IvX8wE
+   uJ6Hevr9oSpdTjqzddgbiPYfuLOne3StOYU0hYj9mRY1IMJVON+5pHgbU
+   WE1p8JlGAu8C3rb40KcpN5hEqvnnkAuTRIqGwL9X7vGQ6d1taUYtPu5U9
+   JgGDXD7dBHKNGGP8KIopVN16lVEqvuSF7Jwo+0o+XgA3HhRgu4Rg04WFv
+   xTPEJ4bOXzX2eBu7PeHBEvqaW4UNmw5Mud71PBipSwHm0FMnLxf+Xhej4
+   TQL7nYd3xZNL+bo5bpWgU19GEclapxzJX9M7NG7uwsYLBntnRep6BbFiE
+   A==;
 X-CSE-ConnectionGUID: DT3BXtSOQS6/IJHKl1UGIg==
-X-CSE-MsgGUID: WWCKCu9RSfG8ATd8yzEI8w==
+X-CSE-MsgGUID: F4fDefc+Ts6qfIJw8JiAVg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 11:21:42 +0200
-X-CSE-ConnectionGUID: tb1p26eDRK2faWjX4WKoiQ==
-X-CSE-MsgGUID: 67ZVBkI8QHSi8k4zh+wLrA==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces02_data.me-corp.lan with SMTP; 14 Jan 2026 11:23:31 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Wed, 14 Jan 2026 11:21:40 +0200
+  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2026 11:21:43 +0200
+X-CSE-ConnectionGUID: 624pt69ySBimNwLMlFWaSw==
+X-CSE-MsgGUID: LNhur/JST8KCcl1oxYqSaQ==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
+  by ces02_data.me-corp.lan with SMTP; 14 Jan 2026 11:23:33 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Wed, 14 Jan 2026 11:21:42 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: cfu@mips.com,
 	opensbi@lists.infradead.org,
 	benoit.monin@bootlin.com,
 	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Subject: [PATCH 19/22] platform: generic: mips p8700: synchronize hi-res timers
-Date: Wed, 14 Jan 2026 11:21:15 +0200
-Message-ID: <20260114092118.1315581-20-vladimir.kondratiev@mobileye.com>
+Subject: [PATCH 21/22] platform: generic: mips eyeq7h: fix NCORE registers access from clusters 1..2
+Date: Wed, 14 Jan 2026 11:21:17 +0200
+Message-ID: <20260114092118.1315581-22-vladimir.kondratiev@mobileye.com>
 In-Reply-To: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
 References: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260114_012849_592907_D3F2BFA9 
-X-CRM114-Status: GOOD (  13.06  )
+X-CRM114-CacheID: sfid-20260114_012849_216548_A310D949 
+X-CRM114-Status: GOOD (  11.74  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -82,81 +82,90 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-There's high-resolution (1GHz) timer found in the p8700 cluster.
-This timer used for precise time measurement by platform specific
-software.
+CPU clusters 1 and 2 cannot access NCORE registers through AUX ports.
+AUX ports of clusters 1 and 2 are connected to NCORE through east port.
+East port has no access to NCORE registers address space.
 
-Synchronize this proprietary timers to reference in cluster 0.
-Procedure borrowed from the aclint mtimer.
+Re-route NCORE registers range to MEM port by re-configuring MMIO
+regions in the GCR. REsulting map is as below. Mind a gap between
+regions [1] and [2]; this gap covering NCORE registers now routed
+to the default MEM port
+Cluster 0: 4 MMIO regions
+  [0] : 0x0000000000000000-0x000000001fff0000 AUX0 UC|UCA
+  [1] : 0x0000000020000000-0x00000000677f0000 AUX0    ANY
+  [2] : 0x0000000080000000-0x0000001fffff0000 AUX0 UC|UCA
+  [3] : --disabled--
+Cluster 1: 4 MMIO regions
+  [0] : 0x0000000000000000-0x000000001fff0000 AUX0 UC|UCA
+  [1] : 0x0000000020000000-0x00000000677f0000 AUX0    ANY
+  [2] : 0x0000000080000000-0x0000001fffff0000 AUX0 UC|UCA
+  [3] : --disabled--
+Cluster 2: 4 MMIO regions
+  [0] : 0x0000000000000000-0x000000001fff0000 AUX0 UC|UCA
+  [1] : 0x0000000020000000-0x00000000677f0000 AUX0    ANY
+  [2] : 0x0000000080000000-0x0000001fffff0000 AUX0 UC|UCA
+  [3] : --disabled--
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/include/mips/mips-cm.h |  1 +
- platform/generic/include/mips/p8700.h   |  1 +
- platform/generic/mips/p8700.c           | 18 +++++++++++++++++-
- 3 files changed, 19 insertions(+), 1 deletion(-)
+ platform/generic/include/mips/p8700.h | 18 ++++++++++++++++++
+ platform/generic/mips/eyeq7h.c        |  7 +++++++
+ 2 files changed, 25 insertions(+)
 
-diff --git a/platform/generic/include/mips/mips-cm.h b/platform/generic/include/mips/mips-cm.h
-index b3e056e8f9a6..84f8619b4a1b 100644
---- a/platform/generic/include/mips/mips-cm.h
-+++ b/platform/generic/include/mips/mips-cm.h
-@@ -76,6 +76,7 @@ CPC_CX_ACCESSOR_RW(32, CPC_Cx_STAT_CONF, stat_conf)
- 	CPS_ACCESSOR_RW(cpc, sz, CPC_OFFSET + (off), name)
- 
- CPC_ACCESSOR_RW(32, CPC_PWRUP_CTL, pwrup_ctl)
-+CPC_ACCESSOR_RW(64, CPC_HRTIME, hrtime)
- CPC_ACCESSOR_RW(32, CPC_CM_STAT_CONF, cm_stat_conf)
- 
- #endif
 diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index 169181642716..4530fdf06fd9 100644
+index 067563556558..6071ddd2d0ad 100644
 --- a/platform/generic/include/mips/p8700.h
 +++ b/platform/generic/include/mips/p8700.h
-@@ -147,6 +147,7 @@ extern const struct p8700_cm_info *p8700_cm_info;
+@@ -144,6 +144,24 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ #define L2SM_COP_RESULT_ABORT_OK	3
+ #define L2SM_COP_RESULT_ABORT_ERROR	4
+ #define GCR_L2SM_COP_PRESENT		BIT(31)
++/* MMIO regions. Actual count in GCR_GLOBAL_CONFIG.GCR_GC_NUM_MMIOS */
++#define GCR_MMIO_BOTTOM(n)		(0x700 + (n) * 0x10) // n = 0..7
++#define GCR_MMIO_TOP(n)			(0x708 + (n) * 0x10) // n = 0..7
++#define GCR_MMIO_ADDR			GENMASK(47, 16) // both top and bottom
++#define GCR_MMIO_BOTTOM_CCA		GENMASK(9, 8)
++#define GCR_MMIO_BOTTOM_FORCE_NC	BIT(6)
++/*
++ * 15:12 - reserved
++ * 11 - AUX3
++ * 10 - AUX2
++ * 9  - AUX1
++ * 8  - AUX0
++ * 7:1 - reserved
++ * 0  - Main memory port; MEM
++ */
++#define GCR_MMIO_BOTTOM_PORT		GENMASK(5, 2)
++#define GCR_MMIO_BOTTOM_DIS_RQ_LIM	BIT(1)
++#define GCR_MMIO_BOTTOM_EN		BIT(0)
  
  /* CPC Block offsets */
  #define CPC_PWRUP_CTL		0x0030
-+#define CPC_HRTIME		0x0090
- #define CPC_CM_STAT_CONF	0x1008
- 
- #define CPC_OFF_LOCAL		0x2000
-diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
-index 8258cd882532..46d3d446cae3 100644
---- a/platform/generic/mips/p8700.c
-+++ b/platform/generic/mips/p8700.c
-@@ -37,6 +37,19 @@ void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
- 	csr_write_num(pmacfg_csr, pmacfg);
- }
- 
-+static void mips_p8700_sync_hrtimer(unsigned int cl)
-+{
-+	u64 v1, v2, mv, delta;
-+	volatile u64 *my_timer = (volatile u64 *)(p8700_cm_info->gcr_base[cl] + CPC_OFFSET + CPC_HRTIME);
-+	volatile u64 *ref_timer = (volatile u64 *)(p8700_cm_info->gcr_base[0] + CPC_OFFSET + CPC_HRTIME);
-+
-+	v1 = readq_relaxed(my_timer);
-+	mv = readq_relaxed(ref_timer);
-+	v2 = readq_relaxed(my_timer);
-+	delta = mv - ((v1 / 2) + (v2 / 2));
-+	writeq_relaxed(readq_relaxed(my_timer) + delta, my_timer);
-+}
-+
- void mips_p8700_power_up_other_cluster(u32 hartid)
- {
- 	unsigned int cl = cpu_cluster(hartid);
-@@ -49,8 +62,11 @@ void mips_p8700_power_up_other_cluster(u32 hartid)
- 		u32 stat = read_cpc_cm_stat_conf(hartid);
- 
- 		stat = EXTRACT_FIELD(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
--		if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U5)
-+		if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U5) {
-+			if (cl) // sync high-res timer to cluster 0
-+				mips_p8700_sync_hrtimer(cl);
- 			return;
-+		}
- 		cpu_relax();
+diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
+index 2d4a81d7b335..70d90e2d9201 100644
+--- a/platform/generic/mips/eyeq7h.c
++++ b/platform/generic/mips/eyeq7h.c
+@@ -38,6 +38,7 @@
+ #define OLB_ACC1		0x65000000
+ #define OLB_XNN0		0x43600000
+ #define OLB_XNN1		0x63600000
++#define NCORE			0x67800000
+ #define OLB_WEST		0x48600000
+ #define OLB_WEST_TSTCSR		0x60
+ #define TSTCSR_PALLADIUM	BIT(0)
+@@ -414,6 +415,12 @@ static int eyeq7h_nascent_init(void)
+ 			     (void *)(cm_base + L2_PFT_CONTROL_OFFSET));
+ 		__raw_writel(0x15ff,
+ 			     (void *)(cm_base + L2_PFT_CONTROL_B_OFFSET));
++		/*
++		 * Remove access to NCORE CSRs from mmio region 1
++		 * which is routed to AUX. NCORE to use default route through MEM.
++		 */
++		__raw_writeq(NCORE-1, (void *)(cm_base + GCR_MMIO_TOP(1)));
++		mb();
  	}
- 	sbi_printf("ERROR: Fail to power up cluster %u\n", cl);
+ 
+ 	/* Per core set up */
 -- 
 2.43.0
 
