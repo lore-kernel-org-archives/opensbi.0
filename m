@@ -4,86 +4,89 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0901ED3900B
-	for <opensbi@archiver.kernel.org>; Wed, 14 Jan 2026 19:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0C9A3D41149
+	for <opensbi@archiver.kernel.org>; Thu, 15 Jan 2026 09:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:To:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Cc:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=326+TrKdoPnPiuwX1if45FBXlhCBQ/wEyxmIb4PyLUQ=; b=kGGTtciLenf2Jc
-	gTsNh3BuAG1ExPnxRRVeouvq9sSaLXu+t1gpmieuUPQ6CCQr8BAj+gvTCPKxPmmWNX8BWcDbh5OaX
-	W7RwBFyrimvOE/Pb3H9ZSY2vbk+4+8WLUXCNHmlJ8QdWFTvVJTH1r8FuWJ1lmepaC6K4W7fVib5mh
-	IeyC27k2tOSv+N05HYbldo5hpIt7iklyLxS2DXpyoobRvWMs7W4IJp0FBVde6eS9LPBLiVNBBsgpS
-	YVW+5D61mrz9UpSGApe7hegA34QQ/t3KtMWK7vBduiDU0SbzSSPAKq7Wwsng7CuJLqCn4+goHKsX7
-	EhzAWC0Y49QR9+K7fmdA==;
+	List-Owner; bh=tcrak6g0Qn5MaFSV2PLs+x9Tu3g+OmnKTqFTpGkRfI8=; b=qcjeKlIcWC4tUK
+	ieoSYBm5+a7hdTJyFe7E8l3ym7GIOPNl755+VQsUk3IlPSM6kwGlu2oipXTXYTVePH0xP+qRHmXIf
+	tjbHQibXLuIVa2dl48T4hdwulsyag0fL6dKV174Zi28sDd91fbu9JUNo2IE58zMgS9LiVC9rUr001
+	lSzsd4IAIWuKWQ4NHzD0ZwvKNzAV3XUv1O06mogNZ8Q2HJEFXImOMM2WsS7rBsbnmn9GqE9Q5IKml
+	jhyrEbHAsXl1kOT6z0y1Ij6eQT/CtqZ16RLTtH+jXKOCMrcj+T/eCVe6/UaJ44Wptj9MWxrtfdO7j
+	88uTGpUsIqI/beyrT5uw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vg6E8-0000000AQjg-2U0x;
-	Wed, 14 Jan 2026 19:08:20 +0000
-Received: from mail-ot1-x32f.google.com ([2607:f8b0:4864:20::32f])
+	id 1vgJTd-0000000C35K-3ZuQ;
+	Thu, 15 Jan 2026 09:17:13 +0000
+Received: from mail-pl1-x62a.google.com ([2607:f8b0:4864:20::62a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vg6E6-0000000AQj2-2wq3
+	id 1vgJTb-0000000C34v-2El6
 	for opensbi@lists.infradead.org;
-	Wed, 14 Jan 2026 19:08:19 +0000
-Received: by mail-ot1-x32f.google.com with SMTP id 46e09a7af769-7cfd48df0afso98613a34.1
-        for <opensbi@lists.infradead.org>; Wed, 14 Jan 2026 11:08:17 -0800 (PST)
+	Thu, 15 Jan 2026 09:17:13 +0000
+Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-2a12ebe4b74so7210745ad.0
+        for <opensbi@lists.infradead.org>; Thu, 15 Jan 2026 01:17:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1768417697; x=1769022497; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:to:subject:user-agent:mime-version:date:message-id:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=bsqm5zegRaVUwQ289hjlLejWtn1SHNO8wk5to8ptJjE=;
-        b=R38f/1SF5gDZtf+TDiDJ8+1F1M1+t35psWsCrsED72Rmry8oSya+vdIE0IamU8NZkH
-         65zcO+Cr7qDBkNFPruNp4FoeiPS5nRPk9ICuQN2r+lGfhGNiG55kBzr+6Mjbzedq59si
-         CjXBMytC49tgSY4JpUczHQGueXdhc8VJcgBGkQqnzKfOTfpFvRHmjynrDAJDhQ40bWOu
-         uOueSnRWQ1rs3Zo1nO+oFGVucpzxiocowZoICXEeC3zNJ5bRtZDZuVCtHWlWj1uRr9kG
-         esGg1OzTzCTQvUvqHqaXgED6rG6MbaC+uw//raGtK9JUAui+MLtiBwhgZfv2UU2Q+7mE
-         VAKA==
+        d=gmail.com; s=20230601; t=1768468628; x=1769073428; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=JQlshDTPUnBhIYRMFRviu/UNInTulaW8invwq2MqN1A=;
+        b=Q3x8JDDJbuCaFsGWIVheSOayFkWRt43R9FFs4cEfblNertn013bXrFLl8rA1soyuo+
+         dYBzqZkqaOtMTK1+z7e2pjUfkYvbfl6SxBw0pXioe+/ns+OVaM0+K5COJA2GnIhhVO14
+         +6mt4gBMFTJB/GObhQheuG54N6XNuYjxdJy4Vo1Ti0Lq6aYzeeVya9b/XPu2pnfUxpE2
+         UKr54R2r/8o9+4/iraMZN8Gj0gP+PVhGlpOKwfCxfj0RZKFny4zkkpzuhHp5Jl0Tyb3H
+         F51PsaDhbpn6i3LFQLdJ8nvcMd0+/871C6YfL6tP3Pcids5XS+r7dhBIQBPkMBYKnwbr
+         L09Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768417697; x=1769022497;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:to:subject:user-agent:mime-version:date:message-id
+        d=1e100.net; s=20230601; t=1768468628; x=1769073428;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=bsqm5zegRaVUwQ289hjlLejWtn1SHNO8wk5to8ptJjE=;
-        b=KemsDpry9iHh/NXSqpEUQiil0q5ksOsFkHNgAJJjUX43uM4xndGKbfNNY1NQlOZUGv
-         pVPqGXxPCcyzMc2vcYWn+c6PRUl2cNB0rz2TTmk/YcmgdKCY8D4NZ71SwKlGqVMn2AMu
-         yahZ/rKhxrvQELYY68OdAtv3HGlfylMv7RKnNy7IiG4MFaA53GUsms73rS9YR9AS5gZW
-         Nc9EAJ7WoA+9i8d0GkPCJ8rVJ41NTI64cSehnHds2bq5sr5Sg2zhUdw1U10n4adKmsRr
-         b7biGisJC93q8jCrWqC41ijZ1QniXUMg5BHVMir4weWR5uxixgrdLZVFOBiJBksbWXRZ
-         qntQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUi3p0tg5gHe008UGnFVQWxlbfUGGurKT97xrnv4ok1L/ds0hiakKvGeSRp+miNpxyM9z/HeS55@lists.infradead.org
-X-Gm-Message-State: AOJu0YyWo/hdO/e0AyaUlQsKSnHJByC4Rx1lHxjM0PknDtA73eYJ1mU5
-	fjLAlqqMrWtS7ruuA5P9+W6Ycc6Vj4kjop2jsQTGED8kHAGKAO+oJB+F8MNuq7mZpcOKkd8jDXw
-	xyj7/
-X-Gm-Gg: AY/fxX4I6FhoF9HclMu3e7TNKlQG5u0LHyA9epAapxX6BP21L7vA96RfCiNvmrxRygf
-	lScAQqvTXq+Jq2rcv3eoYFTgcgpGXXUGwPf0cteBq24sV+dX1rOj5OvB3gI3IXu6GGHhhYgcif+
-	PtIFQ8DL9TwVQjP467Hfe6nVJkbAHTUr/uRP8yQI5VhB/eB3uDdUdIlzt3iTSQi6IDqeofEaonk
-	WNFDhTzyCeIYMQ3hdLb1hwbzLC9ROJT4UyGPkt/Jc7wF34NEUqhStkaI0cS56YyvyRiKCObC2v+
-	U8evs5bUWvB3VeIkMZHo4vzabfSTzx+TRtDJCWJBQNjlNnS2AMnmHR3mYctW+fEmHdizXD46rS/
-	6H7DC1+vBUVqIYHTLOVa0ocCse6vg0utCHYSF0FpKqoQoW8PLqB6MhHb1H3Ot9pmLAkBK5pHoiZ
-	nx/dPFI60pd/26K5kunh03VmzOoHkZ
-X-Received: by 2002:a05:6830:4412:b0:7cf:d472:e576 with SMTP id 46e09a7af769-7cfd472eb21mr290846a34.21.1768417696845;
-        Wed, 14 Jan 2026 11:08:16 -0800 (PST)
-Received: from [100.64.0.1] ([170.85.11.118])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7ce478af813sm18794309a34.19.2026.01.14.11.08.16
+        bh=JQlshDTPUnBhIYRMFRviu/UNInTulaW8invwq2MqN1A=;
+        b=Z+hMPqpuiuK6FVxDHaDaxbeZrTis/JZ6gWCaN85FhJMMcxWIX5MbfHOXWBbHjFsB9Q
+         ozxoKHBoYJlytkGtvg6zqPFOXmxrvyYBsMohSiUQVZWAthRtHj1vuLKqITOr+y8O1Byb
+         hn8nBi/L624BDH6q/3c3589RnhT5eh+PBSBFdoDtYn2wMzRJLqMscaludjPfkzKL354B
+         2nBUXyK50pqUPKeVBWkTtuvTkFsYp/ixbz+r7KryFdoV9Y0zQioykflTo3+GjlHA688i
+         JvrrBepH/VCj6ylKBfcyt/K/s7r18QiuXk/LmeYgRcg1wMVDiG3nJgW6Ual4l+DdQ3J4
+         9yWQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWl1cRLyyTXbpEbmqzYoJvv55lzdEK/Uyf/liS8nQU4fZIND87rtcLWNY3nwpmrqMgQ1PIBmjcm@lists.infradead.org
+X-Gm-Message-State: AOJu0Yy1FHUAmh6LukwfxisfUo9WAfm6fGV15hexoneVyjxmknh0P/Fm
+	h6iLixBIKOd+SZwRQig/2avHTK8sbK8VBwyDJR85psyhDYvbd6KXl0Ma2bxwVA==
+X-Gm-Gg: AY/fxX46cbQ9Li1fNZIdVF8PjLKmTchPfxIZFqhXb72rScnlEir3qMDk68qJzuE92Js
+	pSsUgVe31JuAUIzV0wVPuOBTklyrBaN++IUXLaHBeF+z00GQ1fN3TAkikRocU6OlvIWIIe64zCT
+	rCEqcpxpQbN3+6YsdPKu+g05WoPkBOAOU8uw/7CwXhFEfLzz+LXj+yLAmj3ieY31qt9e51r39bG
+	fuYu5Ypm34RpnHYKKsnmbG722YYiDr73e9gHh8eR70X+xAOYoFAhDLQOB9gHbmOHMA4UzviSuZl
+	4VGpK6zIi8SsoKM1ABZgfRllbaDQx2AG8hSrczPiFpLpgHP6p7jaZvZDVMqQHhJavRgbS2PQWQc
+	/lHJGqmhePuAM51OCqWb5L4weBlFCr84fv+uGsHP9RQ3XLx6Af0VZESz04w+pnUVu8acFvYjpgI
+	1zTGNIFtaK8kbe
+X-Received: by 2002:a17:903:244d:b0:2a0:c1ed:d0d9 with SMTP id d9443c01a7336-2a599e5989dmr60371875ad.46.1768468628458;
+        Thu, 15 Jan 2026 01:17:08 -0800 (PST)
+Received: from [192.168.0.13] ([172.92.174.155])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a3e3cb2f8asm250094415ad.57.2026.01.15.01.17.07
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 14 Jan 2026 11:08:16 -0800 (PST)
-Message-ID: <f7f86129-0118-4eaf-8699-69bd4398a0bb@sifive.com>
-Date: Wed, 14 Jan 2026 13:08:15 -0600
+        Thu, 15 Jan 2026 01:17:07 -0800 (PST)
+Message-ID: <7cff5c09-4f76-4079-9c1f-e80116e54ab3@gmail.com>
+Date: Thu, 15 Jan 2026 01:14:51 -0800
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] lib: sbi: KASan implementation for OpenSBI
-To: Marcos Oduardo <marcos.oduardo@gmail.com>, opensbi@lists.infradead.org
-References: <20260114184316.45312-1-marcos.oduardo@gmail.com>
-From: Samuel Holland <samuel.holland@sifive.com>
+Subject: Re: [PATCH 11/22] platform: generic: mips p8700: restrict memory
+ region to physical memory as in DTS
+To: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
+ anup@brainfault.org
+Cc: cfu@mips.com, opensbi@lists.infradead.org, benoit.monin@bootlin.com
+References: <20260114092118.1315581-1-vladimir.kondratiev@mobileye.com>
+ <20260114092118.1315581-12-vladimir.kondratiev@mobileye.com>
 Content-Language: en-US
-In-Reply-To: <20260114184316.45312-1-marcos.oduardo@gmail.com>
+From: Bo Gan <ganboing@gmail.com>
+In-Reply-To: <20260114092118.1315581-12-vladimir.kondratiev@mobileye.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260114_110818_787071_50949337 
-X-CRM114-Status: GOOD (  30.62  )
+X-CRM114-CacheID: sfid-20260115_011711_777340_CFDF344E 
+X-CRM114-Status: GOOD (  26.67  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,97 +98,114 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Hi Marcos,
+Hi Vladimir,
 
-On 2026-01-14 12:43 PM, Marcos Oduardo wrote:
-> From: marcos <marcos.oduardo@gmail.com>
+On 1/14/26 01:21, Vladimir Kondratiev wrote:
+> SBI domain initialization add "all memory" region with unrestricted
+> access. This can cause a problem: CPU can issue
+> speculative prefetches to non-existent addresses. If this access
+> goes to the system NOC, it is mis-interpreted as an access violation
+> and error is reported, forcing system reset.
 > 
-> KASan (Kernel Address Sanitizer) is a tool implemented using compiler
-> instrumentation at runtime that allows checking for memory management
-> bugs such as heap OOB access, stack overflow or global OOB write.
-> Compiling and testing the OpenSBI firmware against KASan will print a
-> message in the console highlighting the memory access that caused the
-> bug and its address.
+> To prevent such a speculative transaction to leave a CPU cluster,
+> block it using PMP, by restricting memory region to physically present
+> memory.
 > 
-> Support for this implementation involves two main components:
-> 1. The KASan implementation hooks: Custom malloc, memset, memcpy to
->    check for bugs and the handlers when finding a bug.
-> 2. A test suite to verify correct operation at runtime.
-> 
-> KASan needs to keep a copy of the sanitized memory region. This copy is
-> named shadowmap, and each byte of this map corresponds to 8 bytes of
-> real memory. KASan keeps a record of the state of each address and
-> checks each memory access performed by OpenSBI.
-> 
-> In addition, this patch increases FW_PAYLOAD_OFFSET to accommodate the
-> memory overhead when both KASan and UBSan are enabled simultaneously,
-> ensuring that the OpenSBI binary fits within the limits.
-> 
-> Users may compile OpenSBI with the KASan instrumentation by adding the
-> flag ENABLEKASAN=y to the make command. To compile with the tests, add
-> the flag ENABLEKASANTESTS=y.
-> 
-> Note that the implementation of KASan adds a certain overhead caused by
-> the checks performed at runtime and the shadowmap loaded in memory;
-> therefore, it is only expected to be used in development builds, never
-> in production. If ENABLEKASAN is not set, tests won't be compiled even
-> if the ENABLEKASANTESTS flag is enabled.
-> 
-> Signed-off-by: Marcos Oduardo <marcos.oduardo@gmail.com>
+> Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 > ---
->  Makefile                     |  32 ++++
->  firmware/fw_base.S           |   4 +-
->  firmware/fw_base.ldS         |   9 +-
->  include/sbi/sbi_heap.h       |  22 ++-
->  include/sbi/sbi_kasan.h      |  35 ++++
->  include/sbi/sbi_kasan_test.h |  24 +++
->  include/sbi/sbi_string.h     |  13 +-
->  include/sbi/sbi_types.h      |   1 +
->  lib/sbi/objects.mk           |   3 +
->  lib/sbi/sbi_heap.c           |   5 +-
->  lib/sbi/sbi_init.c           |  19 ++
->  lib/sbi/sbi_kasan.c          | 343 +++++++++++++++++++++++++++++++++++
->  lib/sbi/sbi_kasan_test.c     |  60 ++++++
->  lib/sbi/sbi_string.c         |  55 +++++-
->  platform/generic/objects.mk  |   5 +-
->  15 files changed, 616 insertions(+), 14 deletions(-)
->  create mode 100644 include/sbi/sbi_kasan.h
->  create mode 100644 include/sbi/sbi_kasan_test.h
->  create mode 100644 lib/sbi/sbi_kasan.c
->  create mode 100644 lib/sbi/sbi_kasan_test.c
-...
-> diff --git a/include/sbi/sbi_kasan.h b/include/sbi/sbi_kasan.h
-> new file mode 100644
-> index 00000000..2a3c027a
-> --- /dev/null
-> +++ b/include/sbi/sbi_kasan.h
-> @@ -0,0 +1,35 @@
-> +/*
-> + * Copyright 2024 Google LLC
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + */
+>   platform/generic/mips/p8700.c | 33 +++++++++++++++++++++++++++------
+>   1 file changed, 27 insertions(+), 6 deletions(-)
+> 
+> diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
+> index 25e6075581e8..a3d05602a6d1 100644
+> --- a/platform/generic/mips/p8700.c
+> +++ b/platform/generic/mips/p8700.c
+> @@ -14,6 +14,7 @@
+>   #include <sbi/sbi_timer.h>
+>   #include <sbi/sbi_hart_pmp.h>
+>   #include <sbi/riscv_io.h>
+> +#include <libfdt.h>
+>   #include <sbi_utils/fdt/fdt_helper.h>
+>   #include <mips/p8700.h>
+>   #include <mips/mips-cm.h>
+> @@ -148,14 +149,36 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
+>   	return --reg;
+>   }
+>   
+> +static int fixup_dram_region(const struct sbi_domain *dom,
+> +			     struct sbi_domain_memregion *reg)
+> +{
+> +	const void *fdt = fdt_get_address();
+> +	int node;
+> +	int ret;
+> +	uint64_t mem_addr, mem_size;
+> +	static const char mem_str[] = "memory";
+> +
+> +	if (!reg || !fdt)
+> +		return SBI_EINVAL;
+> +
+> +	/* Find the memory range */
+> +	node = fdt_node_offset_by_prop_value(fdt, -1, "device_type",
+> +					     mem_str, sizeof(mem_str));
+> +	ret = fdt_get_node_addr_size(fdt, node, 0, &mem_addr, &mem_size);
+> +	if (ret)
+> +		return ret;
+> +	sbi_domain_memregion_init(mem_addr, mem_size, reg->flags, reg);> +	return 0;
+> +}
+> +
+>   static int mips_p8700_final_init(bool cold_boot)
+>   {
+>   	struct sbi_scratch *scratch;
+>   	const struct sbi_domain *dom;
+>   	struct sbi_domain_memregion *reg;
+> -	const unsigned long end_of_dram = 0x1000000000LU;
+>   	unsigned long pmp_gran;
+>   	int pmp_count;
+> +	int ret;
+>   
+>   	if (!cold_boot)
+>   		return 0;
+> @@ -172,11 +195,9 @@ static int mips_p8700_final_init(bool cold_boot)
+>   	 */
+>   	dom = sbi_domain_thishart_ptr();
+>   	reg = find_last_memregion(dom);
+> -	sbi_printf("Fix region[%ld]: base 0x%lx order %ld flags 0x%lx\n",
+> -		   reg - dom->regions, reg->base, reg->order, reg->flags);
+> -	reg->order = sbi_fls(end_of_dram);
 
-This looks like it would be a very useful feature, but you have added several
-files under a license that is not compatible with the remainder of the OpenSBI
-project, which uses the BSD-2-Clause license. I don't think this patch can be
-reviewed in its current state.
+I have some doubts on this. On the code level, `reg` comes from
+find_last_memregion, which exposes internal memory region data structure
+from `domain`. If modifying the base/order/flags directly, that bypasses
+the sanitation logic in root_add_memregion, which could invalidate the
+assumption in lib/ code. In your subsequent patch, there's also direct
+access to dom->regions (again internal structures). IMO, we shouldn't do
+that in platform code. Perhaps Anup has better thoughts.
 
-Regards,
-Samuel
+> -	sbi_printf("Modified order: %ld to match end of DRAM 0x%lx\n",
+> -		   reg->order, end_of_dram);
+> +	ret = fixup_dram_region(dom, reg);
 
+Based on your description above, you are trying to block speculative
+access above the physical memory region. I encountered similar problem
+when coding up the EIC7700 platform. I also need to block access to some
+regions to avoid speculative access triggering bus errors. However I
+realized that just doing what you did here is not enough. For M mode, if
+there's no matching PMP (traditional) entries, then by default the access
+is granted. Hence, I don't see how you prevent speculation from M mode to
+system NOC.
+
+> +	if (ret)
+> +		return ret;
+>   	/*
+>   	 * clear the rest of regions that may be set by the boot code
+>   	 * SBI code don't let to disable PMP region, so configure it to
+
+Bo
 
 -- 
 opensbi mailing list
