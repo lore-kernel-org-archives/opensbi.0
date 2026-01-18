@@ -4,53 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id EADA6CA5FEF
-	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 12905C9832F
+	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=BQMQSlDKaLUD6RIHsbJNLexIlHXJLJbNIv1GVimh0Os=; b=TtaNsSIAOduUYG
-	RvMwwlDHFGnH6QTIWg+UQcLCXCI9e74p3F7JazKn6yiYGFB/eCvL/NIzPokxvZZhZ+iy68t3h++8z
-	85aZJgNgkXzgubvvdBwwHwNBQy4Wvv/I1GuYZKvKPVWK+gMWLPlwmwvRH6aIhjDhodgEDMRF2czB5
-	Evd5e4yz+QNuc/gslwVwWGa32CGcwCRiz+zsyyMAVGwcBOPiGqPCPfGbhFAN71N3NO47BGlM4PXaT
-	iz4LWZDto4CTNzoZUKWuXJQ+J4gKCWKOlM/ccovCvalKoDZWq9b3dcGc4p8J6Wl0Dumsqx+PGXGec
-	F/Tp7VWkbhYbKqjIDpNQ==;
+	List-Owner; bh=/+QkAPGTbGQa1h+CvNZEmmyXUzADkT37cYYCTXsoA0g=; b=JbrX7P/jB2QNic
+	zNsCCRsFFNi/vVJdiKDgYKe+6/ZVYZi9dSvqdKBc1A/KufE4MpyAApLk3Wckt5WW0iFyF/6+822g2
+	TUzFWMO1M3Y7deSCClxW/VnMj1ZgsXh+kwUFllXSrOoGTokWwRWUTPO/mfrM5hUz+TRdHH5MQ5Ks9
+	yrdjplehzqQW3EDlSIC1AWn5ZeCfHGGRKIVhsJI8bMtMWnTVp3fLq7TyIyZz/Kz+5yUTVr/rVaQDG
+	nQnr0Bs9i6B2laIu13nuLMfTOIGrvVUYaibFcQ0rz3Ihh9F4X8lpTIU6z0Ljta22/pEHOM6J+AsF+
+	L436wIIzJaT/hbsgVwoA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6s-0000000HSv7-0C3v;
-	Sun, 18 Jan 2026 11:38:22 +0000
-Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
+	id 1vhR6t-0000000HSw5-1big;
+	Sun, 18 Jan 2026 11:38:23 +0000
+Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6l-0000000HSou-1uGM
+	id 1vhR6m-0000000HSqF-28vk
 	for opensbi@lists.infradead.org;
-	Sun, 18 Jan 2026 11:38:19 +0000
+	Sun, 18 Jan 2026 11:38:20 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1768736295; x=1800272295;
+  t=1768736296; x=1800272296;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=9fqdG+YZHW7wc5sUEgQKwO4+AxkcHqzRfDoi2w2MHTw=;
-  b=emM46Xb+ERxgU0GCqm/pc3fOtcgrIuDcdjP7BtC9iZnQ1nrYTfLVImvX
-   AShX2LWP0HSdzO5xk8CH8Q3WP4f31w8E+/Tqo9EdHLIwLidVjIALToW3F
-   qzabSvU1wodsficWGq1wha5y0bOWACHWFDu4NjmZd2z/bWPsB8QUaUykM
-   HUwpZAw/oDur9JtXGJSRvEadBs5COi73xyBzVr3mUpa0s/V4jTeNGnPgJ
-   Vrhkw4sZgbazA5RoY4o8ZMHz0e0XxvEhEH7Qe2Gf+JLDd9KvdQ6H9oHTx
-   L88wMnyc0do9rqycVcBlUhCujrUDLcKOGIm2p8UGhXwPwnmH8iTXlpUMj
-   A==;
-X-CSE-ConnectionGUID: jesx3HWBTBa07iaw9MlIGQ==
-X-CSE-MsgGUID: KRKQWCwzQGqsjDGtoUNi1Q==
+  bh=6IYl6TPGcR2gO2LCBdSvoPJIVOEkJ8mWdn1N2jbpeEU=;
+  b=UF7M5TQlxIOfOoIMlLaB2xa+rBThIrOcd9/k92UlTCYYgCTBE9x5ajhF
+   hg7XlCiNZzhJ2CeS0vB56W8GwLzHxHZeXfuRwWIYNkvpO0nAsyKjeQDpL
+   CrHN6+AhhhFp+rO6CnI2Q/QmRxIHkCp1ysoPlA0FhRK6ngXLW7g+PP9kx
+   n94ofbg0Pj0YSvna7SFuLznxCZQ66B9rowYKtFLGGWiqYLoZzgz1tCEHs
+   uYGBiqEw0VKa+7+mLVJVEk90Drrub87Rw7dpKbLdYWP3GqAQYwlGAbF4D
+   NlMxnXhIm/2C20hyrJFkNldHdGJDrmYkh6y3/d4sKUmhgK9Q5Ow2piKeg
+   g==;
+X-CSE-ConnectionGUID: JRf4+NX5R0SI0/i0OhA2XQ==
+X-CSE-MsgGUID: tY36fEDkSKeP/zSISunNVA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces04_data.me-crop.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:11 +0200
-X-CSE-ConnectionGUID: 52OkdOg4RMK/UJXfKduoIA==
-X-CSE-MsgGUID: hjR5FGNiSE2vhi4noqoPjQ==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces04_data.me-crop.lan with SMTP; 18 Jan 2026 13:40:01 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:10 +0200
+Received: from unknown (HELO ces01_data.me-corp.lan) ([146.255.191.134])
+  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:14 +0200
+X-CSE-ConnectionGUID: tR+N4Ew0TOiBJI5cM+pFhA==
+X-CSE-MsgGUID: D+DwLm4IQ8G2so8y83qwwQ==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
+  by ces01_data.me-corp.lan with SMTP; 18 Jan 2026 13:40:06 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:12 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: vladimir.kondratiev@mobileye.com,
 	anup@brainfault.org
@@ -58,17 +58,17 @@ Cc: benoit.monin@bootlin.com,
 	cfu@mips.com,
 	opensbi@lists.infradead.org,
 	cc=cfu@mips.com
-Subject: [PATCH v2 06/20] platform: generic: mips p8700: use global CM
- addresses
-Date: Sun, 18 Jan 2026 13:37:48 +0200
-Message-ID: <20260118-for-upstream-eyeq7h-v2-6-71934a5b9756@mobileye.com>
+Subject: [PATCH v2 08/20] platform: generic: mips p8700: access CM
+ registers via match data
+Date: Sun, 18 Jan 2026 13:37:50 +0200
+Message-ID: <20260118-for-upstream-eyeq7h-v2-8-71934a5b9756@mobileye.com>
 In-Reply-To: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 References: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260118_033815_939340_0EA36C99 
-X-CRM114-Status: GOOD (  13.81  )
+X-CRM114-CacheID: sfid-20260118_033818_598775_03CC4B55 
+X-CRM114-Status: GOOD (  12.31  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -80,322 +80,111 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-In the multi-cluster system each cluster has its own CM (Coherency Manager).
-Every CM has its "global" memory address where it is accessible from
-any bus master.
-Initially, all CMs accessible from the local cluster using same "local"
-address. Transactions by local address are not routed through system bus
-and thus are faster.
-
-Remap CM in every cluster to the local address matching its global address.
-Then, every CM is always accessed using same address, but when transaction
-initiated from the local cluster it is routed internally.
-
-This removes need for 2 PMP regions covering local address access.
-CM accessor functions simplified because there's no need to detect whether
-transaction is local or global
-
-Access timer always in cluster 0
-
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- platform/generic/include/mips/mips-cm.h | 46 +++++++++++--------------
- platform/generic/include/mips/p8700.h   |  4 +--
- platform/generic/mips/p8700.c           | 59 ++++++++++++++-------------------
- 3 files changed, 45 insertions(+), 64 deletions(-)
-
-diff --git a/platform/generic/include/mips/mips-cm.h b/platform/generic/include/mips/mips-cm.h
-index 6985e42b217fa8946027c94b08af01fee5bfd134..624298f373ac32ac047462ff8de071023a07f897 100644
---- a/platform/generic/include/mips/mips-cm.h
-+++ b/platform/generic/include/mips/mips-cm.h
-@@ -14,22 +14,16 @@
- /* Define 1 to print out CM read and write info */
- #define DEBUG_CM 0
- 
--#if CLUSTERS_IN_PLATFORM > 1
--static long GLOBAL_CM_BASE[CLUSTERS_IN_PLATFORM] = {GLOBAL_CM_BASE0, GLOBAL_CM_BASE1, GLOBAL_CM_BASE2};
--#else
--static long GLOBAL_CM_BASE[CLUSTERS_IN_PLATFORM] = {CM_BASE};
--#endif
-+extern long GLOBAL_CM_BASE[];
-+
- 
--#define CPS_ACCESSOR_R(unit, sz, base, off, name)			\
--static inline u##sz read_##unit##_##name(u32 hartid, bool local_p)	\
-+#define CPS_ACCESSOR_R(unit, sz, off, name)				\
-+static inline u##sz read_##unit##_##name(u32 hartid)			\
- {									\
- 	u##sz value;							\
--	long cmd_reg;							\
--	int cl, co;							\
--	cl = cpu_cluster(hartid);					\
--	co = cpu_core(hartid);						\
--	cmd_reg = (local_p ? (base) : ((base) - CM_BASE + GLOBAL_CM_BASE[cl]))	\
--		  + (co << CM_BASE_CORE_SHIFT)				\
-+	int cl = cpu_cluster(hartid);					\
-+	int co = cpu_core(hartid);					\
-+	long cmd_reg = GLOBAL_CM_BASE[cl] + (co << CM_BASE_CORE_SHIFT)	\
- 		  + off;						\
- 	if (DEBUG_CM)							\
- 		sbi_printf("CM_READ%d(0x%lx) ...\n", sz, cmd_reg);	\
-@@ -43,15 +37,12 @@ static inline u##sz read_##unit##_##name(u32 hartid, bool local_p)	\
- 	return value;							\
- }
- 
--#define CPS_ACCESSOR_W(unit, sz, base, off, name)			\
--static inline void write_##unit##_##name(u32 hartid, u##sz value, bool local_p)	\
-+#define CPS_ACCESSOR_W(unit, sz, off, name)				\
-+static inline void write_##unit##_##name(u32 hartid, u##sz value)	\
- {									\
--	long cmd_reg;							\
--	int cl, co;							\
--	cl = cpu_cluster(hartid);					\
--	co = cpu_core(hartid);						\
--	cmd_reg = (local_p ? (base) : ((base) - CM_BASE +  GLOBAL_CM_BASE[cl]))	\
--		  + (co << CM_BASE_CORE_SHIFT)				\
-+	int cl = cpu_cluster(hartid);					\
-+	int co = cpu_core(hartid);					\
-+	long cmd_reg = GLOBAL_CM_BASE[cl] + (co << CM_BASE_CORE_SHIFT)	\
- 		  + off;						\
- 	if (DEBUG_CM)							\
- 		sbi_printf("CM_WRITE%d(0x%lx, 0x%lx)\n", sz, 	\
-@@ -63,18 +54,19 @@ static inline void write_##unit##_##name(u32 hartid, u##sz value, bool local_p)
- 	asm volatile("fence");						\
- }
- 
--#define CPS_ACCESSOR_RW(unit, sz, base, off, name)			\
--	CPS_ACCESSOR_R(unit, sz, base, off, name)			\
--	CPS_ACCESSOR_W(unit, sz, base, off, name)
-+#define CPS_ACCESSOR_RW(unit, sz, off, name)			\
-+	CPS_ACCESSOR_R(unit, sz, off, name)			\
-+	CPS_ACCESSOR_W(unit, sz, off, name)
- 
- #define CPC_CX_ACCESSOR_RW(sz, off, name)				\
--	CPS_ACCESSOR_RW(cpc, sz, CPC_BASE, CPC_OFF_LOCAL + (off), co_##name)
-+	CPS_ACCESSOR_RW(cpc, sz, CPC_OFFSET + CPC_OFF_LOCAL + (off), co_##name)
- 
- #define GCR_CX_ACCESSOR_RW(sz, off, name)				\
--	CPS_ACCESSOR_RW(gcr, sz, CM_BASE, GCR_OFF_LOCAL + (off), co_##name)
-+	CPS_ACCESSOR_RW(gcr, sz, GCR_OFF_LOCAL + (off), co_##name)
- 
- GCR_CX_ACCESSOR_RW(64, cpu_hart(hartid) << CM_BASE_HART_SHIFT, reset_base)
- GCR_CX_ACCESSOR_RW(32, GCR_CORE_COH_EN, coherence)
-+GCR_CX_ACCESSOR_RW(64, GCR_BASE_OFFSET, base)
- 
- CPC_CX_ACCESSOR_RW(32, CPC_Cx_VP_RUN, vp_run)
- CPC_CX_ACCESSOR_RW(32, CPC_Cx_VP_STOP, vp_stop)
-@@ -82,7 +74,7 @@ CPC_CX_ACCESSOR_RW(32, CPC_Cx_CMD, cmd)
- CPC_CX_ACCESSOR_RW(32, CPC_Cx_STAT_CONF, stat_conf)
- 
- #define CPC_ACCESSOR_RW(sz, off, name)					\
--	CPS_ACCESSOR_RW(cpc, sz, CPC_BASE, off, name)
-+	CPS_ACCESSOR_RW(cpc, sz, CPC_OFFSET + (off), name)
- 
- CPC_ACCESSOR_RW(32, CPC_PWRUP_CTL, pwrup_ctl)
- CPC_ACCESSOR_RW(32, CPC_CM_STAT_CONF, cm_stat_conf)
-diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index b02aaed4b8163327ef086ada5afc234a84ee3aac..6644e91dd42db2a3d743b5c34313f4a8d849eddc 100644
---- a/platform/generic/include/mips/p8700.h
-+++ b/platform/generic/include/mips/p8700.h
-@@ -71,10 +71,10 @@
- #define cpu_core(i)		(((i) >> NEW_CORE_SHIFT) & NEW_CORE_MASK)
- #define cpu_hart(i)		((i) & NEW_HART_MASK)
- 
--#define CPC_BASE		(CM_BASE + 0x8000)
-+#define CPC_OFFSET		(0x8000)
- 
- #define SIZE_FOR_CPC_MTIME	0x10000	/* The size must be 2^order */
--#define AIA_BASE		(CM_BASE + 0x40000)
-+#define AIA_OFFSET		(0x40000)
- #define SIZE_FOR_AIA_M_MODE	0x20000	/* The size must be 2^order */
- #define P8700_ALIGN		0x10000
- 
-diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
-index 33b80dc1230559073113f5ca2d5e1a07dba20ff6..50d33cacead1a57abd1ad80bc117d56ad79d209d 100644
---- a/platform/generic/mips/p8700.c
-+++ b/platform/generic/mips/p8700.c
-@@ -12,7 +12,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_timer.h>
--#include <sbi/riscv_barrier.h>
-+#include <sbi/riscv_io.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <mips/p8700.h>
- #include <mips/mips-cm.h>
-@@ -21,6 +21,9 @@ extern void mips_warm_boot(void);
- #define MMIO_BASE 0x00000000
- #define MMIO_SIZE 0x80000000
- 
-+/* FIXME! Please change GLOBAL_CM_BASE for your platform */
-+long GLOBAL_CM_BASE[CLUSTERS_IN_PLATFORM] = {CM_BASE};
-+
- static void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
- 			       unsigned long prot, unsigned long addr,
- 			       unsigned long log2len)
-@@ -44,14 +47,16 @@ static void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
- static void power_up_other_cluster(u32 hartid)
- {
- 	unsigned int cl = cpu_cluster(hartid);
--	bool local_p = (cpu_cluster(current_hartid()) == cl);
- 
-+	/* remap local cluster address to its global address */
-+	writeq(GLOBAL_CM_BASE[cl], (void*)GLOBAL_CM_BASE[cl] + GCR_BASE_OFFSET);
-+	wmb();
- 	/* Power up CM in cluster */
--	write_cpc_pwrup_ctl(hartid, 1, local_p);
-+	write_cpc_pwrup_ctl(hartid, 1);
- 
- 	/* Wait for the CM to start up */
- 	for (int i = 100; i > 0; i--) {
--		u32 stat = read_cpc_cm_stat_conf(hartid, local_p);
-+		u32 stat = read_cpc_cm_stat_conf(hartid);
- 
- 		stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
- 		if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U5)
-@@ -64,14 +69,13 @@ static void power_up_other_cluster(u32 hartid)
- 
- struct mips_boot_params {
- 	u32 hartid;
--	bool local_p;
- 	u32 target_state;
- };
- 
- static bool mips_hart_reached_state(void *arg)
- {
- 	struct mips_boot_params *p = arg;
--	u32 stat = read_cpc_co_stat_conf(p->hartid, p->local_p);
-+	u32 stat = read_cpc_co_stat_conf(p->hartid);
- 
- 	stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
- 	return stat == p->target_state;
-@@ -79,32 +83,29 @@ static bool mips_hart_reached_state(void *arg)
- 
- static int mips_hart_start(u32 hartid, ulong saddr)
- {
--	bool local_p = (cpu_cluster(current_hartid()) == cpu_cluster(hartid));
--
- 	/* Hart 0 is the boot hart, and we don't use the CPC cmd to start.  */
- 	if (hartid == 0)
- 		return SBI_ENOTSUPP;
- 
- 	/* Change reset base to mips_warm_boot */
--	write_gcr_co_reset_base(hartid, (unsigned long)mips_warm_boot, local_p);
-+	write_gcr_co_reset_base(hartid, (unsigned long)mips_warm_boot);
- 
- 	if (cpu_hart(hartid) == 0) {
- 		unsigned int const timeout_ms = 10;
- 		bool booted;
- 		struct mips_boot_params p = {
- 			.hartid = hartid,
--			.local_p = local_p,
- 			.target_state = CPC_Cx_STAT_CONF_SEQ_STATE_U6,
- 		};
- 
- 		/* Ensure its coherency is disabled */
--		write_gcr_co_coherence(hartid, 0, local_p);
-+		write_gcr_co_coherence(hartid, 0);
- 
- 		/* Start cluster cl core co hart 0 */
--		write_cpc_co_vp_run(hartid, 1 << cpu_hart(hartid), local_p);
-+		write_cpc_co_vp_run(hartid, 1 << cpu_hart(hartid));
- 
- 		/* Reset cluster cl core co hart 0 */
--		write_cpc_co_cmd(hartid, CPC_Cx_CMD_RESET, local_p);
-+		write_cpc_co_cmd(hartid, CPC_Cx_CMD_RESET);
- 
- 		booted = sbi_timer_waitms_until(mips_hart_reached_state, &p, timeout_ms);
- 		if (!booted) {
-@@ -113,7 +114,7 @@ static int mips_hart_start(u32 hartid, ulong saddr)
- 			return -SBI_ETIMEDOUT;
- 		}
- 	} else {
--		write_cpc_co_vp_run(hartid, 1 << cpu_hart(hartid), local_p);
-+		write_cpc_co_vp_run(hartid, 1 << cpu_hart(hartid));
- 	}
- 
- 	return 0;
-@@ -122,13 +123,12 @@ static int mips_hart_start(u32 hartid, ulong saddr)
- static int mips_hart_stop()
- {
- 	u32 hartid = current_hartid();
--	bool local_p = (cpu_cluster(current_hartid()) == cpu_cluster(hartid));
- 
- 	/* Hart 0 is the boot hart, and we don't use the CPC cmd to stop.  */
- 	if (hartid == 0)
- 		return SBI_ENOTSUPP;
- 
--	write_cpc_co_vp_stop(hartid, 1 << cpu_hart(hartid), local_p);
-+	write_cpc_co_vp_stop(hartid, 1 << cpu_hart(hartid));
- 
- 	return 0;
- }
-@@ -159,6 +159,11 @@ static int mips_p8700_early_init(bool cold_boot)
- 	if (!cold_boot)
- 		return 0;
- 
-+	sbi_dprintf("Remap Cluster %d CM 0x%lx -> 0x%lx\n", 0,
-+		    readq((void*)GLOBAL_CM_BASE[0] + GCR_BASE_OFFSET),
-+		    GLOBAL_CM_BASE[0]);
-+	writeq(GLOBAL_CM_BASE[0], (void*)GLOBAL_CM_BASE[0] + GCR_BASE_OFFSET);
-+	wmb();
- 	/* Power up other clusters in the platform. */
- 	for (i = 1; i < CLUSTERS_IN_PLATFORM; i++) {
- 		power_up_other_cluster(i << NEW_CLUSTER_SHIFT);
-@@ -177,23 +182,6 @@ static int mips_p8700_early_init(bool cold_boot)
-  * 0x08_00000000  0x10_00000000   M:---- S:-RWX DDR64
-  * 0x10_00000000  0x20_00000000   M:---- S:IRW- PCI64 BARs
-  */
--	/* CM and MTIMER */
--	rc = sbi_domain_root_add_memrange(CM_BASE, SIZE_FOR_CPC_MTIME,
--					  SIZE_FOR_CPC_MTIME,
--					  (SBI_DOMAIN_MEMREGION_MMIO |
--					   SBI_DOMAIN_MEMREGION_M_READABLE |
--					   SBI_DOMAIN_MEMREGION_M_WRITABLE));
--	if (rc)
--		return rc;
--
--	/* M-mode APLIC and ACLINT */
--	rc = sbi_domain_root_add_memrange(AIA_BASE, SIZE_FOR_AIA_M_MODE,
--					  SIZE_FOR_AIA_M_MODE,
--					  (SBI_DOMAIN_MEMREGION_MMIO |
--					   SBI_DOMAIN_MEMREGION_M_READABLE |
--					   SBI_DOMAIN_MEMREGION_M_WRITABLE));
--	if (rc)
--		return rc;
- 
- 	for (i = 0; i < CLUSTERS_IN_PLATFORM; i++) {
- 		unsigned long cm_base = GLOBAL_CM_BASE[i];
-@@ -208,7 +196,7 @@ static int mips_p8700_early_init(bool cold_boot)
- 			return rc;
- 
- 		/* For the APLIC and ACLINT m-mode region */
--		rc = sbi_domain_root_add_memrange(cm_base + AIA_BASE - CM_BASE, SIZE_FOR_AIA_M_MODE,
-+		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
- 						  SIZE_FOR_AIA_M_MODE,
- 						  (SBI_DOMAIN_MEMREGION_MMIO |
- 						   SBI_DOMAIN_MEMREGION_M_READABLE |
-@@ -234,7 +222,8 @@ static int mips_p8700_early_init(bool cold_boot)
- static int mips_p8700_nascent_init(void)
- {
- 	u64 hartid = current_hartid();
--	u64 cm_base = CM_BASE;
-+	int cl = cpu_cluster(hartid);
-+	u64 cm_base = GLOBAL_CM_BASE[cl];
- 	int i;
- 
- 	/* Coherence enable for every core */
-
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+TW9kaWZ5IHRoZSBjb2hlcmVuY2UgbWFuYWdlciByZWdpc3RlciBhY2Nlc3NvcnMgdG8gdXNlIHRo
+ZSBnbG9iYWwgdmFyaWFibGUNCnA4NzAwX2NtX2luZm8gaW5zdGVhZCBvZiB0aGUgc3RhdGljYWxs
+eSBkZWNsYXJlZCBHTE9CQUxfQ01fQkFTRSBhcnJheS4NCg0KQWxzbyB1c2UgcDg3MDBfY21faW5m
+byB0byBnZXQgdGhlIG51bWJlciBvZiBjb2hlcmVuY2UgbWFuYWdlcnMgYW5kIHRoZWlyDQpiYXNl
+IGFkZHJlc3NlcyBpbiBtaXBzX3A4NzAwX2Vhcmx5X2luaXQoKSBhbmQgbWlwc19wODcwMF9uYXNj
+ZW50X2luaXQoKS4NCg0KQ2xlYW4gdXAgdGhlIGhhcmQtY29kZWQgdmFsdWVzIGluIG1pcHMvYm9h
+cmQuaCwgYWNjZXNzIHRvIHRoZSBjb2hlcmVuY2UNCm1hbmFnZXIgaXMgbm93IGZ1bGx5IGJhc2Vk
+IG9uIGluZm9ybWF0aW9uIHByb3ZpZGVkIGJ5IHBsYXRmb3JtIGNvbXBhdGlibGUNCmZyb20gdGhl
+IGRldmljZSB0cmVlLg0KDQpTaWduZWQtb2ZmLWJ5OiBCZW5vw650IE1vbmluIDxiZW5vaXQubW9u
+aW5AYm9vdGxpbi5jb20+DQotLS0NCiBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9ib2Fy
+ZC5oICAgfCAxNSAtLS0tLS0tLS0tLS0tLS0NCiBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlw
+cy9taXBzLWNtLmggfCAgOSArKysrLS0tLS0NCiBwbGF0Zm9ybS9nZW5lcmljL21pcHMvcDg3MDAu
+YyAgICAgICAgICAgfCAyOCArKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tDQogMyBmaWxlcyBj
+aGFuZ2VkLCAxOSBpbnNlcnRpb25zKCspLCAzMyBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBh
+L3BsYXRmb3JtL2dlbmVyaWMvaW5jbHVkZS9taXBzL2JvYXJkLmggYi9wbGF0Zm9ybS9nZW5lcmlj
+L2luY2x1ZGUvbWlwcy9ib2FyZC5oDQppbmRleCA2ZmU3YjhiNjhmZjYxZDViY2Y0YTA1ZGYxNmUy
+MTE1ZDdkYjkzM2M3Li5iNzJkNzdkNmM5MDY2NjJiY2Y5N2RmNjdhMmEzZmI1ZWJjOTczZjIwIDEw
+MDY0NA0KLS0tIGEvcGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL21pcHMvYm9hcmQuaA0KKysrIGIv
+cGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL21pcHMvYm9hcmQuaA0KQEAgLTEwLDIxICsxMCw2IEBA
+DQogDQogLyogUGxlYXNlIHJldmlldyBhbGwgZGVmaW5lcyB0byBjaGFuZ2UgZm9yIHlvdXIgYm9h
+cmQuICovDQogDQotLyogVXNlIGluIHN0dy5TLCBwODcwMC5jLCBwODcwMC5oLCBtaXBzLWNtLmgg
+Ki8NCi0jZGVmaW5lIENNX0JBU0UJCQkweDE2MTAwMDAwDQotDQotLyogVXNlIGluIG1pcHMtY20u
+aCwgcDg3MDAuYyAqLw0KLSNkZWZpbmUgQ0xVU1RFUlNfSU5fUExBVEZPUk0JMQ0KLSNpZiBDTFVT
+VEVSU19JTl9QTEFURk9STSA+IDENCi0vKiBEZWZpbmUgZ2xvYmFsIENNIGJhc2VzIGZvciBjbHVz
+dGVyIDAsIDEsIDIsIGFuZCBtb3JlLiAqLw0KLSNkZWZpbmUgR0xPQkFMX0NNX0JBU0UwCQkwDQot
+I2RlZmluZSBHTE9CQUxfQ01fQkFTRTEJCTANCi0jZGVmaW5lIEdMT0JBTF9DTV9CQVNFMgkJMA0K
+LSNlbmRpZg0KLQ0KLS8qIFVzZSBpbiBzdHcuUyAqLw0KLSNkZWZpbmUgVElNRVJfQUREUgkJKENN
+X0JBU0UgKyAweDgwNTApDQotDQogLyogVXNlIGluIGNwcy12ZWMuUyAqLw0KICNkZWZpbmUgRFJB
+TV9BRERSRVNTCQkweDgwMDAwMDAwDQogI2RlZmluZSBEUkFNX1NJWkUJCTB4ODAwMDAwMDANCmRp
+ZmYgLS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9taXBzLWNtLmggYi9wbGF0
+Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9taXBzLWNtLmgNCmluZGV4IDYyNDI5OGYzNzNhYzMy
+YWMwNDc0NjJmZjhkZTA3MTAyM2EwN2Y4OTcuLmIzZTA1NmU4ZjlhNjRiOWE0NGNmYzQzZTUwNWQ5
+YThiNjk4YzQ5ZmEgMTAwNjQ0DQotLS0gYS9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9t
+aXBzLWNtLmgNCisrKyBiL3BsYXRmb3JtL2dlbmVyaWMvaW5jbHVkZS9taXBzL21pcHMtY20uaA0K
+QEAgLTE0LDE2ICsxNCwxNCBAQA0KIC8qIERlZmluZSAxIHRvIHByaW50IG91dCBDTSByZWFkIGFu
+ZCB3cml0ZSBpbmZvICovDQogI2RlZmluZSBERUJVR19DTSAwDQogDQotZXh0ZXJuIGxvbmcgR0xP
+QkFMX0NNX0JBU0VbXTsNCi0NCi0NCiAjZGVmaW5lIENQU19BQ0NFU1NPUl9SKHVuaXQsIHN6LCBv
+ZmYsIG5hbWUpCQkJCVwNCiBzdGF0aWMgaW5saW5lIHUjI3N6IHJlYWRfIyN1bml0IyNfIyNuYW1l
+KHUzMiBoYXJ0aWQpCQkJXA0KIHsJCQkJCQkJCQlcDQogCXUjI3N6IHZhbHVlOwkJCQkJCQlcDQog
+CWludCBjbCA9IGNwdV9jbHVzdGVyKGhhcnRpZCk7CQkJCQlcDQogCWludCBjbyA9IGNwdV9jb3Jl
+KGhhcnRpZCk7CQkJCQlcDQotCWxvbmcgY21kX3JlZyA9IEdMT0JBTF9DTV9CQVNFW2NsXSArIChj
+byA8PCBDTV9CQVNFX0NPUkVfU0hJRlQpCVwNCisJbG9uZyBjbWRfcmVnID0gcDg3MDBfY21faW5m
+by0+Z2NyX2Jhc2VbY2xdCQkJXA0KKwkJICAgICAgICsgKGNvIDw8IENNX0JBU0VfQ09SRV9TSElG
+VCkJCQlcDQogCQkgICsgb2ZmOwkJCQkJCVwNCiAJaWYgKERFQlVHX0NNKQkJCQkJCQlcDQogCQlz
+YmlfcHJpbnRmKCJDTV9SRUFEJWQoMHglbHgpIC4uLlxuIiwgc3osIGNtZF9yZWcpOwlcDQpAQCAt
+NDIsNyArNDAsOCBAQCBzdGF0aWMgaW5saW5lIHZvaWQgd3JpdGVfIyN1bml0IyNfIyNuYW1lKHUz
+MiBoYXJ0aWQsIHUjI3N6IHZhbHVlKQlcDQogewkJCQkJCQkJCVwNCiAJaW50IGNsID0gY3B1X2Ns
+dXN0ZXIoaGFydGlkKTsJCQkJCVwNCiAJaW50IGNvID0gY3B1X2NvcmUoaGFydGlkKTsJCQkJCVwN
+Ci0JbG9uZyBjbWRfcmVnID0gR0xPQkFMX0NNX0JBU0VbY2xdICsgKGNvIDw8IENNX0JBU0VfQ09S
+RV9TSElGVCkJXA0KKwlsb25nIGNtZF9yZWcgPSBwODcwMF9jbV9pbmZvLT5nY3JfYmFzZVtjbF0J
+CQlcDQorCQkgICAgICAgKyAoY28gPDwgQ01fQkFTRV9DT1JFX1NISUZUKQkJCVwNCiAJCSAgKyBv
+ZmY7CQkJCQkJXA0KIAlpZiAoREVCVUdfQ00pCQkJCQkJCVwNCiAJCXNiaV9wcmludGYoIkNNX1dS
+SVRFJWQoMHglbHgsIDB4JWx4KVxuIiwgc3osIAlcDQpkaWZmIC0tZ2l0IGEvcGxhdGZvcm0vZ2Vu
+ZXJpYy9taXBzL3A4NzAwLmMgYi9wbGF0Zm9ybS9nZW5lcmljL21pcHMvcDg3MDAuYw0KaW5kZXgg
+NzVlMTk0MTZjNWUxM2ViODNiZTU4MjQzYTIxOTUyNDRlNDE0N2QzYy4uYTcxMTZlOTA4M2ZiM2Fl
+MjUzNDZlMTMzZWMzNjU5OWUxMDY3OGZjMSAxMDA2NDQNCi0tLSBhL3BsYXRmb3JtL2dlbmVyaWMv
+bWlwcy9wODcwMC5jDQorKysgYi9wbGF0Zm9ybS9nZW5lcmljL21pcHMvcDg3MDAuYw0KQEAgLTIz
+LDkgKzIzLDYgQEAgZXh0ZXJuIHZvaWQgbWlwc193YXJtX2Jvb3Qodm9pZCk7DQogI2RlZmluZSBN
+TUlPX0JBU0UgMHgwMDAwMDAwMA0KICNkZWZpbmUgTU1JT19TSVpFIDB4ODAwMDAwMDANCiANCi0v
+KiBGSVhNRSEgUGxlYXNlIGNoYW5nZSBHTE9CQUxfQ01fQkFTRSBmb3IgeW91ciBwbGF0Zm9ybSAq
+Lw0KLWxvbmcgR0xPQkFMX0NNX0JBU0VbQ0xVU1RFUlNfSU5fUExBVEZPUk1dID0ge0NNX0JBU0V9
+Ow0KLQ0KIHN0YXRpYyB2b2lkIG1pcHNfcDg3MDBfcG1wX3NldCh1bnNpZ25lZCBpbnQgbiwgdW5z
+aWduZWQgbG9uZyBmbGFncywNCiAJCQkgICAgICAgdW5zaWduZWQgbG9uZyBwcm90LCB1bnNpZ25l
+ZCBsb25nIGFkZHIsDQogCQkJICAgICAgIHVuc2lnbmVkIGxvbmcgbG9nMmxlbikNCkBAIC00OSw5
+ICs0NiwxMCBAQCBzdGF0aWMgdm9pZCBtaXBzX3A4NzAwX3BtcF9zZXQodW5zaWduZWQgaW50IG4s
+IHVuc2lnbmVkIGxvbmcgZmxhZ3MsDQogc3RhdGljIHZvaWQgcG93ZXJfdXBfb3RoZXJfY2x1c3Rl
+cih1MzIgaGFydGlkKQ0KIHsNCiAJdW5zaWduZWQgaW50IGNsID0gY3B1X2NsdXN0ZXIoaGFydGlk
+KTsNCisJdW5zaWduZWQgbG9uZyBjbV9iYXNlID0gcDg3MDBfY21faW5mby0+Z2NyX2Jhc2VbY2xd
+Ow0KIA0KIAkvKiByZW1hcCBsb2NhbCBjbHVzdGVyIGFkZHJlc3MgdG8gaXRzIGdsb2JhbCBhZGRy
+ZXNzICovDQotCXdyaXRlcShHTE9CQUxfQ01fQkFTRVtjbF0sICh2b2lkKilHTE9CQUxfQ01fQkFT
+RVtjbF0gKyBHQ1JfQkFTRV9PRkZTRVQpOw0KKwl3cml0ZXEoY21fYmFzZSwgKHZvaWQqKWNtX2Jh
+c2UgKyBHQ1JfQkFTRV9PRkZTRVQpOw0KIAl3bWIoKTsNCiAJLyogUG93ZXIgdXAgQ00gaW4gY2x1
+c3RlciAqLw0KIAl3cml0ZV9jcGNfcHdydXBfY3RsKGhhcnRpZCwgMSk7DQpAQCAtMTYxLDEzICsx
+NTksMTcgQEAgc3RhdGljIGludCBtaXBzX3A4NzAwX2Vhcmx5X2luaXQoYm9vbCBjb2xkX2Jvb3Qp
+DQogCWlmICghY29sZF9ib290KQ0KIAkJcmV0dXJuIDA7DQogDQotCXNiaV9kcHJpbnRmKCJSZW1h
+cCBDbHVzdGVyICVkIENNIDB4JWx4IC0+IDB4JWx4XG4iLCAwLA0KLQkJICAgIHJlYWRxKCh2b2lk
+KilHTE9CQUxfQ01fQkFTRVswXSArIEdDUl9CQVNFX09GRlNFVCksDQotCQkgICAgR0xPQkFMX0NN
+X0JBU0VbMF0pOw0KLQl3cml0ZXEoR0xPQkFMX0NNX0JBU0VbMF0sICh2b2lkKilHTE9CQUxfQ01f
+QkFTRVswXSArIEdDUl9CQVNFX09GRlNFVCk7DQotCXdtYigpOw0KKwl7IC8vIGNsdXN0ZXIgMCAt
+IG9ubHkgcmVtYXAsIGFscmVhZHkgdXANCisJCXVuc2lnbmVkIGxvbmcgY21fYmFzZSA9IHA4NzAw
+X2NtX2luZm8tPmdjcl9iYXNlWzBdOw0KKw0KKwkJc2JpX2RwcmludGYoIlJlbWFwIENsdXN0ZXIg
+JWQgQ00gMHglbHggLT4gMHglbHhcbiIsIDAsDQorCQkJICAgIHJlYWRxKCh2b2lkKiljbV9iYXNl
+ICsgR0NSX0JBU0VfT0ZGU0VUKSwNCisJCQkgICAgY21fYmFzZSk7DQorCQl3cml0ZXEoY21fYmFz
+ZSwgKHZvaWQqKWNtX2Jhc2UgKyBHQ1JfQkFTRV9PRkZTRVQpOw0KKwkJd21iKCk7DQorCX0NCiAJ
+LyogUG93ZXIgdXAgb3RoZXIgY2x1c3RlcnMgaW4gdGhlIHBsYXRmb3JtLiAqLw0KLQlmb3IgKGkg
+PSAxOyBpIDwgQ0xVU1RFUlNfSU5fUExBVEZPUk07IGkrKykgew0KKwlmb3IgKGkgPSAxOyBpIDwg
+cDg3MDBfY21faW5mby0+bnVtX2NtOyBpKyspIHsNCiAJCXBvd2VyX3VwX290aGVyX2NsdXN0ZXIo
+aSA8PCBORVdfQ0xVU1RFUl9TSElGVCk7DQogCX0NCiANCkBAIC0xODUsOCArMTg3LDggQEAgc3Rh
+dGljIGludCBtaXBzX3A4NzAwX2Vhcmx5X2luaXQoYm9vbCBjb2xkX2Jvb3QpDQogICogMHgxMF8w
+MDAwMDAwMCAgMHgyMF8wMDAwMDAwMCAgIE06LS0tLSBTOklSVy0gUENJNjQgQkFScw0KICAqLw0K
+IA0KLQlmb3IgKGkgPSAwOyBpIDwgQ0xVU1RFUlNfSU5fUExBVEZPUk07IGkrKykgew0KLQkJdW5z
+aWduZWQgbG9uZyBjbV9iYXNlID0gR0xPQkFMX0NNX0JBU0VbaV07DQorCWZvciAoaSA9IDA7IGkg
+PCBwODcwMF9jbV9pbmZvLT5udW1fY207IGkrKykgew0KKwkJdW5zaWduZWQgbG9uZyBjbV9iYXNl
+ID0gcDg3MDBfY21faW5mby0+Z2NyX2Jhc2VbaV07DQogDQogCQkvKiBDTSBhbmQgTVRJTUVSICov
+DQogCQlyYyA9IHNiaV9kb21haW5fcm9vdF9hZGRfbWVtcmFuZ2UoY21fYmFzZSwgU0laRV9GT1Jf
+Q1BDX01USU1FLA0KQEAgLTIyNSw3ICsyMjcsNyBAQCBzdGF0aWMgaW50IG1pcHNfcDg3MDBfbmFz
+Y2VudF9pbml0KHZvaWQpDQogew0KIAl1NjQgaGFydGlkID0gY3VycmVudF9oYXJ0aWQoKTsNCiAJ
+aW50IGNsID0gY3B1X2NsdXN0ZXIoaGFydGlkKTsNCi0JdTY0IGNtX2Jhc2UgPSBHTE9CQUxfQ01f
+QkFTRVtjbF07DQorCXU2NCBjbV9iYXNlID0gcDg3MDBfY21faW5mby0+Z2NyX2Jhc2VbY2xdOw0K
+IAlpbnQgaTsNCiANCiAJLyogQ29oZXJlbmNlIGVuYWJsZSBmb3IgZXZlcnkgY29yZSAqLw0KDQot
+LSANCjIuNDMuMA0KDQoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29w
+ZW5zYmkK
