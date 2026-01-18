@@ -4,53 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 10D46CA5FEC
-	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A4C92D4A5F4
+	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=IVfDQc+zpFpZWstLZKyCwWUDgymdlJHW7kxTUkQ1zHI=; b=JR9a+oLHM5n2D5
-	0s7y/HeBiYZkP0ZUUS+rMiXVq8sopieyub/j8cH+QUGAbkwfFWqi7QZMpHShgHZ082MkSQ8TqvnVk
-	rs9U0UluT/vEHPF0oYbyzHee9liuCUoRMtM3ICMzg6R3aokScyISl49G66butlxea/i2R2H8XvaUn
-	d6L1X16dLJssOWImi24elU4V513nak1jU9o9SQ/g2OfizmvK8bbJC2t1xBXJpb9eF3GC1JHxnR6AD
-	m6TIzLwrX5VgHeZkSq0fowy4bG+wf7Lruj2YURJlDtOTipJze4GPnAMaomZaUe+w2VJIk4NEFY/nr
-	/tJD5LgA1ApFFJ9sUCmw==;
+	List-Owner; bh=mPw3Rx/QET0C7HCyJoSMxf2dSG49Xg95l8O9yLC8OIU=; b=Tflx/wf2+75MeA
+	4OrBSJ0Ag3us2vyAsj90sCIw+RiE8EAKq8+eA+mg+ABRkMDNKRvJDVvlUbecU6Wv8l9nAArsuPLKO
+	xXNM1ehOaQk66+zC7Eh4s6Lgf3ROs9pXY/3TNYH9zKj3U/CS5d+ASa8QjgTUCE4PwMP9QOs74l3Y/
+	Du0tzawuy3vvY3XLefAlgsin78dq9uM7LTslq+PcI4HxVHE0P8yctM6UP4BDHUFwi5CMHdWXc2gDe
+	rjujEg04FpWWnCAdpeT1RzD5bMI8KrLxaRj5Nk2Fh0aC91jD8nrJzmywvsJZlI5kSrWSzlvJzOwF2
+	QNz5wt/w8wnPfonYqOqA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR70-0000000HT3p-1vze;
-	Sun, 18 Jan 2026 11:38:30 +0000
-Received: from esa4.hc555-34.eu.iphmx.com ([207.54.77.171])
+	id 1vhR71-0000000HT4l-31Oy;
+	Sun, 18 Jan 2026 11:38:31 +0000
+Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6r-0000000HSsx-0xYx
+	id 1vhR6r-0000000HSoh-1Tye
 	for opensbi@lists.infradead.org;
-	Sun, 18 Jan 2026 11:38:22 +0000
+	Sun, 18 Jan 2026 11:38:23 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
   t=1768736301; x=1800272301;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=GNADMDq6Ke/nM4H68tiESzcG5BRWM2db1NQgvmCV8Lc=;
-  b=jTZHbiFVoA8ppSIvUipZIdrm6h9Syjsc2jutoo36FnQ0Re7GhTtSsPVZ
-   MJ2LdHR0n1WnFNSPHVFf1vzJja4rlQcnfS45IUIPjpqT9n/dZlCzZwpC1
-   9Lj9oo0wQxBo9tNtVNhMj/63wh4uT6ovf1+vltK7h73GK8XisCnjivvk0
-   ViuFAVwWwpVXmy1JAuMGoNLv9lLBqcylcP9eKblbh+U/cCH3aaVIytHoP
-   6Chyx9Vl23dVj6rzvjqFYbjWmc3OZSquqCA0WTkf4zIu70W4+Z1/mrssY
-   l2JfTACFnU1njg7LkEFvZTIEX5/bVqd+uVdUbFhwA9R5xiduXbfCe/pOM
+  bh=fxyLZNnAGEFH3xCesgUXqFgmb7QN6g0uUjnkvjuJKXc=;
+  b=hG0ckgo/TNR6AOZOKzdq7su5fLvsUgbb/j9G8+f8xi71WbCr0Ig0E1l+
+   A+2Gde0RD0vj6n+Bi6puTmY9oaW5wkItGf9OuJBiSkCc55qtEq5uuWbpV
+   k0bbLNH0O8abElm9exoD5RKeXWLDvb0kIziRIW0GBrdOZiQjyGFvBJjAm
+   tmpkyY3ec18i9ahSQOITA3cWwZpyRMie7g7iQbSdq2stskTUnd8uHQq90
+   dxsSjBnBuIRDAK1qixdlmpt08YShaXcieK9GN8SZzaRU1vuSonVlHkUlr
+   85YEweh1dYyLfOC02bbfw1djhoZQLhFk/75z7Zqpl/DydnLoISJmkRc13
    A==;
-X-CSE-ConnectionGUID: pGyy4ODBQxyFdhw0aArWHw==
-X-CSE-MsgGUID: +dkcYDxfSritBwTOYuipvg==
+X-CSE-ConnectionGUID: LZVqmOtETr+TGRJmHb9EkQ==
+X-CSE-MsgGUID: 1BGqNEcCR1e+Vq1gNqjREA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
-  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:17 +0200
-X-CSE-ConnectionGUID: zHEWaMw9TXmeJeCxNnkasA==
-X-CSE-MsgGUID: 6RvSt7ZBTZGFgb6PJ2K6Ig==
+Received: from unknown (HELO ces04_data.me-crop.lan) ([146.255.191.134])
+  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:19 +0200
+X-CSE-ConnectionGUID: SLU0lJTmRsKAi6BcqX+3Yg==
+X-CSE-MsgGUID: 4YLy2RabREy4JFHWfmDzQA==
 Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces03_data.me-corp.lan with SMTP; 18 Jan 2026 13:40:03 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:16 +0200
+  by ces04_data.me-crop.lan with SMTP; 18 Jan 2026 13:40:08 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:18 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: vladimir.kondratiev@mobileye.com,
 	anup@brainfault.org
@@ -58,18 +58,17 @@ Cc: benoit.monin@bootlin.com,
 	cfu@mips.com,
 	opensbi@lists.infradead.org,
 	cc=cfu@mips.com
-Subject: [PATCH v2 11/20] platform: generic: mips eyeq7h: detect
- accelerators cluster presence
-Date: Sun, 18 Jan 2026 13:37:53 +0200
-Message-ID: <20260118-for-upstream-eyeq7h-v2-11-71934a5b9756@mobileye.com>
+Subject: [PATCH v2 13/20] platform: generic: mips p8700: cache geometry
+ detection
+Date: Sun, 18 Jan 2026 13:37:55 +0200
+Message-ID: <20260118-for-upstream-eyeq7h-v2-13-71934a5b9756@mobileye.com>
 In-Reply-To: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 References: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260118_033821_561599_5A492678 
-X-CRM114-Status: UNSURE (   8.70  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260118_033821_672140_F8F0E04F 
+X-CRM114-Status: GOOD (  10.65  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -86,87 +85,198 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-In the design, accelerator clusters ACC[01] and XNN[01] presence
-indicated by the OLB_WEST register OLB_WEST_TSTCSR.
-
-In the simulation environments, part (or all) accelerators may be
-not instantiated
-
-Disable clusters not present in the model, updating the DTB
+P8700 has a read-only cache configuration registers.
+Provide a CPU specific function to extract cache information.
+Use this information in the eyeq7h board for informational
+message
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/mips/eyeq7h.c | 44 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ platform/generic/include/mips/p8700.h | 54 +++++++++++++++++++++++++++++++++++
+ platform/generic/mips/eyeq7h.c        | 27 ++++++++++++++++++
+ platform/generic/mips/p8700.c         | 45 +++++++++++++++++++++++++++++
+ 3 files changed, 126 insertions(+)
 
+diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
+index 5facd38af39fe0bc9d6de18a6c7423396e828873..ad7353f8a64a5194e7e933efd8e1276fb8c6f458 100644
+--- a/platform/generic/include/mips/p8700.h
++++ b/platform/generic/include/mips/p8700.h
+@@ -58,6 +58,14 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ #define CSR_MIPSCONFIG10	0x7da
+ #define CSR_MIPSCONFIG11	0x7db
+ 
++#define MIPSCONFIG1_L2C		BIT(31)
++#define MIPSCONFIG1_IS		GENMASK(24,22)
++#define MIPSCONFIG1_IL		GENMASK(21,19)
++#define MIPSCONFIG1_IA		GENMASK(18,16)
++#define MIPSCONFIG1_DS		GENMASK(15,13)
++#define MIPSCONFIG1_DL		GENMASK(12,10)
++#define MIPSCONFIG1_DA		GENMASK(9,7)
++
+ #define MIPSCONFIG5_MTW		4
+ 
+ #define GEN_MASK(h, l)	(((1ul << ((h) + 1 - (l))) - 1) << (l))
+@@ -113,6 +121,43 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ #define L2_PFT_CONTROL_OFFSET	0x0300
+ #define L2_PFT_CONTROL_B_OFFSET	0x0308
+ 
++#define GCR_L2_CONFIG		0x0130
++#define GCR_L2_ASSOC		GENMASK(7, 0)
++#define GCR_L2_LINE_SIZE	GENMASK(11, 8)
++#define GCR_L2_SET_SIZE		GENMASK(15, 12)
++#define GCR_L2_BYPASS		BIT(20)
++#define GCR_L2_COP_DATA_ECC_WE	BIT(24)
++#define GCR_L2_COP_TAG_ECC_WE	BIT(25)
++#define GCR_L2_COP_LRU_WE	BIT(26)
++#define GCR_L2_REG_EXISTS	BIT(31)
++
++#define GCR_L2_TAG_ADDR		0x0600
++#define GCR_L2_TAG_STATE	0x0608
++#define GCR_L2_DATA		0x0610
++#define GCR_L2_ECC		0x0618
++
++#define GCR_L2SM_COP		0x0620
++#define GCR_L2SM_COP_CMD	GENMASK(1, 0)
++#define L2SM_COP_CMD_NOP	0
++#define L2SM_COP_CMD_START	1
++#define L2SM_COP_CMD_ABORT	3
++#define GCR_L2SM_COP_TYPE	GENMASK(4, 2)
++#define L2SM_COP_TYPE_IDX_WBINV		0
++#define L2SM_COP_TYPE_IDX_STORETAG	1
++#define L2SM_COP_TYPE_IDX_STORETAGDATA	2
++#define L2SM_COP_TYPE_HIT_INV		4
++#define L2SM_COP_TYPE_HIT_WBINV		5
++#define L2SM_COP_TYPE_HIT_WB		6
++#define L2SM_COP_TYPE_FETCHLOCK		7
++#define GCR_L2SM_COP_RUNNING		BIT(5)
++#define GCR_L2SM_COP_RESULT		GENMASK(8, 6)
++#define L2SM_COP_RESULT_DONTCARE	0
++#define L2SM_COP_RESULT_DONE_OK		1
++#define L2SM_COP_RESULT_DONE_ERROR	2
++#define L2SM_COP_RESULT_ABORT_OK	3
++#define L2SM_COP_RESULT_ABORT_ERROR	4
++#define GCR_L2SM_COP_PRESENT		BIT(31)
++
+ /* CPC Block offsets */
+ #define CPC_PWRUP_CTL		0x0030
+ #define CPC_CM_STAT_CONF	0x1008
+@@ -138,6 +183,15 @@ void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
+ void mips_p8700_power_up_other_cluster(u32 hartid);
+ int mips_p8700_hart_start(u32 hartid, ulong saddr);
+ int mips_p8700_hart_stop(void);
++
++struct p8700_cache_info {
++	u32 line;
++	u32 assoc_ways;
++	u32 sets;
++};
++
++void mips_p8700_cache_info(struct p8700_cache_info *l1d, struct p8700_cache_info *l1i,
++			   struct p8700_cache_info *l2);
+ struct fdt_match;
+ int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match);
+ 
 diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index d70ffa1b3b750754ae60cfef21f012dc4f0484ed..fb4282f4a9b85b58bc0b8921caf47425ebcf059f 100644
+index 76ce0c0ab07a83de22bc7834d4f992a1a1f78b9b..17d010847ba0a5ccb2bf0a8dae7210f50ea49545 100644
 --- a/platform/generic/mips/eyeq7h.c
 +++ b/platform/generic/mips/eyeq7h.c
-@@ -15,6 +15,7 @@
- #include <sbi/sbi_hart_pmp.h>
- #include <sbi/riscv_io.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/fdt/fdt_fixup.h>
- #include <mips/p8700.h>
- #include <mips/mips-cm.h>
+@@ -171,6 +171,32 @@ static struct fdt_general_fixup eyeq7h_acc_clusters_fixup = {
+ 	.do_fixup = eyeq7h_acc_clusters_do_fixup,
+ };
  
-@@ -112,12 +113,55 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
- 	return --reg;
- }
- 
-+static void fdt_disable_by_compat(void *fdt, const char *compatible)
++static void eyeq7h_cache_do_fixup(struct fdt_general_fixup *f, void *fdt)
 +{
-+	int node = 0;
++	struct p8700_cache_info l1d, l1i, l2;
++	mips_p8700_cache_info(&l1d, &l1i, &l2);
 +
-+	while ((node = fdt_node_offset_by_compatible(fdt, node, compatible)) >= 0)
-+		fdt_setprop_string(fdt, node, "status", "disabled");
-+}
-+
-+/**
-+ * p8700_acc_clusters_do_fixup() - detect present accelerator clusters
-+ *
-+ * Detect what accelerator clusters are actually present in design and
-+ * disable missed ones. Same bit indicates presence of the ACC and XNN
-+ * clusters
-+ */
-+static void eyeq7h_acc_clusters_do_fixup(struct fdt_general_fixup *f, void *fdt)
-+{
-+	u32 tstcsr = readl((void*)OLB_WEST + OLB_WEST_TSTCSR);
-+	u32 acc01_present = EXTRACT_FIELD(tstcsr, TSTCSR_ACC_PRESENT);
-+	static const char YN[2] = {'N', 'Y'};
-+
-+	sbi_dprintf("OLB indicates ACC clusters[01] = [%c%c]\n",
-+		    YN[acc01_present & BIT(0)],
-+		    YN[(acc01_present >> 1) & BIT(0)]);
-+
-+	if (!(acc01_present & BIT(0))) {
-+		sbi_dprintf("Disable ACC0\n");
-+		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-acc0-olb");
-+		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-xnn0-olb");
-+	}
-+	if (!(acc01_present & BIT(1))) {
-+		sbi_dprintf("Disable ACC1\n");
-+		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-acc1-olb");
-+		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-xnn1-olb");
++	sbi_dprintf("Cache geometry:\n"
++		    "  D: %4d Kbytes line %3d bytes %2d ways %5d sets\n"
++		    "  I: %4d Kbytes line %3d bytes %2d ways %5d sets\n",
++		    l1d.assoc_ways * l1d.line * l1d.sets / 1024,
++		    l1d.line, l1d.assoc_ways, l1d.sets,
++		    l1i.assoc_ways * l1i.line * l1i.sets / 1024,
++		    l1i.line, l1i.assoc_ways, l1i.sets);
++	if (l2.line) {
++		sbi_dprintf(" L2: %4d Kbytes line %3d bytes %2d ways %5d sets\n",
++			    l2.assoc_ways * l2.line * l2.sets / 1024,
++			    l2.line, l2.assoc_ways, l2.sets);
++	} else {
++		sbi_dprintf(" L2: not present\n");
 +	}
 +}
 +
-+static struct fdt_general_fixup eyeq7h_acc_clusters_fixup = {
-+	.name = "acc-clusters-fixup",
-+	.do_fixup = eyeq7h_acc_clusters_do_fixup,
++static struct fdt_general_fixup eyeq7h_cache_fixup = {
++	.name = "cache-fixup",
++	.do_fixup = eyeq7h_cache_do_fixup,
 +};
 +
  static int eyeq7h_final_init(bool cold_boot)
  {
  	if (!cold_boot)
- 		return 0;
+@@ -178,6 +204,7 @@ static int eyeq7h_final_init(bool cold_boot)
  
  	sbi_hsm_set_device(&eyeq7h_hsm);
-+	fdt_register_general_fixup(&eyeq7h_acc_clusters_fixup);
+ 	fdt_register_general_fixup(&eyeq7h_acc_clusters_fixup);
++	fdt_register_general_fixup(&eyeq7h_cache_fixup);
  
  	return generic_final_init(cold_boot);
  }
+diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
+index c1f2ac7f6474701bf1594bf5f1880cfee2dfc4c6..4e693bc0046e0ba0d52d9e3aaafc88be8416145c 100644
+--- a/platform/generic/mips/p8700.c
++++ b/platform/generic/mips/p8700.c
+@@ -123,6 +123,51 @@ int mips_p8700_hart_stop()
+ 	return 0;
+ }
+ 
++void mips_p8700_cache_info(struct p8700_cache_info *l1d, struct p8700_cache_info *l1i,
++			   struct p8700_cache_info *l2)
++{
++	u32 mipsconfig1 = csr_read(CSR_MIPSCONFIG1);
++
++	if (l1d) {
++		u32 da = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_DA);
++		u32 dl = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_DL);
++		u32 ds = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_DS);
++
++		l1d->line = dl ? 1 << (dl + 1) : 0;
++		l1d->assoc_ways = da +1;
++		l1d->sets = ds == 7 ? 32 : 1 << (ds + 6);
++	}
++	if (l1i) {
++		u32 ia = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_IA);
++		u32 il = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_IL);
++		u32 is = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_IS);
++
++		l1i->line = il ? 1 << (il + 1) : 0;
++		l1i->assoc_ways = ia +1;
++		l1i->sets = is == 7 ? 32 : 1 << (is + 6);
++	}
++	if (l2) {
++		if (mipsconfig1 & MIPSCONFIG1_L2C) {
++			void *cm_base = (void *)p8700_cm_info->gcr_base[0];
++			u32 l2_config = readl(cm_base + GCR_L2_CONFIG);
++
++			if (l2_config & GCR_L2_REG_EXISTS) {
++				u32 l2a = EXTRACT_FIELD(l2_config, GCR_L2_ASSOC);
++				u32 l2l = EXTRACT_FIELD(l2_config, GCR_L2_LINE_SIZE);
++				u32 l2s = EXTRACT_FIELD(l2_config, GCR_L2_SET_SIZE);
++
++				l2->assoc_ways = l2a + 1;
++				l2->line = 1 << (l2l + 1);
++				l2->sets = 1 << (l2s + 6);
++				return;
++			}
++		}
++		l2->line = 0;
++		l2->assoc_ways = 0;
++		l2->sets = 0;
++	}
++}
++
+ int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
+ {
+ 	const struct p8700_cm_info *data = match->data;
 
 -- 
 2.43.0
