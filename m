@@ -4,53 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id F35A3C9832F
-	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 10D46CA5FEC
+	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=KQKkWceuUPbmpuSKcpP8J3l7uXtCyJTQ3IpSLcgg/Cg=; b=GZeCKYtjJ6hj97
-	eeRDO/m5kJ9zAUa2jdqcNCPjhnIexs+HgzT3meoUDK4vDr5Dpz8E00S8tT9GB0lc6fKd9He1/XWpg
-	bdp0kYndFLBRFF54W4ApFJzwr9vO32JG9WlnokEZi/dWIRt+EhnWtSSmUmZ3rgu4T7CUrRWpDH7Dz
-	1CZ5gxOPPC4toEwGJh0KTu0xD/BvDczs6HZtBD3v/yPQK5gSkkuB2UBqOBVWCjMsZ1faikb1nWsgg
-	AgOjh0Qaakb8HdCeUVApRYOuQyFsDAkaj4b4MIctCqbd5/Lm3xoEJD5oqdzuWSokB0zUXJ8aj4TkL
-	IkRb8nePIPKmvj7UfcrA==;
+	List-Owner; bh=IVfDQc+zpFpZWstLZKyCwWUDgymdlJHW7kxTUkQ1zHI=; b=JR9a+oLHM5n2D5
+	0s7y/HeBiYZkP0ZUUS+rMiXVq8sopieyub/j8cH+QUGAbkwfFWqi7QZMpHShgHZ082MkSQ8TqvnVk
+	rs9U0UluT/vEHPF0oYbyzHee9liuCUoRMtM3ICMzg6R3aokScyISl49G66butlxea/i2R2H8XvaUn
+	d6L1X16dLJssOWImi24elU4V513nak1jU9o9SQ/g2OfizmvK8bbJC2t1xBXJpb9eF3GC1JHxnR6AD
+	m6TIzLwrX5VgHeZkSq0fowy4bG+wf7Lruj2YURJlDtOTipJze4GPnAMaomZaUe+w2VJIk4NEFY/nr
+	/tJD5LgA1ApFFJ9sUCmw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6x-0000000HSzD-2UAd;
-	Sun, 18 Jan 2026 11:38:27 +0000
-Received: from esa2.hc555-34.eu.iphmx.com ([23.90.104.147])
+	id 1vhR70-0000000HT3p-1vze;
+	Sun, 18 Jan 2026 11:38:30 +0000
+Received: from esa4.hc555-34.eu.iphmx.com ([207.54.77.171])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6n-0000000HSr7-1bSI
+	id 1vhR6r-0000000HSsx-0xYx
 	for opensbi@lists.infradead.org;
-	Sun, 18 Jan 2026 11:38:20 +0000
+	Sun, 18 Jan 2026 11:38:22 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1768736297; x=1800272297;
+  t=1768736301; x=1800272301;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=1ovzZAKcmXNCWYKX6miID6MBK/ar0dq8qO3HUUNYcps=;
-  b=ru0N5gI9UsKsnEqgLst06VVVvLgSu1wJPkjvUZASInwLU4Feowd75JGu
-   Uqu7w4/aUbM/t7oHFYi2KnmXKQScWSTyO1t4Td3aAJzzwCvwjsoNQ9rMW
-   5QT0IfWS7ZqEBktkV08YiW3bB1STOJOYhFww1L2bVx4rD07zF/kkVrwcX
-   ARMAxNWYoO4q6/DDuO6unh1nJfWDXg1WcYUQlP6vTjq/iNTlADKMo6rpV
-   +36FsUUG3gw+cgO3NwzbLSTF+xmSden6pAwGs59mXmKPUfeNOtuuVexnx
-   u1sTbprvwrYGGtNWcLqTvvdc2yKS/FbEDw8teQ1dnAWK7x0lXko/tnOx+
-   Q==;
-X-CSE-ConnectionGUID: C0UG/omOTfCFFCT6BjWzvw==
-X-CSE-MsgGUID: 2AarXl1eRzCjUmJjlB/LYQ==
+  bh=GNADMDq6Ke/nM4H68tiESzcG5BRWM2db1NQgvmCV8Lc=;
+  b=jTZHbiFVoA8ppSIvUipZIdrm6h9Syjsc2jutoo36FnQ0Re7GhTtSsPVZ
+   MJ2LdHR0n1WnFNSPHVFf1vzJja4rlQcnfS45IUIPjpqT9n/dZlCzZwpC1
+   9Lj9oo0wQxBo9tNtVNhMj/63wh4uT6ovf1+vltK7h73GK8XisCnjivvk0
+   ViuFAVwWwpVXmy1JAuMGoNLv9lLBqcylcP9eKblbh+U/cCH3aaVIytHoP
+   6Chyx9Vl23dVj6rzvjqFYbjWmc3OZSquqCA0WTkf4zIu70W4+Z1/mrssY
+   l2JfTACFnU1njg7LkEFvZTIEX5/bVqd+uVdUbFhwA9R5xiduXbfCe/pOM
+   A==;
+X-CSE-ConnectionGUID: pGyy4ODBQxyFdhw0aArWHw==
+X-CSE-MsgGUID: +dkcYDxfSritBwTOYuipvg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa2.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:15 +0200
-X-CSE-ConnectionGUID: quCN7eEaT+iXSCbspeiE+g==
-X-CSE-MsgGUID: ma0gt8npRd6zAGtlulLLeg==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
-  by ces02_data.me-corp.lan with SMTP; 18 Jan 2026 13:40:10 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:13 +0200
+Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
+  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:17 +0200
+X-CSE-ConnectionGUID: zHEWaMw9TXmeJeCxNnkasA==
+X-CSE-MsgGUID: 6RvSt7ZBTZGFgb6PJ2K6Ig==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
+  by ces03_data.me-corp.lan with SMTP; 18 Jan 2026 13:40:03 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:16 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: vladimir.kondratiev@mobileye.com,
 	anup@brainfault.org
@@ -58,17 +58,18 @@ Cc: benoit.monin@bootlin.com,
 	cfu@mips.com,
 	opensbi@lists.infradead.org,
 	cc=cfu@mips.com
-Subject: [PATCH v2 09/20] platform: generic: mips: add P8700 based "eyeq7h"
- and "boston"
-Date: Sun, 18 Jan 2026 13:37:51 +0200
-Message-ID: <20260118-for-upstream-eyeq7h-v2-9-71934a5b9756@mobileye.com>
+Subject: [PATCH v2 11/20] platform: generic: mips eyeq7h: detect
+ accelerators cluster presence
+Date: Sun, 18 Jan 2026 13:37:53 +0200
+Message-ID: <20260118-for-upstream-eyeq7h-v2-11-71934a5b9756@mobileye.com>
 In-Reply-To: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 References: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260118_033818_614147_B25184B5 
-X-CRM114-Status: GOOD (  16.37  )
+X-CRM114-CacheID: sfid-20260118_033821_561599_5A492678 
+X-CRM114-Status: UNSURE (   8.70  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -85,978 +86,87 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Refactor MIPS P8700 support, convert P8700 into a "CPU" and add
-2 platforms using this CPU:
-- "boston" - FPGA platform developed by MIPS
-- "eyeq7h" - automotive platform by Mobileye
+In the design, accelerator clusters ACC[01] and XNN[01] presence
+indicated by the OLB_WEST register OLB_WEST_TSTCSR.
+
+In the simulation environments, part (or all) accelerators may be
+not instantiated
+
+Disable clusters not present in the model, updating the DTB
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/Kconfig                  |  16 +-
- platform/generic/configs/defconfig        |   1 -
- platform/generic/configs/eyeq7h_defconfig |  61 ++++++
- platform/generic/include/mips/board.h     |  18 --
- platform/generic/include/mips/p8700.h     |  23 ++-
- platform/generic/mips/boston.c            | 168 +++++++++++++++++
- platform/generic/mips/eyeq7h.c            | 304 ++++++++++++++++++++++++++++++
- platform/generic/mips/objects.mk          |   7 +-
- platform/generic/mips/p8700.c             | 208 +-------------------
- 9 files changed, 580 insertions(+), 226 deletions(-)
+ platform/generic/mips/eyeq7h.c | 44 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 716fab42a7b74898878ff0beb4de8335d55362f7..f555e91051cc4983316ecdc8e750236bf4175a0a 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -92,15 +92,23 @@ config PLATFORM_THEAD
- 	select THEAD_C9XX_PMU
- 	default n
- 
--config PLATFORM_MIPS_P8700
--	bool "MIPS P8700 support"
--	default n
--
- config PLATFORM_SPACEMIT_K1
- 	bool "Spacemit K1 support"
- 	select FDT_HSM_SPACEMIT
- 	default n
- 
-+config CPU_MIPS_P8700
-+	bool
-+	default n
-+
-+config PLATFORM_MIPS_P8700_EYEQ7H
-+	select CPU_MIPS_P8700
-+	bool "EyeQ7H"
-+
-+config PLATFORM_MIPS_P8700_BOSTON
-+	select CPU_MIPS_P8700
-+	bool "Boston"
-+
- source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/eswin/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/thead/Kconfig"
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index aab1560f2399ecf79f59127f489ce3a84baf688f..121bff7c4350c289e58851d55e25a8d877e64ec5 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -10,7 +10,6 @@ CONFIG_PLATFORM_SIFIVE_FU740=y
- CONFIG_PLATFORM_SOPHGO_SG2042=y
- CONFIG_PLATFORM_STARFIVE_JH7110=y
- CONFIG_PLATFORM_THEAD=y
--CONFIG_PLATFORM_MIPS_P8700=y
- CONFIG_PLATFORM_SPACEMIT_K1=y
- CONFIG_FDT_CACHE=y
- CONFIG_FDT_CACHE_SIFIVE_CCACHE=y
-diff --git a/platform/generic/configs/eyeq7h_defconfig b/platform/generic/configs/eyeq7h_defconfig
-new file mode 100644
-index 0000000000000000000000000000000000000000..f74ffb7827db5213622084b094083246315d4cbf
---- /dev/null
-+++ b/platform/generic/configs/eyeq7h_defconfig
-@@ -0,0 +1,61 @@
-+CONFIG_PLATFORM_GENERIC_NAME="EyeQ7H"
-+CONFIG_PLATFORM_MIPS_P8700_EYEQ7H=y
-+# CONFIG_SBI_ECALL_SRST is not set
-+# CONFIG_SBI_ECALL_SUSP is not set
-+CONFIG_FDT_CPPC=y
-+CONFIG_FDT_CPPC_RPMI=y
-+CONFIG_FDT_GPIO=y
-+CONFIG_FDT_GPIO_DESIGNWARE=y
-+CONFIG_FDT_GPIO_SIFIVE=y
-+CONFIG_FDT_GPIO_STARFIVE=y
-+CONFIG_FDT_HSM=y
-+CONFIG_FDT_HSM_RPMI=y
-+CONFIG_FDT_HSM_SPACEMIT=y
-+CONFIG_FDT_I2C=y
-+CONFIG_FDT_I2C_SIFIVE=y
-+CONFIG_FDT_I2C_DW=y
-+CONFIG_FDT_IPI=y
-+CONFIG_FDT_IPI_MSWI=y
-+CONFIG_FDT_IPI_PLICSW=y
-+CONFIG_FDT_IRQCHIP=y
-+CONFIG_FDT_IRQCHIP_APLIC=y
-+CONFIG_FDT_IRQCHIP_IMSIC=y
-+CONFIG_FDT_IRQCHIP_PLIC=y
-+CONFIG_FDT_MAILBOX=y
-+CONFIG_RPMI_MAILBOX=y
-+CONFIG_FDT_MAILBOX_RPMI_SHMEM=y
-+CONFIG_FDT_REGMAP=y
-+CONFIG_FDT_REGMAP_SYSCON=y
-+CONFIG_FDT_RESET=y
-+CONFIG_FDT_RESET_ATCWDT200=y
-+CONFIG_FDT_RESET_GPIO=y
-+CONFIG_FDT_RESET_HTIF=y
-+CONFIG_FDT_RESET_RPMI=y
-+CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
-+CONFIG_FDT_RESET_SUNXI_WDT=y
-+CONFIG_FDT_RESET_SYSCON=y
-+CONFIG_FDT_SERIAL=y
-+CONFIG_FDT_SERIAL_CADENCE=y
-+CONFIG_FDT_SERIAL_GAISLER=y
-+CONFIG_FDT_SERIAL_HTIF=y
-+CONFIG_FDT_SERIAL_RENESAS_SCIF=y
-+CONFIG_FDT_SERIAL_SHAKTI=y
-+CONFIG_FDT_SERIAL_SIFIVE=y
-+CONFIG_FDT_SERIAL_SIMOUT=y
-+CONFIG_FDT_SERIAL_LITEX=y
-+CONFIG_FDT_SERIAL_UART8250=y
-+CONFIG_FDT_SERIAL_XILINX_UARTLITE=y
-+CONFIG_SERIAL_SEMIHOSTING=y
-+CONFIG_FDT_SUSPEND=y
-+CONFIG_FDT_SUSPEND_RPMI=y
-+CONFIG_SYS_ATCSMU=y
-+CONFIG_FDT_TIMER=y
-+CONFIG_FDT_TIMER_MTIMER=y
-+CONFIG_FDT_TIMER_PLMT=y
-+CONFIG_FDT_MPXY=y
-+CONFIG_FDT_MPXY_RPMI_MBOX=y
-+CONFIG_FDT_MPXY_RPMI_CLOCK=y
-+CONFIG_FDT_MPXY_RPMI_SYSMSI=y
-+CONFIG_FDT_MPXY_RPMI_VOLTAGE=y
-+CONFIG_FDT_MPXY_RPMI_DEVICE_POWER=y
-+CONFIG_FDT_MPXY_RPMI_PERFORMANCE=y
-diff --git a/platform/generic/include/mips/board.h b/platform/generic/include/mips/board.h
-deleted file mode 100644
-index b72d77d6c906662bcf97df67a2a3fb5ebc973f20..0000000000000000000000000000000000000000
---- a/platform/generic/include/mips/board.h
-+++ /dev/null
-@@ -1,18 +0,0 @@
--/*
-- * SPDX-License-Identifier: BSD-2-Clause
-- *
-- * Copyright (c) 2025 MIPS
-- *
-- */
--
--#ifndef __BOARD_H__
--#define __BOARD_H__
--
--/* Please review all defines to change for your board. */
--
--/* Use in cps-vec.S */
--#define DRAM_ADDRESS		0x80000000
--#define DRAM_SIZE		0x80000000
--#define DRAM_PMP_ADDR		((DRAM_ADDRESS >> 2) | ((DRAM_SIZE - 1) >> 3))
--
--#endif
-diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index 8281e5e6cef289fd02458f468f06256fc196937c..5facd38af39fe0bc9d6de18a6c7423396e828873 100644
---- a/platform/generic/include/mips/p8700.h
-+++ b/platform/generic/include/mips/p8700.h
-@@ -8,8 +8,6 @@
- #ifndef __P8700_H__
- #define __P8700_H__
- 
--#include <mips/board.h>
--
- /** Coherence manager information
-  *
-  * @num_cm: Number of coherence manager
-@@ -97,6 +95,17 @@ extern const struct p8700_cm_info *p8700_cm_info;
- /* GCR Block offsets */
- #define GCR_OFF_LOCAL		0x2000
- 
-+#define GCR_GLOBAL_CONFIG	0x0000
-+#define GCR_GC_NUM_CORES	GENMASK(7, 0)
-+#define GCR_GC_NUM_IOCUS	GENMASK(11, 8)
-+#define GCR_GC_NUM_MMIOS	GENMASK(19, 16)
-+#define GCR_GC_NUM_AUX		GENMASK(22, 20)
-+#define GCR_GC_NUM_CLUSTERS	GENMASK(29, 23)
-+#define GCR_GC_HAS_ITU		BIT(31)
-+#define GCR_GC_CL_ID		GENMASK(39, 32)
-+#define GCR_GC_HAS_DBU		BIT(40)
-+#define GCR_GC_NOC		GENMASK(43, 41)
-+
- #define GCR_BASE_OFFSET		0x0008
- #define GCR_CORE_COH_EN		0x00f8
- #define GCR_CORE_COH_EN_EN	(0x1 << 0)
-@@ -122,4 +131,14 @@ extern const struct p8700_cm_info *p8700_cm_info;
- #define CPC_Cx_STAT_CONF_SEQ_STATE_U5	6
- #define CPC_Cx_STAT_CONF_SEQ_STATE_U6	7
- 
-+extern const struct p8700_cm_info *p8700_cm_info;
-+void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
-+			unsigned long prot, unsigned long addr,
-+			unsigned long log2len);
-+void mips_p8700_power_up_other_cluster(u32 hartid);
-+int mips_p8700_hart_start(u32 hartid, ulong saddr);
-+int mips_p8700_hart_stop(void);
-+struct fdt_match;
-+int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match);
-+
- #endif
-diff --git a/platform/generic/mips/boston.c b/platform/generic/mips/boston.c
-new file mode 100644
-index 0000000000000000000000000000000000000000..86e14c1eea7e629f70b118be326dc1de1f099f30
---- /dev/null
-+++ b/platform/generic/mips/boston.c
-@@ -0,0 +1,168 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 MIPS
-+ *
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/riscv_barrier.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_timer.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <mips/p8700.h>
-+#include <mips/mips-cm.h>
-+
-+/* Use in nascent init - not have DTB yet */
-+#define DRAM_ADDRESS		0x80000000
-+#define DRAM_SIZE		0x80000000
-+#define DRAM_PMP_ADDR		((DRAM_ADDRESS >> 2) | ((DRAM_SIZE - 1) >> 3))
-+
-+static const struct sbi_hsm_device mips_hsm = {
-+	.name		= "mips_hsm",
-+	.hart_start	= mips_p8700_hart_start,
-+	.hart_stop	= mips_p8700_hart_stop,
-+};
-+
-+static int boston_final_init(bool cold_boot)
-+{
-+	if (cold_boot)
-+		sbi_hsm_set_device(&mips_hsm);
-+
-+	return generic_final_init(cold_boot);
-+}
-+
-+static int boston_early_init(bool cold_boot)
-+{
-+	int rc;
-+
-+	rc = generic_early_init(cold_boot);
-+	if (rc)
-+		return rc;
-+
-+	if (cold_boot) {
-+		unsigned long cm_base = p8700_cm_info->gcr_base[0];
-+
-+		/* For the CPC mtime region, the minimum size is 0x10000. */
-+		rc = sbi_domain_root_add_memrange(cm_base, SIZE_FOR_CPC_MTIME,
-+						  P8700_ALIGN,
-+						  (SBI_DOMAIN_MEMREGION_MMIO |
-+						   SBI_DOMAIN_MEMREGION_M_READABLE |
-+						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
-+		if (rc)
-+			return rc;
-+
-+		/* For the APLIC and ACLINT m-mode region */
-+		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
-+						  P8700_ALIGN,
-+						  (SBI_DOMAIN_MEMREGION_MMIO |
-+						   SBI_DOMAIN_MEMREGION_M_READABLE |
-+						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
-+		if (rc)
-+			return rc;
-+
-+	}
-+
-+	return 0;
-+}
-+
-+static int boston_nascent_init(void)
-+{
-+	u64 hartid = current_hartid();
-+	unsigned long cm_base = p8700_cm_info->gcr_base[0];
-+	int i;
-+
-+	/* Coherence enable for every core */
-+	if (cpu_hart(hartid) == 0) {
-+		cm_base += (cpu_core(hartid) << CM_BASE_CORE_SHIFT);
-+		__raw_writeq(GCR_CORE_COH_EN_EN,
-+			     (void *)(cm_base + GCR_OFF_LOCAL +
-+				      GCR_CORE_COH_EN));
-+		mb();
-+	}
-+
-+	/* Set up pmp for DRAM */
-+	csr_write(CSR_PMPADDR14, DRAM_PMP_ADDR);
-+	/* All from 0x0 */
-+	csr_write(CSR_PMPADDR15, 0x1fffffffffffffff);
-+	csr_write(CSR_PMPCFG2, ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<56)|
-+		  ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<48));
-+	/* Set cacheable for pmp6, uncacheable for pmp7 */
-+	csr_write(CSR_MIPSPMACFG2, ((u64)CCA_CACHE_DISABLE << 56)|
-+		  ((u64)CCA_CACHE_ENABLE << 48));
-+	/* Reset pmpcfg0 */
-+	csr_write(CSR_PMPCFG0, 0);
-+	/* Reset pmacfg0 */
-+	csr_write(CSR_MIPSPMACFG0, 0);
-+	mb();
-+
-+	/* Per cluster set up */
-+	if (cpu_core(hartid) == 0 && cpu_hart(hartid) == 0) {
-+		/* Enable L2 prefetch */
-+		__raw_writel(0xfffff110,
-+			     (void *)(cm_base + L2_PFT_CONTROL_OFFSET));
-+		__raw_writel(0x15ff,
-+			     (void *)(cm_base + L2_PFT_CONTROL_B_OFFSET));
-+	}
-+
-+	/* Per core set up */
-+	if (cpu_hart(hartid) == 0) {
-+		/* Enable load pair, store pair, and HTW */
-+		csr_clear(CSR_MIPSCONFIG7, (1<<12)|(1<<13)|(1<<7));
-+
-+		/* Disable noRFO, misaligned load/store */
-+		csr_set(CSR_MIPSCONFIG7, (1<<25)|(1<<9));
-+
-+		/* Enable L1-D$ Prefetch */
-+		csr_write(CSR_MIPSCONFIG11, 0xff);
-+
-+		for (i = 0; i < 8; i++) {
-+			csr_set(CSR_MIPSCONFIG8, 4 + 0x100 * i);
-+			csr_set(CSR_MIPSCONFIG9, 8);
-+			mb();
-+			RISCV_FENCE_I;
-+		}
-+	}
-+
-+	/* Per hart set up */
-+	/* Enable AMO and RDTIME illegal instruction exceptions. */
-+	csr_set(CSR_MIPSCONFIG6, (1<<2)|(1<<1));
-+
-+	return 0;
-+}
-+
-+static int boston_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
-+{
-+	int rc = mips_p8700_platform_init(fdt, nodeoff, match);
-+
-+	if (rc)
-+		return rc;
-+	generic_platform_ops.early_init = boston_early_init;
-+	generic_platform_ops.final_init = boston_final_init;
-+	generic_platform_ops.nascent_init = boston_nascent_init;
-+	generic_platform_ops.pmp_set = mips_p8700_pmp_set;
-+
-+	return 0;
-+}
-+
-+static unsigned long boston_gcr_base[] = {
-+	0x16100000,
-+};
-+
-+static struct p8700_cm_info boston_cm_info = {
-+	.num_cm = array_size(boston_gcr_base),
-+	.gcr_base = boston_gcr_base,
-+};
-+
-+static const struct fdt_match boston_match[] = {
-+	{ .compatible = "mips,p8700", .data = &boston_cm_info },
-+	{ },
-+};
-+
-+const struct fdt_driver mips_p8700_boston = {
-+	.match_table = boston_match,
-+	.init = boston_platform_init,
-+};
 diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-new file mode 100644
-index 0000000000000000000000000000000000000000..6b495601a1dd614acefc7fab250fc710da84bf02
---- /dev/null
+index d70ffa1b3b750754ae60cfef21f012dc4f0484ed..fb4282f4a9b85b58bc0b8921caf47425ebcf059f 100644
+--- a/platform/generic/mips/eyeq7h.c
 +++ b/platform/generic/mips/eyeq7h.c
-@@ -0,0 +1,304 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2025 Mobileye
-+ *
-+ */
-+
-+#include <platform_override.h>
-+#include <sbi/riscv_barrier.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_timer.h>
-+#include <sbi/sbi_hart_pmp.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <mips/p8700.h>
-+#include <mips/mips-cm.h>
-+
-+#define OLB_WEST		0x48600000
-+#define OLB_WEST_TSTCSR		0x60
-+#define TSTCSR_PALLADIUM	BIT(0)
-+#define TSTCSR_DDR_STUB		BIT(1)
-+#define TSTCSR_MIPS12_PRESENT	GENMASK(3, 2)
-+#define TSTCSR_ACC_PRESENT	GENMASK(5, 4)
-+
-+/* Use in nascent init - not have DTB yet */
-+#define DRAM_ADDRESS		0x800000000UL
-+#define DRAM_SIZE		0x800000000UL
-+#define DRAM_PMP_ADDR		((DRAM_ADDRESS >> 2) | ((DRAM_SIZE - 1) >> 3))
-+
-+#define MMIO_BASE 0x00000000
-+#define MMIO_SIZE 0x80000000
-+
-+static int eyeq7h_active_clusters = 1;
-+
-+static void eyeq7h_power_up_other_cluster(u32 hartid)
-+{
-+	unsigned int cl = cpu_cluster(hartid);
-+	unsigned long cm_base = p8700_cm_info->gcr_base[cl];
-+
-+	/* remap local cluster address to its global address */
-+	writeq(cm_base, (void*)cm_base + GCR_BASE_OFFSET);
-+	wmb();
-+	mips_p8700_power_up_other_cluster(hartid);
-+}
-+
-+static int hart_start(u32 hartid, ulong saddr)
-+{
-+	if (cpu_cluster(hartid) >= eyeq7h_active_clusters) {
-+		sbi_printf("Requested CPU 0x%x in inactive/nonexistent cluster\n", hartid);
-+		return SBI_EINVALID_ADDR;
-+	}
-+
-+	return mips_p8700_hart_start(hartid, saddr);
-+}
-+
-+static const struct sbi_hsm_device eyeq7h_hsm = {
-+	.name		= "eyeq7h_hsm",
-+	.hart_start	= hart_start,
-+	.hart_stop	= mips_p8700_hart_stop,
-+};
-+
-+static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain *dom)
-+{
-+	struct sbi_domain_memregion *reg;
-+
-+	sbi_domain_for_each_memregion(dom, reg) {}
-+	return --reg;
-+}
-+
-+static int eyeq7h_final_init(bool cold_boot)
-+{
-+	if (!cold_boot)
-+		return 0;
-+
-+	sbi_hsm_set_device(&eyeq7h_hsm);
-+
-+	return generic_final_init(cold_boot);
-+}
-+
-+/**
-+ * There's 2 sources of information what clusters are present:
-+ * - GCR_CONFIG register from the cluster 0 GCR
-+ * - TSTCSR_MIPS12_PRESENT from the TSTCSR reg in OLB_WEST
-+ * check that both indicates presence of clusters
-+ */
-+static void eyeq7h_init_clusters(void)
-+{
-+	unsigned long cm_base = p8700_cm_info->gcr_base[0];
-+	u64 gcr_config = readq((void*)cm_base + GCR_GLOBAL_CONFIG);
-+	int num_clusters = EXTRACT_FIELD(gcr_config, GCR_GC_NUM_CLUSTERS);
-+	u32 tstcsr = readl((void*)OLB_WEST + OLB_WEST_TSTCSR);
-+	u32 mips12_present = EXTRACT_FIELD(tstcsr, TSTCSR_MIPS12_PRESENT);
-+	// total clusters, by mips[12] encoding.
-+	// Don't support only mips2 present, consider as 1 total cluster
-+	static const int olb_clusters[4] = {1, 2, 1, 3};
-+	int num_olb_clusters = olb_clusters[mips12_present];
-+	static const char YN[2] = {'N', 'Y'};
-+
-+	sbi_dprintf("GCR_CONFIG reports %d clusters\n", num_clusters);
-+	sbi_dprintf("OLB indicates %d clusters, mips[12] = [%c%c]\n",
-+		    num_olb_clusters,
-+		    YN[mips12_present & BIT(0)],
-+		    YN[mips12_present >> 1 & BIT(0)]);
-+	if (num_clusters > num_olb_clusters)
-+		num_clusters = num_olb_clusters;
-+	sbi_dprintf("Use %d clusters\n", num_clusters);
-+	/* Power up other clusters in the platform. */
-+	for (int i = 1; i < num_clusters; i++) {
-+		eyeq7h_power_up_other_cluster(i << NEW_CLUSTER_SHIFT);
-+	}
-+	eyeq7h_active_clusters = num_clusters;
-+}
-+
-+static int eyeq7h_early_init(bool cold_boot)
-+{
-+	int rc;
-+	unsigned long cm_base;
-+
-+	rc = generic_early_init(cold_boot);
-+	if (rc)
-+		return rc;
-+
-+	if (!cold_boot)
-+		return 0;
-+
-+	cm_base = p8700_cm_info->gcr_base[0];
-+	sbi_dprintf("Remap Cluster %d CM 0x%lx -> 0x%lx\n", 0,
-+		    readq((void*)cm_base + GCR_BASE_OFFSET),
-+		    cm_base);
-+	writeq(cm_base, (void*)cm_base + GCR_BASE_OFFSET);
-+	wmb();
-+	eyeq7h_init_clusters();
-+/**
-+ * Memory map:
-+ * 0x00_20080000  0x00_20100000   M:IRW- S:---- GCR local access (CM_BASE)
-+ * 0x00_40000000  0x00_70000000   M:IRW- S:IRW- Peripherals
-+ *   0x00_48700000  0x00_48780000 M:IRW- S:---- GCR cluster 0
-+ *   0x00_67480000  0x00_67500000 M:IRW- S:---- GCR cluster 1
-+ *   0x00_67500000  0x00_67580000 M:IRW- S:---- GCR cluster 2
-+ *   0x00_67800000  0x00_67900000 M:IRW- S:---- Ncore
-+ * 0x00_70000000  0x00_80000000   M:---- S:IRW- PCI32 BARs, NOT USED - 32-bit mode
-+ * 0x01_00000000  0x08_00000000   M:---- S:IRW- PCI64 BARs, NOT USED - PCI2PCI
-+ * 0x08_00000000  0x10_00000000   M:---- S:-RWX DDR64
-+ * 0x10_00000000  0x20_00000000   M:---- S:IRW- PCI64 BARs
-+ */
-+
-+	for (int i = 0; i < p8700_cm_info->num_cm; i++) {
-+		unsigned long cm_base = p8700_cm_info->gcr_base[i];
-+
-+		/* CM and MTIMER */
-+		rc = sbi_domain_root_add_memrange(cm_base, SIZE_FOR_CPC_MTIME,
-+						  SIZE_FOR_CPC_MTIME,
-+						  (SBI_DOMAIN_MEMREGION_MMIO |
-+						   SBI_DOMAIN_MEMREGION_M_READABLE |
-+						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
-+		if (rc)
-+			return rc;
-+
-+		/* For the APLIC and ACLINT m-mode region */
-+		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
-+						  SIZE_FOR_AIA_M_MODE,
-+						  (SBI_DOMAIN_MEMREGION_MMIO |
-+						   SBI_DOMAIN_MEMREGION_M_READABLE |
-+						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
-+		if (rc)
-+			return rc;
-+	}
-+	/* the rest of MMIO - shared with S-mode */
-+	rc = sbi_domain_root_add_memrange(MMIO_BASE, MMIO_SIZE, MMIO_SIZE,
-+					  SBI_DOMAIN_MEMREGION_MMIO |
-+					  SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW);
-+	if (rc)
-+		return rc;
-+	/* PCIE BARs - MMIO S-mode */
-+	rc = sbi_domain_root_add_memrange(0x1000000000UL, 0x1000000000UL, 0x1000000000UL,
-+					  SBI_DOMAIN_MEMREGION_MMIO |
-+					  SBI_DOMAIN_MEMREGION_SU_READABLE |
-+					  SBI_DOMAIN_MEMREGION_SU_WRITABLE);
-+
-+	return 0;
-+}
-+
-+static int eyeq7h_nascent_init(void)
-+{
-+	unsigned hartid = current_hartid();
-+	unsigned cl = cpu_cluster(hartid);
-+	unsigned long cm_base = p8700_cm_info->gcr_base[cl];
-+	int i;
-+
-+	/* Coherence enable for every core */
-+	if (cpu_hart(hartid) == 0) {
-+		cm_base += (cpu_core(hartid) << CM_BASE_CORE_SHIFT);
-+		__raw_writeq(GCR_CORE_COH_EN_EN,
-+			     (void *)(cm_base + GCR_OFF_LOCAL +
-+				      GCR_CORE_COH_EN));
-+		mb();
-+	}
-+
-+	/**
-+	 * Boot code set PMP14 and PMP15 to allow basic cacheable and uncacheable
-+	 * access.
-+	 * To avoid hang during PMP count detection, set up PMP13 same as PMP14
-+	 * Point is, PMP count detection procedure tries to write every PMP
-+	 * entry with maximum allowed value, then return original value.
-+	 * If memory covered only by PMP14, when it is written, next instruction
-+	 * fetch will fail. Use PMP13 as a back-up for PMP14. When PMP13 tested,
-+	 * PMP14 will serve the memory access; when PMP14 tested, PMP13 will
-+	 * provide memory access
-+	 */
-+	/* Set up pmp for DRAM */
-+	csr_write(CSR_PMPADDR13, DRAM_PMP_ADDR);
-+	csr_write(CSR_PMPADDR14, DRAM_PMP_ADDR);
-+	/*
-+	 * FIXME: for unknown reason if I copy PMP14 to PMP13 using
-+	 * csr_write(CSR_PMPADDR13, csr_read(CSR_PMPADDR14));
-+	 * instead of writing as above, system hangs on late Linux boot
-+	 */
-+	/* All from 0x0 */
-+	csr_write(CSR_PMPADDR15, 0x1fffffffffffffff);
-+	csr_write(CSR_PMPCFG2, ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<56) |
-+		  ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<48) |
-+		  ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<40));
-+	/* Set cacheable for pmp13/pmp14, uncacheable for pmp15 */
-+	csr_write(CSR_MIPSPMACFG2, ((u64)CCA_CACHE_DISABLE << 56) |
-+		  ((u64)CCA_CACHE_ENABLE << 48) |
-+		  ((u64)CCA_CACHE_ENABLE << 40));
-+	/* Reset pmpcfg0 */
-+	csr_write(CSR_PMPCFG0, 0);
-+	/* Reset pmacfg0 */
-+	csr_write(CSR_MIPSPMACFG0, 0);
-+	mb();
-+
-+	/* Per cluster set up */
-+	if (cpu_core(hartid) == 0 && cpu_hart(hartid) == 0) {
-+		/* Enable L2 prefetch */
-+		__raw_writel(0xfffff110,
-+			     (void *)(cm_base + L2_PFT_CONTROL_OFFSET));
-+		__raw_writel(0x15ff,
-+			     (void *)(cm_base + L2_PFT_CONTROL_B_OFFSET));
-+	}
-+
-+	/* Per core set up */
-+	if (cpu_hart(hartid) == 0) {
-+		/* Enable load pair, store pair, and HTW */
-+		csr_clear(CSR_MIPSCONFIG7, (1<<12)|(1<<13)|(1<<7));
-+
-+		/* Disable noRFO, misaligned load/store */
-+		csr_set(CSR_MIPSCONFIG7, (1<<25)|(1<<9));
-+
-+		/* Enable L1-D$ Prefetch */
-+		csr_write(CSR_MIPSCONFIG11, 0xff);
-+
-+		for (i = 0; i < 8; i++) {
-+			csr_set(CSR_MIPSCONFIG8, 4 + 0x100 * i);
-+			csr_set(CSR_MIPSCONFIG9, 8);
-+			mb();
-+			RISCV_FENCE_I;
-+		}
-+	}
-+
-+	/* Per hart set up */
-+	/* Enable AMO and RDTIME illegal instruction exceptions. */
-+	csr_set(CSR_MIPSCONFIG6, (1<<2)|(1<<1));
-+
-+	return 0;
-+}
-+
-+static int eyeq7h_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
-+{
-+	int rc = mips_p8700_platform_init(fdt, nodeoff, match);
-+
-+	if (rc)
-+		return rc;
-+	generic_platform_ops.early_init = eyeq7h_early_init;
-+	generic_platform_ops.final_init = eyeq7h_final_init;
-+	generic_platform_ops.nascent_init = eyeq7h_nascent_init;
-+	generic_platform_ops.pmp_set = mips_p8700_pmp_set;
-+
-+	return 0;
-+}
-+
-+static unsigned long eyeq7h_gcr_base[] = {
-+	0x48700000,
-+	0x67480000,
-+	0x67500000,
-+};
-+
-+static struct p8700_cm_info eyeq7h_cm_info = {
-+	.num_cm = array_size(eyeq7h_gcr_base),
-+	.gcr_base = eyeq7h_gcr_base,
-+};
-+
-+static const struct fdt_match eyeq7h_match[] = {
-+	{ .compatible = "mobileye,eyeq7h", .data = &eyeq7h_cm_info },
-+	{ },
-+};
-+
-+const struct fdt_driver mips_p8700_eyeq7h = {
-+	.match_table = eyeq7h_match,
-+	.init = eyeq7h_platform_init,
-+};
-diff --git a/platform/generic/mips/objects.mk b/platform/generic/mips/objects.mk
-index a08c4c632997548732e81a11b4c6b034eeef1b38..14524aadc12f9ae67ee69b9a3cd98711e0585b7a 100644
---- a/platform/generic/mips/objects.mk
-+++ b/platform/generic/mips/objects.mk
-@@ -3,6 +3,9 @@
- #
- 
- ifeq ($(PLATFORM_RISCV_XLEN), 64)
--carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700) += mips_p8700
--platform-objs-$(CONFIG_PLATFORM_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
-+carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700_EYEQ7H) += mips_p8700_eyeq7h
-+carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700_BOSTON) += mips_p8700_boston
-+platform-objs-$(CONFIG_CPU_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
-+platform-objs-$(CONFIG_PLATFORM_MIPS_P8700_EYEQ7H) += mips/eyeq7h.o
-+platform-objs-$(CONFIG_PLATFORM_MIPS_P8700_BOSTON) += mips/boston.o
- endif
-diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
-index a7116e9083fb3ae25346e133ec36599e10678fc1..c1f2ac7f6474701bf1594bf5f1880cfee2dfc4c6 100644
---- a/platform/generic/mips/p8700.c
-+++ b/platform/generic/mips/p8700.c
-@@ -5,27 +5,20 @@
-  *
-  */
- 
--#include <platform_override.h>
--#include <sbi/riscv_barrier.h>
+@@ -15,6 +15,7 @@
+ #include <sbi/sbi_hart_pmp.h>
  #include <sbi/riscv_io.h>
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_timer.h>
--#include <sbi/riscv_io.h>
  #include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/fdt/fdt_fixup.h>
  #include <mips/p8700.h>
  #include <mips/mips-cm.h>
  
- const struct p8700_cm_info *p8700_cm_info;
+@@ -112,12 +113,55 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
+ 	return --reg;
+ }
  
--extern void mips_warm_boot(void);
--#define MMIO_BASE 0x00000000
--#define MMIO_SIZE 0x80000000
--
--static void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
--			       unsigned long prot, unsigned long addr,
--			       unsigned long log2len)
-+void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
-+			unsigned long prot, unsigned long addr,
-+			unsigned long log2len)
++static void fdt_disable_by_compat(void *fdt, const char *compatible)
++{
++	int node = 0;
++
++	while ((node = fdt_node_offset_by_compatible(fdt, node, compatible)) >= 0)
++		fdt_setprop_string(fdt, node, "status", "disabled");
++}
++
++/**
++ * p8700_acc_clusters_do_fixup() - detect present accelerator clusters
++ *
++ * Detect what accelerator clusters are actually present in design and
++ * disable missed ones. Same bit indicates presence of the ACC and XNN
++ * clusters
++ */
++static void eyeq7h_acc_clusters_do_fixup(struct fdt_general_fixup *f, void *fdt)
++{
++	u32 tstcsr = readl((void*)OLB_WEST + OLB_WEST_TSTCSR);
++	u32 acc01_present = EXTRACT_FIELD(tstcsr, TSTCSR_ACC_PRESENT);
++	static const char YN[2] = {'N', 'Y'};
++
++	sbi_dprintf("OLB indicates ACC clusters[01] = [%c%c]\n",
++		    YN[acc01_present & BIT(0)],
++		    YN[(acc01_present >> 1) & BIT(0)]);
++
++	if (!(acc01_present & BIT(0))) {
++		sbi_dprintf("Disable ACC0\n");
++		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-acc0-olb");
++		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-xnn0-olb");
++	}
++	if (!(acc01_present & BIT(1))) {
++		sbi_dprintf("Disable ACC1\n");
++		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-acc1-olb");
++		fdt_disable_by_compat(fdt, "mobileye,eyeq7h-xnn1-olb");
++	}
++}
++
++static struct fdt_general_fixup eyeq7h_acc_clusters_fixup = {
++	.name = "acc-clusters-fixup",
++	.do_fixup = eyeq7h_acc_clusters_do_fixup,
++};
++
+ static int eyeq7h_final_init(bool cold_boot)
  {
- 	int pmacfg_csr, pmacfg_shift;
- 	unsigned long cfgmask;
-@@ -43,14 +36,10 @@ static void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
- 	csr_write_num(pmacfg_csr, pmacfg);
+ 	if (!cold_boot)
+ 		return 0;
+ 
+ 	sbi_hsm_set_device(&eyeq7h_hsm);
++	fdt_register_general_fixup(&eyeq7h_acc_clusters_fixup);
+ 
+ 	return generic_final_init(cold_boot);
  }
- 
--static void power_up_other_cluster(u32 hartid)
-+void mips_p8700_power_up_other_cluster(u32 hartid)
- {
- 	unsigned int cl = cpu_cluster(hartid);
--	unsigned long cm_base = p8700_cm_info->gcr_base[cl];
- 
--	/* remap local cluster address to its global address */
--	writeq(cm_base, (void*)cm_base + GCR_BASE_OFFSET);
--	wmb();
- 	/* Power up CM in cluster */
- 	write_cpc_pwrup_ctl(hartid, 1);
- 
-@@ -66,6 +55,7 @@ static void power_up_other_cluster(u32 hartid)
- 	sbi_printf("ERROR: Fail to power up cluster %u\n", cl);
- }
- 
-+extern void mips_warm_boot(void);
- 
- struct mips_boot_params {
- 	u32 hartid;
-@@ -81,7 +71,7 @@ static bool mips_hart_reached_state(void *arg)
- 	return stat == p->target_state;
- }
- 
--static int mips_hart_start(u32 hartid, ulong saddr)
-+int mips_p8700_hart_start(u32 hartid, ulong saddr)
- {
- 	/* Hart 0 is the boot hart, and we don't use the CPC cmd to start.  */
- 	if (hartid == 0)
-@@ -120,7 +110,7 @@ static int mips_hart_start(u32 hartid, ulong saddr)
- 	return 0;
- }
- 
--static int mips_hart_stop()
-+int mips_p8700_hart_stop()
- {
- 	u32 hartid = current_hartid();
- 
-@@ -133,163 +123,7 @@ static int mips_hart_stop()
- 	return 0;
- }
- 
--static const struct sbi_hsm_device mips_hsm = {
--	.name		= "mips_hsm",
--	.hart_start	= mips_hart_start,
--	.hart_stop	= mips_hart_stop,
--};
--
--static int mips_p8700_final_init(bool cold_boot)
--{
--	if (cold_boot)
--		sbi_hsm_set_device(&mips_hsm);
--
--	return generic_final_init(cold_boot);
--}
--
--static int mips_p8700_early_init(bool cold_boot)
--{
--	int rc;
--	int i;
--
--	rc = generic_early_init(cold_boot);
--	if (rc)
--		return rc;
--
--	if (!cold_boot)
--		return 0;
--
--	{ // cluster 0 - only remap, already up
--		unsigned long cm_base = p8700_cm_info->gcr_base[0];
--
--		sbi_dprintf("Remap Cluster %d CM 0x%lx -> 0x%lx\n", 0,
--			    readq((void*)cm_base + GCR_BASE_OFFSET),
--			    cm_base);
--		writeq(cm_base, (void*)cm_base + GCR_BASE_OFFSET);
--		wmb();
--	}
--	/* Power up other clusters in the platform. */
--	for (i = 1; i < p8700_cm_info->num_cm; i++) {
--		power_up_other_cluster(i << NEW_CLUSTER_SHIFT);
--	}
--
--/**
-- * Memory map:
-- * 0x00_20080000  0x00_20100000   M:IRW- S:---- GCR local access (CM_BASE)
-- * 0x00_40000000  0x00_70000000   M:IRW- S:IRW- Peripherals
-- *   0x00_48700000  0x00_48780000 M:IRW- S:---- GCR cluster 0
-- *   0x00_67480000  0x00_67500000 M:IRW- S:---- GCR cluster 1
-- *   0x00_67500000  0x00_67580000 M:IRW- S:---- GCR cluster 2
-- *   0x00_67800000  0x00_67900000 M:IRW- S:---- Ncore
-- * 0x00_70000000  0x00_80000000   M:---- S:IRW- PCI32 BARs, NOT USED - 32-bit mode
-- * 0x01_00000000  0x08_00000000   M:---- S:IRW- PCI64 BARs, NOT USED - PCI2PCI
-- * 0x08_00000000  0x10_00000000   M:---- S:-RWX DDR64
-- * 0x10_00000000  0x20_00000000   M:---- S:IRW- PCI64 BARs
-- */
--
--	for (i = 0; i < p8700_cm_info->num_cm; i++) {
--		unsigned long cm_base = p8700_cm_info->gcr_base[i];
--
--		/* CM and MTIMER */
--		rc = sbi_domain_root_add_memrange(cm_base, SIZE_FOR_CPC_MTIME,
--						  SIZE_FOR_CPC_MTIME,
--						  (SBI_DOMAIN_MEMREGION_MMIO |
--						   SBI_DOMAIN_MEMREGION_M_READABLE |
--						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
--		if (rc)
--			return rc;
--
--		/* For the APLIC and ACLINT m-mode region */
--		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
--						  SIZE_FOR_AIA_M_MODE,
--						  (SBI_DOMAIN_MEMREGION_MMIO |
--						   SBI_DOMAIN_MEMREGION_M_READABLE |
--						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
--		if (rc)
--			return rc;
--	}
--	/* the rest of MMIO - shared with S-mode */
--	rc = sbi_domain_root_add_memrange(MMIO_BASE, MMIO_SIZE, MMIO_SIZE,
--					  SBI_DOMAIN_MEMREGION_MMIO |
--					  SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW);
--	if (rc)
--		return rc;
--	/* PCIE BARs - MMIO S-mode */
--	rc = sbi_domain_root_add_memrange(0x1000000000UL, 0x1000000000UL, 0x1000000000UL,
--					  SBI_DOMAIN_MEMREGION_MMIO |
--					  SBI_DOMAIN_MEMREGION_SU_READABLE |
--					  SBI_DOMAIN_MEMREGION_SU_WRITABLE);
--
--	return 0;
--}
--
--static int mips_p8700_nascent_init(void)
--{
--	u64 hartid = current_hartid();
--	int cl = cpu_cluster(hartid);
--	u64 cm_base = p8700_cm_info->gcr_base[cl];
--	int i;
--
--	/* Coherence enable for every core */
--	if (cpu_hart(hartid) == 0) {
--		cm_base += (cpu_core(hartid) << CM_BASE_CORE_SHIFT);
--		__raw_writeq(GCR_CORE_COH_EN_EN,
--			     (void *)(cm_base + GCR_OFF_LOCAL +
--				      GCR_CORE_COH_EN));
--		mb();
--	}
--
--	/* Set up pmp for DRAM */
--	csr_write(CSR_PMPADDR14, DRAM_PMP_ADDR);
--	/* All from 0x0 */
--	csr_write(CSR_PMPADDR15, 0x1fffffffffffffff);
--	csr_write(CSR_PMPCFG2, ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<56)|
--		  ((PMP_A_NAPOT|PMP_R|PMP_W|PMP_X)<<48));
--	/* Set cacheable for pmp6, uncacheable for pmp7 */
--	csr_write(CSR_MIPSPMACFG2, ((u64)CCA_CACHE_DISABLE << 56)|
--		  ((u64)CCA_CACHE_ENABLE << 48));
--	/* Reset pmpcfg0 */
--	csr_write(CSR_PMPCFG0, 0);
--	/* Reset pmacfg0 */
--	csr_write(CSR_MIPSPMACFG0, 0);
--	mb();
--
--	/* Per cluster set up */
--	if (cpu_core(hartid) == 0 && cpu_hart(hartid) == 0) {
--		/* Enable L2 prefetch */
--		__raw_writel(0xfffff110,
--			     (void *)(cm_base + L2_PFT_CONTROL_OFFSET));
--		__raw_writel(0x15ff,
--			     (void *)(cm_base + L2_PFT_CONTROL_B_OFFSET));
--	}
--
--	/* Per core set up */
--	if (cpu_hart(hartid) == 0) {
--		/* Enable load pair, store pair, and HTW */
--		csr_clear(CSR_MIPSCONFIG7, (1<<12)|(1<<13)|(1<<7));
--
--		/* Disable noRFO, misaligned load/store */
--		csr_set(CSR_MIPSCONFIG7, (1<<25)|(1<<9));
--
--		/* Enable L1-D$ Prefetch */
--		csr_write(CSR_MIPSCONFIG11, 0xff);
--
--		for (i = 0; i < 8; i++) {
--			csr_set(CSR_MIPSCONFIG8, 4 + 0x100 * i);
--			csr_set(CSR_MIPSCONFIG9, 8);
--			mb();
--			RISCV_FENCE_I;
--		}
--	}
--
--	/* Per hart set up */
--	/* Enable AMO and RDTIME illegal instruction exceptions. */
--	csr_set(CSR_MIPSCONFIG6, (1<<2)|(1<<1));
--
--	return 0;
--}
--
--static int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
-+int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
- {
- 	const struct p8700_cm_info *data = match->data;
- 
-@@ -299,29 +133,5 @@ static int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct f
- 	}
- 
- 	p8700_cm_info = data;
--	generic_platform_ops.early_init = mips_p8700_early_init;
--	generic_platform_ops.final_init = mips_p8700_final_init;
--	generic_platform_ops.nascent_init = mips_p8700_nascent_init;
--	generic_platform_ops.pmp_set = mips_p8700_pmp_set;
--
--	return 0;
-+	return SBI_OK;
- }
--
--static unsigned long mips_p8700_gcr_base[] = {
--	0x16100000,
--};
--
--static struct p8700_cm_info mips_p8700_cm_info = {
--	.num_cm = array_size(mips_p8700_gcr_base),
--	.gcr_base = mips_p8700_gcr_base,
--};
--
--static const struct fdt_match mips_p8700_match[] = {
--	{ .compatible = "mips,p8700", .data = &mips_p8700_cm_info },
--	{ },
--};
--
--const struct fdt_driver mips_p8700 = {
--	.match_table = mips_p8700_match,
--	.init = mips_p8700_platform_init,
--};
 
 -- 
 2.43.0
