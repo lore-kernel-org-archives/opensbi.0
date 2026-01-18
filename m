@@ -4,53 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E6F45CA5FE1
-	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 45EF0D4A5F4
+	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=tuXmhEcl9hxmq28LCtdq3Qc6llfUz3/OT7V0Ge1Sj8U=; b=1umsTytK/LQuR9
-	rOUwgXCCEKmWwfWjQxORWA4bdua6G8tGcqoYuI85zC9tRglEo6ldvmFLgKpi6eaXWxAdQLYWaJcVm
-	4XmaCfwuNAIdOLueHH4X21evtZuKIVfAmCLS8m2YAYX3u6+7jM9l11wKVgZB0C8f6yI61ewttHMJL
-	pQy/6TKnhk6MiyBvFGzZTRoaoE2pxCOdvREmYg6i0NcHBUaimIFaB9Tl/op7Bkgv/g9hfw7vRPzBx
-	IuyCkvBlWJs1NA9jNeBHzzaLhaBzdYhM8oWCh4M964csrKhQjRUQdJO/98I1tg9GHig5YGaNhMNnU
-	+RGpi4uPYoOYxrHBTHVg==;
+	List-Owner; bh=ZGJxchIxeX2V7XqWjG9se4ycLlB5zks4i9Qp+s9twfw=; b=tJ7a/8MYeT3bUY
+	UK+0QuB0RFgXQx+RkS9I8fc7SW8h8zWmS1l8bgAxfN3rKYqTk8vjjlNkldII2+CbJ9sng2hEOB8Zj
+	08FdYbZWzfC7RibhLcd/OAWA0BoQnu+Ze3NnOCNAgjbl6BTvwGoqRRSPEVP1PGBQ7GJ74XcGls4de
+	+5ograMAkaYwBzfJ9KKrJLF330DJp714R4e/lqzUFF0mvw5xAKCadFyEQDYEOmcOZ0NW4ue0qF/f8
+	BOIq9X6HdSzEaInAf3tt9znc/M7plXbPgLElv6wGIcg20o/qfhU8zdVLZcOcHjSD5QEepUQTAijtO
+	rStbS3ZC/wRMdosDgkTg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6u-0000000HSxS-3d1R;
-	Sun, 18 Jan 2026 11:38:25 +0000
-Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
+	id 1vhR6y-0000000HT1Y-2OtT;
+	Sun, 18 Jan 2026 11:38:28 +0000
+Received: from esa2.hc555-34.eu.iphmx.com ([23.90.104.147])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6p-0000000HSoh-0R3y
+	id 1vhR6p-0000000HSog-2dnI
 	for opensbi@lists.infradead.org;
-	Sun, 18 Jan 2026 11:38:20 +0000
+	Sun, 18 Jan 2026 11:38:21 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1768736298; x=1800272298;
+  t=1768736299; x=1800272299;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=R/ybOWpImhSYjynI2wKcA5I4CWrZEyyZ3JJkarSdwBQ=;
-  b=nr7wjWH47u1J0S44jYM525pXWJXIA67HwHMLU82JdDoeCW1iF1d9lqfP
-   g9yNeJLA9pjljlvAhZhwcjK3ao8bCySXqL1me3JVRIdKtw28pfEeaY5vX
-   ytId6yMYQQ55zq6uItK2ffAcLT3FuhGQAynRoYMBbrij951rjs9cz6iNq
-   XI3QSmsY4Ddbg5fmMwF4Wuj/vhnNqaPlRnGtx6bkiVJAinUCozmrs1HkK
-   5t33rgH5IRMYMMMBMdGUm93GrMthurhdv+QyGqX5xOZBS1rng8gJcMLFg
-   FsTAToDiO9hcenUkINnQoepR1mRBl2qC2EegXaXo/Rz9IJ1Gcht6V++DV
-   A==;
-X-CSE-ConnectionGUID: jesx3HWBTBa07iaw9MlIGQ==
-X-CSE-MsgGUID: OqADmF27S4KasBSUERpKvg==
+  bh=cAhEMz5W+gC2lQKP8zo+HDiIXpEWmsh8/7XpbvHuJDY=;
+  b=maA1mHK1Aynns3liPfRZJ3j85bFeBpE3l+to3tAWFqVuAo0lzNM/0iC6
+   u3EyoRJ/6IBjfcAb/ZkmLG6Y11bXndVYyrurt4VqoexzeFcpEVMAl5rE/
+   07piGrfg0ybQ9wpTxT8jIS34+aX298Vw1a4ASEGxV6lDnvJITaQrmhkZI
+   DJF8M06/UGlyU5oH/ZP6FHHokDFgvH7pm9KkCH6lcibLplzOTNenV0pB1
+   wZaxo3cL0fegHVZMW4r8Iofl+yfLaotmJCyeSjviJis+vcGGap0nj2T+k
+   YqBIxjTqRkRSMzMIZbQn5WK6SEUmhVTJuqf5lAtldPeiArI1ZY5Z2lTGc
+   w==;
+X-CSE-ConnectionGUID: C0UG/omOTfCFFCT6BjWzvw==
+X-CSE-MsgGUID: SX5ABxu2ShGCCG675ZI3BA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces04_data.me-crop.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:12 +0200
-X-CSE-ConnectionGUID: Hul4/qIFST+At4xH55fU6g==
-X-CSE-MsgGUID: Wl1yJkDvRQCZB54iwtWAJg==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces04_data.me-crop.lan with SMTP; 18 Jan 2026 13:40:02 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:11 +0200
+Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
+  by esa2.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:16 +0200
+X-CSE-ConnectionGUID: HSTeqmQLTk6jJrkoJTaPZQ==
+X-CSE-MsgGUID: +KeLaAVBTji+UTd/nd03EA==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
+  by ces02_data.me-corp.lan with SMTP; 18 Jan 2026 13:40:11 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:14 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: vladimir.kondratiev@mobileye.com,
 	anup@brainfault.org
@@ -58,16 +58,18 @@ Cc: benoit.monin@bootlin.com,
 	cfu@mips.com,
 	opensbi@lists.infradead.org,
 	cc=cfu@mips.com
-Subject: [PATCH v2 07/20] platform: generic: mips p8700: Add match data for CM info
-Date: Sun, 18 Jan 2026 13:37:49 +0200
-Message-ID: <20260118-for-upstream-eyeq7h-v2-7-71934a5b9756@mobileye.com>
+Subject: [PATCH v2 10/20] platform: generic: mips eyeq7h: power up clusters
+ with OLB
+Date: Sun, 18 Jan 2026 13:37:52 +0200
+Message-ID: <20260118-for-upstream-eyeq7h-v2-10-71934a5b9756@mobileye.com>
 In-Reply-To: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 References: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260118_033819_435710_C3F71973 
-X-CRM114-Status: GOOD (  16.83  )
+X-CRM114-CacheID: sfid-20260118_033819_993103_A389B1E4 
+X-CRM114-Status: UNSURE (   9.05  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -79,62 +81,91 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-RnJvbTogQmVub8OudCBNb25pbiA8YmVub2l0Lm1vbmluQGJvb3RsaW4uY29tPgoKSW50cm9kdWNl
-IGEgc3RydWN0dXJlIHA4NzAwX2NtX2luZm8gaG9sZGluZyB0aGUgbnVtYmVyIG9mIGNvaGVyZW5j
-ZQptYW5hZ2VycyBhbmQgdGhlaXIgYmFzZSBhZGRyZXNzZXMgZm91bmQgaW4gYSBwYXJ0aWN1bGFy
-IFNvQy4KCkRlY2xhcmUgYSBnbG9iYWwgcG9pbnRlciB0byB0aGUgc3RydWN0dXJlIHRoYXQgaXMg
-c2V0IGluCm1pcHNfcDg3MDBfcGxhdGZvcm1faW5pdCgpLCBiYXNlZCBvbiB0aGUgbWF0Y2ggZGF0
-YSBvZiB0aGUgcGxhdGZvcm0KY29tcGF0aWJsZS4KCkZvciB0aGUgbWF0Y2ggZGF0YSBvZiB0aGUg
-TUlQUyBQODcwMCwgYSBzaW5nbGUgY29oZXJlbmNlIG1hbmFnZXIgd2l0aAphIGJhc2UgYWRkcmVz
-cyBvZiAweDE2MTAwMDAwIGlzIGRlY2xhcmVkLCBpZGVudGljYWwgdG8gd2hhdCBpcyBmb3VuZApp
-biBtaXBzL2JvYXJkLmguCgpGb3Igbm93LCBhY2Nlc3MgdG8gdGhlIGNvaGVyZW5jZSBtYW5hZ2Vy
-IHJlZ2lzdGVyIGlzIHN0aWxsIGJhc2VkIG9uCnRoZSBoYXJkLWNvZGVkIHZhbHVlcyBkZWZpbmVk
-IGluIG1pcHMvYm9hcmQuaC4KClNpZ25lZC1vZmYtYnk6IEJlbm/DrnQgTW9uaW4gPGJlbm9pdC5t
-b25pbkBib290bGluLmNvbT4KLS0tCiBwbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvbWlwcy9wODcw
-MC5oIHwgMTIgKysrKysrKysrKysrCiBwbGF0Zm9ybS9nZW5lcmljL21pcHMvcDg3MDAuYyAgICAg
-ICAgIHwgMjEgKysrKysrKysrKysrKysrKysrKystCiAyIGZpbGVzIGNoYW5nZWQsIDMyIGluc2Vy
-dGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL2lu
-Y2x1ZGUvbWlwcy9wODcwMC5oIGIvcGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL21pcHMvcDg3MDAu
-aAppbmRleCA2NjQ0ZTkxZGQ0MmRiMmEzZDc0M2I1YzM0MzEzZjRhOGQ4NDllZGRjLi44MjgxZTVl
-NmNlZjI4OWZkMDI0NThmNDY4ZjA2MjU2ZmMxOTY5MzdjIDEwMDY0NAotLS0gYS9wbGF0Zm9ybS9n
-ZW5lcmljL2luY2x1ZGUvbWlwcy9wODcwMC5oCisrKyBiL3BsYXRmb3JtL2dlbmVyaWMvaW5jbHVk
-ZS9taXBzL3A4NzAwLmgKQEAgLTEwLDYgKzEwLDE4IEBACiAKICNpbmNsdWRlIDxtaXBzL2JvYXJk
-Lmg+CiAKKy8qKiBDb2hlcmVuY2UgbWFuYWdlciBpbmZvcm1hdGlvbgorICoKKyAqIEBudW1fY206
-IE51bWJlciBvZiBjb2hlcmVuY2UgbWFuYWdlcgorICogQGdjcl9iYXNlOiBBcnJheSBvZiBiYXNl
-IGFkZHJlc3Mgb2YgdGhlIENNCisgKi8KK3N0cnVjdCBwODcwMF9jbV9pbmZvIHsKKwl1bnNpZ25l
-ZCBpbnQgbnVtX2NtOworCXVuc2lnbmVkIGxvbmcgKmdjcl9iYXNlOworfTsKKworZXh0ZXJuIGNv
-bnN0IHN0cnVjdCBwODcwMF9jbV9pbmZvICpwODcwMF9jbV9pbmZvOworCiAvKiBQTUEgKi8KICNk
-ZWZpbmUgQ1NSX01JUFNQTUFDRkcwCTB4N2UwCiAjZGVmaW5lIENTUl9NSVBTUE1BQ0ZHMQkweDdl
-MQpkaWZmIC0tZ2l0IGEvcGxhdGZvcm0vZ2VuZXJpYy9taXBzL3A4NzAwLmMgYi9wbGF0Zm9ybS9n
-ZW5lcmljL21pcHMvcDg3MDAuYwppbmRleCA1MGQzM2NhY2VhZDFhNTdhYmQxYWQ4MGJjMTE3ZDU2
-YWQ3OWQyMDlkLi43NWUxOTQxNmM1ZTEzZWI4M2JlNTgyNDNhMjE5NTI0NGU0MTQ3ZDNjIDEwMDY0
-NAotLS0gYS9wbGF0Zm9ybS9nZW5lcmljL21pcHMvcDg3MDAuYworKysgYi9wbGF0Zm9ybS9nZW5l
-cmljL21pcHMvcDg3MDAuYwpAQCAtMTcsNiArMTcsOCBAQAogI2luY2x1ZGUgPG1pcHMvcDg3MDAu
-aD4KICNpbmNsdWRlIDxtaXBzL21pcHMtY20uaD4KIAorY29uc3Qgc3RydWN0IHA4NzAwX2NtX2lu
-Zm8gKnA4NzAwX2NtX2luZm87CisKIGV4dGVybiB2b2lkIG1pcHNfd2FybV9ib290KHZvaWQpOwog
-I2RlZmluZSBNTUlPX0JBU0UgMHgwMDAwMDAwMAogI2RlZmluZSBNTUlPX1NJWkUgMHg4MDAwMDAw
-MApAQCAtMjg3LDYgKzI4OSwxNCBAQCBzdGF0aWMgaW50IG1pcHNfcDg3MDBfbmFzY2VudF9pbml0
-KHZvaWQpCiAKIHN0YXRpYyBpbnQgbWlwc19wODcwMF9wbGF0Zm9ybV9pbml0KGNvbnN0IHZvaWQg
-KmZkdCwgaW50IG5vZGVvZmYsIGNvbnN0IHN0cnVjdCBmZHRfbWF0Y2ggKm1hdGNoKQogeworCWNv
-bnN0IHN0cnVjdCBwODcwMF9jbV9pbmZvICpkYXRhID0gbWF0Y2gtPmRhdGE7CisKKwlpZiAoIWRh
-dGEpIHsKKwkJc2JpX3ByaW50ZigiTWlzc2luZyBDTSBpbmZvIGZvciAlc1xuIiwgbWF0Y2gtPmNv
-bXBhdGlibGUpOworCQlyZXR1cm4gU0JJX0VJTlZBTDsKKwl9CisKKwlwODcwMF9jbV9pbmZvID0g
-ZGF0YTsKIAlnZW5lcmljX3BsYXRmb3JtX29wcy5lYXJseV9pbml0ID0gbWlwc19wODcwMF9lYXJs
-eV9pbml0OwogCWdlbmVyaWNfcGxhdGZvcm1fb3BzLmZpbmFsX2luaXQgPSBtaXBzX3A4NzAwX2Zp
-bmFsX2luaXQ7CiAJZ2VuZXJpY19wbGF0Zm9ybV9vcHMubmFzY2VudF9pbml0ID0gbWlwc19wODcw
-MF9uYXNjZW50X2luaXQ7CkBAIC0yOTUsOCArMzA1LDE3IEBAIHN0YXRpYyBpbnQgbWlwc19wODcw
-MF9wbGF0Zm9ybV9pbml0KGNvbnN0IHZvaWQgKmZkdCwgaW50IG5vZGVvZmYsIGNvbnN0IHN0cnVj
-dCBmCiAJcmV0dXJuIDA7CiB9CiAKK3N0YXRpYyB1bnNpZ25lZCBsb25nIG1pcHNfcDg3MDBfZ2Ny
-X2Jhc2VbXSA9IHsKKwkweDE2MTAwMDAwLAorfTsKKworc3RhdGljIHN0cnVjdCBwODcwMF9jbV9p
-bmZvIG1pcHNfcDg3MDBfY21faW5mbyA9IHsKKwkubnVtX2NtID0gYXJyYXlfc2l6ZShtaXBzX3A4
-NzAwX2djcl9iYXNlKSwKKwkuZ2NyX2Jhc2UgPSBtaXBzX3A4NzAwX2djcl9iYXNlLAorfTsKKwog
-c3RhdGljIGNvbnN0IHN0cnVjdCBmZHRfbWF0Y2ggbWlwc19wODcwMF9tYXRjaFtdID0gewotCXsg
-LmNvbXBhdGlibGUgPSAibWlwcyxwODcwMCIgfSwKKwl7IC5jb21wYXRpYmxlID0gIm1pcHMscDg3
-MDAiLCAuZGF0YSA9ICZtaXBzX3A4NzAwX2NtX2luZm8gfSwKIAl7IH0sCiB9OwogCgotLSAKMi40
-My4wCgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+In the eyeq7h platform, there's extra power control for the CPU
+clusters. To enable cluster, it should be powered up using this OLB
+registers prior to accessing any cluster management registers
+
+Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+---
+ platform/generic/mips/eyeq7h.c | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
+index 6b495601a1dd614acefc7fab250fc710da84bf02..d70ffa1b3b750754ae60cfef21f012dc4f0484ed 100644
+--- a/platform/generic/mips/eyeq7h.c
++++ b/platform/generic/mips/eyeq7h.c
+@@ -18,6 +18,20 @@
+ #include <mips/p8700.h>
+ #include <mips/mips-cm.h>
+ 
++#define MIPS_OLB1		0x67046000
++#define MIPS_OLB2		0x67047000
++#define MIPS_CM_CTL0		(0x14)
++#define MIPS_CTL0_CM_PWR_UP	BIT(0)
++#define MIPS_CTL0_DBU_PWR_UP	BIT(1)
++#define MIPS_CTL0_CM_RST_HOLD	BIT(2)
++#define MIPS_CTL0_DBU_RST_HOLD	BIT(3)
++#define MIPS_CTL0_DBU_COLD_PWR_UP	GENMASK(5, 4) // after cold rst: 00 - pwr down, 01 -clk off
++#define MIPS_CTL0_PARITY_EN	BIT(6)
++#define MIPS_CTL0_DBG_RST_DASRT	BIT(7)
++#define MIPS_CTL0_CACHE_HW_INIT_INHIBIT	BIT(16)
++#define MIPS_CTL0_SW_RESET_N	BIT(17)
++#define MIPS_CTL0_CORE_CLK_STS(n)	BIT(28 + (n)) // n = 0..3
++
+ #define OLB_WEST		0x48600000
+ #define OLB_WEST_TSTCSR		0x60
+ #define TSTCSR_PALLADIUM	BIT(0)
+@@ -35,11 +49,39 @@
+ 
+ static int eyeq7h_active_clusters = 1;
+ 
++static long MIPS_OLB_ADDR[3] = {0, MIPS_OLB1, MIPS_OLB2};
++
++static void eyeq7h_powerup_olb(u32 hartid)
++{
++	int cl = cpu_cluster(hartid);
++	volatile void *cmd;
++	u32 temp;
++
++	if (cl < 1 || cl >= p8700_cm_info->num_cm || cl >= array_size(MIPS_OLB_ADDR))
++		return;
++
++	/* Get the MIPS_CM_CTL0 address */
++	cmd = (volatile void *)(MIPS_OLB_ADDR[cl] + MIPS_CM_CTL0);
++
++	temp = readl(cmd);
++	/* Enable HW cache init */
++	temp = temp & ~MIPS_CTL0_CACHE_HW_INIT_INHIBIT;
++	/* deassert reset */
++	temp = temp | MIPS_CTL0_SW_RESET_N;
++	writel(temp, cmd);
++	wmb();
++	// TODO: using CPU clock ready as reset complete indication, is it correct?
++	while(!(readl(cmd) & MIPS_CTL0_CORE_CLK_STS(0)))
++			cpu_relax();
++}
++
+ static void eyeq7h_power_up_other_cluster(u32 hartid)
+ {
+ 	unsigned int cl = cpu_cluster(hartid);
+ 	unsigned long cm_base = p8700_cm_info->gcr_base[cl];
+ 
++	/* Power up MIPS OLB */
++	eyeq7h_powerup_olb(hartid);
+ 	/* remap local cluster address to its global address */
+ 	writeq(cm_base, (void*)cm_base + GCR_BASE_OFFSET);
+ 	wmb();
+
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
