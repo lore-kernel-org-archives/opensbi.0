@@ -4,71 +4,131 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5CBFBCA5FEF
-	for <opensbi@archiver.kernel.org>; Sun, 18 Jan 2026 11:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 81821CCF2EE
+	for <opensbi@archiver.kernel.org>; Mon, 19 Jan 2026 11:57:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:References:From:To:Cc:
+	Subject:Message-Id:Date:Mime-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=sqaJOCo2Andi4K6o4yyaALABacrm8sLzBPYjDkJ2zXY=; b=Lc8QfF+IDlGp65
-	jwd7WrkxUSdxyZoSnrDk8CnZBgg7c1/hn9LU/d2F+bGcT21H5Zgqrc78zPlN4FfEy6azkJrnOSPLk
-	E1fZCq14zKUJ8OkqCN6kmQQbDd9o7phuVqHoyc9kHX15fZMvEkdTdtdGWxELzwV5TvO6nVUqowF6B
-	BndKGhroCZQN4x9qYAClf5rdcAYT8ApYMU4wz9QBb6wigcm0tp2Eo/sHx9sphbw4e7DhHvm8sL4Tu
-	rdBMEcHvbiDEhZJyy7z9O3W5IvZdsg7yfQQKJ8EcVjHyzAqbCXLDvlzBkAAdgpGoL/oWBQcX4wrS5
-	vjRCNwviooCif11Y8XvA==;
+	List-Owner; bh=flSk0coQfKfhmCkwRfSv2Idv8I2S1+qqtaXZ4CMPwQU=; b=h6zgKrpcHfNMeW
+	kxJ0HAXXZ+nOZBYnnHKFTtedO1G0A5lzvK0ReEvquU5lbGhTW4+QG2BflExoUSQufE4CfK0qLgO7n
+	VXNlYPal0EAJqrUQEesDFPo9xTiOjauPuVUUgIA4ySsEDbp0NRgk9Sbm/3dlBFJXzanpWm89vwiHl
+	YvRK1jKYKrMX7IfoYOnZlqxL3PlSDPzEIVNRiS9ecv0uWoG0n2H0L7Bd37sfykMtW/uUMuoNzUGga
+	ADej2V7Byont7Mx3T+bqz3C5JPdN95Wjs3XSvh96jE9E3MZ02rdxXdSEOmCplXF/TiMlxaV6Wr+S3
+	saPJPGkI+bZ6zoD8HT+w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR78-0000000HTDD-2uaM;
-	Sun, 18 Jan 2026 11:38:38 +0000
-Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
+	id 1vhnsq-00000001vyI-09gI;
+	Mon, 19 Jan 2026 11:57:24 +0000
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vhR6y-0000000HSxE-2GiD
+	id 1vhnsn-00000001vxL-14Du
 	for opensbi@lists.infradead.org;
-	Sun, 18 Jan 2026 11:38:29 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1768736308; x=1800272308;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=jygSk4NLOTBJCZGwq9+NQdIYbSNqx/8moPxL/Q2JTrE=;
-  b=s+Eegh7Otp8UlM3H4IHmn3tbdKh3LX6LpahBIwAQmgxumzHgtXPvjFz4
-   YMYhjWMpwO2PtGq3BLcpvlmJ2mYxYrV4CuPas/K1OqB2MK9LkoiPzIIz8
-   1aL71OH2KFQLrr9p2MGCBIb+ZJZkPiyfEAFbJK8TUXtz7AnyJsHCaVNap
-   3NMtNbHY979KQNgUpKXr1OoB9jqCPEQTS3viPJvrPZXipOrG72G3x1yOg
-   zuqwU6ekuZAZLOx8iseRhn00fuo2hKl4dGcFYvBWsEV2f+GDJGHsCAUfd
-   RvmIi32jy3g/y2WMw7Oz/MOd8n7l24UqH2Vx/w52tVHr/uoR1Z+jNUrCI
-   A==;
-X-CSE-ConnectionGUID: m8vnIJx0SeypkFAWIKxldA==
-X-CSE-MsgGUID: qTqWisTHR2mFD5MwI6Zr2g==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2026 13:38:27 +0200
-X-CSE-ConnectionGUID: t8SlmEEfQ2q4RpZ0TOALBg==
-X-CSE-MsgGUID: arLO+gZNTOGVVZ2/t3x8GQ==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.6])
-  by ces02_data.me-corp.lan with SMTP; 18 Jan 2026 13:40:23 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 18 Jan 2026 13:38:26 +0200
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-To: vladimir.kondratiev@mobileye.com,
-	anup@brainfault.org
-Cc: benoit.monin@bootlin.com,
-	cfu@mips.com,
-	opensbi@lists.infradead.org,
-	cc=cfu@mips.com
-Subject: [PATCH v2 20/20] platform: generic: mips eyeq7h: prohibit
- accessing memory beyond DRAM
-Date: Sun, 18 Jan 2026 13:38:02 +0200
-Message-ID: <20260118-for-upstream-eyeq7h-v2-20-71934a5b9756@mobileye.com>
-In-Reply-To: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
-References: <20260118-for-upstream-eyeq7h-v2-0-71934a5b9756@mobileye.com>
-MIME-Version: 1.0
-X-Mailer: b4 0.14.2
+	Mon, 19 Jan 2026 11:57:22 +0000
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 60J9n2WQ2965098
+	for <opensbi@lists.infradead.org>; Mon, 19 Jan 2026 11:57:20 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	CYjEYjw25BvAa2wQ+eS2fRzTW8C/+mfkY2bMqsuWb4I=; b=AqBgMhUIF88s0C58
+	i1/1VyoU0d0SBSbcJyToyPY1hHEgTGLwj20LUdmMjSfoRNsRWF42Y+ziWmZ5NfpK
+	kZ8FE1PZFMyRz7jADKJmR/juHpZseazjdAKWxJX9R7ckTed/aflTNzPFToHeh4yB
+	VjJgCvroltY1vIDOJFtaRU6S0xM86GKi6q0i+rGC0lm4HhoQ2lk87exhY2y0d2Ou
+	vco5tErEb1IZDD425d9ta8WCnZK9wVDZFUsR593FK6p1wXl7Q0dLS5zDx52vrRZv
+	DrYEvNGEeFabKI1klLHe5zpCXKCwWZ4JYq2sH3BWAkBIjrsZ2EjaKbVlpJ/s6QNP
+	BwhIow==
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4bsjaa8cc5-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Mon, 19 Jan 2026 11:57:19 +0000 (GMT)
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-8c6b4058909so417403685a.3
+        for <opensbi@lists.infradead.org>; Mon, 19 Jan 2026 03:57:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1768823838; x=1769428638; darn=lists.infradead.org;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CYjEYjw25BvAa2wQ+eS2fRzTW8C/+mfkY2bMqsuWb4I=;
+        b=G4jan71ZznG23CEfNJfR7jUCoHUE4iMtgfDGG4eZcyVnIayjB6zIM6gFwf208/63Yk
+         FcFx6wdeek+SfHbG1Oa4b7jEL/nfi33FDfVyvUwgu6QsNscDGKBaN0Cb68rzbUmh5k9z
+         4tlvkN0DFP2pnxgI8M2Zmzy01Xp/DbKVr4osoHUgli2SbqDMtx3ERIBdBYadgx/n26Zv
+         NeCOr9XnvGAWNGlooeZKThwPNCejG+hpVxhQwkoa5lbYFkESYoYFz9cgOYYWGHcO0Dc7
+         RyJsvFQH35PWpD1Xw7mK9BnnKfFbnID0mqndEt/III83ryVf1MyDDrJeYzOls+wlkN0T
+         EQyA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768823838; x=1769428638;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=CYjEYjw25BvAa2wQ+eS2fRzTW8C/+mfkY2bMqsuWb4I=;
+        b=kBfUyGvqPIVYt8RJS+lVdwcNG1IxxeiIs+2qDUPFJxG2BuxyecL1j/08UlKfdPZvSO
+         iSBq3po5OXHiFGuDFq5WJbjFb/nL4mlQmvImAwVrkWX4mmRpbSoxEx4weUgPDrBfHPnE
+         s7NklVWDVClov9yZjGLhCrNJ/VLCW2qh4BmLlgCNLOuCWTpulu5MadV8DnERnk6fMriQ
+         QW9exF34LdxPVYllE2dqoehohZiqEeM+LLikTMHlp8DrZQ3Yj2m3eHMyM5sidmjSX0PE
+         idSXz8qkhWJ9sQBvCEntUW6wf2ks35K+ZL5LakhAhTjMjVtPONsacyTk0VJbDnlqgonW
+         waJA==
+X-Forwarded-Encrypted: i=1; AJvYcCXgPM0L6hc8EaIw7mW7fXC7rjLc9C90WX8vcIlJn4GO+XA90EEuG8mi8h076NcgW1P3/iXIy4Gj@lists.infradead.org
+X-Gm-Message-State: AOJu0YxsxlMfvnAWrUPOvk0Tlq1JoR8ZN2tjvsLzVhjbVeOtauEGry8v
+	QQ9pBGk4/UOTPqkd5ddmmeiIkbrx+xEw+6pelWrw3X6feY98iWz+keN0xFOlU3FR57/cja67Cpo
+	+MfFZ+K7N/fiCf5NFwMHpBn7rJQKspaRCF0mT0OSTdtkegUb5uFQqX4Qhgq9GFs3nuzuoDQRMvg
+	==
+X-Gm-Gg: AY/fxX58+8l2iNTC0+X9Xf75HmxG/7CKTBBqcW+dr2yFz+GZQ+XfYAtKm1TBwUtwv6V
+	Vgz+NuNR7/G7aLuYTEpy0p/XegixiN3uIS3TZzxRz3o52sgdNr/ZkyNwiE4s9a3fYw8FW4TKW2v
+	XVHINrkyVmQ5ElXzoLli6eGUz1PbySeQZqMwgHRoTEI26uC5cs0hk6c8E1TL2UdgSh0mzoNJYKk
+	RPaLhPt7DKL5rcVQmlHixUu2T+dlseoObkXsEjfaofAsLk02tHaqqwChYnmuRS/MM2yaVxnztCi
+	fp6dCeDaZEJPsrFt+zxzdbbmlIhmO7bIAvltYJk4+DQLN1hCLSh4fFVxK2ynpYBVFl5H/kEVIKq
+	tjYcTgwqmDg9X8MwHVWamQQuP+WmVJuLvgMx65XTZaf4P3jWq
+X-Received: by 2002:a05:620a:4112:b0:8a2:3be9:1d79 with SMTP id af79cd13be357-8c6a66d697cmr1560417185a.18.1768823838355;
+        Mon, 19 Jan 2026 03:57:18 -0800 (PST)
+X-Received: by 2002:a05:620a:4112:b0:8a2:3be9:1d79 with SMTP id af79cd13be357-8c6a66d697cmr1560414385a.18.1768823837906;
+        Mon, 19 Jan 2026 03:57:17 -0800 (PST)
+Received: from localhost (ip-86-49-253-11.bb.vodafone.cz. [86.49.253.11])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43569921dedsm22634940f8f.9.2026.01.19.03.57.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Jan 2026 03:57:17 -0800 (PST)
+Mime-Version: 1.0
+Date: Mon, 19 Jan 2026 11:57:16 +0000
+Message-Id: <DFSJPWHEF293.2Z6H79QH3IDXR@oss.qualcomm.com>
+Subject: Re: [PATCH] lib: sbi_pmu: Add FW counter index validation when
+ reading high bits on RV64
+Cc: <andrew.jones@linux.dev>, <atishp@rivosinc.com>,
+        "opensbi"
+ <opensbi-bounces@lists.infradead.org>
+To: "James Raphael Tiovalen" <jamestiotio@gmail.com>,
+        <opensbi@lists.infradead.org>
+From: =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?=
+ <radim.krcmar@oss.qualcomm.com>
+References: <20260117125031.56031-1-jamestiotio@gmail.com>
+In-Reply-To: <20260117125031.56031-1-jamestiotio@gmail.com>
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMTE5MDA5OSBTYWx0ZWRfX8wgwsGEbn/t3
+ NUC/wVcTY/IQyfQk/NQRlviWylPGrG73NX/jA8d8K9VmGaNJIDfLhGpNPkFYQ448SFvEMx8taSg
+ voLCr+ClXcAgkImu5vpbqVcmR8VXHTWcIQJ2ufFFznYUYrsiu5NNDrQdoKR1PnZllNPdxNLsM1I
+ S79wxw5U0g17ZbPPpin6i4TiPJ42IQJBYFjjxHEMtkeC3NZ5kJdwHddNjxKkBISPulEvxHg2pUc
+ BeavDuiGCbss8khnAQpt1M2GFZ1CLLIMGeKL72iGQ1hW5ww2Ih/TeTT5uqRdsfyzmVhGbocvOAJ
+ YzKar0o5nDYjwCqoYYW5rdFNS0zczeHFB5LGr2uPtcfhYtNoxWp/tVNqh3F7gqq1bIRLsfDAtWF
+ p3c+P/f9Oduv4PbdIkcZ9sAsAytJay0E3qOeaiSCJROOmVLM/+AJOY8lj/GsUzMEJYXO0EnSTQT
+ /41JlbOeS2A1X0yB6ag==
+X-Proofpoint-ORIG-GUID: oKmSZZI8PvZOOR1hLuaTC-doG36wfrdZ
+X-Proofpoint-GUID: oKmSZZI8PvZOOR1hLuaTC-doG36wfrdZ
+X-Authority-Analysis: v=2.4 cv=L8gQguT8 c=1 sm=1 tr=0 ts=696e1c1f cx=c_pps
+ a=HLyN3IcIa5EE8TELMZ618Q==:117 a=HFCiZzTCIv7qJCpyeE1rag==:17
+ a=IkcTkHD0fZMA:10 a=vUbySO9Y5rIA:10 a=M51BFTxLslgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=pGLkceISAAAA:8 a=5zEJGDWQOOdwX-l-qeQA:9
+ a=QEXdDO2ut3YA:10 a=bTQJ7kPSJx9SKPbeHEYW:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
+ definitions=2026-01-19_02,2026-01-19_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 impostorscore=0 suspectscore=0 phishscore=0 spamscore=0
+ clxscore=1011 priorityscore=1501 lowpriorityscore=0 bulkscore=0 adultscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2601190099
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260118_033828_885302_2A8FBF53 
-X-CRM114-Status: GOOD (  15.48  )
+X-CRM114-CacheID: sfid-20260119_035721_309881_D41A2256 
+X-CRM114-Status: GOOD (  17.92  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -85,165 +145,49 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SBI code arranges domain PMP regions in a way that last entry is
-all-inclusive "0..~0 RWX" and the rest of entries are not programmed.
-This causes 2 problems for the eyeq7h.
+2026-01-17T20:50:31+08:00, James Raphael Tiovalen <jamestiotio@gmail.com>:
+> Currently, when we attempt to read the upper 32 bits of a firmware
+> counter on RV64 or higher, we just set `sbiret.value` to 0 without
+> validating the counter index. The SBI specification requires us to set
+> `sbiret.error` to `SBI_ERR_INVALID_PARAM` if the counter index points to
+> a hardware counter or an invalid counter. Add a validation check to
+> ensure compliance with the specification on RV64 or higher.
+>
+> Fixes: 51951d9e9af8 ("lib: sbi_pmu: Implement sbi_pmu_counter_fw_read_hi")
+> Signed-off-by: James Raphael Tiovalen <jamestiotio@gmail.com>
+> ---
 
-1) Remaining entries from the boot loader.
-When PMP is actually programmed on the later stage, only defined entries
-get programmed. Therefore, if boot code configured some entries beyond
-what is set in domain configuration, it will be untouched. Ex: boot code
-sets entries 14 and 15, leaving others unconfigured. To prevent such
-left over PMP entries, domain should configure all possible PMP regions.
+While the call is poorly specified and your interpretation is valid,
+I think the intention is to make this function do nothing else than
+return {err, 0} on RV64 as there isn't much reason to complicate the
+implementation.
 
-2) speculative prefetches
-CPU can issue speculative prefetches to non-existent addresses. If this
-access goes to the system NOC, it is mis-interpreted as an access
-violation and error is reported, forcing system reset.
+I think always returning {SBI_EINVAL, 0} would be even better than
+the current {SBI_SUCCESS, 0}, but it doesn't matter much since
+legitimate RV64 software shouldn't ever invoke the ecall.
 
-To prevent such a speculative transaction to leave a CPU cluster,
-block it using PMP, by restricting memory region to physically present
-memory.
+> diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+> @@ -227,6 +227,14 @@ static bool pmu_ctr_idx_validate(unsigned long cbase, unsigned long cmask)
+>  	return cmask && cbase + sbi_fls(cmask) < total_ctrs;
+>  }
 
-How is it done:
+In case of disagreement with the above:
 
-- on early init, add an all-permissive entry matching DRAM.
+> +int sbi_pmu_is_fw_ctr_idx(uint32_t cidx)
+> +{
 
-- on final init, find the last last PMP entry configured by generic code,
-update its flags to inaccessible MMIO memory. MMIO serves to set up
-PMA attributes to uncached non-prefetchable. Then duplicate this entry
-for the rest of the PMP table
+This functions gets passed regs->a0, so cidx should be an xlen sized
+type.
+(I understand trying to be consistent, as sbi_pmu_ctr_fw_read has the
+ same bug, but better fix related code when touching it.)
 
-Resulting memory regions:
+> +	if (cidx < num_hw_ctrs || cidx >= total_ctrs)
+> +		return SBI_EINVAL;
 
-Domain0 Region00            : 0x0000000800100000-0x000000080013ffff M: (F,R,X) S/U: ()
-Domain0 Region01            : 0x0000000800100000-0x00000008001fffff M: (F,R,W) S/U: ()
-Domain0 Region02            : 0x0000000048700000-0x000000004870ffff M: (I,R,W) S/U: ()
-Domain0 Region03            : 0x0000000067480000-0x000000006748ffff M: (I,R,W) S/U: ()
-Domain0 Region04            : 0x0000000067500000-0x000000006750ffff M: (I,R,W) S/U: ()
-Domain0 Region05            : 0x0000000048740000-0x000000004875ffff M: (I,R,W) S/U: ()
-Domain0 Region06            : 0x00000000674c0000-0x00000000674dffff M: (I,R,W) S/U: ()
-Domain0 Region07            : 0x0000000067540000-0x000000006755ffff M: (I,R,W) S/U: ()
-Domain0 Region08            : 0x0000000000000000-0x000000007fffffff M: (I,R,W) S/U: (R,W)
-Domain0 Region09            : 0x0000000800000000-0x00000008ffffffff M: () S/U: (R,W,X)
-Domain0 Region10            : 0x0000001000000000-0x0000001fffffffff M: (I) S/U: (R,W)
-Domain0 Region11            : 0x0000000000000000-0xffffffffffffffff M: (I) S/U: ()
-Domain0 Region12            : 0x0000000000000000-0xffffffffffffffff M: (I) S/U: ()
-Domain0 Region13            : 0x0000000000000000-0xffffffffffffffff M: (I) S/U: ()
-Domain0 Region14            : 0x0000000000000000-0xffffffffffffffff M: (I) S/U: ()
-Domain0 Region15            : 0x0000000000000000-0xffffffffffffffff M: (I) S/U: ()
+Please refactor the check in sbi_pmu_ctr_fw_read, and use it instead of
+adding more logic.
 
-Here Region09 covers DRAM, regions 11..15 set to non-accessible
-uncached no-prefetch for thw whole address range
-
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- platform/generic/mips/eyeq7h.c | 56 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 55 insertions(+), 1 deletion(-)
-
-diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index 2fb498c1b8f47a5a16d74a2c78fd9dff6dda156c..9341c8beaca25c8c62e19efbdd4a59c726814261 100644
---- a/platform/generic/mips/eyeq7h.c
-+++ b/platform/generic/mips/eyeq7h.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_timer.h>
- #include <sbi/sbi_hart_pmp.h>
- #include <sbi/riscv_io.h>
-+#include <libfdt.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <mips/p8700.h>
-@@ -121,6 +122,31 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
- 	return --reg;
- }
- 
-+static int fixup_dram_region(const struct sbi_domain *dom,
-+			     struct sbi_domain_memregion *reg)
-+{
-+	const void *fdt = fdt_get_address();
-+	int node;
-+	int ret;
-+	uint64_t mem_addr, mem_size;
-+	static const char mem_str[] = "memory";
-+
-+	if (!reg || !fdt)
-+		return SBI_EINVAL;
-+
-+	/* Find the memory range */
-+	node = fdt_node_offset_by_prop_value(fdt, -1, "device_type",
-+					     mem_str, sizeof(mem_str));
-+	ret = fdt_get_node_addr_size(fdt, node, 0, &mem_addr, &mem_size);
-+	if (ret)
-+		return ret;
-+	reg->flags = SBI_DOMAIN_MEMREGION_MMIO; // disable cache & prefetch
-+	return sbi_domain_root_add_memrange(mem_addr, mem_size, mem_size,
-+					    (SBI_DOMAIN_MEMREGION_SU_READABLE |
-+					     SBI_DOMAIN_MEMREGION_SU_WRITABLE |
-+					     SBI_DOMAIN_MEMREGION_SU_EXECUTABLE));
-+}
-+
- static void fdt_disable_by_compat(void *fdt, const char *compatible)
- {
- 	int node = 0;
-@@ -203,10 +229,29 @@ static struct fdt_general_fixup eyeq7h_cache_fixup = {
- 
- static int eyeq7h_final_init(bool cold_boot)
- {
-+	struct sbi_scratch *scratch;
-+	const struct sbi_domain *dom;
-+	struct sbi_domain_memregion *last_reg;
-+	int pmp_count;
-+
- 	if (!cold_boot)
- 		return 0;
- 
- 	sbi_hsm_set_device(&eyeq7h_hsm);
-+	scratch = sbi_scratch_thishart_ptr();
-+	pmp_count = sbi_hart_pmp_count(scratch);
-+
-+	/*
-+	 * clear the rest of regions that may be set by the boot code
-+	 * SBI code don't let to disable PMP region, so configure it to
-+	 * all-denied and no-cache no-prefetch
-+	 */
-+	dom = sbi_domain_thishart_ptr();
-+	last_reg = find_last_memregion(dom);
-+	last_reg->flags = SBI_DOMAIN_MEMREGION_MMIO; // disable cache & prefetch
-+	for (struct sbi_domain_memregion *reg = last_reg + 1; reg < &dom->regions[pmp_count]; reg++) {
-+		*reg = *last_reg;
-+	}
- 	fdt_register_general_fixup(&eyeq7h_acc_clusters_fixup);
- 	fdt_register_general_fixup(&eyeq7h_cache_fixup);
- 
-@@ -263,6 +308,8 @@ static void eyeq7h_init_clusters(void)
- 
- static int eyeq7h_early_init(bool cold_boot)
- {
-+	const struct sbi_domain *dom;
-+	struct sbi_domain_memregion *reg;
- 	int rc;
- 	unsigned long cm_base;
- 
-@@ -308,7 +355,14 @@ static int eyeq7h_early_init(bool cold_boot)
- 					  SBI_DOMAIN_MEMREGION_SU_READABLE |
- 					  SBI_DOMAIN_MEMREGION_SU_WRITABLE);
- 
--	return 0;
-+	/*
-+	 * sbi_domain_init adds last "all-inclusive" memory region
-+	 * 0 .. ~0 RWX
-+	 * Find this region (it is the last one) and update size according to DRAM
-+	 */
-+	dom = sbi_domain_thishart_ptr();
-+	reg = find_last_memregion(dom);
-+	return fixup_dram_region(dom, reg);
- }
- 
- static int eyeq7h_nascent_init(void)
-
--- 
-2.43.0
-
+Thanks.
 
 -- 
 opensbi mailing list
