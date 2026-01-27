@@ -4,83 +4,89 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 32FBCE63C82
-	for <opensbi@archiver.kernel.org>; Sun, 25 Jan 2026 09:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 815C9D2D8FD
+	for <opensbi@archiver.kernel.org>; Tue, 27 Jan 2026 15:24:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=zWOWO7UrgmrC6DDTOufHDAb2g07h8u381Gpx4MozwkI=; b=Izircr0XvT6639
-	O3DkAbKmR0ps4KzCXYkCKx9gk3ShPgsoPBHfiHtNq68HK/NDtSoQXTzd9xt+ARNfz6Ipql6wwI3Vn
-	zDLLzMDbDOZdtGa3xagx2jZ1PeNQ6LSKLLv0HJ8IDK/IDpYyiW1XS5a02RGspGHqD6S30h4kb+R4I
-	X37rHcyHUweN9+3YC7TtwRPm+hFSI+Vj8dlMAX0wblDoYHq1ozniOGuTosKPZAXY8cQUDg0g0dpvL
-	MzQd5fR5SiniMSZQL3aPslyIw7vVNEEgRNXSB7wMuKWyaulFDh9sB4LF3pV44cLjuLw83l+nL0+QH
-	GuRhfZTdcv+Y/Gxhm5dQ==;
+	List-Owner; bh=tqkT6BLhomfzW0ncVr8JfzpgevahFY8TSsyb/ciSCSo=; b=RAGiGpBQf/JAMI
+	85lNaZHSTZJzh9IKN/GkQiXSwthv+L8CMS+Ouaxhg6GQ2R6hi467zMj8BEiOjWiTTXBNJwMPuGDoO
+	vuL7rVFI5+MXyZfDZSFWHvrLTs5yvWSMSuKKOTrQIUDcLWchjK95G+k5SnFxaMXFaqrJbhuGwEc+r
+	CwITL31uZ+88kuijLwWLNl14wf4deeDJbjf3/nMkAZBp4SLqaH4Txnj/jCgL7lQNH1VqhTRbLIGdG
+	27IjDjGbkNeMFjaxYgzd7IY6JDLNq5UYBmk7wmAi6fSwVwNjhZvQYp7UJSyVSrXgvpjHrjzwgFmN8
+	edwTe+kSCQAjxfn0aIcg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vjw5B-0000000B1Ne-0uMQ;
-	Sun, 25 Jan 2026 09:06:57 +0000
-Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
+	id 1vkkv8-0000000EXig-3lDC;
+	Tue, 27 Jan 2026 15:23:58 +0000
+Received: from mail-qt1-x82f.google.com ([2607:f8b0:4864:20::82f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vjw58-0000000B1NE-2S5o
+	id 1vkkv4-0000000EXhR-0MsS
 	for opensbi@lists.infradead.org;
-	Sun, 25 Jan 2026 09:06:55 +0000
-Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-2a7a9b8ed69so39517805ad.2
-        for <opensbi@lists.infradead.org>; Sun, 25 Jan 2026 01:06:53 -0800 (PST)
+	Tue, 27 Jan 2026 15:23:57 +0000
+Received: by mail-qt1-x82f.google.com with SMTP id d75a77b69052e-5029af2b4bcso30086381cf.0
+        for <opensbi@lists.infradead.org>; Tue, 27 Jan 2026 07:23:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769332012; x=1769936812; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1769527432; x=1770132232; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=tAfO30pXEUo6pNWrWQ0nQn6kFYSXi13lult25YXYSEA=;
-        b=Uxfi+XxNdO75pNPFaj5m05JPex/+LxQAP537nm6v1YbWJlpe3VBT42mu+/YY1HR1Gh
-         Jc/H+45BhPn8U61oOp6H3gPyaoHt3r3h9cTwUdkSXYiKzUKvAezTXdboJLCaUNfNjUZY
-         lchj8Bd/8OOFUMZ5zYLzBhr5nwlTrTN9Q9lMjz7OmPEIbc0nSC0+i/S0fvOH/So+a5Z7
-         W/uWa6M9nhRjORJG+2ro9wGbui7e5ExYuGbCmLYw+bHDfN93TjguUgXy1JzN2EJwnTim
-         cHrEfa5uYbAN/Xf+KNW/xQfXcvb0Mcz1H2Nv3hHnFnUGDCUDBOdDUHqcrqqk8NAjz6z9
-         6+dA==
+        bh=ljZNcRt/7wcQvMRB0AsY4bNdMht4F4vw1aI5sMXqPb0=;
+        b=KaKQX5SeL/NBwz2TPXVGgPOUqk0+nTqaFTn2GNLCNEhYl2ktUUdBfleEG1fkoeJ8oJ
+         MAIxzH3zdwgW4gU67JGJZE9dHW+4ikeB8b3oSN97np2qnVwPcoTRP8+HUns6ssiF5ZrH
+         SgFaJrkEBRsAzBtRUmsZ3K9HEP18p4LhnZPy5rJszXhRxf+ChX3v0Wn5lMT8No8n6heo
+         Ufo7W3ck7MGcIBxc3nYou+l0aY4LO7ABX00+GvG23ur+/DVyXsmA+FOYToVO8Pdtduwc
+         Wca0OF4othrN9Czw/nQLNvWsXpHiI1EjhPlHum0+LVz/sw2DHf7LekaWQUhMp0GiLz05
+         LAIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769332012; x=1769936812;
+        d=1e100.net; s=20230601; t=1769527432; x=1770132232;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=tAfO30pXEUo6pNWrWQ0nQn6kFYSXi13lult25YXYSEA=;
-        b=NJ6A/eWjx0zFmir7H5BVQuCIUulFSmLX5y1K8loBbGYP0KPfE0j9BnkwzOPAaDoo/+
-         QNkqwmuJEynwFw0kLLBGuDKImZfyUo7OTyLoAMirSS74ze7j3ntvg71iKXtUSp+W0CXo
-         br3wGDV2aoGSNI6eSfYPNm7aH0wiF9XQVfrEuvb1YZRylDRP0m++GYApTG4uTSlrBuw3
-         xWsQ1ShlGawFdUa6FEcQMMtobGtXKytO9qPFnMHWljsv6uMo2hS6WSdG0gM9iRmpGXdc
-         XmDn6d2O8ypxLjLdO9dA2Pciy5dIl0plXeSAFrqBbneKTajVfrVamhQ9Fj0zUjWeWyZn
-         1PsA==
-X-Gm-Message-State: AOJu0Yw29y+6f8+Z/GqqKSUEZocBLRQPFUAbpSlilSm6w2VOyZyXY7aO
-	GSM0biB5gvpff2Ebibt85YPtFv2B1MWqPnfdtkt6dSlMHAcQMs7MIQG42kwsRQ==
-X-Gm-Gg: AZuq6aLBuuTXrc5pO/qo9JOyENKPAyWuCH3yOggbFFFwIHU+y8I42UllqP/hj1RYLS9
-	CnYxzYcaQ0vLeiAVmLARUtq/el665FqfCnjgYYmdJBHiQVefmuKfiJ8qJ8tf77LtXjwztkpV1As
-	6B1/r/lqYi1sLm7rUS2rdrupjY7cFFF59ASLRJMoeC1NprCFklsIsRLHFbKZjWaDoKnMWerMdD6
-	9hCD47zgehKkrDHgZqOAgNev+7m2CZtcG5uLyN7DAD5glwkSHDPifxuN1iOrsvOPfET2HGNXcx4
-	x3Fs/j7jYHPH4T1VVNqZH6wny9dfKAG/EyZCsG2Woobl5Az0VqpaMKd6101cXwf3wq9kig3293h
-	LAc0Xdp3ckg/A9xOSPfBRXQr1Y8A8caSK2kLdwFJV0TTR9+awWVKcntHI5ThOOA8WpXOb1h1lqn
-	lXuZQY8WgAusC3s8tPXIUn1clOEco02J+Oa/8d0tC5FRr3daRbug==
-X-Received: by 2002:a17:902:ce83:b0:2a3:ec72:f462 with SMTP id d9443c01a7336-2a84523fa94mr9820325ad.25.1769332012495;
-        Sun, 25 Jan 2026 01:06:52 -0800 (PST)
-Received: from JRT-PC.. (bb121-7-149-229.singnet.com.sg. [121.7.149.229])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a802dcdb8csm63476845ad.31.2026.01.25.01.06.50
+        bh=ljZNcRt/7wcQvMRB0AsY4bNdMht4F4vw1aI5sMXqPb0=;
+        b=lIW529H7QXd76YY+2lSaHXbHzxXKrInBvCkxPyA/S31G1zTNO5VqyKIY/Eu9ltlrs0
+         gAPopjlRMgxZdIn6fGGWgAk+ddQ6KdzOKhx6iDKdYKn/X4+oRTNtTfrNNQxfnZOJ79H9
+         A9u/kUr1U6AW0S+Oy3lFxINY0J+pZjCCjKuAOE3LYX3eWBq7BmhTDYdyHGyOPPsirCFC
+         V4ngSsWFqxZBZzD1V0VWJM/2K7ojyTJoPbGEraRXUwWCHBvomxEy7CXjVuq6yXD4vUKz
+         Fox9ScLSkGXlCsEDU1DBspaBDFSlLHR14hw+Hma5F4CmTQrkAju3YBMnJGHCXhSPDwgL
+         7nQw==
+X-Gm-Message-State: AOJu0YxhPl7jpOK/munMOaBC6K7SHo1OZYJr69G+aeASth/MzovnwYDU
+	Oml5Nzk8ZnLKuOjKHnpWkU7+TcGHqOGrNndrIb5Ruorist+hngoz8Sq2SThWyg==
+X-Gm-Gg: AZuq6aKG8G90eGKfyEuUOb7k6PxZU5rr28MNKXZUtzto127uaFkIS3rLtYEle8WNibt
+	1eIyDBHTKKW5OZYCWOrKcecUZVdNb/F0Xs5X/lBxqaM6/fQGg8HOXdzIBVq3BTsv+a4Q7yyGUWg
+	VhoGUCI0HOJrFgZoQYYKCBcSe/OP8VVlnF/OZzfDsEI6SxUgj0xIqGCJ98BEVepSPPqUCtj7PIs
+	5k9je1gcoJ9HVLietvQKHhgUr/rAtBQELmCFGZpwlt/t5I1D7/ge2p3saWm4o0j6zMbOEaHNszt
+	7i+SC1JAn1PljWydl5j0C6lJj2f0PWyGXMt6OsAhiyx2Rg/BlEy6MZjLweyIWierMS72k/+dz+x
+	uzl5DgpNJeNUOULDvk/78h9Em8li6cNzPXAxWq/Mr23kftf8mjmjmyRGVlEjZnYyd6yoyhT4cuN
+	T0nD/M1h6yUjeig+8SaTQB7b5fU2fwGIyJ1RdFoa0mrTcz3h269bW1KJJgI8OfIBGhXHwQsnY=
+X-Received: by 2002:a05:622a:241:b0:501:4a86:f5f1 with SMTP id d75a77b69052e-5032fa16e97mr23916551cf.71.1769527431790;
+        Tue, 27 Jan 2026 07:23:51 -0800 (PST)
+Received: from ubuntu.localdomain (174-138-202-16.cpe.distributel.net. [174.138.202.16])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5030032c987sm119710161cf.32.2026.01.27.07.23.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 25 Jan 2026 01:06:51 -0800 (PST)
-From: James Raphael Tiovalen <jamestiotio@gmail.com>
+        Tue, 27 Jan 2026 07:23:51 -0800 (PST)
+From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
-Cc: andrew.jones@linux.dev,
-	atishp@rivosinc.com,
-	radim.krcmar@oss.qualcomm.com,
-	James Raphael Tiovalen <jamestiotio@gmail.com>
-Subject: [PATCH v2] lib: sbi_pmu: Add FW counter index validation when reading high bits on RV64
-Date: Sun, 25 Jan 2026 17:06:43 +0800
-Message-ID: <20260125090643.190748-1-jamestiotio@gmail.com>
-X-Mailer: git-send-email 2.43.0
+Cc: scott@riscstar.com,
+	dave.patel@riscstar.com,
+	raymond.mao@riscstar.com,
+	robin.randhawa@sifive.com,
+	samuel.holland@sifive.com,
+	anup.patel@qti.qualcomm.com,
+	anuppate@qti.qualcomm.com,
+	dhaval@rivosinc.com,
+	peter.lin@sifive.com
+Subject: [RFC PATCH 0/2] Introduce INTC and VIRQ layer prototypes
+Date: Tue, 27 Jan 2026 10:23:40 -0500
+Message-Id: <20260127152342.1231995-1-raymondmaoca@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260125_010654_721637_E5E8335D 
-X-CRM114-Status: GOOD (  13.92  )
+X-CRM114-CacheID: sfid-20260127_072354_127993_3DB485A2 
+X-CRM114-Status: UNSURE (   7.39  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,89 +103,41 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Currently, when we attempt to read the upper 32 bits of a firmware
-counter on RV64 or higher, we just set `sbiret.value` to 0 without
-validating the counter index. The SBI specification requires us to set
-`sbiret.error` to `SBI_ERR_INVALID_PARAM` if the counter index points to
-a hardware counter or an invalid counter. Add a validation check to
-ensure compliance with the specification on RV64 or higher.
+From: Raymond Mao <raymond.mao@riscstar.com>
 
-Fixes: 51951d9e9af8 ("lib: sbi_pmu: Implement sbi_pmu_counter_fw_read_hi")
-Signed-off-by: James Raphael Tiovalen <jamestiotio@gmail.com>
----
-v1 -> v2:
-  - Implemented Radim's suggestion to refactor `sbi_pmu_ctr_fw_read()`
-    instead of adding a new function.
-  - Updated the type of `cidx` in the function signature of
-    `sbi_pmu_ctr_fw_read()`.
----
- include/sbi/sbi_pmu.h   |  2 +-
- lib/sbi/sbi_ecall_pmu.c |  4 ++--
- lib/sbi/sbi_pmu.c       | 10 +++++++++-
- 3 files changed, 12 insertions(+), 4 deletions(-)
+This RFC introduces INTC and VIRQ layers for APLIC wired interrupt
+support in OpenSBI.
 
-diff --git a/include/sbi/sbi_pmu.h b/include/sbi/sbi_pmu.h
-index c0e25f5a..3fff4627 100644
---- a/include/sbi/sbi_pmu.h
-+++ b/include/sbi/sbi_pmu.h
-@@ -136,7 +136,7 @@ int sbi_pmu_add_hw_event_counter_map(u32 eidx_start, u32 eidx_end, u32 cmap);
- 
- int sbi_pmu_add_raw_event_counter_map(uint64_t select, uint64_t select_mask, u32 cmap);
- 
--int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval);
-+int sbi_pmu_ctr_fw_read(unsigned long cidx, uint64_t *cval, bool high_bits);
- 
- int sbi_pmu_ctr_stop(unsigned long cidx_base, unsigned long cidx_mask,
- 		     unsigned long flag);
-diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-index 868e8665..41bb1624 100644
---- a/lib/sbi/sbi_ecall_pmu.c
-+++ b/lib/sbi/sbi_ecall_pmu.c
-@@ -50,12 +50,12 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
- 
- 		break;
- 	case SBI_EXT_PMU_COUNTER_FW_READ:
--		ret = sbi_pmu_ctr_fw_read(regs->a0, &temp);
-+		ret = sbi_pmu_ctr_fw_read(regs->a0, &temp, false);
- 		out->value = temp;
- 		break;
- 	case SBI_EXT_PMU_COUNTER_FW_READ_HI:
-+		ret = sbi_pmu_ctr_fw_read(regs->a0, &temp, true);
- #if __riscv_xlen == 32
--		ret = sbi_pmu_ctr_fw_read(regs->a0, &temp);
- 		out->value = temp >> 32;
- #else
- 		out->value = 0;
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index e084005d..a310553e 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -227,7 +227,7 @@ static bool pmu_ctr_idx_validate(unsigned long cbase, unsigned long cmask)
- 	return cmask && cbase + sbi_fls(cmask) < total_ctrs;
- }
- 
--int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
-+int sbi_pmu_ctr_fw_read(unsigned long cidx, uint64_t *cval, bool high_bits)
- {
- 	int event_idx_type;
- 	uint32_t event_code;
-@@ -236,6 +236,14 @@ int sbi_pmu_ctr_fw_read(uint32_t cidx, uint64_t *cval)
- 	if (unlikely(!phs))
- 		return SBI_EINVAL;
- 
-+	if (cidx < num_hw_ctrs || cidx >= total_ctrs)
-+		return SBI_EINVAL;
-+
-+#if __riscv_xlen > 32
-+	if (high_bits)
-+		return 0;
-+#endif
-+
- 	event_idx_type = pmu_ctr_validate(phs, cidx, &event_code);
- 	if (event_idx_type != SBI_PMU_EVENT_TYPE_FW)
- 		return SBI_EINVAL;
+In the current OpenSBI implementation, APLIC support primarily focuses
+on initialization and delegation, while external interrupt handling
+for wired interrupts remains largely stubbed. As a result:
+- There is no generic mechanism for OpenSBI drivers or platforms to
+  register handlers for wired interrupt lines.
+- Interrupt dispatch remains tightly coupled to specific irqchip
+  implementations.
+
+The goal is to introduce a small, extensible abstraction INTC
+(Interrupt Controller) layer to hide the HW details and provide
+abstract operations like interrupt provider registration,
+claim/complete/mask/unmask operations with IRQ number mapping to avoid
+exposure of hwirq.
+
+VIRQ (Virtual IRQ) layer is on top of INTC, providing IRQ state
+management via per-(domain,hart) IRQ pending queue, with courier
+dispatching and interface to enqueue/pop/complete an IRQ.
+
+Raymond Mao (2):
+  lib: sbi: introduce INTC abstraction for wired interrupts
+  lib: sbi: Add VIRQ layer
+
+ sbi_intc.h | 99 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ sbi_virq.h | 71 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 170 insertions(+)
+ create mode 100644 sbi_intc.h
+ create mode 100644 sbi_virq.h
+
 -- 
-2.43.0
+2.25.1
 
 
 -- 
