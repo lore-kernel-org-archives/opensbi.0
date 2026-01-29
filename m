@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0A225D358DB
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5D394D358D9
 	for <opensbi@archiver.kernel.org>; Thu, 29 Jan 2026 08:14:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,69 +12,69 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
 	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=lvPWvyZkK6vuJSY5B6huL41p3jYi0L1o8tz+NnNAYnQ=; b=hx0s9orJRxhPk6
-	6ZnPkOjBXuHWGBSQOPZUI6atMA5GLIdKuOPFpR5rrq8mb2Bbhs+eMTpolvMIQH0wFRW/oRbo6gTWH
-	xl4pf1oBnra8C4YMa3xln2t4MCvBcWnV8yJ2uislSbMdnY5uQGFHxvB8WmCg0irA/1qajCROfUdeL
-	YJeKBRC57c/zUau6OJRCP5j8c4x8vXEIo0/KtHQAYeC/B20HjTcTrcvP8368lsSNGTQB6D3OaSYt5
-	TCTMK6328MWhEoPa5/v7pdzLfoaawYO++CrJf/xANfvyrJOQaeqy/pLblcZmosNep47jISq7v1ng9
-	cx8WbPzqoSvhxbLc+wPg==;
+	List-Owner; bh=p+QhySKhlLyL0HCbKO0oHDyOeKMPdxOx9ksv/O4xtRs=; b=gVLYoug0J2idEh
+	L590yGdO5i9BH2Zwm02FVrXVt1H7o1VjoIPLjJLnmXaqtF8/doR+mWz9IPBIo0o3St5z9MZeewHpA
+	HrtoAT8QhW0QTBrfXzklwq0namCujjUIh31dMCyMoJM/GzunvX31KMFv5lM7ikc4+Yt2zRCx2p0jR
+	xfTKWaBWpEPXbt25ehrTOR7FxRTBO6f7aMrcBo1d8UaklBZdMSmKj2XgXOdch91Rwf8HDvOedvu2p
+	4LyJQo72ERJVfCB2GAKBMaCSy8MXs6I106++38uvQdpaP2uDeRHVgYNQcSw6xqnfEIjluXAlJwxFV
+	ciq9oITh3ClbLW1rFEEQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vlNA8-0000000HQpb-2R8N;
+	id 1vlNA8-0000000HQpo-3d5w;
 	Thu, 29 Jan 2026 08:14:00 +0000
-Received: from mail-dy1-x1329.google.com ([2607:f8b0:4864:20::1329])
+Received: from mail-dl1-x1231.google.com ([2607:f8b0:4864:20::1231])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vlNA5-0000000HQoN-3cty
+	id 1vlNA6-0000000HQoi-2zMT
 	for opensbi@lists.infradead.org;
 	Thu, 29 Jan 2026 08:13:59 +0000
-Received: by mail-dy1-x1329.google.com with SMTP id 5a478bee46e88-2ae2eb49b4bso326888eec.0
-        for <opensbi@lists.infradead.org>; Thu, 29 Jan 2026 00:13:57 -0800 (PST)
+Received: by mail-dl1-x1231.google.com with SMTP id a92af1059eb24-1233bb90317so1600875c88.1
+        for <opensbi@lists.infradead.org>; Thu, 29 Jan 2026 00:13:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=sifive.com; s=google; t=1769674437; x=1770279237; darn=lists.infradead.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=b+H1fiBo2/2JcVvB8TOCwT8kbuhBnpVHas61ojWamMQ=;
-        b=Q0atOwIGBYpM9q9yHSuslPh/bOTtEQYU9QuRPHeh4BCiJEmtQ4GHTYgCffLRLskYyZ
-         GyZBPVwehmzCzLAOUFkoYxypdCjrjOJQbg96U/LH4/NNSfkFRkxTwp21xI0JhNX1SNiS
-         UmQsXATUezq6Yz75oL2YSWm5ftpwM3m/CeMrvodHhDJDM8SuNEcw/a6FseM/NbvhhB1b
-         QwYqr+QQAtoZ33erxvihzPjltq84VJJ8lhtZoV8k6QIgskeiMZY7yYcHlDg9yLlZ7yWg
-         KUaJgpi6Q3/XGuRfJvY/VwZxaKUt9XTEIHK91gAVv4fuO2Cb8owGqvEEiQltdEtSx989
-         bFcA==
+        bh=ora8Y+xP0w1izyNVSHFIfeKovm1U2il8p1k7w+/vYlg=;
+        b=Z+7wHTNlmYkXUhiSDVsjVAwZU4XsL3WJZpOItTVJLcSpC8b5Ni1kgzbf7eLpqBPdFE
+         rz0Lr05oSO6bbxjenpZnwE3RpJTT2Vr3yC0GgDpZtvQdqjKHPQPZyLmr/5AsFC8foYMr
+         7Z6AGuUgA8YsZmkKBR3FSLlxX4vhztNmK2Ont8Tp69690u/qWv/RT2V8EDBRoUUlZ6Pr
+         b7hG+OnBBNB8WefVzZSKzaXMI5EPH13uNHmoTa+Eb5vGU9nnObMsfZpz7OtBXgR/t9/P
+         cb/DE165E4U9fpMIKfcweH24Toqyc/XHJyuX+lBBQwtiCfyNRM0p4/QFkFy7Fwv2qRWG
+         +bUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20230601; t=1769674437; x=1770279237;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=b+H1fiBo2/2JcVvB8TOCwT8kbuhBnpVHas61ojWamMQ=;
-        b=BwY+SOoIQghw4piMHO4gpb8kiosu6ZhUW3nB7YDyiWnO7NIfMCBbUtR/ZP17CqSnv9
-         lTKSvf+LgLqQNlhXYNkEwQ8ga9uJS0mBuCZVUx7wI+Y7gWmQueKtsn/LRc484LP66d34
-         nVv2/w5Z7ylGK1MSr0pxGLkhydeFkw1zjEkEcQj+63UURYif803eKWNe6EHYir7cItU4
-         5cLeTZG7ryc7FosO14yGbAm9/WyG6t0P38Kahv/CGYMJ2s0gashPZX2HamM88pkN3q/M
-         PXfIFvdOXCbONXSElEBL2cC9/fzG/HGnF0D/usSXlh0hcdcyV1eb0gVICrQkiGOatRKz
-         ivBg==
-X-Gm-Message-State: AOJu0Yx6/arnnAM0HCFVjIkOSlXl3tbkjRYSBqTpZSS0rXCoPML/z47r
-	EGYpIS1phQCwMCcHclwKkMWiO02jEC2aKu6qut0/mZM1jcogMz1d7XMdW/kRvkSGvzJyCV9Rtux
-	/kYFQbGtOu5EPOq+SidFBW03IjueEh3OquRC5ujyVmRQkxT/VQr3A8eC1fV9VCDMBrjQ1muYZUe
-	7SvuaHAfQi/JTUEctfimDfdGKk8pXcH+fHIy0Km56EtuFbMQcpig==
-X-Gm-Gg: AZuq6aLq22fxNVLPf9zQlUN9zwY2CckTe+FWvQIJGp9spCyMNt8zRcJDslkpBaKH4zv
-	8Nq53BLh3kpGdvtlUSPpNfVHXZkCnoptD18i7dzjdqroWq/LYbcJcMcByUGEyuSoTBSOQei2pGb
-	VjiBtdHhKZBNXcUHGbTw4ehG7AMxEs6+XmCuUjD1aqQH+j2czlbz4VPAeBtnrGyiWmVEIj2czj5
-	sH1FnhfINCdO/E7/rv4FkV7F0Da14Hg4cf7vrcXFcysg15QSZW25BOkDmndykFejXske9NA7nHE
-	5dmAtDhT75icTOdN2ALOpnHH02IRGQnk2xpWBZlFPbjUJec1jnzeiMeYaJWgCRMULnnam2GyueE
-	Uj55R/W/2ntxd4q6mHUf306F/VK86rZDdwovT7tj1CQnNpDJ2omVIt87Y1dPCJM5gr+calcnqw5
-	267SqFkz6vn+nh1I2zfJs4TIndBXi/wvcr/Hvjpw==
-X-Received: by 2002:a05:7300:cc12:b0:2b1:7486:3a6e with SMTP id 5a478bee46e88-2b78d90e3e7mr5064061eec.12.1769674436549;
-        Thu, 29 Jan 2026 00:13:56 -0800 (PST)
+        bh=ora8Y+xP0w1izyNVSHFIfeKovm1U2il8p1k7w+/vYlg=;
+        b=IOMVpFx1D0LV7qCC23sp9tgkbgr3JXKg7QBqWcp7/Rw2DNaGFQx0JhQwnksvh7d16P
+         tFXgeicD4+wu3p9zbJCiM7CSKF7uS4WGU3fzG91RSPjhQyhNlAfBV+NhFis4wBgB6dCd
+         9XmRjhs/tYty1bsMdYwKSHGhtYMff2CbXNSsPKdMnIjsZYCOW8mPJq4276LJVfAvHAik
+         wh1kigx1SZNKr6hII8Y2jTdpcJNasbTIiHykn4maQ6mqlZCYcfWNvwdRNdJKfpqEaWoP
+         R0oIT/79FyVh9TFWWSFdczG2rlYTII5v4oahvdYXK+Pv8HESXitxqX0CYfn8Yt/vTNhR
+         RYaA==
+X-Gm-Message-State: AOJu0YzajPPpcBe+5+UdsIOqYaUxu/Gz+9obneknvHwYJI974HOsUO4d
+	vQJoQ8SSA09j5Cg0euXV8/8JkUQ4vX4Yiyne6YmnVT2IkxKLv3XlLMExfghDMwnzKQaMlA9C1tG
+	lRV2CIoWrr1Ixku+kOX8kST2fWTVSgJUQ41cVH1Us28eo5Hv9jpyDtzdFFMSXJM5XMFWsw9rbqb
+	Fk1G98RA68e988lcziSSxe6+F2J8X1AsQfRJhn8jnyXvWs5zgdniSc
+X-Gm-Gg: AZuq6aInPM6o+Cxj92ezAWVwW/BxpmeIvebCUIEf+zV60K1UUvDVcGpqsBrJ/TUGjvv
+	3W+wqu/AnW2Vtnxl9FF1L0CSWDjOravCWWMjI2+oQ0nPLJehZ/EDFa36SErZPKZR4uOWTNQgSGA
+	tvLonfH3YZeTRlFpqBU5VBm/VYPprbdFEOsLST1394Oh0YmhDsAirGhg9zapFYuUAydAocWzq81
+	VDwmjFyk8bPcFL7de6nkdg5uUbyU8wMTqBVl9+X1u/Hb6m0LEb+05II5HsXi8tviklXBATU/PAP
+	E6Hm41545iz8OkkqWv9NhTkafNBguDStw0+A4YsueepOE8Lblcooi2aRc2lRLRTw3N0gnhZmPic
+	RDMZvVCMkrZW6GglCQcNg1SiI6kD6nzaab/vIb5lMZBMoJ0VAteJMEvr3eFSAx8b1UgoNBqypgx
+	v0r00G0kXrO50z8swCvvi1QehUJiw=
+X-Received: by 2002:a05:7301:1f13:b0:2a4:701a:b9ba with SMTP id 5a478bee46e88-2b7b180298bmr765167eec.14.1769674435805;
+        Thu, 29 Jan 2026 00:13:55 -0800 (PST)
 Received: from sw07.internal.sifive.com ([4.53.31.132])
         by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b7a1add664sm6042480eec.26.2026.01.29.00.13.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jan 2026 00:13:56 -0800 (PST)
+        Thu, 29 Jan 2026 00:13:55 -0800 (PST)
 From: Nylon Chen <nylon.chen@sifive.com>
-Date: Thu, 29 Jan 2026 00:13:43 -0800
-Subject: [PATCH 3/3] firmware: fw_base.S: Add common NMI trap handler
+Date: Thu, 29 Jan 2026 00:13:42 -0800
+Subject: [PATCH 2/3] lib: sbi: Enable Smrnmi extension handler
 MIME-Version: 1.0
-Message-Id: <20260129-smrnmi-v3-v1-3-5d297d3e2027@sifive.com>
+Message-Id: <20260129-smrnmi-v3-v1-2-5d297d3e2027@sifive.com>
 References: <20260129-smrnmi-v3-v1-0-5d297d3e2027@sifive.com>
 In-Reply-To: <20260129-smrnmi-v3-v1-0-5d297d3e2027@sifive.com>
 To: opensbi@lists.infradead.org
@@ -84,8 +84,8 @@ Cc: Zong Li <zong.li@sifive.com>, Nick Hu <nick.hu@sifive.com>,
  Yong-Xuan Wang <yongxuan.wang@sifive.com>
 X-Mailer: b4 0.14.3
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260129_001357_937257_8121E80F 
-X-CRM114-Status: GOOD (  14.92  )
+X-CRM114-CacheID: sfid-20260129_001358_782065_986F3062 
+X-CRM114-Status: GOOD (  16.32  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,8 +102,10 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add rnmi_handler assembly wrapper and sbi_rnmi_trap_handler default
-C handler. The default handler prints diagnostics and hangs the hart.
+Enable the Smrnmi extension by:
+1. Adding sbi_rnmi_vector_init() to allocate per-HART RNMI context and enable RNMI via MNSTATUS.NMIE
+2. Saving and restoring CSR_MNSCRATCH and CSR_MNSTATUS across non-retentive suspend/resume
+3. Calling sbi_rnmi_vector_init() from the cold and warm init paths
 
 Co-developed-by: Zong Li <zong.li@sifive.com>
 Signed-off-by: Zong Li <zong.li@sifive.com>
@@ -112,158 +114,164 @@ Suggested-by: Samuel Holland <samuel.holland@sifive.com>
 Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
 Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
 ---
- firmware/fw_base.S     | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/sbi/sbi_trap.h | 12 ++++++++--
- lib/sbi/sbi_hart.c     |  8 +++++++
- lib/sbi/sbi_trap.c     | 16 +++++++++++++
- 4 files changed, 98 insertions(+), 2 deletions(-)
+ include/sbi/sbi_hart.h     |  1 +
+ include/sbi/sbi_platform.h |  9 +++++++++
+ lib/sbi/sbi_hart.c         | 43 +++++++++++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hsm.c          | 10 ++++++++++
+ lib/sbi/sbi_init.c         |  8 ++++++++
+ 5 files changed, 71 insertions(+)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index bce9e226..c2b9a5f8 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -643,6 +643,70 @@ memcmp:
- 	REG_L	a0, SBI_TRAP_REGS_OFFSET(a0)(a0)
- .endm
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 7d038a18..3e442546 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -128,6 +128,7 @@ struct sbi_scratch;
  
-+.macro RNMI_SAVE_REGS
-+	/* Save all general registers except SP (already in MNSCRATCH) */
-+	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
-+	/* Also save t0 (TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0 doesn't save it) */
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
-+.endm
-+
-+.macro RNMI_RESTORE_REGS
-+	/* Restore all general registers except A0 and T0 */
-+	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-+	/* Restore A0 and T0 */
-+	TRAP_RESTORE_A0_T0
-+.endm
-+
-+/* Smrnmi mnret instruction encoding (0x70200073) */
-+.macro MNRET
-+	.word 0x70200073
-+.endm
-+
-+	.section .entry, "ax", %progbits
-+	.align 4
-+	.globl sbi_rnmi_vector
-+sbi_rnmi_vector:
-+	/* Swap SP with MNSCRATCH */
-+	csrrw	sp, CSR_MNSCRATCH, sp
-+
-+	/* Allocate space for full trap registers structure */
-+	addi	sp, sp, -(SBI_TRAP_REGS_SIZE)
-+
-+	/* Save all general registers */
-+	RNMI_SAVE_REGS
-+
-+	/* Save original SP (currently in MNSCRATCH) */
-+	csrr	t0, CSR_MNSCRATCH
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(sp)(sp)
-+
-+	/* Set up arguments for C RNMI handler */
-+	add	a0, sp, zero
-+
-+	/* Save RNMI MNEPC/MNSTATUS into regs->mepc/mstatus. */
-+	csrr	t0, CSR_MNEPC
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-+	csrr	t0, CSR_MNSTATUS
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
-+
-+	/* Pass RNMI cause as second argument */
-+	csrr	a1, CSR_MNCAUSE
-+
-+	/* Call the default C RNMI handler directly */
-+	call	sbi_rnmi_trap_handler
-+
-+	/* Restore RNMI stack pointer for future RNMI entries. */
-+	addi	t0, sp, SBI_TRAP_REGS_SIZE
-+	csrw	CSR_MNSCRATCH, t0
-+
-+	/* Set A0 to point to saved registers for restore macros */
-+	add	a0, sp, zero
-+
-+	/* Restore all general registers */
-+	RNMI_RESTORE_REGS
-+
-+	/* Return from RNMI with mnret. */
-+	MNRET
-+
- 	.section .entry, "ax", %progbits
- 	.align 3
- 	.globl _trap_handler
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index 731a0c98..afd95ad5 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -289,6 +289,14 @@ static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
+ int sbi_hart_reinit(struct sbi_scratch *scratch);
+ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
++int sbi_rnmi_vector_init(struct sbi_scratch *scratch, bool cold_boot);
  
- struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx);
+ extern void (*sbi_hart_expected_trap)(void);
  
--#endif
-+/**
-+ * Common firmware RNMI trap handler entry in M-mode.
-+ *
-+ * Platforms program their RNMI trap vector to this address using the
-+ * set_rnmi_trap_vector platform operation.
-+ */
-+void sbi_rnmi_vector(void);
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index e65d9877..c4f6c456 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -149,6 +149,15 @@ struct sbi_platform_operations {
+ 			unsigned long log2len);
+ 	/** platform specific pmp disable on current HART */
+ 	void (*pmp_disable)(unsigned int n);
++	/**
++	 * Platform-specific helper to program the RNMI trap vector.
++	 *
++	 * The core will call this from sbi_rnmi_vector_init() with the
++	 * firmware RNMI handler entry address (rnmi_handler) and the
++	 * cold_boot flag. Platforms that support Smrnmi should implement
++	 * this; others can leave it NULL.
++	 */
++	int (*set_rnmi_trap_vector)(uintptr_t handler_addr, bool cold_boot);
+ };
  
--#endif
-+#endif /* !__ASSEMBLER__ */
-+
-+#endif /* __SBI_TRAP_H__ */
+ /** Platform default per-HART stack size for exception/interrupt handling */
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index baebc438..7586ee09 100644
+index 495ad1d8..baebc438 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -839,6 +839,7 @@ int sbi_rnmi_vector_init(struct sbi_scratch *scratch, bool cold_boot)
+@@ -28,6 +28,7 @@ extern void __sbi_expected_trap_hext(void);
+ void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
+ 
+ unsigned long hart_features_offset;
++static unsigned long rnmi_context_offset;
+ 
+ static void mstatus_init(struct sbi_scratch *scratch)
  {
- 	unsigned long rnmi_sp;
- 	void *rnmi_ctx;
-+	int ret;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
- 	const struct sbi_platform_operations *ops =
- 		plat ? sbi_platform_ops(plat) : NULL;
-@@ -871,6 +872,13 @@ int sbi_rnmi_vector_init(struct sbi_scratch *scratch, bool cold_boot)
- 	rnmi_sp  = (unsigned long)rnmi_ctx + SBI_TRAP_REGS_SIZE;
- 	csr_write(CSR_MNSCRATCH, rnmi_sp);
- 
-+	/* Ask the platform to program the RNMI trap vector. */
-+	ret = ops->set_rnmi_trap_vector((uintptr_t)sbi_rnmi_vector, cold_boot);
-+	if (ret == SBI_ENODEV)
-+		return 0;
-+	if (ret)
-+		return ret;
-+
- 	/* Enable RNMI now that CSR_MNSCRATCH and the trap vector are set up. */
- 	csr_set(CSR_MNSTATUS, MNSTATUS_NMIE);
- 
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index f41db4d1..940b83d8 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -375,3 +375,19 @@ trap_done:
- 	sbi_trap_set_context(scratch, tcntx->prev_context);
- 	return tcntx;
+@@ -833,3 +834,45 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
+ 	__asm__ __volatile__("mret" : : "r"(a0), "r"(a1));
+ 	__builtin_unreachable();
  }
 +
-+/**
-+ * Default RNMI trap handler.
-+ *
-+ * This is the default handler for Resumable Non-Maskable Interrupts (RNMI).
-+ * It is invoked directly from the firmware RNMI entry (rnmi_handler)
-+ * and prints diagnostic information before hanging the hart.
-+ */
-+void sbi_rnmi_trap_handler(struct sbi_trap_regs *regs, unsigned long mncause)
++int sbi_rnmi_vector_init(struct sbi_scratch *scratch, bool cold_boot)
 +{
-+	sbi_printf("mnepc   = 0x%016lx\n", regs->mepc);
-+	sbi_printf("mncause = 0x%016lx\n", mncause);
-+	sbi_printf("mnstatus= 0x%016lx\n", regs->mstatus);
++	unsigned long rnmi_sp;
++	void *rnmi_ctx;
++	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++	const struct sbi_platform_operations *ops =
++		plat ? sbi_platform_ops(plat) : NULL;
 +
-+	sbi_hart_hang();
++	/* If the hart does not support Smrnmi then nothing to do. */
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMRNMI))
++		return 0;
++
++	/* Platform without RNMI vector hook cannot support RNMI. */
++	if (!ops || !ops->set_rnmi_trap_vector)
++		return 0;
++
++	/*
++	 * Allocate per-HART RNMI context area once during cold boot and
++	 * remember its offset inside struct sbi_scratch. All harts use
++	 * the same offset but different scratch pointers, so each hart
++	 * gets its own RNMI context.
++	 */
++	if (cold_boot) {
++		rnmi_context_offset = sbi_scratch_alloc_offset(SBI_TRAP_REGS_SIZE);
++		if (!rnmi_context_offset)
++			return SBI_ENOMEM;
++	}
++
++	if (!rnmi_context_offset)
++		return 0;
++
++	/* Set CSR_MNSCRATCH to point above the RNMI trap-regs save area. */
++	rnmi_ctx = sbi_scratch_offset_ptr(scratch, rnmi_context_offset);
++	rnmi_sp  = (unsigned long)rnmi_ctx + SBI_TRAP_REGS_SIZE;
++	csr_write(CSR_MNSCRATCH, rnmi_sp);
++
++	/* Enable RNMI now that CSR_MNSCRATCH and the trap vector are set up. */
++	csr_set(CSR_MNSTATUS, MNSTATUS_NMIE);
++
++	return 0;
 +}
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 0a355f9c..f259c257 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -49,6 +49,8 @@ struct sbi_hsm_data {
+ 	unsigned long saved_medeleg;
+ 	unsigned long saved_mideleg;
+ 	u64 saved_menvcfg;
++	unsigned long saved_mnscratch;
++	unsigned long saved_mnstatus;
+ 	atomic_t start_ticket;
+ };
+ 
+@@ -430,6 +432,10 @@ void __sbi_hsm_suspend_non_ret_save(struct sbi_scratch *scratch)
+ 	hdata->saved_mideleg = csr_read(CSR_MIDELEG);
+ 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
+ 		hdata->saved_menvcfg = csr_read64(CSR_MENVCFG);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMRNMI)) {
++		hdata->saved_mnscratch = csr_read(CSR_MNSCRATCH);
++		hdata->saved_mnstatus = csr_read(CSR_MNSTATUS);
++	}
+ }
+ 
+ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+@@ -437,6 +443,10 @@ static void __sbi_hsm_suspend_non_ret_restore(struct sbi_scratch *scratch)
+ 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
+ 							    hart_data_offset);
+ 
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMRNMI)) {
++		csr_write(CSR_MNSCRATCH, hdata->saved_mnscratch);
++		csr_write(CSR_MNSTATUS, hdata->saved_mnstatus);
++	}
+ 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
+ 		csr_write64(CSR_MENVCFG, hdata->saved_menvcfg);
+ 	csr_write(CSR_MIDELEG, hdata->saved_mideleg);
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 5259064b..60a24809 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -273,6 +273,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	if (rc)
+ 		sbi_hart_hang();
+ 
++	rc = sbi_rnmi_vector_init(scratch, true);
++	if (rc)
++		sbi_hart_hang();
++
+ 	rc = sbi_pmu_init(scratch, true);
+ 	if (rc) {
+ 		sbi_printf("%s: pmu init failed (error %d)\n",
+@@ -432,6 +436,10 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
+ 	if (rc)
+ 		sbi_hart_hang();
+ 
++	rc = sbi_rnmi_vector_init(scratch, false);
++	if (rc)
++		sbi_hart_hang();
++
+ 	rc = sbi_pmu_init(scratch, false);
+ 	if (rc)
+ 		sbi_hart_hang();
 
 -- 
 2.43.7
