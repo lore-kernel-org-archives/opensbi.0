@@ -4,104 +4,107 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id AAE4DEE0AC4
-	for <opensbi@archiver.kernel.org>; Sat,  7 Feb 2026 10:10:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4D8A2EE0AC6
+	for <opensbi@archiver.kernel.org>; Sat,  7 Feb 2026 10:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=SJykIwYm5lqZM/sOQET2ETRgVusLtHZIXHVFN24lMWU=; b=kmNiDsmbsg7RT4
-	1Xh6GRPXIVkkmv1gmV3DiQvn/kbyUH4I7CySgUaYmCa/dY+MiGE485gNkJU9x6Xm6lPzm2n6JC4DN
-	jHTMAx7lwfyMw30j/xnhyO74D20YQxr/WQhYqbhgH4M8RmWLOvNX+Bzx56gYEMRfQGxcUry7kF+Cp
-	o8nwIn5L9b4SbCz6eUILK6Tya1ECFZPkWfX2LMbBo0BayPafLM2AaoJEvwn9H+3mErBtr5ZyqJPPG
-	jJQW0bW3+uerNoNa1kO6ACBuC6N8C6/4XyaSvcBr2AdKHunLQDGL5sXdowF7+Ob8fXsRpkYKkITnq
-	HNkKWvvEYTag9P8oSq7A==;
+	List-Owner; bh=t5V5q/e37TNyfYWTusDWUyszbv0MiWfsuwpEGuIUs60=; b=QuDEzzPLBGo6N7
+	PGGx9PVv7QDF9lob5NWhAxZ1nDYDbyu9h7D+r9cgW1CMN8ucKpQ84A5c4Mx4h9ujmov6VmX7z2D5v
+	/OWEeasvLYnRBrUO164OLUYhkYVcBSNDHJUmMajwmUPtyhAs3ZpjFXpnj0Zvtu2h7Eurf8wCn0KIk
+	3WoFSzyVAZbeLt+ynDs1ELFEEIZq6+cqrXYI3EhClxC7e0o4v/gODgl1KRCITpGnI9dzQwc7vDnxo
+	yuOf6JeqGKCaTcxkGoM6ut1r4gEf+ToauCr9HPRM+J0cB2T/7C3cmLA1Qu9edlpNDtE+hKcnUG4KV
+	+opULR5aj0oq0swF0S4g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vofGv-0000000CIc5-1YL2;
-	Sat, 07 Feb 2026 10:10:37 +0000
-Received: from mail-oo1-xc2a.google.com ([2607:f8b0:4864:20::c2a])
+	id 1vofW3-0000000CJNW-2zub;
+	Sat, 07 Feb 2026 10:26:15 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vofGs-0000000CIbZ-0O42
+	id 1vofW0-0000000CJMu-2dHH
 	for opensbi@lists.infradead.org;
-	Sat, 07 Feb 2026 10:10:35 +0000
-Received: by mail-oo1-xc2a.google.com with SMTP id 006d021491bc7-66f3e7d9eccso63883eaf.1
-        for <opensbi@lists.infradead.org>; Sat, 07 Feb 2026 02:10:33 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770459033; cv=none;
-        d=google.com; s=arc-20240605;
-        b=IxPTgq1bkEeYK2ec+BcMWE2aTSnVlC8lKJe7wfvT8Dw7WYwym84xyxrZmIPwe1UBru
-         2qB2Gfyws+wj1Ke+URYxOs57DJKcR7XfG8U/hJJweDpo/tyxd1Bbma1hK4Hl3blNlOgk
-         xrfiGUbQCXtFf0SQLdWKJLY5aIfgF/p/BuSYkF0cXo2YlMAdAXQaO6KoZih1iAqAkhmy
-         bqBujUjfakB9Rh3I0mvd5fH0QQhP/H41iSjS0+uo161u8JNXJ8Q0bvWN6nLJ437F+IVr
-         fMwr6oD2Hv72+AnFZgBdrqGrvqEZHLNxcpv1XSX/mMQZ+2x0WckQ9LSQehFOxfasPDMr
-         2a4g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=p4EV78/aIWwPXz/0IB+8ELmf6rKgSU3CW6hL2LrND8M=;
-        fh=Sch92qKkux4AeucvC2KlvargZk/jQktzKzrRc6CJlNk=;
-        b=Sy+H9OLn7xemVwkWcD8Zli96jG29P9ONMfxfFsiwB62FGVRFJidvH2fMX2zTsZOCPQ
-         /isjRYa8Ot7LmWgakXljWWt8Blgi1wzjCvX+ROc/0vX7eLGrCZBjm/yKw9nS+c6Gpr65
-         TlhZyF1IhbFe4xACMeyhYISzaH60EjsxtO6R1KohrHUkFDzPwdGLpFohE9jmdvcHq2fK
-         8ACOtEjSDho+xzYgABL5Jf5HegURosQlG4BIUnXFXbncw6m2w4L9X4qsdgcFe+bo5nd5
-         rroAG3UW8e4j6DAiDUrOq0cOVFJNmSWlUV67kXZW8DTct9HbMJ0gJib+bvUQwwYff3UG
-         Ek1w==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1770459033; x=1771063833; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=p4EV78/aIWwPXz/0IB+8ELmf6rKgSU3CW6hL2LrND8M=;
-        b=Cqi9smteLrn1Hniryv8pskWK+LuSarUaAji6YaWKDs+0J3imABtFL9++rvkGiR/Pnf
-         vZs9QLU50VfGwgGUVa4p5O0Vz00jjEVBWe25tavczdRm7IlwB+CTKEO6lHTdzP1ncVke
-         tlXt9Ip1juDKvQpgcsB2v2YM8f7qGj2d6c4RnfFW/hy0vsr+wZfigjFT8oIX77/L6LfW
-         5vE8l7b0qU57rHpyKjOI+z+W4w6E5+AiOr4oUpt6SKiK13Icvzk8HkGDv98CI8b0JV+y
-         Jm4CTdqtu0f2lVtAsp3rnoUgyZQYjXnDbodKWCF57E3aJj3P0GkJGT47NNN4AI1+S48j
-         V42g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770459033; x=1771063833;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=p4EV78/aIWwPXz/0IB+8ELmf6rKgSU3CW6hL2LrND8M=;
-        b=QZnQxzl/UKCGAzg2tn59a+m3Qrocyj591QrrnjTn+7G62Ni2a+esLwDGg+ItYOpSGB
-         Nb5F97QzDUUVwtdwka5u94f9B1nwC75d34jLwfaREBP52RQCHfw4db7nwcAYtfisdr86
-         M3ZUYlxQTXKY9prXoaLrIm6pMFs8LsS+uzIot6FHIX6xfzZ0bi4YTmJzF/GXku9rvdKV
-         EYhD8fZPRLc9QusXQgdn0ccw0/UMqPG2I1KOG29SK8G1p2mfCh9p+OkoSi4R3VyxfeoV
-         g1tP7raooTq+qs8MLg3XWhCmdMTUptXxBlqL6EUk+R3d9z3uBy18o2eIjaLEbReg6pO2
-         3X7Q==
-X-Gm-Message-State: AOJu0YzmC5Dko0PmgSykYvQKPro23S7idk/6VOFXIbqbX0XmNiUEgIlR
-	VlTBFVlB3/JLHdxy+HgngkTcoRn8i1KjSpstbkmCOwUSMem7iS+zyfkmG21FZudq/UO6WZG5dyM
-	fnm3qSAEKFhsDXvmZjSWdSuMTNXdXKFTJuxFSc0RVsA==
-X-Gm-Gg: AZuq6aIa+I7wQjalLKtj82M2uOr8mxWectbjQGwTagFgFF4TSYwS/NUa5EBVigxV4C5
-	SVkZixozUqYoTfCGdeWI73J1VDHdMy6oskqdV67vN1QR5d2UyuqdXcMZh/YxS2GxxBRxnz3xNkF
-	967dLiOZzTeRe9fQu04zk5OLtp7tamyYbaYwPmRHwVorlGdGtM7F6ds0KGpQOvJ5GECdMhlU/IK
-	RtLGLJEUmu8sBRmV4YflGpXg8+kZ+vSgIoTqaIHjFZxt4nhvo+hw/r5KTlcX7oDnN6xC5Rq3Ifu
-	qlt/Zv6MX63M2s2/g3cJMMvoab7kfDsZFyG66hFJ1GPNw38LxXBmZHnHpQ==
-X-Received: by 2002:a05:6820:4dc8:b0:663:4d6:1cc0 with SMTP id
- 006d021491bc7-66d0a478f74mr2658727eaf.24.1770459032908; Sat, 07 Feb 2026
- 02:10:32 -0800 (PST)
+	Sat, 07 Feb 2026 10:26:13 +0000
+Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6174Mxdi1117283;
+	Sat, 7 Feb 2026 10:26:09 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=ey/Zgjb9n/h
+	oqh+iTeH4X4ePiqKaWekrrnXZGt5++qw=; b=LGA6MJGEFz5TmwGDRryoL0tesIb
+	yr76BkokZA+Dekx+iuwIm3i7sT0Rf29wbqygYAEhH+XuW61WKBdUlBBAd4yBmqhP
+	7Yq93h3fFdu6fvv5hGFJs8SLmTBKfEhz958LuqQMlFXh1VDCXhPmtz+WpJtX/B0I
+	rGLfyZd+e/63xBngGBJGSTScxRmQV00y+qAI2+LrzY6z6rrhir/9Gnefmu3OlDoa
+	lxAprvONxC22Sbo+FUcJJF66p30l+tYMBjkU3jhx1UGULEXimy00waA5XZd9UVEP
+	iMcayt4OJcPPMyloLc+wtb58DkTRobqhrb0tsXC5s6CC/VYwVU0Iqyj8xig==
+Received: from apblrppmta02.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4c5xamrgxt-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 07 Feb 2026 10:26:08 +0000 (GMT)
+Received: from pps.filterd (APBLRPPMTA02.qualcomm.com [127.0.0.1])
+	by APBLRPPMTA02.qualcomm.com (8.18.1.2/8.18.1.2) with ESMTP id 617AQ47G002791;
+	Sat, 7 Feb 2026 10:26:04 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 4c5xfkj4k6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 07 Feb 2026 10:26:04 +0000
+Received: from APBLRPPMTA02.qualcomm.com (APBLRPPMTA02.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 617AQ3Ze002690;
+	Sat, 7 Feb 2026 10:26:04 GMT
+Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
+	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 617AQ3f1002748
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 07 Feb 2026 10:26:04 +0000
+Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
+	id D357824A1C; Sat,  7 Feb 2026 15:56:02 +0530 (+0530)
+From: Anup Patel <anup.patel@oss.qualcomm.com>
+To: Atish Patra <atish.patra@linux.dev>
+Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
+        Raymond Mao <raymond.mao@riscstar.com>,
+        Dave Patel <dave.patel@riscstar.com>,
+        Samuel Holland <samuel.holland@sifive.com>,
+        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
+        Anup Patel <anup.patel@oss.qualcomm.com>
+Subject: [PATCH 8/8] lib: sbi_irqchip: Allow registering interrupt handlers
+Date: Sat,  7 Feb 2026 15:56:02 +0530
+Message-ID: <20260207102602.2917520-9-anup.patel@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260207102602.2917520-1-anup.patel@oss.qualcomm.com>
+References: <20260207102602.2917520-1-anup.patel@oss.qualcomm.com>
 MIME-Version: 1.0
-References: <20260202150207.1331811-1-raymondmaoca@gmail.com> <20260202150207.1331811-2-raymondmaoca@gmail.com>
-In-Reply-To: <20260202150207.1331811-2-raymondmaoca@gmail.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Sat, 7 Feb 2026 15:40:21 +0530
-X-Gm-Features: AZwV_QhCwu1bWh3vwAheovluoU9Kf7p3g1gie28tkZst9cxh3hNYb5_3Bgcc2UQ
-Message-ID: <CAAhSdy0LKS9XTu+Xccs0SCj+vyCdFGrNQU7TNP2k97vvJwh4dQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] lib: sbi: introduce abstraction for wired
- interrupt handling
-To: Raymond Mao <raymondmaoca@gmail.com>
-Cc: opensbi@lists.infradead.org, scott@riscstar.com, dave.patel@riscstar.com, 
-	raymond.mao@riscstar.com, robin.randhawa@sifive.com, 
-	samuel.holland@sifive.com, anup.patel@qti.qualcomm.com, 
-	anuppate@qti.qualcomm.com, dhaval@rivosinc.com, peter.lin@sifive.com
+X-QCInternal: smtphost
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-GUID: geodN9JJmOrinfDGNxQnKBmT7iF-ihCH
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjA3MDA4MiBTYWx0ZWRfXwGgO0ztJ6d6m
+ pIdePYwzn2VavlW/che/XwbbDzPRvaczj2srR0TZ9uo17Pe7vxFlnmtISXEsApQEE6E7w0imqSb
+ 43j0s/KAWcQoinLHRHKc4bvX1E0VuXDeMABYw+isGcHAOW8S+qk4H+kjmTOl8QdwGOa8T6aqBqf
+ f5N7LTAQdHiOgvzhGETPbBWT3zyyWcmqezni3SYcmZ6YXJpuohizRUCx95/iqH31sBW0Rz1jQ/P
+ qsOGI/BJSmFL3Io7WF5LzsyAA3klz6STxoQQl29injBH+S5ax7yDJ+ngnOzUQlU9QLIxINRGPUJ
+ ffqcMkbDFS3O23Xt/jcGSI11wabaUm4zXCuVUsCR7AthdwNIvRQ04Tk25qb0DXrlzHEunvbx/ey
+ WsN5l0aYHNRVaW6+Ua/CjIvlfgp13zaMjqUatNVOHDy5MOAt5rbqFJpj+peL7/STSRk3qY7wGEb
+ 3zAZDe/+thPAC7Bhliw==
+X-Proofpoint-ORIG-GUID: geodN9JJmOrinfDGNxQnKBmT7iF-ihCH
+X-Authority-Analysis: v=2.4 cv=Or1CCi/t c=1 sm=1 tr=0 ts=69871340 cx=c_pps
+ a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22
+ a=GgsMoib0sEa3-_RKJdDe:22 a=EUspDBNiAAAA:8 a=bDdBU3oEAAAA:8
+ a=dxl-2DmbjyPBmnOifdcA:9 a=DN7SgORnOiO7RqxRx1GC:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-02-06_05,2026-02-05_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ lowpriorityscore=0 impostorscore=0 priorityscore=1501 bulkscore=0
+ malwarescore=0 clxscore=1015 suspectscore=0 phishscore=0 adultscore=0
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2601150000
+ definitions=main-2602070082
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260207_021034_163539_BEC681A5 
-X-CRM114-Status: GOOD (  17.86  )
+X-CRM114-CacheID: sfid-20260207_022612_813185_D676DAA3 
+X-CRM114-Status: GOOD (  21.97  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,64 +116,407 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gTW9uLCBGZWIgMiwgMjAyNiBhdCA4OjMy4oCvUE0gUmF5bW9uZCBNYW8gPHJheW1vbmRtYW9j
-YUBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gRnJvbTogUmF5bW9uZCBNYW8gPHJheW1vbmQubWFvQHJp
-c2NzdGFyLmNvbT4KPgo+IEFkZCB3aXJlZCBpbnRlcnJ1cHQgaGFuZGxpbmcgYWJzdHJhY3Rpb24g
-aW50byBpcnFjaGlwLgo+IFRoaXMgaW50cm9kdWNlcyBhIHNtYWxsIHByb3ZpZGVyIGludGVyZmFj
-ZSBiYXNlZCBvbgo+IGNsYWltL2NvbXBsZXRlL21hc2svdW5tYWsgc2VtYW50aWNzLCBhbGxvd2lu
-ZyB0byByZWdpc3RlciBhIHdpcmVkCj4gaW50ZXJydXB0IGNvbnRyb2xsZXIgYXMgYSBwcm92aWRl
-ci4KPgo+IFNpZ25lZC1vZmYtYnk6IFJheW1vbmQgTWFvIDxyYXltb25kLm1hb0ByaXNjc3Rhci5j
-b20+Cj4gLS0tCj4gIGluY2x1ZGUvc2JpL3NiaV9pcnFjaGlwLmggfCA1MiArKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDUyIGluc2VydGlv
-bnMoKykKPgo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3NiaS9zYmlfaXJxY2hpcC5oIGIvaW5jbHVk
-ZS9zYmkvc2JpX2lycWNoaXAuaAo+IGluZGV4IGUwYWUxMmY1Li4yN2I4ODc2NSAxMDA2NDQKPiAt
-LS0gYS9pbmNsdWRlL3NiaS9zYmlfaXJxY2hpcC5oCj4gKysrIGIvaW5jbHVkZS9zYmkvc2JpX2ly
-cWNoaXAuaAo+IEBAIC0yNyw2ICsyNywzOCBAQCBzdHJ1Y3Qgc2JpX2lycWNoaXBfZGV2aWNlIHsK
-PiAgICAgICAgIGludCAoKmlycV9oYW5kbGUpKHZvaWQpOwo+ICB9Owo+Cj4gKy8qIEhhbmRsZXIg
-Zm9yIGEgc3BlY2lmaWVkIGh3aXJxICovCj4gK3R5cGVkZWYgaW50ICgqc2JpX2lycWNoaXBfaXJx
-X2hhbmRsZXJfdCkodm9pZCAqcHJpdik7Cj4gKwo+ICsvKiBQcm92aWRlciBvcGVyYXRpb25zICov
-Cj4gK3N0cnVjdCBzYmlfaXJxY2hpcF9wcm92aWRlcl9vcHMgewo+ICsgICAgICAgLyoKPiArICAg
-ICAgICAqIENsYWltIGEgcGVuZGluZyB3aXJlZCBpbnRlcnJ1cHQgb24gY3VycmVudCBoYXJ0Lgo+
-ICsgICAgICAgICogUmV0dXJuczoKPiArICAgICAgICAqICAgU0JJX09LICAgICAgOiAqaHdpcnEg
-aXMgdmFsaWQKPiArICAgICAgICAqICAgU0JJX0VOT0VOVCAgOiBubyBwZW5kaW5nIHdpcmVkIGlu
-dGVycnVwdAo+ICsgICAgICAgICogICA8MCAgICAgICAgICA6IGVycm9yCj4gKyAgICAgICAgKi8K
-PiArICAgICAgIGludCAoKmNsYWltKSh2b2lkICpjdHgsIHUzMiAqaHdpcnEpOwo+ICsKPiArICAg
-ICAgIC8qCj4gKyAgICAgICAgKiBDb21wbGV0ZS9hY2tub3dsZWRnZSBhIHByZXZpb3VzbHkgY2xh
-aW1lZCB3aXJlZCBpbnRlcnJ1cHQKPiArICAgICAgICAqIChpZiByZXF1aXJlZCBieSBIVykuCj4g
-KyAgICAgICAgKiBTb21lIEhXIG1heSBub3QgcmVxdWlyZSBhbiBleHBsaWNpdCBjb21wbGV0aW9u
-Lgo+ICsgICAgICAgICovCj4gKyAgICAgICB2b2lkICgqY29tcGxldGUpKHZvaWQgKmN0eCwgdTMy
-IGh3aXJxKTsKPiArCj4gKyAgICAgICAvKgo+ICsgICAgICAgICogbWFzay91bm1hc2sgYSB3aXJl
-ZCBpbnRlcnJ1cHQgbGluZS4KPiArICAgICAgICAqCj4gKyAgICAgICAgKiBUaGVzZSBhcmUgcmVx
-dWlyZWQgZm9yIHJlbGlhYmxlIGNvdXJpZXJpbmcgb2YgbGV2ZWwtdHJpZ2dlcmVkIGRldmljZQo+
-ICsgICAgICAgICogaW50ZXJydXB0cyB0byBTLW1vZGU6IG1hc2sgaW4gTS1tb2RlIGJlZm9yZSBl
-bnF1ZXVlaW5nLCBhbmQgdW5tYXNrCj4gKyAgICAgICAgKiBhZnRlciBTLW1vZGUgaGFzIGNsZWFy
-ZWQgdGhlIGRldmljZSBpbnRlcnJ1cHQgc291cmNlLgo+ICsgICAgICAgICovCj4gKyAgICAgICB2
-b2lkICgqbWFzaykodm9pZCAqY3R4LCB1MzIgaHdpcnEpOwo+ICsgICAgICAgdm9pZCAoKnVubWFz
-aykodm9pZCAqY3R4LCB1MzIgaHdpcnEpOwo+ICt9Owo+ICsKPiAgLyoqCj4gICAqIFByb2Nlc3Mg
-ZXh0ZXJuYWwgaW50ZXJydXB0cwo+ICAgKgo+IEBAIC00Niw0ICs3OCwyNCBAQCBpbnQgc2JpX2ly
-cWNoaXBfaW5pdChzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gsIGJvb2wgY29sZF9ib290KTsK
-PiAgLyoqIEV4aXQgaW50ZXJydXB0IGNvbnRyb2xsZXJzICovCj4gIHZvaWQgc2JpX2lycWNoaXBf
-ZXhpdChzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gpOwo+Cj4gKy8qCj4gKyAqIFJlZ2lzdGVy
-IHRoZSBhY3RpdmUgd2lyZWQgaW50ZXJydXB0IHByb3ZpZGVyLgo+ICsgKiAtIG1heF9od2lycSBz
-cGVjaWZpZXMgdGhlIGhpZ2hlc3QgdmFsaWQgaHdpcnEgSUQuCj4gKyAqLwo+ICtpbnQgc2JpX2ly
-cWNoaXBfcmVnaXN0ZXJfcHJvdmlkZXIoY29uc3Qgc3RydWN0IHNiaV9pcnFjaGlwX3Byb3ZpZGVy
-X29wcyAqb3BzLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2b2lkICpjdHgs
-IHUzMiBtYXhfaHdpcnEpOwo+ICsKPiArdTMyIHNiaV9pcnFjaGlwX2dldF9tYXhfc3JjKHZvaWQp
-Owo+ICsKPiArLyogU2V0L2NsZWFyIGhhbmRsZXIgZm9yIGEgc3BlY2lmaWVkIGh3aXJxICovCj4g
-K2ludCBzYmlfaXJxY2hpcF9zZXRfaGFuZGxlcih1MzIgaHdpcnEsIHNiaV9pcnFjaGlwX2lycV9o
-YW5kbGVyX3QgaGFuZGxlciwKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgdm9pZCAqcHJp
-dik7Cj4gK2ludCBzYmlfaXJxY2hpcF9jbGVhcl9oYW5kbGVyKHUzMiBod2lycSk7Cj4gKwo+ICt2
-b2lkIHNiaV9pcnFjaGlwX21hc2tfaXJxKHUzMiBod2lycSk7Cj4gK3ZvaWQgc2JpX2lycWNoaXBf
-dW5tYXNrX2lycSh1MzIgaHdpcnEpOwo+ICsKPiArLyogZXh0ZXJuYWwgaW50ZXJydXB0IGhhbmRs
-ZXIgKGlycWNoaXAgZGV2aWNlIGhvb2spICovCj4gK2ludCBzYmlfaXJxY2hpcF9oYW5kbGVfZXh0
-ZXJuYWxfaXJxKHZvaWQpOwo+ICsKCkkgZGlkIG5vdCBtZWFuIHJlbmFtaW5nIGFuZCBtb3Zpbmcg
-c3R1ZmYgdG8gc2JpX2lycWNoaXAuaAppbnN0ZWFkLCBteSBleHBlY3RhdGlvbiB3YXMgdG8gdXNl
-IHN0cnVjdCBzYmlfaXJxY2hpcF9kZXZpY2UKYXMgdGhlIGFic3RyYWN0aW9uIGZvciB0aGUgaW50
-ZXJydXB0IGNvbnRyb2xsZXIuCgpSZWdhcmRzLApBbnVwCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxp
-c3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3Jn
-L21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+To handle external interrupts in M-mode, the sbi_irqchip framework
+must allow registering interrupt handlers from device drivers.
+
+Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
+---
+ include/sbi/sbi_irqchip.h |  56 ++++++++++-
+ lib/sbi/sbi_irqchip.c     | 202 +++++++++++++++++++++++++++++++++++++-
+ lib/utils/irqchip/aplic.c |   1 +
+ lib/utils/irqchip/imsic.c |   9 ++
+ lib/utils/irqchip/plic.c  |   1 +
+ 5 files changed, 267 insertions(+), 2 deletions(-)
+
+diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
+index d2c47ae8..77b54110 100644
+--- a/include/sbi/sbi_irqchip.h
++++ b/include/sbi/sbi_irqchip.h
+@@ -18,12 +18,21 @@ struct sbi_scratch;
+ 
+ /** irqchip hardware device */
+ struct sbi_irqchip_device {
+-	/** Node in the list of irqchip devices */
++	/** Node in the list of irqchip devices (private) */
+ 	struct sbi_dlist node;
+ 
++	/** Internal data of all hardware interrupts of this irqchip (private) */
++	struct sbi_irqchip_hwirq_data *hwirqs;
++
++	/** List of interrupt handlers */
++	struct sbi_dlist handler_list;
++
+ 	/** Unique ID of this irqchip */
+ 	u32 id;
+ 
++	/** Number of hardware IRQs of this irqchip */
++	u32 num_hwirq;
++
+ 	/** Set of harts targetted by this irqchip */
+ 	struct sbi_hartmask target_harts;
+ 
+@@ -32,6 +41,21 @@ struct sbi_irqchip_device {
+ 
+ 	/** Process hardware interrupts from this irqchip */
+ 	int (*process_hwirqs)(struct sbi_irqchip_device *chip);
++
++	/** Setup a hardware interrupt of this irqchip */
++	int (*hwirq_setup)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** Cleanup a hardware interrupt of this irqchip */
++	void (*hwirq_cleanup)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** End of hardware interrupt of this irqchip */
++	void (*hwirq_eoi)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** Mask a hardware interrupt of this irqchip */
++	void (*hwirq_mask)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** Unmask a hardware interrupt of this irqchip */
++	void (*hwirq_unmask)(struct sbi_irqchip_device *chip, u32 hwirq);
+ };
+ 
+ /**
+@@ -44,6 +68,36 @@ struct sbi_irqchip_device {
+  */
+ int sbi_irqchip_process(void);
+ 
++/**
++ * Process a hwirq of an irqchip device
++ *
++ * This function is called by irqchip drivers to handle hardware
++ * interrupts of the irqchip.
++ */
++int sbi_irqchip_process_hwirq(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Unmask a hardware interrupt */
++int sbi_irqchip_unmask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Mask a hardware interrupt */
++int sbi_irqchip_mask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Default raw hardware interrupt handler */
++int sbi_irqchip_raw_handler_default(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Set raw hardware interrupt handler */
++int sbi_irqchip_set_raw_handler(struct sbi_irqchip_device *chip, u32 hwirq,
++				int (*raw_hndl)(struct sbi_irqchip_device *, u32));
++
++/** Register a hardware interrupt handler */
++int sbi_irqchip_register_handler(struct sbi_irqchip_device *chip,
++				 u32 first_hwirq, u32 num_hwirq,
++				 int (*callback)(u32 hwirq, void *opaque), void *opaque);
++
++/** Unregister a hardware interrupt handler */
++int sbi_irqchip_unregister_handler(struct sbi_irqchip_device *chip,
++				   u32 first_hwirq, u32 num_hwirq);
++
+ /** Find an irqchip device based on unique ID */
+ struct sbi_irqchip_device *sbi_irqchip_find_device(u32 id);
+ 
+diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
+index fb3357f3..736dde6c 100644
+--- a/lib/sbi/sbi_irqchip.c
++++ b/lib/sbi/sbi_irqchip.c
+@@ -7,10 +7,35 @@
+  *   Anup Patel <apatel@ventanamicro.com>
+  */
+ 
++#include <sbi/sbi_heap.h>
+ #include <sbi/sbi_irqchip.h>
+ #include <sbi/sbi_list.h>
+ #include <sbi/sbi_platform.h>
+ 
++/** Internal irqchip hardware interrupt data */
++struct sbi_irqchip_hwirq_data {
++	/** raw hardware interrupt handler */
++	int (*raw_handler)(struct sbi_irqchip_device *chip, u32 hwirq);
++};
++
++/** Internal irqchip interrupt handler */
++struct sbi_irqchip_handler {
++	/** Node in the list of irqchip handlers (private) */
++	struct sbi_dlist node;
++
++	/** First hardware IRQ handled by this handler */
++	u32 first_hwirq;
++
++	/** Number of consecutive hardware IRQs handled by this handler */
++	u32 num_hwirq;
++
++	/** Callback function of this handler */
++	int (*callback)(u32 hwirq, void *priv);
++
++	/** Callback private data */
++	void *priv;
++};
++
+ static SBI_LIST_HEAD(irqchip_list);
+ 
+ int sbi_irqchip_process(void)
+@@ -31,6 +56,172 @@ int sbi_irqchip_process(void)
+ 	return rc;
+ }
+ 
++int sbi_irqchip_process_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct sbi_irqchip_hwirq_data *data;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	data = &chip->hwirqs[hwirq];
++	if (!data->raw_handler)
++		return SBI_ENOENT;
++
++	return data->raw_handler(chip, hwirq);
++}
++
++int sbi_irqchip_unmask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	if (chip->hwirq_unmask)
++		chip->hwirq_unmask(chip, hwirq);
++	return 0;
++}
++
++int sbi_irqchip_mask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	if (chip->hwirq_mask)
++		chip->hwirq_mask(chip, hwirq);
++	return 0;
++}
++
++static struct sbi_irqchip_handler *sbi_irqchip_find_handler(struct sbi_irqchip_device *chip,
++							    u32 hwirq)
++{
++	struct sbi_irqchip_handler *h;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return NULL;
++
++	sbi_list_for_each_entry(h, &chip->handler_list, node) {
++		if (h->first_hwirq <= hwirq && hwirq < (h->first_hwirq + h->num_hwirq))
++			return h;
++	}
++
++	return NULL;
++}
++
++int sbi_irqchip_raw_handler_default(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct sbi_irqchip_handler *h;
++	int rc;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	h = sbi_irqchip_find_handler(chip, hwirq);
++	rc = h->callback(hwirq, h->priv);
++
++	if (chip->hwirq_eoi)
++		chip->hwirq_eoi(chip, hwirq);
++
++	return rc;
++}
++
++int sbi_irqchip_set_raw_handler(struct sbi_irqchip_device *chip, u32 hwirq,
++				int (*raw_hndl)(struct sbi_irqchip_device *, u32))
++{
++	struct sbi_irqchip_hwirq_data *data;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	data = &chip->hwirqs[hwirq];
++	data->raw_handler = raw_hndl;
++	return 0;
++}
++
++int sbi_irqchip_register_handler(struct sbi_irqchip_device *chip,
++				 u32 first_hwirq, u32 num_hwirq,
++				 int (*callback)(u32 hwirq, void *opaque), void *priv)
++{
++	struct sbi_irqchip_handler *h;
++	u32 i, j;
++	int rc;
++
++	if (!chip || !num_hwirq || !callback)
++		return SBI_EINVAL;
++	if (chip->num_hwirq <= first_hwirq ||
++	    chip->num_hwirq <= (first_hwirq + num_hwirq - 1))
++		return SBI_EBAD_RANGE;
++
++	h = sbi_irqchip_find_handler(chip, first_hwirq);
++	if (h)
++		return SBI_EALREADY;
++	h = sbi_irqchip_find_handler(chip, first_hwirq + num_hwirq - 1);
++	if (h)
++		return SBI_EALREADY;
++
++	h = sbi_zalloc(sizeof(*h));
++	if (!h)
++		return SBI_ENOMEM;
++	h->first_hwirq = first_hwirq;
++	h->num_hwirq = num_hwirq;
++	h->callback = callback;
++	h->priv = priv;
++	sbi_list_add_tail(&h->node, &chip->handler_list);
++
++	if (chip->hwirq_setup) {
++		for (i = 0; i < h->num_hwirq; i++) {
++			rc = chip->hwirq_setup(chip, h->first_hwirq + i);
++			if (rc) {
++				if (chip->hwirq_cleanup) {
++					for (j = 0; j < i; j++)
++						chip->hwirq_cleanup(chip, h->first_hwirq + j);
++				}
++				sbi_list_del(&h->node);
++				sbi_free(h);
++				return rc;
++			}
++		}
++	}
++
++	if (chip->hwirq_unmask) {
++		for (i = 0; i < h->num_hwirq; i++)
++			chip->hwirq_unmask(chip, h->first_hwirq + i);
++	}
++
++	return 0;
++}
++
++int sbi_irqchip_unregister_handler(struct sbi_irqchip_device *chip,
++				   u32 first_hwirq, u32 num_hwirq)
++{
++	struct sbi_irqchip_handler *fh, *lh;
++	u32 i;
++
++	if (!chip || !num_hwirq)
++		return SBI_EINVAL;
++	if (chip->num_hwirq <= first_hwirq ||
++	    chip->num_hwirq <= (first_hwirq + num_hwirq - 1))
++		return SBI_EBAD_RANGE;
++
++	fh = sbi_irqchip_find_handler(chip, first_hwirq);
++	if (!fh || fh->first_hwirq != first_hwirq || fh->num_hwirq != num_hwirq)
++		return SBI_ENODEV;
++	lh = sbi_irqchip_find_handler(chip, first_hwirq + num_hwirq - 1);
++	if (!lh || lh != fh)
++		return SBI_ENODEV;
++
++	if (chip->hwirq_mask) {
++		for (i = 0; i < fh->num_hwirq; i++)
++			chip->hwirq_mask(chip, fh->first_hwirq + i);
++	}
++
++	if (chip->hwirq_cleanup) {
++		for (i = 0; i < fh->num_hwirq; i++)
++			chip->hwirq_cleanup(chip, fh->first_hwirq + i);
++	}
++
++	sbi_list_del(&fh->node);
++	return 0;
++}
++
+ struct sbi_irqchip_device *sbi_irqchip_find_device(u32 id)
+ {
+ 	struct sbi_irqchip_device *chip;
+@@ -47,8 +238,9 @@ int sbi_irqchip_add_device(struct sbi_irqchip_device *chip)
+ {
+ 	struct sbi_irqchip_device *c;
+ 	struct sbi_hartmask hm;
++	u32 i;
+ 
+-	if (!chip || !sbi_hartmask_weight(&chip->target_harts))
++	if (!chip || !chip->num_hwirq || !sbi_hartmask_weight(&chip->target_harts))
+ 		return SBI_EINVAL;
+ 
+ 	if (sbi_irqchip_find_device(chip->id))
+@@ -64,6 +256,14 @@ int sbi_irqchip_add_device(struct sbi_irqchip_device *chip)
+ 		}
+ 	}
+ 
++	chip->hwirqs = sbi_zalloc(sizeof(*chip->hwirqs) * chip->num_hwirq);
++	if (!chip->hwirqs)
++		return SBI_ENOMEM;
++	for (i = 0; i < chip->num_hwirq; i++)
++		sbi_irqchip_set_raw_handler(chip, i, sbi_irqchip_raw_handler_default);
++
++	SBI_INIT_LIST_HEAD(&chip->handler_list);
++
+ 	sbi_list_add_tail(&chip->node, &irqchip_list);
+ 	return 0;
+ }
+diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+index d47a810b..ec69c82b 100644
+--- a/lib/utils/irqchip/aplic.c
++++ b/lib/utils/irqchip/aplic.c
+@@ -307,6 +307,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ 
+ 	/* Register irqchip device */
+ 	aplic->irqchip.id = aplic->unique_id;
++	aplic->irqchip.num_hwirq = aplic->num_source + 1;
+ 	rc = sbi_irqchip_add_device(&aplic->irqchip);
+ 	if (rc)
+ 		return rc;
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 0f296c89..7559a069 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -346,9 +346,17 @@ int imsic_data_check(struct imsic_data *imsic)
+ 	return 0;
+ }
+ 
++static int imsic_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	if (!hwirq || hwirq == IMSIC_IPI_ID)
++		return SBI_ENOTSUPP;
++	return 0;
++}
++
+ static struct sbi_irqchip_device imsic_device = {
+ 	.warm_init	= imsic_warm_irqchip_init,
+ 	.process_hwirqs	= imsic_process_hwirqs,
++	.hwirq_setup	= imsic_hwirq_setup,
+ };
+ 
+ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+@@ -392,6 +400,7 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+ 
+ 	/* Register irqchip device */
+ 	imsic_device.id = imsic->unique_id;
++	imsic_device.num_hwirq = imsic->num_ids + 1;
+ 	sbi_hartmask_set_all(&imsic_device.target_harts);
+ 	rc = sbi_irqchip_add_device(&imsic_device);
+ 	if (rc)
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 973f7c2a..2d721724 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -281,6 +281,7 @@ int plic_cold_irqchip_init(struct plic_data *plic)
+ 
+ 	/* Register irqchip device */
+ 	plic->irqchip.id = plic->unique_id;
++	plic->irqchip.num_hwirq = plic->num_src + 1;
+ 	plic->irqchip.warm_init = plic_warm_irqchip_init;
+ 	return sbi_irqchip_add_device(&plic->irqchip);
+ }
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
