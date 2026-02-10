@@ -4,70 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7A623EA3F31
-	for <opensbi@archiver.kernel.org>; Tue, 10 Feb 2026 09:43:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 03E77EA3F30
+	for <opensbi@archiver.kernel.org>; Tue, 10 Feb 2026 09:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=MGrY3oKk+8ES6Md7sQMNS0SVIzSbCBLR1Zxv1u+Hb38=; b=xjhWXeAWGASleg
-	Ht9VoltbSnQLb3O2cchht0BYYEpZZm8M8LuLvyucxmTi5CnxUykA5CArs0OoAcfEpDTMEL7W3PfMd
-	LjSNWtZ73NtTIBd+eYvTshpdEimx9qc+5MUbplEqrI2BME5/Rrte6eCsPSHKjRLdslvDTTi2g7A72
-	FKaoH84VOQEH6PvIlkkkzLgPbxHbQ8InC5CDIZmpYjnWFOcw/CU2uRHRpwhCFEiUwfuXlOOGzSh4E
-	sLZ5BLB95nY/fRlfEkiRRuGdGx+oNhlj1+y/Ia71bpLa7QtUvyLMbJlo0w+sFWYrLz9Yye2KI50l6
-	pdwa58Gdv/ems8CSX+lQ==;
+	List-Owner; bh=8H593/Z/aC6i+RiUxsH8bGzqZkFONzMmJyfSpgrgkug=; b=CxviUYpSwwJErD
+	BP3nBGYNtyxFocDllqTzxsVlWjAfGLfiJ3YpCA51DY9EabjFsknA1k8u66wapRZdD75hi9Oyq6zbv
+	/8klX4GZQm3D7mHWtbqJKoLCQtu65DteyTWVEvFExF9HHYagPb4vGRuwmgZfpzSkTPfWi6DhVgXjA
+	khNffFlniJyyYZ7BDTySeijDD3315tduFJhrTpbyD0UmgW2dxCq2T0YRAaWYOBlLo9J5JF9qsTUjE
+	O0rYGbLekAqht7LZD2umKd05861xssYbX/llT3tTxfL3QHviZVRk2FvILVeAs5/n2nFKhWbg+cZnV
+	itO/fuimvqMs/fq2nRJQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vpkGh-0000000GlXM-39EC;
-	Tue, 10 Feb 2026 09:42:51 +0000
-Received: from mail-pl1-x635.google.com ([2607:f8b0:4864:20::635])
+	id 1vpkGk-0000000GlYY-08yk;
+	Tue, 10 Feb 2026 09:42:54 +0000
+Received: from mail-pl1-x62c.google.com ([2607:f8b0:4864:20::62c])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vpkGg-0000000GlWV-0vVA
+	id 1vpkGh-0000000GlWo-2J2v
 	for opensbi@lists.infradead.org;
-	Tue, 10 Feb 2026 09:42:51 +0000
-Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-2a8fba3f769so23899225ad.2
-        for <opensbi@lists.infradead.org>; Tue, 10 Feb 2026 01:42:49 -0800 (PST)
+	Tue, 10 Feb 2026 09:42:52 +0000
+Received: by mail-pl1-x62c.google.com with SMTP id d9443c01a7336-2aaf43014d0so12744775ad.2
+        for <opensbi@lists.infradead.org>; Tue, 10 Feb 2026 01:42:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770716569; x=1771321369; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1770716570; x=1771321370; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=n3R9vgO/x9b8W3dSnPHmMCrB3IuD4mg8nPaHgFUwEoQ=;
-        b=mxQnYaRDwnqwloGq7WtMBTXvE77pMskF+LWppP84I4a+Mi5dJ3zd54yim4XVrFEWbS
-         xa/z+sr1IYCnb1Ja7HZ6AMfNFLrOOrrsEazN1dInxuF2Ev/3uWCa995qsaxvj7/pIvZG
-         hSNfeo7wFd/RJTnJEAIVuBA3d4UvwOIOWuBAZxTy4QowkTLiYj/VKa8wP/zskRdNAVTN
-         wBgMep9mno2wi6kkBAZHmBmkdiZBQ9/hCyfFfW5sInQg0q5AqYwPwNMbjgGIj8h+izfe
-         CzG6rsN/Wl5c4fswsktR3uSFq+7DxeHuWdtig2gXIeyswWsf2yP5hTGKLFy+m1PELHG4
-         /X3Q==
+        bh=/bkjdIum4lcMrA2StibKHdYOtNoDEOCiqfZj+LFF2Xs=;
+        b=RNARcEE3hn0Iyh13y9szNLbM1kfC/zqOIJ6kXW+0AdJNHI22rbJw3JXzJjj3YP2i35
+         INWnsbxCwviFvGX8/o9QQj7cUr9s5TjP8vhvDRPWrxeVOzIrBW2KGQpMio5TbKuDLSoi
+         a9JFzyYYOaILOfMwY/CxVkgYkQnRG7koX9oWXFWFI1XuvvtQ/BpUheWOYP6NpwfoI8oK
+         JB7FWrAeTPtA3bGE7VV7llUaPRavebhEcii00J8vSZyRxB+OBwubAKbSyWi6RXNGh+nd
+         fzmS99k/bBDt9ujv7tcgiIvI1+CJR/vMXa9dwH5+ciUNZOfFO13ktJqnd+GZNUlCfRAi
+         lVaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770716569; x=1771321369;
+        d=1e100.net; s=20230601; t=1770716570; x=1771321370;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=n3R9vgO/x9b8W3dSnPHmMCrB3IuD4mg8nPaHgFUwEoQ=;
-        b=bXbIYSXinQa7VnClIO7d8ZPFNWDFhfBoECYWPKqo/CGoyisEKKfZSBFBUwSvxsvpAG
-         ym3qOEkx0CMyWDf3AuM+f8JPApyxgGTdNQ0biUhcDAu3LXfSJPi6mAdFG00q2hZsxP8q
-         z4R2UP8QlYoylqRspJEuq8ccJz1wRnNm1YTtlfeopNEyOzIiXBJkfUlm0+VkfcV3HwNL
-         33axC45YiE98+6r4FpntGLj5sJc9Ow60CcGo67q3F/1PCT4CV5OzvC0misWaWniH+pT6
-         UgXKfXghYWEx4xGvUTpkScD1Oo/JrleWYw2vUPR7QCtcZBAcYfG+tPI29buZf+XP4kgX
-         wekQ==
-X-Gm-Message-State: AOJu0YzqSdE53NB9/bM0rFCrKEKwNtDLM42GOG2LRfYV686R6ZtVgVM8
-	gcC0H7pSQ7ksHnBaMNbZp6srIq7rUaHYxHW/f8EN/bf9Lefc+FkFCcBuQdPuGQ==
-X-Gm-Gg: AZuq6aI/gNUjlcwhdDFawGlm+svvxp/kXTd9fsq9oRFjd1xiNoqz5dtKi727LhEuWtl
-	YPQiJwwN1xQFf6mfZSlVVz08wOiwvEt3AFekrfXZu64hNLd1BO6oDE5LbCwsTRyPdWOto+uI45d
-	ffhvIFFA5duSeEinl+AhVxhAFquZdMY7e/37QsA0uJUtsRaHSELpzMk2VWyLsNYELGhaznGkB/O
-	1sf4kl6WiH9ajAoTnUSm6gpdi9onpd/UgtAtIMYT/eQs6/odvL9gI3T8Hez9K2994teNwtgTEKo
-	Ym2qPxS+ImDYmiyv7Kbq6dZSkj/paJPn/yO5h4PBO7OD7KFqvg5lfTkw+gh0mOJOxU5vgAOC7ii
-	wzmxbD1RDvZS9V7mzlbkfcB3wMXQZqekAt6hwc5PRXS9rR81FmymEwgVVAorJThVbE6wbKBfPup
-	4ogfjFDtTlBZdZhqO+npl7/Qmn
-X-Received: by 2002:a17:903:124d:b0:29d:9755:9bd8 with SMTP id d9443c01a7336-2ab10344b46mr16257805ad.22.1770716568803;
-        Tue, 10 Feb 2026 01:42:48 -0800 (PST)
+        bh=/bkjdIum4lcMrA2StibKHdYOtNoDEOCiqfZj+LFF2Xs=;
+        b=UzjwCdkNK/9xSAxtxc/G6x62O9Qwxw0mtv35w8ZIQByNAdw7bA9+EBX67xvnLzl3+K
+         WBLeyfVSB/HJnnZly4o+iu7qZspuRYQ9AyQaA+7SqyBSb3lEvEfOylWbslM86S5jKeKT
+         z7pr+xByh69CFtwW4yBOF5QT8TGrqS+QVNG7ptRz/szpbe+qEkfaT6FFthTpeBG8Prph
+         nr2Sfc6+0tU7z4xqdZlMoOPlhYaBq3f780ILBRQFEv32UdHKRH4w4tDhBb2l2UCV7r5+
+         /xo0+Dmvi8MDcmeIfCDCO5y+dTZVP2IYPQwTGS9kjH8QZTwbqWXVTqpZXVeDl6nvBiFm
+         xnOg==
+X-Gm-Message-State: AOJu0YySSkGW+7YgOvryl/lKw1OUQGnFnWCBXNtsH6cS2zugJsDKs079
+	UM9Jl69ZAV8YdK7m2fnFjNEw0LLHvm+fplMPNwbd4wzh+uR26oDMKTxHxxAjAA==
+X-Gm-Gg: AZuq6aL967gPAEfrDfsB9lqJ4+dIE5tsAHhiWuq/AyCoFN/j1Sw7/Nex2Kp2rx/l6Yb
+	Q4xL4njIHcHTrucmXkQ0CWDmpBpq3hEwkXlNYDGQq3yPng+cREZh5+OOb9DBHdcYu/i7durl8BD
+	TGr9pxLdKPGnfjb+1bVc7jhehOFjLujr2FThtmUYvUqbJHNN9W6v75Wre5E/ZbUdfFNh9Ne6mE+
+	eQF3gn3UIFXygKPLwKDaghA+tgA6M3cJjBhk/tFVP6yYnNtKsxH0Sde32ilSoatj7u5Q3cwSYPS
+	Y6ChZxrQQeGVwRGa3Uy0/s7Vq17yOASogc0RRc2oI0puYemzkQgBIcoKWUEiQS2P5XbqBv3HECb
+	tujzSWB3utVGDfeCEsJHNZGVg4GVRBVQgalEDo7SL84EyWels9Tizk9ti2y2NpYOvEpLF7nLqjD
+	wSH5iqYyBgy2TdgLgovKDp3org
+X-Received: by 2002:a17:903:41c7:b0:2a9:410:23fe with SMTP id d9443c01a7336-2ab10a1a54bmr16974875ad.36.1770716570006;
+        Tue, 10 Feb 2026 01:42:50 -0800 (PST)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a9521b8d79sm133219215ad.61.2026.02.10.01.42.47
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a9521b8d79sm133219215ad.61.2026.02.10.01.42.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Feb 2026 01:42:47 -0800 (PST)
+        Tue, 10 Feb 2026 01:42:49 -0800 (PST)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org,
 	dramforever@live.com,
@@ -75,17 +75,16 @@ To: opensbi@lists.infradead.org,
 Cc: anup@brainfault.org,
 	cleger@rivosinc.com,
 	samuel.holland@sifive.com
-Subject: [PATCH 2/7] include: sbi: Add sbi_regs_prev_xlen
-Date: Tue, 10 Feb 2026 01:40:39 -0800
-Message-Id: <20260210094044.72591-3-ganboing@gmail.com>
+Subject: [PATCH 3/7] include: sbi: Add GET_RDS_NUM/SET(_FP32/_FP64)_RDS macros
+Date: Tue, 10 Feb 2026 01:40:40 -0800
+Message-Id: <20260210094044.72591-4-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260210094044.72591-1-ganboing@gmail.com>
 References: <20260210094044.72591-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260210_014250_278891_4703DE9B 
-X-CRM114-Status: UNSURE (   9.76  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260210_014251_587491_C44D3C75 
+X-CRM114-Status: GOOD (  10.25  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,83 +101,77 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_regs_prev_xlen reports the xlen of previous mode by decoding
-from multiple CSRs including mstatus/hstatus/vsstatus
+These macros can be used to decode rd' and set rd' in RVC instructions
 
 Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- include/sbi/sbi_trap.h | 58 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ include/sbi/riscv_encoding.h |  1 +
+ include/sbi/riscv_fp.h       | 24 ++++++++++++++++++------
+ include/sbi/sbi_trap.h       |  1 +
+ 3 files changed, 20 insertions(+), 6 deletions(-)
 
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index 8ab59abe..064ba9d1 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -1414,6 +1414,7 @@
+ #define GET_RS2S_NUM(insn)		RVC_RS2S(insn)
+ #define GET_RS2C_NUM(insn)		RVC_RS2(insn)
+ #define GET_RD_NUM(insn)		((insn & MASK_RD) >> SH_RD)
++#define GET_RDS_NUM(insn)		RVC_RS2S(insn)
+ #define GET_CSR_NUM(insn)		((insn & MASK_CSR) >> SHIFT_CSR)
+ #define GET_AQRL(insn)			((insn & MASK_AQRL) >> SHIFT_AQRL)
+ 
+diff --git a/include/sbi/riscv_fp.h b/include/sbi/riscv_fp.h
+index f523c56e..03011af9 100644
+--- a/include/sbi/riscv_fp.h
++++ b/include/sbi/riscv_fp.h
+@@ -91,15 +91,27 @@
+ #define GET_F64_RS1(insn, regs) (GET_F64_REG(insn, 15, regs))
+ #define GET_F64_RS2(insn, regs) (GET_F64_REG(insn, 20, regs))
+ #define GET_F64_RS3(insn, regs) (GET_F64_REG(insn, 27, regs))
+-#define SET_F32_RD(insn, regs, val) \
+-	(SET_F32_REG(insn, 7, regs, val), SET_FS_DIRTY(regs))
+-#define SET_F64_RD(insn, regs, val) \
+-	(SET_F64_REG(insn, 7, regs, val), SET_FS_DIRTY(regs))
++#define SET_F32_RD(insn, regs, val) do {	\
++	SET_F32_REG(insn, 7, regs, val);	\
++	SET_FS_DIRTY(regs);			\
++} while(0)
++#define SET_F64_RD(insn, regs, val) do {	\
++	SET_F64_REG(insn, 7, regs, val);	\
++	SET_FS_DIRTY(regs);			\
++} while(0)
+ 
+ #define GET_F32_RS2C(insn, regs) (GET_F32_REG(insn, 2, regs))
+-#define GET_F32_RS2S(insn, regs) (GET_F32_REG(RVC_RS2S(insn), 0, regs))
++#define GET_F32_RS2S(insn, regs) (GET_F32_REG(GET_RS2S_NUM(insn), 0, regs))
+ #define GET_F64_RS2C(insn, regs) (GET_F64_REG(insn, 2, regs))
+-#define GET_F64_RS2S(insn, regs) (GET_F64_REG(RVC_RS2S(insn), 0, regs))
++#define GET_F64_RS2S(insn, regs) (GET_F64_REG(GET_RS2S_NUM(insn), 0, regs))
++#define SET_F32_RDS(insn, regs, val) do {		\
++	SET_F32_REG(GET_RDS_NUM(insn), 0, regs, val);	\
++	SET_FS_DIRTY(regs);				\
++} while(0)
++#define SET_F64_RDS(insn, regs, val) do {		\
++	SET_F64_REG(GET_RDS_NUM(insn), 0, regs, val);	\
++	SET_FS_DIRTY(regs);				\
++} while(0)
+ 
+ #endif
+ 
 diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index 731a0c98..4ef672f4 100644
+index 4ef672f4..816e93c8 100644
 --- a/include/sbi/sbi_trap.h
 +++ b/include/sbi/sbi_trap.h
-@@ -273,6 +273,64 @@ static inline int sbi_mstatus_prev_mode(unsigned long mstatus)
- 	return (mstatus & MSTATUS_MPP) >> MSTATUS_MPP_SHIFT;
- }
+@@ -218,6 +218,7 @@ _Static_assert(
+ #define GET_RS2S(insn, regs)		REG_VAL(GET_RS2S_NUM(insn), regs)
+ #define GET_RS2C(insn, regs)		REG_VAL(GET_RS2C_NUM(insn), regs)
+ #define SET_RD(insn, regs, val)		(REG_VAL(GET_RD_NUM(insn), regs) = (val))
++#define SET_RDS(insn, regs, val)	(REG_VAL(GET_RDS_NUM(insn), regs) = (val))
  
-+#if __riscv_xlen == 32
-+static inline int sbi_regs_prev_xlen(const struct sbi_trap_regs *regs)
-+{
-+	return __riscv_xlen;
-+}
-+#else
-+static inline int sbi_mstatus_sxl(unsigned long mstatus)
-+{
-+	return (mstatus & MSTATUS_SXL) >> MSTATUS_SXL_SHIFT;
-+}
-+
-+static inline int sbi_mstatus_uxl(unsigned long mstatus)
-+{
-+	return (mstatus & MSTATUS_UXL) >> MSTATUS_UXL_SHIFT;
-+}
-+
-+static inline int sbi_hstatus_vsxl(unsigned long hstatus)
-+{
-+	return (hstatus & HSTATUS_VSXL) >> HSTATUS_VSXL_SHIFT;
-+}
-+
-+static inline int sbi_regs_prev_xlen(const struct sbi_trap_regs *regs)
-+{
-+	unsigned long hstatus, vsstatus;
-+
-+	if (!sbi_regs_from_virt(regs)) {
-+		switch (sbi_mstatus_prev_mode(regs->mstatus)) {
-+		case PRV_M:
-+			return __riscv_xlen;
-+		case PRV_S:
-+			return MXL_TO_XLEN(sbi_mstatus_sxl(regs->mstatus));
-+		case PRV_U:
-+			return MXL_TO_XLEN(sbi_mstatus_uxl(regs->mstatus));
-+		default:
-+			__builtin_unreachable();
-+		}
-+	}
-+
-+	/* V=1, Check HSXLEN first */
-+	if (sbi_mstatus_sxl(regs->mstatus) < MXL_XLEN_64)
-+		return 32;
-+
-+	hstatus = csr_read(CSR_HSTATUS);
-+	/* Check VSXLEN */
-+	if (sbi_hstatus_vsxl(hstatus) < MXL_XLEN_64)
-+		return 32;
-+
-+	vsstatus = csr_read(CSR_VSSTATUS);
-+	switch (sbi_mstatus_prev_mode(regs->mstatus)) {
-+		case PRV_S:
-+			return MXL_TO_XLEN(sbi_hstatus_vsxl(hstatus));
-+		case PRV_U:
-+			return MXL_TO_XLEN(sbi_mstatus_uxl(vsstatus));
-+	}
-+	__builtin_unreachable();
-+}
-+#endif
-+
- int sbi_trap_redirect(struct sbi_trap_regs *regs,
- 		      const struct sbi_trap_info *trap);
- 
+ /** Representation of trap details */
+ struct sbi_trap_info {
 -- 
 2.34.1
 
