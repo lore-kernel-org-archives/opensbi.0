@@ -4,101 +4,90 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B3E85EB5967
-	for <opensbi@archiver.kernel.org>; Wed, 11 Feb 2026 06:24:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 61BDAEB5954
+	for <opensbi@archiver.kernel.org>; Wed, 11 Feb 2026 10:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=bDkJE7nh6mJ1LyPd2MJ1C1uhCB6AOjOSqaXY+LaPK6U=; b=1BGXuUIoidY0U2
-	MmAv7z2Qh1dmyHANI/Nhhe2o9dRXDce/GHV0WUrfSLQB1a8yrnRvIQci8+fuj3mhJ4sHbtfcCu42C
-	IM1D5vSq98/V3AfFVqR3Pk3UJRVc46Bf2nKD/oVILUYlRT4QJD7Qwl8iPdVGdl6JsjHLPjP3Fi/Ri
-	cAvdDGmGcPWL0tM7Rd9DRoYMoFAShUbk7qiU7CX2cHRCFmzPu1kYxrjWCwhXUQyb+LREuvpJLCYre
-	ozUK44RDlHr9Z1XZu3zc5p7QinvSGlwM/hGD8LRKUkXcoJb6ucLEFe5S5JOLFkPKGKm5hn3UGPgv1
-	xOe9U/RhS7545dXNpymg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=uNbxkM+J3W5Ok8lqs29Ov7EVaOv8vbj3pHReDE80Qdc=; b=HllZH3NXxmnRuT
+	PKswzkVZxju0xgQkFEPueCbcPRzyjUasR4L2W1OebgSpLeiqzs1NeY5ROZGxGtreycM8nsIr2StX5
+	Liz05wBT3eGNgN5/ZWzyhROz5TSpP9eSR4e1opQ4KkS/UGqOnDsxBLsJchn2XF/o2rzxyrT7DVM8K
+	edy9WTfYjvkgXc+GJoClbG/wHsqZxaLJ3yYS75vi7XglkDvvPlodzCBmZVlU7V90nzcEyfvjCW7FU
+	tUn6BSJyYdeTh5JhAneze7uaMnsuB9ijdHyuic2g645AJ3FLWymBr2wENFF74kAtSenL1J8A1aeci
+	cucDdKnmWRojSW8PUu3g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vq3eK-00000000HzN-2sU9;
-	Wed, 11 Feb 2026 06:24:32 +0000
-Received: from mail-oa1-x33.google.com ([2001:4860:4864:20::33])
+	id 1vq71F-00000000TEn-013h;
+	Wed, 11 Feb 2026 10:00:25 +0000
+Received: from mail-wr1-x42a.google.com ([2a00:1450:4864:20::42a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vq3eI-00000000Hz2-0WQ0
+	id 1vq719-00000000TEF-08gM
 	for opensbi@lists.infradead.org;
-	Wed, 11 Feb 2026 06:24:31 +0000
-Received: by mail-oa1-x33.google.com with SMTP id 586e51a60fabf-40974bf7781so352593fac.0
-        for <opensbi@lists.infradead.org>; Tue, 10 Feb 2026 22:24:29 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770791068; cv=none;
-        d=google.com; s=arc-20240605;
-        b=a54dzRNuWElmeP+FFEyWVvX31dcoEbB3JK1Z8ZQXOYxDFbSrI375yHFSkVcM0gCERF
-         81EbNnpd5/wwJgAI9dvUMJnJYfh3zEYkRxjP7WNbq8gl0UTeuFGuD1ykIUsX7QoKzmP8
-         ihp4VkRoD7QvrfnlY0sp9ahLOEZj8xgNYa5vFWBK9jcEQl1z3FYT3opAkFV6qjOhTTs7
-         +ARYpft6MSatOR7uy2YaYDdG/6ozeXJpbGKQmgeWrB1dl0v8LnnmTEOq+C85r7yjVo/B
-         4MfiB8luMp5EvLZvs3Jbdvz7hjpGTd9QodDm18SolP9zm0ppVW2FC9FiszZUoQQk6axY
-         TJZA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=ZK7jLxoDFOrKhfo5m2V1S/g9nyRDJbi67Inrs/s2wZU=;
-        fh=ZWLa82ykAwJkuvh5Md1WwEfVAVY4U4beZ/cGpAok4QE=;
-        b=evOXp6McXfhbo3rTd7Q1rgVhyS9pQP/2/K1cyXOKBQ+5s2AbL163QEDxGFPKlflgV5
-         XBiLplndBQHD7xpcVKC2mGpCy6UxIC1tYph6bW8qx3A8wIoyQWYLo5o73XbGTkMeb+EH
-         XXrkZPIOr9stJWpN2vfFQT3tKE1UcSMYFLPFLxQBu2xiFfYgjQIpsH6ak7Geq1rUVKQo
-         B3zQUNNHRiXaC6Umw8KXa1ISD7jplQbV7uBUP1f/LvX2Rw65e35OIAmpfHy33W3Z9Kx/
-         BTOZMkBdCdCCUchaGHfYNfd3qK6Ryh28cquh1vR58rF86rjFuJN+uHfLAPdd/TWdsaLb
-         I4fg==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Wed, 11 Feb 2026 10:00:21 +0000
+Received: by mail-wr1-x42a.google.com with SMTP id ffacd0b85a97d-43622089851so1679498f8f.3
+        for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 02:00:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1770791068; x=1771395868; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZK7jLxoDFOrKhfo5m2V1S/g9nyRDJbi67Inrs/s2wZU=;
-        b=0MtKYr4ek+m72HwAKV8431Cm845lzVAgmcTSakvQ5lcDI/8JLFJvkHdfaGMkTBV9a7
-         LM/IIlJ7twfbNa9BBUVadP06MenrrNrYaJrn5T9UCwHafU/e70B3Y5kDx5ameUq29TB3
-         2BJ2AgeRKfmQ4Fc1FhYgbxEnmiKETv786pNzXNOD1+YAymLHiqIG8/axlJkDrOK3xSuh
-         UhRME/bd/Eil4HCBNDXhtnE2VqzJx22DOGCpEwtmHnt9KQQR0xW5EauGl1X10iXaWzXT
-         TAuJ9ZaCPsAItzu5TSu/O4VYlO/X2XXMYMCi3MHVOGchGwzVsQQpZwVUBVMZYeSYRHOH
-         dDWw==
+        d=riscstar-com.20230601.gappssmtp.com; s=20230601; t=1770804017; x=1771408817; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=8ihZJxsOoWcjwksMgu9Jk1Iskn3hPc55eYnm3G2Fw+M=;
+        b=mejGspZGw9PQskOXFcXuVPKPTyAFQK7dRNneFAUZBINXKh9Nnz7E8eVkr/MF1cwTGy
+         yCXHxNig4E04th4vb+q8PUIjtLm6vnGsWeccVOC/uOzSBFX9TRqdgZYm6NH5cP1bRqu4
+         2bQFTOtPyeqDouuFcW74nPfp3UGVzSqFnEAHRB1/gws2tfrglzfF2mwH41twGQDPJsBv
+         r4WMIM8cgSzW6q1LZnhq+SuYkqRdmtoL2M0je9fTfjF6z5MDel/aeysdwsfzAii/KjDu
+         gncxP9kGm8psJBgWGREZKRYYH7J7eO+RDZu2PZPTH5u+e0uZXa+UdgCytf9NNiOG1RAU
+         zCwQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770791068; x=1771395868;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=ZK7jLxoDFOrKhfo5m2V1S/g9nyRDJbi67Inrs/s2wZU=;
-        b=sWwX5f9Ypqb3Towj8V1O3hQdKMlJ+RYkpmGkjW1Sy5iNJNW1SbxpjT13rlr7k6Xzy6
-         1060HUPHFzU6SLmcCo+fCXQzuu8nG3W0uJKnfNzTO5MSI8pitVw8i5LBAZPoOwV8vhu+
-         G7+Il7YWQ8ccR1GQnGvA33jTKeeNMqFQAaHmBibeDWS//GUGQbZEICSD0ygTfIKYRth2
-         kjVv2z/gQC4ASZQierKTpI4dwwdxFOT+C26zqBmtXlY2t7SoH0xZ+xlPgvmByJOmvQ+v
-         FEa3qEBBfgASwTjN66A6Et/dZJaSkLbEI0J6N5+JdVM8z51S0IbBTB1WsxIWcL8eTiqj
-         6lfw==
-X-Gm-Message-State: AOJu0Yw7M0PtffNH3MTb07B6Sij06SbMFgakQjcKkMBzfACqjq+cAp3g
-	mJlnkITGe/DAopGXsgBKGUmmegKfe8wCWLaSfUB9u0VdyQ1OyA/QQ/JzlKLNTRWPOyejrwVsFJM
-	7clPBJtItsv0oUs4DPtEGriNYBVLyAqx/3autyL/WOCHFMs5e3Qkf
-X-Gm-Gg: AZuq6aJ01+zvj33wbzk7OaaOuTYUXJXtQla+CGnuGbPW3kS86eLybO4IwMu1y1lq1IV
-	3suzb20iOi7ku/0kajtELrdzufkWg/VSRxvO/a8p3Y4VDTE2hRWkI/NIJbrMrZl7Uc31y7GXd7Z
-	INvQn1kJk9vyXHkygOwMKY/LWXVCmKBZFHDp7AA1V0GbyPvmAmS4m/YhI3D0DsSXH+HRYfsXRSF
-	JKBGkaqRYieWudz0o/qgAUL0NXxS2IwYhFt3FetZfHDiPsUCEURfeChKSfc+Fme0QP7vR6QG9tG
-	g4vVZ07nQalxjjZZdm/Jyp7A7guyE2WYHDBJU16bniNRsh7d9Spl0r/reM2J4LphqFsIHA==
-X-Received: by 2002:a05:6820:4987:b0:66b:2d47:a791 with SMTP id
- 006d021491bc7-672e62cc621mr2242262eaf.32.1770791068010; Tue, 10 Feb 2026
- 22:24:28 -0800 (PST)
+        d=1e100.net; s=20230601; t=1770804017; x=1771408817;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8ihZJxsOoWcjwksMgu9Jk1Iskn3hPc55eYnm3G2Fw+M=;
+        b=d1xDfEg/LDcIPOPhX/CWgYnIscElgKyFCA6nDmB744hiPfEWbUoj1o7empjsDKXMf5
+         Z5EuHNtfOrEZeR54pjwZdInSPMIfgAxOauFCw+dy1B1eD4gXHdf/9D85ldptogsuVG9U
+         nvqaZcguQtRD1h/ESqmtdbPGwnTGn/XHVcd2JhFkMEglZvScRrOPoSEwnxFaXvTesKu5
+         KbZgV+oQOETYgL0dsQk+LnCCMeJbaEkBWxtciKrJpLuPkj3PBSoZRD8X8B7S/VzFg9Ph
+         YsZaBWSGK1ihDcuY2FWTwoMnd8OeR3no2DtOsstR1smrRfiVziyY0na/uZUb2UMSp/Rq
+         4INQ==
+X-Gm-Message-State: AOJu0YzgBj1GJRRIEYyK1iwICzlb3ckRMkb1vLmiP/VKDm2i+Z6GUhck
+	d8uag+8c7JpEM3R0w7gwi55/5Hs1zwlBsxiRf1itXoXkM1KkFAzLb6VYVkLzUlqKtosyDfQaFvi
+	6HND5BTg=
+X-Gm-Gg: AZuq6aLSYWfm9BxEEIf993jQ6hBRrAUv+RDuaRj5vzAain7JIQhykMTEbo3LG1aEE+D
+	5bqh/Hhk1aYRI7s5tZSFs6YU7uzVsrlmnLPuEtecX/3dOqWAfRTKXdryHmsKiuxCB5KDy2OZyaP
+	nNOOR2JQeoliOjPy9bVSL8phmkZ600EQoMm60Q2pHbvIPAkGsME8GgBxftOM7ZwbAHet/XqybaY
+	Rzx4se6SrwyrEWKwtwkwjHnuadr6qNzgsiauzKkRHe5bl7VuXvQ/Q7mcS7l60xktNUiI7XAoFJ4
+	fXkZutTeLXIhlCGl3MpM4Gf/UOuPx++CyN3QKu/YRcwUX0p6+oFfxR4cPC2PVYVcqDKuXrwrslK
+	YmM02pftIiMt56gzfE/cUt666Dbu0jdcdNXAkd1re90f21/efN04PZkA2RM6ISsfcYJQgfo3miD
+	zXrg5cUZ/YMcDTNt2yKZ+nKZv0+x2tlvJYp/WiQN/H3WFlPG95IoqYT3RAPqr37MciiUTddqfmP
+	5EfSQ==
+X-Received: by 2002:a5d:5c8a:0:b0:430:fd84:315a with SMTP id ffacd0b85a97d-43629381a52mr25599916f8f.39.1770804016889;
+        Wed, 11 Feb 2026 02:00:16 -0800 (PST)
+Received: from Dev-EliteBook.Home (97e782b0.skybroadband.com. [151.231.130.176])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43783e0196bsm3631364f8f.23.2026.02.11.02.00.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 Feb 2026 02:00:16 -0800 (PST)
+From: dave.patel@riscstar.com
+To: opensbi@lists.infradead.org
+Cc: Scott Bambrough <scott@riscstar.com>,
+	Dave Patel <dave.patel@riscstar.com>,
+	Ray Mao <raymond.mao@riscstar.com>,
+	Robin Randhawa <robin.randhawa@sifive.com>,
+	Anup Patel <anup.patel@qti.qualcomm.com>,
+	Samuel Holland <samuel.holland@sifive.com>,
+	Anup Patel <anuppate@qti.qualcomm.com>,
+	Dhaval <dhaval@rivosinc.com>,
+	Peter Lin <peter.lin@sifive.com>
+Subject: [PATCH] Trap and Emulate changes
+Date: Wed, 11 Feb 2026 10:00:10 +0000
+Message-ID: <20260211100010.4082-1-dave.patel@riscstar.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-References: <20251229071914.1451587-1-ben717@andestech.com>
-In-Reply-To: <20251229071914.1451587-1-ben717@andestech.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 11 Feb 2026 11:54:17 +0530
-X-Gm-Features: AZwV_Qh3JFk9EJ2AClojgX5Uc5VjhLZuRSOR7Kz_BicKlN-GKKMkzUCFAigm_no
-Message-ID: <CAAhSdy0Z9gBRThF0DPTxMdvyzbiadb2=TawHcDH8Uus6sMrhLA@mail.gmail.com>
-Subject: Re: [PATCH 0/5] Add hart state management and system suspend support
- for AE350
-To: Ben Zong-You Xie <ben717@andestech.com>
-Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260210_222430_444736_17834CCA 
-X-CRM114-Status: GOOD (  14.15  )
+X-CRM114-CacheID: sfid-20260211_020019_069384_E18EC36E 
+X-CRM114-Status: GOOD (  10.80  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -110,38 +99,62 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gTW9uLCBEZWMgMjksIDIwMjUgYXQgMTI6NDnigK9QTSBCZW4gWm9uZy1Zb3UgWGllIDxiZW43
-MTdAYW5kZXN0ZWNoLmNvbT4gd3JvdGU6Cj4KPiBUaGlzIHBhdGNoIHNlcmllcyBpbnRyb2R1Y2Vz
-IHN1cHBvcnQgZm9yIGhhcnQgc3RhdGUgbWFuYWdlbWVudCBhbmQKPiBzeXN0ZW0gc3VzcGVuZCBm
-dW5jdGlvbmFsaXRpZXMgb24gdGhlIEFuZGVzIEFFMzUwIHBsYXRmb3JtLiBGb3IgdGhlIGhhcnQK
-PiBzdGF0ZSBtYW5hZ2VtZW50LCBBRTM1MCBwbGF0Zm9ybSBzdXBwb3J0cyBDUFUgaG90cGx1Zy4g
-Rm9yIHRoZQo+IHN5c3RlbSBzdXNwZW5kLCB0aGVyZSBhcmUgdHdvIHBsYXRmb3JtLXNwZWNpZmlj
-IGxvdy1wb3dlciBtb2RlcywKPiBpbmNsdWRpbmcgZGVlcCBzbGVlcCAoc3VzcGVuZCB0byBSQU0p
-IGFuZCBsaWdodCBzbGVlcCAoc3VzcGVuZCB0byBzdGFuZGJ5KS4KPgo+IEJlbG93IGlzIHRoZSBw
-YXRjaCBzdW1tYXJ5Ogo+IFsxLzVdOiBUaGUgQW5kZXMgU3lzdGVtIE1hbmFnZW1lbnQgVW5pdCAo
-QVRDU01VKSBsb2dpYyBpcyBmYWN0b3JlZCBvdXQgaW50bwo+ICAgICAgICBhIGRlZGljYXRlZCBG
-RFQtYmFzZWQgSFNNIGRyaXZlciwgaW1wcm92aW5nIGNvZGUgcmV1c2UgYW5kCj4gICAgICAgIG1h
-aW50YWluYWJpbGl0eS4KPiBbMi81XTogSW1wbGVtZW50IHRoZSBmdW5jdGlvbnMgdG8gc2F2ZSBh
-bmQgcmVzdG9yZSBwbGF0Zm9ybS1zcGVjaWZpYyBDU1JzCj4gICAgICAgIHdoaWNoIGFyZSBsb3N0
-IGR1cmluZyBDUFUgaG90cGx1ZyBvciBkZWVwIHNsZWVwLgo+IFszLzVdOiBBZGQgdGhlIGZ1bmN0
-aW9ucyB0byBlbmFibGUvZGlzYWJsZSB0aGUgY2FjaGUuCj4gWzQvNV06IEEgbmV3IExhc3QgTGV2
-ZWwgQ2FjaGUgKExMQykgZHJpdmVyIGlzIGludHJvZHVjZWQgdG8gaGFuZGxlIHJlcXVpcmVkCj4g
-ICAgICAgIGNhY2hlIG9wZXJhdGlvbnMgZm9yIGRlZXAgc2xlZXAuCj4gWzUvNV06IEFuIEFUQ1NN
-VS1iYXNlZCBzdXNwZW5kIGRyaXZlciBpcyBpbXBsZW1lbnRlZCB0byBzdXBwb3J0IEFuZGVzIGRl
-ZXAKPiAgICAgICAgc2xlZXAgYW5kIGxpZ2h0IHNsZWVwLCBwcm92aWRpbmcgdGhlIE9TIHdpdGgg
-YWNjZXNzIHRvIHN0YW5kYXJkaXplZAo+ICAgICAgICBTQkkgc3lzdGVtIHN1c3BlbmQgZXh0ZW5z
-aW9ucy4KPgo+IEJlbiBab25nLVlvdSBYaWUgKDUpOgo+ICAgbGliOiB1dGlscy9oc206IGZhY3Rv
-ciBvdXQgQVRDU01VIGNvZGUgaW50byBhbiBIU00gZHJpdmVyCj4gICBwbGF0Zm9ybTogZ2VuZXJp
-Yy9hbmRlczogYWRkIENTUiBzYXZlIGFuZCByZXN0b3JlIGZ1bmN0aW9ucyBmb3IgQUUzNTAKPiAg
-ICAgcGxhdGZvcm0KPiAgIGxpYjogdXRpbHMvY2FjaGU6IGFkZCBjYWNoZSBlbmFibGUgZnVuY3Rp
-b24KPiAgIGxpYjogdXRpbHMvY2FjaGU6IGFkZCBBbmRlcyBsYXN0IGxldmVsIGNhY2hlIGNvbnRy
-b2xsZXIKPiAgIGxpYjogdXRpbHMvc3VzcGVuZDogYWRkIEFuZGVzIEFUQ1NNVSBzdXNwZW5kIGRy
-aXZlcgoKQXBwbGllZCB0aGlzIHNlcmllcyB0byB0aGUgcmlzY3Yvb3BlbnNiaSByZXBvLgoKVGhh
-bmtzLApBbnVwCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRl
-YWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNi
-aQo=
+From: Dave Patel <dave.patel@riscstar.com>
+
+Signed-off-by: Dave Patel <dave.patel@riscstar.com>
+---
+ lib/sbi/sbi_illegal_insn.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_illegal_insn.c b/lib/sbi/sbi_illegal_insn.c
+index fa82264a..88079e39 100644
+--- a/lib/sbi/sbi_illegal_insn.c
++++ b/lib/sbi/sbi_illegal_insn.c
+@@ -110,10 +110,33 @@ static int system_opcode_insn(ulong insn, struct sbi_trap_regs *regs)
+ 	return 0;
+ }
+
++static int sbi_get_emulated_irq_insn(ulong insn, struct sbi_trap_regs *regs)
++{
++	ulong rs1_val	= GET_RS1(insn, regs);
++	ulong rs2_val	= GET_RS2(insn, regs);
++	//ulong prev_mode = sbi_mstatus_prev_mode(regs->mstatus);
++	ulong irq_val;
++
++	/*
++	// This is were the emualted irq vlaue is fetched
++	if (prev_mode == PRV_S && sbi_emulate_irq_read(&irq_val))
++		return truly_illegal_insn(insn, regs);
++	*/
++
++	// For testing
++	irq_val = rs1_val + rs2_val;
++
++	SET_RD(insn, regs, irq_val);
++
++	regs->mepc += 4;
++
++	return 0;
++}
++
+ static const illegal_insn_func illegal_insn_table[32] = {
+ 	truly_illegal_insn, /* 0 */
+ 	truly_illegal_insn, /* 1 */
+-	truly_illegal_insn, /* 2 */
++	sbi_get_emulated_irq_insn,   /* 2 */
+ 	misc_mem_opcode_insn, /* 3 */
+ 	truly_illegal_insn, /* 4 */
+ 	truly_illegal_insn, /* 5 */
+--
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
