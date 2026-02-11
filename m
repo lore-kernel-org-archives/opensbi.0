@@ -4,90 +4,133 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 486EAEB271F
-	for <opensbi@archiver.kernel.org>; Wed, 11 Feb 2026 10:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 82B25E9E31B
+	for <opensbi@archiver.kernel.org>; Wed, 11 Feb 2026 15:01:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=iswIhMBjUoGAMp4JWHDh5Q6CXqCdxhnHSA1FBwON7iU=; b=DoMTj5AwIu9pEm
-	xiW1WT4w5Cneyr2Mv3fC0vI3bR9rEobENmypDPDyANdoukv+25imNXnlmV6eJSN5eY42YBazlw6M3
-	0zio3bMNIF0JYDWUrTTaCQpoWpRiusR1axqwG4Jq/SfYBnbWk9msYycq/y2o9MdBaRWsOby2li0KO
-	N7Yi/uIdt4xWXwZjDjoBbD4fFg0H4rfR9U3GmyhdvK/kwpD37zTXZ4AxOY6QsqYTnnFZHMUXWhBC2
-	7J/LKAI5vW12RMvgntqZ8KsRM+PXUFojs4I8guafkgMzGyTCdk/p2pJhlNl5qxk/RoJcjoB35B3RX
-	C9ahGW94XQRtEfnW5Tpg==;
+	List-Owner; bh=HCOc6/i0T/7O+ws1d+SZ6Du210BgtfamhzxyE6oYoi0=; b=iQnhZeyfD2jYup
+	6o7nHgrs6XCHQjplsmy5mokGA6cWG/oaB8bxBIoQ3+NkfdNJl4KWlii7gZsded+X2UCYJQIRtiO4I
+	x5ztC5FGi904vyh2MiyD2cKdDaettVusqeuO0Th6KB1BGM6dU4Qiny05h2qoloQm+c/bxlqb66aJ9
+	LsienEzE9X4YLhKu4ZoHPK3B5FQVxxwmH+aUJxOF9MWbzXn92CLDCyp5a0hMz9EJhKssv+Fvvlje9
+	Q/B21YwgC1BUdHbKJZ07hbKmcOQagSYQKM1lR0jRXtMOsA+PC69qvhn1/cz2qvKMAHhNBVO8g3MOM
+	xQcIM9keXRHPHp/mEDkw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vq7cP-00000000WVo-0QFk;
-	Wed, 11 Feb 2026 10:38:49 +0000
-Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
+	id 1vqBin-00000000kit-12BH;
+	Wed, 11 Feb 2026 15:01:41 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vq7cM-00000000WVL-2mNt
+	id 1vqBij-00000000kiM-3AZl
 	for opensbi@lists.infradead.org;
-	Wed, 11 Feb 2026 10:38:48 +0000
-Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-2aaf59c4f7cso8821085ad.1
-        for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 02:38:45 -0800 (PST)
+	Wed, 11 Feb 2026 15:01:39 +0000
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61BAx8lt2396537
+	for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 15:01:36 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	Hwx8Cgu0CSXPRYJ/y5C9O7SnfRD2Fv3OFcSxp+n/snU=; b=EZ6IXtoyfzZHYSfm
+	DiVDLKpzLseG350HzuPDCyLDO4sgJIsnzNzgxbQT+HocGPJbzWzVTPD7KRIwDTxB
+	+kx+5m//w6MKD39vYq/g9V9QCqm5NBENoshSCCnQ5CTGHkQfXJ7p7tQtQB5/8c2w
+	vOqUWNmkwBTy1/vyVld5na3wONiOD48+cgbtSg8t4Z1z3AQ5+svhHrajhrb+ljgN
+	vLYJWMjP6L/UURUpyQU9O0CUAUqzt+aR0InlMZf0nKDd4vZotjQ75j1l5VkzMCcc
+	fzlDvnhDQYdp2pM87bf0Y0pY+QhPPCWmrWj+fK/Qozo8oz/+V77eQE5CABLh1ayR
+	A4bGDA==
+Received: from mail-dl1-f71.google.com (mail-dl1-f71.google.com [74.125.82.71])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4c88wqkp7y-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 15:01:36 +0000 (GMT)
+Received: by mail-dl1-f71.google.com with SMTP id a92af1059eb24-124aa710af7so33807750c88.1
+        for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 07:01:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770806325; x=1771411125; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=LRjEskGOEUM4fnnptJ4eB0xanXVRjddQBV0Y1yXiPtY=;
-        b=jztE/UBDytcMHgZXnEGckMqv2dp+eleCqyfrR84dDoxmy6WmKmUQu3WpaYKPr2adrx
-         ihsVBd1Yt+AUzUjuClqrAfc73+CWXfDqfr1mne5MxZb3UZy+5QRJZPm0LMRvht2Rx64c
-         1pKerDjnReqaZv/AGh8ohU6IpjxE4QkaZvQu8Is4TcVE+RM6koUid327pqlChgZwKhJy
-         /IZ4AV+5DNYlbVkj/szJwWspyPpcNTR/OdsDIBfLvAgn+CMPLSV4sEpOpBofDhNc412S
-         zbOPi3vcwGRBUltciLIDxQQ9+Ys1HjFCWQepw5PciphugvBUR6FRMCl/WhxzjQrQogWM
-         VKUw==
+        d=oss.qualcomm.com; s=google; t=1770822095; x=1771426895; darn=lists.infradead.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=Hwx8Cgu0CSXPRYJ/y5C9O7SnfRD2Fv3OFcSxp+n/snU=;
+        b=jQKN6pE55X1TPrwLU48C5+dpNEid4Kn46iTfkdUdeVnn3TGIMwu+cPCDVP/y9DD2du
+         dpvV2pIviWRUZWjzOKL7kdeucCuXHvEW2UwVlUvbPcg/Vo/+bt4bO2JF9iY38Un6+6jX
+         H7mse5gbPXdCGE9hxwPM+qWTIxuhZEBS/fU/s27z1ghrrQ8ieOSZLprgNahbp3LL7OHt
+         xXUdWp6/OzZK3hyx83ggq40Bxd/h++dqMNsJOIWlMsQtOELYWmxBpzX8pZlGy9VJXJO7
+         lTjA0xg8xXOs8E1Oxmz2m11UGyRovkmRuolO315EOuBfyX1seilXN2dNwflk58pOguOl
+         DvIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770806325; x=1771411125;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=LRjEskGOEUM4fnnptJ4eB0xanXVRjddQBV0Y1yXiPtY=;
-        b=gRR12LAvXqLajmY0S/b1OUbFnR2BVsHutF3HLKpnDF/mI4ppxZn5Io4T1w0O4UUIv2
-         OHmnQpBhYzaRSdXM9ddSRlJMYW3IMddvz7MU0R/6gE/eBkgJ6lkTymZkjfLJewVmVWxM
-         H/M02FHoYObXD969AsxBRlfpL78kBelUBSvbyYM1Nk2tB14N1EOd8gUbtK9urEwE0AWE
-         5EuZxTmfBk401V3f59zrfo5Z1aIe8LzOy+4aiJFhbWOxM1+naEEclHxuG4OrjfAhn8zr
-         bT65S0bLxhi/3KI/i1GAMIhMQdYtSR4YLNYLxxKLnhJsOFIJD+5rZvRFfQCOcBfXt+QZ
-         ebHA==
-X-Gm-Message-State: AOJu0Yz3frkhvZemKAxBDzoVjEdGjWV7pBI/XZG4QZO4cEQUH9eH8ilZ
-	U8zODV5E/3/KrvQZ7Y1+WJTwe2UUPhsq3ssw2F/OmGhWvAUbVRZ2elfr
-X-Gm-Gg: AZuq6aIdYsMhPnb1O20z34vRyObZv31LOc2SmJNXKTd+ZR+marIsqkjd6Rs43aWnImm
-	aOfiu9ZI9qArWaXVjax8crp58ER3PcvAYMYzGG7bPMU0rGYciXpLXewejw2+lNe61eH3a6bOato
-	E/TjniT2QbqWuQtH15w2sACIBd4W/7Tl4uxIX8pnjJt8RioBYcS23jQ7qifrINpW0HIldg3qz9D
-	93K/pA/caWBjfgfN4UAD6N7Sgk0P3POG5jMdwzE9WJKSYH+bSmCtq0jLNnyZFm0IhZcpq+iAEd+
-	3UWQFC45T0MO6maMxmUd5+x1i/8UX7thfR2noV2dVIp3Jfef6XxDn52A50R+TFCxyFv9Q2bYauJ
-	1RMQ4cQUCuLOH1x7MvlJQ3Ag+zNlkBibcNxhgz6HcSZJvUFzZgXDBdFg8XGmhR4c4BgkQ/qyY7G
-	wDvDNeB1Ae0jVcREmkuLAuSgMt
-X-Received: by 2002:a17:903:3583:b0:2aa:eed5:c5aa with SMTP id d9443c01a7336-2aaeed5c710mr90508365ad.57.1770806325178;
-        Wed, 11 Feb 2026 02:38:45 -0800 (PST)
-Received: from [192.168.0.13] ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ab2984ab2fsm17475375ad.17.2026.02.11.02.38.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Feb 2026 02:38:44 -0800 (PST)
-Message-ID: <18716d93-ed49-4c30-80b3-0956306df776@gmail.com>
-Date: Wed, 11 Feb 2026 02:36:26 -0800
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
+        d=1e100.net; s=20230601; t=1770822095; x=1771426895;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Hwx8Cgu0CSXPRYJ/y5C9O7SnfRD2Fv3OFcSxp+n/snU=;
+        b=c1ycknRLaVV6U/oGHs6bzsyUse+zhzRKxBOEPO8gPmrDEoJpXky0GnVQfiwcSm5xSq
+         yM3mZyRONTs51tTkr+u8J26jzjb7WajRRr4zbC1aT7tCt8QiTq7erXUtmYhyCkr2lk9n
+         7vr2V7Q6oE0fMK09c2Bu6QHlZVfwcvH8w0aEB6XrwmbPGznG8W9M9ALGePLCOrkkgsdn
+         osK8IxHUmZ7D3YkT2TGLEQGi/wtG7mcXJQ6OuhBKdVXQ0dW4IhHS++XpIzQjK69r1np5
+         a0r0GlXAMC1DpLjm6PhVM+lFq1j4AbhkzVBzOoHx+m6eR4M4NDOBfiEnJMZj4/svP+Z0
+         KXQA==
+X-Gm-Message-State: AOJu0YxQKaX0tOZ3BdOBVJoJK3WL1HFhPHYbSuv2Lj2UJ6bFPxeOug/f
+	T0JywlCQVZNYHcIJCpH9TKpkf7/aphENTFcaNaaE9zvvIeTeiRHeuR3aLw32UoGB12xOw0MIXpH
+	0GLPMIdKEVu9R58hl1U6Nhcy2zP/E01wWeGFO5Wd0LRUljVwHEapyGlULDswM4KgStw==
+X-Gm-Gg: AZuq6aKI4jQ9ysJQOK3qSvolv2pf2FVt2GaSYZvCr1uTSUBKMQOGew/FnQsUWRy6f2C
+	Q9Zl9Sn/UnGzlb2iGcUqbsSh8xztmr8tZ5bVqdvpG84Nkpyd42oRfpU/XHM4AagjpGCdiabCxHH
+	vY0A/EIQjl9adhPM4fFdPRMcxWQNDA5LOg4wtbUi1RQddI5HX5SQLqZ9cQd8WdOCYYVe9bIMzYk
+	xkfAFI0vtMX4lmEtTLRbMj5xSMWIAHpd24NudLrYnKiy+2UA/NjPLBMi1O+r91IJnI6i7ghgryc
+	2a6vCe2DZZk+OTFlne5LM753MovzmsEZD0veL716dYAsWj9CypoX33h7knWNAWyAsQUXM2ef5c5
+	LtJxl++2s1dIKhR/wM/cFQJPtlCHnOzI=
+X-Received: by 2002:a05:7022:b90:b0:11d:fc72:e17f with SMTP id a92af1059eb24-1272431f6camr3193019c88.18.1770822093362;
+        Wed, 11 Feb 2026 07:01:33 -0800 (PST)
+X-Received: by 2002:a05:7022:b90:b0:11d:fc72:e17f with SMTP id a92af1059eb24-1272431f6camr3192947c88.18.1770822090945;
+        Wed, 11 Feb 2026 07:01:30 -0800 (PST)
+Received: from localhost ([140.82.166.162])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1272a69cc93sm2071869c88.6.2026.02.11.07.01.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 Feb 2026 07:01:30 -0800 (PST)
+Date: Wed, 11 Feb 2026 09:01:28 -0600
+From: Andrew Jones <andrew.jones@oss.qualcomm.com>
+To: Bo Gan <ganboing@gmail.com>
+Cc: opensbi@lists.infradead.org, dramforever@live.com,
+        anup.patel@oss.qualcomm.com, anup@brainfault.org, cleger@rivosinc.com,
+        samuel.holland@sifive.com
 Subject: Re: [PATCH 6/7] lib: sbi: Rework load/store emulator instruction
  decoding
-To: Andrew Jones <andrew.jones@oss.qualcomm.com>, Bo Gan <ganboing@gmail.com>
-Cc: opensbi@lists.infradead.org, dramforever@live.com,
- anup.patel@oss.qualcomm.com, anup@brainfault.org, cleger@rivosinc.com,
- samuel.holland@sifive.com
+Message-ID: <h2wb43bzmxb45u6q6qdwa2nurdai7l2qarevrrwmutzgtsttdc@eyd2hyo66lqw>
 References: <20260210094044.72591-1-ganboing@gmail.com>
  <20260210094044.72591-7-ganboing@gmail.com>
  <3joqam2xgawjrhjyao7q7ulni23x5b73lk7twirld2lpiw2xf6@slh6pvojkksv>
-Content-Language: en-US
-From: Bo Gan <ganboing@gmail.com>
-In-Reply-To: <3joqam2xgawjrhjyao7q7ulni23x5b73lk7twirld2lpiw2xf6@slh6pvojkksv>
+ <18716d93-ed49-4c30-80b3-0956306df776@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <18716d93-ed49-4c30-80b3-0956306df776@gmail.com>
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjExMDExNiBTYWx0ZWRfXwRfPDPD4Ai2q
+ zU5HtY4XSyOWuBdqw8Kk1E2xqpO48jOJyHpJVwKLSZARui1JSkkbp2cMQvwjokPkfsetZmu/O7P
+ hLTr7OZ/kMuU3n6t23BrtaMF2vpwJwsAMzSqVhts4La5BXvTPWSYYAI2Dqofkmg1+tJr3G5fzlU
+ l3t5X+kXj98elj4FE52BJvWNhErOJGEEU5VQIdeOLuulrfJyCNjRX6cSlEA31aczjpZ/o2OCgCa
+ DJCoGCTwG8k3YO4CsTltdzdgUgznlfhGDmCmwhJfxawSD6hWniLcvs9WfhorVbDO9/nN+VnSOaX
+ YdF3DcOBTtYZltxDzMnbigQCai0DIYrRc6ZV/0VRhOuUNNufwxPTlY74jZ+UzojKnzgaZXk81fM
+ MM5v1rs8Qd+DnBRIPSisB44rYQMJcVeBR6zABOfjscWTTaQuyRANkriKxFLmEqYBUyz20e1sXCQ
+ fp6dPZYFlFuo+n+ItqQ==
+X-Proofpoint-GUID: I8xeeVytgb8Kcw4d7J4UzpP0YNQGNPh1
+X-Authority-Analysis: v=2.4 cv=W7Q1lBWk c=1 sm=1 tr=0 ts=698c99d0 cx=c_pps
+ a=JYo30EpNSr/tUYqK9jHPoA==:117 a=cvcws7F5//HeuvjG1O1erQ==:17
+ a=8nJEP1OIZ-IA:10 a=HzLeVaNsDn8A:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22 a=GgsMoib0sEa3-_RKJdDe:22
+ a=NEAV23lmAAAA:8 a=VwQbUJbxAAAA:8 a=zd2uoN0lAAAA:8 a=h0uksLzaAAAA:8
+ a=p0WdMEafAAAA:8 a=SiDgj2bqGq6Xx-teCb0A:9 a=3ZKOabzyN94A:10 a=wPNLvfGTeEIA:10
+ a=Fk4IpSoW4aLDllm1B1p-:22 a=MSi_79tMYmZZG2gvAgS0:22
+X-Proofpoint-ORIG-GUID: I8xeeVytgb8Kcw4d7J4UzpP0YNQGNPh1
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-02-11_01,2026-02-11_04,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 spamscore=0 lowpriorityscore=0 bulkscore=0 clxscore=1015
+ suspectscore=0 adultscore=0 malwarescore=0 impostorscore=0 priorityscore=1501
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2602110116
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260211_023846_737564_349A2FE9 
-X-CRM114-Status: GOOD (  19.94  )
+X-CRM114-CacheID: sfid-20260211_070137_943307_8AFF0C3B 
+X-CRM114-Status: GOOD (  36.54  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,60 +142,110 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SGkgQW5kcmV3LAoKT24gMi8xMC8yNiAwODowOCwgQW5kcmV3IEpvbmVzIHdyb3RlOgo+IE9uIFR1
-ZSwgRmViIDEwLCAyMDI2IGF0IDAxOjQwOjQzQU0gLTA4MDAsIEJvIEdhbiB3cm90ZToKPiAuLi4K
-Pj4gVmFsaWRhdGlvbjoKPj4gVGhlIHBhdGNoIGlzIHZhbGlkYXRlZCB0byBoYXZlIGZpeGVkIHRo
-ZSBpc3N1ZSB3aXRoIHRlc3QgY2FzZXMgcnVubmluZwo+PiBvbiBhIG1vZGlmaWVkIHZlcnNpb24g
-b2YgUUVNVSB0aGF0IGV4cG9zZXMgbWlzYWxpZ25lZCBmYXVsdHMgWzFdLCBhbmQKPj4gYSBmdXJ0
-aGVyIG1vZGlmaWVkIHZlcnNpb24gdGhhdCByZW1vdmVzIHRpbnN0IHRyYW5zZm9ybWF0aW9uIFsy
-XS4gVGhlCj4+IFMtbW9kZSBPUyBpcyBhIGxvY2FsIGJ1aWxkIG9mIERlYmlhbiBUcml4aWUgNi4x
-MiBrZXJuZWwgdGhhdCBlbmFibGVzCj4+IENPTVBBVCAoUlYzMiksIGFuZCB0aGUgVS1tb2RlIHRl
-c3QgYXBwbGljYXRpb24gZXhlcmNpc2VzIGFsbCBpbnRlZ2VyCj4+IGFuZCBmbG9hdGluZy1wb2lu
-dCBsb2FkL3N0b3JlIChSVklGRDY0LzMyK1JWQzY0LzMyKSBpbnN0cnVjdGlvbnMgd2l0aAo+PiBh
-bGwgcG9zc2libGUgaW1tIHZhbHVlcy4gVGhlIHBhdGNoIGlzIGFsc28gdGVzdGVkIG9uIHJlYWwg
-SFcgKFNpZml2ZQo+PiBQNTUwL0VTV0lOIEVJQzc3MDApLCB3aGljaCBvbmx5IHN1cHBvcnRzIFJW
-NjQuIE9uIFA1NTAsIHRoZSBzYW1lIHRlc3QKPj4gd2FzIHZhbGlkYXRlZCBib3RoIGluIFUgbW9k
-ZSBhbmQgVlUgbW9kZSwgd2hlcmUgdGhlIGhvc3QgcnVucyBhIDYuMTIKPj4gRVNXSU4gdmVuZG9y
-IGtlcm5lbCB0aGF0IGhhcyBzb21lIEVTV0lOIFNvQyBkZXZpY2UgZHJpdmVyIHBhdGNoZXMgWzNd
-Cj4+IGFwcGxpZWQsIGFuZCB0aGUgZ3Vlc3QgcnVucyB0aGUgZXhhY3Qgc2FtZSBEZWJpYW4gVHJp
-eGllIDYuMTIga2VybmVsCj4+IG1lbnRpb25lZCBhYm92ZS4KPj4KPj4gWzFdIGh0dHBzOi8vZ2l0
-aHViLmNvbS9nYW5ib2luZy9xZW11L3RyZWUvZ2FuYm9pbmctbWlzYWxpZ24KPj4gWzJdIGh0dHBz
-Oi8vZ2l0aHViLmNvbS9nYW5ib2luZy9xZW11L3RyZWUvZ2FuYm9pbmctbWlzYWxpZ24tbm8tdGlu
-c3QKPj4gWzNdIGh0dHBzOi8vZ2l0aHViLmNvbS9zaWZpdmVpbmMvcmlzY3YtbGludXgvdHJlZS9y
-ZWwva2VybmVsLTYuMTIvaGlmaXZlLXByZW1pZXItcDU1MAo+Pgo+IAo+IEhpIEJvLAo+IAo+IEl0
-J2QgYmUgbmljZSBpZiB3ZSBjb3VsZCBpbnRlZ3JhdGUgZW11bGF0aW9uIHRlc3RzIGludG8gYSB0
-ZXN0IHN1aXRlIHRoYXQKPiBnZXRzIHJ1biBmcmVxdWVudGx5IGluIG9yZGVyIHRvIGNhdGNoIHJl
-Z3Jlc3Npb25zLiBXZSBoYXZlIGFscmVhZHkgc3RhcnRlZAo+IHVzaW5nIHRoZSBrdm0tdW5pdC10
-ZXN0c1s0XSBmcmFtZXdvcmsgZm9yIFNCSSB0ZXN0aW5nIHNvIGFkZGluZyBlbXVsYXRpb24KCkdv
-b2QgdG8ga25vdy4gSSB3YXNuJ3QgYXdhcmUgb2YgdGhpcyBwcm9qZWN0LiBJJ2xsIGRlZmluaXRl
-bHkgdGFrZSBhIGxvb2sKYW5kIHNlZSBpZiBJIGNhbiB1cHN0cmVhbSB0aGUgdGVzdCBjYXNlcyB0
-aGVyZS4gSSBndWVzcyBpdCBjYW4gYmUgdXRpbGl6ZWQKdG8gdGVzdCBtaXNhbGlnbmVkIGhhbmRs
-ZXIgaW4gYm90aCBNIG1vZGUgT3BlblNCSSBhbmQgdGhlIEtWTSBTQkkgbGF5ZXIsCmRlcGVuZGlu
-ZyBvbiB3aGV0aGVyIGhvc3QgTGludXgvS1ZNIGVuYWJsZXMgbWlzYWxpZ25lZCBleGMgZGVsZWdh
-dGlvbiwKY29ycmVjdD8KCj4gdGVzdHMgdGhlcmUgd291bGQgbWFrZSBzZW5zZS4gSWYgc3BlY2lh
-bCBRRU1VIGJlaGF2aW9yIGlzIG5lZWRlZCB0aGVuIHdlCj4gc2hvdWxkIGdldCBjcHUgcHJvcGVy
-dGllcyB0aGF0IGVuYWJsZSB0aG9zZSBiZWhhdmlvcnMgdXBzdHJlYW1lZCBzbyB3ZSBjYW4KPiB0
-dXJuIHRoZW0gb24gd2hlbiBydW5uaW5nIHRoZSB0ZXN0cy4KCkkgdGhpbmsgdGhpcyBpcyBkb25l
-IGJ5IG90aGVycyBmb3Igc3VyZS4gSSB3YXMgYWN0dWFsbHkgaW5zcGlyZWQgYnkgdGhpcwpodHRw
-czovL2xvcmUua2VybmVsLm9yZy9hbGwvMjAyNDEyMTEyMTE5MzMuMTk4NzkyLTEtZmtvbnJhZEBh
-bWQuY29tLwpzZXJpZXMgYnkgRnJlZGVyaWMgdG8gaGFjayBRRU1VLiBTaW1pbGFyIHBhdGNoZXMg
-aGF2ZSBiZWVuIGRvbmUgYnkgb3RoZXJzCnN1Y2ggYXMgQ2zDqW1lbnQgbWVudGlvbmVkIGluIHRo
-aXMgc2VyaWVzOgpodHRwczovL2xvcmUua2VybmVsLm9yZy9hbGwvMjAyNTAxMDYxNTQ4NDcuMTEw
-MDM0NC0xLWNsZWdlckByaXZvc2luYy5jb20vCkknZCBsaWtlIHRvIGhlYXIgZnJvbSBmb2xrcyB0
-byB1bmRlcnN0YW5kIGlmIHRoZXJlJ3JlIGFueSByb2FkYmxvY2tzCmV4cG9zaW5nIHRoZSBtaXNh
-bGlnbmVkIGZhdWx0IGluIFFFTVUgKGdhdGVkIGJ5IGEgY29uZmlnIGZsYWcpLCBiZWZvcmUKYXR0
-ZW1wdGluZy4KClNwb2lsZXIgYWxlcnQ6IExpbnV4J3MgbWlzYWxpZ25lZCBoYW5kbGVyIHNlZW1z
-IHRvIGJlIGFmZmVjdGVkIGJ5IHRoZQpzYW1lIGluc24gZGVjb2RpbmcgaXNzdWUgd2hlcmUgdGhl
-cmUncyBubyBjaGVja2luZyBvZiBwcmV2aW91cyBYTEVOLiBJJ20KeWV0IHRvIGNoZWNrIGlmIExp
-bnV4IGlzIGFmZmVjdGVkIGJ5IG90aGVyIGlzc3VlcyBpbiB0aGlzIHBhdGNoc2V0LCB0b28uCk9u
-Y2UgdGhpcyBjaGFuZ2UgaXMgbWVyZ2VkIGluIE9wZW5TQkksIEknbGwgYWxzbyBiZSBsb29raW5n
-IGludG8gZml4aW5nCkxpbnV4IGFuZCBhZGRpbmcgbXkgdGVzdCBjYXNlcyBpbnRvIExpbnV4L3Nl
-bGZ0ZXN0cyBhcyB3ZWxsLgoKPiAKPiBbNF0gaHR0cHM6Ly9naXRsYWIuY29tL2t2bS11bml0LXRl
-c3RzL2t2bS11bml0LXRlc3RzCj4gCj4gVGhhbmtzLAo+IGRyZXcKCkJvCgotLSAKb3BlbnNiaSBt
-YWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZy
-YWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+On Wed, Feb 11, 2026 at 02:36:26AM -0800, Bo Gan wrote:
+> Hi Andrew,
+> =
+
+> On 2/10/26 08:08, Andrew Jones wrote:
+> > On Tue, Feb 10, 2026 at 01:40:43AM -0800, Bo Gan wrote:
+> > ...
+> > > Validation:
+> > > The patch is validated to have fixed the issue with test cases running
+> > > on a modified version of QEMU that exposes misaligned faults [1], and
+> > > a further modified version that removes tinst transformation [2]. The
+> > > S-mode OS is a local build of Debian Trixie 6.12 kernel that enables
+> > > COMPAT (RV32), and the U-mode test application exercises all integer
+> > > and floating-point load/store (RVIFD64/32+RVC64/32) instructions with
+> > > all possible imm values. The patch is also tested on real HW (Sifive
+> > > P550/ESWIN EIC7700), which only supports RV64. On P550, the same test
+> > > was validated both in U mode and VU mode, where the host runs a 6.12
+> > > ESWIN vendor kernel that has some ESWIN SoC device driver patches [3]
+> > > applied, and the guest runs the exact same Debian Trixie 6.12 kernel
+> > > mentioned above.
+> > > =
+
+> > > [1] https://github.com/ganboing/qemu/tree/ganboing-misalign
+> > > [2] https://github.com/ganboing/qemu/tree/ganboing-misalign-no-tinst
+> > > [3] https://github.com/sifiveinc/riscv-linux/tree/rel/kernel-6.12/hif=
+ive-premier-p550
+> > > =
+
+> > =
+
+> > Hi Bo,
+> > =
+
+> > It'd be nice if we could integrate emulation tests into a test suite th=
+at
+> > gets run frequently in order to catch regressions. We have already star=
+ted
+> > using the kvm-unit-tests[4] framework for SBI testing so adding emulati=
+on
+> =
+
+> Good to know. I wasn't aware of this project. I'll definitely take a look
+> and see if I can upstream the test cases there. I guess it can be utilized
+> to test misaligned handler in both M mode OpenSBI and the KVM SBI layer,
+> depending on whether host Linux/KVM enables misaligned exc delegation,
+> correct?
+
+Yes, and it can also be run directly on hardware without KVM (despite the
+testsuites' name) when launching tests from an EFI-capable firmware.
+
+> =
+
+> > tests there would make sense. If special QEMU behavior is needed then we
+> > should get cpu properties that enable those behaviors upstreamed so we =
+can
+> > turn them on when running the tests.
+> =
+
+> I think this is done by others for sure. I was actually inspired by this
+> https://lore.kernel.org/all/20241211211933.198792-1-fkonrad@amd.com/
+> series by Frederic to hack QEMU. Similar patches have been done by others
+> such as Cl=E9ment mentioned in this series:
+> https://lore.kernel.org/all/20250106154847.1100344-1-cleger@rivosinc.com/
+> I'd like to hear from folks to understand if there're any roadblocks
+> exposing the misaligned fault in QEMU (gated by a config flag), before
+> attempting.
+
+I'm in favor of it (QEMU is meant to be a test environment, after all - so
+it seems logical to me to want to test multiple configurations), but let's
+start a thread on qemu-devel to see what feedback we get.
+
+> =
+
+> Spoiler alert: Linux's misaligned handler seems to be affected by the
+> same insn decoding issue where there's no checking of previous XLEN. I'm
+> yet to check if Linux is affected by other issues in this patchset, too.
+> Once this change is merged in OpenSBI, I'll also be looking into fixing
+> Linux and adding my test cases into Linux/selftests as well.
+
+Excellent!
+
+Thanks,
+drew
+
+> =
+
+> > =
+
+> > [4] https://gitlab.com/kvm-unit-tests/kvm-unit-tests
+> > =
+
+> > Thanks,
+> > drew
+> =
+
+> Bo
+
+-- =
+
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
