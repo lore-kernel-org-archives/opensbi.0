@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 38461ECD6F7
-	for <opensbi@archiver.kernel.org>; Wed, 11 Feb 2026 22:20:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B4239ECD6EE
+	for <opensbi@archiver.kernel.org>; Wed, 11 Feb 2026 22:20:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=H0fYFRe6Wq0CkEMVu6frgpVMfbKIuN5Ebm4DgJP1330=; b=1A9P4IbhZimBlS
-	52WlreMxb6rvblGIgA/UTo0Iswj8R/SeSxcPjM3UkMfO9W7AdHKsJfGiuNh2rwtl03Ovsrq8fcHxZ
-	wrvKBL+eb02KDwK8zcajB2J4Dxei0Aowe0v2RQSczehaEyE8OSxheaksgIYPM2I4InH5ub80OdNTo
-	t91xJQfzFylbd/nVwxY9gZmRrDafrTV3YdtDWSCr16IqW4xWPpsiTdhC3cgqrQ3Kn1cdjLbZfV3CZ
-	Ii/QXwiGnogjjOn2tuUZHRPXtGAUz/Rw8o9wqenpiJSrJW+f2fEqFvGqd3MaixrNsGT47Empy2KAw
-	+poHWxHQ74bWnHXkUtBg==;
+	List-Owner; bh=Ny5JE7PMlfOxlIbx2ZHeN8LYMA8Hvad+eDc63pUL4Lg=; b=Brx2AcUhc/qRGM
+	yWEmveCqCPutJ1/6Uw+m35D6DFb/h7Xs4FQnfCrPm6W9LsDMUZ5nhac8FOUfYWCOUv/yDjRwFj3im
+	TVy8EESAxETgaqZRBp2ac9CesY5++9nA2u5/AggN6vZROfOidFTqFejP83DQ5SgV4ELVafd5ppV5z
+	SKIsTDjjZ2BDVnIZUkzhUB7tFhsiX95xhXnzpNR7+AQfs5W9kcktPpIbUZbY1eXxywoNMp9gfTnWR
+	BvJTTwXDB5rs2OU4dMG0TI1ZATyQuA5Q08NT/Mgv6I82LFqtDNSxW/ik5oprpCYRJai8YLs9kaZNb
+	cCOTekJWZQZACUyq4MMw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vqIZi-000000017y9-1oF3;
-	Wed, 11 Feb 2026 22:20:46 +0000
-Received: from mail-qt1-x832.google.com ([2607:f8b0:4864:20::832])
+	id 1vqIZk-000000017z3-2wHj;
+	Wed, 11 Feb 2026 22:20:48 +0000
+Received: from mail-qt1-x82a.google.com ([2607:f8b0:4864:20::82a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vqIZf-000000017wa-2DGC
+	id 1vqIZh-000000017xS-2spn
 	for opensbi@lists.infradead.org;
-	Wed, 11 Feb 2026 22:20:44 +0000
-Received: by mail-qt1-x832.google.com with SMTP id d75a77b69052e-50686cd093dso8032831cf.3
-        for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 14:20:43 -0800 (PST)
+	Wed, 11 Feb 2026 22:20:46 +0000
+Received: by mail-qt1-x82a.google.com with SMTP id d75a77b69052e-502b0aa36feso13098981cf.1
+        for <opensbi@lists.infradead.org>; Wed, 11 Feb 2026 14:20:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770848442; x=1771453242; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1770848444; x=1771453244; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=D0oUF/yXoa3yx8OZxDltX0SSitiFNmmS/M11Q7PywcY=;
-        b=dWFX2rajbuauKKkBdFHAaYdjJHCMX9uoS1Z+MTTNEZYw8Uy3baBUBeU6Gwwy4LsvP6
-         rdo86SPJBo2oOR7Cly/GSYnqEBU9t0dzh76pcCv6PLrnHNkLn0Hc00+Dn9Ud5SZEbap+
-         uG+zUuzNNKpcrwV4p9E4p2LBx0jv977S9knkrRDGgmb0oqSRQCz3UEfQiFsuzhWomsLE
-         zQdt/cd8rm7FNb8h606Ud80S/Cq+aPMMqviQtTBO/rYXsGDC8Gy6fX0YVbYvFW5lAZw4
-         IOUDejWPkRDbRONjnRzUOPTi42GlYnU+TQR/WErjEAWzdBkGOLBTBAR//XGU7CZyFOkh
-         a77g==
+        bh=tO+nLo11wYgJTO3maeIxIIiwI1yITzUy0ZU2IpQfYLw=;
+        b=eayG/RVGpc1q+NRCf8bpDy3a33ykAMHrGZtqr9aljbrwalpzSbBipPdZytVToYXaW0
+         8PDgwBdzhpHATAi122ZHm9Ztsb2cf/AuMXBlx4GMLW2vbfiQBf9l74eqZ/7Li4jKbGrM
+         G1B6FtVyFvtRG5AbmKvexxzq0EAhYV2OV7Y91iKsstfL0rJDrHOH/9QdwL49M0ceC3jd
+         uEL9PgwbDR0yxn0PERelqDs6bEBWWsXof4Iw8B0EydaOhnKzHKRXjKjb21QtprGhcJUu
+         am/Jx9CYauENV62+wT7dxMOvvXnH8Qqg4uXa2P2f26MVzOCvxr+RmrMwpMajZQFyGr5Q
+         5qNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770848442; x=1771453242;
+        d=1e100.net; s=20230601; t=1770848444; x=1771453244;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=D0oUF/yXoa3yx8OZxDltX0SSitiFNmmS/M11Q7PywcY=;
-        b=bPd7DbDdfPxPIHkeCB0g7FAATZwBMZ5Owk1hNAUt+9+2LEBl0Zn88pkFug8FFd5/TL
-         5UN3X9HyqrnKkVcoDkSi5R6OXmFSTDaZE4+2tqHxNCJ43/YpRzoC+gxQXwU/jaDN186e
-         wNNHX/WQ4XRNhVpGtI68UegmHWKJBKXHoUGa27J8/yPmpE0xT5FPAtp5tR+S2m3QulJZ
-         pUDMFsMp1cM3CFAUtyPAIGcEyVBZWto9QgrG0pp3rvAB7q26cBJ8giHHmd5tjmxJ3Jue
-         cMtkG+DvzD7DmaYtHqoR3J8ytSo9mRfTOdrQkBUURMc40RhCm5Q4/jCnwBiJnjZ2dm5g
-         M0rw==
-X-Gm-Message-State: AOJu0YwkuRYxvyhTpfHOwRfU/t2GbYOD1w2kNmB4i8EOvX3HFGUxWEH7
-	3pBMjyI42Jf3fzizm7CBvdRdolZrqFq/8p876LGlRfTrQA4VMBr5VWupa2dNew==
-X-Gm-Gg: AZuq6aLKbOVVsdUvIIgNgkuDQKqeqjqEG7Ja/0k3t6iKEBP8QhVvHsLqfl6BKkgDnmd
-	hNYHzZ6qcN4rZW899ym4Zu7SLPQS1X8eA5hVG/8qEVSI4gf/J9Rjfv76ov8apGOdCfOMjbQ9WDC
-	Nyx+mHSWoAky+qJqtP+e8LXpBABICBeN7wEI4E+fYQs1gybxs4R9oxC5N7SH0JDZFWFb9aSv4OD
-	saO04BtdMQOeYHp6yWnSmIhZcTr0bYYIRUjLiBRuQ1nN2t0qVJUUUgt93SwZ0NFScnViZaleCfT
-	skJV2VyFc0wDKjAzhG8DhQFM4TEWXy3J1PCljwtD134ZzkUqyLU6v0ZTavFmIb+7zbcAovEOn6M
-	QYPc3Mg0W+U5+yY5Qv8/LFQIre29NoUGO195yIfHv8EF1h/45DvSd/HTXzWlc9Mbo26feeGTrWn
-	ps8yQRY9ULIMm4yZSc+3GAsylCP06u1qay0Qq0B6SxTbLjCPVTOc2U81QqTLUXFPmvwS40ur577
-	KljzFTooac=
-X-Received: by 2002:a05:622a:1391:b0:503:2d1f:68a2 with SMTP id d75a77b69052e-50691c5c449mr16665641cf.70.1770848442400;
-        Wed, 11 Feb 2026 14:20:42 -0800 (PST)
+        bh=tO+nLo11wYgJTO3maeIxIIiwI1yITzUy0ZU2IpQfYLw=;
+        b=eRgYxN/LjHkAkKcYpwq4/hPR5L5Qqe4UxJgCLJwZFB4pn25/KOmo0obsZSj1qrRgsW
+         TLBO7AYbkTakrKGhZLSgowPCQm8oW2EGsBip6QAp7+KVIYFA89P4GNZUBmrofZgy7G+V
+         09ybQtrtKdAaEy2Zr6VpUzsBgCBoPdhHY0zX08F9jlLZCeks91rFHS35/Su4E0GD+col
+         4BowhjhBtSMr+cRypv+aVSuk2iKYkH2iO/DWfh/EYBQtzaDpIdGvIXfacaECmA2nakGT
+         Rt0s3Jahmp41ChHkkYJUmNLrxT+cHtMuLkHoogzsVKQ0+MzmnWi+duujbpaQp9ZBnYK3
+         THKA==
+X-Gm-Message-State: AOJu0YxLdwvq9l1vYqeQsm9Uj7WfGd8r+GQABKvlgRKASB+/aPkTd9M0
+	jITQEG+rLMl9KE1aq1WfKP5IMRoAxPoA7K9hmTejiBBE5EuCogzN7hgCSiStQA==
+X-Gm-Gg: AZuq6aL3uxjgHzMU3NAV9Aq2CJQPylVgEW17b5cl/VgHDXGvJ3etnfVZGf8P1DnwwV4
+	Kvl4ThOyvSnZ9ZwlC3956Jqog32+hmDqTdIrsvIxQduKMYV+bkBtLsGmNQDLQEOEx4kwaPlhDy6
+	rUIVBuQdgVyiSvOIe9WFDVaKMNZc3Gk/bhlINpjtodATyucpMYFmNDKXhVYyNtfohgRgKnz8bnQ
+	P4v2aKQPTf3CSlFbgRe2UYpgmgXpnn1/oMK9djq3Cd8ZuaK4An5n8To6O3hPoTqvRkkjZfVIk7D
+	cKga9k8abTsA0cH1D4xMs0ikTDbVCXuy2KQpntPiKelC0o5ypZtaesjL6kR7KSEoOD42+W6sAT2
+	+d+5LxPGaUMagGxdPQEiUhPzgue+3BtdrwGefguZ44ew0GEwvpTb/n04qRY6McRQbTX5FJucWQa
+	AGeInzilKvD+soJdGRCSwJlSxU0ZTrBUu/RHxyGaMa49gMLQckuChx4qVMNXyowAYjXz8l3OGJ+
+	+3ITPOo6bQ4BTurQkyYZA==
+X-Received: by 2002:a05:622a:654:b0:502:ec9e:ded6 with SMTP id d75a77b69052e-506934f4a5cmr7404331cf.38.1770848444276;
+        Wed, 11 Feb 2026 14:20:44 -0800 (PST)
 Received: from ubuntu.localdomain (174-138-202-16.cpe.distributel.net. [174.138.202.16])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50684b6b576sm22824291cf.21.2026.02.11.14.20.41
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-50684b6b576sm22824291cf.21.2026.02.11.14.20.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Feb 2026 14:20:42 -0800 (PST)
+        Wed, 11 Feb 2026 14:20:44 -0800 (PST)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -80,16 +80,16 @@ Cc: scott@riscstar.com,
 	anuppate@qti.qualcomm.com,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH 2/3] lib: utils: irqchip: implement APLIC hwirq operation hooks
-Date: Wed, 11 Feb 2026 17:20:24 -0500
-Message-Id: <20260211222025.2463312-3-raymondmaoca@gmail.com>
+Subject: [PATCH 3/3][NOT-FOR-UPSTREAM] lib: utils: irqchip: add QEMU virt test for APLIC wired IRQs
+Date: Wed, 11 Feb 2026 17:20:25 -0500
+Message-Id: <20260211222025.2463312-4-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260211222025.2463312-1-raymondmaoca@gmail.com>
 References: <20260211222025.2463312-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260211_142043_594750_DD0FE72A 
-X-CRM114-Status: GOOD (  18.38  )
+X-CRM114-CacheID: sfid-20260211_142045_737730_69076FC2 
+X-CRM114-Status: GOOD (  13.78  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -108,231 +108,111 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add all APLIC reqiured operation hooks, includeing mask / unmask /
-eoi / setup / process and register them during cold init.
-During setup, program a minimal APLIC direct-mode configuration and
-enable MEIE, confirm external interrupts are claimed via IDC.CLAIMI.
-Add function to fetch the TOPI value and extract the source ID (hwirq)
-from CLAIMI, which is used by APLIC process hook.
+Add a QEMU virt specific test for APLIC wired external interrupt
+handling.
+When APLIC_QEMU_WIRED_TEST is enabled, this adds a small test hook as
+a bring-up aid for validating the wired interrupt path.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- lib/utils/irqchip/aplic.c | 191 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 191 insertions(+)
+ Makefile                  |  3 +++
+ lib/utils/irqchip/aplic.c | 44 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+)
 
+diff --git a/Makefile b/Makefile
+index 46541063..418ee1aa 100644
+--- a/Makefile
++++ b/Makefile
+@@ -399,6 +399,9 @@ CFLAGS		+=	$(GENFLAGS)
+ CFLAGS		+=	$(platform-cflags-y)
+ CFLAGS		+=	-fPIE -pie
+ CFLAGS		+=	$(firmware-cflags-y)
++ifeq ($(APLIC_QEMU_WIRED_TEST),y)
++CFLAGS		+=	-DAPLIC_QEMU_WIRED_TEST
++endif
+ 
+ CPPFLAGS	+=	$(GENFLAGS)
+ CPPFLAGS	+=	$(platform-cppflags-y)
 diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index ec69c82b..f0ecef42 100644
+index f0ecef42..63697e14 100644
 --- a/lib/utils/irqchip/aplic.c
 +++ b/lib/utils/irqchip/aplic.c
-@@ -245,6 +245,178 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
+@@ -119,6 +119,41 @@ static SBI_LIST_HEAD(aplic_list);
+ static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
+ 				void *msicfgaddr, void *msicfgaddrH);
+ 
++#ifdef APLIC_QEMU_WIRED_TEST
++
++#define UART_QEMU_MMIO 0x10000000UL
++
++static void aplic_test_uart_handler(void)
++{
++	volatile u8 *uart = (volatile u8 *)UART_QEMU_MMIO;
++
++	/* Drain RX FIFO to clear the interrupt source */
++	while (uart[0x05] & 0x01) {        /* LSR.DR */
++		u8 ch = uart[0x00];            /* RBR */
++
++		sbi_printf("[APLIC TEST] UART got '%c'(0x%02x)\n",
++			   (ch >= 32 && ch < 127) ? ch : '.', ch);
++	}
++
++	/* (Optional) read IIR to acknowledge on some models */
++	(void)uart[0x02]; /* IIR is at offset 2 when DLAB=0; */
++}
++
++static void aplic_hwirq_test_run(unsigned long aplic_addr)
++{
++	volatile u8 *uart = (volatile u8 *)UART_QEMU_MMIO;
++
++	/* UART: enable RX interrupt */
++	uart[0x02] = 0x07;          /* FCR enable+clear */
++	uart[0x04] |= (1 << 3);     /* MCR.OUT2 */
++	uart[0x01] |= 0x01;         /* IER.ERBFI */
++	while (uart[0x05] & 0x01)   /* drain */
++		(void)uart[0x00];
++
++	sbi_printf("[APLIC TEST] Setup done. Type keys now.\n");
++}
++#endif
++
+ static void aplic_init(struct aplic_data *aplic)
+ {
+ 	struct aplic_delegate_data *deleg;
+@@ -245,6 +280,7 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
  	return 0;
  }
  
-+static int aplic_hwirq_handler(u32 hwirq, void *opaque)
-+{
-+	(void)opaque;
-+
-+	sbi_printf("[APLIC] Enter registered hwirq %u raw handler callback\n",
-+		   hwirq);
-+
-+	return SBI_OK;
-+}
-+
-+static inline void *aplic_idc_base(unsigned long aplic_addr, u32 idc_index)
-+{
-+	return (void *)(aplic_addr + APLIC_IDC_BASE +
-+			(unsigned long)idc_index * APLIC_IDC_SIZE);
-+}
-+
-+static void aplic_hwirq_mask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct aplic_data *w = chip->chip_priv;
-+
-+	if (!w || !hwirq)
-+		return;
-+
-+	if (!w->addr || hwirq > w->num_source)
-+		return;
-+
-+	/* Disable source */
-+	writel(hwirq, (void *)(w->addr + APLIC_CLRIENUM));
-+}
-+
-+static void aplic_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct aplic_data *w = chip->chip_priv;
-+
-+	if (!w || !hwirq)
-+		return;
-+
-+	if (!w->addr || hwirq > w->num_source)
-+		return;
-+
-+	/* Enable source */
-+	writel(hwirq, (void *)(w->addr + APLIC_SETIENUM));
-+}
-+
-+static int aplic_hwirq_claim(struct sbi_irqchip_device *chip, u32 *hwirq)
-+{
-+	struct aplic_data *w = chip->chip_priv;
-+	u32 hartid = current_hartid();
-+	int hidx = sbi_hartid_to_hartindex(hartid);
-+	void *idc;
-+	u32 v, id;
-+
-+	if (!w || !hwirq)
-+		return SBI_EINVAL;
-+
-+	if (!w->addr || hidx < 0 || (u32)hidx >= w->num_idc)
-+		return SBI_ENODEV;
-+
-+	idc = aplic_idc_base(w->addr, (u32)hidx);
-+
-+	/*
-+	 * Read CLAIMI: returns TOPI value.
-+	 * ID==0 means spurious interrupt (spec-defined).
-+	 */
-+	v = readl(idc + APLIC_IDC_CLAIMI); /* dequeue */
-+	/*
-+	 * QEMU workaround: Read CLAIMI a second time since QEMU's APLIC model
-+	 * currently has a bug and may not clear pending on deassert after the
-+	 * first reading.
-+	 */
-+	if (readl(idc + APLIC_IDC_CLAIMI) != v)
-+		return SBI_ENOENT;
-+
-+	id = (v >> APLIC_IDC_TOPI_ID_SHIFT) & APLIC_IDC_TOPI_ID_MASK;
-+
-+	/* ID==0 means spurious / no pending wired interrupt */
-+	if (!id)
-+		return SBI_ENOENT;
-+
-+	/* Bound check against DT-discovered num_src */
-+	if (id > w->num_source)
-+		return SBI_EINVAL;
-+
-+	*hwirq = id;
-+
-+	return SBI_OK;
-+}
-+
-+static void aplic_hwirq_eoi(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct aplic_data *w = chip->chip_priv;
-+	u32 hartid = current_hartid();
-+	int hidx = sbi_hartid_to_hartindex(hartid);
-+	void *idc;
-+
-+	sbi_printf("[APLIC] Enter regitered EOI of hwirq %u\n", hwirq);
-+
-+	if (!w || !w->addr)
-+		return;
-+	if (hidx < 0 || (u32)hidx >= w->num_idc)
-+		return;
-+
-+	idc = aplic_idc_base(w->addr, (u32)hidx);
-+
-+	/* QEMU workaround: clear pending after source deassert for level IRQ */
-+	writel(hwirq, idc + APLIC_CLRIPNUM);
-+}
-+
-+static int aplic_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	const u32 hart_idx = 0;
-+	unsigned long idc;
-+	struct aplic_data *w = chip->chip_priv;
-+
-+	idc = w->addr + APLIC_IDC_BASE + hart_idx * APLIC_IDC_SIZE;
-+
-+	/* APLIC: sourcecfg/target/enable */
-+	writel(APLIC_SOURCECFG_SM_LEVEL_HIGH,
-+	       (void *)(w->addr + APLIC_SOURCECFG_BASE + (hwirq - 1) * 4));
-+
-+	writel((hart_idx << APLIC_TARGET_HART_IDX_SHIFT) | APLIC_DEFAULT_PRIORITY,
-+	       (void *)(w->addr + APLIC_TARGET_BASE + (hwirq - 1) * 4));
-+
-+	writel(hwirq, (void *)(w->addr + APLIC_SETIENUM));
-+
-+	/* Direct mode for aia=aplic: DM=0 => don't set DM bit */
-+	writel(APLIC_DOMAINCFG_IE | APLIC_DOMAINCFG_BE,
-+	       (void *)(w->addr + APLIC_DOMAINCFG));
-+
-+	/* IDC delivery */
-+	writel(APLIC_ENABLE_IDELIVERY, (void *)(idc + APLIC_IDC_IDELIVERY));
-+	writel(APLIC_ENABLE_ITHRESHOLD, (void *)(idc + APLIC_IDC_ITHRESHOLD));
-+
-+	/* Enable MEIE + global MIE */
-+	csr_set(CSR_MIE, (1UL << 11));  /* MEIE */
-+	csr_set(CSR_MSTATUS, MSTATUS_MIE);
-+
-+	return SBI_OK;
-+}
-+
-+static int aplic_process_hwirqs(struct sbi_irqchip_device *chip)
-+{
-+	if (!chip)
-+		return SBI_ENODEV;
-+
-+	for (;;) {
-+		u32 hwirq = 0;
-+		int rc = aplic_hwirq_claim(chip, &hwirq);
-+
-+		if (rc == SBI_ENOENT)
-+			break;
-+		if (rc)
-+			return rc;
-+
-+		if (!hwirq)
-+			break;
-+
-+		sbi_printf("[APLIC] IDC_TOPI_ID from CLAIMI (hwirq) %u\n",
-+			   hwirq);
-+
-+		if (hwirq > chip->num_hwirq) {
-+			sbi_printf("[APLIC] hwirq %u > max (num_hwirq) %u)\n",
-+				   hwirq, chip->num_hwirq);
-+			break;
-+		}
-+
-+		sbi_irqchip_process_hwirq(chip, hwirq);
-+	}
-+
-+	return SBI_OK;
-+}
-+
- int aplic_cold_irqchip_init(struct aplic_data *aplic)
++#ifdef APLIC_QEMU_WIRED_TEST
+ static int aplic_hwirq_handler(u32 hwirq, void *opaque)
  {
- 	int rc;
-@@ -308,12 +480,31 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 	/* Register irqchip device */
- 	aplic->irqchip.id = aplic->unique_id;
- 	aplic->irqchip.num_hwirq = aplic->num_source + 1;
-+	aplic->irqchip.chip_priv = aplic;
-+	aplic->irqchip.hwirq_mask = aplic_hwirq_mask;
-+	aplic->irqchip.hwirq_unmask = aplic_hwirq_unmask;
-+	aplic->irqchip.hwirq_eoi = aplic_hwirq_eoi;
-+	/*
-+	 * Only the domain that directly injects interrupts into M-mode external
-+	 * interrupt line should provide process_hwirqs().
-+	 *
-+	 * The other domain (e.g. S-mode) may still be registered so that its
-+	 * other ops (mask/unmask/config/etc.) can be used, but it must not
-+	 * claim to be the external interrupt line provider.
-+	 */
-+	if (aplic->targets_mmode)
-+		aplic->irqchip.process_hwirqs = aplic_process_hwirqs;
-+	aplic->irqchip.hwirq_setup = aplic_hwirq_setup;
- 	rc = sbi_irqchip_add_device(&aplic->irqchip);
- 	if (rc)
- 		return rc;
+ 	(void)opaque;
+@@ -252,8 +288,12 @@ static int aplic_hwirq_handler(u32 hwirq, void *opaque)
+ 	sbi_printf("[APLIC] Enter registered hwirq %u raw handler callback\n",
+ 		   hwirq);
+ 
++	if (hwirq == 10)
++		aplic_test_uart_handler();
++
+ 	return SBI_OK;
+ }
++#endif
+ 
+ static inline void *aplic_idc_base(unsigned long aplic_addr, u32 idc_index)
+ {
+@@ -501,10 +541,14 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
  
  	/* Attach to the aplic list */
  	sbi_list_add_tail(&aplic->node, &aplic_list);
-+	rc = sbi_irqchip_register_handler(&aplic->irqchip, 1, aplic->num_source,
-+					  aplic_hwirq_handler, NULL);
-+	if (rc)
-+		return rc;
++#ifdef APLIC_QEMU_WIRED_TEST
+ 	rc = sbi_irqchip_register_handler(&aplic->irqchip, 1, aplic->num_source,
+ 					  aplic_hwirq_handler, NULL);
+ 	if (rc)
+ 		return rc;
  
++	/* Enable test in M-mode before jumping to any payload */
++	aplic_hwirq_test_run(aplic->addr);
++#endif
  	return 0;
  }
 -- 
