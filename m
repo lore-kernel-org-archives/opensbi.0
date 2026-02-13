@@ -4,61 +4,61 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id BE90EEF48D1
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DEA6AEF48CA
 	for <opensbi@archiver.kernel.org>; Fri, 13 Feb 2026 05:54:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=NUrA+624XuGhmI2Gi63tiwIjFVZoFBtoKWxe6MrYGhA=; b=ohBRpYcZXr7XBf
-	9jQQTgR7Ke3amqT7+n3Ub7+x2t5nARWynqhW0sZ3PtXhFfBLiVG0tyjXwrkda3dg+DUCzpxWbr/lh
-	a881Kab3vQTkiKOlFX0n9MypWQwC/AhmIyZzZPnqWCeFLw/qQ1EniZCumAB1UFZqYsJarfybXDn0Y
-	1vBmKZci3/BRNguz9HfeeKnIC09pt4Sc2TfktFqthIB/swEOJ5EFyccRD1M4V+Loumr/bEXuyr2KF
-	92WbozdmMpUk3UV2Qb9akDcr5mrILAr96uSod0w8Rs2MGMdhVKgR1bDMkPCZFyY4J8X2mNUtkbHCO
-	BDbPawbSM6dEU8EmEDgw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=UChFAap6QvA7saEPCL1vqCnB/OstQ5eZucjwSYFIHac=; b=QpS4xrGdF4ra3F
+	9esIVxk9klMWDGKde9LVpnxYu0y9M42bun+HRTlzr+ewzuNnJmL4sfsViOQcf/oL5/VzvxwiZqJzg
+	4HI5FORn4392J9c52yMgfEGSuJj1VU0vf6YvQkh5L4vWbHOfXvwSXczvxszoDDNZEyZL+pKAJ9CFP
+	N1O3uFRiDlntlUDg9NsNdS5POWZI9I4Fr3SwIVg8e02AS/SMcVYk0iHYpgf++l+QXOc1KPGTcEZCs
+	4Zme/otFPT/sZvuV1ZX0Va9lGh81YFMwTWdVOVsFuCbUcTgh8s4L5VAn2D25X2FLJjaqIucA0mUOD
+	92YlB0dtFFkrnJfY0Aww==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vqm8j-000000032PK-1LJ7;
+	id 1vqm8j-000000032PU-2TET;
 	Fri, 13 Feb 2026 05:54:53 +0000
 Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vqm8g-000000032Nb-2zqV
+	id 1vqm8h-000000032Nr-0tlE
 	for opensbi@lists.infradead.org;
 	Fri, 13 Feb 2026 05:54:52 +0000
-Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61CLKEFK1067977;
-	Fri, 13 Feb 2026 05:53:47 GMT
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61D0Bh6G2733474;
+	Fri, 13 Feb 2026 05:53:48 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=qcppdkim1; bh=c+3AVzc1Q2iAI1er1MJQK3MPeC7Uprp2dt2
-	rNzCmWNc=; b=otf1f0LDpWtqj5swTxtjGiQ9/EdbWjJK4c2cQey6UPunV7S70Er
-	xlodilXYYqKbWcNzFAv/tiv6s1mLvGzfw9bVhoxV0eU8942O4TUVD+6iNN7ssrY4
-	wb6yk5q2WvYN1z3GJZAyZQZILaWITh/Xn/AxZUWSgzGzAyEANAcfNjP2NF/R+OBf
-	93Hb5Go4c6Sqf0sSn8+TGSZka4ubVmyWS159I7hGxP3rdHX7TkMdQ+wP94alLNfP
-	6uw9gQ/meHfTEe46AdIPU82ppkathZu+5VUm0GUldPsqkEKcFURAjMq63D8yZpNW
-	C3xOMJ1SdMRR8Fz/YNDBO8lPZhPH1RHfJyA==
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=QwNUA3lGbDW
+	zgwOxtOW1RztXcnybH+RGHizW4nuja3c=; b=OFD4b4jVDZjhxboqMF0sHt4EaCX
+	2wluS8ArtwluYuJnyVsCXmVpBzYdHZLD6/FxiOm27Bq057GDAkeNijBXVE2uR0To
+	LkpShOPMFaVQea2qiZuOfWP6aLR296n/MJTVtJILc5ZXzIbAjHqFOOHUxtTt4xmD
+	5MQsAtkyvu2h0Y8l2CU6vbETABZANfp2p48gZ3eP2hbyQGlw4OU9N2tomDiWSP19
+	6oXEJLMHldHu72ekvMDiM16cc8o0slceXvlAIcJSVx4RtMLRPawNOvxV3ayk6lg8
+	Aklxc+5VrhHReGo3Gmo/hDLg6pp9LsLLpybzMSNTFscFZT7jk7SXELjkUYQ==
 Received: from apblrppmta02.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4c9d09kruh-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4c9s6wrxvh-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Fri, 13 Feb 2026 05:53:47 +0000 (GMT)
 Received: from pps.filterd (APBLRPPMTA02.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA02.qualcomm.com (8.18.1.2/8.18.1.2) with ESMTP id 61D5rh60006111;
-	Fri, 13 Feb 2026 05:53:43 GMT
+	by APBLRPPMTA02.qualcomm.com (8.18.1.2/8.18.1.2) with ESMTP id 61D5riJN006168;
+	Fri, 13 Feb 2026 05:53:44 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 4c5xfn97kg-1
+	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 4c5xfn97m7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 13 Feb 2026 05:53:43 +0000
+	Fri, 13 Feb 2026 05:53:44 +0000
 Received: from APBLRPPMTA02.qualcomm.com (APBLRPPMTA02.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 61D5rhjr006085;
-	Fri, 13 Feb 2026 05:53:43 GMT
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 61D5rifu006148;
+	Fri, 13 Feb 2026 05:53:44 GMT
 Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 61D5rhTT006082
+	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 61D5riCV006144
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 13 Feb 2026 05:53:43 +0000
+	Fri, 13 Feb 2026 05:53:44 +0000
 Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id C5830235AE; Fri, 13 Feb 2026 11:23:42 +0530 (+0530)
+	id DE7CC24A6E; Fri, 13 Feb 2026 11:23:42 +0530 (+0530)
 From: Anup Patel <anup.patel@oss.qualcomm.com>
 To: Atish Patra <atish.patra@linux.dev>
 Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
@@ -67,41 +67,43 @@ Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
         Samuel Holland <samuel.holland@sifive.com>,
         Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
         Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH v2 0/8] Extend irqchip framework for M-mode interrupts
-Date: Fri, 13 Feb 2026 11:23:34 +0530
-Message-ID: <20260213055342.3124872-1-anup.patel@oss.qualcomm.com>
+Subject: [PATCH v2 8/8] lib: sbi_irqchip: Allow registering interrupt handlers
+Date: Fri, 13 Feb 2026 11:23:42 +0530
+Message-ID: <20260213055342.3124872-9-anup.patel@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260213055342.3124872-1-anup.patel@oss.qualcomm.com>
+References: <20260213055342.3124872-1-anup.patel@oss.qualcomm.com>
 MIME-Version: 1.0
 X-QCInternal: smtphost
 X-QCInternal: smtphost
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjEzMDA0MiBTYWx0ZWRfXwM3C53lmL6Oc
- WQRvycRoaboVdEdlBc6yqqJimPd/vWGORAkqeWCpqyb9qg62JXs7l/K5J4vkZkC7mf/+doayp3i
- iKTuGmOyCKwKStAZc7NO1IPbs3JNYz8VR2LVwPFIa6IA1DIpab6N3nKAiFKWZQIIzrL/2VTRZDq
- cIq9tR2L+I6EbyAErLyqwJaBgsGTVjzjrHGclPEXJQJ9MoLyELfTw53Oml2KuI3v/oVfeyGcxMo
- yqaCK4ZgWiY77TuQ91/v1tVro0ogiCivmFD3Kv9bIKFRavkxeDYmycS7NAh+fE18cmEZ3G6YRhM
- Ti69q6Y+VUmF7QE5jRfzEfY8fuaL97HVKHr+ZUD7aHwbE+cY9/HtOh2zX2xqTmeKoFmgUmmC20l
- m8dVFpfe7KcpD1GQL8dPxKG5rlQeJVUC2MyWcKNQzKgzzA1pS/8ZqiSgodO3kdMoDP5FlzAWuR1
- DWWyDHz2jNQAHCpDQnQ==
-X-Proofpoint-GUID: 0CgT_ScA-Wl_dt5nT2qM7ssihSQlpa-c
-X-Authority-Analysis: v=2.4 cv=Y6j1cxeN c=1 sm=1 tr=0 ts=698ebc6b cx=c_pps
+X-Proofpoint-ORIG-GUID: reXJwWAZeHecj2I7ycRkD2P_6UyjzGlf
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjEzMDA0MiBTYWx0ZWRfX4PicpQGWZvVU
+ NZuNeQ2DlVigJHFjZLxJ9r+8pOIrn18xptsdn+vA1TEW6oamPGpNAFSc/9EYqjN03KygVKB7Swr
+ Tw6OKvRFkHMwxS7q9DgkofSq0Ea6ajkGbweU9ZPKefLxI2OiX3kH3Os8EOHaL3Lssy1YwIdCB49
+ BB1WBgmdED/HV8Jw8bgNRo2oryrfBHnBPSnWP7Yi+w0JpE/p87woKqwukgTFoFDn3e3vlHiqexz
+ 8dAO6ZJ6JDFJonB5ZvLNA18AVi/dfv3Vd0KZdRXPPXUU/f6Kx002ias2tYxsePKMqcYikvPr2OW
+ e/B1ILwInij09ge/0v6N6jZQsFnnznuEoWVBePnfJgKBNZ/AHsiYNkQ2EHJk9C8WRuM9M8PP25V
+ K/dMdGfIkFCsGKc0j+Cr/L78hiLt2h4zzlGkNZydVoyJRkV+mA9rWYtZElosSSpPWaeT//5bfGD
+ mvuqPSih5l8pRZXHMMg==
+X-Proofpoint-GUID: reXJwWAZeHecj2I7ycRkD2P_6UyjzGlf
+X-Authority-Analysis: v=2.4 cv=CLInnBrD c=1 sm=1 tr=0 ts=698ebc6b cx=c_pps
  a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
  a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22
- a=GgsMoib0sEa3-_RKJdDe:22 a=NEAV23lmAAAA:8 a=8fTsYDokL4cmS8J0QHoA:9
-X-Proofpoint-ORIG-GUID: 0CgT_ScA-Wl_dt5nT2qM7ssihSQlpa-c
+ a=GgsMoib0sEa3-_RKJdDe:22 a=EUspDBNiAAAA:8 a=bDdBU3oEAAAA:8
+ a=dxl-2DmbjyPBmnOifdcA:9 a=DN7SgORnOiO7RqxRx1GC:22
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-02-12_05,2026-02-12_03,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 malwarescore=0 adultscore=0 suspectscore=0 bulkscore=0
- lowpriorityscore=0 phishscore=0 priorityscore=1501 impostorscore=0
- clxscore=1015 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2601150000
- definitions=main-2602130042
+ spamscore=0 adultscore=0 suspectscore=0 clxscore=1015 lowpriorityscore=0
+ malwarescore=0 phishscore=0 priorityscore=1501 impostorscore=0 bulkscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2602130042
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260212_215450_758553_F5138803 
-X-CRM114-Status: GOOD (  10.07  )
+X-CRM114-CacheID: sfid-20260212_215451_259904_3D927BFA 
+X-CRM114-Status: GOOD (  22.33  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -118,54 +120,399 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-To handle interrupts in M-mode, the OpenSBI irqchip framework
-needs to support:
-1) Multiple interrupt controllers where each targets a
-   subset of harts
-2) Hierarchical interrupt controllers (e.g. APLIC + IMSIC)
-3) Registering handler for hardware interrupt of a
-   particular interrupt controller out of multiple
-   multiple interrupt controllers
+To handle external interrupts in M-mode, the sbi_irqchip framework
+must allow registering interrupt handlers from device drivers.
 
-The needs to be achieved without over-consuming memory.
+Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
+---
+ include/sbi/sbi_irqchip.h |  56 ++++++++++-
+ lib/sbi/sbi_irqchip.c     | 203 +++++++++++++++++++++++++++++++++++++-
+ lib/utils/irqchip/aplic.c |   1 +
+ lib/utils/irqchip/imsic.c |   9 ++
+ lib/utils/irqchip/plic.c  |   1 +
+ 5 files changed, 267 insertions(+), 3 deletions(-)
 
-These patches can also be found in irqchip_imp_v2 branch
-at: https://github.com/avpatel/opensbi.git
-
-Changes since v1:
- - Fixed typos in PATCH4 and PATCH5
- - Improved sbi_irqchip_process() and sbi_irqchip_add_device()
-   based on Samuel's suggestion
-
-Anup Patel (8):
-  lib: sbi_irqchip: Use chip as variable name for irqchip device
-  lib: sbi_irqchip: Rename irq_handle() callback to process_hwirqs()
-  lib: utils/irqchip: Fix context_map init in
-    irqchip_plic_update_context_map()
-  lib: utils/irqchip: Add IDC to hartindex map in struct aplic_data
-  lib: sbi_irqchip: Support irqchip device targetting subset of harts
-  lib: utils/irqchip: Add unique_id to plic, aplic, and imsic data
-  lib: sbi_irqchip: Associate 32-bit unique ID for each irqchip device
-  lib: sbi_irqchip: Allow registering interrupt handlers
-
- include/sbi/sbi_irqchip.h                |  74 +++++-
- include/sbi_utils/irqchip/aplic.h        |   2 +
- include/sbi_utils/irqchip/imsic.h        |   1 +
- include/sbi_utils/irqchip/plic.h         |   1 +
- lib/sbi/sbi_irqchip.c                    | 281 +++++++++++++++++++++--
- lib/utils/fdt/fdt_helper.c               |   3 +
- lib/utils/irqchip/aplic.c                |  14 +-
- lib/utils/irqchip/fdt_irqchip_aplic.c    |  54 ++++-
- lib/utils/irqchip/fdt_irqchip_plic.c     |   5 +
- lib/utils/irqchip/imsic.c                |  19 +-
- lib/utils/irqchip/plic.c                 |   7 +-
- platform/generic/openhwgroup/ariane.c    |   1 +
- platform/generic/openhwgroup/openpiton.c |   1 +
- platform/kendryte/k210/platform.c        |   1 +
- platform/nuclei/ux600/platform.c         |   1 +
- platform/template/platform.c             |   1 +
- 16 files changed, 437 insertions(+), 29 deletions(-)
-
+diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
+index d2c47ae8..77b54110 100644
+--- a/include/sbi/sbi_irqchip.h
++++ b/include/sbi/sbi_irqchip.h
+@@ -18,12 +18,21 @@ struct sbi_scratch;
+ 
+ /** irqchip hardware device */
+ struct sbi_irqchip_device {
+-	/** Node in the list of irqchip devices */
++	/** Node in the list of irqchip devices (private) */
+ 	struct sbi_dlist node;
+ 
++	/** Internal data of all hardware interrupts of this irqchip (private) */
++	struct sbi_irqchip_hwirq_data *hwirqs;
++
++	/** List of interrupt handlers */
++	struct sbi_dlist handler_list;
++
+ 	/** Unique ID of this irqchip */
+ 	u32 id;
+ 
++	/** Number of hardware IRQs of this irqchip */
++	u32 num_hwirq;
++
+ 	/** Set of harts targetted by this irqchip */
+ 	struct sbi_hartmask target_harts;
+ 
+@@ -32,6 +41,21 @@ struct sbi_irqchip_device {
+ 
+ 	/** Process hardware interrupts from this irqchip */
+ 	int (*process_hwirqs)(struct sbi_irqchip_device *chip);
++
++	/** Setup a hardware interrupt of this irqchip */
++	int (*hwirq_setup)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** Cleanup a hardware interrupt of this irqchip */
++	void (*hwirq_cleanup)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** End of hardware interrupt of this irqchip */
++	void (*hwirq_eoi)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** Mask a hardware interrupt of this irqchip */
++	void (*hwirq_mask)(struct sbi_irqchip_device *chip, u32 hwirq);
++
++	/** Unmask a hardware interrupt of this irqchip */
++	void (*hwirq_unmask)(struct sbi_irqchip_device *chip, u32 hwirq);
+ };
+ 
+ /**
+@@ -44,6 +68,36 @@ struct sbi_irqchip_device {
+  */
+ int sbi_irqchip_process(void);
+ 
++/**
++ * Process a hwirq of an irqchip device
++ *
++ * This function is called by irqchip drivers to handle hardware
++ * interrupts of the irqchip.
++ */
++int sbi_irqchip_process_hwirq(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Unmask a hardware interrupt */
++int sbi_irqchip_unmask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Mask a hardware interrupt */
++int sbi_irqchip_mask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Default raw hardware interrupt handler */
++int sbi_irqchip_raw_handler_default(struct sbi_irqchip_device *chip, u32 hwirq);
++
++/** Set raw hardware interrupt handler */
++int sbi_irqchip_set_raw_handler(struct sbi_irqchip_device *chip, u32 hwirq,
++				int (*raw_hndl)(struct sbi_irqchip_device *, u32));
++
++/** Register a hardware interrupt handler */
++int sbi_irqchip_register_handler(struct sbi_irqchip_device *chip,
++				 u32 first_hwirq, u32 num_hwirq,
++				 int (*callback)(u32 hwirq, void *opaque), void *opaque);
++
++/** Unregister a hardware interrupt handler */
++int sbi_irqchip_unregister_handler(struct sbi_irqchip_device *chip,
++				   u32 first_hwirq, u32 num_hwirq);
++
+ /** Find an irqchip device based on unique ID */
+ struct sbi_irqchip_device *sbi_irqchip_find_device(u32 id);
+ 
+diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
+index 5df6189b..f0744830 100644
+--- a/lib/sbi/sbi_irqchip.c
++++ b/lib/sbi/sbi_irqchip.c
+@@ -7,11 +7,36 @@
+  *   Anup Patel <apatel@ventanamicro.com>
+  */
+ 
++#include <sbi/sbi_heap.h>
+ #include <sbi/sbi_irqchip.h>
+ #include <sbi/sbi_list.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_scratch.h>
+ 
++/** Internal irqchip hardware interrupt data */
++struct sbi_irqchip_hwirq_data {
++	/** raw hardware interrupt handler */
++	int (*raw_handler)(struct sbi_irqchip_device *chip, u32 hwirq);
++};
++
++/** Internal irqchip interrupt handler */
++struct sbi_irqchip_handler {
++	/** Node in the list of irqchip handlers (private) */
++	struct sbi_dlist node;
++
++	/** First hardware IRQ handled by this handler */
++	u32 first_hwirq;
++
++	/** Number of consecutive hardware IRQs handled by this handler */
++	u32 num_hwirq;
++
++	/** Callback function of this handler */
++	int (*callback)(u32 hwirq, void *priv);
++
++	/** Callback private data */
++	void *priv;
++};
++
+ struct sbi_irqchip_hart_data {
+ 	struct sbi_irqchip_device *chip;
+ };
+@@ -30,6 +55,172 @@ int sbi_irqchip_process(void)
+ 	return hd->chip->process_hwirqs(hd->chip);
+ }
+ 
++int sbi_irqchip_process_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct sbi_irqchip_hwirq_data *data;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	data = &chip->hwirqs[hwirq];
++	if (!data->raw_handler)
++		return SBI_ENOENT;
++
++	return data->raw_handler(chip, hwirq);
++}
++
++int sbi_irqchip_unmask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	if (chip->hwirq_unmask)
++		chip->hwirq_unmask(chip, hwirq);
++	return 0;
++}
++
++int sbi_irqchip_mask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	if (chip->hwirq_mask)
++		chip->hwirq_mask(chip, hwirq);
++	return 0;
++}
++
++static struct sbi_irqchip_handler *sbi_irqchip_find_handler(struct sbi_irqchip_device *chip,
++							    u32 hwirq)
++{
++	struct sbi_irqchip_handler *h;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return NULL;
++
++	sbi_list_for_each_entry(h, &chip->handler_list, node) {
++		if (h->first_hwirq <= hwirq && hwirq < (h->first_hwirq + h->num_hwirq))
++			return h;
++	}
++
++	return NULL;
++}
++
++int sbi_irqchip_raw_handler_default(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct sbi_irqchip_handler *h;
++	int rc;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	h = sbi_irqchip_find_handler(chip, hwirq);
++	rc = h->callback(hwirq, h->priv);
++
++	if (chip->hwirq_eoi)
++		chip->hwirq_eoi(chip, hwirq);
++
++	return rc;
++}
++
++int sbi_irqchip_set_raw_handler(struct sbi_irqchip_device *chip, u32 hwirq,
++				int (*raw_hndl)(struct sbi_irqchip_device *, u32))
++{
++	struct sbi_irqchip_hwirq_data *data;
++
++	if (!chip || chip->num_hwirq <= hwirq)
++		return SBI_EINVAL;
++
++	data = &chip->hwirqs[hwirq];
++	data->raw_handler = raw_hndl;
++	return 0;
++}
++
++int sbi_irqchip_register_handler(struct sbi_irqchip_device *chip,
++				 u32 first_hwirq, u32 num_hwirq,
++				 int (*callback)(u32 hwirq, void *opaque), void *priv)
++{
++	struct sbi_irqchip_handler *h;
++	u32 i, j;
++	int rc;
++
++	if (!chip || !num_hwirq || !callback)
++		return SBI_EINVAL;
++	if (chip->num_hwirq <= first_hwirq ||
++	    chip->num_hwirq <= (first_hwirq + num_hwirq - 1))
++		return SBI_EBAD_RANGE;
++
++	h = sbi_irqchip_find_handler(chip, first_hwirq);
++	if (h)
++		return SBI_EALREADY;
++	h = sbi_irqchip_find_handler(chip, first_hwirq + num_hwirq - 1);
++	if (h)
++		return SBI_EALREADY;
++
++	h = sbi_zalloc(sizeof(*h));
++	if (!h)
++		return SBI_ENOMEM;
++	h->first_hwirq = first_hwirq;
++	h->num_hwirq = num_hwirq;
++	h->callback = callback;
++	h->priv = priv;
++	sbi_list_add_tail(&h->node, &chip->handler_list);
++
++	if (chip->hwirq_setup) {
++		for (i = 0; i < h->num_hwirq; i++) {
++			rc = chip->hwirq_setup(chip, h->first_hwirq + i);
++			if (rc) {
++				if (chip->hwirq_cleanup) {
++					for (j = 0; j < i; j++)
++						chip->hwirq_cleanup(chip, h->first_hwirq + j);
++				}
++				sbi_list_del(&h->node);
++				sbi_free(h);
++				return rc;
++			}
++		}
++	}
++
++	if (chip->hwirq_unmask) {
++		for (i = 0; i < h->num_hwirq; i++)
++			chip->hwirq_unmask(chip, h->first_hwirq + i);
++	}
++
++	return 0;
++}
++
++int sbi_irqchip_unregister_handler(struct sbi_irqchip_device *chip,
++				   u32 first_hwirq, u32 num_hwirq)
++{
++	struct sbi_irqchip_handler *fh, *lh;
++	u32 i;
++
++	if (!chip || !num_hwirq)
++		return SBI_EINVAL;
++	if (chip->num_hwirq <= first_hwirq ||
++	    chip->num_hwirq <= (first_hwirq + num_hwirq - 1))
++		return SBI_EBAD_RANGE;
++
++	fh = sbi_irqchip_find_handler(chip, first_hwirq);
++	if (!fh || fh->first_hwirq != first_hwirq || fh->num_hwirq != num_hwirq)
++		return SBI_ENODEV;
++	lh = sbi_irqchip_find_handler(chip, first_hwirq + num_hwirq - 1);
++	if (!lh || lh != fh)
++		return SBI_ENODEV;
++
++	if (chip->hwirq_mask) {
++		for (i = 0; i < fh->num_hwirq; i++)
++			chip->hwirq_mask(chip, fh->first_hwirq + i);
++	}
++
++	if (chip->hwirq_cleanup) {
++		for (i = 0; i < fh->num_hwirq; i++)
++			chip->hwirq_cleanup(chip, fh->first_hwirq + i);
++	}
++
++	sbi_list_del(&fh->node);
++	return 0;
++}
++
+ struct sbi_irqchip_device *sbi_irqchip_find_device(u32 id)
+ {
+ 	struct sbi_irqchip_device *chip;
+@@ -46,9 +237,9 @@ int sbi_irqchip_add_device(struct sbi_irqchip_device *chip)
+ {
+ 	struct sbi_irqchip_hart_data *hd;
+ 	struct sbi_scratch *scratch;
+-	u32 h;
++	u32 i, h;
+ 
+-	if (!chip || !sbi_hartmask_weight(&chip->target_harts))
++	if (!chip || !chip->num_hwirq || !sbi_hartmask_weight(&chip->target_harts))
+ 		return SBI_EINVAL;
+ 
+ 	if (sbi_irqchip_find_device(chip->id))
+@@ -68,6 +259,14 @@ int sbi_irqchip_add_device(struct sbi_irqchip_device *chip)
+ 		}
+ 	}
+ 
++	chip->hwirqs = sbi_zalloc(sizeof(*chip->hwirqs) * chip->num_hwirq);
++	if (!chip->hwirqs)
++		return SBI_ENOMEM;
++	for (i = 0; i < chip->num_hwirq; i++)
++		sbi_irqchip_set_raw_handler(chip, i, sbi_irqchip_raw_handler_default);
++
++	SBI_INIT_LIST_HEAD(&chip->handler_list);
++
+ 	sbi_list_add_tail(&chip->node, &irqchip_list);
+ 	return 0;
+ }
+diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+index d47a810b..ec69c82b 100644
+--- a/lib/utils/irqchip/aplic.c
++++ b/lib/utils/irqchip/aplic.c
+@@ -307,6 +307,7 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ 
+ 	/* Register irqchip device */
+ 	aplic->irqchip.id = aplic->unique_id;
++	aplic->irqchip.num_hwirq = aplic->num_source + 1;
+ 	rc = sbi_irqchip_add_device(&aplic->irqchip);
+ 	if (rc)
+ 		return rc;
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 0f296c89..7559a069 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -346,9 +346,17 @@ int imsic_data_check(struct imsic_data *imsic)
+ 	return 0;
+ }
+ 
++static int imsic_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	if (!hwirq || hwirq == IMSIC_IPI_ID)
++		return SBI_ENOTSUPP;
++	return 0;
++}
++
+ static struct sbi_irqchip_device imsic_device = {
+ 	.warm_init	= imsic_warm_irqchip_init,
+ 	.process_hwirqs	= imsic_process_hwirqs,
++	.hwirq_setup	= imsic_hwirq_setup,
+ };
+ 
+ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+@@ -392,6 +400,7 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
+ 
+ 	/* Register irqchip device */
+ 	imsic_device.id = imsic->unique_id;
++	imsic_device.num_hwirq = imsic->num_ids + 1;
+ 	sbi_hartmask_set_all(&imsic_device.target_harts);
+ 	rc = sbi_irqchip_add_device(&imsic_device);
+ 	if (rc)
+diff --git a/lib/utils/irqchip/plic.c b/lib/utils/irqchip/plic.c
+index 973f7c2a..2d721724 100644
+--- a/lib/utils/irqchip/plic.c
++++ b/lib/utils/irqchip/plic.c
+@@ -281,6 +281,7 @@ int plic_cold_irqchip_init(struct plic_data *plic)
+ 
+ 	/* Register irqchip device */
+ 	plic->irqchip.id = plic->unique_id;
++	plic->irqchip.num_hwirq = plic->num_src + 1;
+ 	plic->irqchip.warm_init = plic_warm_irqchip_init;
+ 	return sbi_irqchip_add_device(&plic->irqchip);
+ }
 -- 
 2.43.0
 
