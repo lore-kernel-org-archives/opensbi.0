@@ -4,128 +4,104 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 246F1EF99DC
-	for <opensbi@archiver.kernel.org>; Fri, 13 Feb 2026 21:03:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9D2DFEF99DF
+	for <opensbi@archiver.kernel.org>; Fri, 13 Feb 2026 22:07:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=MqNyW5aMG0gRmxFYZQEjpbYvDde/o6MjPwUOkAYzhn4=; b=MYtVXpvYHS/9Gy
-	LN99raNOl+2zIoIn9ZLocMaTDXSjOyhfdslkt83A85cDOP0t27mzK1m5K7Dn6WUwQ0a72DUXtq8PM
-	Jgjct/b59JTZYIHrpzWGQGz+idPjXek+QAWP9BBF/WlM4U+JOl61nJ4hWMg9vpIOUPsLq1fNFThOO
-	W7C3Z9Qyh0RmCBgS1JLcGZ4tdBanadLjaOA3P9otGeC1hbs0vux8171BISGbUA8v5jzuIgGcxN6I6
-	/TaikjtECJOgmx/XzA/s/RlJ+W3NMNGX1XND6xH8tWKUkidm5ioT5L+/qizX8UwIR2wKUUN8FkC/Q
-	he+i/R3VXi7qbwCrh3ig==;
+	List-Owner; bh=IMhy5j0TPM1bPZOalfcdiWtYMMKToqJLNW7uyEd5LIE=; b=cf2lxY16ltVVeW
+	LaN6K/WVIihq7nm41dGyGnW+UVjBSGBXPIhXEJNGVjh04TEyn0cNySRFPWWjaWq70ZrNBaOG+vpBq
+	+ADzZ2RH9qhcETSM8nFjUCpEq/+syj6AK25+Y4lp7G931nuyrzJ1j+rhHRtm3WYM+8b4PGMK3ahEu
+	qes6c1tYQQPnMzB1O9GpRAAho74oOx80k8JJV6xSKksG6s5/ed+irm5UXNT637Uq7zZEJBH8udqbZ
+	mUd90Cuf1WrBKNaNJcujLQVSWWhcDjUZYud2BCWhUDad0QS/wND9GRNrn121Gyp7VHRo1Vem/mUMl
+	oG2ZKNQ7Xp+na+GrPeYQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vr0Jx-00000003wCV-124t;
-	Fri, 13 Feb 2026 21:03:25 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1vr1KK-00000003yb4-1pI7;
+	Fri, 13 Feb 2026 22:07:52 +0000
+Received: from mail-vs1-xe36.google.com ([2607:f8b0:4864:20::e36])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vr0Ju-00000003wC8-0o2v
+	id 1vr1KH-00000003yaf-2Xzk
 	for opensbi@lists.infradead.org;
-	Fri, 13 Feb 2026 21:03:23 +0000
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 61DKAgec1827706
-	for <opensbi@lists.infradead.org>; Fri, 13 Feb 2026 21:03:20 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=IkIfpZtMCvNg8raaNvJBOkkx
-	jWV7cekP5g3DoKTMGDc=; b=GSFYUR5ik2bxJS2wQfVBehvdpwjQTkFHhBVoxigC
-	T2NvBbEeP4bo8aQGV+F43B/pJGaN9NaZ8TQeil5gTjBgR5HoD8TpM5aaqAgibXna
-	9HW0qRMvEABYhb8vSZAna+C6BPIdwGar4VmMWWE/XNkaEeOTEqomgFYWJ9bQJvZb
-	zFraTharsCxUJMwgeeBMwVV/kE4SiSE+mEJhiBjtaZTgMm4P/ZjYKoUzfj+hYw2A
-	YMUdswoS6QONoBekg02om49Hdp/YHWLJ/EwgZgZ/gtEj2lKUS1+Kja5cNsE+iGOZ
-	+Xp+iKgk5tMPnlW77a/RsfJ2gjlqlEtNL/2mzOfdxA4QMw==
-Received: from mail-dy1-f197.google.com (mail-dy1-f197.google.com [74.125.82.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4c9wg03c4u-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Fri, 13 Feb 2026 21:03:20 +0000 (GMT)
-Received: by mail-dy1-f197.google.com with SMTP id 5a478bee46e88-2b7ef896edcso12299169eec.0
-        for <opensbi@lists.infradead.org>; Fri, 13 Feb 2026 13:03:20 -0800 (PST)
+	Fri, 13 Feb 2026 22:07:50 +0000
+Received: by mail-vs1-xe36.google.com with SMTP id ada2fe7eead31-5fa3f2b8f7fso442068137.2
+        for <opensbi@lists.infradead.org>; Fri, 13 Feb 2026 14:07:49 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1771020468; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Qm4/twi3PKmxmEGGZjRgl8rtbYpfAXhVwTYHJyLCTqMhtFOk67YemHYf+AiPhoHdVP
+         lK+NwQ/3qpyUo4isojoZBSRiyZ3BdTyR75gH6AwDLZ82fN/2D0RvPWhXaMOVQnLgq3qS
+         cCZ3rOnClJ90g+ACHOuOvAccJZ/WMuJbF8c4RuzVddI8Cyp1Ek2hLIHBeNYS7gYys4Q6
+         j7tqtMolSCdH0hbdqGFPIigCVx4sbpN8Qx9F5i1TcePWFZhwGgOz1jR3WjmyXI9+gDYJ
+         n3Gv3g5f2Az+HIKTriVsHavSQ0HJhpXcwacJ0Wa83NC+d+F9ltuDD5vzTbtN3qfQuAO8
+         MiNg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=ZqthtvMcnCpBVA6nBDGHyJ53NLH5pH0C7menoSnB3S8=;
+        fh=HVmqc4Rc+3xzwC8uX1z7tapFe9ynu2SoUQm3aSVhnKY=;
+        b=jUPtZYY5rzw2JEhmk/cFbw5slYvW+y5jdQaMg7E853ZY/bNTxH+ic7WenYe1q2GALi
+         I9ovSYyb8xMYRz9f6+zvULWF0YeruDkFsCXAVGJpClM2AOK8tnVoAS5m9RhgP/QhMWwK
+         faqZHVPCXKO7o3nSfldVFd21hGCb6pJzzejEZmziw50NayWDTFwEqJTBl+mxnosUzoSt
+         HP+mJNJAOwq//QLmDPxwq41vO07RyFL+PtyeSC8zpTDxOxdxbsSTi/dfjdKTYJtAoVGK
+         7vekb4pix9tXibj++ImsYhz/A5NrXzCEYCTYs+PUjJdM3/yqhFPoZnmk8CBsSkMSYEmH
+         /5vQ==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1771016600; x=1771621400; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=IkIfpZtMCvNg8raaNvJBOkkxjWV7cekP5g3DoKTMGDc=;
-        b=R7If96+r7m2DF6+eIoQ1JtU2U8tzUb9KCRpElJQV+pPQTPPVmMdILh3SOPIfU61AM8
-         jBctFWbcSKtPAjmO6g9g436tfai49X+ikq8lOqB8Of0mq930ozK+jK3Ls5PqkItm6J+t
-         3QwBTqF6PVPCs1ARSLYQGHdOH57GcWa2jib2/0J9izc0xcJvQ2jBhaK+sYGh6BqBsQ4H
-         yr42vM0q8rUg0TCR2RDpXVRYLt9vpjRwxubCYECqc4wBfNCeoxcXXhohTT/KUXWlv/hD
-         utBBxKQVc6MniBi5XP7gHI7R5KgHlsYOQMXJfxSIIiJLfdcVkjoXrUqn8aJ+ERwQNw8w
-         32Zw==
+        d=gmail.com; s=20230601; t=1771020468; x=1771625268; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZqthtvMcnCpBVA6nBDGHyJ53NLH5pH0C7menoSnB3S8=;
+        b=OUYoFqyb06/+M56yQN15ajFzTX7uV8Ck39Sz/c1238xAxvUeGmzZuxadvGIMJ2XTPl
+         GFfj/g5QGYax9sgapuSOMPrM9gACS73TW7G8LdxcqTQ9ci5VAn96OWzCJFCYl40ruY14
+         hGfo+/iepmrDQ5tuPxTH4g6WKqhE6dtbMzpKTAE3bI2NXsyufIyuEKKzuIdA0mElI+TO
+         2Hj0DCo1YL9EB5M/40h8bmmCVQb73HLp5s4onJmphU8JQ86APb2GbO6FfM4QsjRrew6K
+         u/kUpQGu1w8SdE2ADaXjSBp963kpDvtDEfItsSqUUvE+FZwfBPwxsJr7bi8cJgQNoouq
+         3HIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771016600; x=1771621400;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=IkIfpZtMCvNg8raaNvJBOkkxjWV7cekP5g3DoKTMGDc=;
-        b=YqykoWZ8GX+rBEpBbAgW0/baPEKl54CXakRzcxYw092P6TwDRcXERa0eqsZSW46vKo
-         qJevYbT4uJUDYOf4RuKVFrJjEgdAEm9pS6XGwPhra2GQ9eUS3zkCKxMcAd/NW8NlhotO
-         LrXk31XFdiJr9cYcEMwtqcnVupciprlgkdQDfIiItN41KIWBHaGHrqqRqaulf/k4wksl
-         PgZt/EQJbimpf8y+EMy0XHsH0Ou003JZ1+P2G0xyVJ3FHGItuPe6PdxUuQf3E9csbS5V
-         fW9hpgU+f071T5M4ICHWpLmi986xSXPIIMnDwpCMio2HDYVCSV3DdChRG/9k+Wlj6VFv
-         uIlw==
-X-Gm-Message-State: AOJu0YzfoZNJCJW0xDCd6/RIf0OolfmBo/hJjRqicfcxJp5bcTqgBml8
-	OwKU2fl5NSCYygYTieIPFtjKZPpt0Umm3aOJCaXlgj/4naZqC3bBtS1+jlBBGrDd5Q3IzbF7whF
-	/Ql8fs6mNAGcXc6fnmB9f4NU6Gfgh2zMwL4fIgdZlEI7U4gJeqQsIx3eCxaK//1fGtg==
-X-Gm-Gg: AZuq6aIHwOG8+5WB75MgImmFK3Dz+4LPcZv/wgxWq6xSAkVQlOvcoWV3ylAdjep8XN0
-	tKrum15PmUW8btZxaaia9SbExP+0yDLwZ6bMwNdUFVx8k1n+RBgV6hISI7Vdd++yokPPvdROaTU
-	bwu9J+4CzhNE6r0Z9t+SeZ5wYmd3aS7rV5szEWMv6oG4ChwKY4/awDVvOEpHxQYuMTd47HEh5uH
-	nzUmCEPS7AmCWs1wuSldSelJNlv9vdrcfA6X4NrSoisHSIWWyBwSJgYuLOnRatayNADibraMkOk
-	VCRQqlfY5gPnqU1NM/L7OAoWavLayXRGjIyyQkQfrno26S7xKwcSmbLqiM6cIoY/cuQjTpIf5gQ
-	w5Lbj3feKmBtyJJxeebkB+cUPl5GhGac=
-X-Received: by 2002:a05:693c:2c0e:b0:2ba:981b:ede2 with SMTP id 5a478bee46e88-2babc42d33fmr1201226eec.5.1771016599945;
-        Fri, 13 Feb 2026 13:03:19 -0800 (PST)
-X-Received: by 2002:a05:693c:2c0e:b0:2ba:981b:ede2 with SMTP id 5a478bee46e88-2babc42d33fmr1201203eec.5.1771016599234;
-        Fri, 13 Feb 2026 13:03:19 -0800 (PST)
-Received: from localhost ([140.82.166.162])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2bacb543e1dsm51585eec.4.2026.02.13.13.03.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Feb 2026 13:03:18 -0800 (PST)
-Date: Fri, 13 Feb 2026 15:03:17 -0600
-From: Andrew Jones <andrew.jones@oss.qualcomm.com>
-To: Raymond Mao <raymondmaoca@gmail.com>
-Cc: opensbi@lists.infradead.org, scott@riscstar.com, dave.patel@riscstar.com,
-        raymond.mao@riscstar.com, robin.randhawa@sifive.com,
-        samuel.holland@sifive.com, anup.patel@qti.qualcomm.com,
-        anuppate@qti.qualcomm.com, dhaval@rivosinc.com, peter.lin@sifive.com
-Subject: Re: [PATCH RFC 3/3] lib: sbi: Add VIRQ ecall extension
-Message-ID: <tx4srauwlm4cy755tqqbo5fxp53rzfvyesgpsftc7w76p7xqql@uvwgjaruyc4n>
-References: <20260213190459.2540597-1-raymondmaoca@gmail.com>
- <20260213190459.2540597-4-raymondmaoca@gmail.com>
+        d=1e100.net; s=20230601; t=1771020468; x=1771625268;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=ZqthtvMcnCpBVA6nBDGHyJ53NLH5pH0C7menoSnB3S8=;
+        b=F7ctdb7LlZeEjKN0FvNJQhzKODHuDgAbBOjHKqH8rHZLxfyi303vlm7sqTWtxbbGAC
+         u4i3Bq9gUZKnQgcIIIswyamAJvMPhTsRMjYG4w3Fiid0J2NpnH6I9qVGdd0Svzo8NmT6
+         HvU/UzR9tpmBwyXVOGy0Pa/N/HJP70/pdDOhjI0/qAySEBoktATs0CdkrZblS6cmqA1g
+         xA4K6I2ya5vfaHzk3rRJeUQMnmeRI2kv5GLYsa89CmyRIlR3DxQ+CCpY6KwWyFBzNVgs
+         vLcVMhHMgSeHv57VtlSF3EPKUL0gjVzCSNgN2SklSXDuHmwLkr1OqDFeTflnqrcJhhL4
+         N1UA==
+X-Gm-Message-State: AOJu0YxtBcyYa/uITb1nzhhuhmTEsRoleKy73KaPMGbHFjlfERxfvaQU
+	kxqZ+i1862cILlbpXklmZkPr3VwMHI6yH6atuS2DnsTVWzIejaTOcg1xU5zXvKI1uWGCBW2DKR/
+	8V2sKzHDGfqpsPpGSB6fUu7j8FN0ZQWE=
+X-Gm-Gg: AZuq6aJ1ROuNnpY4QCXGPneQWfjGdSDTqiDv8Z2kkcdEANTNBfeRPBlEkXs88r2dITD
+	kErKnnFG6UUk2PN29uP+yADiPiSrdeX3H7oWSBctYTkDHQy7VZAO7m3jEBhdEKFAyzPM2Nm6Mkd
+	GdQJpvnwovDc5F8DGWbsl3Y4o6tRoAbrhCN06AVsxtCdJQ66uA84SW+V3/GAKPEsvyuzumHz+Bn
+	t0hSnIaLfAPUwQXNjbkG79ZMpwDPdY+5B5T/5Ofml9R0oUfGfEFFwsEPxkY50wf2etc+9thvuJB
+	MfYpv0SgQYBdeA1ROm4=
+X-Received: by 2002:a05:6102:f0c:b0:5fd:ff75:f41d with SMTP id
+ ada2fe7eead31-5fe16ee3582mr1202727137.24.1771020467898; Fri, 13 Feb 2026
+ 14:07:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20260213190459.2540597-4-raymondmaoca@gmail.com>
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjEzMDE2MSBTYWx0ZWRfX/GynhpJ/KPud
- L6qvmH2Mv/mK2jayLZ8dNX6BhYEpUdMjxb12NTyWotCNti5Bcy6TTIz/V7c8iXsdxwO40TbKoqL
- FDWbBF1oceCFXA69Pf7go8KOwlBv4pZo198oZqQSU+U4tivEnLZSAzh/w3cHFbi3PWoJSQidbdi
- ySAuiHhNd+8yn2I2UusTngfkUhF+aauipWN2N9oG4Cg75G0Oc5bfKijecNaS9TRquVhWYU8MNW0
- D0RuRNyAEeFPKXy6DyygMLZUWf9BcpWhLc0xGKayp7v8MGCUJ2y61A4D6t8L+UHZaYRbDrxJwO0
- T0ObQzv0aLpbOP6G3WJiYkTsHzx0waYbVsnXchaLUKcKxeApgNRcYnaKl4Ld727i5QQm5LcqA0r
- l9likV8omm611/kkPPjYpo4cTJ19gACfpyxzD3u5XqsEH8/cRQmWh12kaZf6EyQHJrun1XAVRhg
- PaAQFhyFFsiCvfyrBig==
-X-Proofpoint-ORIG-GUID: R73CFRJLGJHnUKfpwyoi3TVaRzvxxcQP
-X-Proofpoint-GUID: R73CFRJLGJHnUKfpwyoi3TVaRzvxxcQP
-X-Authority-Analysis: v=2.4 cv=bo5BxUai c=1 sm=1 tr=0 ts=698f9198 cx=c_pps
- a=Uww141gWH0fZj/3QKPojxA==:117 a=cvcws7F5//HeuvjG1O1erQ==:17
- a=kj9zAlcOel0A:10 a=HzLeVaNsDn8A:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=Mpw57Om8IfrbqaoTuvik:22 a=GgsMoib0sEa3-_RKJdDe:22
- a=ee_2aqc6AAAA:8 a=BULRxCZIHRo6WV8BamAA:9 a=CjuIK1q_8ugA:10
- a=PxkB5W3o20Ba91AHUih5:22 a=VOpmJXOdbJOWo2YY3GeN:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-02-13_04,2026-02-13_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 clxscore=1015 impostorscore=0 malwarescore=0 priorityscore=1501
- suspectscore=0 phishscore=0 lowpriorityscore=0 adultscore=0 spamscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2602130161
+References: <20260213190459.2540597-1-raymondmaoca@gmail.com>
+ <20260213190459.2540597-4-raymondmaoca@gmail.com> <tx4srauwlm4cy755tqqbo5fxp53rzfvyesgpsftc7w76p7xqql@uvwgjaruyc4n>
+In-Reply-To: <tx4srauwlm4cy755tqqbo5fxp53rzfvyesgpsftc7w76p7xqql@uvwgjaruyc4n>
+From: Raymond Mao <raymondmaoca@gmail.com>
+Date: Fri, 13 Feb 2026 17:07:36 -0500
+X-Gm-Features: AaiRm50GHUHFX9X9AHOqD5R_ZzboYUezOWOwDbYWog3ETdOgr1qdmW6TQ1unt4s
+Message-ID: <CAMDkj5yqRv8LYfUKiDkX4KtMpeRLdEbQbuYPoavDqj4CRznnmg@mail.gmail.com>
+Subject: Re: [PATCH RFC 3/3] lib: sbi: Add VIRQ ecall extension
+To: Andrew Jones <andrew.jones@oss.qualcomm.com>
+Cc: opensbi@lists.infradead.org, scott@riscstar.com, dave.patel@riscstar.com, 
+	raymond.mao@riscstar.com, robin.randhawa@sifive.com, 
+	samuel.holland@sifive.com, anup.patel@qti.qualcomm.com, 
+	anuppate@qti.qualcomm.com, dhaval@rivosinc.com, peter.lin@sifive.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260213_130322_245950_66586156 
-X-CRM114-Status: GOOD (  24.53  )
+X-CRM114-CacheID: sfid-20260213_140749_684471_3BCCB57F 
+X-CRM114-Status: GOOD (  26.59  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -137,137 +113,95 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Fri, Feb 13, 2026 at 02:04:59PM -0500, Raymond Mao wrote:
-> From: Raymond Mao <raymond.mao@riscstar.com>
-> 
-> Add vendor SBI extension ecall for VIRQ.
-> This allows S-mode payload to pop/complete the next pending VIRQ has
-> couried into the current domain.
-> 
-> Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
-> ---
->  include/sbi/sbi_ecall_interface.h | 18 ++++++++++
->  lib/sbi/Kconfig                   |  5 +++
->  lib/sbi/objects.mk                |  3 ++
->  lib/sbi/sbi_ecall_virq.c          | 57 +++++++++++++++++++++++++++++++
->  4 files changed, 83 insertions(+)
->  create mode 100644 lib/sbi/sbi_ecall_virq.c
-> 
-> diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-> index 76624e3f..9cb9a7eb 100644
-> --- a/include/sbi/sbi_ecall_interface.h
-> +++ b/include/sbi/sbi_ecall_interface.h
-> @@ -126,6 +126,24 @@
->  #define SBI_EXT_FWFT_SET		0x0
->  #define SBI_EXT_FWFT_GET		0x1
->  
-> +#ifdef CONFIG_SBI_ECALL_VIRQ
-> +
-> +/* Vendor extension base range is defined by the SBI spec. Choose a private ID. */
-> +#define SBI_EXT_VIRQ			0x0900524d
-
-I'm not sure where this number comes from. I'd expect it to be
-0x56495251 == "VIRQ"
-
-> +
-> +/* Function IDs for SBI_EXT_VIRQ */
-> +#define SBI_EXT_VIRQ_POP		0
-> +#define SBI_EXT_VIRQ_COMPLETE		1
-> +
-> +/*
-> + * SBI_EXT_VIRQ_POP
-> + * Returns:
-> + *   a0: SBI error code (0 for success)
-> + *   a1: next pending hwirq (0 if none pending)
-                         ^ virq, but...
-
-how about creating an SBI function which allows registering a shared
-memory region (as several SBI extensions already do) and then place a
-bitmap in that shared memory which represents all virqs (a set bit means
-that that virq is pending). That would allow S-mode to immediately get
-all pending virqs in its SSE handler and we wouldn't need to worry about
-a queue filling up. The downside is that S-mode wouldn't necessarily
-handle the virqs in FIFO order. But, that can be a feature, because the
-queue forces FIFO order whereas S-mode may need to handle them in some
-priority order instead.
-
-> + */
-> +
-> +#endif
-> +
->  enum sbi_fwft_feature_t {
->  	SBI_FWFT_MISALIGNED_EXC_DELEG		= 0x0,
->  	SBI_FWFT_LANDING_PAD			= 0x1,
-> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-> index c6cc04bc..8479f861 100644
-> --- a/lib/sbi/Kconfig
-> +++ b/lib/sbi/Kconfig
-> @@ -69,4 +69,9 @@ config SBI_ECALL_SSE
->  config SBI_ECALL_MPXY
->  	bool "MPXY extension"
->  	default y
-> +
-> +config SBI_ECALL_VIRQ
-> +	bool "VIRQ extension"
-> +	default y
-> +
->  endmenu
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index 07d13229..18e590ab 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -64,6 +64,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
->  carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_MPXY) += ecall_mpxy
->  libsbi-objs-$(CONFIG_SBI_ECALL_MPXY) += sbi_ecall_mpxy.o
->  
-> +carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VIRQ) += ecall_virq
-> +libsbi-objs-$(CONFIG_SBI_ECALL_VIRQ) += sbi_ecall_virq.o
-> +
->  libsbi-objs-y += sbi_bitmap.o
->  libsbi-objs-y += sbi_bitops.o
->  libsbi-objs-y += sbi_console.o
-> diff --git a/lib/sbi/sbi_ecall_virq.c b/lib/sbi/sbi_ecall_virq.c
-> new file mode 100644
-> index 00000000..b192598e
-> --- /dev/null
-> +++ b/lib/sbi/sbi_ecall_virq.c
-> @@ -0,0 +1,57 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2026 RISCstar Solutions.
-> + *
-> + * Author: Raymond Mao <raymond.mao@riscstar.com>
-> + */
-> +
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_ecall.h>
-> +#include <sbi/sbi_ecall_interface.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_trap.h>
-> +#include <sbi/sbi_virq.h>
-> +
-> +static int sbi_ecall_virq_handler(unsigned long extid,
-> +				  unsigned long funcid,
-> +				  struct sbi_trap_regs *regs,
-> +				  struct sbi_ecall_return *out)
-> +{
-> +	(void)extid;
-> +
-> +	sbi_printf("[ECALL VIRQ] VIRQ ecall handler, funcid: %ld\n", funcid);
-
-You'll want to get rid of these print statements when posting without the
-RFC.
-
-Thanks,
-drew
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+SGkgQW5kcmV3LAoKT24gRnJpLCBGZWIgMTMsIDIwMjYgYXQgNDowM+KAr1BNIEFuZHJldyBKb25l
+cwo8YW5kcmV3LmpvbmVzQG9zcy5xdWFsY29tbS5jb20+IHdyb3RlOgo+Cj4gT24gRnJpLCBGZWIg
+MTMsIDIwMjYgYXQgMDI6MDQ6NTlQTSAtMDUwMCwgUmF5bW9uZCBNYW8gd3JvdGU6Cj4gPiBGcm9t
+OiBSYXltb25kIE1hbyA8cmF5bW9uZC5tYW9AcmlzY3N0YXIuY29tPgo+ID4KPiA+IEFkZCB2ZW5k
+b3IgU0JJIGV4dGVuc2lvbiBlY2FsbCBmb3IgVklSUS4KPiA+IFRoaXMgYWxsb3dzIFMtbW9kZSBw
+YXlsb2FkIHRvIHBvcC9jb21wbGV0ZSB0aGUgbmV4dCBwZW5kaW5nIFZJUlEgaGFzCj4gPiBjb3Vy
+aWVkIGludG8gdGhlIGN1cnJlbnQgZG9tYWluLgo+ID4KPiA+IFNpZ25lZC1vZmYtYnk6IFJheW1v
+bmQgTWFvIDxyYXltb25kLm1hb0ByaXNjc3Rhci5jb20+Cj4gPiAtLS0KPiA+ICBpbmNsdWRlL3Ni
+aS9zYmlfZWNhbGxfaW50ZXJmYWNlLmggfCAxOCArKysrKysrKysrCj4gPiAgbGliL3NiaS9LY29u
+ZmlnICAgICAgICAgICAgICAgICAgIHwgIDUgKysrCj4gPiAgbGliL3NiaS9vYmplY3RzLm1rICAg
+ICAgICAgICAgICAgIHwgIDMgKysKPiA+ICBsaWIvc2JpL3NiaV9lY2FsbF92aXJxLmMgICAgICAg
+ICAgfCA1NyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gPiAgNCBmaWxlcyBjaGFu
+Z2VkLCA4MyBpbnNlcnRpb25zKCspCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGxpYi9zYmkvc2Jp
+X2VjYWxsX3ZpcnEuYwo+ID4KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3NiaS9zYmlfZWNhbGxf
+aW50ZXJmYWNlLmggYi9pbmNsdWRlL3NiaS9zYmlfZWNhbGxfaW50ZXJmYWNlLmgKPiA+IGluZGV4
+IDc2NjI0ZTNmLi45Y2I5YTdlYiAxMDA2NDQKPiA+IC0tLSBhL2luY2x1ZGUvc2JpL3NiaV9lY2Fs
+bF9pbnRlcmZhY2UuaAo+ID4gKysrIGIvaW5jbHVkZS9zYmkvc2JpX2VjYWxsX2ludGVyZmFjZS5o
+Cj4gPiBAQCAtMTI2LDYgKzEyNiwyNCBAQAo+ID4gICNkZWZpbmUgU0JJX0VYVF9GV0ZUX1NFVCAg
+ICAgICAgICAgICAweDAKPiA+ICAjZGVmaW5lIFNCSV9FWFRfRldGVF9HRVQgICAgICAgICAgICAg
+MHgxCj4gPgo+ID4gKyNpZmRlZiBDT05GSUdfU0JJX0VDQUxMX1ZJUlEKPiA+ICsKPiA+ICsvKiBW
+ZW5kb3IgZXh0ZW5zaW9uIGJhc2UgcmFuZ2UgaXMgZGVmaW5lZCBieSB0aGUgU0JJIHNwZWMuIENo
+b29zZSBhIHByaXZhdGUgSUQuICovCj4gPiArI2RlZmluZSBTQklfRVhUX1ZJUlEgICAgICAgICAg
+ICAgICAgIDB4MDkwMDUyNGQKPgo+IEknbSBub3Qgc3VyZSB3aGVyZSB0aGlzIG51bWJlciBjb21l
+cyBmcm9tLiBJJ2QgZXhwZWN0IGl0IHRvIGJlCj4gMHg1NjQ5NTI1MSA9PSAiVklSUSIKPgo+ID4g
+Kwo+ID4gKy8qIEZ1bmN0aW9uIElEcyBmb3IgU0JJX0VYVF9WSVJRICovCj4gPiArI2RlZmluZSBT
+QklfRVhUX1ZJUlFfUE9QICAgICAgICAgICAgIDAKPiA+ICsjZGVmaW5lIFNCSV9FWFRfVklSUV9D
+T01QTEVURSAgICAgICAgICAgICAgICAxCj4gPiArCj4gPiArLyoKPiA+ICsgKiBTQklfRVhUX1ZJ
+UlFfUE9QCj4gPiArICogUmV0dXJuczoKPiA+ICsgKiAgIGEwOiBTQkkgZXJyb3IgY29kZSAoMCBm
+b3Igc3VjY2VzcykKPiA+ICsgKiAgIGExOiBuZXh0IHBlbmRpbmcgaHdpcnEgKDAgaWYgbm9uZSBw
+ZW5kaW5nKQo+ICAgICAgICAgICAgICAgICAgICAgICAgICBeIHZpcnEsIGJ1dC4uLgo+Cj4gaG93
+IGFib3V0IGNyZWF0aW5nIGFuIFNCSSBmdW5jdGlvbiB3aGljaCBhbGxvd3MgcmVnaXN0ZXJpbmcg
+YSBzaGFyZWQKPiBtZW1vcnkgcmVnaW9uIChhcyBzZXZlcmFsIFNCSSBleHRlbnNpb25zIGFscmVh
+ZHkgZG8pIGFuZCB0aGVuIHBsYWNlIGEKPiBiaXRtYXAgaW4gdGhhdCBzaGFyZWQgbWVtb3J5IHdo
+aWNoIHJlcHJlc2VudHMgYWxsIHZpcnFzIChhIHNldCBiaXQgbWVhbnMKPiB0aGF0IHRoYXQgdmly
+cSBpcyBwZW5kaW5nKS4gVGhhdCB3b3VsZCBhbGxvdyBTLW1vZGUgdG8gaW1tZWRpYXRlbHkgZ2V0
+Cj4gYWxsIHBlbmRpbmcgdmlycXMgaW4gaXRzIFNTRSBoYW5kbGVyIGFuZCB3ZSB3b3VsZG4ndCBu
+ZWVkIHRvIHdvcnJ5IGFib3V0Cj4gYSBxdWV1ZSBmaWxsaW5nIHVwLiBUaGUgZG93bnNpZGUgaXMg
+dGhhdCBTLW1vZGUgd291bGRuJ3QgbmVjZXNzYXJpbHkKPiBoYW5kbGUgdGhlIHZpcnFzIGluIEZJ
+Rk8gb3JkZXIuIEJ1dCwgdGhhdCBjYW4gYmUgYSBmZWF0dXJlLCBiZWNhdXNlIHRoZQo+IHF1ZXVl
+IGZvcmNlcyBGSUZPIG9yZGVyIHdoZXJlYXMgUy1tb2RlIG1heSBuZWVkIHRvIGhhbmRsZSB0aGVt
+IGluIHNvbWUKPiBwcmlvcml0eSBvcmRlciBpbnN0ZWFkLgo+CgpUaGlzIHNvdW5kcyBnb29kLiBN
+YXliZSB3ZSBjYW4gbWFrZSBib3RoIGltcGxlbWVudGF0aW9ucyBzZWxlY3RhYmxlCnZpYSBLY29u
+Zmlncy4KTGV0IG1lIGNvbGxlY3QgbW9yZSBmZWVkYmFjaywgSSBjYW4gbWFrZSB0aGUgb3B0aW9u
+YWwgYml0bWFwIGluIGEgc2Vjb25kIHBoYXNlLgoKPiA+ICsgKi8KPiA+ICsKPiA+ICsjZW5kaWYK
+PiA+ICsKPiA+ICBlbnVtIHNiaV9md2Z0X2ZlYXR1cmVfdCB7Cj4gPiAgICAgICBTQklfRldGVF9N
+SVNBTElHTkVEX0VYQ19ERUxFRyAgICAgICAgICAgPSAweDAsCj4gPiAgICAgICBTQklfRldGVF9M
+QU5ESU5HX1BBRCAgICAgICAgICAgICAgICAgICAgPSAweDEsCj4gPiBkaWZmIC0tZ2l0IGEvbGli
+L3NiaS9LY29uZmlnIGIvbGliL3NiaS9LY29uZmlnCj4gPiBpbmRleCBjNmNjMDRiYy4uODQ3OWY4
+NjEgMTAwNjQ0Cj4gPiAtLS0gYS9saWIvc2JpL0tjb25maWcKPiA+ICsrKyBiL2xpYi9zYmkvS2Nv
+bmZpZwo+ID4gQEAgLTY5LDQgKzY5LDkgQEAgY29uZmlnIFNCSV9FQ0FMTF9TU0UKPiA+ICBjb25m
+aWcgU0JJX0VDQUxMX01QWFkKPiA+ICAgICAgIGJvb2wgIk1QWFkgZXh0ZW5zaW9uIgo+ID4gICAg
+ICAgZGVmYXVsdCB5Cj4gPiArCj4gPiArY29uZmlnIFNCSV9FQ0FMTF9WSVJRCj4gPiArICAgICBi
+b29sICJWSVJRIGV4dGVuc2lvbiIKPiA+ICsgICAgIGRlZmF1bHQgeQo+ID4gKwo+ID4gIGVuZG1l
+bnUKPiA+IGRpZmYgLS1naXQgYS9saWIvc2JpL29iamVjdHMubWsgYi9saWIvc2JpL29iamVjdHMu
+bWsKPiA+IGluZGV4IDA3ZDEzMjI5Li4xOGU1OTBhYiAxMDA2NDQKPiA+IC0tLSBhL2xpYi9zYmkv
+b2JqZWN0cy5tawo+ID4gKysrIGIvbGliL3NiaS9vYmplY3RzLm1rCj4gPiBAQCAtNjQsNiArNjQs
+OSBAQCBsaWJzYmktb2Jqcy0kKENPTkZJR19TQklfRUNBTExfU1NFKSArPSBzYmlfZWNhbGxfc3Nl
+Lm8KPiA+ICBjYXJyYXktc2JpX2VjYWxsX2V4dHMtJChDT05GSUdfU0JJX0VDQUxMX01QWFkpICs9
+IGVjYWxsX21weHkKPiA+ICBsaWJzYmktb2Jqcy0kKENPTkZJR19TQklfRUNBTExfTVBYWSkgKz0g
+c2JpX2VjYWxsX21weHkubwo+ID4KPiA+ICtjYXJyYXktc2JpX2VjYWxsX2V4dHMtJChDT05GSUdf
+U0JJX0VDQUxMX1ZJUlEpICs9IGVjYWxsX3ZpcnEKPiA+ICtsaWJzYmktb2Jqcy0kKENPTkZJR19T
+QklfRUNBTExfVklSUSkgKz0gc2JpX2VjYWxsX3ZpcnEubwo+ID4gKwo+ID4gIGxpYnNiaS1vYmpz
+LXkgKz0gc2JpX2JpdG1hcC5vCj4gPiAgbGlic2JpLW9ianMteSArPSBzYmlfYml0b3BzLm8KPiA+
+ICBsaWJzYmktb2Jqcy15ICs9IHNiaV9jb25zb2xlLm8KPiA+IGRpZmYgLS1naXQgYS9saWIvc2Jp
+L3NiaV9lY2FsbF92aXJxLmMgYi9saWIvc2JpL3NiaV9lY2FsbF92aXJxLmMKPiA+IG5ldyBmaWxl
+IG1vZGUgMTAwNjQ0Cj4gPiBpbmRleCAwMDAwMDAwMC4uYjE5MjU5OGUKPiA+IC0tLSAvZGV2L251
+bGwKPiA+ICsrKyBiL2xpYi9zYmkvc2JpX2VjYWxsX3ZpcnEuYwo+ID4gQEAgLTAsMCArMSw1NyBA
+QAo+ID4gKy8qCj4gPiArICogU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEJTRC0yLUNsYXVzZQo+
+ID4gKyAqCj4gPiArICogQ29weXJpZ2h0IChjKSAyMDI2IFJJU0NzdGFyIFNvbHV0aW9ucy4KPiA+
+ICsgKgo+ID4gKyAqIEF1dGhvcjogUmF5bW9uZCBNYW8gPHJheW1vbmQubWFvQHJpc2NzdGFyLmNv
+bT4KPiA+ICsgKi8KPiA+ICsKPiA+ICsjaW5jbHVkZSA8c2JpL3NiaV9jb25zb2xlLmg+Cj4gPiAr
+I2luY2x1ZGUgPHNiaS9zYmlfZWNhbGwuaD4KPiA+ICsjaW5jbHVkZSA8c2JpL3NiaV9lY2FsbF9p
+bnRlcmZhY2UuaD4KPiA+ICsjaW5jbHVkZSA8c2JpL3NiaV9lcnJvci5oPgo+ID4gKyNpbmNsdWRl
+IDxzYmkvc2JpX3RyYXAuaD4KPiA+ICsjaW5jbHVkZSA8c2JpL3NiaV92aXJxLmg+Cj4gPiArCj4g
+PiArc3RhdGljIGludCBzYmlfZWNhbGxfdmlycV9oYW5kbGVyKHVuc2lnbmVkIGxvbmcgZXh0aWQs
+Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgZnVuY2lk
+LAo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgc2JpX3RyYXBfcmVn
+cyAqcmVncywKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHNiaV9l
+Y2FsbF9yZXR1cm4gKm91dCkKPiA+ICt7Cj4gPiArICAgICAodm9pZClleHRpZDsKPiA+ICsKPiA+
+ICsgICAgIHNiaV9wcmludGYoIltFQ0FMTCBWSVJRXSBWSVJRIGVjYWxsIGhhbmRsZXIsIGZ1bmNp
+ZDogJWxkXG4iLCBmdW5jaWQpOwo+Cj4gWW91J2xsIHdhbnQgdG8gZ2V0IHJpZCBvZiB0aGVzZSBw
+cmludCBzdGF0ZW1lbnRzIHdoZW4gcG9zdGluZyB3aXRob3V0IHRoZQo+IFJGQy4KPgoKU3VyZS4g
+Tm8gd29ycmllcy4gVGhlIGZvcm1hbCBwYXRjaCB3aWxsIGNvbWUgdG9nZXRoZXIgd2l0aCB0aGUK
+Y29tcGxldGUgVklSUSBpbXBsZW1lbnRhdGlvbiBhbmQgYWxsIHZlcmJvc2UgcHJpbnRzIHdpbGwg
+YmUgcmVtb3ZlZC4KClRoYW5rcyBhbmQgcmVnYXJkcywKUmF5bW9uZAoKPiBUaGFua3MsCj4gZHJl
+dwoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
+dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
