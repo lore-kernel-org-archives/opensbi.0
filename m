@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id EB4DDEF99CF
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 441A3EF99CD
 	for <opensbi@archiver.kernel.org>; Fri, 13 Feb 2026 19:05:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,63 +12,63 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=5e0C/cdPBRUbp6HPqTRJKerVFIOwRlwsBILxGDfDDpY=; b=osm1TCqZhOHeVf
-	4OGxGr0xBfqPNATUQV7Nu7u/XRgwfsfClq0fSt1Qx6MABnHIorUUwT9I7xv3HvdDdzP/wA1IxjMsG
-	ZBD9/Fr9k2JDow8aQJJjXHTeA6SNpS7f3EUdDkPLPJhy826bP/tyhkP2VUrcVTNvqmqEAfZ+Y9PQA
-	jMt6zT0L/MV48QqoaWwwSkUlrQDD9PSn6N5qSWgX5wfxt/QymzSf2tUlhHHkVCMfNoFlpt+xqKG9y
-	xDEYD5gvK+SKeYPjx7I2lei3DyIn5PlqpRTxCAh0kCcmFFG0p0f8OZb2GB0Yi67kwH0MGm5qO7DKu
-	LLBENGGFlomk/Pr9JuLw==;
+	List-Owner; bh=HtFcIZzvOwk+xVvc52k3FivgnIBbRCgo6MpBU5wEjMw=; b=UlU4TbTXtrUJRr
+	u7EdHVeHcz/7G4deBGCwKbSw9KNsez4zlR009j5BJ1Kc1AmchTmDT8qU0RNKlcsCyIaGkDPlpT4ah
+	lhfxGcAUTWkwFTo5weKQMZw0r4nPzepu2H+vdsl3W4xLqohYxFawoMG061vy4ZTt9i+rNEe6FXC1O
+	u7X+NqFxffWiraFH2CJHytLXqHriwAxkJO2TPO5tdyGlbEhSf/LgadS30mNNE2hup+aVbTUvmDUHn
+	QJeFOGmBdAJcPVP5hC2SEGcCzcFUy91RwBOJ8omMNL0RDYxXxi8LZpZl7sY7bDh946tIPVFDsNBqu
+	g0ZMzu+CFHmqRzYlY8Fw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vqyTX-00000003pCq-2myl;
-	Fri, 13 Feb 2026 19:05:11 +0000
-Received: from mail-qv1-xf32.google.com ([2607:f8b0:4864:20::f32])
+	id 1vqyTa-00000003pE6-43F9;
+	Fri, 13 Feb 2026 19:05:14 +0000
+Received: from mail-qv1-xf2c.google.com ([2607:f8b0:4864:20::f2c])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vqyTV-00000003pBh-26Y3
+	id 1vqyTY-00000003pDA-3mCG
 	for opensbi@lists.infradead.org;
-	Fri, 13 Feb 2026 19:05:10 +0000
-Received: by mail-qv1-xf32.google.com with SMTP id 6a1803df08f44-895071c5527so16158106d6.1
-        for <opensbi@lists.infradead.org>; Fri, 13 Feb 2026 11:05:09 -0800 (PST)
+	Fri, 13 Feb 2026 19:05:14 +0000
+Received: by mail-qv1-xf2c.google.com with SMTP id 6a1803df08f44-896fa834290so15108016d6.1
+        for <opensbi@lists.infradead.org>; Fri, 13 Feb 2026 11:05:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771009508; x=1771614308; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1771009511; x=1771614311; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=sniyK3wcs5gTAY3FkwDMDQQvPdFT0dn3n9/tPeMD4QI=;
-        b=C+p+WdsSdcRdifhIo/+axFutGQ6UPj+USfMLwVGZi+RO7kzJ6vXu68vsQS178d9nMo
-         L9vJHTp2tkMP+4qmhRkSBS/noo1JY+1JAMUiYjfeN1ntAkjrGA+1DmTQKUj2MQTrbcfi
-         wDiy7yVK95GPRYf5Uh4uRdmLkbmKVQK4Wy1t0JGYE2RaU0jCBpGbXMWtMsc7oT/WLF6R
-         K1ip+x4MbYV6u/l7g88dH1dqTjXB33v/bPJv2nH5nLPWmp3wiJsbIcue62kBStaTxBKS
-         RL38VwpDbJtmY3bewIKaOTyCPI2zGn3WChu5AQincPCf4e/+Y8EiH9LMfWMHq9/17cxY
-         +fgQ==
+        bh=L3UYZ95kq1Y3MqfoWuC80k+tQQfPbg/fuHAikl2vGkQ=;
+        b=HUowjUfNajkDXqW8bCxd2e/LLo4Qn4akha3G35DCMt86Ze33EW7lknQK4lg7rcTwQm
+         HUeksm5mT+m2Ce4aXAysVVg2mcpre4j4mBaCcK1NGhIJQ9TCLHfdhOdSCmpKW31ATT4T
+         g+IpBPKmbKTM4wM+R35rEW8r7GACov2O8U5isurllpduInE1kgkNpYvcDEgbDcbzcIym
+         4nSI41jVt5ngemaX92o6yb01DJHAUR8VPncNAjcO91R0FfQkooJ8nKHM4z/7OfaYJ9ww
+         qUjtVBCS5aUULx8WZke+qsvNCG4aSRo3T/LDohNxQdf6nXF8ywYG+UmJ0Dg30LP+qLr4
+         voxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771009508; x=1771614308;
+        d=1e100.net; s=20230601; t=1771009511; x=1771614311;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=sniyK3wcs5gTAY3FkwDMDQQvPdFT0dn3n9/tPeMD4QI=;
-        b=rf1jhLCfFMYAXSY/O7OcWSrga2zQlslY1Z3MBp+O68GUeoc5oXJuWxCHNLHcttRcEC
-         C1UIzToHrd/h6v9bSZ1KA2YvW9ouy6nGq+G+f3LRzWikQBV1QVnES1eDPGC2Cw5ohsVw
-         +LWHI76hzRSGaNyVJ/WKl4Qr8pMnyEHqrNiocFZxBImVBYtSQwIz68g1DZF9kz+wuZd1
-         xDVP4ytf/N2JiIE4V41kZtO3G+eeB7GK+4mUMzGaHyyuaC07Ty6ekcyoaUwGw+wWmrUM
-         ST87F3CJmwDNEMUAX4Y0v4eypbjlV8q0Xq3p1BDVgeESEzi+tmgXECnmk15ih7NLDB9R
-         X3aA==
-X-Gm-Message-State: AOJu0YyV7BhYl1cDB+leyfrNre4z3g+eAsDK1L/ZBE99EPZ5uVhkducG
-	mc6UlpKgSp9m2KXI1DnvWOaftyLHZ8LeH5DGw6jOMz68301EqPpC35OdAIwAxw==
-X-Gm-Gg: AZuq6aIzI0ZD5MY3dwDrJzG7yUq/B9gLuruQ8s56/ZfaVjdDg/oeKKmYOk8XeMFN6D9
-	9y0HkTQH/pmSkwt3tKmdY9Aff2ijCzi6wMMh0eUVZwKzfu5iO9yYwLWoqMBgLmk4C9yCMdCnHfL
-	7gSpfrOtpyGJgxgX3EgUJL0Au23wl3wAO6LdIWgB/ZFZMJSXSKmyMXvc3C3U7Gp9xmodmQzkevN
-	KLeu7xtsvh9LdtQZBeCfXYUeFMN0hsyvkEJ2IfMrSfxAN3uAgexLvT04y/3T90dLA82KPpBjO3r
-	4ZGKtNDSDXMjzxZQiwWefK38cCVfcOhLcd38a090Lnda7Nidget5HpO4ScpYvvKFwzRIcmP4fhY
-	gwfnYVADT2Z7xggdTPyWnuy1wcsKyczWw5Dt7GWiUxZFDI/nWZ9Xi+8ZCtD24XYv6dtPN7xjAo+
-	z2vXp6dQ3K3xTzfV/AwaDJwRGQFTqxlPCGAHGDPZT0nzNWonfFFMw6ft0iAagffXQtGOzFCDolV
-	XiGioORTIo=
-X-Received: by 2002:ac8:7d48:0:b0:4ed:64c1:16ec with SMTP id d75a77b69052e-506b3fa5bd8mr7455711cf.23.1771009508118;
-        Fri, 13 Feb 2026 11:05:08 -0800 (PST)
+        bh=L3UYZ95kq1Y3MqfoWuC80k+tQQfPbg/fuHAikl2vGkQ=;
+        b=gkEvgKyH6PvYbqHCjYyeSn9nkrMnU4xHss1aYLO4dAquLxSNZzfkKh5bY/cAn7U62e
+         7AUrXsbFDkb1aP5BjjWcwqBlOPVqrnkDlp8UwZfKIC1agDXdqMTeTEfuXqIeb1DgVRd/
+         YFr8rR9ycSaQGoXqJJ8o6tcJDXLmbdDySWVB7TwrygAi5h1qNB/blazECmi2GZvhWKyb
+         3wkTGHxDjEi6i9aT1kWXGmIJ2wc3SS1WgRSLqr7/k/eG5bOpCNt4sLtAmVewvDgKUJBG
+         FqpQu7qROs9x78Ziii20pO/HR9czlFZuotdzc9PBloFm7xHCVwr/L8+71u02Cze+o6f/
+         svWw==
+X-Gm-Message-State: AOJu0YyWEbLWn+0Uqt80WDSgvG96rjqGXWUQuY+1ncdUXEeq0OESncJN
+	Z85WyzeIhbWTgGgeXgUyAGC2/+TWRh1a0fsManZRRieQx4vQndmd4kRBguotVA==
+X-Gm-Gg: AZuq6aKvsQTuCIUFRbieXS3rLNlc7D+yqbe2nfEBENUTW4yMNMrycHQrAknaVGmHray
+	XIJcyWe/sErieluq8Rp5VYjxRx+SYTPS9nH/Ldvgvvy7ig/Qmi32SsKTpyEUTTGOmcLOQvDxgyI
+	chxZp8msMrwtk+7ECqNDACo/4uQQNjIcrHwVFgji8rlYgZxpOZ9SXEkCfqelgza2/RzHdNt+Ywa
+	OR3AuiTQVkPlyRWen4w+iAid0W28TqJq8p2ERdSNhg1aZj5a6Epz2InWyHWXBNN/Qf8C5AyOswd
+	UIrMYxw8OyzUPtYzHuu+Zwa+GvdMSMstTgQM01k/oOoV3tiGKAbfz4q8yGH8c46xO1GtzXlR/hC
+	kpM6NjchE1tzkCIpQ4Elm02r4A68unH0pJXlvGbvFzwh/invWd46oqL27GVoJd3+pbYcEZyJlcg
+	QpbCuS95xIE6mXE7WE9LwnnQtZOrwhbRFPI9y2LmvAgZr8SjntQ51GUbJ/PPGjzDgIM53coCPWT
+	WaY7O8Dp8A=
+X-Received: by 2002:a05:6214:21eb:b0:896:f42f:bf15 with SMTP id 6a1803df08f44-8973f293d30mr18944086d6.10.1771009511360;
+        Fri, 13 Feb 2026 11:05:11 -0800 (PST)
 Received: from ubuntu.localdomain (174-138-202-16.cpe.distributel.net. [174.138.202.16])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8971cd8b1bfsm70420096d6.28.2026.02.13.11.05.07
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8971cd8b1bfsm70420096d6.28.2026.02.13.11.05.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Feb 2026 11:05:07 -0800 (PST)
+        Fri, 13 Feb 2026 11:05:11 -0800 (PST)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -80,16 +80,16 @@ Cc: scott@riscstar.com,
 	anuppate@qti.qualcomm.com,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH RFC 2/3] platform: generic: Add sample dts overlay for testing hwirq/domain route rules
-Date: Fri, 13 Feb 2026 14:04:58 -0500
-Message-Id: <20260213190459.2540597-3-raymondmaoca@gmail.com>
+Subject: [PATCH RFC 3/3] lib: sbi: Add VIRQ ecall extension
+Date: Fri, 13 Feb 2026 14:04:59 -0500
+Message-Id: <20260213190459.2540597-4-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260213190459.2540597-1-raymondmaoca@gmail.com>
 References: <20260213190459.2540597-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260213_110509_548052_4B98180E 
-X-CRM114-Status: GOOD (  12.04  )
+X-CRM114-CacheID: sfid-20260213_110512_955371_332FA42F 
+X-CRM114-Status: GOOD (  15.04  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -108,118 +108,139 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add sample dts overlay for testing hwirq/domain route rules.
-Each domain uses property "opensbi,host-irqs" to describe one hwirq
-route rule.
-  'opensbi,host-irqs = <first_hwirq count> ...;'
-
-During cold boot, route rules are converted and cached for VIRQ
-routing/couriering purpose.
-
-Usage:
-1. Compile the overlay.
-   $ dtc -@ -I dts -O dtb -o hwirq_bind_domain.dto \
-         platform/generic/virt/hwirq_bind_domain.dts
-2. Dump the base dtb from QEMU.
-   $ qemu-system-riscv64 -M virt,aia=aplic-imsic -cpu rv64,zkr=on -m 4096 \
-         -nographic -bios out/platform/generic/firmware/fw_jump.bin \
-         -machine dumpdtb=qemu.dtb
-3. Apply the overlay on the base.
-   $ fdtoverlay -i qemu.dtb -o qemu_merge.dtb hwirq_bind_domain.dto
-4. Re-run QEMU with adding argument '-dtb qemu_merge.dtb'
+Add vendor SBI extension ecall for VIRQ.
+This allows S-mode payload to pop/complete the next pending VIRQ has
+couried into the current domain.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- platform/generic/virt/hwirq_bind_domain.dts | 79 +++++++++++++++++++++
- 1 file changed, 79 insertions(+)
- create mode 100644 platform/generic/virt/hwirq_bind_domain.dts
+ include/sbi/sbi_ecall_interface.h | 18 ++++++++++
+ lib/sbi/Kconfig                   |  5 +++
+ lib/sbi/objects.mk                |  3 ++
+ lib/sbi/sbi_ecall_virq.c          | 57 +++++++++++++++++++++++++++++++
+ 4 files changed, 83 insertions(+)
+ create mode 100644 lib/sbi/sbi_ecall_virq.c
 
-diff --git a/platform/generic/virt/hwirq_bind_domain.dts b/platform/generic/virt/hwirq_bind_domain.dts
+diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
+index 76624e3f..9cb9a7eb 100644
+--- a/include/sbi/sbi_ecall_interface.h
++++ b/include/sbi/sbi_ecall_interface.h
+@@ -126,6 +126,24 @@
+ #define SBI_EXT_FWFT_SET		0x0
+ #define SBI_EXT_FWFT_GET		0x1
+ 
++#ifdef CONFIG_SBI_ECALL_VIRQ
++
++/* Vendor extension base range is defined by the SBI spec. Choose a private ID. */
++#define SBI_EXT_VIRQ			0x0900524d
++
++/* Function IDs for SBI_EXT_VIRQ */
++#define SBI_EXT_VIRQ_POP		0
++#define SBI_EXT_VIRQ_COMPLETE		1
++
++/*
++ * SBI_EXT_VIRQ_POP
++ * Returns:
++ *   a0: SBI error code (0 for success)
++ *   a1: next pending hwirq (0 if none pending)
++ */
++
++#endif
++
+ enum sbi_fwft_feature_t {
+ 	SBI_FWFT_MISALIGNED_EXC_DELEG		= 0x0,
+ 	SBI_FWFT_LANDING_PAD			= 0x1,
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index c6cc04bc..8479f861 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -69,4 +69,9 @@ config SBI_ECALL_SSE
+ config SBI_ECALL_MPXY
+ 	bool "MPXY extension"
+ 	default y
++
++config SBI_ECALL_VIRQ
++	bool "VIRQ extension"
++	default y
++
+ endmenu
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 07d13229..18e590ab 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -64,6 +64,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
+ carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_MPXY) += ecall_mpxy
+ libsbi-objs-$(CONFIG_SBI_ECALL_MPXY) += sbi_ecall_mpxy.o
+ 
++carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VIRQ) += ecall_virq
++libsbi-objs-$(CONFIG_SBI_ECALL_VIRQ) += sbi_ecall_virq.o
++
+ libsbi-objs-y += sbi_bitmap.o
+ libsbi-objs-y += sbi_bitops.o
+ libsbi-objs-y += sbi_console.o
+diff --git a/lib/sbi/sbi_ecall_virq.c b/lib/sbi/sbi_ecall_virq.c
 new file mode 100644
-index 00000000..b836901e
+index 00000000..b192598e
 --- /dev/null
-+++ b/platform/generic/virt/hwirq_bind_domain.dts
-@@ -0,0 +1,79 @@
-+/dts-v1/;
-+/plugin/;
++++ b/lib/sbi/sbi_ecall_virq.c
+@@ -0,0 +1,57 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2026 RISCstar Solutions.
++ *
++ * Author: Raymond Mao <raymond.mao@riscstar.com>
++ */
 +
-+/ {
-+	/*
-+	 * Fragment 0: OpenSBI domain configuration under /chosen
-+	 */
-+	fragment@0 {
-+		target-path = "/chosen";
-+		__overlay__ {
-+			opensbi-domains {
-+				compatible = "opensbi,domain,config";
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_ecall.h>
++#include <sbi/sbi_ecall_interface.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_trap.h>
++#include <sbi/sbi_virq.h>
 +
-+				/*
-+				 * DRAM region for domain1 (2GB from 0x8000_0000).
-+				 * base is 64-bit: <hi lo>, order is log2(size).
-+				 */
-+				memregion_dram_2g: memregion_dram_2g {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x80000000>;
-+					order = <31>;
-+				};
++static int sbi_ecall_virq_handler(unsigned long extid,
++				  unsigned long funcid,
++				  struct sbi_trap_regs *regs,
++				  struct sbi_ecall_return *out)
++{
++	(void)extid;
 +
-+				/*
-+				 * UART MMIO region so S-mode payload can access UART registers
-+				 * without fault. 0x1000_0000 size 4KB.
-+				 */
-+				uart0_mmio: memregion_uart0 {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x10000000>;
-+					order = <12>;
-+				};
++	sbi_printf("[ECALL VIRQ] VIRQ ecall handler, funcid: %ld\n", funcid);
 +
-+				/*
-+				 * Domain instance:
-+				 * - possible-harts = <cpu0 phandle> (your cpu@0 phandle is 1)
-+				 * - regions use label references (fdtoverlay will fixup phandles)
-+				 * - opensbi,host-irqs uses <first count> pairs (NO chip phandle)
-+				 */
-+				domain1: domain1 {
-+					compatible = "opensbi,domain,instance";
++	switch (funcid) {
++	case SBI_EXT_VIRQ_POP:
++		out->value = (unsigned long)sbi_virq_pop_thishart();
++		return SBI_OK;
++	case SBI_EXT_VIRQ_COMPLETE:
++		u32 hwirq = (u32)regs->a0;
 +
-+					/* cpu@0 phandle in your base qemu dtb is 1 */
-+					possible-harts = <0x1>;
++		sbi_virq_complete_thishart(hwirq);
++		regs->a0 = 0;
++		return SBI_OK;
++	default:
++		return SBI_ENOTSUPP;
++	}
++}
 +
-+					/*
-+					 * Keep permissive for test.
-+					 * access=0x3f: enable all M+SU R/W/X flags (test only).
-+					 */
-+					regions = <&memregion_dram_2g 0x3f>,
-+						  <&uart0_mmio 0x3f>;
++struct sbi_ecall_extension ecall_virq;
 +
-+					/*
-+					 * Route rule: Bind host HWIRQs ranges to this domain.
-+					 * Format: <first_hwirq count> ...
-+					 * If no route rule matches, HWIRQs default to root domain.
-+					 *
-+					 * UART RX is hwirq=10 on QEMU virt:
-+					 *   fdtget -t i qemu_merge.dtb /soc/serial@10000000 interrupts
-+					 *     => "10 4"
-+					 *
-+					 * Start with only <10 1> for clean bring-up.
-+					 */
-+					opensbi,host-irqs = <10 1>;
-+				};
-+			};
-+		};
-+	};
++static int sbi_ecall_virq_register_extensions(void)
++{
++	int ret;
 +
-+	/*
-+	 * Fragment 1: Assign cpu0 to domain1 using label reference
-+	 */
-+	fragment@1 {
-+		target-path = "/cpus/cpu@0";
-+		__overlay__ {
-+			opensbi-domain = <&domain1>;
-+		};
-+	};
++	ret = sbi_ecall_register_extension(&ecall_virq);
++	sbi_printf("[ECALL VIRQ] register VIRQ ecall extensions, ret=%d\n", ret);
++	return ret;
++}
++
++struct sbi_ecall_extension ecall_virq = {
++	.name        = "virq",
++	.extid_start = SBI_EXT_VIRQ,
++	.extid_end   = SBI_EXT_VIRQ,
++	.register_extensions    = sbi_ecall_virq_register_extensions,
++	.handle      = sbi_ecall_virq_handler,
 +};
-\ No newline at end of file
 -- 
 2.25.1
 
