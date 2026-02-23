@@ -4,71 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A4F68EA4FD1
-	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A2812EA4FD0
+	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=QhwVuBuFewvVQ5nRNZ4HxmhynToy3GaSWt7FcKOsONY=; b=lLPLX2iFUEEJU/
-	9BPHV5VCQp/rBhobj04SfylSgk9+rXpk4xyNJ/w9ku3+ORMYEM18u8oYc07tdqwn7K4XV1LgtpXN6
-	3SdGCOdRWadOHHnqnwG07Tvg6TXZ8NzQw99MHuOzH+mR17NGpkHf4AOScOeJtciGwYvEvGGrrMEtP
-	pYipxbyMETZNTPhVqEOz5ih5LSE/IgQ1MjmdS6qxGqfK7oFRms/14PXZfAljO1mI9qY/nefnuQbVi
-	P6pE23tFpU3W3iC8oTrnoSViz2BeMDEhrZs5MhEWNtLCI4n2NLxuGFfUpGfXeDD1f0ALRGkloCBm/
-	cIq63msJNMTt9sBYsz0g==;
+	List-Owner; bh=fVy2BE9ArYxL8frzZbpJC4M3m0vSi4U8MSWHpoSmEyI=; b=4woQ6SQas1q1PF
+	ghybMuEFrw22RZELVSlerI2G8X+4x6m+iQ5gQQ1FacSDcVJ/DjbLzMEYS5ACbdj0Accl/DP11H2H2
+	hKC+ra4d2fcGgYIUjHwKg2BnlmwZ0e2iYibO0l8Zo485370Suf8V7MD3Ruaw8zDvTd3CbhbBaYSBC
+	M3iCLg/dc6lP+92Jf6nZD3FMGnrZCTIZ5VZR8abqxx4eq5Mg0Z8i9HEHAvQFRba0gc+N9rA3NBIpR
+	NbeEwa5gQ9PxAZ57uMIpeUv3rxbjDc1VYmuUHvOUXwJBmCMx3BcvrMwMOaXmQY8smXs8ZumzBDMOj
+	O1V3NbLfTfeAQegGnZDw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLb-00000000VrW-1tp8;
-	Mon, 23 Feb 2026 14:55:43 +0000
+	id 1vuXLd-00000000Vuo-15gu;
+	Mon, 23 Feb 2026 14:55:45 +0000
 Received: from esa4.hc555-34.eu.iphmx.com ([207.54.77.171])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLY-00000000VVL-1Gh5
+	id 1vuXLa-00000000VVL-1Znu
 	for opensbi@lists.infradead.org;
-	Mon, 23 Feb 2026 14:55:41 +0000
+	Mon, 23 Feb 2026 14:55:43 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1771858540; x=1803394540;
+  t=1771858542; x=1803394542;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=+DALDbqLUvXl50Xgdgwv4mnxkDYo4bi4ydMq+lNylmY=;
-  b=ARiWA9itxVxjdsQ/WY52zgq4q+s0TJKCXj3XShF1rnAojzy+FveHoOIG
-   B/XSaDzXD3QDo7nWRcD1wrDKMAR5pGbBIeqkmWHK6ZIBOeFDGCt/t+tk9
-   lDFPWOOaqLKVYOGacWROdzkP6WsZpn9f0zPxXVp2+HS4ClxRN3dwuxxEs
-   J8bVIAvp+FKPIV/H/QuPk70IxmlO8aCoEt5QDlTnF+YbIu3WXL44+jC38
-   lXql5IYZg/HHiBKao/IyOJJucfY7Jm/syMCRlnpO11vIXl/zHUTvPivwX
-   oTc4old96g2WlK4HUiVMkK5dnHSB+QYs8CQQI4Lnh8lrsVIxOMqpJNmMn
-   w==;
+  bh=ZAfKaG7zp4m2KyIvvqyWJKVOcxE4Q4Hz8tAyFa0n3DY=;
+  b=QwBC5e099e/iFJ1IQlEbnC8/gL21tssbovW1y1SNGH4YO/0kW7/aYQzM
+   C6lwqgxsAlJVflRY7t4FJ5QSen4jDvbPmFj/LI3B1J+z6W0Y9dZGyMGpv
+   eQ1ACdoeKQFN+72dFSl0ukGfkWp89YIx3gnrZv9wXM8SB4OvOph+GvFeW
+   1KiI/aqQTtMiRvrbB0O4XOFIkthI6LwWj5woD9SroHiB7qFaJ7ygKTP5a
+   cwOO96gydKt73QUJ9I7jJEnlZoQy++CBD+DLY8zXuPJHFW8ygjm5JyEZ4
+   s4PvyZcy1oy1Ljs4DPNC7Latt51H8055rhzCT6K4dbNAv0c9Qu+6cAtsP
+   g==;
 X-CSE-ConnectionGUID: ZuIz/U3nQlaiL3pKRXRY+A==
-X-CSE-MsgGUID: LhgA1wU6SDePC0UJJPU8Pg==
+X-CSE-MsgGUID: iSGXba+ZTnSMYfUtdOGc6w==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:39 +0200
-X-CSE-ConnectionGUID: 6Yj9Z6qwSbSil5EJSvT1XA==
-X-CSE-MsgGUID: D1YwjUflQ8i3pcmYlfaPvA==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces02_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:21 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:38 +0200
+  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:41 +0200
+X-CSE-ConnectionGUID: iDSRDruQQP6E7GxjtYxwGw==
+X-CSE-MsgGUID: N3OR22npT+Cx1AC6aLAh2Q==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
+  by ces02_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:23 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:40 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
 	benoit.monin@bootlin.com,
 	cc=cfu@mips.com,
 	opensbi@lists.infradead.org
-Subject: [PATCH v3 16/23] platform: generic: mips p8700: use SBI bitfield
- manipulator macros
-Date: Mon, 23 Feb 2026 16:54:55 +0200
-Message-ID: <20260223-for-upstream-eyeq7h-v3-16-621d004d1a21@mobileye.com>
+Subject: [PATCH v3 18/23] platform: generic: mips eyeq7h: synchronize
+ timers across clusters
+Date: Mon, 23 Feb 2026 16:54:57 +0200
+Message-ID: <20260223-for-upstream-eyeq7h-v3-18-621d004d1a21@mobileye.com>
 In-Reply-To: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 References: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260223_065540_611965_954CB60B 
-X-CRM114-Status: UNSURE (   9.21  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260223_065542_693716_23568F7D 
+X-CRM114-Status: GOOD (  11.08  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -85,124 +84,80 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Switch to GENMASK, EXTRACT_BITFIELD, INSERT_BITFIELD
+Use eyeq7 specific method to synchronously restart architectural
+mtimer and eyeq7h specific high-resolution timer with common
+hardware trigger. This ensures all timers are precisely in sync
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/include/mips/p8700.h | 49 +++++++++++++----------------------
- platform/generic/mips/eyeq7h.c        |  2 +-
- platform/generic/mips/p8700.c         |  4 +--
- 3 files changed, 21 insertions(+), 34 deletions(-)
+ platform/generic/include/mips/mips-cm.h |  1 +
+ platform/generic/include/mips/p8700.h   |  5 +++++
+ platform/generic/mips/eyeq7h.c          | 17 +++++++++++++++++
+ 3 files changed, 23 insertions(+)
 
+diff --git a/platform/generic/include/mips/mips-cm.h b/platform/generic/include/mips/mips-cm.h
+index 84f8619b4a1bf2183e70ea151fb447e1c7bffe94..d61cf104b885d0b970713617ef07614825ff01a8 100644
+--- a/platform/generic/include/mips/mips-cm.h
++++ b/platform/generic/include/mips/mips-cm.h
+@@ -76,6 +76,7 @@ CPC_CX_ACCESSOR_RW(32, CPC_Cx_STAT_CONF, stat_conf)
+ 	CPS_ACCESSOR_RW(cpc, sz, CPC_OFFSET + (off), name)
+ 
+ CPC_ACCESSOR_RW(32, CPC_PWRUP_CTL, pwrup_ctl)
++CPC_ACCESSOR_RW(64, CPC_TIMECTL, timectl)
+ CPC_ACCESSOR_RW(64, CPC_HRTIME, hrtime)
+ CPC_ACCESSOR_RW(32, CPC_CM_STAT_CONF, cm_stat_conf)
+ 
 diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index 4cda183ec0a22a90d13242473641ce3e6d896a6b..169181642716a2dea4b417db910895bd1960a5ec 100644
+index 4530fdf06fd91a3f1f8a2e0ae3c1db2d8f0bec69..0675635565589105594c231505be8b094ca4a25a 100644
 --- a/platform/generic/include/mips/p8700.h
 +++ b/platform/generic/include/mips/p8700.h
-@@ -21,16 +21,16 @@ struct p8700_cm_info {
- extern const struct p8700_cm_info *p8700_cm_info;
+@@ -147,6 +147,11 @@ extern const struct p8700_cm_info *p8700_cm_info;
  
- /* PMA */
--#define CSR_MIPSPMACFG0	0x7e0
--#define CSR_MIPSPMACFG1	0x7e1
--#define CSR_MIPSPMACFG2	0x7e2
--#define CSR_MIPSPMACFG3	0x7e3
--#define CSR_MIPSPMACFG4	0x7e4
--#define CSR_MIPSPMACFG5	0x7e5
--#define CSR_MIPSPMACFG6	0x7e6
--#define CSR_MIPSPMACFG7	0x7e7
--#define CSR_MIPSPMACFG8	0x7e8
--#define CSR_MIPSPMACFG9	0x7e9
-+#define CSR_MIPSPMACFG0		0x7e0
-+#define CSR_MIPSPMACFG1		0x7e1
-+#define CSR_MIPSPMACFG2		0x7e2
-+#define CSR_MIPSPMACFG3		0x7e3
-+#define CSR_MIPSPMACFG4		0x7e4
-+#define CSR_MIPSPMACFG5		0x7e5
-+#define CSR_MIPSPMACFG6		0x7e6
-+#define CSR_MIPSPMACFG7		0x7e7
-+#define CSR_MIPSPMACFG8		0x7e8
-+#define CSR_MIPSPMACFG9		0x7e9
- #define CSR_MIPSPMACFG10	0x7ea
- #define CSR_MIPSPMACFG11	0x7eb
- #define CSR_MIPSPMACFG12	0x7ec
-@@ -68,26 +68,13 @@ extern const struct p8700_cm_info *p8700_cm_info;
- 
- #define MIPSCONFIG5_MTW		4
- 
--#define GEN_MASK(h, l)	(((1ul << ((h) + 1 - (l))) - 1) << (l))
--#define EXT(val, mask)	(((val) & (mask)) >> (__builtin_ffs(mask) - 1))
--
--/*
-- * We allocate the number of bits to encode clusters, cores, and harts
-- * from the original mhartid to a new dense index.
-- */
--#define NUM_OF_BITS_FOR_CLUSTERS	4
--#define NUM_OF_BITS_FOR_CORES		12
--#define NUM_OF_BITS_FOR_HARTS		4
--
--/* To get the field from new/hashed mhartid */
--#define NEW_CLUSTER_SHIFT	(NUM_OF_BITS_FOR_CORES + NUM_OF_BITS_FOR_HARTS)
--#define NEW_CLUSTER_MASK	((1 << NUM_OF_BITS_FOR_CLUSTERS) - 1)
--#define NEW_CORE_SHIFT		NUM_OF_BITS_FOR_HARTS
--#define NEW_CORE_MASK		((1 << NUM_OF_BITS_FOR_CORES) - 1)
--#define NEW_HART_MASK		((1 << NUM_OF_BITS_FOR_HARTS) - 1)
--#define cpu_cluster(i)		(((i) >> NEW_CLUSTER_SHIFT) & NEW_CLUSTER_MASK)
--#define cpu_core(i)		(((i) >> NEW_CORE_SHIFT) & NEW_CORE_MASK)
--#define cpu_hart(i)		((i) & NEW_HART_MASK)
-+/* mhartID structure */
-+#define P8700_HARTID_CLUSTER	GENMASK(19, 16)
-+#define P8700_HARTID_CORE	GENMASK(11, 4)
-+#define P8700_HARTID_HART	GENMASK(3, 0)
-+#define cpu_cluster(i)		EXTRACT_FIELD(i, P8700_HARTID_CLUSTER)
-+#define cpu_core(i)		EXTRACT_FIELD(i, P8700_HARTID_CORE)
-+#define cpu_hart(i)		EXTRACT_FIELD(i, P8700_HARTID_HART)
- 
- #define CPC_OFFSET		(0x8000)
- 
-@@ -172,7 +159,7 @@ extern const struct p8700_cm_info *p8700_cm_info;
- #define CPC_Cx_CMD_RESET	0x4
- 
- #define CPC_Cx_STAT_CONF	0x0008
--#define CPC_Cx_STAT_CONF_SEQ_STATE	GEN_MASK(22, 19)
-+#define CPC_Cx_STAT_CONF_SEQ_STATE	GENMASK(22, 19)
- #define CPC_Cx_STAT_CONF_SEQ_STATE_U5	6
- #define CPC_Cx_STAT_CONF_SEQ_STATE_U6	7
+ /* CPC Block offsets */
+ #define CPC_PWRUP_CTL		0x0030
++#define CPC_TIMECTL		0x0058
++#define TIMECTL_HARMED		BIT(3)
++#define TIMECTL_HSTOP		BIT(2)
++#define TIMECTL_MARMED		BIT(1)
++#define TIMECTL_MSTOP		BIT(0)
+ #define CPC_HRTIME		0x0090
+ #define CPC_CM_STAT_CONF	0x1008
  
 diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index c6e688e2b2498ec157fc743a6c454996ac7ad356..58636ffb336f79668b1ecfae1b8251026f323e74 100644
+index 58636ffb336f79668b1ecfae1b8251026f323e74..281848e79e664eaae42d69c0f0c7b6fcd4dd48b6 100644
 --- a/platform/generic/mips/eyeq7h.c
 +++ b/platform/generic/mips/eyeq7h.c
-@@ -240,7 +240,7 @@ static void eyeq7h_init_clusters(void)
- 	sbi_dprintf("Use %d clusters\n", num_clusters);
- 	/* Power up other clusters in the platform. */
- 	for (int i = 1; i < num_clusters; i++) {
--		eyeq7h_power_up_other_cluster(i << NEW_CLUSTER_SHIFT);
-+		eyeq7h_power_up_other_cluster(INSERT_FIELD(0, P8700_HARTID_CLUSTER, i));
+@@ -44,6 +44,9 @@
+ #define TSTCSR_MIPS12_PRESENT	GENMASK(3, 2)
+ #define TSTCSR_ACC_PRESENT	GENMASK(5, 4)
+ 
++#define OLB_WEST_CFG		0x68
++#define WEST_CFG_MIPS_MTIME_START	BIT(8)
++
+ /* Use in nascent init - not have DTB yet */
+ #define DRAM_ADDRESS		0x800000000UL
+ #define DRAM_SIZE		0x800000000UL
+@@ -243,6 +246,20 @@ static void eyeq7h_init_clusters(void)
+ 		eyeq7h_power_up_other_cluster(INSERT_FIELD(0, P8700_HARTID_CLUSTER, i));
  	}
  	eyeq7h_active_clusters = num_clusters;
- }
-diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
-index c2f41ee7b066c488757c3e4187962ec10e9c0966..a0884f211ca121a13f0f17f31319934527cd4209 100644
---- a/platform/generic/mips/p8700.c
-+++ b/platform/generic/mips/p8700.c
-@@ -47,7 +47,7 @@ void mips_p8700_power_up_other_cluster(u32 hartid)
- 	for (int i = 100; i > 0; i--) {
- 		u32 stat = read_cpc_cm_stat_conf(hartid);
- 
--		stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
-+		stat = EXTRACT_FIELD(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
- 		if (stat == CPC_Cx_STAT_CONF_SEQ_STATE_U5)
- 			return;
- 		cpu_relax();
-@@ -67,7 +67,7 @@ static bool mips_hart_reached_state(void *arg)
- 	struct mips_boot_params *p = arg;
- 	u32 stat = read_cpc_co_stat_conf(p->hartid);
- 
--	stat = EXT(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
-+	stat = EXTRACT_FIELD(stat, CPC_Cx_STAT_CONF_SEQ_STATE);
- 	return stat == p->target_state;
++	/**
++	 * sync timers in all clusters. EQ7 have counters restart pins for clusters
++	 * connected to the OLB.
++	 * Stop/arm all counters, then restart all at once
++	 */
++	for (int i = 0; i < num_clusters; i++) {
++		write_cpc_timectl(INSERT_FIELD(0, P8700_HARTID_CLUSTER, i),
++				  TIMECTL_HARMED | TIMECTL_HSTOP | TIMECTL_MARMED | TIMECTL_MSTOP);
++	}
++	{
++		u32 cfg = readl((void*)OLB_WEST + OLB_WEST_CFG);
++
++		writel(cfg | WEST_CFG_MIPS_MTIME_START, (void*)OLB_WEST + OLB_WEST_CFG);
++	}
  }
  
+ static int eyeq7h_early_init(bool cold_boot)
 
 -- 
 2.43.0
