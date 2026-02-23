@@ -4,70 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id BD8F3EA4FCE
-	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 33103EA4FCB
+	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=l/TFSWp1UAPnz7qNmfvM9MkSn9NPU5qXAeIlfWvzJRg=; b=0jfr8cWbIymC3R
-	Hihsv5PBBJ0lYPL9Uemd5U0E4ST5Om5LxloJS3k/wPXbLrMwOmfNZcwualds5EhGsqFw/qgJmrZkw
-	3vIkzEM2X3ORpL9I89K5I9GcyqH4KJPM0f/tuGQntsgkF+hv6dK3AIY+Ww9ANvLcvCpQTxGI4CMxI
-	+tMxHpqzijgQxfrihnGkiGWkqN8tn5eCWrpxNpxS6ZHEJGlrcS+XaFjCrDavtpGwOFi2D4NGgPowq
-	yS26+774wEgkeUMixAL2GfnRa16ouvtyyo26ipK9Dat+W7zRjtBeZT+XbBAEmdMRGjvTO3RO5j/wj
-	rOUJXItKAGyjzcfvf9LA==;
+	List-Owner; bh=LVhJ66LONMs0sPuOR8BLsu+JQYarJkeA3om6GppOdpw=; b=GRda3qwy+zuS6M
+	AMkugOAnobKw37m+62GRMrcvIe24/zSc8AIS5CkrRUgdDD78IQImXc9bDXbXdajFUEmTtNxJ6gPLp
+	Xh+toVmL62Ce47J5Hmh/mekEb+oXgSLwNw2y/JSN204XtyUSYwlQy5gg87vZ/GW+/K0s4xb6neQ/g
+	qFc+qhQMFV70OsrAI/8F2Ov6HprkhyZiD2TtNz8bpa1zIHBL6k7oKL8kSJZI+qCH5KelDrWPftPSY
+	toVK5V7amuBnsz/d7zpSBbFoysYljvW90YnjIbGO5/d4HMpjgvzmDmVULfSdrdhws9Jt3w/CjBtlm
+	9jxBkltaix25QGlwqoDA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLZ-00000000VoO-2S9w;
-	Mon, 23 Feb 2026 14:55:41 +0000
+	id 1vuXLa-00000000Vqg-46Od;
+	Mon, 23 Feb 2026 14:55:42 +0000
 Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLW-00000000Vat-0pBo
+	id 1vuXLX-00000000VVR-1HhH
 	for opensbi@lists.infradead.org;
-	Mon, 23 Feb 2026 14:55:39 +0000
+	Mon, 23 Feb 2026 14:55:41 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1771858536; x=1803394536;
+  t=1771858537; x=1803394537;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=EwMphNGUVMYrZnMRzqY/QIXodzs0PKrzWFKfa8ZUYdQ=;
-  b=Td2eiTn7LwXcB/3Ic7MytOPosLA7RjbcIAEJPaH8Zo9vshpFLFgE7THR
-   T3PkdnPZdVOZh9O36UvMbPwO0xuiWukcat/ac4sDI6JYwuAdGz1F0pYGl
-   45MLwRSqq4m+KbLgzXUVIroagkunLYYLUIamGbfmEgrCdBE3C5BdEH0I7
-   So6YppY3Th2udrQnwiX7tu9UUyyJhfnXWF18ztgM1ygPbjquyPTbzmlQm
-   UaFNa70kC4wp5Zmatx3uJsb4zSfGCK693WXHca0+j7QNZ4Ies8oIfNDWF
-   TLnIAAJF9qvZP0UEuqS8F4Bh2NWN/KMazZY6YTnSVafnYD7PuPocT2XSl
-   Q==;
+  bh=QLi8G+HUFT1mD3CqjbXeSsuDqkpe05CWjv5sGdaGXFg=;
+  b=Dwz8gksXMx9K3BFr83iaLKj6/pkUeh8jkRqaS/pi4vzVO0ZTlXFGUnVF
+   Lv4/yBAncXeNG0v7u0A6dn64J0rpvNj1vP/OaFY7UWz7dt7+uYLalICAv
+   wyivf97elu4JjUTKYhNX6e9nZMl6KH685OVPnC9F7pyQ3XHHexxxwuPEr
+   hSIbfpWQ7t1WLw0zYxl1NJcdbU8zfmJr5cfCgDpZ32u9DJv216oSj0TP0
+   MIG7985tDKXrGe64G5XIeGVuY0f5gfXjf5UfqDcsh3KP1QbHMfWr4p6En
+   nrucT4LM54Cv5olbsER5J74yHeKKTAq4AFyf2LOSrBIxnG9NWbBMZvVJ9
+   w==;
 X-CSE-ConnectionGUID: qI7r+ZoDSMW1Btie+JMykQ==
-X-CSE-MsgGUID: laHnOD7TRUir1Ewf49Lwig==
+X-CSE-MsgGUID: 8+szSEiFTJSD/7ATwupSgg==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:35 +0200
-X-CSE-ConnectionGUID: UfWHBo41RpSwco4A3By7uw==
-X-CSE-MsgGUID: 9X8UK2WxQa61h0+3zchTIw==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces03_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:10 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:36 +0200
+  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:36 +0200
+X-CSE-ConnectionGUID: JsHR9RJRS5eg5gNA2BNy4Q==
+X-CSE-MsgGUID: 8ckJAfmdT9uk8Fnk6HtcQQ==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
+  by ces03_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:11 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:37 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
 	benoit.monin@bootlin.com,
 	cc=cfu@mips.com,
 	opensbi@lists.infradead.org
-Subject: [PATCH v3 14/23] platform: generic: mips p8700: cache geometry
- detection
-Date: Mon, 23 Feb 2026 16:54:53 +0200
-Message-ID: <20260223-for-upstream-eyeq7h-v3-14-621d004d1a21@mobileye.com>
+Subject: [PATCH v3 15/23] platform: generic: mips p8700: CPU clusters
+ memranges
+Date: Mon, 23 Feb 2026 16:54:54 +0200
+Message-ID: <20260223-for-upstream-eyeq7h-v3-15-621d004d1a21@mobileye.com>
 In-Reply-To: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 References: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260223_065538_541094_5E1D0A2E 
-X-CRM114-Status: GOOD (  10.56  )
+X-CRM114-CacheID: sfid-20260223_065539_622716_88840839 
+X-CRM114-Status: GOOD (  13.02  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -84,193 +84,165 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-P8700 has a read-only cache configuration registers.
-Provide a CPU specific function to extract cache information.
-Use this information in the eyeq7h board for informational
-message
+Reserve memory regions for CPU clusters according to P8700
+cluster memory layout.
+
+There's a set of components in the CPU cluster according to [1]
+
+[1] https://mips.com/wp-content/uploads/2025/11/P8700-F_Programmers_Reference_Manual-TM.pdf
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/include/mips/p8700.h | 54 +++++++++++++++++++++++++++++++++++
- platform/generic/mips/eyeq7h.c        | 27 ++++++++++++++++++
- platform/generic/mips/p8700.c         | 45 +++++++++++++++++++++++++++++
- 3 files changed, 126 insertions(+)
+ platform/generic/include/mips/p8700.h |  1 +
+ platform/generic/mips/boston.c        | 26 +++---------------
+ platform/generic/mips/eyeq7h.c        | 25 +++--------------
+ platform/generic/mips/p8700.c         | 51 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 59 insertions(+), 44 deletions(-)
 
 diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index 5facd38af39fe0bc9d6de18a6c7423396e828873..ad7353f8a64a5194e7e933efd8e1276fb8c6f458 100644
+index ad7353f8a64a5194e7e933efd8e1276fb8c6f458..4cda183ec0a22a90d13242473641ce3e6d896a6b 100644
 --- a/platform/generic/include/mips/p8700.h
 +++ b/platform/generic/include/mips/p8700.h
-@@ -58,6 +58,14 @@ extern const struct p8700_cm_info *p8700_cm_info;
- #define CSR_MIPSCONFIG10	0x7da
- #define CSR_MIPSCONFIG11	0x7db
+@@ -192,6 +192,7 @@ struct p8700_cache_info {
  
-+#define MIPSCONFIG1_L2C		BIT(31)
-+#define MIPSCONFIG1_IS		GENMASK(24,22)
-+#define MIPSCONFIG1_IL		GENMASK(21,19)
-+#define MIPSCONFIG1_IA		GENMASK(18,16)
-+#define MIPSCONFIG1_DS		GENMASK(15,13)
-+#define MIPSCONFIG1_DL		GENMASK(12,10)
-+#define MIPSCONFIG1_DA		GENMASK(9,7)
-+
- #define MIPSCONFIG5_MTW		4
- 
- #define GEN_MASK(h, l)	(((1ul << ((h) + 1 - (l))) - 1) << (l))
-@@ -113,6 +121,43 @@ extern const struct p8700_cm_info *p8700_cm_info;
- #define L2_PFT_CONTROL_OFFSET	0x0300
- #define L2_PFT_CONTROL_B_OFFSET	0x0308
- 
-+#define GCR_L2_CONFIG		0x0130
-+#define GCR_L2_ASSOC		GENMASK(7, 0)
-+#define GCR_L2_LINE_SIZE	GENMASK(11, 8)
-+#define GCR_L2_SET_SIZE		GENMASK(15, 12)
-+#define GCR_L2_BYPASS		BIT(20)
-+#define GCR_L2_COP_DATA_ECC_WE	BIT(24)
-+#define GCR_L2_COP_TAG_ECC_WE	BIT(25)
-+#define GCR_L2_COP_LRU_WE	BIT(26)
-+#define GCR_L2_REG_EXISTS	BIT(31)
-+
-+#define GCR_L2_TAG_ADDR		0x0600
-+#define GCR_L2_TAG_STATE	0x0608
-+#define GCR_L2_DATA		0x0610
-+#define GCR_L2_ECC		0x0618
-+
-+#define GCR_L2SM_COP		0x0620
-+#define GCR_L2SM_COP_CMD	GENMASK(1, 0)
-+#define L2SM_COP_CMD_NOP	0
-+#define L2SM_COP_CMD_START	1
-+#define L2SM_COP_CMD_ABORT	3
-+#define GCR_L2SM_COP_TYPE	GENMASK(4, 2)
-+#define L2SM_COP_TYPE_IDX_WBINV		0
-+#define L2SM_COP_TYPE_IDX_STORETAG	1
-+#define L2SM_COP_TYPE_IDX_STORETAGDATA	2
-+#define L2SM_COP_TYPE_HIT_INV		4
-+#define L2SM_COP_TYPE_HIT_WBINV		5
-+#define L2SM_COP_TYPE_HIT_WB		6
-+#define L2SM_COP_TYPE_FETCHLOCK		7
-+#define GCR_L2SM_COP_RUNNING		BIT(5)
-+#define GCR_L2SM_COP_RESULT		GENMASK(8, 6)
-+#define L2SM_COP_RESULT_DONTCARE	0
-+#define L2SM_COP_RESULT_DONE_OK		1
-+#define L2SM_COP_RESULT_DONE_ERROR	2
-+#define L2SM_COP_RESULT_ABORT_OK	3
-+#define L2SM_COP_RESULT_ABORT_ERROR	4
-+#define GCR_L2SM_COP_PRESENT		BIT(31)
-+
- /* CPC Block offsets */
- #define CPC_PWRUP_CTL		0x0030
- #define CPC_CM_STAT_CONF	0x1008
-@@ -138,6 +183,15 @@ void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
- void mips_p8700_power_up_other_cluster(u32 hartid);
- int mips_p8700_hart_start(u32 hartid, ulong saddr);
- int mips_p8700_hart_stop(void);
-+
-+struct p8700_cache_info {
-+	u32 line;
-+	u32 assoc_ways;
-+	u32 sets;
-+};
-+
-+void mips_p8700_cache_info(struct p8700_cache_info *l1d, struct p8700_cache_info *l1i,
-+			   struct p8700_cache_info *l2);
+ void mips_p8700_cache_info(struct p8700_cache_info *l1d, struct p8700_cache_info *l1i,
+ 			   struct p8700_cache_info *l2);
++int mips_p8700_add_memranges(void);
  struct fdt_match;
  int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match);
  
+diff --git a/platform/generic/mips/boston.c b/platform/generic/mips/boston.c
+index 86e14c1eea7e629f70b118be326dc1de1f099f30..ece60a7e5e5272bd767cacd9a65346b6a4e686f8 100644
+--- a/platform/generic/mips/boston.c
++++ b/platform/generic/mips/boston.c
+@@ -43,30 +43,12 @@ static int boston_early_init(bool cold_boot)
+ 	if (rc)
+ 		return rc;
+ 
+-	if (cold_boot) {
+-		unsigned long cm_base = p8700_cm_info->gcr_base[0];
+-
+-		/* For the CPC mtime region, the minimum size is 0x10000. */
+-		rc = sbi_domain_root_add_memrange(cm_base, SIZE_FOR_CPC_MTIME,
+-						  P8700_ALIGN,
+-						  (SBI_DOMAIN_MEMREGION_MMIO |
+-						   SBI_DOMAIN_MEMREGION_M_READABLE |
+-						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
+-		if (rc)
+-			return rc;
+-
+-		/* For the APLIC and ACLINT m-mode region */
+-		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
+-						  P8700_ALIGN,
+-						  (SBI_DOMAIN_MEMREGION_MMIO |
+-						   SBI_DOMAIN_MEMREGION_M_READABLE |
+-						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
+-		if (rc)
+-			return rc;
++	if (!cold_boot)
++		return 0;
+ 
+-	}
++	rc = mips_p8700_add_memranges();
+ 
+-	return 0;
++	return rc;
+ }
+ 
+ static int boston_nascent_init(void)
 diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index 5c74bc5e53923cbfda63eabeba56be39b3dea306..816ac6f57c836bef0785c298aa918536d75cd6da 100644
+index 816ac6f57c836bef0785c298aa918536d75cd6da..c6e688e2b2498ec157fc743a6c454996ac7ad356 100644
 --- a/platform/generic/mips/eyeq7h.c
 +++ b/platform/generic/mips/eyeq7h.c
-@@ -171,6 +171,32 @@ static struct fdt_general_fixup eyeq7h_acc_clusters_fixup = {
- 	.do_fixup = eyeq7h_acc_clusters_do_fixup,
- };
- 
-+static void eyeq7h_cache_do_fixup(struct fdt_general_fixup *f, void *fdt)
-+{
-+	struct p8700_cache_info l1d, l1i, l2;
-+	mips_p8700_cache_info(&l1d, &l1i, &l2);
-+
-+	sbi_dprintf("Cache geometry:\n"
-+		    "  D: %4d Kbytes line %3d bytes %2d ways %5d sets\n"
-+		    "  I: %4d Kbytes line %3d bytes %2d ways %5d sets\n",
-+		    l1d.assoc_ways * l1d.line * l1d.sets / 1024,
-+		    l1d.line, l1d.assoc_ways, l1d.sets,
-+		    l1i.assoc_ways * l1i.line * l1i.sets / 1024,
-+		    l1i.line, l1i.assoc_ways, l1i.sets);
-+	if (l2.line) {
-+		sbi_dprintf(" L2: %4d Kbytes line %3d bytes %2d ways %5d sets\n",
-+			    l2.assoc_ways * l2.line * l2.sets / 1024,
-+			    l2.line, l2.assoc_ways, l2.sets);
-+	} else {
-+		sbi_dprintf(" L2: not present\n");
-+	}
-+}
-+
-+static struct fdt_general_fixup eyeq7h_cache_fixup = {
-+	.name = "cache-fixup",
-+	.do_fixup = eyeq7h_cache_do_fixup,
-+};
-+
- static int eyeq7h_final_init(bool cold_boot)
- {
- 	if (!cold_boot)
-@@ -178,6 +204,7 @@ static int eyeq7h_final_init(bool cold_boot)
- 
- 	sbi_hsm_set_device(&eyeq7h_hsm);
- 	fdt_register_general_fixup(&eyeq7h_acc_clusters_fixup);
-+	fdt_register_general_fixup(&eyeq7h_cache_fixup);
- 
- 	return generic_final_init(cold_boot);
- }
+@@ -277,28 +277,9 @@ static int eyeq7h_early_init(bool cold_boot)
+  * 0x08_00000000  0x10_00000000   M:---- S:-RWX DDR64
+  * 0x10_00000000  0x20_00000000   M:---- S:IRW- PCI64 BARs
+  */
+-
+-	for (int i = 0; i < p8700_cm_info->num_cm; i++) {
+-		unsigned long cm_base = p8700_cm_info->gcr_base[i];
+-
+-		/* CM and MTIMER */
+-		rc = sbi_domain_root_add_memrange(cm_base, SIZE_FOR_CPC_MTIME,
+-						  SIZE_FOR_CPC_MTIME,
+-						  (SBI_DOMAIN_MEMREGION_MMIO |
+-						   SBI_DOMAIN_MEMREGION_M_READABLE |
+-						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
+-		if (rc)
+-			return rc;
+-
+-		/* For the APLIC and ACLINT m-mode region */
+-		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
+-						  SIZE_FOR_AIA_M_MODE,
+-						  (SBI_DOMAIN_MEMREGION_MMIO |
+-						   SBI_DOMAIN_MEMREGION_M_READABLE |
+-						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
+-		if (rc)
+-			return rc;
+-	}
++	rc = mips_p8700_add_memranges();
++	if (rc)
++		return rc;
+ 	/* the rest of MMIO - shared with S-mode */
+ 	rc = sbi_domain_root_add_memrange(MMIO_BASE, MMIO_SIZE, MMIO_SIZE,
+ 					  SBI_DOMAIN_MEMREGION_MMIO |
 diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
-index c1f2ac7f6474701bf1594bf5f1880cfee2dfc4c6..4e693bc0046e0ba0d52d9e3aaafc88be8416145c 100644
+index 4e693bc0046e0ba0d52d9e3aaafc88be8416145c..c2f41ee7b066c488757c3e4187962ec10e9c0966 100644
 --- a/platform/generic/mips/p8700.c
 +++ b/platform/generic/mips/p8700.c
-@@ -123,6 +123,51 @@ int mips_p8700_hart_stop()
- 	return 0;
+@@ -168,6 +168,57 @@ void mips_p8700_cache_info(struct p8700_cache_info *l1d, struct p8700_cache_info
+ 	}
  }
  
-+void mips_p8700_cache_info(struct p8700_cache_info *l1d, struct p8700_cache_info *l1i,
-+			   struct p8700_cache_info *l2)
++/**
++ * See CPU cluster memory map in the table below
++ * To save PMP regions, group areas with M mode access, marked (1) and (2)
++ *
++ * GCR_BASE offset   |   |   | Block Name   | Description
++ * 0x00000 - 0x01FFF | M | ^ | GCR.Global   | Per-cluster CM registers.
++ * 0x02000 - 0x05FFF | M | | | GCR.Core     | Per-core CM registers.
++ * 0x06000 - 0x07FFF | - |(1)| Reserved.
++ * 0x08000 - 0x09FFF | M | | | CPC.Global   | Per-cluster CPC registers.
++ * 0x0A000 - 0x0EFFF | M | | | CPC.Core     | Per-core/Per-device CPC registers.
++ * 0x0F000 - 0x0FFFF | - | v | Reserved.
++ * 0x10000 - 0x1FFFF | S |   | uGCR         | Reserved for user defined CM registers.
++ * 0x20000 - 0x3EFFF | - |   | Reserved.
++ * 0x3F000 - 0x3F0FF | ? |   | FDC.Global   | FDC.Global registers.
++ * 0x3F100 - 0x3FFFF | ? |   | TRF.Global   | TRF.Global registers
++ * 0x40000 - 0x4BFFF | M | ^ | APLIC.M      | APLIC Machine registers.
++ * 0x4C000 - 0x4CFFF | M |(2)| APLIC.custom | APLIC custom registers.
++ * 0x4D000 - 0x4FFFF | - | | | Reserved.
++ * 0x50000 - 0x5FFFF | M | v | ACLINT.M     | ACLINT Machine registers.
++ * 0x60000 - 0x6BFFF | S |   | APLIC.S      | APLIC Supervisor registers.
++ * 0x6C000 - 0x6FFFF | S |   | ACLINT.S     | ACLINT Supervisor registers.
++ * 0x70000 - 0x7EFFF | - |   | Reserved.
++ * 0x7F000 - 0x7FFFF | S |   | GCR.U        | User Mode GCRs.
++ */
++int mips_p8700_add_memranges(void)
 +{
-+	u32 mipsconfig1 = csr_read(CSR_MIPSCONFIG1);
++	int rc = SBI_OK;
++	for (int i = 0; i < p8700_cm_info->num_cm; i++) {
++		unsigned long cm_base = p8700_cm_info->gcr_base[i];
 +
-+	if (l1d) {
-+		u32 da = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_DA);
-+		u32 dl = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_DL);
-+		u32 ds = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_DS);
++		/* CM and MTIMER */
++		rc = sbi_domain_root_add_memrange(cm_base, SIZE_FOR_CPC_MTIME,
++						  SIZE_FOR_CPC_MTIME,
++						  (SBI_DOMAIN_MEMREGION_MMIO |
++						   SBI_DOMAIN_MEMREGION_M_READABLE |
++						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
++		if (rc)
++			return rc;
 +
-+		l1d->line = dl ? 1 << (dl + 1) : 0;
-+		l1d->assoc_ways = da +1;
-+		l1d->sets = ds == 7 ? 32 : 1 << (ds + 6);
++		/* For the APLIC and ACLINT m-mode region */
++		rc = sbi_domain_root_add_memrange(cm_base + AIA_OFFSET, SIZE_FOR_AIA_M_MODE,
++						  SIZE_FOR_AIA_M_MODE,
++						  (SBI_DOMAIN_MEMREGION_MMIO |
++						   SBI_DOMAIN_MEMREGION_M_READABLE |
++						   SBI_DOMAIN_MEMREGION_M_WRITABLE));
++		if (rc)
++			return rc;
 +	}
-+	if (l1i) {
-+		u32 ia = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_IA);
-+		u32 il = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_IL);
-+		u32 is = EXTRACT_FIELD(mipsconfig1, MIPSCONFIG1_IS);
-+
-+		l1i->line = il ? 1 << (il + 1) : 0;
-+		l1i->assoc_ways = ia +1;
-+		l1i->sets = is == 7 ? 32 : 1 << (is + 6);
-+	}
-+	if (l2) {
-+		if (mipsconfig1 & MIPSCONFIG1_L2C) {
-+			void *cm_base = (void *)p8700_cm_info->gcr_base[0];
-+			u32 l2_config = readl(cm_base + GCR_L2_CONFIG);
-+
-+			if (l2_config & GCR_L2_REG_EXISTS) {
-+				u32 l2a = EXTRACT_FIELD(l2_config, GCR_L2_ASSOC);
-+				u32 l2l = EXTRACT_FIELD(l2_config, GCR_L2_LINE_SIZE);
-+				u32 l2s = EXTRACT_FIELD(l2_config, GCR_L2_SET_SIZE);
-+
-+				l2->assoc_ways = l2a + 1;
-+				l2->line = 1 << (l2l + 1);
-+				l2->sets = 1 << (l2s + 6);
-+				return;
-+			}
-+		}
-+		l2->line = 0;
-+		l2->assoc_ways = 0;
-+		l2->sets = 0;
-+	}
++	return rc;
 +}
 +
  int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
