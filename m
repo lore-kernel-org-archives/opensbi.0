@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1DA60EA4FD0
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 49B56EA4FD1
 	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,61 +12,61 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=k+VXJTC/mrtZaXC2Nx+UYUDwiJcpSYkKVekb7FxaQHA=; b=KKtTWXkYBz79q5
-	qnb8qkhv+EUBpNFLBRo3UY7RKb2lb45a1RBxpnLXVPUXvpt2ObM52MzmW7+zuESIRma9V6FvMOTIe
-	OdIi7wBluVeIvzLm6HLeIy+qFgLwNJBjHUVyP/bw2qTyKJroKI9BnvnE2Rs5GK8wN1PvCunFUWq+n
-	l2NXSPoohGvhP9FgBNiVjWAYyP1dUQEiU8gbOvJhazZULUK5vskIiMuyyQnnS4NKcLhrq/rpqupAm
-	v9sfbylNgF/FYtjNNkiL3FKpsAoPa1R8syyiX3xnhY7WNzFM4Wr6ZMo1j6X/sE7aFJEQwuTbZcVn/
-	w+TyKnrJxYXGhoBK17rg==;
+	List-Owner; bh=RsMdZeHjVuMLZ7F76AWeBlbkVWj4Ca6g26quZp0+n7E=; b=TfXR75yyStTy2H
+	6zq6pTmhMiPVhmNQvopQDtNckVNr2WB0BSwIl4CDKtkxe80wz0A2EUoUND+y6fh2HGjErNBoXEg/C
+	4e8HIcoqfkoucPOSs3TbB0e8DSzjF9Djaz2dZuP245c7ozPxKH3iX90F8TurzcOMlTxveA5nJ3b1S
+	0U5rYUyXAvHLr5E3Sc4m7dNoCEu8mw3C5NX9vwHK64wieaHvU5XA9OB3IO7/MDg9/S4dR8S+0HTcP
+	rZ/daAhajo50uNepyowQJm1QiPVY4kQmogknH6XSfp3hkFhQN6B/RBBhyEcksH9i9hUnlExxBNDPr
+	038kUduWGyXVQPUOy9VQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLj-00000000W6Z-35F7;
+	id 1vuXLj-00000000W59-0jUy;
 	Mon, 23 Feb 2026 14:55:51 +0000
-Received: from esa4.hc555-34.eu.iphmx.com ([207.54.77.171])
+Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLf-00000000VVL-2xq7
+	id 1vuXLe-00000000VrU-2RRZ
 	for opensbi@lists.infradead.org;
-	Mon, 23 Feb 2026 14:55:49 +0000
+	Mon, 23 Feb 2026 14:55:48 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1771858547; x=1803394547;
+  t=1771858544; x=1803394544;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=BN6BgzSCuBNNWvE4hM0coGNrfh4Tu3eN5AUUTypv9TM=;
-  b=TSuOFbnUU1dj+H2zE5cs4gMna20LEZl1wuCLNJMut7v8XBJ3PDm7dhnd
-   WnjowNq9Yst6X0Beir9kblItypmrt0Cm8pc3eBhiSS3vf8Axr/32Q2AiN
-   wv4cVweXry5JFNCF8PPE8IPSmeRrrcZ0cdRNSbKcsAzH6ICbKjtig05A0
-   J+XJxDEttBpDr3JKiJtVwZ7c69OZTjEI6xKm8di6f8vJ9gegyP7VPB4uI
-   5ALrXxR5+IIFP0SRj0SF+iLf/rNG2Rwu2UnHhTgW4FOxYIhqPVOmpSIVs
-   4hcBPUDBRrYbm/iF0gTIfggGbz58mlT9U3CM+ZCeNgXN6wlHUKeGnsxD9
-   w==;
-X-CSE-ConnectionGUID: ZuIz/U3nQlaiL3pKRXRY+A==
-X-CSE-MsgGUID: SdRnOp2jSqaq2KWD1bvanQ==
+  bh=p4eAkMuZyY+7A73qKWPqW08ONO0O4JlltO5mbkK+LyU=;
+  b=UvOuvnFl9bFEX9XrCMBa2waCmUFfinafltqQkvayHtUn0Zp/gs2xcN6M
+   04m0VekZjnjlKBly3BxAmAH6K1gZ59qNoanHOagWcwhIfqOd1jwD9REhm
+   US/qNoVWdp0z4EAR1hwsZxQUFr9IwcTx8QxhJLyRQiRIcdjXUvbp+5hX5
+   eYKiVweiH3+ySlsLBPJbDf+Q4I0qFHF9i7Mn1RFz7EK2M38w+JRpQNAV7
+   TYNymyxabNyS/ZA2O1gfya/38lsFUwbZ0X3XFqeVlB7+DiFbRVVNpTiyU
+   czVeKveMF+xU9sLIR83cTk8JE86mEjMY3lJSMl7gtBqMivjVfLWgvwaIe
+   A==;
+X-CSE-ConnectionGUID: qI7r+ZoDSMW1Btie+JMykQ==
+X-CSE-MsgGUID: B22JM6TuTPWw1Z/Fp4J8zA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:46 +0200
-X-CSE-ConnectionGUID: +D01BNMBQJK7kzrPrf7ugA==
-X-CSE-MsgGUID: kRRh6/CVTxe9bk+lNaLc7A==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
-  by ces02_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:28 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:45 +0200
+Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
+  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:43 +0200
+X-CSE-ConnectionGUID: ZZAZjYs/SPuYgKfRtKz1wg==
+X-CSE-MsgGUID: N2rjycccTwyQnTJDdrRRxg==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
+  by ces03_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:18 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:44 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
 	benoit.monin@bootlin.com,
 	cc=cfu@mips.com,
 	opensbi@lists.infradead.org
-Subject: [PATCH v3 23/23] platform: generic: eyeq7h: enable ECC on L1 cache
-Date: Mon, 23 Feb 2026 16:55:02 +0200
-Message-ID: <20260223-for-upstream-eyeq7h-v3-23-621d004d1a21@mobileye.com>
+Subject: [PATCH v3 22/23] platform: generic: p8700: fix MIPS specific CSRs
+Date: Mon, 23 Feb 2026 16:55:01 +0200
+Message-ID: <20260223-for-upstream-eyeq7h-v3-22-621d004d1a21@mobileye.com>
 In-Reply-To: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 References: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260223_065548_042352_D673BC93 
-X-CRM114-Status: UNSURE (   7.25  )
+X-CRM114-CacheID: sfid-20260223_065546_951098_1B685EB7 
+X-CRM114-Status: UNSURE (   7.73  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -84,24 +84,57 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
+P8700 has MIPS specific CSRs. Fix the list, adding
+few missing ones and remove few non-existing
+
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/mips/eyeq7h.c | 2 ++
- 1 file changed, 2 insertions(+)
+ platform/generic/include/mips/p8700.h | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index f09ec5f0fae4abec29ec9c15080411b0da7bbbde..242cbb3ce32706cf4d894649b9cf227932658936 100644
---- a/platform/generic/mips/eyeq7h.c
-+++ b/platform/generic/mips/eyeq7h.c
-@@ -436,6 +436,8 @@ static int eyeq7h_nascent_init(void)
- 	/* Per hart set up */
- 	/* Enable AMO and RDTIME illegal instruction exceptions. */
- 	csr_set(CSR_MIPSCONFIG6, (1<<2)|(1<<1));
-+	/* enable ECC for L1 I/D and FTLB */
-+	csr_set(CSR_MIPSERRCTL, MIPSERRCTL_PE);
+diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
+index d23d1d34724710e91f4812b845e9cf2f5dad0249..e64c62e170375fe943045e388d0f9af9774942d1 100644
+--- a/platform/generic/include/mips/p8700.h
++++ b/platform/generic/include/mips/p8700.h
+@@ -45,11 +45,10 @@ extern const struct p8700_cm_info *p8700_cm_info;
  
- 	return 0;
- }
+ /* MIPS CSR */
+ #define CSR_MIPSTVEC		0x7c0
+-#define CSR_MIPSCONFIG0		0x7d0
++#define CSR_MIPSCACHEERR	0x7c5
++#define CSR_MIPSERRCTL		0x7c6
++#define CSR_MIPSDIAGDATA	0x7c8
+ #define CSR_MIPSCONFIG1		0x7d1
+-#define CSR_MIPSCONFIG2		0x7d2
+-#define CSR_MIPSCONFIG3		0x7d3
+-#define CSR_MIPSCONFIG4		0x7d4
+ #define CSR_MIPSCONFIG5		0x7d5
+ #define CSR_MIPSCONFIG6		0x7d6
+ #define CSR_MIPSCONFIG7		0x7d7
+@@ -58,6 +57,23 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ #define CSR_MIPSCONFIG10	0x7da
+ #define CSR_MIPSCONFIG11	0x7db
+ 
++/* fields for CSR_MIPSCACHEERR */
++#define MIPSCACHEERR_STATE	GENMASK(31,30)
++#define MIPSCACHEERR_ARRAY	GENMASK(29,26)
++#define MIPSCACHEERR_ERR_BIT	GENMASK(25,20)	/* for correctable */
++#define MIPSCACHEERR_F2		BIT(23)		/* for uncorrectable */
++#define MIPSCACHEERR_F		BIT(22)		/* for uncorrectable */
++#define MIPSCACHEERR_P		BIT(21)		/* for uncorrectable */
++#define MIPSCACHEERR_S		BIT(20)		/* for uncorrectable */
++#define MIPSCACHEERR_WAY	GENMASK(19,17)
++#define MIPSCACHEERR_INDEX	GENMASK(16,4)
++#define MIPSCACHEERR_WORD	GENMASK(3,0)
++
++/* fields for CSR_MIPSERRCTL */
++#define MIPSERRCTL_PE		BIT(31)
++#define MIPSERRCTL_BUS_TO	GENMASK(19,10)
++
++/* fields for CSR_MIPSCONFIG1 */
+ #define MIPSCONFIG1_L2C		BIT(31)
+ #define MIPSCONFIG1_IS		GENMASK(24,22)
+ #define MIPSCONFIG1_IL		GENMASK(21,19)
 
 -- 
 2.43.0
