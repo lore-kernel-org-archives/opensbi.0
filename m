@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 6B785EA4FC7
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 42EB0EA4FCE
 	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,62 +12,62 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=kTO/Swualto+fmkrAlHRcARV0deQo4fkJyZJ2vS3HLk=; b=Ub9bZ7LQT9hqQ0
-	elqfK7fLYHL2gZjoMi6i7MHWPGdawaVXbxGMFSLHTBLThkG9TxKk/Q23etHYbliMwtFj5Yt5lJKJD
-	b34XpirE6N/EL2LeNoekZaISF94ALFq2EvXwYTx9TeVt0i+Z3qTjyWogm3scnNVF+kBiTS0QSrIV/
-	gaq3iEk1Q214U9YFSRIGraTD2jLAbUrR6T6jzfN8Cfd0z+aqVyZY+GLkp8LmkvfapU/Ix1uKZC2YZ
-	q8Xnqdvk17ZSUjaT5qd4JGj5IiKdvju5N9mshwauWoBCEAyQKATsY8ME6RXw9NKv5nas+R1/wrWoR
-	X1x0mZ9xRaNJR/pXqKFA==;
+	List-Owner; bh=/FvMaiJJcpA3TbKs2yA+IdntJ3/hSWbBOrWkyHdwZxM=; b=WW6ycA1cdNgoJd
+	k7mre/AIy+56JXemz8ZLq8wAb2wioC7DU+f8oeTajWYe4Ze7zVfrtV2KcPHUf2EE/F6maXpVsXxz/
+	HmAG82piLxOcFjbFaeopmwR6b/4fN6Z5Axb55J/jcKb6ISPTnK2xNAfqeC9EWcOqvgG/QD1NxxjHN
+	d2G0PhQtPL7XH8HwpsIXVChT9WyRmO8E2WwYPBMok0B0yMZ9RW7ErduK9pxhbwl4oDSFsII0OKmUH
+	6kM4kFp5O7ivGTfkscxF+XC30tY8wtJV3F/xE6UOBiATg1yMYe2uSvxMbZ+jA51fsZbC8MJ/vcJVA
+	yjlL1DWw3HEzf6LE5zsQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLh-00000000W2n-28vL;
+	id 1vuXLh-00000000W25-0121;
 	Mon, 23 Feb 2026 14:55:49 +0000
-Received: from esa4.hc555-34.eu.iphmx.com ([207.54.77.171])
+Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLd-00000000VVL-2GZ9
+	id 1vuXLc-00000000Vow-3cCY
 	for opensbi@lists.infradead.org;
-	Mon, 23 Feb 2026 14:55:47 +0000
+	Mon, 23 Feb 2026 14:55:46 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1771858545; x=1803394545;
+  t=1771858542; x=1803394542;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Upsnc2u7Dhcdbgg4vLlh18f8W0vSUJYfpu3RH0UkN6g=;
-  b=hfd63+srWkUuNPR8yacN4DM34raITfUFaC3Rx7ddHWXu+A+Lanxu9rEI
-   1B5XLHdJa6WH5sX4jOvpeQYu7URqbdiXmpBmRJ6RIP2bM4zPaWEC1G+dG
-   n2AEpwtcgXcHwGCFgELu/eah2MzOqOFzWXkq4so5jnsSplSXS/JZFOv5N
-   +oG2J/Moi5duL13UhrEHHsnDaxMYKZmVHGTUaV5s+WClGgVCe4bwNHSDh
-   yJfd9MCWYwg1ld8SA5+M8284igps2d1d9FoH7m0E1vy/8XtnjfWlkmtbG
-   Kjssgx0gpomOJ6VIywEMxfpFKQgdTf33OFJM0TR7PS0SKx182WzSwespE
-   A==;
-X-CSE-ConnectionGUID: ZuIz/U3nQlaiL3pKRXRY+A==
-X-CSE-MsgGUID: ooah5DKkTQKg8E3bk3CgPA==
+  bh=JRK3FNMweJzRE0Y685rPHFo7KGgUnzI4RZ4UC9F8TsI=;
+  b=ULfiQ064KB6UPlfcxe04FATiG/TNG47kd8nB6PGY4FcjPrFAROb0k1/u
+   OBZKiNjUDcupWQmAKwY0z9NZK/Z6eqjAvzBiBS/qVlHandvqKoJ1ETe9M
+   zuFs22W40jFbPOM+XR78O0h1GHGUjCFIyoZj9eDzLANo6kiEdFxYxLhOb
+   MKPrwuy7GzJcK1W7JgOQ/aw6AORrQJWompKOEWVV+1LDjDKAqGerJ98vL
+   8JlTeliD0MueBHo2Gp6JnfznZwM0oL2LkG/yI3QevSnBE3qWqT06CVRc5
+   1aatdDpZa7aV8fzQCBa4P792Sijs1eZXVx252+I2nU3KmUUAxqE/3yE7x
+   w==;
+X-CSE-ConnectionGUID: qI7r+ZoDSMW1Btie+JMykQ==
+X-CSE-MsgGUID: wxLrHKErQQuj7b7By2NmdQ==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:44 +0200
-X-CSE-ConnectionGUID: coXiP7a5SumMbkM7v7kV2g==
-X-CSE-MsgGUID: YxC00rUWTI+Iu+PzqqJXiQ==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces02_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:26 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:43 +0200
+Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
+  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:41 +0200
+X-CSE-ConnectionGUID: FdQRMpi+RkuAK/5/ZM1r1Q==
+X-CSE-MsgGUID: 7mYZdDuURzCHiSYs2piDgQ==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
+  by ces03_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:16 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:42 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
 	benoit.monin@bootlin.com,
 	cc=cfu@mips.com,
 	opensbi@lists.infradead.org
-Subject: [PATCH v3 21/23] platform: generic: mips eyeq7h: prohibit
- accessing memory beyond DRAM
-Date: Mon, 23 Feb 2026 16:55:00 +0200
-Message-ID: <20260223-for-upstream-eyeq7h-v3-21-621d004d1a21@mobileye.com>
+Subject: [PATCH v3 20/23] platform: generic: mips p8700: dump MMIO regions
+Date: Mon, 23 Feb 2026 16:54:59 +0200
+Message-ID: <20260223-for-upstream-eyeq7h-v3-20-621d004d1a21@mobileye.com>
 In-Reply-To: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 References: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260223_065545_950085_51AA36A4 
-X-CRM114-Status: GOOD (  14.08  )
+X-CRM114-CacheID: sfid-20260223_065545_235018_66227D50 
+X-CRM114-Status: UNSURE (   8.66  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -84,115 +84,113 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SBI code arranges domain PMP regions in a way that last entry is
-all-inclusive "0..~0 RWX" and the rest of entries are not programmed.
-This causes a problem for the eyeq7h.
-
-CPU can issue speculative prefetches to non-existent addresses. If this
-access goes to the system NOC, it is mis-interpreted as an access
-violation and error is reported, forcing system reset.
-
-To prevent such a speculative transaction to leave a CPU cluster,
-block it using PMP, by restricting memory region to physically present
-memory. To achieve this, on early init:
-
-- update flags for the last all-inclusive "0..~0 RWX" entry to be
-  inaccessible MMIO. MMIO serves to set up PMA attributes to uncached
-  non-prefetchable, preventing transactions to reach system NOC
-- add an all-permissive entry matching DRAM.
-
-Resulting memory regions:
-
-Domain0 Region00            : 0x0000000800100000-0x000000080013ffff M: (F,R,X) S/U: ()
-Domain0 Region01            : 0x0000000800100000-0x00000008001fffff M: (F,R,W) S/U: ()
-Domain0 Region02            : 0x0000000048700000-0x000000004870ffff M: (I,R,W) S/U: ()
-Domain0 Region03            : 0x0000000067480000-0x000000006748ffff M: (I,R,W) S/U: ()
-Domain0 Region04            : 0x0000000067500000-0x000000006750ffff M: (I,R,W) S/U: ()
-Domain0 Region05            : 0x0000000048740000-0x000000004875ffff M: (I,R,W) S/U: ()
-Domain0 Region06            : 0x00000000674c0000-0x00000000674dffff M: (I,R,W) S/U: ()
-Domain0 Region07            : 0x0000000067540000-0x000000006755ffff M: (I,R,W) S/U: ()
-Domain0 Region08            : 0x0000000000000000-0x000000007fffffff M: (I,R,W) S/U: (R,W)
-Domain0 Region09            : 0x0000000800000000-0x00000008ffffffff M: () S/U: (R,W,X)
-Domain0 Region10            : 0x0000001000000000-0x0000001fffffffff M: (I) S/U: (R,W)
-Domain0 Region11            : 0x0000000000000000-0xffffffffffffffff M: (I) S/U: ()
-
-Here Region09 covers DRAM, region 11 set to non-accessible
-uncached no-prefetch for the entire address range
+Debug print MMIO regions
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/mips/eyeq7h.c | 37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
+ platform/generic/include/mips/p8700.h |  1 +
+ platform/generic/mips/eyeq7h.c        |  1 +
+ platform/generic/mips/p8700.c         | 63 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+)
 
+diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
+index 3752bdf2b3ddc967dae32ee449bf77e9c6d64b06..d23d1d34724710e91f4812b845e9cf2f5dad0249 100644
+--- a/platform/generic/include/mips/p8700.h
++++ b/platform/generic/include/mips/p8700.h
+@@ -188,6 +188,7 @@ extern const struct p8700_cm_info *p8700_cm_info;
+ #define CPC_Cx_STAT_CONF_SEQ_STATE_U6	7
+ 
+ extern const struct p8700_cm_info *p8700_cm_info;
++void mips_p8700_dump_mmio(void);
+ void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
+ 			unsigned long prot, unsigned long addr,
+ 			unsigned long log2len);
 diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index 04ab5286ed95284f737b7a1dd0ba035d42e58949..f09ec5f0fae4abec29ec9c15080411b0da7bbbde 100644
+index b7bffad7b1fb63a5e0e858313bca8ddc57db94c5..04ab5286ed95284f737b7a1dd0ba035d42e58949 100644
 --- a/platform/generic/mips/eyeq7h.c
 +++ b/platform/generic/mips/eyeq7h.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_timer.h>
- #include <sbi/sbi_hart_pmp.h>
- #include <sbi/riscv_io.h>
-+#include <libfdt.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/fdt/fdt_fixup.h>
- #include <mips/p8700.h>
-@@ -121,6 +122,31 @@ static struct sbi_domain_memregion *find_last_memregion(const struct sbi_domain
- 	return --reg;
- }
+@@ -376,6 +376,7 @@ static int eyeq7h_nascent_init(void)
+ 		 */
+ 		__raw_writeq(NCORE-1, (void *)(cm_base + GCR_MMIO_TOP(1)));
+ 		mb();
++		mips_p8700_dump_mmio();
+ 	}
  
-+static int fixup_dram_region(const struct sbi_domain *dom,
-+			     struct sbi_domain_memregion *reg)
+ 	/* Per core set up */
+diff --git a/platform/generic/mips/p8700.c b/platform/generic/mips/p8700.c
+index ffc8520f7c5a2c4cf7574291dd49c8acd4f0623a..ff13d37bf1fc962223ea99fcc2b183ccc427a6df 100644
+--- a/platform/generic/mips/p8700.c
++++ b/platform/generic/mips/p8700.c
+@@ -16,6 +16,69 @@
+ 
+ const struct p8700_cm_info *p8700_cm_info;
+ 
++void mips_p8700_dump_mmio(void)
 +{
-+	const void *fdt = fdt_get_address();
-+	int node;
-+	int ret;
-+	uint64_t mem_addr, mem_size;
-+	static const char mem_str[] = "memory";
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	unsigned hartid = current_hartid();
++	unsigned cl = cpu_cluster(hartid);
++	unsigned long cm_base = p8700_cm_info->gcr_base[cl];
++	u64 gcr_config = readq((void*)cm_base + GCR_GLOBAL_CONFIG);
++	int num_mmios = EXTRACT_FIELD(gcr_config, GCR_GC_NUM_MMIOS);
++	static const char *ports[16] = {
++		[0] = "MEM",
++		[1] = "? 1",
++		[2] = "? 2",
++		[3] = "? 3",
++		[4] = "? 4",
++		[5] = "? 5",
++		[6] = "? 6",
++		[7] = "? 7",
++		[8]  = "AUX0",
++		[9]  = "AUX1",
++		[10] = "AUX2",
++		[11] = "AUX3",
++		[12] = "? 12",
++		[13] = "? 13",
++		[14] = "? 14",
++		[15] = "? 15",
++	};
++	static const char *ccas[4] = {
++		[0] = "ANY",
++		[1] = "UC",
++		[2] = "UCA",
++		[3] = "UC|UCA",
++	};
++	static const char *ncs[2] = {
++		[0] = "  ",
++		[1] = "NC",
++	};
++	static const char *dis_rqs[2] = {
++		[0] = "          ",
++		[1] = "DIS_RQ_LIM",
++	};
++	if (!(scratch->options & SBI_SCRATCH_DEBUG_PRINTS))
++		return;
 +
-+	if (!reg || !fdt)
-+		return SBI_EINVAL;
++	sbi_printf("Cluster %d: %d MMIO regions\n", cl, num_mmios);
++	for (int i = 0; i < num_mmios; i++) {
++		u64 b = readq((void*)cm_base + GCR_MMIO_BOTTOM(i));
++		u64 t = readq((void*)cm_base + GCR_MMIO_TOP(i));
++		if (b & GCR_MMIO_BOTTOM_EN) {
++			ulong ta = EXTRACT_FIELD(t, GCR_MMIO_ADDR) << 16;
++			ulong ba = EXTRACT_FIELD(b, GCR_MMIO_ADDR) << 16;
++			int cca = EXTRACT_FIELD(b, GCR_MMIO_BOTTOM_CCA);
++			int nc = EXTRACT_FIELD(b, GCR_MMIO_BOTTOM_FORCE_NC);
++			int port = EXTRACT_FIELD(b, GCR_MMIO_BOTTOM_PORT);
++			int dis_rq_lim = EXTRACT_FIELD(b, GCR_MMIO_BOTTOM_DIS_RQ_LIM);
 +
-+	/* Find the memory range */
-+	node = fdt_node_offset_by_prop_value(fdt, -1, "device_type",
-+					     mem_str, sizeof(mem_str));
-+	ret = fdt_get_node_addr_size(fdt, node, 0, &mem_addr, &mem_size);
-+	if (ret)
-+		return ret;
-+	reg->flags = SBI_DOMAIN_MEMREGION_MMIO; /* disable cache & prefetch */
-+	return sbi_domain_root_add_memrange(mem_addr, mem_size, mem_size,
-+					    (SBI_DOMAIN_MEMREGION_SU_READABLE |
-+					     SBI_DOMAIN_MEMREGION_SU_WRITABLE |
-+					     SBI_DOMAIN_MEMREGION_SU_EXECUTABLE));
++			sbi_printf("  [%d] : 0x%016lx-0x%016lx %4s %6s %s %s\n", i,
++				   ba, ta, ports[port], ccas[cca], ncs[nc], dis_rqs[dis_rq_lim]);
++		} else {
++			sbi_printf("  [%d] : --disabled--\n", i);
++		}
++	}
 +}
 +
- static void fdt_disable_by_compat(void *fdt, const char *compatible)
- {
- 	int node = 0;
-@@ -265,6 +291,8 @@ static void eyeq7h_init_clusters(void)
- 
- static int eyeq7h_early_init(bool cold_boot)
- {
-+	const struct sbi_domain *dom;
-+	struct sbi_domain_memregion *reg;
- 	int rc;
- 	unsigned long cm_base;
- 
-@@ -310,7 +338,14 @@ static int eyeq7h_early_init(bool cold_boot)
- 					  SBI_DOMAIN_MEMREGION_SU_READABLE |
- 					  SBI_DOMAIN_MEMREGION_SU_WRITABLE);
- 
--	return 0;
-+	/*
-+	 * sbi_domain_init adds last "all-inclusive" memory region
-+	 * 0 .. ~0 RWX
-+	 * Find this region (it is the last one) and update size according to DRAM
-+	 */
-+	dom = sbi_domain_thishart_ptr();
-+	reg = find_last_memregion(dom);
-+	return fixup_dram_region(dom, reg);
- }
- 
- static int eyeq7h_nascent_init(void)
+ void mips_p8700_pmp_set(unsigned int n, unsigned long flags,
+ 			unsigned long prot, unsigned long addr,
+ 			unsigned long log2len)
 
 -- 
 2.43.0
