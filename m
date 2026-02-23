@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 89009EA4FCE
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C588BEA4FC7
 	for <opensbi@archiver.kernel.org>; Mon, 23 Feb 2026 14:55:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,62 +12,62 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=6ryRVsehRMuSuajaV/uFBzaF5uEFNmhyjbt6BFxcy7s=; b=okceFxTe+EDPwI
-	OfeZSiKi0oc1jKL3thKF0eNSUzGQ6em4G/4LELpbBYki6cSZQ+3DOoM++MP1k27XiBK7no2PlOiVW
-	k3jQQpK34NTNs0aaMi61P3TZA31omJjziY6fJJNmb3sIeW4quWQzxPZnitwRtl8rF0/4AUD0XF1Zk
-	6Ovfg6ySPjz5oxZAq+y8L5xGHFX8HM9GqMW2PY+ax4ZkSqftI5dhgAQKgnaSdELD19pQ81ufWNJT5
-	X/9UoduMorbdnOmvI5zpDb3T+z46aUnY1Apqxdxk19EU73t4iKV6ITde6a+pKlaKIIq9t2/Ed9J30
-	wzir/x2GBL5R/AxBi87A==;
+	List-Owner; bh=qGb+4oBBMWGh50n/w25X8ZCStDEcE2jnXF+faNVdjKg=; b=CTNH3Yo98Qs3Fv
+	EsaP0ISDJSxuHiho0u9mn1Fz89kB3PyMjpPb/zxl9v+BXdXy/ozUVdEHoCTqy68tLoA4dqfhx4sOD
+	sufngPVP0X8KyDo10d56moeDU7UB0EH3DSPwr9Av3Mt+e37GWpt7ebNJcrIp3+//0TvT8QLnDx+T2
+	NVsfULoPjOchOwh3BQ2b8WSGte1htQ/VrqWPytVdSKufLooo4aX5RUSaM/WI81NggPNwZpaVr8GwP
+	utWJ17mkiAT2a3eEQZSa7bcCo+niS6zHS1EKfyDe+4gHEX+AE3xnU/LXHEsS1TzZP5rNBwPES1ior
+	oK++Mrj9eLhbxmHezSKQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLQ-00000000VZY-2DMb;
+	id 1vuXLQ-00000000VZ8-0v8n;
 	Mon, 23 Feb 2026 14:55:32 +0000
-Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
+Received: from esa4.hc555-34.eu.iphmx.com ([207.54.77.171])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuXLN-00000000VVn-2rqg
+	id 1vuXLN-00000000VWP-0hxd
 	for opensbi@lists.infradead.org;
-	Mon, 23 Feb 2026 14:55:31 +0000
+	Mon, 23 Feb 2026 14:55:30 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1771858527; x=1803394527;
+  t=1771858529; x=1803394529;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=RNFXa1uM8AbHjqAWHuGqRg+Xm/De4PcMP/IAUTAcbfE=;
-  b=AFYaZxVwbVfWiky75b3ZzPd/pt+4Jzp9piB61dC5q6KVYV3YTtz9wNRi
-   ijEf5LpJnvB6dY6W0zAgiHzk3Kob3sJfoVB+RP/DHDpRxya1yH7xTJlBi
-   wkPuRpMulf5yNHiWZnywVgWf86OXSjjqV4jcSbR1ODsVAOtf+R5r8S+ej
-   UNMJlk3TehEKyBec3PtXhwG5aa94B4LiOTqWrnu2/bnrzcpv5Va7lzkJp
-   +G9HbKWVwpHlIc/fNphQOvSRvppUbXZC+F9SbA4QQTwS1hsobpOCc4l/9
-   TO2KUeQt2+rYf4SMKjPWxf9vhvHi7/yeSiSZCD/A9ozfd5lPEcaAYICsg
-   Q==;
-X-CSE-ConnectionGUID: qI7r+ZoDSMW1Btie+JMykQ==
-X-CSE-MsgGUID: X0sDx7KjSE+16QtTKcI9Qg==
+  bh=QXvGwbDi71pzawPcvXU4zn5JPwY7Rq9WGsqIVsmpCIE=;
+  b=eKBmdkHqbZEGAopSyNwkjiXCAc4SBNovFgA7LX+C2p/l5zPWnAcEz+R6
+   2pE8b702OLARch5Hi8/LRF4SE6o8h/WORkpEIRVAjlcLbhGxGby8Gusn8
+   y1FBSObmmrm8x14gS+KqguSkKADSMw4Sqt78w1IlPErd1QLFJiJnd2eFt
+   ldIFOLpvAPFUKQxhvlu1DJ/E2YjQ7MTVnINfp6s4a3XRd1Pcm2Uc2Q0Ou
+   6bHvpjUme7x/D6s2IxF1EknzZG9Pr3u6czTpaDtFtN8GQfsU5wTguEkR8
+   LxXVBPo1UuLflxcQ82oz5wXrqhfyFTsZmoe59mN+lWUOiKkaThQA/ChOS
+   w==;
+X-CSE-ConnectionGUID: ZuIz/U3nQlaiL3pKRXRY+A==
+X-CSE-MsgGUID: PiA716aIRrmLO/Q4gvTGkQ==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:23 +0200
-X-CSE-ConnectionGUID: MOE804WcS0ijYhfyzbCD7w==
-X-CSE-MsgGUID: zVDBPZZ8QTSa1ghCjvIvcg==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces03_data.me-corp.lan with SMTP; 23 Feb 2026 16:57:58 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:24 +0200
+Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
+  by esa4.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2026 16:55:24 +0200
+X-CSE-ConnectionGUID: 13CMAbPLTnq5kI2kVNrtqg==
+X-CSE-MsgGUID: f3hOtRQ3SAOmz5dR6fYcgw==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
+  by ces02_data.me-corp.lan with SMTP; 23 Feb 2026 16:58:06 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Mon, 23 Feb 2026 16:55:23 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 To: anup@brainfault.org
 Cc: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
 	benoit.monin@bootlin.com,
 	cc=cfu@mips.com,
 	opensbi@lists.infradead.org
-Subject: [PATCH v3 03/23] platform: generic: mips p8700: improve CM access
- tracing
-Date: Mon, 23 Feb 2026 16:54:42 +0200
-Message-ID: <20260223-for-upstream-eyeq7h-v3-3-621d004d1a21@mobileye.com>
+Subject: [PATCH v3 02/23] lib: sbi_hart_pmp: disable unconfigured PMP
+ entries
+Date: Mon, 23 Feb 2026 16:54:41 +0200
+Message-ID: <20260223-for-upstream-eyeq7h-v3-2-621d004d1a21@mobileye.com>
 In-Reply-To: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 References: <20260223-for-upstream-eyeq7h-v3-0-621d004d1a21@mobileye.com>
 MIME-Version: 1.0
 X-Mailer: b4 0.14.2
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260223_065530_003143_0F5922AE 
-X-CRM114-Status: UNSURE (   7.32  )
+X-CRM114-CacheID: sfid-20260223_065529_591398_CB0D6392 
+X-CRM114-Status: UNSURE (   7.44  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -85,43 +85,40 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-use function call like format; debug print returning value
-of the "read" accessor
+Disable PMP entries not configured in domain. These entries
+may contain values configured by the boot loader; disabling it
+to be certain PMP configuration is exactly as configured by the
+openSBI
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/include/mips/mips-cm.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_hart_pmp.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/platform/generic/include/mips/mips-cm.h b/platform/generic/include/mips/mips-cm.h
-index 419e8407d3facc5c1eeefb08c177aa39b69480aa..6985e42b217fa8946027c94b08af01fee5bfd134 100644
---- a/platform/generic/include/mips/mips-cm.h
-+++ b/platform/generic/include/mips/mips-cm.h
-@@ -32,12 +32,14 @@ static inline u##sz read_##unit##_##name(u32 hartid, bool local_p)	\
- 		  + (co << CM_BASE_CORE_SHIFT)				\
- 		  + off;						\
- 	if (DEBUG_CM)							\
--		sbi_printf("CM READ%d cmd_reg=%lx\n", sz, cmd_reg);	\
-+		sbi_printf("CM_READ%d(0x%lx) ...\n", sz, cmd_reg);	\
- 	if (sz == 32)							\
- 		asm volatile("lw %0,0(%1)":"=r"(value):"r"(cmd_reg));	\
- 	else if (sz == 64)						\
- 		asm volatile("ld %0,0(%1)":"=r"(value):"r"(cmd_reg));	\
- 	asm volatile("fence");						\
-+	if (DEBUG_CM)							\
-+		sbi_printf("CM_READ%d(0x%lx) -> 0x%lx\n", sz, cmd_reg, (unsigned long)value);	\
- 	return value;							\
- }
+diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
+index be459129c5272a2c70e0cf1c930a00fac98f386e..28c06b38aa46612c945bf97e04c91dbd5c4b32b2 100644
+--- a/lib/sbi/sbi_hart_pmp.c
++++ b/lib/sbi/sbi_hart_pmp.c
+@@ -204,6 +204,9 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
+ 		sbi_hart_smepmp_set(scratch, dom, reg, pmp_idx++, pmp_flags,
+ 				    pmp_log2gran, pmp_addr_max);
+ 	}
++	/* disable remaining PMP entries */
++	for(; pmp_idx < pmp_count; pmp_idx++)
++		pmp_disable(pmp_idx);
  
-@@ -52,7 +54,7 @@ static inline void write_##unit##_##name(u32 hartid, u##sz value, bool local_p)
- 		  + (co << CM_BASE_CORE_SHIFT)				\
- 		  + off;						\
- 	if (DEBUG_CM)							\
--		sbi_printf("CM WRITE%d cmd_reg=%lx value=%lx\n", sz, 	\
-+		sbi_printf("CM_WRITE%d(0x%lx, 0x%lx)\n", sz, 	\
- 			    cmd_reg, (unsigned long)value);		\
- 	if (sz == 32)							\
- 		asm volatile("sw %0,0(%1)"::"r"(value),"r"(cmd_reg));	\
+ 	/*
+ 	 * All entries are programmed.
+@@ -286,6 +289,9 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
+ 				   reg->order);
+ 		}
+ 	}
++	/* disable remaining PMP entries */
++	for(; pmp_idx < pmp_count; pmp_idx++)
++		pmp_disable(pmp_idx);
+ 
+ 	sbi_hart_pmp_fence();
+ 	return 0;
 
 -- 
 2.43.0
