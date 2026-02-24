@@ -4,88 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 59760EFB7E5
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B8691EFB7EB
 	for <opensbi@archiver.kernel.org>; Tue, 24 Feb 2026 03:17:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=DIDzyOTQnzIJ6YU5MZ64uJYjwF+WC0hWI68wDKX3ePo=; b=AUnGQ3rGDlQ+Lg
-	8nZbhF/wRKz7c9Hkm9ChS0nPwTBSafuZaZIDxqInL1i5Plw+gAEeeBoqkxiXRMgGSg3sL17GOMCku
-	Yr82d0an4xnVfpuUST5aflAjl9xLlWM+nTtdHWGie4O7Qsgb3d6YqPj//mdERNL+OLvL46WamcjXt
-	ETyM1InVduRzrTDPC9JtvtaVivy1jHC8mqNpjHwc5BbEXwOax1oVnd4CWx4V9AHniu7Seo+mTedba
-	tTRKp7nzlSw0g+Y9CtRR5OeDAPg2HP0/Uf5cPVzrWYLls/uNg9BC3NM5/lMloh/cjLcV2wbBqbcti
-	aYnyn89U0wkgk4c9TF0w==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=wpYXgoKRobcvp8wnoT737sqogEn0bmGA7iASJ84htTQ=; b=DhQgholQEsSFX7
+	4wa1jpTef45pKyFlmKQa9O3ZRsTQUcUC0tNmpDloF2uDcAukg7AmPxPen114Hy2nxXrgl6V59JskS
+	bOp7waqsESaS5YFMFIYRTYNbhxG6D58+mlxEfZeGKK67lTgY3Ofz78Wb6BtLNzUxmD87UuKIDj6qW
+	xXyFa4IJWPRZsI7065/X+zO/5LAfgHAVCa9+ma9puyJ0hGkT6Rofzfk7sqDqNQVSO084HNXnyqURI
+	XLLXKCu1/YX9TOy4ddIiLygQc4weEb9/kprLVyOvudf6BWHbXKsuF3/iKSPjJRh9c2YL2GSWugntm
+	JAclDDBiZlx+cdyeJrsQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuivl-00000001Omr-1tSF;
-	Tue, 24 Feb 2026 03:17:49 +0000
-Received: from mail-wr1-x42c.google.com ([2a00:1450:4864:20::42c])
-	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vuivj-00000001OlU-0xtr
-	for opensbi@lists.infradead.org;
+	id 1vuivk-00000001OmE-0lvu;
 	Tue, 24 Feb 2026 03:17:48 +0000
-Received: by mail-wr1-x42c.google.com with SMTP id ffacd0b85a97d-4376de3f128so3558198f8f.0
-        for <opensbi@lists.infradead.org>; Mon, 23 Feb 2026 19:17:46 -0800 (PST)
+Received: from mail-wm1-x332.google.com ([2a00:1450:4864:20::332])
+	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vuivh-00000001Ok6-0zj4
+	for opensbi@lists.infradead.org;
+	Tue, 24 Feb 2026 03:17:46 +0000
+Received: by mail-wm1-x332.google.com with SMTP id 5b1f17b1804b1-48375f10628so32391105e9.1
+        for <opensbi@lists.infradead.org>; Mon, 23 Feb 2026 19:17:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1771903065; x=1772507865; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+rDPnsccOLmgyf9I+bakqM5GVCoDaXtVbPxYNCWq0Gw=;
-        b=XAhQxBccC2A4QcRDuJw0URYuwTzX3wyAdq0X0rgznkWeaRgjaH38ZkUgD2Rlk3H6jB
-         DrEhp9cnQG1CiX4vQc1qD6xv2gehV88Fnn+gyq+EVQHfIDCyJ2p0djkhMK1zTAwgw73N
-         mZWcyISGCSaI3Kovi1RK49ha0WrPMQANN/D7/XnuvXodpCzI25hBt7hKj849B9O02har
-         lghTzPnl5cForFmlK6VNtkLe0pm+V6yEOlExF7fuYGhxXaLI8844VCoSkTVKe0rPLUsE
-         CkhZTEBjXb1cLvRCvq/wX1Mdb1Gn37G8HX5p6HEr4G6Scj75+km3dbsOMMCLWRwTFh/u
-         UQgg==
+        d=sifive.com; s=google; t=1771903063; x=1772507863; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=AujnSR/ja4Wiye0HvMwKrXwUwmSXBnTCm5XhgTlPRB0=;
+        b=g7NWVNNVFfwNo11Q2mN9GV6nQZVlHEuou37rpM+Su6rXGMWTEBq32gEGlmyE1sLwWl
+         09WlQ0tTM4z9IO4L1E/kXVHz17gZ/z4LhEVQ1x5dyhETompk0NN2sn4Xiux26jzLQ0nA
+         Ta1mcRFin3rEiyco1t7+u24EusR3lhuaiFNYdhTKLQSXq/Y0cXv0w2tCaVAPFSolHHSa
+         tqnjsax+KF6vDewzpZcPkeCNMQpGX0OHSXbqsbHrI7RAsSy68UDtlHkCB2mcb3XECrD2
+         rNNCAIkDT4thieexc1TBLXKiQTF33FIIBZUrl/juxsQpPS/CAcQF67/hRYXXKoZErhAm
+         Echw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771903065; x=1772507865;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=+rDPnsccOLmgyf9I+bakqM5GVCoDaXtVbPxYNCWq0Gw=;
-        b=KtoMimNjbr8uY4GCOW9MPCgm8KEhR1LelsJ5yBFAHqCqy4FUJXOAwHsQbrm2kqEUGN
-         JMxIh39xWVTlEaL3yu2cSHHuekQHsXOMQOVScaMA21nbBWU3R1lTsjXy7F9nhaR5CQDH
-         ycOBK9LzaQFUFN9hzE0TpSJSpl+aJjXK2u+D64vR8iu9tgX4psMWP7k0lWsVGuowlSv/
-         GqOYZaFMuSCgFoe6LKu25aimjP4qHtv3BmcKz/qmTUOR8Pouv42IV9CHpnOFupRDEec4
-         7IjRqT2qeFT4KxCFxWzHSDsktKiCtVXGRymkIPnbE8wnAduUCRjyb4pOvgSHEseshUlM
-         S1fA==
-X-Gm-Message-State: AOJu0Yx9ldeYFq9pqEClXAroM6X8klJOMYXhCVMT3b7w2KbqWrnK+Z3C
-	gVsAOlsZB623ctt/dQlHUHlIrKjSWuB/gRLDop+x7kobZvfTqkVgikDA8DBVAmDfs33eGfqbBNz
-	aeoDfWtm0mphUAXxfbhwti+ueR3wfOx/OKbd1ZJyR8zGEQR1hxx2s69D8ZBKFVMqtpRGNIev/rN
-	VifpYFHNHg+7VJCvM844WmCIOeHFHTa+q5DM22cCLIPFDHEBLU
-X-Gm-Gg: ATEYQzyyjYIpJmMnDOCARAEcjMASugRbTIZDwYGe3dqbzbljeFxgnEulQ9Q4QoV2bH8
-	BNxiW+GkRpTsQ+93Izk2eXZkXwZGi2WInBII9XQbfFKtd9gzsDQvIHFg2hKkrYx6HclzApr3AV3
-	C5ZTUcCJlK2w2T2F1vOnQnxBm+rJZpsUepEbN9H8L+zERKgwA4nGbCYVq3DaR4mejQwVJU5a67A
-	jV61FIwYiaMyFcTphx1rISd/4dbd1mkIqKSVQL0mvJdSehwSDUWSd57NCEioltn4dcztpyLhBOO
-	nLO+vO1FkrD+gfvkP2IQXLSDmkuh5iT+T+sIFTjMe4WcGy/gsNSrWvEv6WHTKKSco5GsXsxBYfR
-	tBT+XJTHQTpbFhNFO1NB/Flg8Vo0VfLY5yxu418evcD65qa0oOlGC0u8p1tVgBn2Sl9kdU9CXA4
-	PeajrZRDl0GY9BMVhmHId6Hs4NJPOl1vRt5PHUPq+2wS7jOyE=
-X-Received: by 2002:a05:6000:402b:b0:435:975a:131c with SMTP id ffacd0b85a97d-4396f17e214mr17878011f8f.36.1771903065187;
-        Mon, 23 Feb 2026 19:17:45 -0800 (PST)
+        d=1e100.net; s=20230601; t=1771903063; x=1772507863;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AujnSR/ja4Wiye0HvMwKrXwUwmSXBnTCm5XhgTlPRB0=;
+        b=l4/RtNSUp2Ej857FbYzWB4ibwx2lrshJoZT0wRODrPdHOEHwtvNnRh+JbPVbVBCkMY
+         +Dv4OkOxZwm81JDlnP3bgkO7d5iNlTOW7jbts9+jEDn0VeXQPH8dLibZLIPAPcEXdjhA
+         4P7w/LffD8O3WhpkgjIRjUDzObLTfK7EWJOSviolSAQfwTb5qujGae7Y8s88RXIScCMb
+         173JovPCIlf3wgzyWBPHcClvLcZ0ZSe12ePPflCCtxG0Jx1Z58QVdc8nSclIOO7plKO+
+         ZzJZ6PLfiX3o6FDpqWGFuEU20D0fS/r+MR7m9oN7jRY3OG0V1SaPH/+OL9okzEqo0xju
+         TuYA==
+X-Gm-Message-State: AOJu0YxeRgAeUL9D6wJyaM9PpQdCqb0nPENiqJF/XhLqkSDu2x9e74Rn
+	aExfNJh+WCzI/FHpJ6byKAlgEX8VcVjUfye92bbbdtf2MiDAngcfLHy2fj6DpCmQPDmMCArj4FE
+	H9oYsiWFBBSIcaQ7r0WKXPHtMwglkFvMgqUjQcN0Lmhi31nyYgea9arToYozAyFLjsN+esXg3+u
+	AWwR2qjvB249Zd7bjEkmFCwBo2AEhWWrpcRSQMZ0OOaJ/6OsU4
+X-Gm-Gg: AZuq6aLgJ+aJDKZsbBboAxK7p9Mrzuk0HX5mXpsMgxlnJmEnWLkMxy/ZIlNc+GfOH9Y
+	Ny3WtfVUJ8Zksq8GBYJTkynD5zLFQIIYgF7ebH4ickoJJwbIn1e5OfBqouuGH9qKP4kbrLrHc+4
+	NPb3pqllDUE1PmcTCyY+V2kyENKFbMWR6P1aWmxTh8k/ggwl70KVkvDNcErUprF7nz6e6KjIgYM
+	xvp77HWcsBNu6YdN6Ipz8rSKXM9dpbg9kBsbd3LpKsDW8BhrmYsVHAF2ihFhJYQ3WR79M/OWUNX
+	WKhAvpoQ3T83tgKFSqHBor8BtFvKe551AXT9iI5b+6KWFG4RQG17isExgBwe7QhfJxj4KHlRM35
+	U3i0m2mC/P6alBRcB4IhV0a+MikoJceXYd6fha+Ca92I8tk0z0kXhRg178Uil155w9ohNF56q5B
+	n/Yq+pfz7pKF2DU/ZXeQvOLjdwh5QVXYyZr6oHlINDHqF3U8w=
+X-Received: by 2002:a05:600c:3b0a:b0:480:4ae2:def1 with SMTP id 5b1f17b1804b1-483a95be7c9mr210509645e9.13.1771903062831;
+        Mon, 23 Feb 2026 19:17:42 -0800 (PST)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43970d401aasm22907889f8f.23.2026.02.23.19.17.43
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43970d401aasm22907889f8f.23.2026.02.23.19.17.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Feb 2026 19:17:44 -0800 (PST)
+        Mon, 23 Feb 2026 19:17:42 -0800 (PST)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
 	greentime.hu@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [RFC PATCH 2/3] lib: sbi_init: Call hart init before platform early init
-Date: Tue, 24 Feb 2026 11:17:32 +0800
-Message-ID: <20260224031733.3817148-2-peter.lin@sifive.com>
+Subject: [RFC PATCH 1/3] platform: sifive: Add initial support for SiFive development platform
+Date: Tue, 24 Feb 2026 11:17:31 +0800
+Message-ID: <20260224031733.3817148-1-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
-In-Reply-To: <20260224031733.3817148-1-peter.lin@sifive.com>
-References: <20260224031733.3817148-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260223_191747_274033_9B088E9E 
-X-CRM114-Status: UNSURE (   8.41  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260223_191745_320518_B307DFF6 
+X-CRM114-Status: GOOD (  13.55  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,51 +98,90 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-To allow the platform early_init hook to use the
-sbi_hart_has_extension() helper, reorder the
-initialization sequence to call sbi_hart_init()
-prior to sbi_platform_early_init() during both
-cold and warm boot paths.
+Add initial platform support for SiFive development platforms
+with the "sifive-dev" compatible string.
 
 Reviewed-by: Greentime Hu <greentime.hu@sifive.com>
 Reviewed-by: Zong Li <zong.li@sifive.com>
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- lib/sbi/sbi_init.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ platform/generic/Kconfig                      |  4 ++++
+ platform/generic/configs/defconfig            |  1 +
+ platform/generic/sifive/objects.mk            |  3 +++
+ platform/generic/sifive/sifive_dev_platform.c | 23 +++++++++++++++++++
+ 4 files changed, 31 insertions(+)
+ create mode 100644 platform/generic/sifive/sifive_dev_platform.c
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 5259064b1..aed2b96f8 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -265,11 +265,11 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
- 	 */
- 	wake_coldboot_harts(scratch);
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 0c11fbd2c..eaa972b73 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -66,6 +66,10 @@ config PLATFORM_RENESAS_RZFIVE
+ 	select ANDES_PMU
+ 	default n
  
--	rc = sbi_platform_early_init(plat, true);
-+	rc = sbi_hart_init(scratch, true);
- 	if (rc)
- 		sbi_hart_hang();
++config PLATFORM_SIFIVE_DEV
++	bool "SiFive development platform support"
++	default n
++
+ config PLATFORM_SIFIVE_FU540
+ 	bool "SiFive FU540 support"
+ 	default n
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 19a73a247..347ca56d9 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -5,6 +5,7 @@ CONFIG_PLATFORM_ESWIN_EIC770X=y
+ CONFIG_PLATFORM_OPENHWGROUP_ARIANE=y
+ CONFIG_PLATFORM_OPENHWGROUP_OPENPITON=y
+ CONFIG_PLATFORM_RENESAS_RZFIVE=y
++CONFIG_PLATFORM_SIFIVE_DEV=y
+ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
+ CONFIG_PLATFORM_SOPHGO_SG2042=y
+diff --git a/platform/generic/sifive/objects.mk b/platform/generic/sifive/objects.mk
+index d75e444ab..d32e1273d 100644
+--- a/platform/generic/sifive/objects.mk
++++ b/platform/generic/sifive/objects.mk
+@@ -2,6 +2,9 @@
+ # SPDX-License-Identifier: BSD-2-Clause
+ #
  
--	rc = sbi_hart_init(scratch, true);
-+	rc = sbi_platform_early_init(plat, true);
- 	if (rc)
- 		sbi_hart_hang();
++carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_DEV) += sifive_dev_platform
++platform-objs-$(CONFIG_PLATFORM_SIFIVE_DEV) += sifive/sifive_dev_platform.o
++
+ carray-platform_override_modules-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive_fu540
+ platform-objs-$(CONFIG_PLATFORM_SIFIVE_FU540) += sifive/fu540.o
  
-@@ -424,11 +424,11 @@ static void __noreturn init_warm_startup(struct sbi_scratch *scratch,
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_platform_early_init(plat, false);
-+	rc = sbi_hart_init(scratch, false);
- 	if (rc)
- 		sbi_hart_hang();
- 
--	rc = sbi_hart_init(scratch, false);
-+	rc = sbi_platform_early_init(plat, false);
- 	if (rc)
- 		sbi_hart_hang();
- 
+diff --git a/platform/generic/sifive/sifive_dev_platform.c b/platform/generic/sifive/sifive_dev_platform.c
+new file mode 100644
+index 000000000..facc044f1
+--- /dev/null
++++ b/platform/generic/sifive/sifive_dev_platform.c
+@@ -0,0 +1,23 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2026 SiFive Inc.
++ */
++
++#include <platform_override.h>
++
++static int sifive_platform_init(const void *fdt, int nodeoff,
++				const struct fdt_match *match)
++{
++	return 0;
++}
++
++static const struct fdt_match sifive_dev_platform_match[] = {
++	{ .compatible = "sifive-dev" },
++	{ },
++};
++
++const struct fdt_driver sifive_dev_platform = {
++	.match_table = sifive_dev_platform_match,
++	.init = sifive_platform_init,
++};
 -- 
 2.43.7
 
