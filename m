@@ -4,66 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 10906FD0066
-	for <opensbi@archiver.kernel.org>; Sun,  1 Mar 2026 14:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 32C78FD0057
+	for <opensbi@archiver.kernel.org>; Sun,  1 Mar 2026 14:16:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=goDdqo4AcPIwgjuURM5LbGbOl0EeKlF8xjGkKE+D9zQ=; b=25ebU740JlAriK
-	QDYhzOhGF1r+Pkg3bhsSGTRBSxWJIvY46T+/wMbmk/66BQjRJv0Pdx4lCYKd1Iv63zdvunpRUNYjW
-	cssoE8tiDbG0/aQ2XI5o/s+7OY/dj/KGv6TMjz1UehHiM7aUYkfgp1HhtbCTlo206cLAbKm7JKpqw
-	qFKyG8cbdu6wDAQIMpdb91RD4bs4Q74BaRmPuQVa5GUPnNAcZAEm5Oscjzckbx7TuYo0nyDmhGJ1J
-	acyTM1Y15uGexQR5QfPc4JGx1fUPEment2rBF5WLB7Cp0VmMGveR9XRA2kNPXlee+uJzeOubMYeY/
-	X/samVhvVpR8CjSzMdkA==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	List-Subscribe:List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:
+	In-Reply-To:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+	Reply-To:Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date
+	:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Owner;
+	bh=1vQYnQvMLu576tB1tNXNqNARZJjQS2QzKahfhDTZegg=; b=DO0DZi7VBPeRkIgG76BDJB8nNV
+	tjTmhJ1R9KNZMG6EnOhuxTSu3cUehzFB3Zo67Zi+ZHSn8E7t1SSQ+bzOVJouoanq6Y9X1atSlIOGa
+	0bChmf+srZgQ5bUiDGTTp0rCMvARG/ErqXdFQaaJCZKqMNbsNWh8G6SHJrhWNNTD49o5LvZOIocSP
+	MshFDCDk9kC+BUG3WjEpZNe/uV6ae1SXi9sdvG9ETDc/0KmDZfTzo6Yq7Qdkq0kQroy5QpCme2ba3
+	KSpJERvhLbEuX4QmzvUKHg+fmU+qx2g9GjSGfE6P48U093Ln2Lqd973be047Ez236zjkVqQEQqPf0
+	4opvVMZg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vwhYM-0000000BZFQ-28tX;
-	Sun, 01 Mar 2026 14:13:50 +0000
-Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
+	id 1vwhas-0000000BZNb-0RYm;
+	Sun, 01 Mar 2026 14:16:26 +0000
+Received: from tor.source.kernel.org ([172.105.4.254])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vwhYJ-0000000BZEq-32r9
+	id 1vwhaq-0000000BZNO-2Fcr
 	for opensbi@lists.infradead.org;
-	Sun, 01 Mar 2026 14:13:49 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1772374427; x=1803910427;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=DhD4uEoPoI8dqr5IyyHfHDFTy4ORANv7twfv85omGLw=;
-  b=IpkUpx9IPiMP5wBJHsKytapg+ITzPGQoon+cOPsrdS8T/GYHGGGXnMo7
-   ei7nVIG+xaXo7Avx4jOWygnSIQ3U2RpG5kjHjpUChqFaSsPAb6+4UK0Vg
-   VPMNfrp/mhxfobjdQHUSDzMMpKIgIA7dnSZc5FPtUJN2s0rww4wvg0S4m
-   y37gaatR/tJxArpdOGNGODDzoKX+cg0IazZoDQ47vKUvMcbjuW/fwD2si
-   qwWzcpW6iKZwraKkn8Vl0hQ2E1hi6kisvJDDUnKxsxWL3wSTSFl3a44Tp
-   lKUrMRSCF/wnhFpxu9IW4p56F+VUNnlFo6qbYvb3h0ZXCWtL3G5owAIVM
-   A==;
-X-CSE-ConnectionGUID: Ayw/3PF/QFaYxRa758q00g==
-X-CSE-MsgGUID: O4LAvSZzTni2z2jlcy8Bag==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces02_data.me-corp.lan) ([146.255.191.134])
-  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2026 16:13:42 +0200
-X-CSE-ConnectionGUID: sUdd+Z++R66l4Lfa2ck0dQ==
-X-CSE-MsgGUID: qWboiuC8TA2LOvWZdS7p7w==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.2])
-  by ces02_data.me-corp.lan with SMTP; 01 Mar 2026 16:16:31 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Sun, 01 Mar 2026 16:13:41 +0200
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-To: Anup Patel <anup@brainfault.org>,
-	conor@kernel.org,
-	chao-ying.fu@globalfoundries.com
-Cc: opensbi@lists.infradead.org,
-	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Subject: [PATCH] platform: generic: mips boston: update "compatible"
-Date: Sun,  1 Mar 2026 16:13:32 +0200
-Message-ID: <20260301141332.2941601-1-vladimir.kondratiev@mobileye.com>
+	Sun, 01 Mar 2026 14:16:24 +0000
+Received: from smtp.kernel.org (transwarp.subspace.kernel.org [100.75.92.58])
+	by tor.source.kernel.org (Postfix) with ESMTP id 850BA60008;
+	Sun,  1 Mar 2026 14:16:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 463A9C116C6;
+	Sun,  1 Mar 2026 14:16:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772374583;
+	bh=MeRa4Wb3j8i3I1giPLGsVE15BLaamtPFBq4h0OZKVrk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Bcm9bgoaOl1iAfQtTgCpw/FNJWSllp/oCzsv8Uz2vvsCXOXtS3Jpj1EMwzM4cr3/V
+	 1dhQ/GHeETN2ugMUUa2vilftTGUVOR0fpaDnsqKRUbxCgKd3fG/mHzlvFWw+7Ssg31
+	 oOtYWx+ehEKbeddCzxIm8XUp3naGswJ+i1aFX9XrTEYlk+kw8aK8zRi8fEAkqqNPyX
+	 x5U3SMOQwg6USOTgynE4rks69kr3gI9/swlpCP7sLN2hZgvwsCzFuEEYQIj9BAY+7W
+	 J2TDTuD430UJo/f1DxOyw1l7T5kpa+YMrGAHKsjQpbKnG4gVMV5U9ZzVQJpw97Uzpg
+	 CeitOBP8Rj5WA==
+Date: Sun, 1 Mar 2026 14:16:20 +0000
+From: Conor Dooley <conor@kernel.org>
+To: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+Cc: Anup Patel <anup@brainfault.org>, chao-ying.fu@globalfoundries.com,
+	opensbi@lists.infradead.org
+Subject: Re: [PATCH] platform: generic: mips boston: update "compatible"
+Message-ID: <20260301-embellish-aorta-a2ed332d2303@spud>
+References: <20260301141332.2941601-1-vladimir.kondratiev@mobileye.com>
 MIME-Version: 1.0
-X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260301_061348_258693_B1EF1779 
-X-CRM114-Status: GOOD (  10.96  )
+In-Reply-To: <20260301141332.2941601-1-vladimir.kondratiev@mobileye.com>
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -75,37 +63,57 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2066813559178701526=="
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Use a platform-specific compatible to avoid clashing
-with CPU compatible
 
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- platform/generic/mips/boston.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--===============2066813559178701526==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="iAn9yokEKZXg3VHi"
+Content-Disposition: inline
 
-diff --git a/platform/generic/mips/boston.c b/platform/generic/mips/boston.c
-index ece60a7e5e52..87cb328dc4e3 100644
---- a/platform/generic/mips/boston.c
-+++ b/platform/generic/mips/boston.c
-@@ -140,7 +140,7 @@ static struct p8700_cm_info boston_cm_info = {
- };
- 
- static const struct fdt_match boston_match[] = {
--	{ .compatible = "mips,p8700", .data = &boston_cm_info },
-+	{ .compatible = "mips,p8700-boston", .data = &boston_cm_info },
- 	{ },
- };
- 
--- 
-2.43.0
 
+--iAn9yokEKZXg3VHi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Mar 01, 2026 at 04:13:32PM +0200, Vladimir Kondratiev wrote:
+> Use a platform-specific compatible to avoid clashing
+> with CPU compatible
+>=20
+> Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+
+Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+
+Thanks,
+Conor.
+
+--iAn9yokEKZXg3VHi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCaaRKMwAKCRB4tDGHoIJi
+0gt1AQDrA23NFnjv0At/s60o2Cq90LQbCjxsSaAoUi/oJLJhTwD/f0kFYwZOyQ1e
+aX1siYkygeU4y9QK+hRjWo3w9HrD0QY=
+=TqiJ
+-----END PGP SIGNATURE-----
+
+--iAn9yokEKZXg3VHi--
+
+
+--===============2066813559178701526==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 -- 
 opensbi mailing list
 opensbi@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/opensbi
+
+--===============2066813559178701526==--
+
