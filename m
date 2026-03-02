@@ -4,86 +4,69 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 54B63C624C2
-	for <opensbi@archiver.kernel.org>; Mon,  2 Mar 2026 08:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1C818EB363C
+	for <opensbi@archiver.kernel.org>; Mon,  2 Mar 2026 22:55:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=MGReNqgfT0IxzNmiL/zq1wFFaOndJNM8t2TwriJKV9I=; b=0VUXGvxZ3ApWeA
-	Yz2eCm+FwvmxsIn0buy94/h2T6nDO4tYr+DdFYJXcPB3N9B/PLjuWGDDmNszCsJdtCb25vtj/KkiY
-	MyD9L1NwUyYUGI6cU7CmA8iQy8k1Gtc7nCCs2ZazK/lQjqQElwUc85rpKETSbLpAUvSu3yGjynkui
-	AIpYCFDkLMj5S0Q/q2qKbxJLv+yoezmyKAXdfIJfI8cCsemzeGB3fFELhqE/IPlir3GDnGe2DjgGP
-	zNNTlgCqHTPQH9pLM+pxnlAOs7zgpdLw4+HPo9uvw9csOp29mimtNRmHmJNItq2xTW37E4p9pOl7D
-	CLqwSEBEk2ZqMtJml75w==;
+	Content-Transfer-Encoding:Content-Type:Reply-To:List-Subscribe:List-Help:
+	List-Post:List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version
+	:Subject:Date:From:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=WCXF1pXX1CiwrkciuHuFesLrhmKPada8+fnEyAVzhbE=; b=dI15CVurDgDhsT
+	3LrhSMBVu1IMudBFWVGi1CLvnSY4P/3FB0WvhXH55tkE8HB1fBkwnH86h9vU0Y9SSs91jA6xMHfKd
+	+XGo0ctsh80X0Kad1inzwnhl2mnEdudXkta7FD5veuHdZ7O3ETzdi1IKIzFXbNSlIHgZ0CB6rSGta
+	krlnnC31ocyO31BI4qSJYqdiPiBr1B5YTcMyMnZ2DUX7uLGOUReBirXvO+STqyOefq7Zvnwa6PWby
+	BD8t90jmdxTo5DQak0LqsjQDvwNe/hqI2BcpXG5f7Drw0UzMLQwoioZpghd0GR20FcDpPmHgGPu/i
+	WHCTTVHepEtOdDxmMuCA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vwyrN-0000000CXD2-3hsc;
-	Mon, 02 Mar 2026 08:42:37 +0000
-Received: from mail-qk1-x729.google.com ([2607:f8b0:4864:20::729])
+	id 1vxCAK-0000000E9dM-1FZY;
+	Mon, 02 Mar 2026 22:55:04 +0000
+Received: from tor.source.kernel.org ([172.105.4.254])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vwyrL-0000000CXAa-0gH2
+	id 1vxCAI-0000000E9ct-1sLu
 	for opensbi@lists.infradead.org;
-	Mon, 02 Mar 2026 08:42:36 +0000
-Received: by mail-qk1-x729.google.com with SMTP id af79cd13be357-8cb3825b0fbso406845085a.0
-        for <opensbi@lists.infradead.org>; Mon, 02 Mar 2026 00:42:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772440953; x=1773045753; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JosPePCPmHXmAV5ZP9ec460Ha1dplC0itFDHlqxAtlw=;
-        b=nsCSRcHbsMfXFm9xDLR3NLb2JfHwmzGizCkeSEU1XwS17c7TBfg5H13vYIi8AzMhaF
-         PyaL3G395F6l7sAteyxKQQpTJTIrj7AYRNd+GyXqMzXuIGnpt7Q4DJ7DOVDR/h/ZjDG/
-         ORbnFAdhqK8TaFsdlgbCNCKxGIXWYAH/foflcHn/2mDaZ6cVA3DhIHNYeQe96Yz7NOUg
-         8N1dXMsYti1w/U2bwyfGCiFDoYqJXb5pnSxi3h0p42vxviuvi32bfrXUyK7Qt1ei/TZ6
-         gMqP1yGExZ4+M/06dIiI5CYv2Yyql0OyP0eSEk4nXHFJpY/OkPvj2c+z49P1p+oeuhVK
-         AP0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772440953; x=1773045753;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=JosPePCPmHXmAV5ZP9ec460Ha1dplC0itFDHlqxAtlw=;
-        b=Kqff/BS/wxgUxHeqntU0WeDYMhnpZP6h/1pU947AepxBY8EWY2zdE7BskbWC9D5UTv
-         Be6laaOf/O3d4lCkAjxRHouVGVi4Pyuef80DWv5stNJGrzrGBli0Ksk6jqS4zk/CWgIr
-         atVzDQZmjyyVn7LpQG9Tj4IqS5K4sTFHRKK595T8N1CEXktPZLA1xm2WXIwiCta8xla0
-         NRH2dEqd1hVnY9z99a6ZcVdJ0zy5k660Cf5FzqGPMqkDBR9wuU4rwXrRjAeS3OJs9prc
-         4XNst1LMcV0HW/iPUaiA0Dt3bRerT4SwKqof7lqZfqArglle4ITUPSbAfQPBa4b5dDWu
-         uSaQ==
-X-Gm-Message-State: AOJu0YwhTe6TXA7y4sRm5Ldd7xEWXUIz1Ff5bWsovgtknFWzC2bC8ehF
-	uJcjEEy55RrGHZNtkhWDWC7UO48eY3Y+1ULdM4oSM2aU6NtbrjujQ5/SHb6bSA==
-X-Gm-Gg: ATEYQzw/Wlv7eSnkttQpI6XtoW+e12bzqpUdR/IDU/ltzt/FzCBS6324WWPWYzM6Ck2
-	9wvYDxT2fhQwveq+fSPtATcvmPfSjE1gRhbXgPXt3cq0BOnktdk57n3D3P/kJAEFXG7I3PFDNmZ
-	3Q8F5+QjK7OhLV85Xw/MNZIp6Lr3Ss70+DazfpmiS1mrQ3OQRKi0hEdoLX38l5OvPu60NmH+lu3
-	sSC2F+sCCYEhfUxRnVvLZMXUCL5rcWZd+RwkB5EcUX5cQf+hssuMdKBrVGMAOTjjKWwdd5y5HIj
-	q/hVbVLqT0tY+g755dC0quAs3vLltLJ8nNjC75hb9q9hr2JSsVYoosWENBCI/AMXlb9DG9D7kxn
-	8S6cAU70D4rST0g1d+1uarxk7mUKijhZj+eMjnz9uRahXycue64iX1yoB2oPaysl9y3FCsVaUUA
-	Ho9GxT1+03F1NCpd01mzr7p2rw
-X-Received: by 2002:a05:620a:4590:b0:8b2:e9d2:9c69 with SMTP id af79cd13be357-8cbc8d7b815mr1457505885a.22.1772440953302;
-        Mon, 02 Mar 2026 00:42:33 -0800 (PST)
-Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf746fc5sm1106370485a.51.2026.03.02.00.42.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Mar 2026 00:42:32 -0800 (PST)
-From: Bo Gan <ganboing@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: nick.hu@sifive.com,
-	linmin@eswincomputing.com,
-	gaohan@iscas.ac.cn,
-	me@ziyao.cc
-Subject: [PATCH 2/2] platform: generic: eswin: Add eic770x_hsm and fix warm reset issues
-Date: Mon,  2 Mar 2026 00:40:29 -0800
-Message-Id: <20260302084029.428-3-ganboing@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260302084029.428-1-ganboing@gmail.com>
-References: <20260302084029.428-1-ganboing@gmail.com>
+	Mon, 02 Mar 2026 22:55:02 +0000
+Received: from smtp.kernel.org (transwarp.subspace.kernel.org [100.75.92.58])
+	by tor.source.kernel.org (Postfix) with ESMTP id 9D251600AE;
+	Mon,  2 Mar 2026 22:55:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 50C15C19423;
+	Mon,  2 Mar 2026 22:55:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772492101;
+	bh=70kzUSl1YLF+LGjmubxwLToPnR9OfjfSavZ6UfOJeZw=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=ix8HDEBYAYm0P8qe9WNgML9KJ9UuLH5axjdZkq/0ocBaFmhOiwDOG9BV0096Sv9lD
+	 EjL/gSZCvDHNDonSDhRiPyvbs/BmtPIS45FXkaNh2EBbVXaUxUrfkmFg72njbtYXHg
+	 01xKfc3oQJy9x133PUvwtHkkqO6dIGH96s4QoxVCuuxqpnXqoEKwOkVxYDNwuYSxDR
+	 Zq9uzpu9hZ5wGKDbnKd70YCBSYjAu1o/lb60J/+NJMYQjW79ZsVxmwCtcbskXXNhDk
+	 lRVyYwIKyllESISP0ArYkiof7uakOkATZ1xXMl7hsWzzcwjjsUOxq+WMocmyGHG2R0
+	 3h4znsaOFvSDQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47895EB362E;
+	Mon,  2 Mar 2026 22:55:01 +0000 (UTC)
+From: Charlie Jenkins via B4 Relay <devnull+thecharlesjenkins.gmail.com@kernel.org>
+Date: Mon, 02 Mar 2026 14:54:58 -0800
+Subject: [PATCH] lib: sbi: fix sse_event_inject() status setting
 MIME-Version: 1.0
-X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260302_004235_223985_E70DBAB0 
-X-CRM114-Status: GOOD (  25.32  )
+Message-Id: <20260302-event_inject_fix-v1-1-e88952b03aa4@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x2MSwqAMBDFriKztjDWL15FRLQ+dVxUaaUI4t0tL
+ hNIHvJwAk9t8pBDEC+HjZClCZlttCuUzJFJs644Z60QYK9B7A5zDYvcai6zpp5QMNhQzE6HqP9
+ l17/vByKMl8diAAAA
+X-Change-ID: 20260302-event_inject_fix-d5187be40e0c
+To: opensbi@lists.infradead.org
+Cc: Charlie Jenkins <thecharlesjenkins@gmail.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1772492100; l=1034;
+ i=thecharlesjenkins@gmail.com; s=20260127; h=from:subject:message-id;
+ bh=5cQq/4MtY0zcB4kfK5DIAgxBYsz16twf7sjEqwkkdJc=;
+ b=Mcbf2V9yibMLP1prRj1vX7ulz8TcTraQuBeuYyM7AHtwZ3MJxJASyd4/TgygLjDECGL9fgGxQ
+ RdNEYDlypg4BMeTU66AnVL2WN65gErPeCLHBtgU829YP+cMSf07nyy8
+X-Developer-Key: i=thecharlesjenkins@gmail.com; a=ed25519;
+ pk=4AzEw2rmBYSzmHkYTjITwPc2sWIvqjw/Fu3GnQmSMTI=
+X-Endpoint-Received: by B4 Relay for thecharlesjenkins@gmail.com/20260127
+ with auth_id=619
+X-Original-From: Charlie Jenkins <thecharlesjenkins@gmail.com>
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,281 +78,45 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Reply-To: thecharlesjenkins@gmail.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-During warm reset, my EIC770X/Hifive Premier P550 can sometimes
-encounter memory corruption issue crashing Linux boot. Currently the
-issue is mitigated by having a sbi_printf before writing to the reset
-register. I analyzed the issue further since then. From the SoC
-datasheet[1], it's recommended to implement power-down flow as:
+From: Charlie Jenkins <thecharlesjenkins@gmail.com>
 
-  a. Designate a primary core, and let it broadcast requests to other
-     cores to execute a CEASE insn. Primary core also notifies an
-     "Externel Agent" to start monitoring.
-  b. Primary core waits for other cores to CEASE before it CEASEs.
-  c. "External Agent" waits for primary core to CEASE before resets
-     the Core Complex.
+sse_event_inject() currently sets all status bits to 1 except for
+SBI_SSE_ATTR_STATUS_PENDING_OFFSET which it sets to zero. Instead of
+overwriting all the values of the status bits, sse_event_inject() is
+only expected to clear SBI_SSE_ATTR_STATUS_PENDING_OFFSET. Fix
+sse_event_inject() to only do the clearing.
 
-It's possible that EIC770X can trigger undefined behavior if the core
-complex is reset while the harts are actively running. The sbi_printf
-in the reset handler effectively hides the problem by delaying the
-reset -- by the time sbi_printf finishes, all other harts will have
-already landed in the loop in sbi_hsm_hart_wait(), which parks the hart.
-Without the sbi_printf, I confirmed that other harts haven't reached
-sbi_hsm_hart_wait yet before current hart resets the SoC. (by debugging)
-
-To safely reset, and inspired by the datasheet, the warm reset logic
-in eic770x.c now use the current hart as both primary core and the
-"External Agent", and other harts as secondary cores. It leverages
-the HSM framework and a new eic770x_hsm device to CEASE other harts,
-and wait for them to CEASE before resets the SoC. with the sbi_printf
-before reset removed, and this logic in place, stress test shows that
-the memory corruption issue no longer occurs.
-
-The new eic770x_hsm device is only used for the reset-CEASE logic at
-the moment, and may be extended to a fully functional HSM device in
-the future.
-
-[1] https://github.com/eswincomputing/EIC7700X-SoC-Technical-Reference-Manual
-
-Fixes: e5797e0688c1 ("platform: generic: eswin: add EIC7700")
-Signed-off-by: Bo Gan <ganboing@gmail.com>
+Signed-off-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
 ---
- platform/generic/eswin/eic770x.c         | 105 ++++++++++++++++++++---
- platform/generic/eswin/hfp.c             |   4 +-
- platform/generic/include/eswin/eic770x.h |  20 +++--
- 3 files changed, 113 insertions(+), 16 deletions(-)
+ lib/sbi/sbi_sse.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
-index 7330df9f..237fb06d 100644
---- a/platform/generic/eswin/eic770x.c
-+++ b/platform/generic/eswin/eic770x.c
-@@ -10,14 +10,96 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_math.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_ipi.h>
- #include <sbi/sbi_hart_pmp.h>
- #include <sbi/sbi_hart_protection.h>
-+#include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
- #include <eswin/eic770x.h>
- #include <eswin/hfp.h>
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index a14754f8..818afb87 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -548,7 +548,7 @@ static void sse_event_inject(struct sbi_sse_event *e,
  
- static struct sbi_hart_protection eswin_eic7700_pmp_protection;
-+static volatile bool eic770x_power_down = false;
+ 	sse_event_set_state(e, SBI_SSE_STATE_RUNNING);
  
--static int eic770x_system_reset_check(u32 type, u32 reason)
-+static int eic770x_hart_start(u32 hartid, ulong saddr)
-+{
-+	u32 hartindex = sbi_hartid_to_hartindex(hartid);
-+
-+	/*
-+	 * saddr is ignored intentionally.
-+	 * For non-power-down scenarios, eic770x_hart_stop simply
-+	 * returns, putting the hart in atomic_read(&hdata->state)
-+	 * loop in sbi_hsm_hart_wait. We wake it up if it's in wfi()
-+	 */
-+	return sbi_ipi_raw_send(hartindex, true);
-+}
-+
-+static int eic770x_hart_stop()
-+{
-+	/*
-+	 * fence to enforce all previous ipi clears are done
-+	 * Refer to comments below in eic770x_cease_other_harts
-+	 */
-+	asm volatile ("fence o, r");
-+
-+	if (!eic770x_power_down)
-+		return SBI_ENOTSUPP;
-+
-+	sifive_cease();
-+}
-+
-+void eic770x_cease_other_harts(void)
-+{
-+	u32 to_cease[2] = {};
-+
-+	eic770x_power_down = true;
-+	sbi_for_each_hartindex(i) {
-+		u32 hartid = sbi_hartindex_to_hartid(i);
-+		u32 die    = hart_die(hartid);
-+		u32 core   = hart_core(hartid);
-+
-+		/* Only wait for other harts */
-+		if (i == current_hartindex())
-+			continue;
-+		/*
-+		 * Bring harts out of WFI in sbi_hsm_hart_wait
-+		 * Harts won't miss this IPI, because:
-+		 *  1. If hart goes to wfi() in sbi_hsm_hart_wait,
-+		 *     it must have not observed eic770x_power_down
-+		 *  2. If it hasn't observed eic770x_power_down,
-+		 *     then it must haven't observed the IPI sent,
-+		 *     given the wmb() in sbi_ipi_raw_send
-+		 *  3. Given the fence o, r, any previous ipi_clear
-+		 *     can't fall-through the read of eic770x_power_down
-+		 */
-+		sbi_ipi_raw_send(i, false);
-+		to_cease[die] |= EIC770X_MC_CEASE_BIT(core);
-+	}
-+
-+	for (u32 die = 0; die < array_size(to_cease); die++) {
-+		/*
-+		 * MCPU status indicates the wfi/debug/halt/cease status
-+		 * of each individual harts in the same die. The value
-+		 * can change on the fly, but for ceased harts, the cease
-+		 * bit remains high until reset
-+		 */
-+		u32 *status = (u32*)EIC770X_MCPU_STATUS(die);
-+
-+		if (!to_cease[die])
-+			continue;
-+
-+		/* Wait for mcput_cease_from_tile_x */
-+		while ((readl(status) & to_cease[die]) != to_cease[die]);
-+	}
-+}
-+
-+static const struct sbi_hsm_device eswin_eic770x_hsm = {
-+	.name	      = "eic770x_hsm",
-+	.hart_start   = eic770x_hart_start,
-+	.hart_stop    = eic770x_hart_stop,
-+};
-+
-+static int eic7700_system_reset_check(u32 type, u32 reason)
- {
- 	switch (type) {
- 	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-@@ -28,23 +110,23 @@ static int eic770x_system_reset_check(u32 type, u32 reason)
- 	}
- }
+-	e->attrs.status = ~BIT(SBI_SSE_ATTR_STATUS_PENDING_OFFSET);
++	e->attrs.status &= ~BIT(SBI_SSE_ATTR_STATUS_PENDING_OFFSET);
  
--static void eic770x_system_reset(u32 type, u32 reason)
-+static void eic7700_system_reset(u32 type, u32 reason)
- {
- 	switch (type) {
- 	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
- 	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
--		sbi_printf("%s: resetting...\n", __func__);
--		writel(EIC770X_SYSCRG_RST_VAL, (void *)EIC770X_SYSCRG_RST);
-+		eic770x_cease_other_harts();
-+		writel(EIC770X_SYSRST_VAL, (void *)EIC770X_SYSCRG_SYSRST);
- 	}
- 
--	sbi_hart_hang();
-+	sifive_cease();
- }
- 
- static struct sbi_system_reset_device *board_reset = NULL;
--static struct sbi_system_reset_device eic770x_reset = {
--	.name = "eic770x_reset",
--	.system_reset_check = eic770x_system_reset_check,
--	.system_reset = eic770x_system_reset,
-+static struct sbi_system_reset_device eic7700_reset = {
-+	.name = "eic7700_reset",
-+	.system_reset_check = eic7700_system_reset_check,
-+	.system_reset = eic7700_system_reset,
- };
- 
- #define add_root_mem_chk(...) do { \
-@@ -145,7 +227,7 @@ static int eswin_eic7700_early_init(bool cold_boot)
- 
- 	if (board_reset)
- 		sbi_system_reset_add_device(board_reset);
--	sbi_system_reset_add_device(&eic770x_reset);
-+	sbi_system_reset_add_device(&eic7700_reset);
- 
- 	/* Enable bus blocker */
- 	writel(1, (void*)EIC770X_TL64D2D_OUT);
-@@ -231,6 +313,9 @@ static int eswin_eic7700_final_init(bool cold_boot)
- 	int rc;
- 
- 
-+	if (cold_boot)
-+		sbi_hsm_set_device(&eswin_eic770x_hsm);
-+
- 	/**
- 	 * Do generic_final_init stuff first, because it touchs FDT.
- 	 * After final_init, we'll block entire memory port with the
-diff --git a/platform/generic/eswin/hfp.c b/platform/generic/eswin/hfp.c
-index eabed191..a6e73e18 100644
---- a/platform/generic/eswin/hfp.c
-+++ b/platform/generic/eswin/hfp.c
-@@ -11,6 +11,7 @@
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi_utils/serial/uart8250.h>
-+#include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
- #include <eswin/eic770x.h>
- #include <eswin/hfp.h>
- 
-@@ -94,6 +95,7 @@ static int hfp_system_reset_check(u32 type, u32 reason)
- 
- static void hfp_system_reset(u32 type, u32 reason)
- {
-+	eic770x_cease_other_harts();
- 	switch (type) {
- 	case SBI_SRST_RESET_TYPE_SHUTDOWN:
- 		hfp_send_bmc_msg(HFP_MSG_NOTIFY, HFP_CMD_POWER_OFF,
-@@ -104,7 +106,7 @@ static void hfp_system_reset(u32 type, u32 reason)
- 				NULL, 0);
- 		break;
- 	}
--	sbi_hart_hang();
-+	sifive_cease();
- }
- 
- static struct sbi_system_reset_device hfp_reset = {
-diff --git a/platform/generic/include/eswin/eic770x.h b/platform/generic/include/eswin/eic770x.h
-index 67764ec0..fe7c1f58 100644
---- a/platform/generic/include/eswin/eic770x.h
-+++ b/platform/generic/include/eswin/eic770x.h
-@@ -14,6 +14,8 @@ struct eic770x_board_override {
- 	struct sbi_system_reset_device *reset_dev;
- };
- 
-+void eic770x_cease_other_harts(void);
-+
- /* CSRs */
- #define EIC770X_CSR_BRPREDICT	0x7c0
- #define EIC770X_CSR_FEAT0	0x7c1
-@@ -55,11 +57,16 @@ struct eic770x_board_override {
- #define EIC770X_UART_REG_SHIFT	2
- #define EIC770X_UART_REG_WIDTH	4
- 
--#define EIC770X_SYSCRG		(EIC770X_SYSPORT_LOCAL + 0x11828000UL)
--#define EIC770X_SYSCRG_LSPCLK0	(EIC770X_SYSCRG + 0x200UL)
--#define EIC770X_SYSCRG_SYSCLK	(EIC770X_SYSCRG + 0x20cUL)
--#define EIC770X_SYSCRG_RST	(EIC770X_SYSCRG + 0x300UL)
--#define EIC770X_SYSCRG_RST_VAL	0x1AC0FFE6UL
-+#define EIC770X_SYSCON(d)	(EIC770X_SYSPORT_BASE(d) + 0x11810000UL)
-+#define EIC770X_MCPU_STATUS(d)	(EIC770X_SYSCON(d) + 0x608UL)
-+#define EIC770X_MC_CEASE_BIT(c)	(1UL << (15 - c))
-+
-+#define EIC770X_SYSCRG(d)	(EIC770X_SYSPORT_BASE(d) + 0x11828000UL)
-+#define EIC770X_SYSCRG_LOCAL	(EIC770X_SYSPORT_LOCAL + 0x11828000UL)
-+#define EIC770X_SYSCRG_LSPCLK0	(EIC770X_SYSCRG_LOCAL + 0x200UL)
-+#define EIC770X_SYSCRG_MCCLK(d) (EIC770X_SYSCRG(d) + 0x208UL)
-+#define EIC770X_SYSCRG_SYSCLK	(EIC770X_SYSCRG_LOCAL + 0x20cUL)
-+#define EIC770X_SYSCRG_SYSRST	(EIC770X_SYSCRG_LOCAL + 0x300UL)
- 
- /* Memory Ports */
- #define EIC770X_MEMPORT_BASE	0x0080000000UL // 2G
-@@ -98,4 +105,7 @@ struct eic770x_board_override {
- 		divisor > 2 ? divisor : 2; 		\
- 	})
- 
-+/* Reset definitions */
-+#define EIC770X_SYSRST_VAL	0x1AC0FFE6UL
-+
- #endif
--- 
-2.34.1
+ 	i_ctx->a6 = regs->a6;
+ 	i_ctx->a7 = regs->a7;
+
+---
+base-commit: 8d1c21b38752301fc6c727eece45c15c663649b0
+change-id: 20260302-event_inject_fix-d5187be40e0c
+
+- Charlie
+
 
 
 -- 
