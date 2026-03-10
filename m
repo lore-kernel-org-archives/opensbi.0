@@ -4,88 +4,108 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 86064FCC9AE
-	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 02:28:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C6DC4FCC9AF
+	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 04:12:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=1dOgpbUgrv0pJ24yZ0p4kuw8/aJCywWq58I4+O+S8PM=; b=ivnji2UB31A0S3
-	J7d57KvFhr0Nx3zLm2fhvPkNsuQspAKFtJBOwMe3exHYQGBWLS6OY7KkCR3z5nKoeK5kZ68Dj0izo
-	HO9dpWx0dGWyf5D50nMQAQpiqkUTbvWmsjUUU6subtY4yyNuMe42BOEWwH4iAUu416nkhAdByOseY
-	GII8i9lml7xydoiKcz7E8OZ2YeQUt0aBWEGNxXP0royVSnC5fFMDxrtl3iatkIJ4i6pqw/oMIIFqe
-	cobztCXeCfAisp7/z/FXDzJYwnrSQ/gVLtlzUVC5W82WVwpkOSpbIyjoZ/Hf2VHgiEnIyj6MxxMZ0
-	hN8CmyQtE/A5tgt87rUQ==;
+	List-Owner; bh=fQFnvZ/Q+pV0ElATVsBvGTxc1YCPUE9IVzBoM8I8JtE=; b=Piwuetzksm5TvC
+	gO/5775koLWDJBi8sYTV8TuktYd/yMnOkSPylCIcc4GjqJY05urUj0iQ19KqLdQwgk/EwsBIQ+pqF
+	p/2Dw7mL9k/KHi3vib88wHcObxrJeSHKpzGKDDl7mQcuLlxLAppuDRPdYg+4PfzEhlz8yeTEamV2c
+	i0ZsVNKm3ymUIFe3oTW4Hbg2vcbzFHZy39r3yU3//o3FZZAgUv/DeYvkKM/mlZpBYkzp9JFPEqEro
+	hsom5ykmojafqfHuo0RZSu3joxYAB97KT5/jFf/FPy56P75f3qnYlXgtSFz/bVKeLYx5LnBztw9sw
+	ke+/C+ngijgT0vU9bGnQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzmpb-00000008ZeE-1AeG;
-	Tue, 10 Mar 2026 02:28:23 +0000
-Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
+	id 1vzoSX-00000008h9Y-1LqT;
+	Tue, 10 Mar 2026 04:12:41 +0000
+Received: from mail-oo1-xc36.google.com ([2607:f8b0:4864:20::c36])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzmpY-00000008ZdV-3UVR
+	id 1vzoSU-00000008h8r-3ltA
 	for opensbi@lists.infradead.org;
-	Tue, 10 Mar 2026 02:28:22 +0000
-Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-2ae505619baso53134175ad.2
-        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 19:28:20 -0700 (PDT)
+	Tue, 10 Mar 2026 04:12:40 +0000
+Received: by mail-oo1-xc36.google.com with SMTP id 006d021491bc7-67bb19ac35aso1518712eaf.1
+        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 21:12:38 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773115957; cv=none;
+        d=google.com; s=arc-20240605;
+        b=eOHksGKDdFMvNGPesLlil2/vxrjGzMf6U0u1wDXmPBkYsvA3WRiFyGADh7BZYkQraN
+         AHlP8XBGY7xqnyrBrBuZgxEywhI50ZEPSfEGPhA2XAy1ybLB+1IZViOnPlv5Lzlr8ZT5
+         r39QB2ZX/fmXGygXvpJCjx2zLN8W9wIe2KkoSvFBnSo7FvTfDOVFyrbwtR1qTrjmrqoF
+         wDelG21UC0lEeJ4oB51/G2IKCfSfUsDdxg05BkUm+/nD+hROjslculVC5E90dJZ+gyW9
+         ShW6lRej0koZ5wUuHZ90vD5GZFZaLbu0pxI9aywPjBAYTf+Drs4TOLqEov29161qP8lQ
+         JJLg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=hd9WITGTfZMmF50vVhRRIlc8xfNwmhxO8/IloUAk6b8=;
+        fh=CLLtyn0Cwtbw9pjEIcAmLoUhHR+fghvDdcYbrfYdgkI=;
+        b=Y3nImOz6g2YcsiMsfJnT2px7PKIH7R3LfO4vkbkovWyQk4GnGU331vvXcDVW+To8E+
+         Y80mh40H73FnH12jcODV9me2nuCYIbI+ks6t4zhi35wXEHSF1ooQ1mNyASUmbdkBEsZf
+         LVnjSFUc7kCV5/RVyS0l/NOJV9geB0acDCk0zoxOpWs/o3UPEnYKtYAwbUGW78tBq9LP
+         ULpqaciAd7Ecslx77uIta13sMXU0PLW4kncV6Vjht9kfMRSTKtz0RbcSoKVfGWSNqUvj
+         gSg0F+fBFXcoArM695ELbh1y4zJYicAWpucFDvAJ6BY/DpxMoUrruzxrOQ8ekTWHakNM
+         Pg3A==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773109700; x=1773714500; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=FNqXzpoDjQhlUjM85ucTPRYtv3WKroaV72IH26TLL7A=;
-        b=JlTTEgqRaAVZ8vH+dlGxnz2IUb/wRY51bzVX5DeJaNFEgqkmuzaNdMkDZYG8BsoLjE
-         2KwgKY66n8aogjit3i1x8mxR4fAqdb0fkD4E5iuWvg1QA0U4/jo3j+AMuQHIawZEGsQX
-         ise020RVF9dz1plvR6NZ2gNOSW6ZwptNNfbytltglIqVoz5JbxbCHFaduxAVp2TIcPpB
-         6t80hZZPhFYMMafn8BO4oBCfkRvrApUD0wcMGsT3NOjEkI/Rwtricz29UOD1xBIl7v30
-         v0fkqcHy1foPkA+HA/aA1CU4yQxyUapT0GE29Mm6fIE9AncLe2OvE00ystMsDvUwJYf6
-         H9Sw==
+        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1773115957; x=1773720757; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hd9WITGTfZMmF50vVhRRIlc8xfNwmhxO8/IloUAk6b8=;
+        b=CZb/l0vI76QAlpv5ojoQW6OMe5/z5eHGRbyOld2whKhs2wdXGHWGgoSfYChBEEClpj
+         4mJbhs2l+jf5TXk9s2o22JQWP3abdJ6N1JMnhpMcFXMS5/u2eLRUmdorhHDVXM79HVbl
+         lYwrG3wry48YaQ+I6VUhxvmGB0y3mVpWVVmik3FwlHD4sFG2ASYkYrlHuqO6ccDs535G
+         LWACjjsZD/zecBT4mT6jwGech7Cea6k5dXxo0N05VzqXd8FOXEmWParCWIEPbeohSqA7
+         VTXXtB7f6A0FTIr1WDGKUz6WnKSQl4Y2XqtQJq73ccgi7X3K40Ou1xxTP2YTkYmG4lu+
+         dGoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773109700; x=1773714500;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=FNqXzpoDjQhlUjM85ucTPRYtv3WKroaV72IH26TLL7A=;
-        b=GcXjL0egwxut9A41ZS2E81hGPPFxdS75jC3fFi0GWxbQn4DABTwvfsl5z6R+c1LkF1
-         RDHwpL5OymhgkwAafWfDSSoDCLvaPX7ujuQ/6KpPVMGtGm7ASMYX76IYdFW1a+w2CBW0
-         ZwBItX7pBU8VEEo3MyN6mrnbmmI+Wkt+/MVcJBLnvDrxGZNuCTtsNHnZDUfy1P86bxPL
-         +G/KFKk0h3wejRQ2XmmhoxYO+Y1m5UlbZk2eh9y17Ngi5c8fUlZI21qwyNcRGJr0+LkI
-         qPgeujEL7OxbWMat7kSTvjlR8RN3NTFSNrCwGpc9JZe+ZE9L9NbuWq+kfvKfaLDIzBaO
-         kXNA==
-X-Forwarded-Encrypted: i=1; AJvYcCUBkouxulqqHGJzjbgL/Yx89z021+zRpjNKC6WWKab/dpN/DGtQZFvmNN6yNRGTBLArX7HnRRsM@lists.infradead.org
-X-Gm-Message-State: AOJu0YxHcgK0ep00a1rSfSiz8cDKFtkp8Dwi4cimLPig/Ai+/btiY69l
-	wByhGC/bB+gnwPq1DvdUJmHcO/9CjNz4zUloTVcEeqtQx/6/BBbpzBHX
-X-Gm-Gg: ATEYQzw+SOIvPWo26Bk4BY+7eYiDNvawcipIHUK0HxR3vRnqjZ5YxaC+I7ivG4NnSFJ
-	qEeUyxRaaBSmiMnC2AAUk5TcH3Xhrb+LCZAvFS+683QFCUzK9Wa+i13TeckbuUEKoJVQzzjNTcn
-	z0+5fkxnstaLLfnfCyV6u2y43JeR5CD6MRyVFMazn69rGPitlmoKocX3sfjgrSMKhndtyLQCH4L
-	wWqCtYkigMOUrdvGqGyNhXbm+gvBPym3NMzykTWQsM8oFj9guioZ+duTVH64ZJt2gkaNWQ2pIUx
-	wrGA4kpiuE6DcVHWqSvo8QXNa3PcAEHydEvr5J5QB1ZA7YVjO+XvTiQwZSs5nWiYYeWCveZTPPa
-	siGrQinlZ5ObruBKQ4AE5w/bk7Vzx7GYcINj1CuacAu4Ak5ukhaBCRNmiqWBQ8aDCJb24bPmfcl
-	EkmuPvDaJJDrNkWh9DD9S5ljVOBIUkeJ/xFd832qPw5kLfnc36/qvFgJRBTe6150VM
-X-Received: by 2002:a17:903:189:b0:2ae:47c9:68c0 with SMTP id d9443c01a7336-2ae824fe082mr137955315ad.40.1773109699902;
-        Mon, 09 Mar 2026 19:28:19 -0700 (PDT)
-Received: from localhost (103.95.112.190.qld.leaptel.network. [103.95.112.190])
-        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2ae83e57b14sm170989405ad.19.2026.03.09.19.28.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Mar 2026 19:28:18 -0700 (PDT)
-Date: Tue, 10 Mar 2026 12:28:15 +1000
-From: Nicholas Piggin <npiggin@gmail.com>
-To: Radim Krcmar <rkrcmar@qti.qualcomm.com>
-Cc: Nylon Chen <nylon.chen@sifive.com>, 
-	"opensbi@lists.infradead.org" <opensbi@lists.infradead.org>, Zong Li <zong.li@sifive.com>, Nick Hu <nick.hu@sifive.com>, 
-	Samuel Holland <samuel.holland@sifive.com>, Yong-Xuan Wang <yongxuan.wang@sifive.com>, 
-	opensbi <opensbi-bounces@lists.infradead.org>, Evgeny Voevodin <evvoevod@oss.tenstorrent.com>
-Subject: Re: [PATCH 2/3] lib: sbi: Enable Smrnmi extension handler
-Message-ID: <ajsifrry25y4ogzupvkl4bplklqppquexfw4erorqsn3nlmtpy@b3qqdlrgd3kd>
-References: <20260129-smrnmi-v3-v1-0-5d297d3e2027@sifive.com>
- <20260129-smrnmi-v3-v1-2-5d297d3e2027@sifive.com>
- <DG4KXRI812NK.1R8OG8O0MZ5A2@qti.qualcomm.com>
+        d=1e100.net; s=20230601; t=1773115957; x=1773720757;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=hd9WITGTfZMmF50vVhRRIlc8xfNwmhxO8/IloUAk6b8=;
+        b=QhelNKdWKtuISecGHPB3zu/PWy7U5O4wQzMgb1JXOFLCMz+C0nKCFlVP3W7ue8f0zc
+         ZPCBUnHdH4QuoJq8fTPxAg2p9id7cT2O7kG9NqoH/treSn4r2G5tYsPLoT/zXPkveMMc
+         GuSb9T1ewxX0H28EBI4fzWfLBSJgeQOdGB6lI9xPJjLHcRq2+k4k2yilmNAsuE21qd3d
+         GYpcGg3IG27ZxHNK0NoZ24A/vmL3FXK432sR/RqD/VddR7CnOt44M65it1EHNRwvZHCQ
+         1SjWx24Cla6jT16l5qfGYrYnlBK315IrISnepil4ycBTSF1nTOHO5wVM1FhhtgLnpTJD
+         z3pw==
+X-Forwarded-Encrypted: i=1; AJvYcCWnpkhf1u2aIWIDPNW+J/SkJHOhS+RoseABh6JIeWUPU4WZQQ4btU3XM5aOI0E98cd+V6tcVnSI@lists.infradead.org
+X-Gm-Message-State: AOJu0YzfkNMZzSF0dvfK0aLbdD3E47AoHoAkUE19BlYovBIGCGPzlYH9
+	0SU603JFnYw6GKTv1xI0E7dgt+tC80upVxuIAZvG7REyY/NwCKsV8YGrBI+jl2bIEFY8UOHPlsV
+	P6yE8xC26EL4Q8uksT0UBdMDgWcPekSR5ZXvshaICtQ==
+X-Gm-Gg: ATEYQzz1Jjz7kR9iTuUDXmIXdWegqRjNwin8ov6fqi+99AVa05/RXcFuzshCfw9kylx
+	WmwIlPhdtZhPambbAIbKRjW5VrqKULqe/QPWknr/kpS2SFG6UXi2wv7uCeeybHVWFKF1PsyYJDf
+	EYQFoQMcZyEWD54TqN1RUmN9G/iESh//6FDa+I+AUiXghDlt+aHLmkQFNgznJunOn9Sh6pTa9tS
+	qWXsSCx8bEWcAvmQsP+BP1S80HxMHCVd8wxJptOpfuk9yiSY8BnZgmvP6pfbQmQzP2MtU3zVLEB
+	jKpAq0mAgS4cF2ONdIEF/QiPHkLc9rV89HCIiwEUX34Up6rshwsJuoZxzXy/KzXP5yEp0S8c0+n
+	GFc/HFCquh17OXiaNN6+OmmEOAg==
+X-Received: by 2002:a05:6820:814:b0:67b:bb3c:c8a with SMTP id
+ 006d021491bc7-67bbb3c126amr1689417eaf.36.1773115957207; Mon, 09 Mar 2026
+ 21:12:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <DG4KXRI812NK.1R8OG8O0MZ5A2@qti.qualcomm.com>
+References: <20260129-smrnmi-v3-v1-0-5d297d3e2027@sifive.com>
+ <20260129-smrnmi-v3-v1-2-5d297d3e2027@sifive.com> <DG4KXRI812NK.1R8OG8O0MZ5A2@qti.qualcomm.com>
+ <ajsifrry25y4ogzupvkl4bplklqppquexfw4erorqsn3nlmtpy@b3qqdlrgd3kd>
+In-Reply-To: <ajsifrry25y4ogzupvkl4bplklqppquexfw4erorqsn3nlmtpy@b3qqdlrgd3kd>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 10 Mar 2026 09:42:26 +0530
+X-Gm-Features: AaiRm50BlFhGkbJsc7r59Z6KGWhNi59_JK2ZRX5NuzvSksAiP7c62gCkkL574lY
+Message-ID: <CAAhSdy0A+uvKypXifa9rr2Y9NXAayg8UWbcKOXErh_r-7xtjZQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] lib: sbi: Enable Smrnmi extension handler
+To: Nicholas Piggin <npiggin@gmail.com>
+Cc: Radim Krcmar <rkrcmar@qti.qualcomm.com>, Nylon Chen <nylon.chen@sifive.com>, 
+	"opensbi@lists.infradead.org" <opensbi@lists.infradead.org>, Zong Li <zong.li@sifive.com>, 
+	Nick Hu <nick.hu@sifive.com>, Samuel Holland <samuel.holland@sifive.com>, 
+	Yong-Xuan Wang <yongxuan.wang@sifive.com>, opensbi <opensbi-bounces@lists.infradead.org>, 
+	Evgeny Voevodin <evvoevod@oss.tenstorrent.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260309_192820_897957_EE3461EF 
-X-CRM114-Status: GOOD (  23.49  )
+X-CRM114-CacheID: sfid-20260309_211239_086746_C217ACA9 
+X-CRM114-Status: GOOD (  30.78  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,75 +117,69 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Mon, Feb 02, 2026 at 03:26:33PM +0000, Radim Krcmar wrote:
-> 2026-01-29T00:13:42-08:00, Nylon Chen <nylon.chen@sifive.com>:
-> > Enable the Smrnmi extension by:
-> > 1. Adding sbi_rnmi_vector_init() to allocate per-HART RNMI context and enable RNMI via MNSTATUS.NMIE
-> > 2. Saving and restoring CSR_MNSCRATCH and CSR_MNSTATUS across non-retentive suspend/resume
-> > 3. Calling sbi_rnmi_vector_init() from the cold and warm init paths
-> >
-> > Co-developed-by: Zong Li <zong.li@sifive.com>
-> > Signed-off-by: Zong Li <zong.li@sifive.com>
-> > Suggested-by: Nick Hu <nick.hu@sifive.com>
-> > Suggested-by: Samuel Holland <samuel.holland@sifive.com>
-> > Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
-> > Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
-> > ---
-> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-> > @@ -149,6 +149,15 @@ struct sbi_platform_operations {
-> >  			unsigned long log2len);
-> >  	/** platform specific pmp disable on current HART */
-> >  	void (*pmp_disable)(unsigned int n);
-> > +	/**
-> > +	 * Platform-specific helper to program the RNMI trap vector.
-> > +	 *
-> > +	 * The core will call this from sbi_rnmi_vector_init() with the
-> > +	 * firmware RNMI handler entry address (rnmi_handler) and the
-> > +	 * cold_boot flag. Platforms that support Smrnmi should implement
-> > +	 * this; others can leave it NULL.
-> > +	 */
-> 
-> If the hart supports Smrnmi, then it begins with nmstatus.NMIE=0, which
-> means that any exception is going to enter a critical state.
-> The platform must somehow support Smrnmi to be useful, and I think it
-> would be better not to do it behind opensbi's back.
-> 
-> If the platform wants to handle Smrnmi itself, it can hide Smrnmi from
-> opensbi, so I think the requirement here would be better as MUST.
-> 
-> > +	int (*set_rnmi_trap_vector)(uintptr_t handler_addr, bool cold_boot);
-> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-> > @@ -273,6 +273,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
-> >  	if (rc)
-> >  		sbi_hart_hang();
-> >  
-> > +	rc = sbi_rnmi_vector_init(scratch, true);
-> 
-> Are we sure that earlier opensbi code won't try to trigger a trap before
-> this point?  OpenSBI would fail to boot if it did...
-
-This appears to come right after sbi_hart_init() which does a bunch of
-CSR detection using traps, so I'm not sure if it can work.
-
-Evgeny (+cc) has been doing a lot of work to enable Smrnmi on Ascalon
-and unfortunately we did not see there is this duplicate work happening
-upstream. His changes also has a few other things such as RNMI exception
-vector setting, permits a platform specific handler, and has an Ascalon
-platform implementation.
-
-So I asked him to post what he has. The intention is not to disregard
-this series, but to just show what he has. Hopefully the best of both
-can be used.
-
-Thanks,
-Nick
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gVHVlLCBNYXIgMTAsIDIwMjYgYXQgNzo1OOKAr0FNIE5pY2hvbGFzIFBpZ2dpbiA8bnBpZ2dp
+bkBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCBGZWIgMDIsIDIwMjYgYXQgMDM6MjY6MzNQ
+TSArMDAwMCwgUmFkaW0gS3JjbWFyIHdyb3RlOgo+ID4gMjAyNi0wMS0yOVQwMDoxMzo0Mi0wODow
+MCwgTnlsb24gQ2hlbiA8bnlsb24uY2hlbkBzaWZpdmUuY29tPjoKPiA+ID4gRW5hYmxlIHRoZSBT
+bXJubWkgZXh0ZW5zaW9uIGJ5Ogo+ID4gPiAxLiBBZGRpbmcgc2JpX3JubWlfdmVjdG9yX2luaXQo
+KSB0byBhbGxvY2F0ZSBwZXItSEFSVCBSTk1JIGNvbnRleHQgYW5kIGVuYWJsZSBSTk1JIHZpYSBN
+TlNUQVRVUy5OTUlFCj4gPiA+IDIuIFNhdmluZyBhbmQgcmVzdG9yaW5nIENTUl9NTlNDUkFUQ0gg
+YW5kIENTUl9NTlNUQVRVUyBhY3Jvc3Mgbm9uLXJldGVudGl2ZSBzdXNwZW5kL3Jlc3VtZQo+ID4g
+PiAzLiBDYWxsaW5nIHNiaV9ybm1pX3ZlY3Rvcl9pbml0KCkgZnJvbSB0aGUgY29sZCBhbmQgd2Fy
+bSBpbml0IHBhdGhzCj4gPiA+Cj4gPiA+IENvLWRldmVsb3BlZC1ieTogWm9uZyBMaSA8em9uZy5s
+aUBzaWZpdmUuY29tPgo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBab25nIExpIDx6b25nLmxpQHNpZml2
+ZS5jb20+Cj4gPiA+IFN1Z2dlc3RlZC1ieTogTmljayBIdSA8bmljay5odUBzaWZpdmUuY29tPgo+
+ID4gPiBTdWdnZXN0ZWQtYnk6IFNhbXVlbCBIb2xsYW5kIDxzYW11ZWwuaG9sbGFuZEBzaWZpdmUu
+Y29tPgo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBOeWxvbiBDaGVuIDxueWxvbi5jaGVuQHNpZml2ZS5j
+b20+Cj4gPiA+IFNpZ25lZC1vZmYtYnk6IFlvbmctWHVhbiBXYW5nIDx5b25neHVhbi53YW5nQHNp
+Zml2ZS5jb20+Cj4gPiA+IC0tLQo+ID4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmkvc2JpX3Bs
+YXRmb3JtLmggYi9pbmNsdWRlL3NiaS9zYmlfcGxhdGZvcm0uaAo+ID4gPiBAQCAtMTQ5LDYgKzE0
+OSwxNSBAQCBzdHJ1Y3Qgc2JpX3BsYXRmb3JtX29wZXJhdGlvbnMgewo+ID4gPiAgICAgICAgICAg
+ICAgICAgICAgIHVuc2lnbmVkIGxvbmcgbG9nMmxlbik7Cj4gPiA+ICAgICAvKiogcGxhdGZvcm0g
+c3BlY2lmaWMgcG1wIGRpc2FibGUgb24gY3VycmVudCBIQVJUICovCj4gPiA+ICAgICB2b2lkICgq
+cG1wX2Rpc2FibGUpKHVuc2lnbmVkIGludCBuKTsKPiA+ID4gKyAgIC8qKgo+ID4gPiArICAgICog
+UGxhdGZvcm0tc3BlY2lmaWMgaGVscGVyIHRvIHByb2dyYW0gdGhlIFJOTUkgdHJhcCB2ZWN0b3Iu
+Cj4gPiA+ICsgICAgKgo+ID4gPiArICAgICogVGhlIGNvcmUgd2lsbCBjYWxsIHRoaXMgZnJvbSBz
+Ymlfcm5taV92ZWN0b3JfaW5pdCgpIHdpdGggdGhlCj4gPiA+ICsgICAgKiBmaXJtd2FyZSBSTk1J
+IGhhbmRsZXIgZW50cnkgYWRkcmVzcyAocm5taV9oYW5kbGVyKSBhbmQgdGhlCj4gPiA+ICsgICAg
+KiBjb2xkX2Jvb3QgZmxhZy4gUGxhdGZvcm1zIHRoYXQgc3VwcG9ydCBTbXJubWkgc2hvdWxkIGlt
+cGxlbWVudAo+ID4gPiArICAgICogdGhpczsgb3RoZXJzIGNhbiBsZWF2ZSBpdCBOVUxMLgo+ID4g
+PiArICAgICovCj4gPgo+ID4gSWYgdGhlIGhhcnQgc3VwcG9ydHMgU21ybm1pLCB0aGVuIGl0IGJl
+Z2lucyB3aXRoIG5tc3RhdHVzLk5NSUU9MCwgd2hpY2gKPiA+IG1lYW5zIHRoYXQgYW55IGV4Y2Vw
+dGlvbiBpcyBnb2luZyB0byBlbnRlciBhIGNyaXRpY2FsIHN0YXRlLgo+ID4gVGhlIHBsYXRmb3Jt
+IG11c3Qgc29tZWhvdyBzdXBwb3J0IFNtcm5taSB0byBiZSB1c2VmdWwsIGFuZCBJIHRoaW5rIGl0
+Cj4gPiB3b3VsZCBiZSBiZXR0ZXIgbm90IHRvIGRvIGl0IGJlaGluZCBvcGVuc2JpJ3MgYmFjay4K
+PiA+Cj4gPiBJZiB0aGUgcGxhdGZvcm0gd2FudHMgdG8gaGFuZGxlIFNtcm5taSBpdHNlbGYsIGl0
+IGNhbiBoaWRlIFNtcm5taSBmcm9tCj4gPiBvcGVuc2JpLCBzbyBJIHRoaW5rIHRoZSByZXF1aXJl
+bWVudCBoZXJlIHdvdWxkIGJlIGJldHRlciBhcyBNVVNULgo+ID4KPiA+ID4gKyAgIGludCAoKnNl
+dF9ybm1pX3RyYXBfdmVjdG9yKSh1aW50cHRyX3QgaGFuZGxlcl9hZGRyLCBib29sIGNvbGRfYm9v
+dCk7Cj4gPiA+IGRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9pbml0LmMgYi9saWIvc2JpL3NiaV9p
+bml0LmMKPiA+ID4gQEAgLTI3Myw2ICsyNzMsMTAgQEAgc3RhdGljIHZvaWQgX19ub3JldHVybiBp
+bml0X2NvbGRib290KHN0cnVjdCBzYmlfc2NyYXRjaCAqc2NyYXRjaCwgdTMyIGhhcnRpZCkKPiA+
+ID4gICAgIGlmIChyYykKPiA+ID4gICAgICAgICAgICAgc2JpX2hhcnRfaGFuZygpOwo+ID4gPgo+
+ID4gPiArICAgcmMgPSBzYmlfcm5taV92ZWN0b3JfaW5pdChzY3JhdGNoLCB0cnVlKTsKPiA+Cj4g
+PiBBcmUgd2Ugc3VyZSB0aGF0IGVhcmxpZXIgb3BlbnNiaSBjb2RlIHdvbid0IHRyeSB0byB0cmln
+Z2VyIGEgdHJhcCBiZWZvcmUKPiA+IHRoaXMgcG9pbnQ/ICBPcGVuU0JJIHdvdWxkIGZhaWwgdG8g
+Ym9vdCBpZiBpdCBkaWQuLi4KPgo+IFRoaXMgYXBwZWFycyB0byBjb21lIHJpZ2h0IGFmdGVyIHNi
+aV9oYXJ0X2luaXQoKSB3aGljaCBkb2VzIGEgYnVuY2ggb2YKPiBDU1IgZGV0ZWN0aW9uIHVzaW5n
+IHRyYXBzLCBzbyBJJ20gbm90IHN1cmUgaWYgaXQgY2FuIHdvcmsuCgpXaHkgbm90ID8KCj4KPiBF
+dmdlbnkgKCtjYykgaGFzIGJlZW4gZG9pbmcgYSBsb3Qgb2Ygd29yayB0byBlbmFibGUgU21ybm1p
+IG9uIEFzY2Fsb24KPiBhbmQgdW5mb3J0dW5hdGVseSB3ZSBkaWQgbm90IHNlZSB0aGVyZSBpcyB0
+aGlzIGR1cGxpY2F0ZSB3b3JrIGhhcHBlbmluZwo+IHVwc3RyZWFtLiBIaXMgY2hhbmdlcyBhbHNv
+IGhhcyBhIGZldyBvdGhlciB0aGluZ3Mgc3VjaCBhcyBSTk1JIGV4Y2VwdGlvbgo+IHZlY3RvciBz
+ZXR0aW5nLCBwZXJtaXRzIGEgcGxhdGZvcm0gc3BlY2lmaWMgaGFuZGxlciwgYW5kIGhhcyBhbiBB
+c2NhbG9uCj4gcGxhdGZvcm0gaW1wbGVtZW50YXRpb24uCgpUaGlzIGlzIGV4YWN0bHkgd2h5IHVw
+c3RyZWFtaW5nIHNob3VsZCBiZSBwcmlvcml0aXplZCBzbyB0aGF0IHBlb3BsZQpjYW4gbGV2ZXJh
+Z2UgZWFjaCBvdGhlcnMgd29yay4KCj4KPiBTbyBJIGFza2VkIGhpbSB0byBwb3N0IHdoYXQgaGUg
+aGFzLiBUaGUgaW50ZW50aW9uIGlzIG5vdCB0byBkaXNyZWdhcmQKPiB0aGlzIHNlcmllcywgYnV0
+IHRvIGp1c3Qgc2hvdyB3aGF0IGhlIGhhcy4gSG9wZWZ1bGx5IHRoZSBiZXN0IG9mIGJvdGgKPiBj
+YW4gYmUgdXNlZC4KPgo+IFRoYW5rcywKPiBOaWNrCj4KPiAtLQo+IG9wZW5zYmkgbWFpbGluZyBs
+aXN0Cj4gb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCj4gaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCgpSZWdhcmRzLApBbnVwCgotLSAKb3BlbnNi
+aSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
