@@ -4,83 +4,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2395EFCC9A6
-	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 00:50:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 69DBFFCC9A2
+	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 00:50:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=gdt6S/Gx/90APKTKz1caC+MoacsAfYpWS2+cpEfYMqs=; b=OfUd8EEbvx48XZ
-	Z8pSgzvPS5HFMujC2XSsiPvkk2/OFudjRKl/nUVDgYimlABmBnWTCtcv+nAGhHTiAgeRDQWji4nEL
-	GQjlUEbDSPfuDEm9mPWO+YQShY8OIrnm4xGxzqqwvbi6Vzdj8sdw7OdGifbgpVz+cOEPqN9lRNxPe
-	i0kqbZPRwqwGbmNbwVQRqiw9YbwDwFWwBDD2H2gP1C7TTcdsfr89iUtHaPHfY6KQ7lH8gDMdA2NW0
-	i+mfsm4UwQlGgYNxGdjM/1FZ0Abb8TFqdrqMgOOl0JootKXz/gP1+pT/tzan38GzT/NZS+RouNJF4
-	u8+b0KYOcJQrloZTmRAg==;
+	List-Owner; bh=/iSYjAqECy8oJIAoIzm8u9zX8yt7Uak0Iwq4vH84GNg=; b=X+/UYNJSo7bIQ9
+	hBevZRtZWsydLJFhQG5ev6ZuLFF+FIZXm2KiPkzT2iG54IiTaXBtlL9BA0ncPWqxEidQOd5xwuIhg
+	KKzTY8Ok6sE3dOivTY0YV06cLXav5WM7cxkt+VVledyHPPJAqe8hXlZRVEDvuADUEP8cMPRM/CWd/
+	SKvoKIzL5DLGbS8ZyCRnz7+lCnG3cgRypJcYQb2AHQHfdnJYtOttGfNq7qGiRrpunADsz8OoLO7ww
+	KHads9iaK0VQFekBkqbJyhm+EqFWClvgnx+FqmfQhnxh5VJE+IuaCFMWej8MFwIJq1kyicqpuvK9s
+	+7EX0QASzWgbsP7n49sQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzlJ4-00000008QNN-1GOx;
-	Tue, 10 Mar 2026 00:50:42 +0000
-Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
+	id 1vzlJ6-00000008QO4-0Ko8;
+	Tue, 10 Mar 2026 00:50:44 +0000
+Received: from mail-pf1-x436.google.com ([2607:f8b0:4864:20::436])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzlJ1-00000008QMG-1WFr
+	id 1vzlJ4-00000008QNH-11fc
 	for opensbi@lists.infradead.org;
-	Tue, 10 Mar 2026 00:50:40 +0000
-Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-829a9d08644so2002881b3a.1
-        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 17:50:39 -0700 (PDT)
+	Tue, 10 Mar 2026 00:50:43 +0000
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-82990763921so4292803b3a.1
+        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 17:50:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773103838; x=1773708638; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1773103841; x=1773708641; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Dv0omhBTygLAoRNAJIwaZdwAGCEs22eA353JoTyxvD4=;
-        b=aINDpz3QP9XUk5qruUEFnXeEW7stdz8EjTk/QBezYDNPuaHfFs7fNpkl3u/yFFXYxA
-         BreM6O3k90MkiZgN9wrJslxek5bP6/OdxsIKjF+juAY/r3n8QLQ6SFaM6QLVBHqFXG9h
-         SSB0mYxNziAEDAsAIGXAU2eHqauH4BW4oht0iS3cpZiWmUhrTdyrLKGgKOZAjKk8rUZJ
-         Zp7gGsQB+SZKHJXQ/ZfYtaxNEDFMaud0BpO06V2GRjtJzABNMALKGhggkNK81GVseduG
-         OuY7y98+RWHrSqBkJEo/x77LKYgiWXGtCKGG+jP5VNcD7ob+xrjlDYtfub6P3ZXu0pcH
-         evuA==
+        bh=FHMoAVgnPBDu7Hjs9PV1/3/jRPO16v3SxHNq0hsfqQQ=;
+        b=apL2JPWgP86GYnlAWBEtzTSwMBXHQbzPFxX7hQ2JwVWyg9TXONODMujqsIGNL8dZPK
+         P5FtI5dhSQTmgOCufIOLcfJ8sJxd10R03wSUJsVjMzyVd+ePZPQcS7sC1Jh6uhsgqDKR
+         GoW0rn1FiDbdHCNdIeuHsMCV0GbwbPMkHNBwj10bHOgKdQM84ZVDYxe83DZEGvcrchSX
+         r2VeIpICAtH6QKwLLNyTDj635FRtOoCxWhb7lBRMnYD1/zNvQrUCBoO0MkVpH/zr59bn
+         2IvsnnpzkKj0HKexsJSt6PrJAnZSUQQPZQj2w1G9NqYalMWh91quBY2dYgmlB0uhR69Q
+         7O7w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773103838; x=1773708638;
+        d=1e100.net; s=20230601; t=1773103841; x=1773708641;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Dv0omhBTygLAoRNAJIwaZdwAGCEs22eA353JoTyxvD4=;
-        b=a2D5qw+k9HTmRCxn8CEVjqObp7rI1A7Bu6/uwUvh1XuAOoAQLHSUV0kIjgX8+w4Nb1
-         e4OeiWkM8R7tgnAXuHKsJriC1IanS/fw3lCm8t39FpaT4HflJR94YLW53zpQgg26G80M
-         3pxejq/088iahuO+rlc590lj4MyY2Va97z2FqvHJfHtvSN0nv5Tz4HUGUmH0uJiXAkxS
-         8fXBR3IHTfWLj42ZVn1R+GmkyVaigAsrqLXeAfCqLTRi+1KA1m8f6btPsHA8TtSJtLXx
-         C5MqnTg6l2jI2OSxf5284AYCdwiA8BU+kVPfbBxWgoLirmzCSNM+VV+mjNpiTmo+CRGR
-         fNNg==
-X-Gm-Message-State: AOJu0YwLZzG+gaerjq1iyVOeL8w5auKg9EX+aoNAnQ5WRp4Sa2BPhnH4
-	R1NxORexxhwF8TvsAy34BKTdXtMIoDMvqir/KAwXSMC6bwZTllnWZu7JHfU3Mg==
-X-Gm-Gg: ATEYQzxqmITKPwVG8xMfdiFOwXTQwVHC8yD91T6OLUoA5Sdb6I9rD4UeTv0yD2mhOuy
-	4kMxahKFTrSknYkrtWyCJcoKf4NVnXqZPGhXMOE1tcnIxBaOzWJVvl2Mcm7n1HobyAuCP+4lqcr
-	TkbPC4kF18h41brrHXPOpgbic1T7GzjrkIlChaDJwfOaogx2HDyEgOEFFdAnwsENWq0oLH6h7uB
-	6+W1B6iZ8ZNlYq7GbCxdfGPrr3Bx0UW+ueK8D5SaZ5z+PFtyzuASTNysFLlKZKXEtF8UeWuPR4T
-	1M6y6bv6VXiByOUucKiZzvjcxT0t8h7wSQJyAPlIxXxmGwOPeNsklUdHtvsmORfLtnw+1BmgelE
-	cZNmUxw+q67bg5h46bfnZH43MBWTtX3Qkdmck7irpBhisjb23qV7SClcftIwyUw71sX/B48We9L
-	e+P44ofm83XLlgpdJyxmhHv/ua8oY8MwmMNUuin1yfJON1i91kLUkNJO3vlQRrwFGdiU/4
-X-Received: by 2002:a05:6a21:180a:b0:398:7791:fb16 with SMTP id adf61e73a8af0-3987791fdf9mr7249769637.57.1773103837861;
-        Mon, 09 Mar 2026 17:50:37 -0700 (PDT)
+        bh=FHMoAVgnPBDu7Hjs9PV1/3/jRPO16v3SxHNq0hsfqQQ=;
+        b=qh/4wQ1tdZy3EUJdm1qdr3THHL0mpBnp7g7CRHjbWD5gvNm+2zr2begX8Wcy53lnQ5
+         M3jDQJ5B+RGIdA16sqKC1GH3ZpRTyEcoEZYHdPROkQl/tN15817dr9RVO8Ic3+36u+d7
+         ueBaLyLyaM51SgRmilAcEpzeqXZvMPzhwZm9nvJ38DcqxnEVmLE7ZFb9X+klCLwNuVoR
+         eYSg9lfCzfeNxUrbVwTa74BVYxFnF4x4DxNPDWrtNtonxzcCxBAFz/k4klguMLwFEbRY
+         MEj0CMbjnkzpbyLMSBQd8F1BkMewnydY80ngZkFeV3ffPp4rQ1fcjMpDRMCfF9u4sLB0
+         UrfA==
+X-Gm-Message-State: AOJu0YxTkHNK5kw/Z7xUnntIaDC8IqWpdb0+WpNzM2WLu0exekohdZfy
+	BBGnZfb2HyrW9qVpaDOgeyIVZu67wjO210sySGbeSGSzIb3OAOOxWv4v+/3ZaQ==
+X-Gm-Gg: ATEYQzy5QQzCfO77FLXD+lEhNQf4M44erndWaQT9lLk/PRK/68ffCEOv0l2nEuOzHs4
+	bJGef0EaKho9V2NAcM0JgmOouvDkfkoHFubsk+Hg1DoWR3ZQrS4To1AzvQgP/117yaYX2+DZXEV
+	sWUqE5CcbiIPQHePrPwDheY28wpaJGKEL4MEseCIYXImRfuwzf60588thDBMnIbToWM6R0e1RRZ
+	lo63WuP4SewUOgFQBhQxBc75NN+cBhJSjurTtwe+Mll7jwN+YTIILHNIy6c5g1409QNKm5oaRRP
+	HyGM3PvnA4mziUE/9Lsi9zWudj5kRNuR0ojjnDY+f9Bd6Xo5BCjj74YgGqtsRc9lfMI/bpAZxyX
+	H+7tbtIz1kKWD/fCvt1ebjhuUrXdqrkRV9gUhrWPsDYq3S/evf76x6o6Uu/wilMRDPq+HkYC6Gq
+	AZNMiehWxcfFi/9Do5GsS067VsbC+rOIo91LzF56nf9WxeyOeQ0iBQsCVR4Q6hzjyTx5mt
+X-Received: by 2002:a05:6a00:759b:b0:829:8e63:fca0 with SMTP id d2e1a72fcca58-829a2f7ac82mr9502906b3a.35.1773103840884;
+        Mon, 09 Mar 2026 17:50:40 -0700 (PDT)
 Received: from lima-default (103.95.112.190.qld.leaptel.network. [103.95.112.190])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829a46765a6sm11357635b3a.29.2026.03.09.17.50.35
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829a46765a6sm11357635b3a.29.2026.03.09.17.50.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Mar 2026 17:50:37 -0700 (PDT)
+        Mon, 09 Mar 2026 17:50:40 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH 2/4] lib: sbi: Move PMP encoding into a new file
-Date: Tue, 10 Mar 2026 10:49:55 +1000
-Message-ID: <20260310005000.3837512-2-npiggin@gmail.com>
+Subject: [PATCH 3/4] lib: sbi: Add hart_ prefix to PMP functions
+Date: Tue, 10 Mar 2026 10:49:56 +1000
+Message-ID: <20260310005000.3837512-3-npiggin@gmail.com>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260310005000.3837512-1-npiggin@gmail.com>
 References: <20260310005000.3837512-1-npiggin@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260309_175039_430649_0F024B5E 
-X-CRM114-Status: GOOD (  23.78  )
+X-CRM114-CacheID: sfid-20260309_175042_305796_8253B3CB 
+X-CRM114-Status: GOOD (  15.91  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,385 +97,236 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The Tenstorrent RISC-V IOMMU PMP MMRs use the same encoding as PMP CSRs.
-In preparation to support it, move the non hart-specific PMP operations
-into their own file where they will also be used to build the IOMMU
-PMPs.
+Give PMP functions that deal with HART CSRs a hart_ prefix, to help
+distinguish from general PMP encoding functions that will be shared by
+the Tenstorrent IOMMU.
 
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
- include/sbi/riscv_asm.h |   2 +-
- include/sbi/sbi_pmp.h   |  24 +++++++
- lib/sbi/objects.mk      |   1 +
- lib/sbi/riscv_asm.c     | 156 ++++++++++++----------------------------
- lib/sbi/sbi_pmp.c       |  91 +++++++++++++++++++++++
- 5 files changed, 164 insertions(+), 110 deletions(-)
- create mode 100644 include/sbi/sbi_pmp.h
- create mode 100644 lib/sbi/sbi_pmp.c
+ include/sbi/riscv_asm.h          |  8 +++----
+ lib/sbi/riscv_asm.c              | 10 ++++-----
+ lib/sbi/sbi_hart_pmp.c           | 14 ++++++-------
+ platform/generic/eswin/eic770x.c | 36 ++++++++++++++++----------------
+ 4 files changed, 34 insertions(+), 34 deletions(-)
 
 diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
-index 0cf3fc37..b97e1880 100644
+index b97e1880..14bc35e5 100644
 --- a/include/sbi/riscv_asm.h
 +++ b/include/sbi/riscv_asm.h
-@@ -213,7 +213,7 @@ void misa_string(int xlen, char *out, unsigned int out_sz);
- int pmp_disable(unsigned int n);
+@@ -210,15 +210,15 @@ int misa_xlen(void);
+ void misa_string(int xlen, char *out, unsigned int out_sz);
+ 
+ /* Disable pmp entry at a given index */
+-int pmp_disable(unsigned int n);
++int hart_pmp_disable(unsigned int n);
  
  /* Check if the matching field is set */
--int is_pmp_entry_mapped(unsigned long entry);
-+int is_pmp_entry_mapped(unsigned int entry);
+-int is_pmp_entry_mapped(unsigned int entry);
++int hart_is_pmp_enabled(unsigned int n);
  
- int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+-int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
++int hart_pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
  	    unsigned long log2len);
-diff --git a/include/sbi/sbi_pmp.h b/include/sbi/sbi_pmp.h
-new file mode 100644
-index 00000000..66664bb0
---- /dev/null
-+++ b/include/sbi/sbi_pmp.h
-@@ -0,0 +1,24 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#ifndef __SBI_PMP_H__
-+#define __SBI_PMP_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+struct pmp {
-+	u8	cfg;
-+	u64	addr;
-+};
-+typedef struct pmp pmp_t;
-+
-+bool pmp_enabled(pmp_t *pmp);
-+
-+int pmp_create(pmp_t *pmp, unsigned long prot, unsigned long addr,
-+	    unsigned long log2len);
-+int pmp_decode(pmp_t *pmp, unsigned long *prot, unsigned long *addr,
-+	    unsigned long *log2len);
-+
-+#endif
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 07d13229..0e29a277 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -87,6 +87,7 @@ libsbi-objs-y += sbi_init.o
- libsbi-objs-y += sbi_ipi.o
- libsbi-objs-y += sbi_irqchip.o
- libsbi-objs-y += sbi_platform.o
-+libsbi-objs-y += sbi_pmp.o
- libsbi-objs-y += sbi_pmu.o
- libsbi-objs-y += sbi_dbtr.o
- libsbi-objs-y += sbi_mpxy.o
+ 
+-int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
++int hart_pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 	    unsigned long *log2len);
+ 
+ #endif /* !__ASSEMBLER__ */
 diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 3e44320f..c11abb1a 100644
+index c11abb1a..03c8e4d7 100644
 --- a/lib/sbi/riscv_asm.c
 +++ b/lib/sbi/riscv_asm.c
-@@ -12,6 +12,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_pmp.h>
- 
- /* determine CPU extension, return non-zero support */
- int misa_extension_imp(char ext)
-@@ -272,24 +273,9 @@ void csr_write_num(int csr_num, unsigned long val)
- #undef switchcase_csr_write
- }
- 
--static unsigned long ctz(unsigned long x)
-+int hart_pmp_read(unsigned int n, pmp_t *pmp)
- {
--	unsigned long ret = 0;
--
--	if (x == 0)
--		return 8 * sizeof(x);
--
--	while (!(x & 1UL)) {
--		ret++;
--		x = x >> 1;
--	}
--
--	return ret;
--}
--
--int pmp_disable(unsigned int n)
--{
--	int pmpcfg_csr, pmpcfg_shift;
-+	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
- 	unsigned long cfgmask, pmpcfg;
- 
- 	if (n >= PMP_COUNT)
-@@ -304,44 +290,24 @@ int pmp_disable(unsigned int n)
- #else
- # error "Unexpected __riscv_xlen"
- #endif
-+	pmpaddr_csr = CSR_PMPADDR0 + n;
-+	pmp->addr = csr_read_num(pmpaddr_csr);
- 
--	/* Clear the address matching bits to disable the pmp entry */
--	cfgmask = ~(0xffUL << pmpcfg_shift);
--	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
--
--	csr_write_num(pmpcfg_csr, pmpcfg);
-+	cfgmask = (0xffUL << pmpcfg_shift);
-+	pmpcfg = csr_read_num(pmpcfg_csr) & cfgmask;
-+	pmp->cfg = pmpcfg >> pmpcfg_shift;
- 
+@@ -329,23 +329,23 @@ int hart_pmp_write(unsigned int n, pmp_t *pmp)
  	return SBI_OK;
  }
  
--int is_pmp_entry_mapped(unsigned long entry)
--{
--	unsigned long prot;
--	unsigned long addr;
--	unsigned long log2len;
--
--	if (pmp_get(entry, &prot, &addr, &log2len) != 0)
--		return false;
--
--	/* If address matching bits are non-zero, the entry is enable */
--	if (prot & PMP_A)
--		return true;
--
--	return false;
--}
--
--int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
--	    unsigned long log2len)
-+int hart_pmp_write(unsigned int n, pmp_t *pmp)
+-int pmp_disable(unsigned int n)
++int hart_pmp_disable(unsigned int n)
  {
- 	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
- 	unsigned long cfgmask, pmpcfg;
--	unsigned long addrmask, pmpaddr;
+ 	struct pmp pmp = { .cfg = 0, .addr = 0 };
+ 	return hart_pmp_write(n, &pmp);
+ }
  
--	/* check parameters */
--	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
-+	if (n >= PMP_COUNT)
- 		return SBI_EINVAL;
+-int is_pmp_entry_mapped(unsigned int entry)
++int hart_is_pmp_enabled(unsigned int n)
+ {
+ 	pmp_t pmp;
  
--	/* calculate PMP register and offset */
- #if __riscv_xlen == 32
- 	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
- 	pmpcfg_shift = (n & 3) << 3;
-@@ -353,82 +319,54 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- #endif
- 	pmpaddr_csr = CSR_PMPADDR0 + n;
+-	if (hart_pmp_read(entry, &pmp))
++	if (hart_pmp_read(n, &pmp))
+ 		return pmp_enabled(&pmp);
  
--	/* encode PMP config */
--	prot &= ~PMP_A;
--	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
- 	cfgmask = ~(0xffUL << pmpcfg_shift);
- 	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
--	pmpcfg |= ((prot << pmpcfg_shift) & ~cfgmask);
--
--	/* encode PMP address */
--	if (log2len == PMP_SHIFT) {
--		pmpaddr = (addr >> PMP_SHIFT);
--	} else {
--		if (log2len == __riscv_xlen) {
--			pmpaddr = -1UL;
--		} else {
--			addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
--			pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
--			pmpaddr |= (addrmask >> 1);
--		}
--	}
-+	pmpcfg |= (unsigned long)pmp->cfg << pmpcfg_shift;
+ 	return false;
+ }
  
--	/* write csrs */
--	csr_write_num(pmpaddr_csr, pmpaddr);
-+	csr_write_num(pmpaddr_csr, pmp->addr);
- 	csr_write_num(pmpcfg_csr, pmpcfg);
- 
--	return 0;
-+	return SBI_OK;
+-int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
++int hart_pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 	    unsigned long log2len)
+ {
+ 	pmp_t pmp;
+@@ -358,7 +358,7 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 	return hart_pmp_write(n, &pmp);
  }
  
 -int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
--	    unsigned long *log2len)
-+int pmp_disable(unsigned int n)
++int hart_pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 	    unsigned long *log2len)
  {
--	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
--	unsigned long cfgmask, pmpcfg, prot;
--	unsigned long t1, addr, len;
-+	struct pmp pmp = { .cfg = 0, .addr = 0 };
-+	return hart_pmp_write(n, &pmp);
-+}
+ 	pmp_t pmp;
+diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
+index 02a3b3c4..0aa4752f 100644
+--- a/lib/sbi/sbi_hart_pmp.c
++++ b/lib/sbi/sbi_hart_pmp.c
+@@ -100,7 +100,7 @@ static void sbi_hart_smepmp_set(struct sbi_scratch *scratch,
+ 		sbi_platform_pmp_set(sbi_platform_ptr(scratch),
+ 				     pmp_idx, reg->flags, pmp_flags,
+ 				     reg->base, reg->order);
+-		pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
++		hart_pmp_set(pmp_idx, pmp_flags, reg->base, reg->order);
+ 	} else {
+ 		sbi_printf("Can not configure pmp for domain %s because"
+ 			   " memory region address 0x%lx or size 0x%lx "
+@@ -139,7 +139,7 @@ static int sbi_hart_smepmp_configure(struct sbi_scratch *scratch)
+ 	csr_set(CSR_MSECCFG, MSECCFG_RLB);
  
--	/* check parameters */
--	if (n >= PMP_COUNT || !prot_out || !addr_out || !log2len)
--		return SBI_EINVAL;
--	*prot_out = *addr_out = *log2len = 0;
-+int is_pmp_entry_mapped(unsigned int entry)
-+{
-+	pmp_t pmp;
+ 	/* Disable the reserved entry */
+-	pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++	hart_pmp_disable(SBI_SMEPMP_RESV_ENTRY);
  
--	/* calculate PMP register and offset */
--#if __riscv_xlen == 32
--	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--	pmpcfg_shift = (n & 3) << 3;
--#elif __riscv_xlen == 64
--	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
--	pmpcfg_shift = (n & 7) << 3;
--#else
--# error "Unexpected __riscv_xlen"
--#endif
--	pmpaddr_csr = CSR_PMPADDR0 + n;
-+	if (hart_pmp_read(entry, &pmp))
-+		return pmp_enabled(&pmp);
+ 	/* Program M-only regions when MML is not set. */
+ 	pmp_idx = 0;
+@@ -224,7 +224,7 @@ static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
+ 	unsigned int pmp_flags = (PMP_W | PMP_X);
+ 	unsigned long order, base = 0;
  
--	/* decode PMP config */
--	cfgmask = (0xffUL << pmpcfg_shift);
--	pmpcfg	= csr_read_num(pmpcfg_csr) & cfgmask;
--	prot	= pmpcfg >> pmpcfg_shift;
--
--	/* decode PMP address */
--	if ((prot & PMP_A) == PMP_A_NAPOT) {
--		addr = csr_read_num(pmpaddr_csr);
--		if (addr == -1UL) {
--			addr	= 0;
--			len	= __riscv_xlen;
--		} else {
--			t1	= ctz(~addr);
--			addr	= (addr & ~((1UL << t1) - 1)) << PMP_SHIFT;
--			len	= (t1 + PMP_SHIFT + 1);
--		}
--	} else {
--		addr	= csr_read_num(pmpaddr_csr) << PMP_SHIFT;
--		len	= PMP_SHIFT;
--	}
-+	return false;
-+}
-+
-+int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
-+	    unsigned long log2len)
-+{
-+	pmp_t pmp;
-+	int rc;
-+
-+	rc = pmp_create(&pmp, prot, addr, log2len);
-+	if (rc)
-+		return rc;
-+
-+	return hart_pmp_write(n, &pmp);
-+}
-+
-+int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
-+	    unsigned long *log2len)
-+{
-+	pmp_t pmp;
-+	int rc;
+-	if (is_pmp_entry_mapped(SBI_SMEPMP_RESV_ENTRY))
++	if (hart_is_pmp_enabled(SBI_SMEPMP_RESV_ENTRY))
+ 		return SBI_ENOSPC;
  
--	/* return details */
--	*prot_out    = prot;
--	*addr_out    = addr;
--	*log2len     = len;
-+	rc = hart_pmp_read(n, &pmp);
-+	if (rc)
-+		return rc;
+ 	for (order = MAX(sbi_hart_pmp_log2gran(scratch), log2roundup(size));
+@@ -244,7 +244,7 @@ static int sbi_hart_smepmp_map_range(struct sbi_scratch *scratch,
+ 	sbi_platform_pmp_set(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY,
+ 			     SBI_DOMAIN_MEMREGION_SHARED_SURW_MRW,
+ 			     pmp_flags, base, order);
+-	pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
++	hart_pmp_set(SBI_SMEPMP_RESV_ENTRY, pmp_flags, base, order);
  
--	return 0;
-+	return pmp_decode(&pmp, prot_out, addr_out, log2len);
+ 	return SBI_OK;
  }
-diff --git a/lib/sbi/sbi_pmp.c b/lib/sbi/sbi_pmp.c
-new file mode 100644
-index 00000000..22132d81
---- /dev/null
-+++ b/lib/sbi/sbi_pmp.c
-@@ -0,0 +1,91 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2019 Western Digital Corporation or its affiliates.
-+ *
-+ * Authors:
-+ *   Anup Patel <anup.patel@wdc.com>
-+ */
-+
-+#include <sbi/riscv_asm.h>
-+#include <sbi/riscv_encoding.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_pmp.h>
-+
-+bool pmp_enabled(pmp_t *pmp)
-+{
-+	return pmp->cfg & PMP_A;
-+}
-+
-+int pmp_create(pmp_t *pmp, unsigned long prot, unsigned long addr,
-+	    unsigned long log2len)
-+{
-+	unsigned long addrmask, pmpaddr;
-+
-+	/* check parameters */
-+	if (log2len > __riscv_xlen || log2len < PMP_SHIFT)
-+		return SBI_EINVAL;
-+
-+	/* encode PMP config */
-+	prot &= ~PMP_A;
-+	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
-+
-+	/* encode PMP address */
-+	if (log2len == PMP_SHIFT) {
-+		pmpaddr = (addr >> PMP_SHIFT);
-+	} else {
-+		if (log2len == __riscv_xlen) {
-+			pmpaddr = -1UL;
-+		} else {
-+			addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
-+			pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
-+			pmpaddr |= (addrmask >> 1);
-+		}
-+	}
-+
-+	pmp->cfg = prot;
-+	pmp->addr = pmpaddr;
-+
-+	return SBI_OK;
-+}
-+
-+static unsigned long cto(unsigned long x)
-+{
-+	unsigned long ret = 0;
-+
-+	while (x & 1UL) {
-+		ret++;
-+		x = x >> 1;
-+	}
-+
-+	return ret;
-+}
-+
-+int pmp_decode(pmp_t *pmp, unsigned long *prot_out, unsigned long *addr_out,
-+	    unsigned long *log2len)
-+{
-+	/* check parameters */
-+	if (!pmp || !prot_out || !addr_out || !log2len)
-+		return SBI_EINVAL;
-+
-+	if (!pmp_enabled(pmp))
-+		return SBI_EINVAL;
-+
-+	/* decode PMP address */
-+	if ((pmp->cfg & PMP_A) == PMP_A_NAPOT) {
-+		if (pmp->addr == -1UL) {
-+			*addr_out = 0;
-+			*log2len = __riscv_xlen + 3;
-+		} else {
-+			unsigned long mask = ~((1UL << cto(pmp->addr)) - 1);
-+			*addr_out = (pmp->addr & mask) << PMP_SHIFT;
-+			*log2len = (cto(pmp->addr) + PMP_SHIFT + 1);
-+		}
-+	} else {
-+		*addr_out = pmp->addr << PMP_SHIFT;
-+		*log2len = PMP_SHIFT;
-+	}
-+
-+	return SBI_OK;
-+}
+@@ -253,7 +253,7 @@ static int sbi_hart_smepmp_unmap_range(struct sbi_scratch *scratch,
+ 				       unsigned long addr, unsigned long size)
+ {
+ 	sbi_platform_pmp_disable(sbi_platform_ptr(scratch), SBI_SMEPMP_RESV_ENTRY);
+-	return pmp_disable(SBI_SMEPMP_RESV_ENTRY);
++	return hart_pmp_disable(SBI_SMEPMP_RESV_ENTRY);
+ }
+ 
+ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
+@@ -281,7 +281,7 @@ static int sbi_hart_oldpmp_configure(struct sbi_scratch *scratch)
+ 			sbi_platform_pmp_set(sbi_platform_ptr(scratch),
+ 					     pmp_idx, reg->flags, pmp_flags,
+ 					     reg->base, reg->order);
+-			pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
++			hart_pmp_set(pmp_idx++, pmp_flags, reg->base, reg->order);
+ 		} else {
+ 			sbi_printf("Can not configure pmp for domain %s because"
+ 				   " memory region address 0x%lx or size 0x%lx "
+@@ -307,7 +307,7 @@ static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch)
+ 			continue;
+ 
+ 		sbi_platform_pmp_disable(sbi_platform_ptr(scratch), i);
+-		pmp_disable(i);
++		hart_pmp_disable(i);
+ 	}
+ }
+ 
+diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
+index 7330df9f..dfca0c41 100644
+--- a/platform/generic/eswin/eic770x.c
++++ b/platform/generic/eswin/eic770x.c
+@@ -254,21 +254,21 @@ static int eswin_eic7700_final_init(bool cold_boot)
+ 				   __func__);
+ 			return SBI_EFAIL;
+ 		}
+-		pmp_set(pmp_idx++, sbi_domain_get_oldpmp_flags(reg),
+-			reg->base, reg->order);
++		hart_pmp_set(pmp_idx++, sbi_domain_get_oldpmp_flags(reg),
++			     reg->base, reg->order);
+ 	}
+ 
+-	pmp_set(PMP_RESERVED_A, PMP_L, EIC770X_L3_ZERO_REMOTE,
+-			   log2roundup(EIC770X_L3_ZERO_SIZE));
++	hart_pmp_set(PMP_RESERVED_A, PMP_L, EIC770X_L3_ZERO_REMOTE,
++		     log2roundup(EIC770X_L3_ZERO_SIZE));
+ 	/**
+ 	 * Enable P550 internal + System Port, so OpenSBI can access
+ 	 * CLINT/PLIC/UART. Might be overwritten in pmp_configure.
+ 	 */
+-	pmp_set(PMP_FREE_A_START + PMP_FREE_A_COUNT - 1, 0, 0,
+-		log2roundup(EIC770X_MEMPORT_BASE));
++	hart_pmp_set(PMP_FREE_A_START + PMP_FREE_A_COUNT - 1, 0, 0,
++		     log2roundup(EIC770X_MEMPORT_BASE));
+ 
+-	pmp_set(PMP_RESERVED_B, PMP_L, 0,
+-		log2roundup(EIC770X_MEMPORT_LIMIT));
++	hart_pmp_set(PMP_RESERVED_B, PMP_L, 0,
++		     log2roundup(EIC770X_MEMPORT_LIMIT));
+ 	/**
+ 	 * These must come after the setup of PMP, as we are about to
+ 	 * enable speculation and HW prefetcher bits
+@@ -321,13 +321,13 @@ static int eswin_eic7700_pmp_configure(struct sbi_scratch *scratch)
+ 		if (pmp_idx >= pmp_max)
+ 			goto no_more_pmp;
+ 
+-		pmp_set(pmp_idx++, sbi_domain_get_oldpmp_flags(reg),
+-			reg->base, reg->order);
++		hart_pmp_set(pmp_idx++, sbi_domain_get_oldpmp_flags(reg),
++			     reg->base, reg->order);
+ 		prev = reg;
+ 	}
+ 	/* Disable the rest */
+ 	while (pmp_idx < pmp_max)
+-		pmp_disable(pmp_idx++);
++		hart_pmp_disable(pmp_idx++);
+ 
+ 	/* Process the second free range B [7-7] */
+ 	pmp_idx = PMP_FREE_B_START,
+@@ -340,12 +340,12 @@ static int eswin_eic7700_pmp_configure(struct sbi_scratch *scratch)
+ 		if (pmp_idx >= pmp_max)
+ 			goto no_more_pmp;
+ 
+-		pmp_set(pmp_idx++, sbi_domain_get_oldpmp_flags(reg),
+-			reg->base, reg->order);
++		hart_pmp_set(pmp_idx++, sbi_domain_get_oldpmp_flags(reg),
++			     reg->base, reg->order);
+ 	}
+ 	/* Disable the rest */
+ 	while (pmp_idx < pmp_max)
+-		pmp_disable(pmp_idx++);
++		hart_pmp_disable(pmp_idx++);
+ 
+ 	sbi_hart_pmp_fence();
+ 	return 0;
+@@ -357,14 +357,14 @@ no_more_pmp:
+ static void eswin_eic7700_pmp_unconfigure(struct sbi_scratch *scratch)
+ {
+ 	/* Enable P550 internal + System Port */
+-	pmp_set(PMP_FREE_A_START + PMP_FREE_A_COUNT - 1, 0, 0,
+-		log2roundup(EIC770X_MEMPORT_BASE));
++	hart_pmp_set(PMP_FREE_A_START + PMP_FREE_A_COUNT - 1, 0, 0,
++		     log2roundup(EIC770X_MEMPORT_BASE));
+ 
+ 	for (unsigned int i = 0; i < PMP_FREE_A_COUNT - 1; i++)
+-		pmp_disable(i + PMP_FREE_A_START);
++		hart_pmp_disable(i + PMP_FREE_A_START);
+ 
+ 	for (unsigned int i = 0; i < PMP_FREE_B_COUNT; i++)
+-		pmp_disable(i + PMP_FREE_B_START);
++		hart_pmp_disable(i + PMP_FREE_B_START);
+ }
+ 
+ static struct sbi_hart_protection eswin_eic7700_pmp_protection = {
 -- 
 2.51.0
 
