@@ -4,101 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B7918EF371F
-	for <opensbi@archiver.kernel.org>; Mon,  9 Mar 2026 08:59:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 43E99FCC9A5
+	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 00:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=2widg5X5KkcsKh1cQFAhPMxF/PgxzNOiKCC8RQDfew4=; b=C6Zx53lfDAP1S5
-	9u3IySWqjIomUVGgFbutbaXpTMvYaM3b5ouX/58E8d69A+/pELMljZuqDB8nLAf4GAUxqTPG5QzuN
-	XxIRTT4VTo5t4xWZcZET2R08pk1fCvB2yLLkCf+RsQuKATzheEGByEZ0r2/NLQ8IlzAS0BWE9sg1Q
-	yH8NBPcCnX30lNxw/J8iyc6qRjM1lJIpXm9GddBpG/FKVhoMNwucx2lmND0Rzk026hzycCdticMAI
-	XJ7GItqu5atYZ8Btvmi++YUnh+CINKYF+OFkmq+TFDpbTxvmGgttYykeY1gMdBtSk3bnBph9jxfq2
-	6EgQbt9/ndaOYVWNCp1Q==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=kDFeR7q5ani4B/X8U730jXIbufpLo9tAlpOhAsSuDpI=; b=pj3XMpVHDSdiK1
+	mAtF85v3LJ0Enzij8iIApVwh1nfVioXFc5Dd7w34QDZLjZFPQXJrIzkC1MrsebvVJGw/d1+ns0kRS
+	Ze+Dt9guhbOZtFfXFs0RR7LUWBBkICe+p8hfDXVrWVxIgybphXjA6D7GvJUn0Qme2WmAsVJ4CMe7G
+	T6dQxp1k86dgFoWXrllmz09U0TvF+1sLgZxjUSyW7iMGvlyGh+gS8KG3xLR63E2k1ubkgHr0fd59A
+	hoXHNHCDONGUUlUfYgtG4/1mTPxYLiUSL2WKF6Sr+6IVJj/vkDoXHwng8fkiLujEM47kDOVcFzcP1
+	gGXC/3QT0Hs5GTjxUryA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzWSU-00000006v4O-18ad;
-	Mon, 09 Mar 2026 08:59:26 +0000
-Received: from mail-oo1-xc32.google.com ([2607:f8b0:4864:20::c32])
+	id 1vzlJ1-00000008QMF-0680;
+	Tue, 10 Mar 2026 00:50:39 +0000
+Received: from mail-pf1-x433.google.com ([2607:f8b0:4864:20::433])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzWSR-00000006v3D-2VZW
+	id 1vzlIy-00000008QLu-2wxk
 	for opensbi@lists.infradead.org;
-	Mon, 09 Mar 2026 08:59:24 +0000
-Received: by mail-oo1-xc32.google.com with SMTP id 006d021491bc7-66ee7b9af94so4566008eaf.0
-        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 01:59:23 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1773046762; cv=none;
-        d=google.com; s=arc-20240605;
-        b=MswGyYxHhhQLnPGo1dkyCkzHdQVkWoYg2CCEbGxl1BNzkUOhcnKGTutI/+55tszOMZ
-         HF6fOWposN33Sg4OrNHpnvv/581yCJKZrQY6NhY45eO8I1PhRWegLMYzn5UEvQcceSIR
-         d2BJrzg3CTd57BzAO7Y6SzCxCUeiImcyL8n+qZjol8SjJvI2YFcQhisKwiOeIbT6H/X1
-         Zia0mmiPUgI5dpqcg5O2aenW6ec9keMVBkRGlNB2JaGfGQEtYvoghOP3xabajqYZQ90N
-         8/QFW7MNO0dWJ2ylIGwF1DDr3YuQrAOBhDqBHog/1toDJTiutZQIsb67OSlP49mCqcvg
-         zlHg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=UlPejG8TgDdQO/UsV5oUeg8RawXq+KW1xmwha2VjQxE=;
-        fh=TTbPBhNEfNCU7YQnz5XUQ+Q/71jPA+B9JfqM4EnvPxk=;
-        b=hwiqIVfA/qfzh22vhOJpI9avIhROiLE4SBFu4iPtf8nJhiWFT0KSP22ALtMjGIqhTn
-         EVZZcoj/v6Ha9Pa5dYO3QEyfoV4xUVBgl6jBjhJCGnirJMJDbQ8hquYtjO5pjkLy9Tm2
-         7g1X29/KBCjHUeb0DifAjZV48M9Py3PmH1WL3yuZRfwmEbzyUua/hkbrS+XXf8Soi+W6
-         sA26H91TlMPH45pW4d0mI5Xq95nvER4rqm5vIt206phsbcfTImiPVoptel4LCkBKbDHd
-         ShmgM8sJKuLwKrNQKBwKdjdlbOwwipOSqyM64WinwP4Z0dSOQi/s+r91RSyYmb76h9F2
-         42kg==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Tue, 10 Mar 2026 00:50:38 +0000
+Received: by mail-pf1-x433.google.com with SMTP id d2e1a72fcca58-829ac8d56c5so2997336b3a.3
+        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 17:50:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1773046762; x=1773651562; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UlPejG8TgDdQO/UsV5oUeg8RawXq+KW1xmwha2VjQxE=;
-        b=LwWlcw9p1tNatQl983C/3Go7WVj9wM7pdl5yN13qfKbzgMMNG8mBEbS9holjqk7XF2
-         SlkCqeE0IClIBWtAivaKVvwMf0SjR7/Pc/p5oqmWPOeOYrqeF14I+fDaqIa/cZoL86kq
-         tAD0yBMGtb9vtU1IoIL6gdt4Ydk5gSUpx4lnIupFC5H2L4f3UrThO28Y38MlNZKnUnw4
-         qJ3EPBDPCavZJqSbYeEvc3XHkOgsIF2TZt2pBRVqqsVqjWWQWGDT9TxYMQQUNHTxKF5g
-         8quEFXy7H5KeKwJMr0YRQRRHjRPSw5SMVzxSq/v3OjEDpIFwiF9KPxkhmjsZy0XbQiUX
-         K87g==
+        d=gmail.com; s=20230601; t=1773103835; x=1773708635; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=4A8uCm6r8AOEQ1SI5sCOMsfi/TmY5pIc+3p/m47tr9M=;
+        b=eHtN4KVeZXLl+Hr2ZFcueSY4am9CJ9ZTci2cdyj09WTB80AetKEkm8hHg9FeF/FZRH
+         e6bcNNjLHyAC1D7lnU33Vg9xukya4adXVZSVye2yBNbMw6lP8bh2w/nVHAIi/InvYVGL
+         xZ7i6IDJ0qkCbiY2FpGjEYLZihtOlaer8VJb3elI9V1w8S4e0//j5/fqPytUq1FC2R2V
+         UrnlfF2kfhBUTm1iPR4eXp+AcZTjo0tn4FO/NbHBb5bXOf2dROAdAwQC8osbT883j+i+
+         jXS4fE3GyjF9ifKjw9vj7ZbQUZQjPriR+MKfrt2+dB0PTZ9TFCn+7f661PxSd7SadTRd
+         eDXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773046762; x=1773651562;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=UlPejG8TgDdQO/UsV5oUeg8RawXq+KW1xmwha2VjQxE=;
-        b=NAN7pzm2fSkqouSXOAfGKsnoA+vwmguiGYHtDI2MGo59SGCjUgt6Yul+AViRblJbkV
-         7s16IfQvMOxGlHJoCxpAXtHdLtRU+aIX1kfaKGYQov5IuthEQrCRSQ+gmumI3Z1jptEw
-         18To6gxW6QtHu5kAc07JVet7VULijfy26Iv8tQqy003BeTJMTEAqecjm3M6s/Ex/tubD
-         aUX7xm7GzorF4wKtVCIbci2ehQdcpsMtFs3+0ahE3d2tx3w5ZQbNFySyzZ85dNijAV4O
-         mivKCV6psU2PicW1DHsKqO65+Paees71I/aheU0dHF9ksIuWyGIdaBQWjRozXxPdwfMG
-         QOoQ==
-X-Gm-Message-State: AOJu0Yx3O1ZlZYYoEaijFILi/fwhdksoCIsSN+lJ6gWbo2oEUikr0piM
-	BJgweaY68d9OAIy/0XATnRgmL/et1Dqs0OW3OAFetLu97tbTTQ8KMzetRVV6AM4IRf38mLC15aN
-	pH35P9N9vAARv/ffKgb7zJFk/pImWJ5ZA7wFZZoXvfcjdf3YasG0qus0=
-X-Gm-Gg: ATEYQzzd4i09RC2hEjPS9yFDIJVMI37dSszHTiFw1soWK86N3Fhw2/W4z4zFR1aEWPz
-	eu4U2jBDLlLJAUMGTj/B3PWvxKdiK/Irv/DGc9jyt0m/4kslFrQr+oSrX7TQw/iRL/yK21tTky4
-	C8ZsBDZPDxBld9akQolJnnV4H8Czsu3vCl4GyH5VP8UC9bONB0FmAKkz/MZPw7F7DOisL7mHn6P
-	i4UO5y9ZejUSYmAjhUnXFUV/9mUQHZrJysjPF0/FNaWWx2s4d3CpyRng89a+9OvTq/6Z96UC2Xe
-	jZCH4yUjwrPxYD8CM+ziGeQhBn+sCbvNNssakakak3R7ubCDyUCph9lke9b6c6lMq7hVE6e0G/O
-	9d5xkFghSDsE23RdMYrAXiG9wcA==
-X-Received: by 2002:a05:6820:1b0e:b0:67a:1dad:9d63 with SMTP id
- 006d021491bc7-67b9bc65edamr6787531eaf.6.1773046762481; Mon, 09 Mar 2026
- 01:59:22 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1773103835; x=1773708635;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4A8uCm6r8AOEQ1SI5sCOMsfi/TmY5pIc+3p/m47tr9M=;
+        b=Izp9bc9a5zkEKtKd99rpZ/PySptbIbwv8aANK2/Mn1k87ANPV22JNBGWUvV7dRjaH2
+         bwfNHvxMwNDK7eCwoF2r68vQdcoWBG9w4LbHf0/oYX8NPwGfmI0QG7JSvJ/PlsAwtTrQ
+         64ZSk8//g928RNdNF5HaxxAkz+aZxgILooYfAYdljcmfw3ULAvJ+tvsGNyvAWg8942hb
+         7+KdXmJqRHH2OAamyH3/SMSgJnz6ATJEfdJ5b3fdq+DXmLScjkny4NwVd3IaynTklS6n
+         omP6Ub0LZXytgItAHlxidSDdE57TqWRBKv6smVySoMThsVZz2FT49tRJM58Ws+JLIf+x
+         uNAg==
+X-Gm-Message-State: AOJu0YylCKs8N3e3kdfxM6ynjayfHhm4V3KLt+FynhAF5z+iuXenR+tH
+	J7IXR3Y4/iWEmKdGzpZe8cV15uv98m+bHNbI2NWcgSFWxYviCrIzkCaCGV7jZg==
+X-Gm-Gg: ATEYQzw8XDqLnKLP8c4wK13nu9GkyAC8bvvMb/epCtipcRp6Wj3xa0FMnv9kfeG8uz6
+	hAta6ymwLGlmcKK67N95X9rcUkLd8kXNr1kSVPzwS5Mjbhmcl0/GkLGvVynFvlTZNlFZJj+hhNL
+	8nCn3NSdrcNAqJKHLRXIw7eCBuSVdFiRU7EVzIAcamk6gVHl9/GZiXJDUs0WtPAZuqt92/xDiLi
+	asb1TxKksvxsuS7Xjvc5Pszx3BNIhY96cu5OdqwghfCBth1pcI4mmfysBQZ6k6BHFDVLdx2yvJI
+	/d0QEWcnafSbkLxFi/kz8NkQZACLljQlYjvm+gWtgv+AJCCHsMijZGiJYe3EQSN/pgqnpvzRnf5
+	ZgqCPKO1kDbfo+gEOgrKopEF/m0KFWrjQAmctkhkWBk1/y3XEKbtc+YnyQFVXUYJGTM+HfUI2ua
+	PdMPH3qoNE0Xa7Lw3HbjFmC54aNOn6ZGCYfE21V+r6C9zhxre9YGuoGlh9a236H4cvaxNs
+X-Received: by 2002:a05:6a00:600a:b0:81f:31c3:2e34 with SMTP id d2e1a72fcca58-829a2d87f81mr11522867b3a.25.1773103834821;
+        Mon, 09 Mar 2026 17:50:34 -0700 (PDT)
+Received: from lima-default (103.95.112.190.qld.leaptel.network. [103.95.112.190])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829a46765a6sm11357635b3a.29.2026.03.09.17.50.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Mar 2026 17:50:33 -0700 (PDT)
+From: Nicholas Piggin <npiggin@gmail.com>
+To: opensbi@lists.infradead.org
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Subject: [PATCH 1/4] platform: generic: Tenstorrent Atlantis support
+Date: Tue, 10 Mar 2026 10:49:54 +1000
+Message-ID: <20260310005000.3837512-1-npiggin@gmail.com>
+X-Mailer: git-send-email 2.51.0
 MIME-Version: 1.0
-References: <20260219083423.30690-1-victoriano.morales@openchip.com>
-In-Reply-To: <20260219083423.30690-1-victoriano.morales@openchip.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 9 Mar 2026 14:29:11 +0530
-X-Gm-Features: AaiRm53vcbo0HUN6EGepAhaPqaUanIf0cTvbvktdDU2_ALnUEJSLa_DIJ3kwBg0
-Message-ID: <CAAhSdy2G3aKJ7nCwnG1nOCDLcDVAmx6g+jg7jnkzVP-p_6KREA@mail.gmail.com>
-Subject: Re: [PATCH] lib: fdt_helper: Removed unnecessary dt parsing check
-To: "Victoriano Morales | OPENCHIP" <victoriano.morales@openchip.com>
-Cc: "opensbi@lists.infradead.org" <opensbi@lists.infradead.org>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260309_015923_643132_9092F1C3 
-X-CRM114-Status: GOOD (  14.92  )
+X-CRM114-CacheID: sfid-20260309_175036_775118_86D93E9D 
+X-CRM114-Status: GOOD (  26.80  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -110,55 +89,485 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVGh1LCBGZWIgMTksIDIwMjYgYXQgMjowNOKAr1BNIFZpY3Rvcmlhbm8gTW9yYWxlcyB8IE9Q
-RU5DSElQCjx2aWN0b3JpYW5vLm1vcmFsZXNAb3BlbmNoaXAuY29tPiB3cm90ZToKPgo+IEZyb206
-IFZpY3Rvcmlhbm8gTW9yYWxlcyA8dmljdG9yaWFuby5tb3JhbGVzQG9wZW5jaGlwLmNvbT4KPgo+
-IFRoZSBjaGVjayBmb3IgdGhlIGFkZHJlc3MgYmVpbmcgZGlmZmVyZW50IGZyb20gMCBmb3IgdGhl
-IFVBUlQsIFBMSUMsCj4gQVBMSUMgYW5kIElNU0lDIGR0IG5vZGVzIGlzIHVubm5lY2Vzc2FyeSBh
-bmQgY291bGQgc2tpcCB2YWxpZCBub2Rlcy4KPgo+IFNpZ25lZC1vZmYtYnk6IFZpY3Rvcmlhbm8g
-TW9yYWxlcyA8dmljdG9yaWFuby5tb3JhbGVzQG9wZW5jaGlwLmNvbT4KCkxHVE0uCgpSZXZpZXdl
-ZC1ieTogQW51cCBQYXRlbCA8YW51cEBicmFpbmZhdWx0Lm9yZz4KCkFwcGxpZWQgdGhpcyBwYXRj
-aCB0byB0aGUgcmlzY3Yvb3BlbnNiaSByZXBvLgoKVGhhbmtzLApBbnVwCgoKPiAtLS0KPiAgbGli
-L3V0aWxzL2ZkdC9mZHRfaGVscGVyLmMgfCA4ICsrKystLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCA0
-IGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvbGliL3V0aWxz
-L2ZkdC9mZHRfaGVscGVyLmMgYi9saWIvdXRpbHMvZmR0L2ZkdF9oZWxwZXIuYwo+IGluZGV4IDc5
-OWZkNDhkLi5hOGM2ZTFhYSAxMDA2NDQKPiAtLS0gYS9saWIvdXRpbHMvZmR0L2ZkdF9oZWxwZXIu
-Ywo+ICsrKyBiL2xpYi91dGlscy9mZHQvZmR0X2hlbHBlci5jCj4gQEAgLTUwMiw3ICs1MDIsNyBA
-QCBzdGF0aWMgaW50IGZkdF9wYXJzZV91YXJ0X25vZGVfY29tbW9uKGNvbnN0IHZvaWQgKmZkdCwg
-aW50IG5vZGVvZmZzZXQsCj4KPiAgICAgICAgIHJjID0gZmR0X2dldF9ub2RlX2FkZHJfc2l6ZShm
-ZHQsIG5vZGVvZmZzZXQsIDAsCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-JnJlZ19hZGRyLCAmcmVnX3NpemUpOwo+IC0gICAgICAgaWYgKHJjIDwgMCB8fCAhcmVnX2FkZHIg
-fHwgIXJlZ19zaXplKQo+ICsgICAgICAgaWYgKHJjIDwgMCB8fCAhcmVnX3NpemUpCj4gICAgICAg
-ICAgICAgICAgIHJldHVybiBTQklfRU5PREVWOwo+ICAgICAgICAgdWFydC0+YWRkciA9IHJlZ19h
-ZGRyOwo+Cj4gQEAgLTY3MSw3ICs2NzEsNyBAQCBpbnQgZmR0X3BhcnNlX2FwbGljX25vZGUoY29u
-c3Qgdm9pZCAqZmR0LCBpbnQgbm9kZW9mZiwgc3RydWN0IGFwbGljX2RhdGEgKmFwbGljKQo+ICAg
-ICAgICAgICAgICAgICByZXR1cm4gU0JJX0VOT0RFVjsKPgo+ICAgICAgICAgcmMgPSBmZHRfZ2V0
-X25vZGVfYWRkcl9zaXplKGZkdCwgbm9kZW9mZiwgMCwgJnJlZ19hZGRyLCAmcmVnX3NpemUpOwo+
-IC0gICAgICAgaWYgKHJjIDwgMCB8fCAhcmVnX2FkZHIgfHwgIXJlZ19zaXplKQo+ICsgICAgICAg
-aWYgKHJjIDwgMCB8fCAhcmVnX3NpemUpCj4gICAgICAgICAgICAgICAgIHJldHVybiBTQklfRU5P
-REVWOwo+ICAgICAgICAgYXBsaWMtPmFkZHIgPSByZWdfYWRkcjsKPiAgICAgICAgIGFwbGljLT5z
-aXplID0gcmVnX3NpemU7Cj4gQEAgLTg2Myw3ICs4NjMsNyBAQCBpbnQgZmR0X3BhcnNlX2ltc2lj
-X25vZGUoY29uc3Qgdm9pZCAqZmR0LCBpbnQgbm9kZW9mZiwgc3RydWN0IGltc2ljX2RhdGEgKmlt
-c2ljKQo+Cj4gICAgICAgICAgICAgICAgIHJjID0gZmR0X2dldF9ub2RlX2FkZHJfc2l6ZShmZHQs
-IG5vZGVvZmYsIGksCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAmcmVnX2FkZHIsICZyZWdfc2l6ZSk7Cj4gLSAgICAgICAgICAgICAgIGlmIChyYyA8IDAgfHwg
-IXJlZ19hZGRyIHx8ICFyZWdfc2l6ZSkKPiArICAgICAgICAgICAgICAgaWYgKHJjIDwgMCB8fCAh
-cmVnX3NpemUpCj4gICAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7Cj4gICAgICAgICAgICAg
-ICAgIHJlZ3MtPmFkZHIgPSByZWdfYWRkcjsKPiAgICAgICAgICAgICAgICAgcmVncy0+c2l6ZSA9
-IHJlZ19zaXplOwo+IEBAIC04ODUsNyArODg1LDcgQEAgaW50IGZkdF9wYXJzZV9wbGljX25vZGUo
-Y29uc3Qgdm9pZCAqZmR0LCBpbnQgbm9kZW9mZnNldCwgc3RydWN0IHBsaWNfZGF0YSAqcGxpYykK
-Pgo+ICAgICAgICAgcmMgPSBmZHRfZ2V0X25vZGVfYWRkcl9zaXplKGZkdCwgbm9kZW9mZnNldCwg
-MCwKPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAmcmVnX2FkZHIsICZyZWdf
-c2l6ZSk7Cj4gLSAgICAgICBpZiAocmMgPCAwIHx8ICFyZWdfYWRkciB8fCAhcmVnX3NpemUpCj4g
-KyAgICAgICBpZiAocmMgPCAwIHx8ICFyZWdfc2l6ZSkKPiAgICAgICAgICAgICAgICAgcmV0dXJu
-IFNCSV9FTk9ERVY7Cj4gICAgICAgICBwbGljLT5hZGRyID0gcmVnX2FkZHI7Cj4gICAgICAgICBw
-bGljLT5zaXplID0gcmVnX3NpemU7Cj4gLS0KPiAyLjQzLjAKPgo+Cj4gLS0KPiBvcGVuc2JpIG1h
-aWxpbmcgbGlzdAo+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5p
-bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQoKLS0gCm9wZW5zYmkgbWFpbGlu
-ZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+Add the Tenstorrent Atlantis as a generic-platform. This initial
+support enables the single_fw_region option, and verifies and prints
+HART PMA CSR configuration.
+
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+---
+Note the Atlantis hardware is not yet released, and QEMU models are in
+the process of being upstreamed, but at the moment not complete. So for
+now this can not really be tested with a public implementation, but we
+plan to get implementation specific IOMMU MMRs and CPU CSRs into QEMU
+that can meaningfully exercise this platform.
+
+There will be some more Atlantis platform pieces to come, but we want to
+get started with upstreaming and these are some relatively small and
+stable pieces.
+
+The IOMMU support depends on a proposed change to device-tree binding
+for the Tenstorrent specific riscv iommu which I posted for RFC here:
+
+https://lore.kernel.org/linux-riscv/20260310003850.3837030-1-npiggin@gmail.com/T/#u
+
+Thanks,
+Nick
+---
+ docs/platform/generic.md                      |   2 +
+ docs/platform/tt-atlantis.md                  |  35 +++++
+ platform/generic/Kconfig                      |   6 +
+ platform/generic/configs/defconfig            |   1 +
+ .../generic/include/tenstorrent/ascalon.h     |  12 ++
+ platform/generic/include/tenstorrent/pma.h    |  18 +++
+ platform/generic/tenstorrent/Kconfig          |   5 +
+ platform/generic/tenstorrent/ascalon.c        |  53 +++++++
+ platform/generic/tenstorrent/atlantis.c       |  50 +++++++
+ platform/generic/tenstorrent/objects.mk       |  10 ++
+ platform/generic/tenstorrent/pma.c            | 138 ++++++++++++++++++
+ 11 files changed, 330 insertions(+)
+ create mode 100644 docs/platform/tt-atlantis.md
+ create mode 100644 platform/generic/include/tenstorrent/ascalon.h
+ create mode 100644 platform/generic/include/tenstorrent/pma.h
+ create mode 100644 platform/generic/tenstorrent/Kconfig
+ create mode 100644 platform/generic/tenstorrent/ascalon.c
+ create mode 100644 platform/generic/tenstorrent/atlantis.c
+ create mode 100644 platform/generic/tenstorrent/objects.mk
+ create mode 100644 platform/generic/tenstorrent/pma.c
+
+diff --git a/docs/platform/generic.md b/docs/platform/generic.md
+index c48d6a9a..0b896ede 100644
+--- a/docs/platform/generic.md
++++ b/docs/platform/generic.md
+@@ -47,6 +47,7 @@ RISC-V Platforms Using Generic Platform
+ * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
+ * **Spike** (*[spike.md]*)
+ * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
++* **Tenstorrent Atlantis Platform** (*[tt-atlantis.md]*)
+ * **OpenPiton FPGA SoC** (*[fpga-openpiton.md]*)
+ * **Ariane FPGA SoC** (*[fpga-ariane.md]*)
+ 
+@@ -57,5 +58,6 @@ RISC-V Platforms Using Generic Platform
+ [sifive_fu540.md]: sifive_fu540.md
+ [spike.md]: spike.md
+ [thead-c9xx.md]: thead-c9xx.md
++[tt-atlantis.md]: tt-atlantis.md
+ [fpga-openpiton.md]: fpga-openpiton.md
+ [fpga-ariane.md]: fpga-ariane.md
+diff --git a/docs/platform/tt-atlantis.md b/docs/platform/tt-atlantis.md
+new file mode 100644
+index 00000000..b9bdd238
+--- /dev/null
++++ b/docs/platform/tt-atlantis.md
+@@ -0,0 +1,35 @@
++Tenstorrent Atlantis Platform
++=============================
++
++The Tenstorrent Atlantis is an SoC and development board from
++Tenstorrent in partnership with CoreLab Technology. It contains 8 RISC-V
++RVA23 compliant Tenstorrent Ascalon cores with RISC-V AIA, RISC-V IOMMU,
++and a range of devices and IO connectivity.
++
++To build the platform-specific library and firmware images, provide the
++*PLATFORM=generic* parameter to the top level `make` command.
++
++Platform Options
++----------------
++
++The *Tenstorrent Atlantis* platform does not have any platform-specific
++options.
++
++Building Tenstorrent Atlantis Platform
++--------------------------------------
++
++The Atlantis Platform is still under development. This section will be
++expanded as firmware and support become available.
++
++QEMU support is currently being developed and initial support has been
++proposed for upstream. To run QEMU that is patched with 'tt-atlantis'
++machine support, run:
++
++```
++qemu-system-riscv64 -M tt-atlantis -nographic \
++	-bios build/platform/generic/firmware/fw_payload.bin \
++    -kernel <linux_build_dir>/Image
++```
++
++Recent (6.18) Linux/riscv 64-bit defconfig kernels should run the QEMU
++tt-atlantis machine.
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index 2627998a..7de5e5a6 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -85,6 +85,11 @@ config PLATFORM_STARFIVE_JH7110
+ 	bool "StarFive JH7110 support"
+ 	default n
+ 
++config PLATFORM_TENSTORRENT_ATLANTIS
++	bool "Tenstorrent Atlantis support"
++	select CPU_TENSTORRENT_ASCALON
++	default n
++
+ config PLATFORM_THEAD
+ 	bool "THEAD C9xx support"
+ 	select THEAD_C9XX_ERRATA
+@@ -110,6 +115,7 @@ config PLATFORM_MIPS_P8700_BOSTON
+ 
+ source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
+ source "$(OPENSBI_SRC_DIR)/platform/generic/eswin/Kconfig"
++source "$(OPENSBI_SRC_DIR)/platform/generic/tenstorrent/Kconfig"
+ source "$(OPENSBI_SRC_DIR)/platform/generic/thead/Kconfig"
+ 
+ endif
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 346058f5..153a3aa0 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -9,6 +9,7 @@ CONFIG_PLATFORM_SIFIVE_FU540=y
+ CONFIG_PLATFORM_SIFIVE_FU740=y
+ CONFIG_PLATFORM_SOPHGO_SG2042=y
+ CONFIG_PLATFORM_STARFIVE_JH7110=y
++CONFIG_PLATFORM_TENSTORRENT_ATLANTIS=y
+ CONFIG_PLATFORM_THEAD=y
+ CONFIG_PLATFORM_MIPS_P8700_EYEQ7H=y
+ CONFIG_PLATFORM_MIPS_P8700_BOSTON=y
+diff --git a/platform/generic/include/tenstorrent/ascalon.h b/platform/generic/include/tenstorrent/ascalon.h
+new file mode 100644
+index 00000000..5d7b7635
+--- /dev/null
++++ b/platform/generic/include/tenstorrent/ascalon.h
+@@ -0,0 +1,12 @@
++/*
++ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++ * SPDX-License-Identifier: BSD-2-Clause
++ */
++
++#ifndef __TENSTORRENT_ASCALON_H__
++#define __TENSTORRENT_ASCALON_H__
++
++void tt_ascalon_discover_pmas_from_boot_hart(void);
++void tt_ascalon_verify_pmas_nonboot_hart(void);
++
++#endif
+diff --git a/platform/generic/include/tenstorrent/pma.h b/platform/generic/include/tenstorrent/pma.h
+new file mode 100644
+index 00000000..051764ee
+--- /dev/null
++++ b/platform/generic/include/tenstorrent/pma.h
+@@ -0,0 +1,18 @@
++/*
++ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++ * SPDX-License-Identifier: BSD-2-Clause
++ */
++
++#ifndef __TENSTORRENT_PMA_H__
++#define __TENSTORRENT_PMA_H__
++
++/* Max number of PMAs for devices (CPU, IOMMU) for Tenstorrent platforms. */
++#define TT_MAX_PMAS	32
++
++u64 tt_pma_get(unsigned int n);
++void tt_pma_set(unsigned int n, u64 pma);
++bool tt_pma_validate(unsigned int i, u64 pma);
++void tt_pma_print(unsigned int i, u64 pma);
++
++#endif
++
+diff --git a/platform/generic/tenstorrent/Kconfig b/platform/generic/tenstorrent/Kconfig
+new file mode 100644
+index 00000000..76c7fb32
+--- /dev/null
++++ b/platform/generic/tenstorrent/Kconfig
+@@ -0,0 +1,5 @@
++# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++# SPDX-License-Identifier: BSD-2-Clause
++
++config CPU_TENSTORRENT_ASCALON
++	bool
+diff --git a/platform/generic/tenstorrent/ascalon.c b/platform/generic/tenstorrent/ascalon.c
+new file mode 100644
+index 00000000..485144cd
+--- /dev/null
++++ b/platform/generic/tenstorrent/ascalon.c
+@@ -0,0 +1,53 @@
++/*
++ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++ * SPDX-License-Identifier: BSD-2-Clause
++ */
++
++#include <sbi/riscv_asm.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_csr_detect.h>
++
++#include <tenstorrent/ascalon.h>
++#include <tenstorrent/pma.h>
++
++#define CSR_PMACFG0	0x7e0
++
++void tt_ascalon_discover_pmas_from_boot_hart(void)
++{
++	struct sbi_trap_info trap = {0};
++
++	/* Whisper virtual platform does not implement PMA */
++	csr_read_allowed(CSR_PMACFG0, &trap);
++	if (trap.cause)
++		return;
++
++	for (unsigned int i = 0; i < TT_MAX_PMAS; i++) {
++		u64 pma = csr_read_num(CSR_PMACFG0 + i);
++		if (!tt_pma_validate(i, pma)) {
++			sbi_printf("HART%d: Bad boot PMA%02d 0x%016lx\n",
++				   current_hartid(), i, pma);
++		}
++		tt_pma_set(i, pma);
++
++		if (pma)
++			tt_pma_print(i, pma);
++	}
++}
++
++void tt_ascalon_verify_pmas_nonboot_hart(void)
++{
++	struct sbi_trap_info trap = {0};
++
++	/* Whisper virtual platform does not implement PMA */
++	csr_read_allowed(CSR_PMACFG0, &trap);
++	if (trap.cause)
++		return;
++
++	for (unsigned int i = 0; i < TT_MAX_PMAS; i++) {
++		u64 pma = csr_read_num(CSR_PMACFG0 + i);
++		if (pma != tt_pma_get(i)) {
++			sbi_printf("HART%d: Bad boot PMA%02d 0x%016lx does not match boot HART\n",
++				   current_hartid(), i, pma);
++		}
++	}
++}
+diff --git a/platform/generic/tenstorrent/atlantis.c b/platform/generic/tenstorrent/atlantis.c
+new file mode 100644
+index 00000000..4c312f7e
+--- /dev/null
++++ b/platform/generic/tenstorrent/atlantis.c
+@@ -0,0 +1,50 @@
++/*
++ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++ * SPDX-License-Identifier: BSD-2-Clause
++ */
++
++#include <platform_override.h>
++#include <libfdt.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_hart.h>
++#include <sbi/sbi_system.h>
++#include <sbi/sbi_console.h>
++
++#include <tenstorrent/ascalon.h>
++#include <tenstorrent/pma.h>
++
++static int tt_atlantis_final_init(bool cold_boot)
++{
++	if (cold_boot) {
++		/* Boot firmware sets HART PMAs. Read and verify them. */
++		tt_ascalon_discover_pmas_from_boot_hart();
++	} else {
++		/* Verify nonboot HARTs have PMAs matching boot HART */
++		tt_ascalon_verify_pmas_nonboot_hart();
++	}
++
++	return generic_final_init(cold_boot);
++}
++
++static bool tt_atlantis_single_fw_region(void)
++{
++	return true;
++}
++
++static int tt_atlantis_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
++{
++	generic_platform_ops.final_init = tt_atlantis_final_init;
++	generic_platform_ops.single_fw_region = tt_atlantis_single_fw_region;
++
++	return 0;
++}
++
++static const struct fdt_match tt_atlantis_match[] = {
++	{ .compatible = "tenstorrent,atlantis" },
++	{ },
++};
++
++const struct fdt_driver tenstorrent_atlantis = {
++	.match_table = tt_atlantis_match,
++	.init = tt_atlantis_platform_init,
++};
+diff --git a/platform/generic/tenstorrent/objects.mk b/platform/generic/tenstorrent/objects.mk
+new file mode 100644
+index 00000000..1e4aeb2d
+--- /dev/null
++++ b/platform/generic/tenstorrent/objects.mk
+@@ -0,0 +1,10 @@
++#
++# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++# SPDX-License-Identifier: BSD-2-Clause
++#
++
++platform-objs-y += tenstorrent/pma.o
++platform-objs-$(CONFIG_CPU_TENSTORRENT_ASCALON) += tenstorrent/ascalon.o
++
++carray-platform_override_modules-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent_atlantis
++platform-objs-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent/atlantis.o
+diff --git a/platform/generic/tenstorrent/pma.c b/platform/generic/tenstorrent/pma.c
+new file mode 100644
+index 00000000..daf60192
+--- /dev/null
++++ b/platform/generic/tenstorrent/pma.c
+@@ -0,0 +1,138 @@
++/*
++ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
++ * SPDX-License-Identifier: BSD-2-Clause
++ */
++
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_math.h>
++#include <libfdt.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++
++#include <tenstorrent/pma.h>
++
++/*
++ * All PMAs in the system should be the same (after boot). The init code
++ * must have set PMAs for all HARTs.
++ */
++
++/*
++ * Ascalon CPU and IOMMU PMA layout:
++ * Field
++ * [2:0]	Permission	[0] Read, [1] Write, [2] Execute
++ * [4:3]	Memory type	00: Main memory, 01: IO memory relaxed,
++ * 				10: IO memory channel 0, 11: IO memory channel 1
++ * [6:5]	AMO type	00: AMONone, 01: AMOSwap,
++ * 				10: AMOLogical, 11: AMOArithmetic
++ * [7]		Cacheability (main memory type)
++ * 				1: Cacheable, 0: Non-cacheable
++ * 		Combining Capability (IO memory type)
++ * 				1: Combining allowed, 0: Combining disallowed
++ * [8]		Routing (coherency)
++ * 				1: Coherent network, 0: Non-coherent network
++ * [11:9]	Reserved
++ * [51:12]	Physical address [51:12] base
++ * [63:58]	Size log 2 (number of address LSB to ignore when matching)
++ * 		0 = invalid entry (no match)
++ */
++
++#define PMA_PERMISSION_R	0x1
++#define PMA_PERMISSION_W	0x2
++#define PMA_PERMISSION_X	0x4
++#define PMA_PERMISSION_MASK	0x7
++
++#define PMA_TYPE_MAIN_MEMORY	0x0
++#define PMA_TYPE_IO_RELAXED	0x8
++#define PMA_TYPE_IO_ORDERED_0	0x10
++#define PMA_TYPE_IO_ORDERED_1	0x18
++#define PMA_TYPE_MASK		0x18
++
++#define PMA_AMO_NONE		0x0
++#define PMA_AMO_SWAP		0x20
++#define PMA_AMO_LOGICAL		0x40
++#define PMA_AMO_ARITHMETIC	0x60
++#define PMA_AMO_MASK		0x60
++
++#define PMA_MEMORY_CACHEABLE	0x80
++#define PMA_IO_COMBINING	0x80
++#define PMA_ROUTING_COHERENT	0x100
++
++#define PMA_FLAGS_MASK		0x00000000000001ffULL
++#define PMA_ADDRESS_MASK	0x000ffffffffff000ULL
++#define PMA_SIZE_MASK		0xfc00000000000000ULL
++#define PMA_RESERVED_MASK	0x0300000000000e00ULL
++
++#define PMA_SIZE_SHIFT		58
++
++static u64 tt_pma_size(u64 pma)
++{
++	if ((pma & PMA_SIZE_MASK) == 0)
++		return 0;
++
++	return 1ULL << ((pma & PMA_SIZE_MASK) >> PMA_SIZE_SHIFT);
++}
++
++static u64 tt_pma_address(u64 pma)
++{
++	return (pma & PMA_ADDRESS_MASK) & ~((tt_pma_size(pma) - 1));
++}
++
++bool tt_pma_validate(unsigned int i, u64 pma)
++{
++	if (!pma)
++		return true;
++
++	if (pma & PMA_RESERVED_MASK) {
++		sbi_printf("PMA%02u 0x%016lx contains reserved bits\n", i, pma);
++		return false;
++	}
++
++	if (tt_pma_size(pma) < 4096) {
++		sbi_printf("PMA%02u 0x%016lx size < 4KB\n", i, pma);
++		return false;
++	}
++
++	if (tt_pma_address(pma) != (pma & PMA_ADDRESS_MASK)) {
++		sbi_printf("PMA%02u 0x%016lx address is not aligned to size\n", i, pma);
++		return false;
++	}
++
++	return true;
++}
++
++void tt_pma_print(unsigned int i, u64 pma)
++{
++	sbi_printf("PMA%02d                       : 0x%016lx-0x%016lx perm:%s%s%s type:%s %s %s amo:%s\n", i,
++			tt_pma_address(pma), tt_pma_address(pma) + tt_pma_size(pma) - 1,
++			pma & PMA_PERMISSION_R ? "R" : " ",
++			pma & PMA_PERMISSION_W ? "W" : " ",
++			pma & PMA_PERMISSION_X ? "X" : " ",
++			(pma & PMA_TYPE_MASK) == PMA_TYPE_MAIN_MEMORY ? "main-memory" :
++			 ((pma & PMA_TYPE_MASK) == PMA_TYPE_IO_RELAXED ? "io-relaxed" :
++			  ((pma & PMA_TYPE_MASK) == PMA_TYPE_IO_ORDERED_0 ? "io-ordered-0" : "io-ordered-1")),
++			(pma & PMA_TYPE_MASK) == PMA_TYPE_MAIN_MEMORY ?
++			 (pma & PMA_MEMORY_CACHEABLE ? "cacheable" : "non-cacheable") :
++			 (pma & PMA_IO_COMBINING ? "combining" : "non-combining"),
++			pma & PMA_ROUTING_COHERENT ? "coherent" : "non-coherent",
++			(pma & PMA_AMO_MASK) == PMA_AMO_NONE ? "none" :
++			 ((pma & PMA_AMO_MASK) == PMA_AMO_SWAP ? "swap" :
++			  ((pma & PMA_AMO_MASK) == PMA_AMO_LOGICAL ? "logical" : "arithmetic")));
++}
++
++static u64 pmas[TT_MAX_PMAS];
++
++void tt_pma_set(unsigned int n, u64 pma)
++{
++	if (n >= TT_MAX_PMAS)
++		sbi_panic("PMA exceeded TT_MAX_PMAS");
++
++	pmas[n] = pma;
++}
++
++u64 tt_pma_get(unsigned int n)
++{
++	if (n >= TT_MAX_PMAS)
++		sbi_panic("PMA exceeded TT_MAX_PMAS");
++
++	return pmas[n];
++}
+-- 
+2.51.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
