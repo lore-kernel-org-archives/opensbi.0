@@ -4,80 +4,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 43E99FCC9A5
-	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 00:50:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2395EFCC9A6
+	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 00:50:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=kDFeR7q5ani4B/X8U730jXIbufpLo9tAlpOhAsSuDpI=; b=pj3XMpVHDSdiK1
-	mAtF85v3LJ0Enzij8iIApVwh1nfVioXFc5Dd7w34QDZLjZFPQXJrIzkC1MrsebvVJGw/d1+ns0kRS
-	Ze+Dt9guhbOZtFfXFs0RR7LUWBBkICe+p8hfDXVrWVxIgybphXjA6D7GvJUn0Qme2WmAsVJ4CMe7G
-	T6dQxp1k86dgFoWXrllmz09U0TvF+1sLgZxjUSyW7iMGvlyGh+gS8KG3xLR63E2k1ubkgHr0fd59A
-	hoXHNHCDONGUUlUfYgtG4/1mTPxYLiUSL2WKF6Sr+6IVJj/vkDoXHwng8fkiLujEM47kDOVcFzcP1
-	gGXC/3QT0Hs5GTjxUryA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=gdt6S/Gx/90APKTKz1caC+MoacsAfYpWS2+cpEfYMqs=; b=OfUd8EEbvx48XZ
+	Z8pSgzvPS5HFMujC2XSsiPvkk2/OFudjRKl/nUVDgYimlABmBnWTCtcv+nAGhHTiAgeRDQWji4nEL
+	GQjlUEbDSPfuDEm9mPWO+YQShY8OIrnm4xGxzqqwvbi6Vzdj8sdw7OdGifbgpVz+cOEPqN9lRNxPe
+	i0kqbZPRwqwGbmNbwVQRqiw9YbwDwFWwBDD2H2gP1C7TTcdsfr89iUtHaPHfY6KQ7lH8gDMdA2NW0
+	i+mfsm4UwQlGgYNxGdjM/1FZ0Abb8TFqdrqMgOOl0JootKXz/gP1+pT/tzan38GzT/NZS+RouNJF4
+	u8+b0KYOcJQrloZTmRAg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzlJ1-00000008QMF-0680;
-	Tue, 10 Mar 2026 00:50:39 +0000
-Received: from mail-pf1-x433.google.com ([2607:f8b0:4864:20::433])
+	id 1vzlJ4-00000008QNN-1GOx;
+	Tue, 10 Mar 2026 00:50:42 +0000
+Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzlIy-00000008QLu-2wxk
+	id 1vzlJ1-00000008QMG-1WFr
 	for opensbi@lists.infradead.org;
-	Tue, 10 Mar 2026 00:50:38 +0000
-Received: by mail-pf1-x433.google.com with SMTP id d2e1a72fcca58-829ac8d56c5so2997336b3a.3
-        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 17:50:36 -0700 (PDT)
+	Tue, 10 Mar 2026 00:50:40 +0000
+Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-829a9d08644so2002881b3a.1
+        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 17:50:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773103835; x=1773708635; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=4A8uCm6r8AOEQ1SI5sCOMsfi/TmY5pIc+3p/m47tr9M=;
-        b=eHtN4KVeZXLl+Hr2ZFcueSY4am9CJ9ZTci2cdyj09WTB80AetKEkm8hHg9FeF/FZRH
-         e6bcNNjLHyAC1D7lnU33Vg9xukya4adXVZSVye2yBNbMw6lP8bh2w/nVHAIi/InvYVGL
-         xZ7i6IDJ0qkCbiY2FpGjEYLZihtOlaer8VJb3elI9V1w8S4e0//j5/fqPytUq1FC2R2V
-         UrnlfF2kfhBUTm1iPR4eXp+AcZTjo0tn4FO/NbHBb5bXOf2dROAdAwQC8osbT883j+i+
-         jXS4fE3GyjF9ifKjw9vj7ZbQUZQjPriR+MKfrt2+dB0PTZ9TFCn+7f661PxSd7SadTRd
-         eDXQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773103835; x=1773708635;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1773103838; x=1773708638; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4A8uCm6r8AOEQ1SI5sCOMsfi/TmY5pIc+3p/m47tr9M=;
-        b=Izp9bc9a5zkEKtKd99rpZ/PySptbIbwv8aANK2/Mn1k87ANPV22JNBGWUvV7dRjaH2
-         bwfNHvxMwNDK7eCwoF2r68vQdcoWBG9w4LbHf0/oYX8NPwGfmI0QG7JSvJ/PlsAwtTrQ
-         64ZSk8//g928RNdNF5HaxxAkz+aZxgILooYfAYdljcmfw3ULAvJ+tvsGNyvAWg8942hb
-         7+KdXmJqRHH2OAamyH3/SMSgJnz6ATJEfdJ5b3fdq+DXmLScjkny4NwVd3IaynTklS6n
-         omP6Ub0LZXytgItAHlxidSDdE57TqWRBKv6smVySoMThsVZz2FT49tRJM58Ws+JLIf+x
-         uNAg==
-X-Gm-Message-State: AOJu0YylCKs8N3e3kdfxM6ynjayfHhm4V3KLt+FynhAF5z+iuXenR+tH
-	J7IXR3Y4/iWEmKdGzpZe8cV15uv98m+bHNbI2NWcgSFWxYviCrIzkCaCGV7jZg==
-X-Gm-Gg: ATEYQzw8XDqLnKLP8c4wK13nu9GkyAC8bvvMb/epCtipcRp6Wj3xa0FMnv9kfeG8uz6
-	hAta6ymwLGlmcKK67N95X9rcUkLd8kXNr1kSVPzwS5Mjbhmcl0/GkLGvVynFvlTZNlFZJj+hhNL
-	8nCn3NSdrcNAqJKHLRXIw7eCBuSVdFiRU7EVzIAcamk6gVHl9/GZiXJDUs0WtPAZuqt92/xDiLi
-	asb1TxKksvxsuS7Xjvc5Pszx3BNIhY96cu5OdqwghfCBth1pcI4mmfysBQZ6k6BHFDVLdx2yvJI
-	/d0QEWcnafSbkLxFi/kz8NkQZACLljQlYjvm+gWtgv+AJCCHsMijZGiJYe3EQSN/pgqnpvzRnf5
-	ZgqCPKO1kDbfo+gEOgrKopEF/m0KFWrjQAmctkhkWBk1/y3XEKbtc+YnyQFVXUYJGTM+HfUI2ua
-	PdMPH3qoNE0Xa7Lw3HbjFmC54aNOn6ZGCYfE21V+r6C9zhxre9YGuoGlh9a236H4cvaxNs
-X-Received: by 2002:a05:6a00:600a:b0:81f:31c3:2e34 with SMTP id d2e1a72fcca58-829a2d87f81mr11522867b3a.25.1773103834821;
-        Mon, 09 Mar 2026 17:50:34 -0700 (PDT)
+        bh=Dv0omhBTygLAoRNAJIwaZdwAGCEs22eA353JoTyxvD4=;
+        b=aINDpz3QP9XUk5qruUEFnXeEW7stdz8EjTk/QBezYDNPuaHfFs7fNpkl3u/yFFXYxA
+         BreM6O3k90MkiZgN9wrJslxek5bP6/OdxsIKjF+juAY/r3n8QLQ6SFaM6QLVBHqFXG9h
+         SSB0mYxNziAEDAsAIGXAU2eHqauH4BW4oht0iS3cpZiWmUhrTdyrLKGgKOZAjKk8rUZJ
+         Zp7gGsQB+SZKHJXQ/ZfYtaxNEDFMaud0BpO06V2GRjtJzABNMALKGhggkNK81GVseduG
+         OuY7y98+RWHrSqBkJEo/x77LKYgiWXGtCKGG+jP5VNcD7ob+xrjlDYtfub6P3ZXu0pcH
+         evuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1773103838; x=1773708638;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Dv0omhBTygLAoRNAJIwaZdwAGCEs22eA353JoTyxvD4=;
+        b=a2D5qw+k9HTmRCxn8CEVjqObp7rI1A7Bu6/uwUvh1XuAOoAQLHSUV0kIjgX8+w4Nb1
+         e4OeiWkM8R7tgnAXuHKsJriC1IanS/fw3lCm8t39FpaT4HflJR94YLW53zpQgg26G80M
+         3pxejq/088iahuO+rlc590lj4MyY2Va97z2FqvHJfHtvSN0nv5Tz4HUGUmH0uJiXAkxS
+         8fXBR3IHTfWLj42ZVn1R+GmkyVaigAsrqLXeAfCqLTRi+1KA1m8f6btPsHA8TtSJtLXx
+         C5MqnTg6l2jI2OSxf5284AYCdwiA8BU+kVPfbBxWgoLirmzCSNM+VV+mjNpiTmo+CRGR
+         fNNg==
+X-Gm-Message-State: AOJu0YwLZzG+gaerjq1iyVOeL8w5auKg9EX+aoNAnQ5WRp4Sa2BPhnH4
+	R1NxORexxhwF8TvsAy34BKTdXtMIoDMvqir/KAwXSMC6bwZTllnWZu7JHfU3Mg==
+X-Gm-Gg: ATEYQzxqmITKPwVG8xMfdiFOwXTQwVHC8yD91T6OLUoA5Sdb6I9rD4UeTv0yD2mhOuy
+	4kMxahKFTrSknYkrtWyCJcoKf4NVnXqZPGhXMOE1tcnIxBaOzWJVvl2Mcm7n1HobyAuCP+4lqcr
+	TkbPC4kF18h41brrHXPOpgbic1T7GzjrkIlChaDJwfOaogx2HDyEgOEFFdAnwsENWq0oLH6h7uB
+	6+W1B6iZ8ZNlYq7GbCxdfGPrr3Bx0UW+ueK8D5SaZ5z+PFtyzuASTNysFLlKZKXEtF8UeWuPR4T
+	1M6y6bv6VXiByOUucKiZzvjcxT0t8h7wSQJyAPlIxXxmGwOPeNsklUdHtvsmORfLtnw+1BmgelE
+	cZNmUxw+q67bg5h46bfnZH43MBWTtX3Qkdmck7irpBhisjb23qV7SClcftIwyUw71sX/B48We9L
+	e+P44ofm83XLlgpdJyxmhHv/ua8oY8MwmMNUuin1yfJON1i91kLUkNJO3vlQRrwFGdiU/4
+X-Received: by 2002:a05:6a21:180a:b0:398:7791:fb16 with SMTP id adf61e73a8af0-3987791fdf9mr7249769637.57.1773103837861;
+        Mon, 09 Mar 2026 17:50:37 -0700 (PDT)
 Received: from lima-default (103.95.112.190.qld.leaptel.network. [103.95.112.190])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829a46765a6sm11357635b3a.29.2026.03.09.17.50.31
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829a46765a6sm11357635b3a.29.2026.03.09.17.50.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Mar 2026 17:50:33 -0700 (PDT)
+        Mon, 09 Mar 2026 17:50:37 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH 1/4] platform: generic: Tenstorrent Atlantis support
-Date: Tue, 10 Mar 2026 10:49:54 +1000
-Message-ID: <20260310005000.3837512-1-npiggin@gmail.com>
+Subject: [PATCH 2/4] lib: sbi: Move PMP encoding into a new file
+Date: Tue, 10 Mar 2026 10:49:55 +1000
+Message-ID: <20260310005000.3837512-2-npiggin@gmail.com>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20260310005000.3837512-1-npiggin@gmail.com>
+References: <20260310005000.3837512-1-npiggin@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260309_175036_775118_86D93E9D 
-X-CRM114-Status: GOOD (  26.80  )
+X-CRM114-CacheID: sfid-20260309_175039_430649_0F024B5E 
+X-CRM114-Status: GOOD (  23.78  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -94,474 +97,384 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add the Tenstorrent Atlantis as a generic-platform. This initial
-support enables the single_fw_region option, and verifies and prints
-HART PMA CSR configuration.
+The Tenstorrent RISC-V IOMMU PMP MMRs use the same encoding as PMP CSRs.
+In preparation to support it, move the non hart-specific PMP operations
+into their own file where they will also be used to build the IOMMU
+PMPs.
 
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
-Note the Atlantis hardware is not yet released, and QEMU models are in
-the process of being upstreamed, but at the moment not complete. So for
-now this can not really be tested with a public implementation, but we
-plan to get implementation specific IOMMU MMRs and CPU CSRs into QEMU
-that can meaningfully exercise this platform.
+ include/sbi/riscv_asm.h |   2 +-
+ include/sbi/sbi_pmp.h   |  24 +++++++
+ lib/sbi/objects.mk      |   1 +
+ lib/sbi/riscv_asm.c     | 156 ++++++++++++----------------------------
+ lib/sbi/sbi_pmp.c       |  91 +++++++++++++++++++++++
+ 5 files changed, 164 insertions(+), 110 deletions(-)
+ create mode 100644 include/sbi/sbi_pmp.h
+ create mode 100644 lib/sbi/sbi_pmp.c
 
-There will be some more Atlantis platform pieces to come, but we want to
-get started with upstreaming and these are some relatively small and
-stable pieces.
-
-The IOMMU support depends on a proposed change to device-tree binding
-for the Tenstorrent specific riscv iommu which I posted for RFC here:
-
-https://lore.kernel.org/linux-riscv/20260310003850.3837030-1-npiggin@gmail.com/T/#u
-
-Thanks,
-Nick
----
- docs/platform/generic.md                      |   2 +
- docs/platform/tt-atlantis.md                  |  35 +++++
- platform/generic/Kconfig                      |   6 +
- platform/generic/configs/defconfig            |   1 +
- .../generic/include/tenstorrent/ascalon.h     |  12 ++
- platform/generic/include/tenstorrent/pma.h    |  18 +++
- platform/generic/tenstorrent/Kconfig          |   5 +
- platform/generic/tenstorrent/ascalon.c        |  53 +++++++
- platform/generic/tenstorrent/atlantis.c       |  50 +++++++
- platform/generic/tenstorrent/objects.mk       |  10 ++
- platform/generic/tenstorrent/pma.c            | 138 ++++++++++++++++++
- 11 files changed, 330 insertions(+)
- create mode 100644 docs/platform/tt-atlantis.md
- create mode 100644 platform/generic/include/tenstorrent/ascalon.h
- create mode 100644 platform/generic/include/tenstorrent/pma.h
- create mode 100644 platform/generic/tenstorrent/Kconfig
- create mode 100644 platform/generic/tenstorrent/ascalon.c
- create mode 100644 platform/generic/tenstorrent/atlantis.c
- create mode 100644 platform/generic/tenstorrent/objects.mk
- create mode 100644 platform/generic/tenstorrent/pma.c
-
-diff --git a/docs/platform/generic.md b/docs/platform/generic.md
-index c48d6a9a..0b896ede 100644
---- a/docs/platform/generic.md
-+++ b/docs/platform/generic.md
-@@ -47,6 +47,7 @@ RISC-V Platforms Using Generic Platform
- * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
- * **Spike** (*[spike.md]*)
- * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
-+* **Tenstorrent Atlantis Platform** (*[tt-atlantis.md]*)
- * **OpenPiton FPGA SoC** (*[fpga-openpiton.md]*)
- * **Ariane FPGA SoC** (*[fpga-ariane.md]*)
+diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
+index 0cf3fc37..b97e1880 100644
+--- a/include/sbi/riscv_asm.h
++++ b/include/sbi/riscv_asm.h
+@@ -213,7 +213,7 @@ void misa_string(int xlen, char *out, unsigned int out_sz);
+ int pmp_disable(unsigned int n);
  
-@@ -57,5 +58,6 @@ RISC-V Platforms Using Generic Platform
- [sifive_fu540.md]: sifive_fu540.md
- [spike.md]: spike.md
- [thead-c9xx.md]: thead-c9xx.md
-+[tt-atlantis.md]: tt-atlantis.md
- [fpga-openpiton.md]: fpga-openpiton.md
- [fpga-ariane.md]: fpga-ariane.md
-diff --git a/docs/platform/tt-atlantis.md b/docs/platform/tt-atlantis.md
+ /* Check if the matching field is set */
+-int is_pmp_entry_mapped(unsigned long entry);
++int is_pmp_entry_mapped(unsigned int entry);
+ 
+ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ 	    unsigned long log2len);
+diff --git a/include/sbi/sbi_pmp.h b/include/sbi/sbi_pmp.h
 new file mode 100644
-index 00000000..b9bdd238
+index 00000000..66664bb0
 --- /dev/null
-+++ b/docs/platform/tt-atlantis.md
-@@ -0,0 +1,35 @@
-+Tenstorrent Atlantis Platform
-+=============================
-+
-+The Tenstorrent Atlantis is an SoC and development board from
-+Tenstorrent in partnership with CoreLab Technology. It contains 8 RISC-V
-+RVA23 compliant Tenstorrent Ascalon cores with RISC-V AIA, RISC-V IOMMU,
-+and a range of devices and IO connectivity.
-+
-+To build the platform-specific library and firmware images, provide the
-+*PLATFORM=generic* parameter to the top level `make` command.
-+
-+Platform Options
-+----------------
-+
-+The *Tenstorrent Atlantis* platform does not have any platform-specific
-+options.
-+
-+Building Tenstorrent Atlantis Platform
-+--------------------------------------
-+
-+The Atlantis Platform is still under development. This section will be
-+expanded as firmware and support become available.
-+
-+QEMU support is currently being developed and initial support has been
-+proposed for upstream. To run QEMU that is patched with 'tt-atlantis'
-+machine support, run:
-+
-+```
-+qemu-system-riscv64 -M tt-atlantis -nographic \
-+	-bios build/platform/generic/firmware/fw_payload.bin \
-+    -kernel <linux_build_dir>/Image
-+```
-+
-+Recent (6.18) Linux/riscv 64-bit defconfig kernels should run the QEMU
-+tt-atlantis machine.
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 2627998a..7de5e5a6 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -85,6 +85,11 @@ config PLATFORM_STARFIVE_JH7110
- 	bool "StarFive JH7110 support"
- 	default n
- 
-+config PLATFORM_TENSTORRENT_ATLANTIS
-+	bool "Tenstorrent Atlantis support"
-+	select CPU_TENSTORRENT_ASCALON
-+	default n
-+
- config PLATFORM_THEAD
- 	bool "THEAD C9xx support"
- 	select THEAD_C9XX_ERRATA
-@@ -110,6 +115,7 @@ config PLATFORM_MIPS_P8700_BOSTON
- 
- source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/eswin/Kconfig"
-+source "$(OPENSBI_SRC_DIR)/platform/generic/tenstorrent/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/thead/Kconfig"
- 
- endif
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 346058f5..153a3aa0 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -9,6 +9,7 @@ CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
- CONFIG_PLATFORM_SOPHGO_SG2042=y
- CONFIG_PLATFORM_STARFIVE_JH7110=y
-+CONFIG_PLATFORM_TENSTORRENT_ATLANTIS=y
- CONFIG_PLATFORM_THEAD=y
- CONFIG_PLATFORM_MIPS_P8700_EYEQ7H=y
- CONFIG_PLATFORM_MIPS_P8700_BOSTON=y
-diff --git a/platform/generic/include/tenstorrent/ascalon.h b/platform/generic/include/tenstorrent/ascalon.h
-new file mode 100644
-index 00000000..5d7b7635
---- /dev/null
-+++ b/platform/generic/include/tenstorrent/ascalon.h
-@@ -0,0 +1,12 @@
++++ b/include/sbi/sbi_pmp.h
+@@ -0,0 +1,24 @@
 +/*
 + * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
 + * SPDX-License-Identifier: BSD-2-Clause
 + */
 +
-+#ifndef __TENSTORRENT_ASCALON_H__
-+#define __TENSTORRENT_ASCALON_H__
++#ifndef __SBI_PMP_H__
++#define __SBI_PMP_H__
 +
-+void tt_ascalon_discover_pmas_from_boot_hart(void);
-+void tt_ascalon_verify_pmas_nonboot_hart(void);
++#include <sbi/sbi_types.h>
 +
-+#endif
-diff --git a/platform/generic/include/tenstorrent/pma.h b/platform/generic/include/tenstorrent/pma.h
-new file mode 100644
-index 00000000..051764ee
---- /dev/null
-+++ b/platform/generic/include/tenstorrent/pma.h
-@@ -0,0 +1,18 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
++struct pmp {
++	u8	cfg;
++	u64	addr;
++};
++typedef struct pmp pmp_t;
 +
-+#ifndef __TENSTORRENT_PMA_H__
-+#define __TENSTORRENT_PMA_H__
++bool pmp_enabled(pmp_t *pmp);
 +
-+/* Max number of PMAs for devices (CPU, IOMMU) for Tenstorrent platforms. */
-+#define TT_MAX_PMAS	32
-+
-+u64 tt_pma_get(unsigned int n);
-+void tt_pma_set(unsigned int n, u64 pma);
-+bool tt_pma_validate(unsigned int i, u64 pma);
-+void tt_pma_print(unsigned int i, u64 pma);
++int pmp_create(pmp_t *pmp, unsigned long prot, unsigned long addr,
++	    unsigned long log2len);
++int pmp_decode(pmp_t *pmp, unsigned long *prot, unsigned long *addr,
++	    unsigned long *log2len);
 +
 +#endif
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 07d13229..0e29a277 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -87,6 +87,7 @@ libsbi-objs-y += sbi_init.o
+ libsbi-objs-y += sbi_ipi.o
+ libsbi-objs-y += sbi_irqchip.o
+ libsbi-objs-y += sbi_platform.o
++libsbi-objs-y += sbi_pmp.o
+ libsbi-objs-y += sbi_pmu.o
+ libsbi-objs-y += sbi_dbtr.o
+ libsbi-objs-y += sbi_mpxy.o
+diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
+index 3e44320f..c11abb1a 100644
+--- a/lib/sbi/riscv_asm.c
++++ b/lib/sbi/riscv_asm.c
+@@ -12,6 +12,7 @@
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_console.h>
++#include <sbi/sbi_pmp.h>
+ 
+ /* determine CPU extension, return non-zero support */
+ int misa_extension_imp(char ext)
+@@ -272,24 +273,9 @@ void csr_write_num(int csr_num, unsigned long val)
+ #undef switchcase_csr_write
+ }
+ 
+-static unsigned long ctz(unsigned long x)
++int hart_pmp_read(unsigned int n, pmp_t *pmp)
+ {
+-	unsigned long ret = 0;
+-
+-	if (x == 0)
+-		return 8 * sizeof(x);
+-
+-	while (!(x & 1UL)) {
+-		ret++;
+-		x = x >> 1;
+-	}
+-
+-	return ret;
+-}
+-
+-int pmp_disable(unsigned int n)
+-{
+-	int pmpcfg_csr, pmpcfg_shift;
++	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+ 	unsigned long cfgmask, pmpcfg;
+ 
+ 	if (n >= PMP_COUNT)
+@@ -304,44 +290,24 @@ int pmp_disable(unsigned int n)
+ #else
+ # error "Unexpected __riscv_xlen"
+ #endif
++	pmpaddr_csr = CSR_PMPADDR0 + n;
++	pmp->addr = csr_read_num(pmpaddr_csr);
+ 
+-	/* Clear the address matching bits to disable the pmp entry */
+-	cfgmask = ~(0xffUL << pmpcfg_shift);
+-	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
+-
+-	csr_write_num(pmpcfg_csr, pmpcfg);
++	cfgmask = (0xffUL << pmpcfg_shift);
++	pmpcfg = csr_read_num(pmpcfg_csr) & cfgmask;
++	pmp->cfg = pmpcfg >> pmpcfg_shift;
+ 
+ 	return SBI_OK;
+ }
+ 
+-int is_pmp_entry_mapped(unsigned long entry)
+-{
+-	unsigned long prot;
+-	unsigned long addr;
+-	unsigned long log2len;
+-
+-	if (pmp_get(entry, &prot, &addr, &log2len) != 0)
+-		return false;
+-
+-	/* If address matching bits are non-zero, the entry is enable */
+-	if (prot & PMP_A)
+-		return true;
+-
+-	return false;
+-}
+-
+-int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+-	    unsigned long log2len)
++int hart_pmp_write(unsigned int n, pmp_t *pmp)
+ {
+ 	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+ 	unsigned long cfgmask, pmpcfg;
+-	unsigned long addrmask, pmpaddr;
+ 
+-	/* check parameters */
+-	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
++	if (n >= PMP_COUNT)
+ 		return SBI_EINVAL;
+ 
+-	/* calculate PMP register and offset */
+ #if __riscv_xlen == 32
+ 	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
+ 	pmpcfg_shift = (n & 3) << 3;
+@@ -353,82 +319,54 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+ #endif
+ 	pmpaddr_csr = CSR_PMPADDR0 + n;
+ 
+-	/* encode PMP config */
+-	prot &= ~PMP_A;
+-	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
+ 	cfgmask = ~(0xffUL << pmpcfg_shift);
+ 	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
+-	pmpcfg |= ((prot << pmpcfg_shift) & ~cfgmask);
+-
+-	/* encode PMP address */
+-	if (log2len == PMP_SHIFT) {
+-		pmpaddr = (addr >> PMP_SHIFT);
+-	} else {
+-		if (log2len == __riscv_xlen) {
+-			pmpaddr = -1UL;
+-		} else {
+-			addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
+-			pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
+-			pmpaddr |= (addrmask >> 1);
+-		}
+-	}
++	pmpcfg |= (unsigned long)pmp->cfg << pmpcfg_shift;
+ 
+-	/* write csrs */
+-	csr_write_num(pmpaddr_csr, pmpaddr);
++	csr_write_num(pmpaddr_csr, pmp->addr);
+ 	csr_write_num(pmpcfg_csr, pmpcfg);
+ 
+-	return 0;
++	return SBI_OK;
+ }
+ 
+-int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+-	    unsigned long *log2len)
++int pmp_disable(unsigned int n)
+ {
+-	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+-	unsigned long cfgmask, pmpcfg, prot;
+-	unsigned long t1, addr, len;
++	struct pmp pmp = { .cfg = 0, .addr = 0 };
++	return hart_pmp_write(n, &pmp);
++}
+ 
+-	/* check parameters */
+-	if (n >= PMP_COUNT || !prot_out || !addr_out || !log2len)
+-		return SBI_EINVAL;
+-	*prot_out = *addr_out = *log2len = 0;
++int is_pmp_entry_mapped(unsigned int entry)
++{
++	pmp_t pmp;
+ 
+-	/* calculate PMP register and offset */
+-#if __riscv_xlen == 32
+-	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
+-	pmpcfg_shift = (n & 3) << 3;
+-#elif __riscv_xlen == 64
+-	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+-	pmpcfg_shift = (n & 7) << 3;
+-#else
+-# error "Unexpected __riscv_xlen"
+-#endif
+-	pmpaddr_csr = CSR_PMPADDR0 + n;
++	if (hart_pmp_read(entry, &pmp))
++		return pmp_enabled(&pmp);
+ 
+-	/* decode PMP config */
+-	cfgmask = (0xffUL << pmpcfg_shift);
+-	pmpcfg	= csr_read_num(pmpcfg_csr) & cfgmask;
+-	prot	= pmpcfg >> pmpcfg_shift;
+-
+-	/* decode PMP address */
+-	if ((prot & PMP_A) == PMP_A_NAPOT) {
+-		addr = csr_read_num(pmpaddr_csr);
+-		if (addr == -1UL) {
+-			addr	= 0;
+-			len	= __riscv_xlen;
+-		} else {
+-			t1	= ctz(~addr);
+-			addr	= (addr & ~((1UL << t1) - 1)) << PMP_SHIFT;
+-			len	= (t1 + PMP_SHIFT + 1);
+-		}
+-	} else {
+-		addr	= csr_read_num(pmpaddr_csr) << PMP_SHIFT;
+-		len	= PMP_SHIFT;
+-	}
++	return false;
++}
 +
-diff --git a/platform/generic/tenstorrent/Kconfig b/platform/generic/tenstorrent/Kconfig
-new file mode 100644
-index 00000000..76c7fb32
---- /dev/null
-+++ b/platform/generic/tenstorrent/Kconfig
-@@ -0,0 +1,5 @@
-+# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+# SPDX-License-Identifier: BSD-2-Clause
++int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
++	    unsigned long log2len)
++{
++	pmp_t pmp;
++	int rc;
 +
-+config CPU_TENSTORRENT_ASCALON
-+	bool
-diff --git a/platform/generic/tenstorrent/ascalon.c b/platform/generic/tenstorrent/ascalon.c
++	rc = pmp_create(&pmp, prot, addr, log2len);
++	if (rc)
++		return rc;
++
++	return hart_pmp_write(n, &pmp);
++}
++
++int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
++	    unsigned long *log2len)
++{
++	pmp_t pmp;
++	int rc;
+ 
+-	/* return details */
+-	*prot_out    = prot;
+-	*addr_out    = addr;
+-	*log2len     = len;
++	rc = hart_pmp_read(n, &pmp);
++	if (rc)
++		return rc;
+ 
+-	return 0;
++	return pmp_decode(&pmp, prot_out, addr_out, log2len);
+ }
+diff --git a/lib/sbi/sbi_pmp.c b/lib/sbi/sbi_pmp.c
 new file mode 100644
-index 00000000..485144cd
+index 00000000..22132d81
 --- /dev/null
-+++ b/platform/generic/tenstorrent/ascalon.c
-@@ -0,0 +1,53 @@
++++ b/lib/sbi/sbi_pmp.c
+@@ -0,0 +1,91 @@
 +/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
 + * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2019 Western Digital Corporation or its affiliates.
++ *
++ * Authors:
++ *   Anup Patel <anup.patel@wdc.com>
 + */
 +
 +#include <sbi/riscv_asm.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_csr_detect.h>
-+
-+#include <tenstorrent/ascalon.h>
-+#include <tenstorrent/pma.h>
-+
-+#define CSR_PMACFG0	0x7e0
-+
-+void tt_ascalon_discover_pmas_from_boot_hart(void)
-+{
-+	struct sbi_trap_info trap = {0};
-+
-+	/* Whisper virtual platform does not implement PMA */
-+	csr_read_allowed(CSR_PMACFG0, &trap);
-+	if (trap.cause)
-+		return;
-+
-+	for (unsigned int i = 0; i < TT_MAX_PMAS; i++) {
-+		u64 pma = csr_read_num(CSR_PMACFG0 + i);
-+		if (!tt_pma_validate(i, pma)) {
-+			sbi_printf("HART%d: Bad boot PMA%02d 0x%016lx\n",
-+				   current_hartid(), i, pma);
-+		}
-+		tt_pma_set(i, pma);
-+
-+		if (pma)
-+			tt_pma_print(i, pma);
-+	}
-+}
-+
-+void tt_ascalon_verify_pmas_nonboot_hart(void)
-+{
-+	struct sbi_trap_info trap = {0};
-+
-+	/* Whisper virtual platform does not implement PMA */
-+	csr_read_allowed(CSR_PMACFG0, &trap);
-+	if (trap.cause)
-+		return;
-+
-+	for (unsigned int i = 0; i < TT_MAX_PMAS; i++) {
-+		u64 pma = csr_read_num(CSR_PMACFG0 + i);
-+		if (pma != tt_pma_get(i)) {
-+			sbi_printf("HART%d: Bad boot PMA%02d 0x%016lx does not match boot HART\n",
-+				   current_hartid(), i, pma);
-+		}
-+	}
-+}
-diff --git a/platform/generic/tenstorrent/atlantis.c b/platform/generic/tenstorrent/atlantis.c
-new file mode 100644
-index 00000000..4c312f7e
---- /dev/null
-+++ b/platform/generic/tenstorrent/atlantis.c
-@@ -0,0 +1,50 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#include <platform_override.h>
-+#include <libfdt.h>
++#include <sbi/riscv_encoding.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_system.h>
 +#include <sbi/sbi_console.h>
++#include <sbi/sbi_pmp.h>
 +
-+#include <tenstorrent/ascalon.h>
-+#include <tenstorrent/pma.h>
-+
-+static int tt_atlantis_final_init(bool cold_boot)
++bool pmp_enabled(pmp_t *pmp)
 +{
-+	if (cold_boot) {
-+		/* Boot firmware sets HART PMAs. Read and verify them. */
-+		tt_ascalon_discover_pmas_from_boot_hart();
++	return pmp->cfg & PMP_A;
++}
++
++int pmp_create(pmp_t *pmp, unsigned long prot, unsigned long addr,
++	    unsigned long log2len)
++{
++	unsigned long addrmask, pmpaddr;
++
++	/* check parameters */
++	if (log2len > __riscv_xlen || log2len < PMP_SHIFT)
++		return SBI_EINVAL;
++
++	/* encode PMP config */
++	prot &= ~PMP_A;
++	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
++
++	/* encode PMP address */
++	if (log2len == PMP_SHIFT) {
++		pmpaddr = (addr >> PMP_SHIFT);
 +	} else {
-+		/* Verify nonboot HARTs have PMAs matching boot HART */
-+		tt_ascalon_verify_pmas_nonboot_hart();
++		if (log2len == __riscv_xlen) {
++			pmpaddr = -1UL;
++		} else {
++			addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
++			pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
++			pmpaddr |= (addrmask >> 1);
++		}
 +	}
 +
-+	return generic_final_init(cold_boot);
++	pmp->cfg = prot;
++	pmp->addr = pmpaddr;
++
++	return SBI_OK;
 +}
 +
-+static bool tt_atlantis_single_fw_region(void)
++static unsigned long cto(unsigned long x)
 +{
-+	return true;
-+}
++	unsigned long ret = 0;
 +
-+static int tt_atlantis_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
-+{
-+	generic_platform_ops.final_init = tt_atlantis_final_init;
-+	generic_platform_ops.single_fw_region = tt_atlantis_single_fw_region;
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match tt_atlantis_match[] = {
-+	{ .compatible = "tenstorrent,atlantis" },
-+	{ },
-+};
-+
-+const struct fdt_driver tenstorrent_atlantis = {
-+	.match_table = tt_atlantis_match,
-+	.init = tt_atlantis_platform_init,
-+};
-diff --git a/platform/generic/tenstorrent/objects.mk b/platform/generic/tenstorrent/objects.mk
-new file mode 100644
-index 00000000..1e4aeb2d
---- /dev/null
-+++ b/platform/generic/tenstorrent/objects.mk
-@@ -0,0 +1,10 @@
-+#
-+# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+platform-objs-y += tenstorrent/pma.o
-+platform-objs-$(CONFIG_CPU_TENSTORRENT_ASCALON) += tenstorrent/ascalon.o
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent_atlantis
-+platform-objs-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent/atlantis.o
-diff --git a/platform/generic/tenstorrent/pma.c b/platform/generic/tenstorrent/pma.c
-new file mode 100644
-index 00000000..daf60192
---- /dev/null
-+++ b/platform/generic/tenstorrent/pma.c
-@@ -0,0 +1,138 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_math.h>
-+#include <libfdt.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+#include <tenstorrent/pma.h>
-+
-+/*
-+ * All PMAs in the system should be the same (after boot). The init code
-+ * must have set PMAs for all HARTs.
-+ */
-+
-+/*
-+ * Ascalon CPU and IOMMU PMA layout:
-+ * Field
-+ * [2:0]	Permission	[0] Read, [1] Write, [2] Execute
-+ * [4:3]	Memory type	00: Main memory, 01: IO memory relaxed,
-+ * 				10: IO memory channel 0, 11: IO memory channel 1
-+ * [6:5]	AMO type	00: AMONone, 01: AMOSwap,
-+ * 				10: AMOLogical, 11: AMOArithmetic
-+ * [7]		Cacheability (main memory type)
-+ * 				1: Cacheable, 0: Non-cacheable
-+ * 		Combining Capability (IO memory type)
-+ * 				1: Combining allowed, 0: Combining disallowed
-+ * [8]		Routing (coherency)
-+ * 				1: Coherent network, 0: Non-coherent network
-+ * [11:9]	Reserved
-+ * [51:12]	Physical address [51:12] base
-+ * [63:58]	Size log 2 (number of address LSB to ignore when matching)
-+ * 		0 = invalid entry (no match)
-+ */
-+
-+#define PMA_PERMISSION_R	0x1
-+#define PMA_PERMISSION_W	0x2
-+#define PMA_PERMISSION_X	0x4
-+#define PMA_PERMISSION_MASK	0x7
-+
-+#define PMA_TYPE_MAIN_MEMORY	0x0
-+#define PMA_TYPE_IO_RELAXED	0x8
-+#define PMA_TYPE_IO_ORDERED_0	0x10
-+#define PMA_TYPE_IO_ORDERED_1	0x18
-+#define PMA_TYPE_MASK		0x18
-+
-+#define PMA_AMO_NONE		0x0
-+#define PMA_AMO_SWAP		0x20
-+#define PMA_AMO_LOGICAL		0x40
-+#define PMA_AMO_ARITHMETIC	0x60
-+#define PMA_AMO_MASK		0x60
-+
-+#define PMA_MEMORY_CACHEABLE	0x80
-+#define PMA_IO_COMBINING	0x80
-+#define PMA_ROUTING_COHERENT	0x100
-+
-+#define PMA_FLAGS_MASK		0x00000000000001ffULL
-+#define PMA_ADDRESS_MASK	0x000ffffffffff000ULL
-+#define PMA_SIZE_MASK		0xfc00000000000000ULL
-+#define PMA_RESERVED_MASK	0x0300000000000e00ULL
-+
-+#define PMA_SIZE_SHIFT		58
-+
-+static u64 tt_pma_size(u64 pma)
-+{
-+	if ((pma & PMA_SIZE_MASK) == 0)
-+		return 0;
-+
-+	return 1ULL << ((pma & PMA_SIZE_MASK) >> PMA_SIZE_SHIFT);
-+}
-+
-+static u64 tt_pma_address(u64 pma)
-+{
-+	return (pma & PMA_ADDRESS_MASK) & ~((tt_pma_size(pma) - 1));
-+}
-+
-+bool tt_pma_validate(unsigned int i, u64 pma)
-+{
-+	if (!pma)
-+		return true;
-+
-+	if (pma & PMA_RESERVED_MASK) {
-+		sbi_printf("PMA%02u 0x%016lx contains reserved bits\n", i, pma);
-+		return false;
++	while (x & 1UL) {
++		ret++;
++		x = x >> 1;
 +	}
 +
-+	if (tt_pma_size(pma) < 4096) {
-+		sbi_printf("PMA%02u 0x%016lx size < 4KB\n", i, pma);
-+		return false;
++	return ret;
++}
++
++int pmp_decode(pmp_t *pmp, unsigned long *prot_out, unsigned long *addr_out,
++	    unsigned long *log2len)
++{
++	/* check parameters */
++	if (!pmp || !prot_out || !addr_out || !log2len)
++		return SBI_EINVAL;
++
++	if (!pmp_enabled(pmp))
++		return SBI_EINVAL;
++
++	/* decode PMP address */
++	if ((pmp->cfg & PMP_A) == PMP_A_NAPOT) {
++		if (pmp->addr == -1UL) {
++			*addr_out = 0;
++			*log2len = __riscv_xlen + 3;
++		} else {
++			unsigned long mask = ~((1UL << cto(pmp->addr)) - 1);
++			*addr_out = (pmp->addr & mask) << PMP_SHIFT;
++			*log2len = (cto(pmp->addr) + PMP_SHIFT + 1);
++		}
++	} else {
++		*addr_out = pmp->addr << PMP_SHIFT;
++		*log2len = PMP_SHIFT;
 +	}
 +
-+	if (tt_pma_address(pma) != (pma & PMA_ADDRESS_MASK)) {
-+		sbi_printf("PMA%02u 0x%016lx address is not aligned to size\n", i, pma);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+void tt_pma_print(unsigned int i, u64 pma)
-+{
-+	sbi_printf("PMA%02d                       : 0x%016lx-0x%016lx perm:%s%s%s type:%s %s %s amo:%s\n", i,
-+			tt_pma_address(pma), tt_pma_address(pma) + tt_pma_size(pma) - 1,
-+			pma & PMA_PERMISSION_R ? "R" : " ",
-+			pma & PMA_PERMISSION_W ? "W" : " ",
-+			pma & PMA_PERMISSION_X ? "X" : " ",
-+			(pma & PMA_TYPE_MASK) == PMA_TYPE_MAIN_MEMORY ? "main-memory" :
-+			 ((pma & PMA_TYPE_MASK) == PMA_TYPE_IO_RELAXED ? "io-relaxed" :
-+			  ((pma & PMA_TYPE_MASK) == PMA_TYPE_IO_ORDERED_0 ? "io-ordered-0" : "io-ordered-1")),
-+			(pma & PMA_TYPE_MASK) == PMA_TYPE_MAIN_MEMORY ?
-+			 (pma & PMA_MEMORY_CACHEABLE ? "cacheable" : "non-cacheable") :
-+			 (pma & PMA_IO_COMBINING ? "combining" : "non-combining"),
-+			pma & PMA_ROUTING_COHERENT ? "coherent" : "non-coherent",
-+			(pma & PMA_AMO_MASK) == PMA_AMO_NONE ? "none" :
-+			 ((pma & PMA_AMO_MASK) == PMA_AMO_SWAP ? "swap" :
-+			  ((pma & PMA_AMO_MASK) == PMA_AMO_LOGICAL ? "logical" : "arithmetic")));
-+}
-+
-+static u64 pmas[TT_MAX_PMAS];
-+
-+void tt_pma_set(unsigned int n, u64 pma)
-+{
-+	if (n >= TT_MAX_PMAS)
-+		sbi_panic("PMA exceeded TT_MAX_PMAS");
-+
-+	pmas[n] = pma;
-+}
-+
-+u64 tt_pma_get(unsigned int n)
-+{
-+	if (n >= TT_MAX_PMAS)
-+		sbi_panic("PMA exceeded TT_MAX_PMAS");
-+
-+	return pmas[n];
++	return SBI_OK;
 +}
 -- 
 2.51.0
