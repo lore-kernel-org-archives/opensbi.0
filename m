@@ -4,83 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E4D0AFCC9A5
-	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 00:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 86064FCC9AE
+	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 02:28:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=WsjHSh34KgXR35GQwX8Ip7EOE1YJW1p6E2+i8GrhIQc=; b=31HQyFJNgIW85H
-	vSPviMEmG6P+N5RcpC/wL8QgP+VUqtvc3G1P9YQpVdZaL+4xCxhMP+FkaIXRyEN2t/EjlGeWH23Dn
-	ISC4/kNhfYrHDLZxv2uPZC12cfwQl+J35omrdWheFSNsOy/85g62ksCj6j1epGrGczzGEWg0dWfWO
-	CjRJWeMlTsTcRHdamWbpIJmE3Ox3kL4D8XiEpB70FutI+ibrst9AIQMayA6yoeLI51dgKRQOlJZnP
-	IepbwlGIgCQ8bT2/UIUowcEnAUGQZc7sYwFFQrd5PvdG/xQc3wFjytwVInGZvfq9EohzRkyuNnjZ3
-	3wU+RByLNcBCt0zLsN3w==;
+	List-Owner; bh=1dOgpbUgrv0pJ24yZ0p4kuw8/aJCywWq58I4+O+S8PM=; b=ivnji2UB31A0S3
+	J7d57KvFhr0Nx3zLm2fhvPkNsuQspAKFtJBOwMe3exHYQGBWLS6OY7KkCR3z5nKoeK5kZ68Dj0izo
+	HO9dpWx0dGWyf5D50nMQAQpiqkUTbvWmsjUUU6subtY4yyNuMe42BOEWwH4iAUu416nkhAdByOseY
+	GII8i9lml7xydoiKcz7E8OZ2YeQUt0aBWEGNxXP0royVSnC5fFMDxrtl3iatkIJ4i6pqw/oMIIFqe
+	cobztCXeCfAisp7/z/FXDzJYwnrSQ/gVLtlzUVC5W82WVwpkOSpbIyjoZ/Hf2VHgiEnIyj6MxxMZ0
+	hN8CmyQtE/A5tgt87rUQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzlJA-00000008QQQ-1UOz;
-	Tue, 10 Mar 2026 00:50:48 +0000
-Received: from mail-pf1-x42a.google.com ([2607:f8b0:4864:20::42a])
+	id 1vzmpb-00000008ZeE-1AeG;
+	Tue, 10 Mar 2026 02:28:23 +0000
+Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzlJ7-00000008QOs-29Br
+	id 1vzmpY-00000008ZdV-3UVR
 	for opensbi@lists.infradead.org;
-	Tue, 10 Mar 2026 00:50:46 +0000
-Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-823c56765fdso6086093b3a.1
-        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 17:50:45 -0700 (PDT)
+	Tue, 10 Mar 2026 02:28:22 +0000
+Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-2ae505619baso53134175ad.2
+        for <opensbi@lists.infradead.org>; Mon, 09 Mar 2026 19:28:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773103844; x=1773708644; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TlndCJhBqKVcC5WGOOvGVMD6gdqPNPkYZnLPJPEHnZg=;
-        b=VKuMtBBd5x9Kj8X51AuVK24epSQhoq1vYNdrjdeyjc68xeu0QZ1grjRNKKGFO3HbCY
-         UJTuv5lrF1zN71KbKtahWDdkxr491Z5K8sq0UY7/HqbvTAaTwRJII+5OOqgI3LF4XerB
-         7SN08QZObzisLMTTFz+2gTfFrVk3iRha93u0T8WR/v7kmybGjIVXqeiFVtlRA6GUlzuc
-         H26s9DFq2iYwzGbFjkNvP1fVwloOOP/uFd/s97LNWlDVfq2j0fbQJpKiLBoYlTTVK9Od
-         ez5KjIHK0D/7irMqiYO9J1soXb/7tWO+yuNfkBAUXEDEUQrCI0jFYaBlL8OojuqQ0R/j
-         QQmg==
+        d=gmail.com; s=20230601; t=1773109700; x=1773714500; darn=lists.infradead.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=FNqXzpoDjQhlUjM85ucTPRYtv3WKroaV72IH26TLL7A=;
+        b=JlTTEgqRaAVZ8vH+dlGxnz2IUb/wRY51bzVX5DeJaNFEgqkmuzaNdMkDZYG8BsoLjE
+         2KwgKY66n8aogjit3i1x8mxR4fAqdb0fkD4E5iuWvg1QA0U4/jo3j+AMuQHIawZEGsQX
+         ise020RVF9dz1plvR6NZ2gNOSW6ZwptNNfbytltglIqVoz5JbxbCHFaduxAVp2TIcPpB
+         6t80hZZPhFYMMafn8BO4oBCfkRvrApUD0wcMGsT3NOjEkI/Rwtricz29UOD1xBIl7v30
+         v0fkqcHy1foPkA+HA/aA1CU4yQxyUapT0GE29Mm6fIE9AncLe2OvE00ystMsDvUwJYf6
+         H9Sw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773103844; x=1773708644;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=TlndCJhBqKVcC5WGOOvGVMD6gdqPNPkYZnLPJPEHnZg=;
-        b=DVvtWo3G1TBYrP0iJCbM+KGyKzg04D7BZk9XOyMQEnULH3oP3FszGzdt8BjFOsmVcc
-         T0hiXsVA2bHtmKlTL/kWWx7lz27jYdUm0qekEgtK9QK3d4j6XS3RLdY1VrHbV1wwK7ho
-         Zw6/JVGFyPYSVxAP1aIwHLSClteIKm8iwwyFzcAMQTbfqsJSgLLsJxwgw0fdaEbfTo1z
-         +odpmSJSFe317hd7Rjh0zaUpVbPveWFrHTm3ekyiPVKvDovj7LwkHZG4v4hv8FcWzxRU
-         b51+vC8dzAB41hYQM40MPp8WSqINAPehpYMmbx6tNPNea8ZWsDMqa5GeLpDGVbLoyJI4
-         FMvA==
-X-Gm-Message-State: AOJu0YzUTVa0iBvfVAPmayVgnJ2vQQVQV0S0d5UkEY+68xL+L/WxsslW
-	zd727PHkzKE4M2eovK6252Zm9KNxYNl2ZcU1+lfhEauaDY1o7j3hdnXTRO5iZg==
-X-Gm-Gg: ATEYQzw6diiLJz2wBvqg1IEEXbB0Gphkw4ggueLUoSx+NoDEUEb/y0MRm8/C3uH6+tN
-	M9yVhQ6D49mqqg4JO6GGpRrqqs6nfjEiVnaF3fP1gl0Qx1wMSz4sPNeaAGGT7Uo0umvGBXkodDe
-	x8qDjleGlyj9OYcd6VRMHe4fGgkpyYkyx+iEg5T8U8RwVKGn4/qbfMdBa/XGVxLjhKrCESycyuq
-	cWND/TvXDu9WFoxSkTcjIlD2eoVBOeVsLhLAoTIJUZQkjq5UYcweU7978DDD8/Ff76G3CcAte7y
-	RETsavKDuJR/dHIs73qZNRh8o0YHOtVUwoQxnWz8qbjPw1QqYi/NRBDTYrqX2in4DmACfflJoXl
-	yfjycNQ0SGfIEWBPTWd7T8Jh2joHljmflRc5wu5rjSfbWLppS3NDgq+wfa6RxUbjF5rd38DxgFl
-	2WB1HuN3outnmHFckVXpeR1JrxWBdm2RLP+ya6tJLzduunGkyo1c994Ze0fWepYjN7+DU3
-X-Received: by 2002:a05:6a00:4612:b0:829:91f6:e544 with SMTP id d2e1a72fcca58-829a30cc76emr12610899b3a.63.1773103843926;
-        Mon, 09 Mar 2026 17:50:43 -0700 (PDT)
-Received: from lima-default (103.95.112.190.qld.leaptel.network. [103.95.112.190])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-829a46765a6sm11357635b3a.29.2026.03.09.17.50.41
+        d=1e100.net; s=20230601; t=1773109700; x=1773714500;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=FNqXzpoDjQhlUjM85ucTPRYtv3WKroaV72IH26TLL7A=;
+        b=GcXjL0egwxut9A41ZS2E81hGPPFxdS75jC3fFi0GWxbQn4DABTwvfsl5z6R+c1LkF1
+         RDHwpL5OymhgkwAafWfDSSoDCLvaPX7ujuQ/6KpPVMGtGm7ASMYX76IYdFW1a+w2CBW0
+         ZwBItX7pBU8VEEo3MyN6mrnbmmI+Wkt+/MVcJBLnvDrxGZNuCTtsNHnZDUfy1P86bxPL
+         +G/KFKk0h3wejRQ2XmmhoxYO+Y1m5UlbZk2eh9y17Ngi5c8fUlZI21qwyNcRGJr0+LkI
+         qPgeujEL7OxbWMat7kSTvjlR8RN3NTFSNrCwGpc9JZe+ZE9L9NbuWq+kfvKfaLDIzBaO
+         kXNA==
+X-Forwarded-Encrypted: i=1; AJvYcCUBkouxulqqHGJzjbgL/Yx89z021+zRpjNKC6WWKab/dpN/DGtQZFvmNN6yNRGTBLArX7HnRRsM@lists.infradead.org
+X-Gm-Message-State: AOJu0YxHcgK0ep00a1rSfSiz8cDKFtkp8Dwi4cimLPig/Ai+/btiY69l
+	wByhGC/bB+gnwPq1DvdUJmHcO/9CjNz4zUloTVcEeqtQx/6/BBbpzBHX
+X-Gm-Gg: ATEYQzw+SOIvPWo26Bk4BY+7eYiDNvawcipIHUK0HxR3vRnqjZ5YxaC+I7ivG4NnSFJ
+	qEeUyxRaaBSmiMnC2AAUk5TcH3Xhrb+LCZAvFS+683QFCUzK9Wa+i13TeckbuUEKoJVQzzjNTcn
+	z0+5fkxnstaLLfnfCyV6u2y43JeR5CD6MRyVFMazn69rGPitlmoKocX3sfjgrSMKhndtyLQCH4L
+	wWqCtYkigMOUrdvGqGyNhXbm+gvBPym3NMzykTWQsM8oFj9guioZ+duTVH64ZJt2gkaNWQ2pIUx
+	wrGA4kpiuE6DcVHWqSvo8QXNa3PcAEHydEvr5J5QB1ZA7YVjO+XvTiQwZSs5nWiYYeWCveZTPPa
+	siGrQinlZ5ObruBKQ4AE5w/bk7Vzx7GYcINj1CuacAu4Ak5ukhaBCRNmiqWBQ8aDCJb24bPmfcl
+	EkmuPvDaJJDrNkWh9DD9S5ljVOBIUkeJ/xFd832qPw5kLfnc36/qvFgJRBTe6150VM
+X-Received: by 2002:a17:903:189:b0:2ae:47c9:68c0 with SMTP id d9443c01a7336-2ae824fe082mr137955315ad.40.1773109699902;
+        Mon, 09 Mar 2026 19:28:19 -0700 (PDT)
+Received: from localhost (103.95.112.190.qld.leaptel.network. [103.95.112.190])
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2ae83e57b14sm170989405ad.19.2026.03.09.19.28.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Mar 2026 17:50:43 -0700 (PDT)
+        Mon, 09 Mar 2026 19:28:18 -0700 (PDT)
+Date: Tue, 10 Mar 2026 12:28:15 +1000
 From: Nicholas Piggin <npiggin@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH 4/4] platform: generic: tenstorrent: Add RISC-V IOMMU support
-Date: Tue, 10 Mar 2026 10:49:57 +1000
-Message-ID: <20260310005000.3837512-4-npiggin@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260310005000.3837512-1-npiggin@gmail.com>
-References: <20260310005000.3837512-1-npiggin@gmail.com>
+To: Radim Krcmar <rkrcmar@qti.qualcomm.com>
+Cc: Nylon Chen <nylon.chen@sifive.com>, 
+	"opensbi@lists.infradead.org" <opensbi@lists.infradead.org>, Zong Li <zong.li@sifive.com>, Nick Hu <nick.hu@sifive.com>, 
+	Samuel Holland <samuel.holland@sifive.com>, Yong-Xuan Wang <yongxuan.wang@sifive.com>, 
+	opensbi <opensbi-bounces@lists.infradead.org>, Evgeny Voevodin <evvoevod@oss.tenstorrent.com>
+Subject: Re: [PATCH 2/3] lib: sbi: Enable Smrnmi extension handler
+Message-ID: <ajsifrry25y4ogzupvkl4bplklqppquexfw4erorqsn3nlmtpy@b3qqdlrgd3kd>
+References: <20260129-smrnmi-v3-v1-0-5d297d3e2027@sifive.com>
+ <20260129-smrnmi-v3-v1-2-5d297d3e2027@sifive.com>
+ <DG4KXRI812NK.1R8OG8O0MZ5A2@qti.qualcomm.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <DG4KXRI812NK.1R8OG8O0MZ5A2@qti.qualcomm.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260309_175045_562898_C8271237 
-X-CRM114-Status: GOOD (  31.00  )
+X-CRM114-CacheID: sfid-20260309_192820_897957_EE3461EF 
+X-CRM114-Status: GOOD (  23.49  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,382 +102,68 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add support for the Tenstorrent RISC-V IOMMU, and enable it for the
-Atlantis platform. The IOMMU must have PMA and PMP registers set up.
-These are implemented as MMRs with the same format as the corresponding
-HART CSRs, making it possible to reuse much existing PMP code. PMAs are
-copied from HART CSRs directly because those are set up by a prior boot
-stage.
+On Mon, Feb 02, 2026 at 03:26:33PM +0000, Radim Krcmar wrote:
+> 2026-01-29T00:13:42-08:00, Nylon Chen <nylon.chen@sifive.com>:
+> > Enable the Smrnmi extension by:
+> > 1. Adding sbi_rnmi_vector_init() to allocate per-HART RNMI context and enable RNMI via MNSTATUS.NMIE
+> > 2. Saving and restoring CSR_MNSCRATCH and CSR_MNSTATUS across non-retentive suspend/resume
+> > 3. Calling sbi_rnmi_vector_init() from the cold and warm init paths
+> >
+> > Co-developed-by: Zong Li <zong.li@sifive.com>
+> > Signed-off-by: Zong Li <zong.li@sifive.com>
+> > Suggested-by: Nick Hu <nick.hu@sifive.com>
+> > Suggested-by: Samuel Holland <samuel.holland@sifive.com>
+> > Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
+> > Signed-off-by: Yong-Xuan Wang <yongxuan.wang@sifive.com>
+> > ---
+> > diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+> > @@ -149,6 +149,15 @@ struct sbi_platform_operations {
+> >  			unsigned long log2len);
+> >  	/** platform specific pmp disable on current HART */
+> >  	void (*pmp_disable)(unsigned int n);
+> > +	/**
+> > +	 * Platform-specific helper to program the RNMI trap vector.
+> > +	 *
+> > +	 * The core will call this from sbi_rnmi_vector_init() with the
+> > +	 * firmware RNMI handler entry address (rnmi_handler) and the
+> > +	 * cold_boot flag. Platforms that support Smrnmi should implement
+> > +	 * this; others can leave it NULL.
+> > +	 */
+> 
+> If the hart supports Smrnmi, then it begins with nmstatus.NMIE=0, which
+> means that any exception is going to enter a critical state.
+> The platform must somehow support Smrnmi to be useful, and I think it
+> would be better not to do it behind opensbi's back.
+> 
+> If the platform wants to handle Smrnmi itself, it can hide Smrnmi from
+> opensbi, so I think the requirement here would be better as MUST.
+> 
+> > +	int (*set_rnmi_trap_vector)(uintptr_t handler_addr, bool cold_boot);
+> > diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> > @@ -273,6 +273,10 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+> >  	if (rc)
+> >  		sbi_hart_hang();
+> >  
+> > +	rc = sbi_rnmi_vector_init(scratch, true);
+> 
+> Are we sure that earlier opensbi code won't try to trigger a trap before
+> this point?  OpenSBI would fail to boot if it did...
 
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
----
- platform/generic/Kconfig                     |   1 +
- platform/generic/include/tenstorrent/iommu.h |  12 +
- platform/generic/tenstorrent/Kconfig         |   3 +
- platform/generic/tenstorrent/atlantis.c      |  18 ++
- platform/generic/tenstorrent/iommu.c         | 245 +++++++++++++++++++
- platform/generic/tenstorrent/objects.mk      |   1 +
- platform/generic/tenstorrent/pma.c           |   3 +-
- 7 files changed, 282 insertions(+), 1 deletion(-)
- create mode 100644 platform/generic/include/tenstorrent/iommu.h
- create mode 100644 platform/generic/tenstorrent/iommu.c
+This appears to come right after sbi_hart_init() which does a bunch of
+CSR detection using traps, so I'm not sure if it can work.
 
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 7de5e5a6..ba2cfa38 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -88,6 +88,7 @@ config PLATFORM_STARFIVE_JH7110
- config PLATFORM_TENSTORRENT_ATLANTIS
- 	bool "Tenstorrent Atlantis support"
- 	select CPU_TENSTORRENT_ASCALON
-+	select CPU_TENSTORRENT_IOMMU
- 	default n
- 
- config PLATFORM_THEAD
-diff --git a/platform/generic/include/tenstorrent/iommu.h b/platform/generic/include/tenstorrent/iommu.h
-new file mode 100644
-index 00000000..45231dfa
---- /dev/null
-+++ b/platform/generic/include/tenstorrent/iommu.h
-@@ -0,0 +1,12 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#ifndef __TENSTORRENT_IOMMU_H__
-+#define __TENSTORRENT_IOMMU_H__
-+
-+int tt_iommu_configure(unsigned long iommu_m_regs);
-+int tt_iommu_fdt_configure(const void *fdt);
-+
-+#endif
-diff --git a/platform/generic/tenstorrent/Kconfig b/platform/generic/tenstorrent/Kconfig
-index 76c7fb32..5c524b33 100644
---- a/platform/generic/tenstorrent/Kconfig
-+++ b/platform/generic/tenstorrent/Kconfig
-@@ -3,3 +3,6 @@
- 
- config CPU_TENSTORRENT_ASCALON
- 	bool
-+
-+config CPU_TENSTORRENT_IOMMU
-+	bool
-diff --git a/platform/generic/tenstorrent/atlantis.c b/platform/generic/tenstorrent/atlantis.c
-index 4c312f7e..59bbd0eb 100644
---- a/platform/generic/tenstorrent/atlantis.c
-+++ b/platform/generic/tenstorrent/atlantis.c
-@@ -12,12 +12,30 @@
- 
- #include <tenstorrent/ascalon.h>
- #include <tenstorrent/pma.h>
-+#include <tenstorrent/iommu.h>
- 
- static int tt_atlantis_final_init(bool cold_boot)
- {
- 	if (cold_boot) {
-+		int rc;
-+
- 		/* Boot firmware sets HART PMAs. Read and verify them. */
- 		tt_ascalon_discover_pmas_from_boot_hart();
-+
-+		/*
-+		 * IOMMU must be configured at platform final_init time, to get
-+		 * the right PMP settings, see init_coldboot() comment. IOMMU
-+		 * is also configured with PMAs discovered from the boot HART,
-+		 * above.
-+		 */
-+		rc = tt_iommu_fdt_configure(fdt_get_address());
-+		if (rc) {
-+			if (rc == SBI_ENOTSUPP)
-+				sbi_printf("Tenstorrent Atlantis: No IOMMU "
-+					   "in device tree, continuing.\n");
-+			else
-+				return rc;
-+		}
- 	} else {
- 		/* Verify nonboot HARTs have PMAs matching boot HART */
- 		tt_ascalon_verify_pmas_nonboot_hart();
-diff --git a/platform/generic/tenstorrent/iommu.c b/platform/generic/tenstorrent/iommu.c
-new file mode 100644
-index 00000000..acc31c09
---- /dev/null
-+++ b/platform/generic/tenstorrent/iommu.c
-@@ -0,0 +1,245 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#include <sbi/riscv_asm.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_string.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_pmp.h>
-+#include <libfdt.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+#include <tenstorrent/iommu.h>
-+#include <tenstorrent/pma.h>
-+
-+/* PMA/PMP register offsets */
-+#define RISCV_IOMMU_REG_PMA_CFG		0x1000
-+#define RISCV_IOMMU_REG_PMP_CFG		0x2000
-+#define RISCV_IOMMU_REG_PMP_ADDR	0x2040
-+#define RISCV_IOMMU_REG_MACHINE_SIZE	0x3000 /* Minimum size of MMRs used */
-+
-+static int iommu_pmp_write(void *iommu, unsigned int n, pmp_t *pmp)
-+{
-+	void *pmpcfg_reg, *pmpaddr_reg;
-+	u64 pmpcfg;
-+	unsigned int pmpcfg_shift;
-+
-+	if (n >= PMP_COUNT)
-+		return SBI_EINVAL;
-+
-+	pmpaddr_reg = iommu + RISCV_IOMMU_REG_PMP_ADDR + n * 8;
-+	writeq(pmp->addr, pmpaddr_reg);
-+
-+	pmpcfg_reg  = iommu + RISCV_IOMMU_REG_PMP_CFG + (n / 8) * 8;
-+	pmpcfg_shift = (n % 8) * 8;
-+	pmpcfg = readq(pmpcfg_reg);
-+	pmpcfg &= ~((u64)0xff << pmpcfg_shift);
-+	pmpcfg |= (u64)pmp->cfg << pmpcfg_shift;
-+	writeq(pmpcfg, pmpcfg_reg);
-+
-+	return SBI_OK;
-+}
-+
-+static int iommu_pmp_disable(void *iommu, unsigned int n)
-+{
-+	struct pmp pmp = { .cfg = 0, .addr = 0 };
-+
-+	return iommu_pmp_write(iommu, n, &pmp);
-+}
-+
-+static int iommu_pmp_set(void *iommu, unsigned int n,
-+		unsigned long prot, unsigned long addr, unsigned long log2len)
-+{
-+	pmp_t pmp;
-+	int rc;
-+
-+	rc = pmp_create(&pmp, prot, addr, log2len);
-+	if (rc)
-+		return rc;
-+
-+	return iommu_pmp_write(iommu, n, &pmp);
-+}
-+
-+/* This matches sbi_hart_oldpmp_configure. IOMMU does not support Smepmp */
-+static int iommu_pmp_configure(void *iommu, unsigned int pmp_count,
-+			unsigned int pmp_log2gran, unsigned long pmp_addr_max)
-+{
-+	struct sbi_domain_memregion *reg;
-+	struct sbi_domain *dom;
-+	unsigned int pmp_idx, pmp_flags;
-+
-+	/* For now, attach IOMMUs to root domain */
-+	dom = &root;
-+
-+	/* Disable all PMPs */
-+	for (int i = 0; i < pmp_count; i++)
-+		iommu_pmp_disable(iommu, i);
-+
-+	pmp_idx = 0;
-+	sbi_domain_for_each_memregion(dom, reg) {
-+		if (pmp_count <= pmp_idx)
-+			break;
-+
-+		pmp_flags = 0;
-+
-+		/*
-+		 * If permissions are to be enforced for all modes on
-+		 * this region, the lock bit should be set.
-+		 */
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_ENF_PERMISSIONS)
-+			pmp_flags |= PMP_L;
-+
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_READABLE)
-+			pmp_flags |= PMP_R;
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_WRITABLE)
-+			pmp_flags |= PMP_W;
-+		if (reg->flags & SBI_DOMAIN_MEMREGION_SU_EXECUTABLE)
-+			pmp_flags |= PMP_X;
-+
-+		if (reg->order < pmp_log2gran || (reg->base >> PMP_SHIFT) >= pmp_addr_max) {
-+			sbi_printf("Can not configure pmp for domain %s because"
-+				   " memory region address 0x%lx or size 0x%lx "
-+				   "is not in range.\n", dom->name, reg->base,
-+				   reg->order);
-+			continue;
-+		}
-+
-+		iommu_pmp_set(iommu, pmp_idx, pmp_flags, reg->base, reg->order);
-+		pmp_idx++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int iommu_pma_write(void *iommu, unsigned int n, u64 pma)
-+{
-+	void *pmacfg_reg;
-+
-+	if (n >= TT_MAX_PMAS)
-+		return SBI_EINVAL;
-+
-+	pmacfg_reg  = iommu + RISCV_IOMMU_REG_PMA_CFG + n*8;
-+
-+	writeq(pma, pmacfg_reg);
-+
-+	if (readq(pmacfg_reg) != pma)
-+		return SBI_ENOTSUPP;
-+
-+	return SBI_OK;
-+}
-+
-+static int iommu_pma_configure(void *iommu)
-+{
-+	for (int i = 0; i < TT_MAX_PMAS; i++) {
-+		int rc = iommu_pma_write(iommu, i, tt_pma_get(i));
-+		if (rc) {
-+			sbi_printf("IOMMU: Error setting unimplemented PMA%02u\n", i);
-+			return rc;
-+		}
-+	}
-+
-+	return SBI_OK;
-+}
-+
-+static void tt_iommu_detect_pmp(void *iommu, unsigned int *pmp_count,
-+			    unsigned int *pmp_log2gran,
-+			    unsigned long *pmp_addr_max)
-+{
-+	unsigned long pmp_addr_bits;
-+	void *pmpaddr_reg;
-+	u64 val;
-+	unsigned int i;
-+
-+	pmpaddr_reg = iommu + RISCV_IOMMU_REG_PMP_ADDR + 0 * 8;
-+	writeq(PMP_ADDR_MASK, pmpaddr_reg);
-+	val = readq(pmpaddr_reg);
-+	*pmp_log2gran = sbi_ffs(val) + 2;
-+	pmp_addr_bits = sbi_fls(val);
-+
-+	*pmp_addr_max = (1UL << pmp_addr_bits) | ((1UL << pmp_addr_bits) - 1);
-+
-+	for (i = 0; i < PMP_COUNT; i++) {
-+		pmpaddr_reg = iommu + RISCV_IOMMU_REG_PMP_ADDR + i * 8;
-+		writeq(val, pmpaddr_reg);
-+		val = readq(pmpaddr_reg);
-+		if (!val)
-+			break;
-+		writeq(0, pmpaddr_reg);
-+	}
-+	*pmp_count = i;
-+}
-+
-+int tt_iommu_configure(unsigned long iommu_m_regs)
-+{
-+	unsigned int pmp_count;
-+	unsigned int pmp_log2gran;
-+	unsigned long pmp_addr_max;
-+	int rc;
-+
-+	rc = iommu_pma_configure((void *)iommu_m_regs);
-+	if (rc) {
-+		sbi_printf("IOMMU: Failed to set PMAs\n");
-+		return rc;
-+	}
-+
-+	tt_iommu_detect_pmp((void *)iommu_m_regs, &pmp_count,
-+			    &pmp_log2gran, &pmp_addr_max);
-+	sbi_dprintf("IOMMU: detected %u PMPs %u log2gran 0x%016lx addr max\n",
-+			pmp_count, pmp_log2gran, pmp_addr_max);
-+
-+	rc = iommu_pmp_configure((void *)iommu_m_regs, pmp_count,
-+				 pmp_log2gran, pmp_addr_max);
-+	if (rc) {
-+		sbi_printf("IOMMU: Failed to set PMPs\n");
-+		return rc;
-+	}
-+
-+	return SBI_OK;
-+}
-+
-+int tt_iommu_fdt_configure(const void *fdt)
-+{
-+	const char *compatible = "tenstorrent,riscv-iommu";
-+	bool found_dt = false;
-+	int offset = -1;
-+
-+	for (;;) {
-+		uint64_t addr, size;
-+		int rc;
-+
-+		offset = fdt_node_offset_by_compatible(fdt, offset, compatible);
-+		if (offset < 0)
-+			break;
-+
-+		rc = fdt_get_node_addr_size_by_name(fdt, offset, "machine",
-+						    &addr, &size);
-+		if (rc < 0 || !size) {
-+			sbi_printf("tenstorrent,riscv-iommu did not find "
-+					"machine regs\n");
-+			continue;
-+		}
-+
-+		if (size < RISCV_IOMMU_REG_MACHINE_SIZE) {
-+			sbi_printf("tenstorrent,riscv-iommu@0x%016lx "
-+				   " machine regs region too small\n", addr);
-+			continue;
-+		}
-+
-+		sbi_dprintf("tenstorrent,riscv-iommu found machine regs "
-+			    "0x%016lx-0x%016lx\n", addr, addr + size - 1);
-+
-+		rc = tt_iommu_configure(addr);
-+		if (rc)
-+			sbi_printf("tenstorrent,riscv-iommu@0x%016lx "
-+				   "init failed\n", addr);
-+	}
-+
-+	if (!found_dt)
-+		return SBI_ENOTSUPP;
-+
-+	return SBI_OK;
-+}
-diff --git a/platform/generic/tenstorrent/objects.mk b/platform/generic/tenstorrent/objects.mk
-index 1e4aeb2d..0bf9c69b 100644
---- a/platform/generic/tenstorrent/objects.mk
-+++ b/platform/generic/tenstorrent/objects.mk
-@@ -5,6 +5,7 @@
- 
- platform-objs-y += tenstorrent/pma.o
- platform-objs-$(CONFIG_CPU_TENSTORRENT_ASCALON) += tenstorrent/ascalon.o
-+platform-objs-$(CONFIG_CPU_TENSTORRENT_IOMMU) += tenstorrent/iommu.o
- 
- carray-platform_override_modules-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent_atlantis
- platform-objs-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent/atlantis.o
-diff --git a/platform/generic/tenstorrent/pma.c b/platform/generic/tenstorrent/pma.c
-index daf60192..1556707c 100644
---- a/platform/generic/tenstorrent/pma.c
-+++ b/platform/generic/tenstorrent/pma.c
-@@ -13,7 +13,8 @@
- 
- /*
-  * All PMAs in the system should be the same (after boot). The init code
-- * must have set PMAs for all HARTs.
-+ * must have set PMAs for all HARTs. IOMMU init programs IOMMU PMAs to
-+ * match the HARTs.
-  */
- 
- /*
--- 
-2.51.0
+Evgeny (+cc) has been doing a lot of work to enable Smrnmi on Ascalon
+and unfortunately we did not see there is this duplicate work happening
+upstream. His changes also has a few other things such as RNMI exception
+vector setting, permits a platform specific handler, and has an Ascalon
+platform implementation.
 
+So I asked him to post what he has. The intention is not to disregard
+this series, but to just show what he has. Hopefully the best of both
+can be used.
+
+Thanks,
+Nick
 
 -- 
 opensbi mailing list
