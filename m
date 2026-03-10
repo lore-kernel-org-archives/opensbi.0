@@ -4,101 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 15276FCC9D9
-	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 07:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 86872FD4F17
+	for <opensbi@archiver.kernel.org>; Tue, 10 Mar 2026 18:33:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=YAId9xEMrsQ8YY09vxdx2cTfWjP4djiPGczIWJHrvPk=; b=U+eKNtHcsQWGrL
-	vPu1HcvV1NS09Yt8kqv1DPuLXqOu6AklWAzTn3cYunUuYaVvH23UmQo/Gw4fJeMLYFm2jTTL3yzeB
-	qOuO4ylJG52Xrzvla9pTeNqOFBIcldvUxr4ZDYutioR0t4T8n3YsJ1cOO77jTjoHn+TL2bqnmlILS
-	M6VSI4+gkes3HZedm9mj4Ob3gB99OSmG66CjQo385VBHDcS/WXK/+9YJp9m0ogMAB7T2xmz4+lbAT
-	lDF5poiSyCzT0waapJUmFVMCZQDMQRuCOQe0l6htBHaFEpUCYITP0OB4GbufYAwv/Lha+s1AH1k8j
-	7IlXJhxO59A+OXRIJdNw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=9c5ELj74VGr+Q1jn9GAsHtL9L7SGf10Vm1mzomDxE5E=; b=FbVrmNLNnPsHI7
+	pbeTpCCejFSEi3N4Ftwf6j+F7isoXBz484Mru1/xEKDzmk6btDBc8a9r20KNh107+MEXS41g/dvpi
+	i7cOnbAaPL0/YaCgq0IQW9prMEXO51YrrS0LBjJkylt1XXq8GBC+98RuZHw2bJvZh+CVugNRFlv+a
+	gQp/7EdMu6xmR55l28lPORg6Fo2ThgUYeqNb15sX35PfIHXkNRQDM8JTRVM26BdYkS1J4RNITNyrD
+	iLZiLpyhtnFNJAOvrI8EdJXocYe6lktqNMs7bI03KE3588izw0yAuq91in5HMD/bfmEkZPv/Z5Kod
+	hM5DsKTHyU26bd62GKCw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzrx7-00000008t8A-3Iq7;
-	Tue, 10 Mar 2026 07:56:29 +0000
-Received: from mail-oo1-xc30.google.com ([2607:f8b0:4864:20::c30])
+	id 1w01tW-0000000A55l-1kX0;
+	Tue, 10 Mar 2026 18:33:26 +0000
+Received: from mail-dy1-x132d.google.com ([2607:f8b0:4864:20::132d])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1vzrx4-00000008t4E-31KR
+	id 1w01tT-0000000A54p-32wk
 	for opensbi@lists.infradead.org;
-	Tue, 10 Mar 2026 07:56:28 +0000
-Received: by mail-oo1-xc30.google.com with SMTP id 006d021491bc7-67bb5e4d06eso574866eaf.1
-        for <opensbi@lists.infradead.org>; Tue, 10 Mar 2026 00:56:26 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1773129385; cv=none;
-        d=google.com; s=arc-20240605;
-        b=Cauv7L2b2ij0PynCg3kJZwXokMM9G2QDEWI9PoSEG+cZ5zlEuYdXQSdFaU29BHuLuP
-         R/UTcRtleVFIt/2oUeOm6et7mdQV7yRgkmaJwq5kIp+zl3CDb3glKC2dkTgzE7xsWgFe
-         j/z5lChM3cD2+7stRJo/3zMlOeqmCb9eL97EKgfPqNnkcePXBI9leo00HacKi1/l7T7b
-         /WBXOpF2Pn4bWIG1E4HfNpZfPT6i/Su6hz0j4359H/D75HGw/E1V7Gp8AHOFmYteGbp/
-         GnZVSei8i8X2s6dSqJ1+UXtfw/2itPOkWBJQvsZzfVBB1RYzd2wyITaAlgc341j9jGBc
-         D7KA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=GDCduzFwIaAmI+IOcQyjY35j20nZKnkRNcNH3BqkzZY=;
-        fh=YKcsHR7jyHuqFbxF9TEF32A5pzizE+s5ek3T2qh5h1Y=;
-        b=RQbJ7rf/ZVuh6qiOEAxwWaOgIYKqd2L1EdsKseka6GYUM3gR3GlFSzR17oIKLYyMt8
-         tYv4DHk6F2YlItQ0fOvs2pQDQ1peFBMN2yMHkTeELJKxJfcNLss8WqkD10P4Fsr26jm/
-         DcrgoTY+xF2Pibj5JxOaIDVL6omROkCE/9DgKUz/VSnMKXlO88oeeqDUJOci/Ji74GYd
-         F17b8ynwdIcaWvTRKYp58o+YHDsAz88WQZfb61BFTorp8IwHlbF3i6xnl/wZtUv5+EtA
-         tUoN2aGZAUmhXe2sxbO+5nhj0TJIWhDSK6G8HL1TgxVo80wI3UAv8lsZMX2hZcRPkmfQ
-         5xXA==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Tue, 10 Mar 2026 18:33:25 +0000
+Received: by mail-dy1-x132d.google.com with SMTP id 5a478bee46e88-2be7ded9477so53379eec.1
+        for <opensbi@lists.infradead.org>; Tue, 10 Mar 2026 11:33:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20230601.gappssmtp.com; s=20230601; t=1773129385; x=1773734185; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=GDCduzFwIaAmI+IOcQyjY35j20nZKnkRNcNH3BqkzZY=;
-        b=tgRw8X6Kg1amjBaygJ2i5Lqkr9/cyoNVrZzpKB31d1+F0Y8xyF7/ALrWbH1fE6s2Ub
-         CdmcCPqU6yqJGoW9IxaDBCA187VNH23EkIqzfyvKbMJI6kcV/lL8VL6rnTlbuWJwqswi
-         TNrpSf+oXLKy0rfdJUSTDRA6wjSI/AahuHWw2TZ+V7mGCeQZAxjbF9rctbpfTpH/oL+i
-         64sXf9gfdFsmAgp/hbGeLcUGsIWNH+y2nMAf29ikyxghsq4gtx6iS23/lHXhleSJ21wn
-         saPoyWOfHNrIc6XZekU34vTqYy1bj0zkDMY9OkxMGIrd6wMlAZ5udFg+AB6JP6F2aQHm
-         xvcw==
+        d=tenstorrent.com; s=google; t=1773167602; x=1773772402; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=aP5Mr++EO5TzGY/F5GB6sXA3dMc/9h+5uDRaR/wclDE=;
+        b=TiKqB+KwBI5hHYWPxOpD8wXrhoNC4Y8HQe/g0AL2bPHwr/ZPuGrVIAOKZK6d9w/+T0
+         W5DiyTTYA2dDMOu37vQLjua5fM4tSSzENMM7HrSN96kHp8+BhSDNI1GQ9oFG/FPWpSSX
+         uVEd5zvLaVm7Cz7DJ3qCeYu7RrPMFLsQ+zucIzI4r410ymCO6Iz4S/IP9OlJiduaTDGJ
+         qAfVsLxYNJtxdlRKmHUNjVSXClDM5s53L4U/cps1GAsBJRK+eCnjUizRTCZxyWw2Bf9s
+         WWGFmNifIdL5fpevl+FYDdcYI5Z+oB5YwYZizj7BaFX9MUMFcnbkxCSp41ZjvGRJuSwh
+         JmkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773129385; x=1773734185;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=GDCduzFwIaAmI+IOcQyjY35j20nZKnkRNcNH3BqkzZY=;
-        b=RjLkz7ac+KNo21uznrMfceBti46ojMSAIOUROD/CgxZJLlFrA1vQu2BGLg2MwyG9r7
-         NfrEqyLlLlWfz4medyU7UuieMmgl8P0GyK2V0bgfguy93+Q7Iaz4j8+g885G59ljrhAY
-         oGt9R9xsBeT9OMWmxWOgbmNZTfVqHZH/GwDGl/2vPEr6um2PmVnjVew/vRTdOhBDVtiQ
-         DK+x9mSOW8xV5wOz2tytggR1ny8syI2OvKQcol38p2QyPID4RvIP2qsR7zwtG4IU7TPj
-         imG/6vPa5ErorcjX3971nqd/CG3+OR+3OYBMlGc7+reSvcR9Az9ERvsvZ5NnNl1RpDCW
-         WuNQ==
-X-Gm-Message-State: AOJu0YxATaGKtF7NazxP3/tDzhGH4TNTQ1ndyOTfPP0uHIiWzwaXt/bN
-	xrYilRvYqlEMwlN9693aYXWWzK0ae/MaFIqVc/RgslEAZWGqT1tC9AuNKqUOf5qDq6zZan8YwR2
-	0sAcrryUsX6OMOiGukLvy39DEX+wFunsn5zsL6eaJgA==
-X-Gm-Gg: ATEYQzz9cudfzcwKnXjgzlo3hapUhsjfK+wjK4QwT3179XnK+hcJoPBMMAGoGsgZLmG
-	X7mBs/r2iizYObKZCZRyxfYlS+fFUEmt+5BENdgZifsnDfJO+E9h77uWlB0ZH3p4fOWMNScblAH
-	AKUf2cuQNhkc+A4UVzV0gQ6zEW3b1P5WPFZPT8aqvjU8EJEF0XIgEyDCIiGRA+3hbjvPxZwngsg
-	AfavRD0HbXWa/uLSqskIBc5LwQrpS6pfoon9A40yGrIK42wbAs2Sudux9rYG4XJY8RgVTGlt0Ck
-	DdbW8RUg35BvCozJQKNRF9x04trxXtTkIwvMkWcj0pla+Drn+MkhTXcMyzBUjwS0brZlY8Yzzxu
-	FWq8vG6PMEA3GMys+/foyZU6/2w==
-X-Received: by 2002:a05:6820:210a:b0:67b:b4b3:821e with SMTP id
- 006d021491bc7-67bb4b3866cmr3660698eaf.64.1773129385346; Tue, 10 Mar 2026
- 00:56:25 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1773167602; x=1773772402;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=aP5Mr++EO5TzGY/F5GB6sXA3dMc/9h+5uDRaR/wclDE=;
+        b=G8Vi5T/sxNspgO0XFQgK5gmfbeLYH6Ou2+/fpC0qaD2yKvxliH08jq50z01WRp7QeK
+         jvHPJ6VmFDZll8/PvwK6qhkgT0YlqAudrcW1MX0ZS/SdLyev2t1kXheXdeFY7MmEdBbI
+         nkKEtrspStDrEcBFP1uzdQTdS5DuHT3T+rA/gPTnIH2kw4SJITgEkBB+YTOf1E6Os5+e
+         so6OifNQk7NyRg0/kUUtLuNDoUa/UZvH2oRSfQOBUU8Pyf2Q9rORqFFwSJp9G2NJ/WTT
+         IbD7ZgsprZMzDjG0jfC//jDzb18MCnT09ABQ5b0VKiDmwxaOBGnRya3JgCTyfy8FP7nu
+         MFjg==
+X-Gm-Message-State: AOJu0YyPt+9d6rZVNC8aqMBerA2HbTMIm4RXSpZocHlxN4Vt7kpZjab+
+	zx/J0Po+wZMQ8FGT9epbj9MsmBabx368Kd4ympry9vkajUcoFwkggGNiXU3F453aOShvDeQkyoP
+	zZE4OWQ4=
+X-Gm-Gg: ATEYQzz8nXLDID6p8YmCcvLDKI7U6Uri28BbEMujpmTvof97PmOzIO4aXjxj3bcpajq
+	ZsM0EU82dAMYyVfO8oytncteULcc9SfsI2UBAE1iSaiXJlhd+F6TaABj8YBuoxjCaRD6pgZhYyW
+	U+Xx8fMOh7D3vFo1tLojD5GiIFdjtOJUrE+InhNidxc/gzWNO3kt/Cz5/QWDf9XRMKce3bQKcv5
+	BFyxyu9Qj//ROxb2yi/Z4tG3vrtAoN02alZIH+UGkD/crehF0beZb6ORm18i8ho7zE8haCbDm4e
+	2NTfFHDBUqOTL6F6pja43mO00WAwP3z93OnW7H+g+qomJ4QijDJVRhqDLyw16a3nEeJl3HpFeS7
+	12VoRRQzGO8gVdAEYcLJobjOppQFZIaYdqIOTOgP2xhCU8SPEu0PD48AQuFmtya3h0SvmyN/BAP
+	3aaDqWScUGDt//HAeibwYt3ZFTwfI=
+X-Received: by 2002:a05:7301:fa13:b0:2be:80c4:2c60 with SMTP id 5a478bee46e88-2be80c43508mr606156eec.8.1773167602178;
+        Tue, 10 Mar 2026 11:33:22 -0700 (PDT)
+Received: from localhost ([38.104.49.66])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2be4f82316bsm14378316eec.7.2026.03.10.11.33.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 10 Mar 2026 11:33:21 -0700 (PDT)
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
+X-Google-Original-From: Evgeny Voevodin <evvoevod@oss.tenstorrent.com>
+To: opensbi@lists.infradead.org
+Cc: evvoevod@oss.tenstorrent.com,
+	Evgeny Voevodin <evvoevod@tenstorrent.com>
+Subject: [PATCH 0/7] Add RISC-V Smrnmi extension support
+Date: Tue, 10 Mar 2026 18:31:48 +0000
+Message-ID: <20260310183155.2186463-1-evvoevod@oss.tenstorrent.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-References: <20260302-event_inject_fix-v1-1-e88952b03aa4@gmail.com>
-In-Reply-To: <20260302-event_inject_fix-v1-1-e88952b03aa4@gmail.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 10 Mar 2026 13:26:14 +0530
-X-Gm-Features: AaiRm52XrS7gasYdo2c03UzT2zPz5vAb51S9J15g40YskNBG9Ob95pMWcZqVnf4
-Message-ID: <CAAhSdy16CdiabpEhLzfVuW-mvr=J-P=97+wgXUkBhm7+Ph0NgQ@mail.gmail.com>
-Subject: Re: [PATCH] lib: sbi: fix sse_event_inject() status setting
-To: thecharlesjenkins@gmail.com
-Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260310_005627_015778_995697C5 
-X-CRM114-Status: GOOD (  15.68  )
+X-CRM114-CacheID: sfid-20260310_113323_776015_03DFA7EC 
+X-CRM114-Status: UNSURE (   9.51  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -110,37 +93,62 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVHVlLCBNYXIgMywgMjAyNiBhdCA0OjI14oCvQU0gQ2hhcmxpZSBKZW5raW5zIHZpYSBCNCBS
-ZWxheQo8ZGV2bnVsbCt0aGVjaGFybGVzamVua2lucy5nbWFpbC5jb21Aa2VybmVsLm9yZz4gd3Jv
-dGU6Cj4KPiBGcm9tOiBDaGFybGllIEplbmtpbnMgPHRoZWNoYXJsZXNqZW5raW5zQGdtYWlsLmNv
-bT4KPgo+IHNzZV9ldmVudF9pbmplY3QoKSBjdXJyZW50bHkgc2V0cyBhbGwgc3RhdHVzIGJpdHMg
-dG8gMSBleGNlcHQgZm9yCj4gU0JJX1NTRV9BVFRSX1NUQVRVU19QRU5ESU5HX09GRlNFVCB3aGlj
-aCBpdCBzZXRzIHRvIHplcm8uIEluc3RlYWQgb2YKPiBvdmVyd3JpdGluZyBhbGwgdGhlIHZhbHVl
-cyBvZiB0aGUgc3RhdHVzIGJpdHMsIHNzZV9ldmVudF9pbmplY3QoKSBpcwo+IG9ubHkgZXhwZWN0
-ZWQgdG8gY2xlYXIgU0JJX1NTRV9BVFRSX1NUQVRVU19QRU5ESU5HX09GRlNFVC4gRml4Cj4gc3Nl
-X2V2ZW50X2luamVjdCgpIHRvIG9ubHkgZG8gdGhlIGNsZWFyaW5nLgo+Cj4gU2lnbmVkLW9mZi1i
-eTogQ2hhcmxpZSBKZW5raW5zIDx0aGVjaGFybGVzamVua2luc0BnbWFpbC5jb20+CgpMR1RNLgoK
-UmV2aWV3ZWQtYnk6IEFudXAgUGF0ZWwgPGFudXBAYnJhaW5mYXVsdC5vcmc+CgpBcHBsaWVkIHRo
-aXMgcGF0Y2ggdG8gdGhlIHJpc2N2L29wZW5zYmkgcmVwby4KClRoYW5rcywKQW51cAoKPiAtLS0K
-PiAgbGliL3NiaS9zYmlfc3NlLmMgfCAyICstCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlv
-bigrKSwgMSBkZWxldGlvbigtKQo+Cj4gZGlmZiAtLWdpdCBhL2xpYi9zYmkvc2JpX3NzZS5jIGIv
-bGliL3NiaS9zYmlfc3NlLmMKPiBpbmRleCBhMTQ3NTRmOC4uODE4YWZiODcgMTAwNjQ0Cj4gLS0t
-IGEvbGliL3NiaS9zYmlfc3NlLmMKPiArKysgYi9saWIvc2JpL3NiaV9zc2UuYwo+IEBAIC01NDgs
-NyArNTQ4LDcgQEAgc3RhdGljIHZvaWQgc3NlX2V2ZW50X2luamVjdChzdHJ1Y3Qgc2JpX3NzZV9l
-dmVudCAqZSwKPgo+ICAgICAgICAgc3NlX2V2ZW50X3NldF9zdGF0ZShlLCBTQklfU1NFX1NUQVRF
-X1JVTk5JTkcpOwo+Cj4gLSAgICAgICBlLT5hdHRycy5zdGF0dXMgPSB+QklUKFNCSV9TU0VfQVRU
-Ul9TVEFUVVNfUEVORElOR19PRkZTRVQpOwo+ICsgICAgICAgZS0+YXR0cnMuc3RhdHVzICY9IH5C
-SVQoU0JJX1NTRV9BVFRSX1NUQVRVU19QRU5ESU5HX09GRlNFVCk7Cj4KPiAgICAgICAgIGlfY3R4
-LT5hNiA9IHJlZ3MtPmE2Owo+ICAgICAgICAgaV9jdHgtPmE3ID0gcmVncy0+YTc7Cj4KPiAtLS0K
-PiBiYXNlLWNvbW1pdDogOGQxYzIxYjM4NzUyMzAxZmM2YzcyN2VlY2U0NWMxNWM2NjM2NDliMAo+
-IGNoYW5nZS1pZDogMjAyNjAzMDItZXZlbnRfaW5qZWN0X2ZpeC1kNTE4N2JlNDBlMGMKPgo+IC0g
-Q2hhcmxpZQo+Cj4KPgo+IC0tCj4gb3BlbnNiaSBtYWlsaW5nIGxpc3QKPiBvcGVuc2JpQGxpc3Rz
-LmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL29wZW5zYmkKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJh
-ZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVu
-c2JpCg==
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
+
+This patch series implements support for the RISC-V Smrnmi (Resumable
+Non-Maskable Interrupts) extension in OpenSBI.
+
+This series is based on top of the Tenstorrent Atlantis platform patch series:
+https://lore.kernel.org/opensbi/20260310005000.3837512-1-npiggin@gmail.com/T/#t
+
+The Smrnmi extension provides:
+- Resumable NMI (RNMI) support with dedicated MNEPC/MNSTATUS/MNCAUSE CSRs
+- Resumable NMI Exception (RNME) handling for traps occurring with NMIE=0
+- Implementation-defined NMI vector locations via NMIVEC/NMEVEC
+
+Key implementation details:
+- Adds infrastructure for RNMI/RNME handlers in firmware assembly (fw_base.S)
+- Provides platform callback interface for custom NMI handler installation
+- Detects and enables Smrnmi early, before trap-based feature detection
+- Ensures trap-based CSR probing works correctly with NMIs enabled
+- Adds stub handler for Tenstorrent Atlantis platform
+
+Testing: Verified on virtual Whisper platform.
+
+Evgeny Voevodin (7):
+  include: sbi_scratch: Add tmp1 scratch space for RNMI context saving
+  lib: sbi: Add Smrnmi extension macros for registers and bits
+  firmware: Add RNMI/RNME handler infrastructure
+  lib: sbi: Introduce smrnmi_handlers_init() callback for platform code
+  lib: sbi: hart: Detect and enable Smrnmi before trap-based feature
+    detection
+  platform: tenstorrent: ascalon: Introduce Smrnmi handlers init
+    callback
+  platform: tenstorrent: Add Smrnmi support for Atlantis
+
+ firmware/fw_base.S                            | 159 +++++++++++++++++-
+ include/sbi/riscv_encoding.h                  |  10 ++
+ include/sbi/sbi_hart.h                        |   2 +
+ include/sbi/sbi_platform.h                    |  18 ++
+ include/sbi/sbi_scratch.h                     |  11 +-
+ include/sbi/sbi_trap.h                        |   4 +
+ lib/sbi/sbi_hart.c                            |  35 +++-
+ lib/sbi/sbi_trap.c                            |  70 ++++++++
+ .../generic/include/tenstorrent/ascalon.h     |  10 ++
+ platform/generic/tenstorrent/ascalon.c        |  11 ++
+ platform/generic/tenstorrent/atlantis.c       |  16 ++
+ 11 files changed, 336 insertions(+), 10 deletions(-)
+
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
