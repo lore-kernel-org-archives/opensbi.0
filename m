@@ -4,70 +4,91 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 71067FED2F7
-	for <opensbi@archiver.kernel.org>; Thu, 12 Mar 2026 09:14:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DE1AD105A57C
+	for <opensbi@archiver.kernel.org>; Thu, 12 Mar 2026 11:02:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
-	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=dhG40VnEXxvEIO/mVMYDYXKDld0x17boS8Ehm+zMAaQ=; b=jFt4mDXUN6sebo
-	3ImXEDnqbKTJNGfJZh/coYh8ZTRZ0mgmHKpg2tEzI9y5Rja1PMo7wAmcoxJk5dmXTIsMgxzHRT5YA
-	OiDHSH7h9N5dTW+LI6DIrWEOb9zWby66HBHdwJ3wt9EaJXYroynV+u0tLqOubx38f1HCfSl+1LCL8
-	aqpaRsN62Ysew16WP+Z6qKdZW3pL+r7wfP/OSUu6FSVtuZrC3zwerqWA9uEkbWtj60ungYp2YtKe6
-	P8TiaDGbJAoE1ueBiecDyZMRnMCu00pS9v8Ow+bssuYSoqMU7Dcfy8WSfT4gTJijbuAV4GAqPDBzd
-	+A558J8R0Lj7BgEYbFGQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=BByVgtUpfrvzB1E5hq3Ya53ZTxOVDX6RC70pKnHiuew=; b=IaVycA01pVOABP
+	pKkuGuOinOH2ysDRQjRfgtCw20S2onCLTZt1HJbl3n83MrUqXJOOMcMSxgbg3pIF9jmTSzCGgs5QN
+	V1N30OgaMv0ZFWLrG8r0gjwQ3omHq61fU4dLfFohAWiGRG/UTXwhA763noLZc94ym1V3xegwzWl/2
+	ibell0D9nDJsKCM4RkFXJFAqrsWnIeS+Y9IEoKtMi1SXScOoRzui9hMhtiZFdQgRVCKzCHX5RwGYi
+	9v/N+4n7wwvuUa/qUykEdAmuAQhX0l9r+EFSEBIhspVf4SaJWVSHPWTmAAElvNz2aXbZIOk8Sjz75
+	N8FLInbK+7xd+BRUxCQA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0c7c-0000000Dh1U-48fy;
-	Thu, 12 Mar 2026 09:14:24 +0000
-Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
+	id 1w0doF-0000000DuHF-1Yly;
+	Thu, 12 Mar 2026 11:02:31 +0000
+Received: from mail-wr1-x432.google.com ([2a00:1450:4864:20::432])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0c7X-0000000Dh0w-49Jn
+	id 1w0doB-0000000DuFz-1nal
 	for opensbi@lists.infradead.org;
-	Thu, 12 Mar 2026 09:14:22 +0000
-Received: from [10.213.19.38] (unknown [210.73.43.101])
-	by APP-03 (Coremail) with SMTP id rQCowAC31dzmg7JpAB5xCg--.45209S2;
-	Thu, 12 Mar 2026 17:14:14 +0800 (CST)
-Message-ID: <1b1d72fb-482f-49db-b41b-53bfef6edb3d@iscas.ac.cn>
-Date: Thu, 12 Mar 2026 17:14:13 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC] OpenSBI: Lazy floating-point and vector context switching
-To: dave.patel@riscstar.com, opensbi@lists.infradead.org
+	Thu, 12 Mar 2026 11:02:30 +0000
+Received: by mail-wr1-x432.google.com with SMTP id ffacd0b85a97d-439b8a3f2bcso717887f8f.3
+        for <opensbi@lists.infradead.org>; Thu, 12 Mar 2026 04:02:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=riscstar-com.20230601.gappssmtp.com; s=20230601; t=1773313345; x=1773918145; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Try9qOJW7ZyZnaj6NyPbEnHYn/1eOH0+YiP2ZvG7/sI=;
+        b=vtth60NaRR1IjnLsxZeSQve2A6zykj7mGZGhgtviOgGQ5FdbXGEr6s8/lIHFhzkvEJ
+         25nvZkgWm0OP0M9rkoMpMBeJfj1bGrYSpOwJlWTrvKIPRmLgGiVQ3STGKkybrJ2xnehH
+         ryqGusvpHlCnq92cx8aBCd0p3w0Kv6QFn5XezjJRuJKN7W/H/Tqh0m12737DAWvDM3Az
+         oj8H3PsvteZv33ul/pBi23iJBdOZ7aG91q7DbWLWosO7aX05OgCvMZFL/d1LDXQTTl9U
+         3zptIG3huffbrsBlShZw2lEK/k7mtJxpfYEgu1uP3RpS6HQPfK5i6VYzp7u1xQinzzLc
+         pgsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1773313345; x=1773918145;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Try9qOJW7ZyZnaj6NyPbEnHYn/1eOH0+YiP2ZvG7/sI=;
+        b=ZsDqcq6IHdNDITwKuv0BwjcxboAKMlZ1HGxjLS+GkcKrXmxmh0/QPPbEsIi+CU91ZU
+         ySs7YFMeboYBVbkW+2RoYaVFBp4KJbgtQ5QRntcHEHMunf7MIqz26hbwmpneIWZ7je/Z
+         RNmbTK9Xfs+ILR6+xY1avTIIczDtGA3AJDiPxK866gXpP4rcxZCqlUsbFePHvIstsoeJ
+         qHh/xEdMtxbKnQa6MdUvmvwagDQ9scEn5C7GTsHk5Q56eWco2SKSw0k2ILNzoFxdWFt3
+         nj5HOe/fkMpXubsUCgXyeJCpq2UWjRh27BwL+vJXqH3ra9rsXyErifTdurqmXrsZ+vL6
+         bLFA==
+X-Gm-Message-State: AOJu0Yx3/DrT3bT8H7d3VMHmT0U4fZnkXlim1Qqm/RpidR0/1Ab6m0GC
+	mA4ivYuGyoo/PU8IycYCope48UZGrotxPFirygXgxWeEhzD97bpNCJnW0XTVlUVCB1JpbRy8NRk
+	61woJ
+X-Gm-Gg: ATEYQzwGFMYKaGiBsjJ0fb2IUBUD3NzP0oHngZu5b88MIKEyKTq8p3AByprQ/i+Z73F
+	zLPL5plsnxubmolY+DdcEoEmH+Fd8d8uki94jwwdpuVg3+l1Uyl7rZ3zhV3FTG42GU7GbLCVfmK
+	BwyUGqKO46TRCiHKAnM6Ps3WA//mCS7I256jz4XclOy/H5Aenw5rD1qvxfaE5Y/qvs7tp3EcePi
+	/LyjgU7PJoICd4txrABxjWbh2x+wAtP+l3COFF7SaXb17NY6HS7NXD1BT9gzEfryUzm458wrw5y
+	C6uAWVvD9Z7AD5DGK36lePGQ9bP+1Vf3noD35lNarWFftaGT8jUU7oMndpoa+L/q1rFpSbLnE3E
+	jpgLoCppl4RHqKWHToUfyFX3/uI6CFT3Z7xuA32GZU/KoATYE/63UShEBYTYWs4a3KJhN1M821V
+	7qYrzyh3g9APjK2i2BSn0JJEylHXKMLjylW6im94UZv+/lKVdfmmIKLj5OIx4gk9mgKg==
+X-Received: by 2002:a05:600c:3106:b0:485:4526:ee05 with SMTP id 5b1f17b1804b1-4854b0fb159mr123072885e9.19.1773313345267;
+        Thu, 12 Mar 2026 04:02:25 -0700 (PDT)
+Received: from localhost.localdomain (92.40.169.86.threembb.co.uk. [92.40.169.86])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4854a18de05sm44625195e9.0.2026.03.12.04.02.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Mar 2026 04:02:24 -0700 (PDT)
+From: dave.patel@riscstar.com
+To: opensbi@lists.infradead.org,
+	wangruikang@iscas.ac.cn
 Cc: Scott Bambrough <scott@riscstar.com>,
- Robin Randhawa <robin.randhawa@sifive.com>,
- Anup Patel <anup.patel@qti.qualcomm.com>,
- Samuel Holland <samuel.holland@sifive.com>,
- Ray Mao <raymond.mao@riscstar.com>, Anup Patel <anuppate@qti.qualcomm.com>,
- Dhaval <dhaval@rivosinc.com>, Peter Lin <peter.lin@sifive.com>
-References: <20260311171103.70074-1-dave.patel@riscstar.com>
-Content-Language: en-US
-From: Vivian Wang <wangruikang@iscas.ac.cn>
-In-Reply-To: <20260311171103.70074-1-dave.patel@riscstar.com>
-X-CM-TRANSID: rQCowAC31dzmg7JpAB5xCg--.45209S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7uryDZr1UAry5ZFWxCrWfKrg_yoW8Kr17pF
-	WfC3yfAFWDJF4rua1kJw4jqrW3u3yxtFWUGFn8J3y8JFW3WFyvgryUt3WYvF9xCryrurWY
-	va90vry8ZayUAFDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9Ib7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I2
-	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
-	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
-	jxv20xvEc7CjxVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4
-	A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IE
-	w4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r4j6F4UMc
-	vjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwIxGrwACI402YVCY1x02628vn2kIc2xKxwCY
-	1x0262kKe7AKxVWUtVW8ZwCY02Avz4vE14v_GFWl42xK82IYc2Ij64vIr41l4I8I3I0E4I
-	kC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWU
-	WwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr
-	0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWU
-	JVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJb
-	IYCTnIWIevJa73UjIFyTuYvjxUygTQUUUUU
-X-Originating-IP: [210.73.43.101]
-X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
+	Robin Randhawa <robin.randhawa@sifive.com>,
+	Anup Patel <anup.patel@qti.qualcomm.com>,
+	Samuel Holland <samuel.holland@sifive.com>,
+	Dave Patel <dave.patel@riscstar.com>,
+	Ray Mao <raymond.mao@riscstar.com>,
+	Anup Patel <anuppate@qti.qualcomm.com>,
+	Dhaval <dhaval@rivosinc.com>,
+	Peter Lin <peter.lin@sifive.com>
+Subject: [RFC] OpenSBI: Lazy floating-point and vector context switching
+Date: Thu, 12 Mar 2026 11:01:58 +0000
+Message-ID: <20260312110158.77308-1-dave.patel@riscstar.com>
+X-Mailer: git-send-email 2.43.0
+MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260312_021420_414276_2A2B1C49 
-X-CRM114-Status: GOOD (  13.27  )
+X-CRM114-CacheID: sfid-20260312_040228_412092_0059B10B 
+X-CRM114-Status: UNSURE (   9.58  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -79,50 +100,61 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gMy8xMi8yNiAwMToxMSwgZGF2ZS5wYXRlbEByaXNjc3Rhci5jb20gd3JvdGU6Cj4gSGkgT3Bl
-blNCSSBtYWludGFpbmVycyBhbmQgY29tbXVuaXR5LAo+Cj4gSSBhbSB3b3JraW5nIG9uIGFuIGlt
-cGxlbWVudGF0aW9uIHRvIHN1cHBvcnQgZmxvYXRpbmctcG9pbnQgKEZQKSBhbmQKPiB2ZWN0b3Ig
-cmVnaXN0ZXIgY29udGV4dCBtYW5hZ2VtZW50IGR1cmluZyBkb21haW4gYW5kIGFwcGxpY2F0aW9u
-Cj4gY29udGV4dCBzd2l0Y2hlcyBpbiBPcGVuU0JJLgo+Cj4gQ3VycmVudGx5LCBPcGVuU0JJIHNh
-dmVzIGFuZCByZXN0b3JlcyBvbmx5IHRoZSBpbnRlZ2VyIHJlZ2lzdGVyCj4gY29udGV4dCB3aGVu
-IGhhbmRsaW5nIHRyYXBzIG9yIGRvbWFpbiB0cmFuc2l0aW9ucy4gVGhlIEZQIHJlZ2lzdGVycwo+
-IChmMOKAk2YzMSkgYW5kIHZlY3RvciByZWdpc3RlcnMgKHYw4oCTdjMxKSBhcmUgbm90IGN1cnJl
-bnRseSBtYW5hZ2VkIGJ5Cj4gT3BlblNCSS4KPgo+IFdpdGggaW5jcmVhc2luZyBhZG9wdGlvbiBv
-ZiB0aGUgUklTQy1WIHZlY3RvciBleHRlbnNpb24gYW5kCj4gZmxvYXRpbmctcG9pbnQgd29ya2xv
-YWRzLCBpdCBiZWNvbWVzIGltcG9ydGFudCB0byBlbnN1cmUgY29ycmVjdAo+IGJlaGF2aW9yIHdo
-ZW4gUy1tb2RlIHNvZnR3YXJlIG9yIHRydXN0ZWQgYXBwbGljYXRpb25zIHVzZSB0aGVzZQo+IGV4
-ZWN1dGlvbiB1bml0cy4KPgo+IFRoaXMgZW1haWwgcHJvcG9zZXMgYW4gYXBwcm9hY2ggdG8gc3Vw
-cG9ydCBsYXp5IEZQIGFuZCB2ZWN0b3IKPiBjb250ZXh0IHN3aXRjaGluZywgYWxpZ25lZCB3aXRo
-IHRoZSBtZWNoYW5pc20gZGVzY3JpYmVkIGluIHRoZQo+IFJJU0MtViBwcml2aWxlZ2VkIHNwZWNp
-ZmljYXRpb24uCj4KPiAtLS0KPgo+ICMjIEJhY2tncm91bmQKPgo+IEluIFJJU0MtViwgdGhlIGBG
-U2AgKEZsb2F0aW5nLXBvaW50IFN0YXRlKSBhbmQgYFZTYCAoVmVjdG9yIFN0YXRlKQo+IGZpZWxk
-cyBpbiBgbXN0YXR1c2AgLyBgc3N0YXR1c2AgY29udHJvbCBhY2Nlc3MgdG8gdGhlIGZsb2F0aW5n
-LXBvaW50Cj4gYW5kIHZlY3RvciB1bml0cy4KPgo+IFdoZW4gdGhlc2UgZmllbGRzIGFyZSBzZXQg
-dG8gYE9mZmAsIGFueSBhdHRlbXB0IHRvIGV4ZWN1dGUgRlAgb3IKPiB2ZWN0b3IgaW5zdHJ1Y3Rp
-b25zIHJlc3VsdHMgaW4gYW4gaWxsZWdhbCBpbnN0cnVjdGlvbiB0cmFwLgo+Cj4gVGhpcyBtZWNo
-YW5pc20gYWxsb3dzIG9wZXJhdGluZyBzeXN0ZW1zIGFuZCBmaXJtd2FyZSB0byBpbXBsZW1lbnQK
-PiBsYXp5IGNvbnRleHQgc3dpdGNoaW5nIHdoZXJlIEZQL3ZlY3RvciByZWdpc3RlcnMgYXJlIHNh
-dmVkIG9yCj4gcmVzdG9yZWQgb25seSB3aGVuIHRoZXkgYXJlIGFjdHVhbGx5IHVzZWQuCgpUaGlz
-IGRvZXMgbm90IHdvcmsgaW4gTWFjaGluZSBtb2RlLCB3aGVyZSBPcGVuU0JJIHJlc2lkZXMuCgpT
-ZWUgcHJpdmlsZWdlZCBzcGVjLCBzZWN0aW9uICJFeHRlbnNpb24gQ29udGV4dCBTdGF0dXMgaW4g
-bXN0YXR1cwpSZWdpc3RlciI6ICJNYWNoaW5lIGFuZCBTdXBlcnZpc29yIG1vZGVzIHNoYXJlIGEg
-c2luZ2xlIGNvcHkgb2YgdGhlIEZTLApWUywgYW5kIFhTIGJpdHMuIgoKVGhpcyBtZWFucyB0aGF0
-IGEgU3VwZXJ2aXNvciBtb2RlIHByb2dyYW0gY2FuIHNldCBzc3RhdHVzLkZTIHRvIERpcnR5LAph
-Y2Nlc3MgZmxvYXRpbmcgcG9pbnQgc3RhdGUsIGFuZCBzZXQgc3N0YXR1cy5GUyBiYWNrIHRvIE9m
-ZiB3aXRob3V0Ck1hY2hpbmUgbW9kZSBzb2Z0d2FyZSBub3RpY2luZyBldmVyLgoKU2VlIGFsc28g
-aHR0cHM6Ly9naXRodWIuY29tL3Jpc2N2L3Jpc2N2LWlzYS1tYW51YWwvaXNzdWVzLzgzMgoiSW1w
-b3NzaWJsZSB0byBpbXBsZW1lbnQgSFMtbGV2ZWwgc3N0YXR1cy57RlMsVlN9ID0gT2ZmIHdpdGgK
-c29mdHdhcmUtZW11bGF0ZWQgaHlwZXJ2aXNvciBleHRlbnNpb24/IiB3aGVyZSBJIHJhbiBpbnRv
-IHRoZSBzYW1lCnByb2JsZW0gaW4gYSBkaWZmZXJlbnQgY29udGV4dC4KClNvIGJhc2ljYWxseSwg
-bGF6eSBzYXZpbmcvcmVzdG9yaW5nIEYgYW5kIFYgaW4gTWFjaGluZSBtb2RlIHdpdGgKbXVsdGlw
-bGUgU3VwZXJ2aXNvciBtb2RlIHByb2dyYW1zIGlzIG5vdCBhIGRlc2lnbmVkIGZlYXR1cmUsIGFu
-ZCBpcyBub3QKcG9zc2libGUgYXMgdGhlIHByaXZpbGVnZWQgYXJjaGl0ZWN0dXJlIGlzIGN1cnJl
-bnRseSBkZXNpZ25lZC4gRm9yIHRoZXNlCnVzZSBjYXNlcyBub24tbGF6eSBzd2l0Y2hpbmcgaXMg
-cmVxdWlyZWQuCgpWaXZpYW4gImRyYW1mb3JldmVyIiBXYW5nCgoKLS0gCm9wZW5zYmkgbWFpbGlu
-ZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+Hi,
+
+On , wrote:
+
+>This does not work in Machine mode, where OpenSBI resides.
+
+The code provided works in Machine mode. It has been tested in an M-mode
+environment where OpenSBI executes using S-mode bare metal app.
+
+>See privileged spec, section "Extension Context Status in mstatus
+>Register": "Machine and Supervisor modes share a single copy of the FS,
+>VS, and XS bits."
+
+Yes, that is correct. Machine and Supervisor modes share a single copy
+of the FS and VS bits.
+
+>This means that a Supervisor mode program can set sstatus.FS to Dirty,
+>access floating point state, and set sstatus.FS back to Off without
+?Machine mode software noticing ever.
+
+That is correct. However, in the proposed approach the lazy context
+switch is triggered only when sstatus.FS is Dirty. If sstatus.FS is not
+Dirty, then no save/restore operation is performed.
+
+>See also https://github.com/riscv/riscv-isa-manual/issues/832
+>"Impossible to implement HS-level sstatus.{FS,VS} = Off with
+>software-emulated hypervisor extension?" where I ran into the same
+>problem in a different context.
+
+Could you please elaborate on how the issue described there applies in
+this context?
+
+>So basically, lazy saving/restoring F and V in Machine mode with
+>multiple Supervisor mode programs is not a designed feature, and is not
+>possible as the privileged architecture is currently designed. For these
+>use cases non-lazy switching is required.
+
+Could you provide more details on the limitations you are referring to?
+In particular, it would be helpful to understand whether the concern is
+related to the shared FS/VS state visibility between privilege levels,
+or to some other aspect of the privileged architecture.
+
+Thanks for the review.
+
+Regards,
+Dave
+
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
