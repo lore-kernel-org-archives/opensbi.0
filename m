@@ -4,87 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 77509106FD7F
-	for <opensbi@archiver.kernel.org>; Fri, 13 Mar 2026 05:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 65C88106FD7E
+	for <opensbi@archiver.kernel.org>; Fri, 13 Mar 2026 05:20:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=PqiekFmcznaQ1xmTyAlI1Cr2JtnimOAJXTYa3OXz4CQ=; b=FGErh91PyxprPT
-	Lm6LkFiRYPgfSROVgUq0u6gszptpn38AK9pGCs5jjCqpKzNd7FP3EriboKnFsT9+XZ6fDllkKaJ5g
-	HMWp/an6H5+yPNaqKjat8kKKNaBF2ZxL4eKyIIc5HEusJPCiXBh0KNwZSuSgxgWwYidnppEHpeBGl
-	A4lcOvMEzmE0drihAkB2hZf8ultEQP7yvtNZI5G88suCWOFGOMB+7jyqPM5A/UOzfARuyfgUkKM+t
-	I0p4LRVzDnH6IXH9koI0t8aEnSv8wxfuplqtvohnTLYGjwJg3SgHiZiC0L5OthdrJ/xovQ208U8yv
-	gAHYR3dUHG/OQyPqNyRg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=9K/DqC/INLGo2ufEKBP+7B8gPOet8ToxQi6Z3uy2/rQ=; b=1y53ztrS8a2th9
+	QEPUdOjyDv+HNJnm/CiOrvPIB9wUx+nm2D3jlpKhgwjvK18y8In5+INjOycuBE7hlP8LEDbrjVDA7
+	un+b7/wvVNaF3K46G6LkuM8Hi1HljzwoKoqvNEIwVS3EwH9gkXNMwgiwt6pbE71TbccV12Tka2Vih
+	zJF1BFZ28rM9w1yCq5Ap3BPmSUIhZez2u7cwBHocxpcVHBwNRcBEaIpqLFoXDYqwCK+bAs2ETNnXp
+	KTndsDDgYkAlu+NzhcVSLSTd6gS8hOg/lOg5SISVxHV+fslrkVup5W8z49178Q0QYazNDHPoHgshO
+	+d7a1TtJV8FMm241xl6g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0ulj-0000000GZeB-2GCl;
-	Fri, 13 Mar 2026 05:09:03 +0000
-Received: from mail-pg1-x52e.google.com ([2607:f8b0:4864:20::52e])
+	id 1w0uwa-0000000Gbx2-3M9F;
+	Fri, 13 Mar 2026 05:20:16 +0000
+Received: from mail-pg1-x536.google.com ([2607:f8b0:4864:20::536])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0ulb-0000000GZa7-1ghm
+	id 1w0uwX-0000000GbwJ-1yqH
 	for opensbi@lists.infradead.org;
-	Fri, 13 Mar 2026 05:09:01 +0000
-Received: by mail-pg1-x52e.google.com with SMTP id 41be03b00d2f7-c648bc907ebso1203520a12.3
-        for <opensbi@lists.infradead.org>; Thu, 12 Mar 2026 22:08:55 -0700 (PDT)
+	Fri, 13 Mar 2026 05:20:14 +0000
+Received: by mail-pg1-x536.google.com with SMTP id 41be03b00d2f7-c7381c4345cso746513a12.1
+        for <opensbi@lists.infradead.org>; Thu, 12 Mar 2026 22:20:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773378534; x=1773983334; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xafO+FHn/tcABOfSsYiI8MAh86pKbUb1BqbY4MczeRI=;
-        b=RMCXqo8VrWD7mbb9DHE8bFOY+SkFSuwfrlRm7peS5U3CHDJWiQH06my/JKFxsADEYh
-         2sYoEMpluSy0RNbY9tE3E7MYa6fLW5BdmYnHEhsfmGQq+r/VQjU+NhVEzyX7O3dFdqI5
-         7WiA7MZSqTE3rvKBJuNmkKZcfwtKcAXoplHfeRMD9xm72lJjxhM8CBq5NDLR1fa4SEBg
-         DxJdruKAnqDluWPx7OrwSL62ECecZLYhiwO75G7z5i7Tr4v0HI3dexyzVKpigCpHxV8y
-         PXVAXn22HOcrEs7tZFXfNGx1IpYPZdjgfeR/ns17DOVJv4vS2IcLRpIqnTjL/sRtzKUN
-         Drjw==
+        d=gmail.com; s=20230601; t=1773379212; x=1773984012; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=/3wns8bZGQE1TDN50UALczjBdYHFQg3L/fFq2o/3340=;
+        b=SDjiJ2DER+81jLnVS3uph1i8anUMsvMIBxuNa2UqNmh1hzsFy3BYJ74riydCy5ns3s
+         3zIrL5WJ1k/P5S71qh9qMDrMQP+o3BkhsuEUc1TN9wZJTh3F4VTL4SGJRazx+HKBM2x6
+         ioczO2I9P9E0NvDx2cUGXTE6I6qnxnSzUjs7NBb+J5sPwt4GDKFKb9r6Y/CXA0KbMSgf
+         Z30qzLpiD09b6c09sn3/VxoglkYmAmqiDYI2enf7rl+hl3HUK7iaci04nL9OAxOuOx3Z
+         SV7U7pLX3ufZv6SbziHR3RSGDgARj7Eo682isXLeL3hCBoRXnm8nV9854/Z1fNOADuEt
+         JQ1g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773378534; x=1773983334;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=xafO+FHn/tcABOfSsYiI8MAh86pKbUb1BqbY4MczeRI=;
-        b=mfAKzRQPtPPvg638/an8MLBDD8nJJ4qAnfM+N7CUq9jWLJFJ1sxAg+BSY/wuBtqeZN
-         aR0K5c3LU/kIXtIUnJGtPaO5cq+uRgC6SsBUxYFHYbc7cgZO9f4bfuok9ejqU8UC+NEw
-         H7QVdB6aBfL1jpoejRvUZ0h1/B+fwFshFrsZTr5KRTSFYz/OJtC/WRv5Rur7XfkdbdsB
-         RwHN6NnI1T009JdZMhaHCnm8nYIjF5geVLrfD0Fz2xj7pH1YmllnOV0y2gKdcCNS2Eom
-         /8g4aFEwBy7B/8L/TV4Mzv5ttUZw1gjUn0ec4aiqxRGCJUzp0mPfHEVMyBjdu5GTurdb
-         uZMA==
-X-Forwarded-Encrypted: i=1; AJvYcCUxp4+4GflVWEjFWWsVqgmkrb5AZepJwkEybCFzjt6XNpNdP5FOcqdl2mniKhlKEd5eX0kKzlRC@lists.infradead.org
-X-Gm-Message-State: AOJu0Yx4QDIrB1t9u5mTTlTUW1N9NhOIVaolf5KG7eQd/L5O+83DvK3D
-	Pz5/nl5ATY34/Wv5vkWaSa2Mh6zY1owUMEej+AR29BuhkmPe/yjYhz8xXaJJQQ==
-X-Gm-Gg: ATEYQzwmwZvgYUnEo2rgIss+/3vWfqmnyw00E16cMNVvV7B7y6jcNxFBM6FdJMdvR4D
-	+XkYc4lQezM3k2JcnmJ1OvQ119FNpd44kXIf4jQ74dfCNxta5lHQT74TbWpqm6Lo6AU1ehWHgy2
-	sZXk3atA3gIE6ND18iruHi7HGo57y531eBHm1CcgbswSrg2HILwa4ENO+dWeZN49RX7AXfgQcAb
-	2h3vM+8YxVfj9NAwyo6vIUT/zp6HsYWYib3v7sAG/OysnoR9bcfFJJ0P7yXpJm2dCr8IS5qlaY8
-	Fsw3GLKn1YHGUO/Rl0dggFcmwIcB4sOY2SAVgX6PejJoWH1S5rDSjx9DuX5lGqHnF8c6GLvM2+z
-	FnOcjSmZAY1GgfE+7qLBMT1V+dqbx4lqKIvuaBQDRmlW0deJmraZDq8YNZJsAtOTwk3Eux1e1ij
-	2pNrH8rWnhMUzu+72TenDk+/7U8Gy1QUBprab+3qFZwYDBelCqSvNsdzFPfHfmocCzGFpW
-X-Received: by 2002:a05:6a21:6190:b0:398:8766:4d0a with SMTP id adf61e73a8af0-398eca9db12mr1654088637.19.1773378534287;
-        Thu, 12 Mar 2026 22:08:54 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1773379212; x=1773984012;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/3wns8bZGQE1TDN50UALczjBdYHFQg3L/fFq2o/3340=;
+        b=lUXc2xlJZiyDNqFgUc5GzvHfLwfcioswin3ckk3czNavFsCKnc0fbyrDYVRyJMKIvP
+         KSs4WIpdypBPjMaI95RgHLruofEFByXXMnu60crre7N18KOj0CSy7W+4IgWWHfT1jazo
+         mA9qUFYDaawh4/bA/OCB3sYhhDoPazK9UGBPcuSu7qpg0Kw/3krC4WmAOS579fMdcSN/
+         nTmeXmjEBlUsp3aQH4sLqKj9/+WLon/MkY6JWG1hcAJH9WQ2mc5pZ/Oqua2ULnxIZICR
+         ubxL9lrKgvJpjMiKEQ9mw81iga2Y00uQ/838qE1N/kNjDHsNDA7jT5QrNbCnrNE9LpFu
+         WkkA==
+X-Gm-Message-State: AOJu0YwfMu/UJzMbR0F5lcalQ+ej9xNpSCCHqnfcbAVNIyX4zkzCYmMo
+	15NTZuqcQ8q5d/HZI2h29AnuQ6yvKHlnbMYw4ksxvW6gWGZvPg6GP3tgeoV/ng==
+X-Gm-Gg: ATEYQzzeEF1epGiwXQODnDyyi1OHmQmJo22NZyGvlYH+Ye51KO3L7/4drtWDtEm2pxV
+	A0Tt/5iZBssX6LeHAxsxZ9BNv1OIuqdqe+NaHxWsYMo6l7L9pCPOnPDeF93K2uJ6N7sso9O5Hz0
+	c0OQBD9vRcYyPmFhDcTK1dX9vWip9qwCFhyiSAAYpFv0Wx1PxdqFUB/ULj7ZkCGcLdNe/V6TWUf
+	nTfwTiLblTxW+ZptfYG5C0eSsO5/PfdOFO6dZfOfyn+1CRlZHnjRARkd2xwPBxf67ImAuly2As4
+	z5wSdS4WjJMMpFNsCDZMEewKaBXGHG8io9aMiTn+12ZFNIkQ6v2fZ5CYq2VQY/Tk2KcPIu2h1E2
+	YVItXnROGg7Dj4SObqVOYBZ78PHMHESFx5/ByEypJUvizv53DLLOS9blMp0GlRsUFcn9r19+LOC
+	pFMnxiOobirEBXCEprte9/7bjh48MagWb6XSxiCi+pik4/n+z6ni4Wbj2tsse9F2entEie
+X-Received: by 2002:a17:90b:3ec6:b0:359:f143:211a with SMTP id 98e67ed59e1d1-35a21c8507dmr1565955a91.0.1773379211903;
+        Thu, 12 Mar 2026 22:20:11 -0700 (PDT)
 Received: from lima-default (103.95.112.190.qld.leaptel.network. [103.95.112.190])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c73eb97a1d7sm676221a12.6.2026.03.12.22.08.50
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35a030490b9sm7298892a91.17.2026.03.12.22.20.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 22:08:53 -0700 (PDT)
+        Thu, 12 Mar 2026 22:20:11 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
-To: Andrew Jones <andrew.jones@linux.dev>
+To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>,
-	kvm-riscv@lists.infradead.org,
-	kvm@vger.kernel.org,
-	opensbi@lists.infradead.org
-Subject: [kvm-unit-tests PATCH 2/2] riscv: dbtr: Add initial API corner case / error handling tests
-Date: Fri, 13 Mar 2026 15:08:31 +1000
-Message-ID: <20260313050831.4016944-2-npiggin@gmail.com>
+	Himanshu Chauhan <hchauhan@ventanamicro.com>
+Subject: [PATCH 00/18] dbtr: Fixes and heterogeneous trigger types
+Date: Fri, 13 Mar 2026 15:19:29 +1000
+Message-ID: <20260313051948.4017134-1-npiggin@gmail.com>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260313050831.4016944-1-npiggin@gmail.com>
-References: <20260313050831.4016944-1-npiggin@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260312_220855_489020_E149C97A 
-X-CRM114-Status: GOOD (  15.64  )
+X-CRM114-CacheID: sfid-20260312_222013_514684_902D14AA 
+X-CRM114-Status: UNSURE (   9.79  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -101,358 +96,47 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The SBI DBTR specification has quite detailed API requirements
-that are easy to get wrong. This implements the beginning of
-testing some corner cases, not with trigger behaviour but with
-API behaviour.
+In the course of implementing and testing heterogeneous trigger
+types as found in the Tenstorrent Ascalon CPU, I found some issues
+to fix as well.
 
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
----
-These tests expose a bunch of major and minor errors in OpenSBI
-handling, for which I will post patches to the opensbi list. As
-well as possibly a bug in the SBI spec, reported here.
-
-https://github.com/riscv-non-isa/riscv-sbi-doc/issues/257
+Patches 1-11 contain fixes and improvements for existing function,
+and make most of the new kvm-unit-tests tests pass. 12-17 implement
+"heterogenous" triggers where different HW triggers support
+different functions so we have to relax the 1:1 mapping from DBTR trig
+to HW trigger index and allocate HW triggers independently from what
+can satisfy the requested type. Patch 18 is another possible fix but
+it relies on update to SBI spec so I put it last. I can move it ahead
+into the fixes block if the issue is confirmed.
 
 Thanks,
 Nick
----
----
- riscv/sbi-dbtr.c | 314 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 314 insertions(+)
 
-diff --git a/riscv/sbi-dbtr.c b/riscv/sbi-dbtr.c
-index 489242b0..156b743b 100644
---- a/riscv/sbi-dbtr.c
-+++ b/riscv/sbi-dbtr.c
-@@ -423,6 +423,318 @@ static enum McontrolType dbtr_test_type(unsigned long *num_trig)
- 	return SBI_DBTR_TDATA1_TYPE_NONE;
- }
- 
-+static struct sbiret dbtr_test_api(unsigned long trig_max)
-+{
-+	/* + 1 so overflow can be tested */
-+	static struct sbi_dbtr_shmem_entry shmem[RV_MAX_TRIGGERS + 1] = {};
-+	static unsigned long test[RV_MAX_TRIGGERS + 1];
-+	unsigned long tdata1;
-+	unsigned long trig_type;
-+	struct sbiret ret;
-+	int i;
-+
-+	/*
-+	 * This set of tests is to test API response, not hardware/trigger
-+	 * behaviour, which is left to later tests.
-+	 *
-+	 * Notably absent from these API tests at the moment are:
-+	 * - Enable/disable tests.
-+	 * - trig_state verification.
-+	 * - Testing more valid and invalid tdata1/2/3 values.
-+	 */
-+
-+	trig_type = dbtr_test_type(&trig_max);
-+	tdata1 = gen_tdata1(trig_type, VALUE_LOAD | VALUE_STORE, MODE_S);
-+
-+	/* + 1, so overflow can be tested */
-+	memset(shmem, 0, sizeof(shmem));
-+	for (i = 0; i < RV_MAX_TRIGGERS + 1; i++) {
-+		shmem[i].data.tdata1 = tdata1;
-+		shmem[i].data.tdata2 = (unsigned long)&test[i];
-+	}
-+
-+	report_prefix_push("api");
-+
-+	report_prefix_push("no_shmem");
-+	ret = sbi_debug_read_triggers(0, 0);
-+	sbiret_report_error(&ret, SBI_ERR_NO_SHMEM, "sbi_debug_read_triggers");
-+	report(ret.value == 0, "read return value");
-+	ret = sbi_debug_install_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_NO_SHMEM, "sbi_debug_install_triggers");
-+	report(ret.value == 0, "install return value");
-+	ret = sbi_debug_update_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_NO_SHMEM, "sbi_debug_update_triggers");
-+	report(ret.value == 0, "update return value");
-+	report_prefix_pop();
-+
-+	report_prefix_push("shmem");
-+	ret = sbi_debug_set_shmem_raw(1, 0, 0);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_set_shmem unaligned");
-+	ret = sbi_debug_set_shmem_raw(0, -1, 0);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_ADDRESS, "sbi_debug_set_shmem bad address");
-+	ret = sbi_debug_set_shmem(shmem);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_set_shmem");
-+	ret = sbi_debug_read_triggers(0, 1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers");
-+	ret = sbi_debug_set_shmem_raw(-1, -1, 0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_set_shmem unset");
-+	ret = sbi_debug_read_triggers(0, 1);
-+	sbiret_report_error(&ret, SBI_ERR_NO_SHMEM, "sbi_debug_read_triggers");
-+	report_prefix_pop();
-+
-+	ret = sbi_debug_set_shmem(shmem);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_set_shmem");
-+
-+	report_prefix_push("read triggers");
-+	ret = sbi_debug_read_triggers(0, 0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers 0, 0");
-+	ret = sbi_debug_read_triggers(0, 1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers 0, 1");
-+	ret = sbi_debug_read_triggers(trig_max - 1, 0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers trig_max - 1, 0");
-+	ret = sbi_debug_read_triggers(trig_max - 1, 1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers trig_max - 1, 1");
-+	ret = sbi_debug_read_triggers(trig_max, 0);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_read_triggers trig_max, 0");
-+	ret = sbi_debug_read_triggers(trig_max, 1);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_read_triggers trig_max, 1");
-+	ret = sbi_debug_read_triggers(0, trig_max);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers 0, trig_max");
-+	ret = sbi_debug_read_triggers(1, trig_max);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_read_triggers 1, trig_max");
-+	ret = sbi_debug_read_triggers(0, 1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers 1");
-+	ret = sbi_debug_read_triggers(0, trig_max);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_read_triggers trig_max");
-+	report_prefix_pop();
-+
-+	report_prefix_push("install triggers");
-+	ret = sbi_debug_install_triggers(0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 0");
-+	ret = sbi_debug_install_triggers(trig_max + 1);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_install_triggers 0");
-+
-+	shmem[0].data.tdata1 = gen_tdata1(trig_type, VALUE_LOAD, MODE_M);
-+	ret = sbi_debug_install_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_install_triggers 1 invalid");
-+	report(ret.value == 0, "error index 0");
-+	shmem[0].data.tdata1 = tdata1;
-+
-+	if (trig_max > 1) {
-+		shmem[1].data.tdata1 = gen_tdata1(trig_type, VALUE_LOAD, MODE_M);
-+		ret = sbi_debug_install_triggers(2);
-+		sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_install_triggers 2 invalid");
-+		report(ret.value == 1, "error index 1");
-+		shmem[1].data.tdata1 = tdata1;
-+	}
-+
-+	ret = sbi_debug_install_triggers(1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+	report(shmem[0].data.tstate == 0, "install index 0");
-+	ret = sbi_debug_install_triggers(trig_max);
-+	sbiret_report_error(&ret, SBI_ERR_FAILURE, "sbi_debug_install_triggers trig_max");
-+	report(ret.value == trig_max - 1, "error index trig_max - 1");
-+	if (trig_max > 1) {
-+		ret = sbi_debug_install_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+		report(shmem[0].data.tstate == 1, "install index 1");
-+
-+		ret = sbi_debug_uninstall_triggers(0, 1);
-+		if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1")) {
-+			report_prefix_pop();
-+			goto out;
-+		}
-+
-+		ret = sbi_debug_install_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+		report(shmem[0].data.tstate == 0, "install index 0");
-+
-+		ret = sbi_debug_uninstall_triggers(1, 1);
-+		if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 1 1")) {
-+			report_prefix_pop();
-+			goto out;
-+		}
-+	}
-+	ret = sbi_debug_uninstall_triggers(0, 1);
-+	if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1")) {
-+		report_prefix_pop();
-+		goto out;
-+	}
-+
-+	ret = sbi_debug_install_triggers(trig_max);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers trig_max");
-+	ret = sbi_debug_uninstall_triggers(0, (1UL << trig_max) - 1);
-+	if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 (1ULL << trig_max) - 1")) {
-+		report_prefix_pop();
-+		goto out;
-+	}
-+
-+	/* Try to detect overrun by looking at the return value */
-+	report_prefix_push("overrun");
-+	shmem[trig_max].data.tdata1 = gen_tdata1(trig_type, VALUE_LOAD | VALUE_STORE, MODE_M);
-+	ret = sbi_debug_install_triggers(trig_max + 1);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_install_triggers trig_max");
-+	report(ret.value == 0, "value overrun check");
-+	shmem[trig_max].data.tdata1 = tdata1; /* restore valid */
-+	report_prefix_pop();
-+
-+	report_prefix_pop();
-+
-+	report_prefix_push("update triggers");
-+	ret = sbi_debug_update_triggers(0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_update_triggers 0");
-+	ret = sbi_debug_update_triggers(trig_max + 1);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_update_triggers 0");
-+
-+	shmem[0].data.tstate = 0;
-+	ret = sbi_debug_update_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_FAILURE, "sbi_debug_update_triggers 1 not mapped");
-+	report(ret.value == 0, "error index 0");
-+
-+	shmem[0].data.tstate = trig_max;
-+	ret = sbi_debug_update_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_update_triggers 1 idx == trig_max");
-+	report(ret.value == 0, "error index 0");
-+
-+	ret = sbi_debug_install_triggers(1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+
-+	shmem[0].data.tstate = 0;
-+	ret = sbi_debug_update_triggers(1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_update_triggers 1");
-+
-+	/* Update 2 both with same index */
-+	shmem[1].data.tstate = 0;
-+	ret = sbi_debug_update_triggers(2);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_update_triggers 2");
-+
-+	shmem[0].data.tstate = 1;
-+	ret = sbi_debug_update_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_FAILURE, "sbi_debug_update_triggers 1 not mapped");
-+	report(ret.value == 0, "error index 0");
-+
-+	shmem[0].data.tstate = 0;
-+	shmem[1].data.tstate = 1;
-+	ret = sbi_debug_update_triggers(2);
-+	sbiret_report_error(&ret, SBI_ERR_FAILURE, "sbi_debug_update_triggers 2 not mapped");
-+	report(ret.value == 1, "error index 1");
-+
-+	shmem[0].data.tstate = 0;
-+	shmem[0].data.tdata1 = gen_tdata1(trig_type, VALUE_LOAD, MODE_M);
-+	ret = sbi_debug_update_triggers(1);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_update_triggers 1 invalid");
-+	report(ret.value == 0, "error index 0");
-+	shmem[0].data.tdata1 = tdata1;
-+	if (trig_max > 1) {
-+		ret = sbi_debug_install_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+		report(shmem[0].data.tstate == 1, "install index 1");
-+
-+		shmem[0].data.tstate = 1;
-+		ret = sbi_debug_update_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_update_triggers 1");
-+
-+		shmem[0].data.tstate = 0;
-+		shmem[1].data.tstate = 1;
-+		ret = sbi_debug_update_triggers(2);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_update_triggers 2");
-+
-+		ret = sbi_debug_uninstall_triggers(1, 1);
-+		if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 1 1")) {
-+			report_prefix_pop();
-+			goto out;
-+		}
-+	}
-+	ret = sbi_debug_uninstall_triggers(0, 1);
-+	if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1")) {
-+		report_prefix_pop();
-+		goto out;
-+	}
-+
-+	/* Try to detect overrun by looking at the return value */
-+	report_prefix_push("overrun");
-+	ret = sbi_debug_install_triggers(1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers trig_max");
-+
-+	for (i = 0; i <= trig_max; i++)
-+		shmem[trig_max].data.tstate = 0;
-+	shmem[trig_max].data.tdata1 = gen_tdata1(trig_type, VALUE_LOAD | VALUE_STORE, MODE_M);
-+	ret = sbi_debug_update_triggers(trig_max + 1);
-+	sbiret_report_error(&ret, SBI_ERR_BAD_RANGE, "sbi_debug_install_triggers trig_max");
-+	report(ret.value == 0, "value overrun check");
-+	shmem[trig_max].data.tdata1 = tdata1; /* restore valid */
-+
-+	ret = sbi_debug_uninstall_triggers(0, 1);
-+	if (!sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1")) {
-+		report_prefix_pop();
-+		goto out;
-+	}
-+	report_prefix_pop();
-+
-+	report_prefix_pop();
-+
-+	report_prefix_push("uninstall triggers");
-+	ret = sbi_debug_uninstall_triggers(0, 0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 0");
-+	ret = sbi_debug_uninstall_triggers(trig_max, 0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers trig_max 0");
-+	ret = sbi_debug_uninstall_triggers(0, 1);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_uninstall_triggers 0 1");
-+	ret = sbi_debug_uninstall_triggers(trig_max, 1);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_uninstall_triggers trig_max 1");
-+	ret = sbi_debug_install_triggers(1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+	report(shmem[0].data.tstate == 0, "install index 0");
-+	ret = sbi_debug_uninstall_triggers(0, 2);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_uninstall_triggers 0 2");
-+	ret = sbi_debug_uninstall_triggers(0, 3);
-+	sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_uninstall_triggers 0 3");
-+	ret = sbi_debug_uninstall_triggers(0, 1);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1");
-+	if (trig_max > 1) {
-+		ret = sbi_debug_install_triggers(2);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 2");
-+		report(shmem[0].data.tstate == 0, "install index 0");
-+		report(shmem[1].data.tstate == 1, "install index 1");
-+		ret = sbi_debug_uninstall_triggers(0, 1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1");
-+		ret = sbi_debug_install_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+		report(shmem[0].data.tstate == 0, "install index 0");
-+		ret = sbi_debug_uninstall_triggers(1, 1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 1 1");
-+		ret = sbi_debug_install_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+		report(shmem[1].data.tstate == 1, "install index 1");
-+		ret = sbi_debug_uninstall_triggers(0, 2);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 2");
-+		ret = sbi_debug_install_triggers(1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 1");
-+		report(shmem[1].data.tstate == 1, "install index 1");
-+		ret = sbi_debug_uninstall_triggers(0, 3);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 3");
-+		ret = sbi_debug_install_triggers(2);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_install_triggers 2");
-+		report(shmem[0].data.tstate == 0, "install index 0");
-+		report(shmem[1].data.tstate == 1, "install index 1");
-+		ret = sbi_debug_uninstall_triggers(1, 1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 1 1");
-+		ret = sbi_debug_uninstall_triggers(0, 3);
-+		sbiret_report_error(&ret, SBI_ERR_INVALID_PARAM, "sbi_debug_uninstall_triggers 0 3");
-+		ret = sbi_debug_uninstall_triggers(0, 1);
-+		sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_uninstall_triggers 0 1");
-+	}
-+	report_prefix_pop();
-+
-+out:
-+	ret = sbi_debug_set_shmem_raw(-1, -1, 0);
-+	sbiret_report_error(&ret, SBI_SUCCESS, "sbi_debug_set_shmem unset");
-+
-+	report_prefix_pop();
-+
-+	return ret;
-+}
-+
- static struct sbiret dbtr_test_store_install_uninstall(struct sbi_dbtr_shmem_entry *shmem,
- 						      enum McontrolType type)
- {
-@@ -838,6 +1150,8 @@ void check_dbtr(void)
- 	if (!num_trigs)
- 		goto exit_test;
- 
-+	dbtr_test_api(num_trigs);
-+
- 	trig_type = dbtr_test_type(&num_trigs);
- 	if (trig_type == SBI_DBTR_TDATA1_TYPE_NONE)
- 		goto exit_test;
+Nicholas Piggin (18):
+  dbtr: Add consistent range checks to trigger ecalls
+  dbtr: Trigger update should set sbiret.value on failure
+  dbtr: Fix endian conversion in trigger install handler
+  dbtr: Return correct error on install not supported
+  dbtr: Do not support chain bit
+  dbtr: Improve trigger update error checking
+  dbtr: Check for invalid and unsupported triggers in update
+  dbtr: Improve error handling for trigger enable, disable, uninstall
+  dbtr: Read triggers should not read HW trigger if not mapped
+  dbtr: Avoid crash in sbi_debug_read_triggers
+  dbtr: Succeed operations with no triggers in mask
+  dbtr: Move hardware trigger probing to a function
+  dbtr: Rework install and update error handling
+  dbtr: Decouple dbtr trigger index from hardware trigger number
+  dbtr: Move trigger feature support test into a function
+  dbtr: Heterogeneous trigger type support
+  dbtr: Heterogeneous access type matching for mcontrol triggers
+  dbtr: Work around specification bug in range checks
+
+ include/sbi/sbi_dbtr.h   |  17 +-
+ lib/sbi/sbi_dbtr.c       | 499 ++++++++++++++++++++++++++++++---------
+ lib/sbi/sbi_ecall_dbtr.c |   2 +-
+ 3 files changed, 407 insertions(+), 111 deletions(-)
+
 -- 
 2.51.0
 
