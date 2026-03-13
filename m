@@ -4,84 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 68FD7106FD7D
-	for <opensbi@archiver.kernel.org>; Fri, 13 Mar 2026 05:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 67DDD106FD7D
+	for <opensbi@archiver.kernel.org>; Fri, 13 Mar 2026 05:20:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=YIbbd8hlK8SWE0j3dgpJTYeNALkwZgH0BC7FfKkND9Q=; b=2BqKN+LBDjvFEL
-	BlzP/YbGLAklKytCF/xXbqrAF18Gt90cZn+JKWxgu8nA/pv5C/ihttOJyaQCD8aX9xx+vSoKjefA/
-	Gbw2dXObi8bV1ddtG79Tpkl8O6sGVQKObn6WXi4KjAiTQEgN0+2raR5V3CaCL3tpeOxtfOfXyA2ZU
-	0CDpNeo7YoyMv9eKNQBNkL/A8VBOxRLqQKVmKAt93KtWpg/0bC5XEgCE+IE3O+g2eHKFNK9FnnUiE
-	A5eqV3D1pdlY33j/2wMokcZ+yCdJM4/zYGhIhh2rt3JVXXm2q3gViBBoAKAvMya0/NQaMau/g4X28
-	fV3o0ocPyZJxU9nf56+A==;
+	List-Owner; bh=EnVVoY2O3yPSgtaDKWXBp4UjwcB0O2qbHE+DsHiT8g8=; b=x2rg7Grxu5rQCj
+	/1wcEaUUFPvNrZUkX5nPeS0M3c6wgybidWtaxXC8AAzsSKMd/eTj1k2tLN8IWw4knuWrfDWN/al6v
+	7jIvzibHEM7O+eXQQdgCZBuQKLZOsY0m3s8tDtyHNyZDltbsyyL5MS5H7LF9Xfi9v5cpVmgobyjZe
+	mao6e3MZdrQDM6HaHY31Lm8YnqPjgae7OLXSSCzMqsagVISzxzSiQZgXtKpEyw383yyvM01mQCzpi
+	MhharqUGY8epCI9z2+ths8QQCESZ4A0t/AyZS3E9Twm+5jSkoWNTjt6gfiQq9LhDe5tJVx1DtcQSE
+	uoNaLzYTM36UuGmIoknA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0uwy-0000000GcBG-3w4R;
-	Fri, 13 Mar 2026 05:20:40 +0000
-Received: from mail-pj1-x102a.google.com ([2607:f8b0:4864:20::102a])
+	id 1w0ux2-0000000GcDY-0qzX;
+	Fri, 13 Mar 2026 05:20:44 +0000
+Received: from mail-pj1-x1031.google.com ([2607:f8b0:4864:20::1031])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w0uww-0000000Gc9Y-1liR
+	id 1w0ux0-0000000GcBt-0eLG
 	for opensbi@lists.infradead.org;
-	Fri, 13 Mar 2026 05:20:39 +0000
-Received: by mail-pj1-x102a.google.com with SMTP id 98e67ed59e1d1-359ff894f0dso682419a91.1
-        for <opensbi@lists.infradead.org>; Thu, 12 Mar 2026 22:20:38 -0700 (PDT)
+	Fri, 13 Mar 2026 05:20:43 +0000
+Received: by mail-pj1-x1031.google.com with SMTP id 98e67ed59e1d1-356337f058aso1175915a91.2
+        for <opensbi@lists.infradead.org>; Thu, 12 Mar 2026 22:20:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773379237; x=1773984037; darn=lists.infradead.org;
+        d=gmail.com; s=20230601; t=1773379241; x=1773984041; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=B2YzAfAMAnCeq+B0Od0t+Iv+BAqQeNcpBYJTp6kRXSA=;
-        b=B7u5aNFs6GwZ13z06ftWeZ7+s/Wvsl/nNl42orAo1dtXt4IgR7xLdzg6HRnRqY7BXA
-         PnIDGGhZLuhAekBHt47ZkRMKLFUOjn/e+QPg6cHoqHqMjp6f2D95BTAP8VRFpX1X4RNZ
-         /pJs5iDBXiXF4YOc7mSRTVgMbISAYP9OKCnXuixAQlp8bMq5B/ehv0V/jAyjhvQ+sVZw
-         AsCtEfPNarwy8wC2rHpuxw0Xs+4Kz8P0Qa3FCbg8lkRr2B06BZG5060GruUQkEyZ0OJ9
-         Nhd0V6zZvf2RNs8MEy0AlC/NoW45I7YaveWcpT5UGwB9TZ5cLemBwK1ewT5tdYSw8JCj
-         ESkw==
+        bh=KorxEio0DpK168r87YFJtydBmFtpn5auAJuvcY5xKTs=;
+        b=du1pnfFMVqfbd3hyswy1inNRxfnEU48BiFi3Wx5ZUtnzDuIuHCTeMOKi6F8g4EQFV8
+         XA7bnlnwLdypEGKDmAfXTvU0ju9FRTT0uJSMLdMluyPtytRcY5YfRO/cynjB8lhMiMQf
+         0NxtLtjs8I+algqplwIVZ2gmzkyRk9xLpNSKvEW2L/oeCzFrk7ktkedqpazg04TNfgEA
+         LUhcxbQIKceu+BivMVGN9NnqX3db1vhDO94WB1wUrtmPnM8GDYkVt0yVn4yYcPijkdfT
+         mrRbX0cqYw60msHBTT1BzQdNQ5EfAsqQk2erfbtecuX2m9Fw0Jdc5PW/8SBKxkqT5BMw
+         Bj1A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773379237; x=1773984037;
+        d=1e100.net; s=20251104; t=1773379241; x=1773984041;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=B2YzAfAMAnCeq+B0Od0t+Iv+BAqQeNcpBYJTp6kRXSA=;
-        b=nsfpkC1XMdGUPszc+lD49DOVwvhSe1XPFny4KzswnX0BRMGNVaBQda9mA5glBYcI4/
-         KWWHd1QIlrquIRF1r5TGxdNWoKLYm6f+Q60LV5v5x00xQJiQt2eDTIyKp03pmJXjv3BS
-         sHvcBZpqKWBlnEwBb4MKjaHAURIzmmS2/d1mFzPPvBIshEJKHKrF47KkItnslRTxXNIh
-         A6pqXPavdZYX75hIZLPdZtj7U7L71o98npowi7gmFGOE0qWUbcAeTGXUzrsBGSb5IDH6
-         15mg4jd7jZhkjlxMohYT36NI4/RQQ9dlvhynu4/lZC9pK1W43/65Jx+CmsNxLnJ+MBI5
-         rsnA==
-X-Gm-Message-State: AOJu0YwVgc73yJqR1gyA3SvvHrJZ7bqjwmBOQAmOAyynziVOqxI4tvjD
-	FtC0GQPw3/rPWPfhqVwEXvjZxbhfnodvDi2Zvj2GB9aZLMTu0zbdx/eDPKPtXw==
-X-Gm-Gg: ATEYQzy6Zb0jVIZk/RwHiOlHp6MSkqa4t+mhHyiw0mVkHDywE/QxmK+ZtiUW1QKFMxX
-	62R2e99uBUJbAsCScCaAQtPNrmYEjd4hG5i08Q2NSzzgi3MM1/mtZO6t3tA3CgBusvaaPHXHI7F
-	unKKqTKJNwzQYwPUDaU/co/zLZZNg7npza2FFUXW10bi7M0f5BN+XuylZQQjvT7y/z0HaUa3uyn
-	C7G+N1sSI+zd7BUKA8ail+aGChaT2tsOZVGj5RTc8wrSEcFGazftsIDYK2/H/cIe/k47QuIRcqJ
-	9gE4hR+NpBtw4h4EzLNkZ951rUhO9MzBbL9zM0wjq+7mCAouHyYtLhtYMh9D9q3c00G7dsbTY4t
-	ZJleKm3EI1USymR0Hcin7OwzPC7EdHjWBGz/KLbWevzGuTc5H6weQ4H01xOeYkfP7CtpyHpT7Ou
-	akt2Hdx1haOSwDKnqhLFqZcpa/945pN+7bg5GDRqtl0B7sjkxcypeQgDwb8nwygrsNG/o1
-X-Received: by 2002:a17:90b:1f8c:b0:359:8d70:c4e6 with SMTP id 98e67ed59e1d1-35a21e485e2mr1847959a91.1.1773379237313;
-        Thu, 12 Mar 2026 22:20:37 -0700 (PDT)
+        bh=KorxEio0DpK168r87YFJtydBmFtpn5auAJuvcY5xKTs=;
+        b=l4v80KlmRLlLCSed4Yc1wtyYQTKfg2b6fUyMn314YD5rLbBrZH/x7+qYM9gAHNQnL5
+         M4rDfpYy+DGUd+tsBce2s0r5gWGGNOjfHb3MaDndvttR+cLOTtKMtWj6wJ9qgaz0RLfD
+         2qBNCALYf7eookBWwDTWPzmt+ln0Xvk93he7jaiyUt3gCvCZ3rpowtAUYJJKG00Or1/4
+         OF9FUQ+vDpd4fs9feAGWogzyjxW9zCUhs133YhcnBbD8oiGVr5FbrubcDVKihSjoPNGn
+         Xa2+OKaVqpPWQIroJTCTYlP5JP1563+HSn2Mo71yUMYwyxj+nDJ2UWzYEV/30R2zmo0g
+         3SCQ==
+X-Gm-Message-State: AOJu0Yy01PDsIdDhevimalQrG2fpCjgAeWbalT2ly+xc+QiGRRayAHOs
+	7dffu9Q43DoPTylOJLpuCLwj9X8aZeL/9Lb79BcCUthf7yGkbo0hRTqlEOop3g==
+X-Gm-Gg: ATEYQzzCW0x01hlLt2fgOFV+XfqT/t8J5F7ySPX4XaB+Tzfpk1av25kaJUkfpw1HEZH
+	3yMDpXgrhVoZHYrgqu05489IzorGzqxRyR3eAeXEj5dStfarCpe1+a5bzsZtIYKwjdg2dwT5BUw
+	849MwLsk9Pc87lT1kedWlINNNF3TyeKzLNbxn1vSqNIVQMv6+38M+Y1zf+ZO6jfSQP6BiRJBE/Y
+	RukYmgGGMa8vLCShc8gVCJKGFQ4rwFax4NLVDIfxI1Y4ElgpfRm+oDffSSD+CP42dYeT3Al7WCu
+	2iCBXkgCZdRLbXVpPl4WWpDe1utmY51xjK1Nr7GhxqqVPTPZ9/ir9PNHxvI3I6qOD1RNQYAVyIj
+	KvrfBHPjTa4Kz6wjoxKhlrzC4yRggOq88eMwZWFIzWP2jMl1f6tvCYjn6245ynxYb5UHr++fJt9
+	cfqyY9v4jZf1eSZIHWkc3Ykyz8vWp9SYxuVYa+LRa0LsDy7y+5ZhRdNT3phhYwjurCcF20
+X-Received: by 2002:a17:90a:d44e:b0:359:8812:7c01 with SMTP id 98e67ed59e1d1-35a220d2afdmr1611432a91.28.1773379240806;
+        Thu, 12 Mar 2026 22:20:40 -0700 (PDT)
 Received: from lima-default (103.95.112.190.qld.leaptel.network. [103.95.112.190])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35a030490b9sm7298892a91.17.2026.03.12.22.20.34
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35a030490b9sm7298892a91.17.2026.03.12.22.20.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 22:20:36 -0700 (PDT)
+        Thu, 12 Mar 2026 22:20:40 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>,
 	Himanshu Chauhan <hchauhan@ventanamicro.com>
-Subject: [PATCH 07/18] dbtr: Check for invalid and unsupported triggers in update
-Date: Fri, 13 Mar 2026 15:19:36 +1000
-Message-ID: <20260313051948.4017134-8-npiggin@gmail.com>
+Subject: [PATCH 08/18] dbtr: Improve error handling for trigger enable, disable, uninstall
+Date: Fri, 13 Mar 2026 15:19:37 +1000
+Message-ID: <20260313051948.4017134-9-npiggin@gmail.com>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260313051948.4017134-1-npiggin@gmail.com>
 References: <20260313051948.4017134-1-npiggin@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260312_222038_460389_E0816CBC 
-X-CRM114-Status: GOOD (  10.49  )
+X-CRM114-CacheID: sfid-20260312_222042_197317_0D1124C3 
+X-CRM114-Status: UNSURE (   8.41  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,54 +99,95 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Update triggers does not check supported or valid, so it permits tdata1.m
-and tdata1.dmode bits being set.
-
-Fix update to test that triggers are valid and supported.
+When updating multiple triggers, error checking should be performed on
+all triggers before changing any. Check all triggers for mapping to HW
+in these handlers.
 
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
- lib/sbi/sbi_dbtr.c | 20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_dbtr.c | 28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index d2845fec..3925170f 100644
+index 3925170f..a2c45061 100644
 --- a/lib/sbi/sbi_dbtr.c
 +++ b/lib/sbi/sbi_dbtr.c
-@@ -749,7 +749,7 @@ int sbi_dbtr_update_trig(unsigned long smode,
+@@ -672,7 +672,7 @@ int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
+ 			    unsigned long trig_idx_mask)
+ {
+ 	unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+-	unsigned long idx = trig_idx_base;
++	unsigned long idx;
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs;
  
- 	/* Check requested triggers configuration */
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
--		unsigned long trig_idx, tdata1;
-+		unsigned long trig_idx, tdata1, type;
+@@ -685,13 +685,17 @@ int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
+ 				trig_idx_base >= hs->total_trigs)
+ 		return SBI_ERR_INVALID_PARAM;
  
- 		trig_idx = entry->id.idx;
- 		if (trig_idx >= hs->total_trigs) {
-@@ -769,7 +769,23 @@ int sbi_dbtr_update_trig(unsigned long smode,
++	idx = trig_idx_base;
+ 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+ 		trig = INDEX_TO_TRIGGER(idx);
+ 		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+ 			return SBI_ERR_INVALID_PARAM;
++	}
  
- 		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
- 		tdata1 = lle_to_cpu(recv->tdata1);
--		if (TDATA1_GET_TYPE(tdata1) != TDATA1_GET_TYPE(trig->tdata1)) {
-+		type = TDATA1_GET_TYPE(tdata1);
-+
-+		if (!dbtr_trigger_supported(type, tdata1)) {
-+			*out = _idx;
-+			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+							trig_count * sizeof(*entry));
-+			return SBI_ERR_NOT_SUPPORTED;
-+		}
-+
-+		if (!dbtr_trigger_valid(type, tdata1)) {
-+			*out = _idx;
-+			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+							trig_count * sizeof(*entry));
++	idx = trig_idx_base;
++	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
++		trig = INDEX_TO_TRIGGER(idx);
+ 		dbtr_trigger_clear(trig);
+-
+ 		sbi_free_trigger(trig);
+ 	}
+ 
+@@ -702,7 +706,7 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+ 			 unsigned long trig_idx_mask)
+ {
+ 	unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+-	unsigned long idx = trig_idx_base;
++	unsigned long idx;
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs;
+ 
+@@ -715,6 +719,14 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+ 				trig_idx_base >= hs->total_trigs)
+ 		return SBI_ERR_INVALID_PARAM;
+ 
++	idx = trig_idx_base;
++	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
++		trig = INDEX_TO_TRIGGER(idx);
++		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
 +			return SBI_ERR_INVALID_PARAM;
-+		}
++	}
 +
-+		if (type != TDATA1_GET_TYPE(trig->tdata1)) {
- 			*out = _idx;
- 			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
- 							trig_count * sizeof(*entry));
++	idx = trig_idx_base;
+ 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+ 		trig = INDEX_TO_TRIGGER(idx);
+ 		sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
+@@ -810,7 +822,7 @@ int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
+ 			  unsigned long trig_idx_mask)
+ {
+ 	unsigned long trig_mask = trig_idx_mask << trig_idx_base;
+-	unsigned long idx = trig_idx_base;
++	unsigned long idx;
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs;
+ 
+@@ -823,6 +835,14 @@ int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
+ 				trig_idx_base >= hs->total_trigs)
+ 		return SBI_ERR_INVALID_PARAM;
+ 
++	idx = trig_idx_base;
++	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
++		trig = INDEX_TO_TRIGGER(idx);
++		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
++			return SBI_ERR_INVALID_PARAM;
++	}
++
++	idx = trig_idx_base;
+ 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+ 		trig = INDEX_TO_TRIGGER(idx);
+ 		dbtr_trigger_disable(trig);
 -- 
 2.51.0
 
