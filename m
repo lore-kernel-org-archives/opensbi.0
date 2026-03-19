@@ -4,46 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A91371090223
-	for <opensbi@archiver.kernel.org>; Thu, 19 Mar 2026 12:58:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AC4D81090223
+	for <opensbi@archiver.kernel.org>; Thu, 19 Mar 2026 13:22:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=wVKTVjLdDdBnmQhHsgIjJ1u4NFgXmjAK2ouUx8rX/Wk=; b=X50Zc8bZHXonDs
-	KOpDhElKQpblI54ShGpOK0ESit1gcgLmkQY3Db07F9azN4Wld6Jq/jPNZHIYM6v/H9q91zm77cX0p
-	4etfpCgJSDgwyvSKG+o8s0YEuryjrtGXuE4eL06H0dw9VgFHpja6anCJn4MtR7l1zVPA5WJ35eDRo
-	vUtmJ4zkc43/ErNSGxIg0RmdYOEekyOPwUkNpDGKTE5QL26Hg4Vy6+To1mFMlxsall3wgZ2Of5k5p
-	Y5QzL+IOERtXEty56wjwToqpkApN920Mza7tSU3maUC9Mb6DCDZ8U94ahbi6VAnQsE2oVQgAdPNro
-	0SQGH2XYXSxR0zef9mig==;
+	List-Owner; bh=h4FnO/aWF/fszVqGaGnP6nX5Ie7FqIfvnW9jRbPD4Ck=; b=SDKN4JPryKxucu
+	hunVxyzusGdTE9J1msapfcN7UZN8Fi9QRYJn2ZwBST6tbBBA9VGflp7P2xbr/5+PEh3IHyF2U+uoQ
+	wCRalkh+dIfwhSPPnovZLHtSdAF9wDkRYGRY12uxnKqQPRFMFnm8SogSf42Y2xWrLR3G3+AygMXzD
+	4BWKC2qH0jIbIM17FwVcZqEL70Z1sw8NTGpt0I9RTQCg+R92uwYf0iQCSnYbR0Q/X8V1W/MgptApi
+	uN8OcvIB1jEOi7m20F9xv4dcVv6Qv1+2ljSMrk5AF3+QYD9pbS2O/38we5yHw+ilY+sGf6HER3Z0u
+	nwO3j7RBLuPEIRqBsEcQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w3Cwy-0000000AeGw-2IQP;
-	Thu, 19 Mar 2026 12:58:08 +0000
-Received: from mail.ingenic.cn ([106.37.171.196] helo=mail.ingenic.com)
-	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w3Cwu-0000000AeEO-1VdX
+	id 1w3DKh-0000000AgPW-1UC5;
+	Thu, 19 Mar 2026 13:22:39 +0000
+Received: from mail-pj1-x1036.google.com ([2607:f8b0:4864:20::1036])
+	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1w3DKe-0000000AgPC-3Vg0
 	for opensbi@lists.infradead.org;
-	Thu, 19 Mar 2026 12:58:06 +0000
-Received: from ingenic.com (unknown [47.100.164.127])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.ingenic.com (Postfix) with ESMTPSA id 1C8F72700156;
-	Thu, 19 Mar 2026 20:57:42 +0800 (CST)
-From: runmin.zhang@ingenic.com
+	Thu, 19 Mar 2026 13:22:37 +0000
+Received: by mail-pj1-x1036.google.com with SMTP id 98e67ed59e1d1-358dff8447cso93904a91.0
+        for <opensbi@lists.infradead.org>; Thu, 19 Mar 2026 06:22:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1773926555; x=1774531355; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=rQV4Qxf7JcVqvazdEZA1WNkk/8W6XiHElFzIS03hGOk=;
+        b=eA3KWSKNCoPNlQWRV+BvdiZ4Lw+Wj6Fl+RNTKz/1lD2/FqIJtlQQJPJ1/wvxRWJn4W
+         cajJzTlm1we9k5BMvwM/TCcoTX1pWLK9cI/+IjAvhO/IdnxsJ2XGFb2aUZ+afvqtV/Zy
+         UUDn60bWJXPP/01WU3OqmOOXBPId0Y8gn4SyST69c3qhzAh7uAJM1HdHM4SqVC5eERm5
+         ClOQ97Q9oFFPUd4qcA+SEfzN+C2g8CE/9JUCLO32qZGlKgPSQYPne1ToZD2m0UU/PTn6
+         +DPCiE8sg6ESJ9qhBZsuj3sBxzOYQ/F65alJtyjugIWXHi5QFBKoZ2GLnD0Xx0H7PfLc
+         mzwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773926555; x=1774531355;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=rQV4Qxf7JcVqvazdEZA1WNkk/8W6XiHElFzIS03hGOk=;
+        b=UebpkvSqwFR+VlhN1L2Tht0Fqh3RvmLEMKGwPhp5C5Eeyix9/9Ov0W/UaEdwjsg/ry
+         iQ299PJzdwKoPmqRGM3xkjG+WRaTDlMHB27yAb6KbBjnsvoiF9+tLXbm0lZD0udTIKY5
+         XzGLQLp3L8P82HTUeQPIfK2qiiQjzvJk3zXA6Blpg89NhyAWS/UltIAT8xoTRRm1CheG
+         Iz3NJritnzdbyUSuZuF3OQtZOUqiTr52KxgYJCsD8qDBRjpX+E/kFaPBP2DnqtMft1by
+         2gHdI6VO4XB6G6ff018fDPDrVBUsHwE390PkCsCenALFF/0oZ6oMjwKRdYRmQxDr/3cF
+         usVA==
+X-Gm-Message-State: AOJu0Yw4HYQK7bGwtKu7aBpYZLcLpVVwcoUWflUeLG61Z80LGNc0vWyK
+	lRA2oJVmhxf0gOGKCpYyHV97sYSlrzcdD/AXBUdlv8qyr6F9wNet0Qw/B9cu4lR9
+X-Gm-Gg: ATEYQzzweDkymoBHP0zc/V3D758qO14hkYIbtxzbZBTHQbTVkdiGBT1cPz8Bos0yIe4
+	goqJoNQ/tAMduh0Dka2py8JHwACK9yZejikq4GGipAC+aZNZcJ9kk3xBhi2FSCk3TwMd4FcSk7/
+	eqPOw7vCZjsKqXupw7ANJF9S95681G8LWclkwZ2MA5EMFbOT91qmJwr3ObMGR3FTbycivYF3kBr
+	tdstwXWqWmyMvcqcUMxO6o+R9hwk5nomqFHmHibL6FNqBIR9xGa9QHgYLR7gfb6K3Oa4tcEURM9
+	oXfxkFsJrAZnK0nv1phDFWx8COlPKUuyv3hSNFJvuohSsvbGSYuVynQUFeMmcjGJGWT5wyv/XPO
+	N86B0MPyN2tJdBsv6seMoIer/OxJMBOSKvAReRAq2TkYOPQpIxGQkBaYzqgoX/HCKhblQLOXGkU
+	ZHp04ezkc5b316w5fpMk2zLDeqglElnjqMLYodWOIRtE5f+G3GrIY=
+X-Received: by 2002:a17:90b:2886:b0:35b:91ab:148d with SMTP id 98e67ed59e1d1-35bb9f4cdb3mr3937514a91.6.1773926555025;
+        Thu, 19 Mar 2026 06:22:35 -0700 (PDT)
+Received: from localhost.localdomain ([150.91.169.6])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c741e543579sm5306617a12.16.2026.03.19.06.22.33
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 19 Mar 2026 06:22:34 -0700 (PDT)
+From: Takumi Hara <takumihara1226@gmail.com>
 To: opensbi@lists.infradead.org
-Cc: fmrt19zrmin@163.com,
-	Zhang RunMin <runmin.zhang@ingenic.com>
-Subject: [PATCH] docs: platform: update qemu_virt.md
-Date: Thu, 19 Mar 2026 20:56:24 +0800
-Message-ID: <20260319125641.480161-1-runmin.zhang@ingenic.com>
-X-Mailer: git-send-email 2.43.0
+Cc: anup@brainfault.org,
+	Takumi Hara <takumihara1226@gmail.com>
+Subject: [PATCH] lib: sbi_domain: reject overflowing address range in check_addr_range()
+Date: Thu, 19 Mar 2026 22:22:32 +0900
+Message-ID: <20260319132232.51572-1-takumihara1226@gmail.com>
+X-Mailer: git-send-email 2.52.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260319_055804_579275_628A406F 
-X-CRM114-Status: UNSURE (   8.32  )
+X-CRM114-CacheID: sfid-20260319_062236_893595_148BA585 
+X-CRM114-Status: UNSURE (   9.02  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -61,61 +96,41 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Zhang RunMin <runmin.zhang@ingenic.com>
+sbi_domain_check_addr_range() computes `max = addr + size` without
+checking for integer overflow. When a caller passes a size large enough
+to wrap around (e.g. addr=0x80000000, size=0xFFFFFFFF80000000), max
+becomes less than addr, causing the while(addr < max) validation loop
+to be skipped entirely. The function then returns true without
+performing any permission checks.
 
-When using GDB for debugging, if FW_TEXT_START is not set to 0x80000000
-during compilation, the following error occurs:
+This allows an S-mode caller to bypass domain memory protection and
+access M-mode memory through SBI extensions that use address range
+validation (e.g. DBCN console write/read).
 
-Reading symbols from build/platform/generic/firmware/fw_payload.elf...
-Remote debugging using localhost:1234
-mips_warm_boot ()
-    at /home/zrmin/opensbi/platform/generic/mips/mips_warm_boot.S:11
-11      j       _start_warm
-(gdb) b _start
-Breakpoint 1 at 0x0: file /home/zrmin/opensbi/firmware/fw_base.S, line 50.
-(gdb) c
-Continuing.
-Remote connection closed
-(gdb)
+Add an overflow check after computing max: if size is non-zero and
+max wrapped to a value <= addr, reject the request.
 
-With FW_TEXT_START=0x80000000, debugging works correctly:
-Reading symbols from build/platform/generic/firmware/fw_payload.elf...
-Remote debugging using localhost:1234
-0x0000000000001000 in ?? ()
-(gdb) b _start
-Breakpoint 1 at 0x80000000: file /home/zrmin/opensbi/firmware/fw_base.S, line 50.
-(gdb) c
-Continuing.
-
-Breakpoint 1, _start () at /home/zrmin/opensbi/firmware/fw_base.S:50
-50      MOV_3R  s0, a0, s1, a1, s2, a2
-(gdb)
-
-This is because QEMU loads OpenSBI at address 0x80000000. When
-FW_TEXT_START does not match this address, the debug symbols are
-incorrectly offset, causing GDB to fail to set breakpoints properly.
-
-Signed-off-by: Zhang RunMin <runmin.zhang@ingenic.com>
+Signed-off-by: Takumi Hara <takumihara1226@gmail.com>
 ---
- docs/platform/qemu_virt.md | 3 +++
+ lib/sbi/sbi_domain.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/docs/platform/qemu_virt.md b/docs/platform/qemu_virt.md
-index fd87ee5a..4513df8b 100644
---- a/docs/platform/qemu_virt.md
-+++ b/docs/platform/qemu_virt.md
-@@ -158,6 +158,9 @@ qemu-system-riscv32 -M virt -m 256M -nographic \
- Debugging with GDB
- ------------------
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 7030848..3df521f 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -505,6 +505,9 @@ bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+ 	if (!dom)
+ 		return false;
  
-+Note: the command line examples here assume that OpenSBI was compiled using
-+the `DEBUG=1 FW_TEXT_START=0x80000000` configuration.
++	if (size && max <= addr)
++		return false;
 +
- In a first console start OpenSBI with QEMU:
- 
- ```
+ 	while (addr < max) {
+ 		reg = find_region(dom, addr);
+ 		if (!reg)
 -- 
-2.43.0
+2.52.0
 
 
 -- 
