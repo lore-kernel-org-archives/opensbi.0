@@ -4,60 +4,100 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 349F7E9A77D
-	for <opensbi@archiver.kernel.org>; Tue, 24 Mar 2026 12:29:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0CC9EFEA801
+	for <opensbi@archiver.kernel.org>; Wed, 25 Mar 2026 03:26:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
-	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=OWMsVNrvxjrL2n6hRpajp3SSowoqIiTuD+DONt0ZSAU=; b=LnOwNlowSwFzfz
-	q5WOMY8lYeTnoV2c9fSMOvhoixXxU5SRdHHqRpq+DAAgoimk6RLRTbWeLEjviSz5WbsKvZHZV6vR6
-	x0rTflId1Jx4zsI49AGfkqExyXmxKVzFHwdA9DBJBPA2gZ7wWOU5YSnH80z2KK0Mqztu4EKQ0fmuX
-	1XTXl0Dkcf9QCBKYyez2nTQJiW8zcy9sx8cRSfd4Ziwao8KcHgkx6ySz78+9hhTlSmnLrC8pCDZmS
-	NJX4OZJseTqHO5fKrV/4QEcnCFrHRGh4jK/vYL4VBje8+9jP8idEeDXG0QUsB0vstgqxASgCoNyjt
-	5bVoqQaXLoIgVuNRDvNw==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=pR/0ej6a6CF+GSsGhYywBNb+twCODKrTBjEKjSjo2O8=; b=plMH+x3xAp4q6U
+	l9U3fNUUgtuUIJMuMoE3Pyv2ejQ5BjVjJUlYPqvpOwKQoAvV+OKuDG7a/qMc17OGiyk2UTv0bOpBr
+	0ZmQ1ksMnnJh9NWzMxBgeWSed5z3CHQpVLaAQ4BeLIqCmMYl+ZSCX8R5katEfx9U8VwVS2SkJT1P7
+	OYQNZiLPKlySwt405k6EOY5FJFqddof/umwx7rMNYa06fwNUf8tDqJeuJOIYkiwTR6WQseWNz06uK
+	R1x0KuqbI4A/mjH50C9CDMTzfVgILQxPHg0N7x7TgEDdRIRtzrGF85ko4j7hhB2eTH9jIblEH412t
+	nDJ4fI03KqKI7WkbUQCQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w50t5-00000001NSv-3dVd;
-	Tue, 24 Mar 2026 12:29:35 +0000
-Received: from sea.source.kernel.org ([172.234.252.31])
+	id 1w5Esn-00000002bJn-2lR1;
+	Wed, 25 Mar 2026 03:26:13 +0000
+Received: from mail-yx1-xb135.google.com ([2607:f8b0:4864:20::b135])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w50t3-00000001NSZ-3lwf
+	id 1w5Esk-00000002bJR-3Rb8
 	for opensbi@lists.infradead.org;
-	Tue, 24 Mar 2026 12:29:35 +0000
-Received: from smtp.kernel.org (transwarp.subspace.kernel.org [100.75.92.58])
-	by sea.source.kernel.org (Postfix) with ESMTP id D63A343B44
-	for <opensbi@lists.infradead.org>; Tue, 24 Mar 2026 12:29:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 586E5C19424;
-	Tue, 24 Mar 2026 12:29:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774355372;
-	bh=KKlGdHKai4+yhExzJqw8hv128K7JLXzmnoypwOm80Oc=;
-	h=From:Date:Subject:To:Cc:From;
-	b=CW4v1+3XVj0moj7OkutyFQh98MURTQ5/jmP0U068NdYv1zRyupB5wRbje9708Qwy5
-	 1QKgavpY9MbAn0MJ3nV3C1ZxP2aKgrgsPD+H4HxBNhBlVfh8aVxveRO1aYaK1Ldrzl
-	 2/m1W++EYlNG2tZeQlI239viIdfWdlkzbnNrrmIFAW9oaKpEHMs7sjp5QuXjYnKDRu
-	 K8t6dI8nCNv+zQGdAK5IGbPYLAgWqh3FTp8SgbtMgx3BXX0CWcTux1cTYfmwlZ6ZR+
-	 OJnEI/Nzk6i7lfbiI0tB4e7wYhv0vyfpax8ModmhPhmRtNvmum93i6DU/N4/RD0WJV
-	 e7/wk9d0TkfLg==
-From: Michael Ellerman <mpe@kernel.org>
-Date: Tue, 24 Mar 2026 23:29:20 +1100
-Subject: [PATCH] lib/sbi_pmu: Don't fallback to fixed counters when
- sscofpmf && !smcntrpmf
+	Wed, 25 Mar 2026 03:26:12 +0000
+Received: by mail-yx1-xb135.google.com with SMTP id 956f58d0204a3-64edb56b70cso1343622d50.1
+        for <opensbi@lists.infradead.org>; Tue, 24 Mar 2026 20:26:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1774409169; cv=none;
+        d=google.com; s=arc-20240605;
+        b=HwpugnirsxchVThcuCWLTnILPRokPTRjQevpAPOkw9d1hxSj+Og2ooNNvJIIA/FzXC
+         UI8FEf1kImv2edVk/HDYLq2Rsm15GT2rh1xp0GacTI08dD6UyGnTWfJZaeuGyj8K3lzA
+         QCM7Mn4s7FHlAbPnTCXR4RKM/a4/WcByZtlzByaZ1tWYtTUdl/36XNgwmpfsNullbf9d
+         hnUQyUfpIrODXZXjHffp8rCsmBHAg6GMaXokCCAvlDPB0b0cxq/nSKyzCV7ixCMvlOez
+         vum5hpkz7gkd/Kgj73/GuFWPyn3j/exrwmFr6JEzNZJ1kp4MT0yEdFl96s8m7lZCJAxs
+         I/Zg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=MrVcce0ok7JE793FZyGyJ/3x9PP7futgwoKTELgz9yU=;
+        fh=dlp3ViTTxB8/xrEPqwyrTzbJYAHJqEN9IdxZk2p7xa0=;
+        b=YA6mjTc5K0acwvNJGfvfPC1x5oHAPfNxMYf94bgrK6X/WO2WXhWI65lJvuHWSVcdAq
+         AJvvG0MPl448jZKWRYaMBBLSy6ueqq/r8vMHup1ZKiKKqsoAwwAqJ4W9STN4+gF5/KIL
+         wCSgEKzjfLwW15g00N+xcfpD1YZt9kShlcy1tBnCS+2e+oy8IZ8JwBwJ7J5gJ5Ji6P/k
+         XSh9xtbrRF76nvXKgjeSDihOl4Fb66tjJBlMGbhWQ52dVH1SqfqW/1P+bCod8cLZp1KJ
+         /Vh4+mdCRSBGYK7yh+UU+ls+NKCdEjyrBy3Fg6eMi3h6CPOKdbBdvIKEmoVebAm11prA
+         sXDg==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=summations-net.20230601.gappssmtp.com; s=20230601; t=1774409169; x=1775013969; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=MrVcce0ok7JE793FZyGyJ/3x9PP7futgwoKTELgz9yU=;
+        b=FnXFg4yFwcVCRL13JBSTIhtKYzUCXiRkU3vqvpYEXpieUEyopBTEj2ahE0yH7A5K6r
+         EFXE6KdXFLVCuzS59yFhYzt9HDvUjmuIFL+pvf/AZkQ/STNk19gOyE3hIuAza4J7wZcO
+         tQxqUAjX8j0CnG8rWOcQfnflxa58uoNLyljEo+9t9YA27stt6qzJmv+xrMkGgkS+wXx/
+         0W9RqBB0sA5OKV+oFmsQLP7maFLXJN9nKORDlKT1YxMRNSK2JrmkGCSSc8HiH59Ngf2A
+         STj3+k4Mcln3l8uRZpIZCP6Q9xMSzVVTvUDkVRph3H2eRvVVsNGJCJy/m+ZPi8ExcL4Z
+         Yhrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774409169; x=1775013969;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=MrVcce0ok7JE793FZyGyJ/3x9PP7futgwoKTELgz9yU=;
+        b=RIpEC0PV23jLgrVqrjP+XfZnzs4sLKhacCOE0PdFOU+zyuqpBIIhvo+MIbajL0R4+Y
+         8SGL6PE1Tu1fkjL6a0u0NwPEY0/0ZwAyk2Zrx4JW9b7cM/DtpbXoa8MrpSPqBL8hrleK
+         h2+nv8nZ5zNgEn6gWkWu8Jfq8h/z71/ZMJjcnV5M+QKEF3MhvWMgxgp+HpoVS1NbNlMn
+         y89xVphFlly8fKr7dy6dPXWAPInkmsJMv3z/hFF5P9J3WlLqMPKtjCuCJymZ8mDd+5Ar
+         M8zSFIxGP2zEnbLamW3beuPM74Chj89A31MRW/saftLVgYueGaJWc5sgu/zRGiYonaYL
+         3exQ==
+X-Gm-Message-State: AOJu0Ywinr51Xa4/4x656iwdc1THW9IuMnxWnubaFFOofO5zrYPkV01y
+	wu4dHSGEpn+hfJ6Q0v1qCqky9w/5dLINKb/mintBnbTiRly0dKROnho+DEVRN0t/aKJd3KJGANw
+	IBHzQja9V5U2q70LhzexNLk0FLbyXYKrLlSUuA7NBwx1xCP7uTXqvHw==
+X-Gm-Gg: ATEYQzxzFR9wmOiUv/9Tv//FS/U338GkpXSj1UxNY7SJl1YjT7xZPs2bV3IO32kDPDS
+	0An4Qza3x3bxtoImmPfeQCJqhbnN45ayZc4cA7J4f86nRG8Nt1TQjXEMsdx0Z44opBQ++57tfAT
+	Q1ZfTUfG9vRhRVnTIaLplNUCuKXgnxDtoeBxb/pmagzjbh9eltzRMBeo70tSSlnsqxhf/MaMPfR
+	86o/aMtWFOOq9PMuQuNDttHkVizwsYKAjHwZjOaO63QUY1CjEgDQ5n1fJSRyXFBUozGSQ7YUV8E
+	W9RC+4FCH6qjEIVXdMBFkYGbbli0TCcJ527NnYIX
+X-Received: by 2002:a05:690e:4005:b0:64c:fa7f:48b8 with SMTP id
+ 956f58d0204a3-64ee616ec0fmr1705768d50.78.1774409169201; Tue, 24 Mar 2026
+ 20:26:09 -0700 (PDT)
 MIME-Version: 1.0
-Message-Id: <20260324-mcycle-fix-v1-1-1444e9fe5c32@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAJ+DwmkC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIzMDYyMT3dzkyuScVN20zApd47RkUzMLo9TUVMtkJaCGgqJUoDDYsOjY2lo
- AzaE0R1wAAAA=
-X-Change-ID: 20260324-mcycle-fix-3fc5682eee9c
-To: opensbi@lists.infradead.org
-Cc: Michael Ellerman <mpe@kernel.org>
-X-Mailer: b4 0.14.2
+References: <20260319132232.51572-1-takumihara1226@gmail.com>
+In-Reply-To: <20260319132232.51572-1-takumihara1226@gmail.com>
+From: Rahul Pathak <rahul@summations.net>
+Date: Wed, 25 Mar 2026 08:55:58 +0530
+X-Gm-Features: AaiRm52PtJemCfn76mjp_SZdooZ9wixL6ivmL9fRGwKoq27iFdRBNV20_WvDZZU
+Message-ID: <CABdD5xnMzGjyF_ssKBED_0c4=aByL8tkMGdTcRXKoivAPGitDQ@mail.gmail.com>
+Subject: Re: [PATCH] lib: sbi_domain: reject overflowing address range in check_addr_range()
+To: Takumi Hara <takumihara1226@gmail.com>
+Cc: opensbi@lists.infradead.org, anup@brainfault.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260324_052933_999752_61611C24 
-X-CRM114-Status: GOOD (  15.61  )
+X-CRM114-CacheID: sfid-20260324_202610_991043_8D590D23 
+X-CRM114-Status: GOOD (  15.35  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -69,91 +109,36 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Currently when searching for a hardware counter for an event, if no
-programmable counter is available, the code falls back to using a fixed
-counter (mcycle/minstret) if one matches the event.
-
-However the fallback is incorrect when sscofpmf is present but
-smcntrpmf is not. That's because with sscofpmf, programmable counters
-support mode filtering, but the fixed counters do not (without
-smcntrpmf). Even if the caller didn't configure mode filtering, by
-default programmable counters don't count M mode when sscofpmf is
-present, whereas mcycle/minstret do.
-
-Fix the logic to not fallback to a fixed counter if sscofpmf is present
-but smcntrpmf is not.
-
-Signed-off-by: Michael Ellerman <mpe@kernel.org>
----
-Hi folks,
-
-I noticed this while testing Linux perf with more events than
-programmable counters.
-
-Sometimes cycles gets counted using a mhpmcounter, and sometimes with
-mcycle, and the cycle count differs between the two.
-
-The count differs because mcycle doesn't support filtering when
-smcntrpmf is not present.
-
-It can be reproduced by running perf stat and specifying `cycles:u` N+1
-times where N is the number of mhpmcounters, eg:
-
-    $ perf stat -e cycles:u,cycles:u,... 
-    ...
-                392860      cycles:u
-              61101120      cycles:u
-
-The first cycles got an mhpmcounter and only counted userspace cycles.
-The second used mcycle and counted everything.
-
-cheers
----
- lib/sbi/sbi_pmu.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index ae00ad5844b1fe92a8eebfb618902a5eef218a9e..8a9021e2e5bac2d71a0f07d3f81600ff370ee2fc 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -830,13 +830,20 @@ static int pmu_ctr_find_hw(struct sbi_pmu_hart_state *phs,
- 
- 	if (ctr_idx == SBI_ENOTSUPP) {
- 		/**
--		 * We can't find any programmable counters for cycle/instret.
--		 * Return the fixed counter as they are mandatory anyways.
-+		 * We can't find a programmable counter, see if we can use a
-+		 * fixed counter instead if one was found for this event.
-+		 *
-+		 * If sscofpmf is present but smcntrpmf is not, we can't
-+		 * fallback to a fixed counter, because the fixed counter
-+		 * doesn't support filtering whereas a programmable counter
-+		 * would.
- 		 */
--		if (fixed_ctr >= 0)
--			return pmu_fixed_ctr_update_inhibit_bits(fixed_ctr, flags);
--		else
-+		if (fixed_ctr < 0 ||
-+		    ((sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCOFPMF) &&
-+		      !sbi_hart_has_extension(scratch, SBI_HART_EXT_SMCNTRPMF))))
- 			return SBI_EFAIL;
-+
-+		return pmu_fixed_ctr_update_inhibit_bits(fixed_ctr, flags);
- 	}
- 	ret = pmu_update_hw_mhpmevent(temp, ctr_idx, flags, event_idx, data);
- 
-
----
-base-commit: 4813a2042096b7860655761aad973723293a552e
-change-id: 20260324-mcycle-fix-3fc5682eee9c
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gVGh1LCBNYXIgMTksIDIwMjYgYXQgNjo1MuKAr1BNIFRha3VtaSBIYXJhIDx0YWt1bWloYXJh
+MTIyNkBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gc2JpX2RvbWFpbl9jaGVja19hZGRyX3JhbmdlKCkg
+Y29tcHV0ZXMgYG1heCA9IGFkZHIgKyBzaXplYCB3aXRob3V0Cj4gY2hlY2tpbmcgZm9yIGludGVn
+ZXIgb3ZlcmZsb3cuIFdoZW4gYSBjYWxsZXIgcGFzc2VzIGEgc2l6ZSBsYXJnZSBlbm91Z2gKPiB0
+byB3cmFwIGFyb3VuZCAoZS5nLiBhZGRyPTB4ODAwMDAwMDAsIHNpemU9MHhGRkZGRkZGRjgwMDAw
+MDAwKSwgbWF4Cj4gYmVjb21lcyBsZXNzIHRoYW4gYWRkciwgY2F1c2luZyB0aGUgd2hpbGUoYWRk
+ciA8IG1heCkgdmFsaWRhdGlvbiBsb29wCj4gdG8gYmUgc2tpcHBlZCBlbnRpcmVseS4gVGhlIGZ1
+bmN0aW9uIHRoZW4gcmV0dXJucyB0cnVlIHdpdGhvdXQKPiBwZXJmb3JtaW5nIGFueSBwZXJtaXNz
+aW9uIGNoZWNrcy4KPgo+IFRoaXMgYWxsb3dzIGFuIFMtbW9kZSBjYWxsZXIgdG8gYnlwYXNzIGRv
+bWFpbiBtZW1vcnkgcHJvdGVjdGlvbiBhbmQKPiBhY2Nlc3MgTS1tb2RlIG1lbW9yeSB0aHJvdWdo
+IFNCSSBleHRlbnNpb25zIHRoYXQgdXNlIGFkZHJlc3MgcmFuZ2UKPiB2YWxpZGF0aW9uIChlLmcu
+IERCQ04gY29uc29sZSB3cml0ZS9yZWFkKS4KPgo+IEFkZCBhbiBvdmVyZmxvdyBjaGVjayBhZnRl
+ciBjb21wdXRpbmcgbWF4OiBpZiBzaXplIGlzIG5vbi16ZXJvIGFuZAo+IG1heCB3cmFwcGVkIHRv
+IGEgdmFsdWUgPD0gYWRkciwgcmVqZWN0IHRoZSByZXF1ZXN0Lgo+Cj4gU2lnbmVkLW9mZi1ieTog
+VGFrdW1pIEhhcmEgPHRha3VtaWhhcmExMjI2QGdtYWlsLmNvbT4KPiAtLS0KPiAgbGliL3NiaS9z
+YmlfZG9tYWluLmMgfCAzICsrKwo+ICAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspCj4K
+PiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlfZG9tYWluLmMgYi9saWIvc2JpL3NiaV9kb21haW4u
+Ywo+IGluZGV4IDcwMzA4NDguLjNkZjUyMWYgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9zYmlfZG9t
+YWluLmMKPiArKysgYi9saWIvc2JpL3NiaV9kb21haW4uYwo+IEBAIC01MDUsNiArNTA1LDkgQEAg
+Ym9vbCBzYmlfZG9tYWluX2NoZWNrX2FkZHJfcmFuZ2UoY29uc3Qgc3RydWN0IHNiaV9kb21haW4g
+KmRvbSwKPiAgICAgICAgIGlmICghZG9tKQo+ICAgICAgICAgICAgICAgICByZXR1cm4gZmFsc2U7
+Cj4KPiArICAgICAgIGlmIChzaXplICYmIG1heCA8PSBhZGRyKQo+ICsgICAgICAgICAgICAgICBy
+ZXR1cm4gZmFsc2U7Cj4gKwo+ICAgICAgICAgd2hpbGUgKGFkZHIgPCBtYXgpIHsKPiAgICAgICAg
+ICAgICAgICAgcmVnID0gZmluZF9yZWdpb24oZG9tLCBhZGRyKTsKPiAgICAgICAgICAgICAgICAg
+aWYgKCFyZWcpCgpXaGF0IGFib3V0IHRoZSBjb25kaXRpb24gd2hlbiBwYXNzZWQgc2l6ZSBpcyAw
+IGFuZCBtYXggPT0gYWRkci4KCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3Rz
+LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9vcGVuc2JpCg==
