@@ -4,78 +4,78 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1630D10A62F9
-	for <opensbi@archiver.kernel.org>; Thu, 26 Mar 2026 14:32:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 345B810A62F3
+	for <opensbi@archiver.kernel.org>; Thu, 26 Mar 2026 14:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
 	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=23VHi7X8pOTsbG7GgbfDY1NKbnZCg5ssbeN+3ERIXyA=; b=pQ8mZAH+2/hRyv
-	yP00ExV6vYMPYHzmaZYKrcQxoRyFkfJpHQy7HVREQ9IW56M/S/u64Jiof9hyjKnxoq5HlLbdxo0Hb
-	YbLyqBZZvr/JE22FAaMl1GsWBU4EQczgGy4jvfZ5l4lQchLAK6zrK/lfaQfyaeqofSUMxtrXomYiY
-	3ck5AbZNb2BDdxIMyWvWgHQ7idEnUjJRDnHZ0DWmmB9bkdB9hmcpPCzppk32Ibra/YVfh8H5IEBHr
-	OIjQcMa4y6YVnbe0lpQtr3mcFcanGXFCAi1z6o9x/MQxvbVbMfCc5xabYey7BtG28vEofTRp3dp92
-	atIKVzNL7Yut+5+P1KBw==;
+	List-Owner; bh=YgV0VCfef5dfyYtrxQGuZGz098wEmedqDIVqcB2FCM0=; b=qOCWOgRPM3rCvf
+	csPz1DHg9VHjKZe91oNje7t81YLkfi7OS++fmY4RWCZEl0mwiLC2+5jRzpWmRsu1pY9Ee92S+42gq
+	paprnIeu4hGAAUGItUoHG1lF0p2FeSs3DOdt7Zuc2T8FXSHQfKG1MfKtIXZmo7jonSyDc/JuoOqSE
+	va9dCE+vp7XRVxRvDOZ1M1eFEfZDuR68BtbLuMJobk8UT5JVpr4abxJcTIyD2CFSbn0m60O9q2o9T
+	eUYgh6ZHXW7TzMySlhFO0PsxJqahEccEtCQ0ftLUvmkDUR7rmkzX5Zf3l16an4Z1U81+uN90VbPfu
+	deJ4SScWUnVwgb+0Xiuw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w5ll8-00000005eos-44aX;
-	Thu, 26 Mar 2026 14:32:30 +0000
-Received: from mail-yw1-x1133.google.com ([2607:f8b0:4864:20::1133])
+	id 1w5lte-00000005fw6-1Gu7;
+	Thu, 26 Mar 2026 14:41:18 +0000
+Received: from mail-yw1-x1134.google.com ([2607:f8b0:4864:20::1134])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w5ll5-00000005emf-1yDI
+	id 1w5ltb-00000005fvT-1TBb
 	for opensbi@lists.infradead.org;
-	Thu, 26 Mar 2026 14:32:29 +0000
-Received: by mail-yw1-x1133.google.com with SMTP id 00721157ae682-79a40fb9890so10883187b3.1
-        for <opensbi@lists.infradead.org>; Thu, 26 Mar 2026 07:32:26 -0700 (PDT)
+	Thu, 26 Mar 2026 14:41:16 +0000
+Received: by mail-yw1-x1134.google.com with SMTP id 00721157ae682-794719afcd4so11922947b3.1
+        for <opensbi@lists.infradead.org>; Thu, 26 Mar 2026 07:41:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1774535546; x=1775140346; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1774536074; x=1775140874; darn=lists.infradead.org;
         h=content-transfer-encoding:in-reply-to:content-language:from
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=lgYFqo/xEm34Xyoszyoiq+GYqn6MOsq403EAh5eZPpQ=;
-        b=iCsSSVtGieIBYvcVKn7uYnafsrs9Nn5dL7he5X61EVY88ZfCuO7hjOmaxTAVU0gglP
-         xvOjKoBqOg8hYyVLnmkq22zbdkuLZO9VY7kPIS2jPhgFTvyGH6t1sgmAlP4TMI6CdKqc
-         WzRJOUj2tPzOrouajLoC8lQaPu6Sz2kNIMh+3QV5KBHPS0NsOOsesn3a1OpOH65lF9N+
-         9NfgeLD90SQJ3k8k68peX838bNo4IjbGJibbD0qsMW0kfXSNvsc3sOmPh2hnMZ6iKXkw
-         sFUvI4t9sZe2wu12IbDibHSIleKlIVhhqVIUbyLCsmNM8K/a7sT0LQXRA+YqQlCOVMAf
-         eANQ==
+        bh=yTuE3+PUNeVelYpexXeDH8VG1p3UogROT/RMXrcsN3g=;
+        b=eONM8Sz6ycOf3i6RGrMH27//n3GI17SnGVaq8i5sEBmWzaQROl0/5Y3aBEI6xLmILF
+         1Ez/nzjFz3ySzpJM8ZjJQM9q9groLrwMwLQzgTNT+8Z5Rc0cms3Cm5czN6WYYiABlOoD
+         De0NTwxEVt1fr0pk8r+OZ+9PvuCNjgJc0m86w9RwEevUCnOo+jcDRNiTkLvpEH7bkMCn
+         sMl2C90CZI7BUfMrGJHsMRxd1eZgOBjjr4ohzaBoosVgeQ3TwUc0mVuACJ8A1qDkr5sl
+         M4qX9NNgxFIueFcPOLVuGMNBFtiKHR7IE3TyUW89LrttClknhBFyk04F1BdxFOnJInmr
+         hEJg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774535546; x=1775140346;
+        d=1e100.net; s=20251104; t=1774536074; x=1775140874;
         h=content-transfer-encoding:in-reply-to:content-language:from
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=lgYFqo/xEm34Xyoszyoiq+GYqn6MOsq403EAh5eZPpQ=;
-        b=BucXlHdInR1ZGHetl+aNxK2fU5QssPBDEyiQKc9KVFJgU4MK4ZbCrzrBlLx7CtEY2U
-         h8LnPOCBt4jXSfJiA/Hunkj5DUjrsVbCx0Xq5Bhjcl1JcxsrL0aGMkT63rzSX8LTNPtm
-         8JnuS55puwSXYnAKaHycTM5mGx8iS/wkyctkeW7MP4jP4L9LU+lN4F6XkDN7sGAVAwfY
-         hXPpJDsOh/Vsqi9EeQigEQrp0AjRx0V+Lv5Ng7YzDadXivrD+hP/XUjgj50d9kTkMXhX
-         nttaT7mHULsUG6tEB2fzygz4IkiUaQMyljYbZzUdpxsXtpl1aOewVGIpGo6Zrb40Qyau
-         +GHw==
-X-Forwarded-Encrypted: i=1; AJvYcCXhVj1MNx09QE1HXsrOBkjf/YH+IUFz/Y/JEGjkSVwByW6LPYLAb2uHKNFB0hHxKWRUx8V9f+7K@lists.infradead.org
-X-Gm-Message-State: AOJu0YyiJOlsbIdVjnYrxBPwUhiVaY+gKgjy1scWUKcjdf/dplZ4hDkt
-	yul3Q/3+4TULvvu30lRLtGicM1NFwUynIVBd0zQKCxIjS4YuQ+NdvucQ3H97CYCNBEs=
-X-Gm-Gg: ATEYQzzfuV3pG2iLHZAAotEPbooKQZfxjktXcWns+cS3yj/7yl/d9X4F4SYK7Quw/71
-	AlL+fVOKcYJjeARA0JSPdjz96x5FGyj/TIwkLzby47ndeI3PuaMMgtbxZXrjIUTKZn2BdlHdP5Y
-	Y41/HltyEnf/d3HKmmDyZfVPIms/BGwAAC0+jgtPsdDE9G+TQ2FAzDcg55z4KVprMVVmfZmwEot
-	0tJ8JiSgBF+Cb9F3MczqW6lcr/vVRsJPoA0nDIBZ0WGZazT3YSqsdxx3usS7eAFu5iteC0rLbHz
-	TYmAp1PeND2lrO+lgFRuewAL8LczhHy7qdB4mwUpB+UcnUOkpSda/E0FBM5xYXZ2w+8Hmt8bljA
-	/bgYBLTSa/zCP0MbSWXs+1ifGDOZUV0pew8Gak/6zb2SW2nLwWs/kF4ACpSL7P5QGlizhYlwK50
-	oKwgW8VnFEM+PS8z70U+mInaRZ5BCvw2oCrOMC7ngb
-X-Received: by 2002:a05:690c:7648:b0:79a:7cf4:1a60 with SMTP id 00721157ae682-79acf6a99c8mr70511107b3.48.1774535545843;
-        Thu, 26 Mar 2026 07:32:25 -0700 (PDT)
+        bh=yTuE3+PUNeVelYpexXeDH8VG1p3UogROT/RMXrcsN3g=;
+        b=FvvM1m3S+QnFPzq4RWwwyR/vf0RPwhrKrOCgGXCloTbDXLXbzjenLSb00r4DBoELfs
+         sq7R4znqxnSjUhZfUbmk/100bfOOhhRmL5B20xYyCuRmiE8OR2gsRm0B3xxCDM1V2vBU
+         KbJFK7otB9urz1J98v62FqP4i170fKuu78kHLF4EnIgHf+hlMXICS7abkm91/aDpBRMa
+         38ZDV4bYp5rPPJPoHQ8b6tzuaMe8gbfTq7QiB/GI8FLMVMpzuWspFWR+QYfycWBkZkw3
+         O8i/E1TUcWXVtBTAxzZZF/bXnoUN8q0HnXSLfBEwMDTeaHmYeF/RsKiOy4TbvwEnkdZw
+         Fo/A==
+X-Forwarded-Encrypted: i=1; AJvYcCUQXQwbA9gJgFV1pHGLZIkuN8j4c0CnSQjKIxZcsmyu2Qlf8uhDRsIR6i2ugepAlqnUpCvsnQPz@lists.infradead.org
+X-Gm-Message-State: AOJu0YwMVaI/AaPj8+h4HcPNQH/QoQGAglo801K+bWnEbZn8l8bIz8Jb
+	M8L3I+xP3LJpMTc+JMe7ZpWQhotPd0vcfcjLObDciHy0HzIU/eDmiH+E1LZumSZEgwA=
+X-Gm-Gg: ATEYQzwNXap5yuljgdDHvC4rSaHZqYWznTZpUlrDkt5HAeod/kwD3eHmTJK6CTEBJhw
+	3KLW9sTSGhoueMi5ncx8cKo2kZvIHkgCdBSVdprRS02HP/lBnHB6ggDta4OLa3qT7FIrFPtXzni
+	EytAcMpLgircLLEXlh+WFrqafGmOui67p+vB6k0BhZIAzMh4Mbf4zqGS/VxesAeRF/mtv8Judhu
+	11ZT2HppobxsxEIr+Ua3FEKK34zOXlfvtGJy4B6pNdjyh5cngx58qxf3tvpSQ+55An6ek65hXF7
+	stTcGy+AR07qv94QPlpU8PzXt0QGE9lRN7jkaqKRiU1T+ayVG81qG8IzKtZInLBdlp66LaJXc8w
+	h7Ng9Coz2A2etzKMAwmnWzu1iujzkK3Hq8D1pS6ZR2V7M5Y1RRjw819xe42yElEysCg58Oa+L4b
+	TXMHRGL9NDvofkFKelOXHNMX3d6ljIBnmYcpA4x1Lmr+gU/lHVkAY=
+X-Received: by 2002:a05:690e:440e:b0:64e:7a12:18e5 with SMTP id 956f58d0204a3-64ee613cc5dmr5767550d50.58.1774536073902;
+        Thu, 26 Mar 2026 07:41:13 -0700 (PDT)
 Received: from [100.64.0.1] ([170.85.103.33])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-79b1e40a9ddsm13879607b3.40.2026.03.26.07.32.24
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-64ef6c36b73sm1535890d50.19.2026.03.26.07.41.12
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 26 Mar 2026 07:32:25 -0700 (PDT)
-Message-ID: <142bbc82-c9b0-41f6-981c-c154e84496f9@sifive.com>
-Date: Thu, 26 Mar 2026 09:32:24 -0500
+        Thu, 26 Mar 2026 07:41:13 -0700 (PDT)
+Message-ID: <1877a9c0-1b99-4e7c-8bc6-947580fc6c7f@sifive.com>
+Date: Thu, 26 Mar 2026 09:41:12 -0500
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/3] lib: sbi: Add floating-point context save/restore
- support.
+Subject: Re: [PATCH v2 3/3] lib: sbi: domain FP/Vector context support for
+ context switch
 To: dave.patel@riscstar.com
 Cc: Scott Bambrough <scott@riscstar.com>,
  Robin Randhawa <robin.randhawa@sifive.com>,
@@ -84,13 +84,13 @@ Cc: Scott Bambrough <scott@riscstar.com>,
  Dhaval <dhaval@rivosinc.com>, Peter Lin <peter.lin@sifive.com>,
  opensbi@lists.infradead.org
 References: <20260326115517.2156-1-dave.patel@riscstar.com>
- <20260326115517.2156-3-dave.patel@riscstar.com>
+ <20260326115517.2156-4-dave.patel@riscstar.com>
 From: Samuel Holland <samuel.holland@sifive.com>
 Content-Language: en-US
-In-Reply-To: <20260326115517.2156-3-dave.patel@riscstar.com>
+In-Reply-To: <20260326115517.2156-4-dave.patel@riscstar.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260326_073227_544679_CFDAC81A 
-X-CRM114-Status: GOOD (  20.20  )
+X-CRM114-CacheID: sfid-20260326_074115_427311_3B6D457E 
+X-CRM114-Status: GOOD (  29.34  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,151 +102,349 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SGkgRGF2ZSwKCk9uIDIwMjYtMDMtMjYgNjo1NSBBTSwgZGF2ZS5wYXRlbEByaXNjc3Rhci5jb20g
-d3JvdGU6Cj4gRnJvbTogRGF2ZSBQYXRlbCA8ZGF2ZS5wYXRlbEByaXNjc3Rhci5jb20+Cj4gCj4g
-QWRkIHN1cHBvcnQgZm9yIHNhdmluZyBhbmQgcmVzdG9yaW5nIFJJU0MtViBmbG9hdGluZy1wb2lu
-dCAoRi9EKSBleHRlbnNpb24KPiBzdGF0ZSBpbiBPcGVuU0JJLiBUaGlzIGludHJvZHVjZXMgYSBm
-bG9hdGluZy1wb2ludCBjb250ZXh0IHN0cnVjdHVyZSBhbmQKPiBoZWxwZXIgcm91dGluZXMgdG8g
-cGVyZm9ybSBmdWxsIGNvbnRleHQgc2F2ZSBhbmQgcmVzdG9yZS4KPiAKPiBUaGUgZmxvYXRpbmct
-cG9pbnQgY29udGV4dCBpbmNsdWRlcyBzdG9yYWdlIGZvciBhbGwgMzIgRlBpIHJlZ2lzdGVycyAo
-ZjDigJNmMzEpCj4gYWxvbmcgd2l0aCB0aGUgZmNzciBjb250cm9sIGFuZCBzdGF0dXMgcmVnaXN0
-ZXIuIFRoZSByZWdpc3RlciBzdGF0ZSBpcyBzYXZlZAo+IGFuZCByZXN0b3JlZCB1c2luZyBkb3Vi
-bGUtcHJlY2lzaW9uIGxvYWQvc3RvcmUgaW5zdHJ1Y3Rpb25zIChmc2QvZmxkKSwgYW5kCj4gc2lu
-Z2xlLXByZWNpc2lvbiBsb2FkL3N0b3JlIGluc3RydWN0aW9ucyAoZnN3L2Zsdykgb24gYW4gUlY2
-NCBzeXN0ZW0gd2l0aAo+IEYgYW5kIEQtZXh0ZW5zaW9uIHN1cHBvcnQuCj4gCj4gVGhlIGltcGxl
-bWVudGF0aW9uIGZvbGxvd3MgYW4gZWFnZXIgY29udGV4dCBzd2l0Y2hpbmcgbW9kZWwgd2hlcmUg
-dGhlIGVudGlyZQo+IEZQIHN0YXRlIGlzIHNhdmVkIGFuZCByZXN0b3JlZCBvbiBldmVyeSBjb250
-ZXh0IHN3aXRjaC4gVGhpcyBhdm9pZHMgdGhlIG5lZWQKPiBmb3IgdHJhcC1iYXNlZCBsYXp5IG1h
-bmFnZW1lbnQgYW5kIGtlZXBzIHRoZSBkZXNpZ24gc2ltcGxlIGFuZCBkZXRlcm1pbmlzdGljLgo+
-IAo+IFNpZ25lZC1vZmYtYnk6IERhdmUgUGF0ZWwgPGRhdmUucGF0ZWxAcmlzY3N0YXIuY29tPiIK
-PiBTaWduZWQtb2ZmLWJ5OiBEYXZlIFBhdGVsIDxkYXZlLnBhdGVsQHJpc2NzdGFyLmNvbT4KCmR1
-cGxpY2F0ZSBsaW5lIGhlcmUKCj4gLS0tCj4gIGluY2x1ZGUvc2JpL3NiaV9mcC5oIHwgIDM3ICsr
-KysrKysrKwo+ICBsaWIvc2JpL29iamVjdHMubWsgICB8ICAgMyArCj4gIGxpYi9zYmkvc2JpX2Zw
-LmMgICAgIHwgMTg4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysK
-PiAgMyBmaWxlcyBjaGFuZ2VkLCAyMjggaW5zZXJ0aW9ucygrKQo+ICBjcmVhdGUgbW9kZSAxMDA2
-NDQgaW5jbHVkZS9zYmkvc2JpX2ZwLmgKPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGxpYi9zYmkvc2Jp
-X2ZwLmMKPiAKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmkvc2JpX2ZwLmggYi9pbmNsdWRlL3Ni
-aS9zYmlfZnAuaAo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4gaW5kZXggMDAwMDAwMDAuLjU3OTRi
-NjZmCj4gLS0tIC9kZXYvbnVsbAo+ICsrKyBiL2luY2x1ZGUvc2JpL3NiaV9mcC5oCj4gQEAgLTAs
-MCArMSwzNyBAQAo+ICsvKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMAo+ICsgKgo+
-ICsgKiBDb3B5cmlnaHQgKGMpIDIwMjYgUklTQ3N0YXIgU29sdXRpb25zLgo+ICsgKgo+ICsgKiBB
-dXRob3JzOgo+ICsgKiAgICAgRGF2ZSBQYXRlbCA8ZGF2ZS5wYXRlbEByaXNjc3Rhci5jb20+Cj4g
-KyAqLwo+ICsjaWZuZGVmIF9fU0JJX0ZQX0hfXwo+ICsjZGVmaW5lIF9fU0JJX0ZQX0hfXwo+ICsK
-PiArI2luY2x1ZGUgPHNiaS9yaXNjdl9lbmNvZGluZy5oPgo+ICsKPiArI2lmIGRlZmluZWQoX19y
-aXNjdl9mKSB8fCBkZWZpbmVkKF9fcmlzY3ZfZCkKPiArCj4gKyNpbmNsdWRlIDxzdGRpbnQuaD4K
-PiArCj4gK3N0cnVjdCBzYmlfZnBfY29udGV4dCB7Cj4gKyNpZiBfX3Jpc2N2X3hsZW4gPT0gNjQg
-JiYgZGVmaW5lZChfX3Jpc2N2X2QpCgpUaGlzIGNvbmRpdGlvbiBpcyBub3QgY29ycmVjdC4gcnYz
-MmlmZCBpcyBhIHZhbGlkIGNvbWJpbmF0aW9uLgoKPiArICAgIHVpbnQ2NF90IGZbMzJdOwo+ICsj
-ZWxzZQo+ICsgICAgdWludDMyX3QgZlszMl07Cj4gKyNlbmRpZgo+ICsgICAgdWludDMyX3QgZmNz
-cjsKPiArfSBfX2F0dHJpYnV0ZV9fKChhbGlnbmVkKDE2KSkpOwoKc2JpX3R5cGVzLmggcHJvdmlk
-ZXMgYW4gX19hbGlnbmVkKCkgbWFjcm8uCgpUaGUgc2FtZSBjb2RlIHN0eWxlIGNvbW1lbnRzIGFw
-cGx5IHRvIHRoaXMgcGF0Y2ggYXMgd2VsbC4KClJlZ2FyZHMsClNhbXVlbAoKPiArCj4gK3ZvaWQg
-c2JpX2ZwX3NhdmUoc3RydWN0IHNiaV9mcF9jb250ZXh0ICpkc3QpOwo+ICt2b2lkIHNiaV9mcF9y
-ZXN0b3JlKGNvbnN0IHN0cnVjdCBzYmlfZnBfY29udGV4dCAqc3JjKTsKPiArCj4gKyNlbHNlIC8q
-IE5vIEZQIChlLmcuLCBadmUzMngpICovCj4gKwo+ICtzdHJ1Y3Qgc2JpX2ZwX2NvbnRleHQgeyB9
-Owo+ICsKPiArc3RhdGljIGlubGluZSB2b2lkIHNiaV9mcF9zYXZlKHN0cnVjdCBzYmlfZnBfY29u
-dGV4dCAqZHN0KSB7IH0KPiArc3RhdGljIGlubGluZSB2b2lkIHNiaV9mcF9yZXN0b3JlKGNvbnN0
-IHN0cnVjdCBzYmlfZnBfY29udGV4dCAqc3JjKSB7IH0KPiArCj4gKyNlbmRpZiAvL2RlZmluZWQo
-X19yaXNjdl9mKSB8fCBkZWZpbmVkKF9fcmlzY3ZfZCkKPiArI2VuZGlmIC8vX19TQklfVkVDVE9S
-X0hfXwo+IGRpZmYgLS1naXQgYS9saWIvc2JpL29iamVjdHMubWsgYi9saWIvc2JpL29iamVjdHMu
-bWsKPiBpbmRleCA5ZmQzNzhkMC4uYjk5NzEyZDMgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9vYmpl
-Y3RzLm1rCj4gKysrIGIvbGliL3NiaS9vYmplY3RzLm1rCj4gQEAgLTExMywzICsxMTMsNiBAQCAk
-KGluZm8gUkVTVUxUID0gJChmaW5kc3RyaW5nIHYsJChSSVNDVl9FWFRTKSkpCj4gIGlmbmVxICgk
-KGZpbmRzdHJpbmcgdiwkKFJJU0NWX0VYVFMpKSwpCj4gIGxpYnNiaS1vYmpzLXkgKz0gc2JpX3Zl
-Y3Rvci5vCj4gIGVuZGlmCj4gK2lmbmVxICgkKGZpbmRzdHJpbmcgZiwkKFJJU0NWX0VYVFMpKSQo
-ZmluZHN0cmluZyBkLCQoUklTQ1ZfRVhUUykpJChmaW5kc3RyaW5nIGcsJChSSVNDVl9FWFRTKSks
-KQo+ICtsaWJzYmktb2Jqcy15ICs9IHNiaV9mcC5vCj4gK2VuZGlmCj4gZGlmZiAtLWdpdCBhL2xp
-Yi9zYmkvc2JpX2ZwLmMgYi9saWIvc2JpL3NiaV9mcC5jCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQK
-PiBpbmRleCAwMDAwMDAwMC4uYjY2NTE1NzcKPiAtLS0gL2Rldi9udWxsCj4gKysrIGIvbGliL3Ni
-aS9zYmlfZnAuYwo+IEBAIC0wLDAgKzEsMTg4IEBACj4gKy8qIFNQRFgtTGljZW5zZS1JZGVudGlm
-aWVyOiBHUEwtMi4wCj4gKyAqCj4gKyAqIENvcHlyaWdodCAoYykgMjAyNiBSSVNDc3RhciBTb2x1
-dGlvbnMuCj4gKyAqCj4gKyAqIEF1dGhvcnM6Cj4gKyAqICAgICBEYXZlIFBhdGVsIDxkYXZlLnBh
-dGVsQHJpc2NzdGFyLmNvbT4KPiArICovCj4gKwo+ICsjaW5jbHVkZSA8c2JpL3Jpc2N2X2FzbS5o
-Pgo+ICsjaW5jbHVkZSA8c2JpL3Jpc2N2X2VuY29kaW5nLmg+Cj4gKyNpbmNsdWRlIDxzYmkvc2Jp
-X2ZwLmg+Cj4gKwo+ICsjaWYgZGVmaW5lZChfX3Jpc2N2X2YpIHx8IGRlZmluZWQoX19yaXNjdl9k
-KQo+ICsKPiArdm9pZCBzYmlfZnBfc2F2ZShzdHJ1Y3Qgc2JpX2ZwX2NvbnRleHQgKmRzdCkKPiAr
-ewo+ICsJaWYgKCFkc3QpCj4gKwkJcmV0dXJuOwo+ICsKPiArI2lmIF9fcmlzY3ZfeGxlbiA9PSA2
-NCAmJiBkZWZpbmVkKF9fcmlzY3ZfZCkKPiArCWFzbSB2b2xhdGlsZSgKPiArCQkiZnNkIGYwLCAg
-MCglMClcbiIKPiArCQkiZnNkIGYxLCAgOCglMClcbiIKPiArCQkiZnNkIGYyLCAgMTYoJTApXG4i
-Cj4gKwkJImZzZCBmMywgIDI0KCUwKVxuIgo+ICsJCSJmc2QgZjQsICAzMiglMClcbiIKPiArCQki
-ZnNkIGY1LCAgNDAoJTApXG4iCj4gKwkJImZzZCBmNiwgIDQ4KCUwKVxuIgo+ICsJCSJmc2QgZjcs
-ICA1NiglMClcbiIKPiArCQkiZnNkIGY4LCAgNjQoJTApXG4iCj4gKwkJImZzZCBmOSwgIDcyKCUw
-KVxuIgo+ICsJCSJmc2QgZjEwLCA4MCglMClcbiIKPiArCQkiZnNkIGYxMSwgODgoJTApXG4iCj4g
-KwkJImZzZCBmMTIsIDk2KCUwKVxuIgo+ICsJCSJmc2QgZjEzLCAxMDQoJTApXG4iCj4gKwkJImZz
-ZCBmMTQsIDExMiglMClcbiIKPiArCQkiZnNkIGYxNSwgMTIwKCUwKVxuIgo+ICsJCSJmc2QgZjE2
-LCAxMjgoJTApXG4iCj4gKwkJImZzZCBmMTcsIDEzNiglMClcbiIKPiArCQkiZnNkIGYxOCwgMTQ0
-KCUwKVxuIgo+ICsJCSJmc2QgZjE5LCAxNTIoJTApXG4iCj4gKwkJImZzZCBmMjAsIDE2MCglMClc
-biIKPiArCQkiZnNkIGYyMSwgMTY4KCUwKVxuIgo+ICsJCSJmc2QgZjIyLCAxNzYoJTApXG4iCj4g
-KwkJImZzZCBmMjMsIDE4NCglMClcbiIKPiArCQkiZnNkIGYyNCwgMTkyKCUwKVxuIgo+ICsJCSJm
-c2QgZjI1LCAyMDAoJTApXG4iCj4gKwkJImZzZCBmMjYsIDIwOCglMClcbiIKPiArCQkiZnNkIGYy
-NywgMjE2KCUwKVxuIgo+ICsJCSJmc2QgZjI4LCAyMjQoJTApXG4iCj4gKwkJImZzZCBmMjksIDIz
-MiglMClcbiIKPiArCQkiZnNkIGYzMCwgMjQwKCUwKVxuIgo+ICsJCSJmc2QgZjMxLCAyNDgoJTAp
-XG4iCj4gKwkJOgo+ICsJCTogInIiKGRzdC0+ZikKPiArCQk6ICJtZW1vcnkiCj4gKwkpOwo+ICsj
-ZWxzZSAvKiBSVjMyIG9yIEYtb25seSAqLwo+ICsgICAgYXNtIHZvbGF0aWxlKAo+ICsgICAgICAg
-ICJmc3cgZjAsICAwKCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjEsICA0KCUwKVxuIgo+ICsgICAg
-ICAgICJmc3cgZjIsICA4KCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjMsICAxMiglMClcbiIKPiAr
-ICAgICAgICAiZnN3IGY0LCAgMTYoJTApXG4iCj4gKyAgICAgICAgImZzdyBmNSwgIDIwKCUwKVxu
-Igo+ICsgICAgICAgICJmc3cgZjYsICAyNCglMClcbiIKPiArICAgICAgICAiZnN3IGY3LCAgMjgo
-JTApXG4iCj4gKyAgICAgICAgImZzdyBmOCwgIDMyKCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjks
-ICAzNiglMClcbiIKPiArICAgICAgICAiZnN3IGYxMCwgNDAoJTApXG4iCj4gKyAgICAgICAgImZz
-dyBmMTEsIDQ0KCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjEyLCA0OCglMClcbiIKPiArICAgICAg
-ICAiZnN3IGYxMywgNTIoJTApXG4iCj4gKyAgICAgICAgImZzdyBmMTQsIDU2KCUwKVxuIgo+ICsg
-ICAgICAgICJmc3cgZjE1LCA2MCglMClcbiIKPiArICAgICAgICAiZnN3IGYxNiwgNjQoJTApXG4i
-Cj4gKyAgICAgICAgImZzdyBmMTcsIDY4KCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjE4LCA3Migl
-MClcbiIKPiArICAgICAgICAiZnN3IGYxOSwgNzYoJTApXG4iCj4gKyAgICAgICAgImZzdyBmMjAs
-IDgwKCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjIxLCA4NCglMClcbiIKPiArICAgICAgICAiZnN3
-IGYyMiwgODgoJTApXG4iCj4gKyAgICAgICAgImZzdyBmMjMsIDkyKCUwKVxuIgo+ICsgICAgICAg
-ICJmc3cgZjI0LCA5NiglMClcbiIKPiArICAgICAgICAiZnN3IGYyNSwgMTAwKCUwKVxuIgo+ICsg
-ICAgICAgICJmc3cgZjI2LCAxMDQoJTApXG4iCj4gKyAgICAgICAgImZzdyBmMjcsIDEwOCglMClc
-biIKPiArICAgICAgICAiZnN3IGYyOCwgMTEyKCUwKVxuIgo+ICsgICAgICAgICJmc3cgZjI5LCAx
-MTYoJTApXG4iCj4gKyAgICAgICAgImZzdyBmMzAsIDEyMCglMClcbiIKPiArICAgICAgICAiZnN3
-IGYzMSwgMTI0KCUwKVxuIgo+ICsgICAgICAgIDoKPiArICAgICAgICA6ICJyIihkc3QtPmYpCj4g
-KyAgICAgICAgOiAibWVtb3J5Igo+ICsgICAgKTsKPiArI2VuZGlmIC8vX19yaXNjdl9kCj4gKwo+
-ICsJZHN0LT5mY3NyID0gY3NyX3JlYWQoQ1NSX0ZDU1IpOwo+ICt9Cj4gKwo+ICt2b2lkIHNiaV9m
-cF9yZXN0b3JlKGNvbnN0IHN0cnVjdCBzYmlfZnBfY29udGV4dCAqc3JjKQo+ICt7Cj4gKwlpZiAo
-IXNyYykKPiArICAgICAgICByZXR1cm47Cj4gKwo+ICsjaWYgX19yaXNjdl94bGVuID09IDY0ICYm
-IGRlZmluZWQoX19yaXNjdl9kKQo+ICsJYXNtIHZvbGF0aWxlKAo+ICsJCSJmbGQgZjAsICAwKCUw
-KVxuIgo+ICsJCSJmbGQgZjEsICA4KCUwKVxuIgo+ICsJCSJmbGQgZjIsICAxNiglMClcbiIKPiAr
-CQkiZmxkIGYzLCAgMjQoJTApXG4iCj4gKwkJImZsZCBmNCwgIDMyKCUwKVxuIgo+ICsJCSJmbGQg
-ZjUsICA0MCglMClcbiIKPiArCQkiZmxkIGY2LCAgNDgoJTApXG4iCj4gKwkJImZsZCBmNywgIDU2
-KCUwKVxuIgo+ICsJCSJmbGQgZjgsICA2NCglMClcbiIKPiArCQkiZmxkIGY5LCAgNzIoJTApXG4i
-Cj4gKwkJImZsZCBmMTAsIDgwKCUwKVxuIgo+ICsgICAgICAgICJmbGQgZjExLCA4OCglMClcbiIK
-PiArCQkiZmxkIGYxMiwgOTYoJTApXG4iCj4gKwkJImZsZCBmMTMsIDEwNCglMClcbiIKPiArCQki
-ZmxkIGYxNCwgMTEyKCUwKVxuIgo+ICsJCSJmbGQgZjE1LCAxMjAoJTApXG4iCj4gKwkJImZsZCBm
-MTYsIDEyOCglMClcbiIKPiArCQkiZmxkIGYxNywgMTM2KCUwKVxuIgo+ICsJCSJmbGQgZjE4LCAx
-NDQoJTApXG4iCj4gKwkJImZsZCBmMTksIDE1MiglMClcbiIKPiArCQkiZmxkIGYyMCwgMTYwKCUw
-KVxuIgo+ICsJCSJmbGQgZjIxLCAxNjgoJTApXG4iCj4gKwkJImZsZCBmMjIsIDE3NiglMClcbiIK
-PiArCQkiZmxkIGYyMywgMTg0KCUwKVxuIgo+ICsJCSJmbGQgZjI0LCAxOTIoJTApXG4iCj4gKwkJ
-ImZsZCBmMjUsIDIwMCglMClcbiIKPiArCQkiZmxkIGYyNiwgMjA4KCUwKVxuIgo+ICsJCSJmbGQg
-ZjI3LCAyMTYoJTApXG4iCj4gKwkJImZsZCBmMjgsIDIyNCglMClcbiIKPiArCQkiZmxkIGYyOSwg
-MjMyKCUwKVxuIgo+ICsJCSJmbGQgZjMwLCAyNDAoJTApXG4iCj4gKwkJImZsZCBmMzEsIDI0OCgl
-MClcbiIKPiArCQk6Cj4gKwkJOiAiciIoc3JjLT5mKQo+ICsJCTogIm1lbW9yeSIKPiArCSk7Cj4g
-KyNlbHNlIC8qIFJWMzIgb3IgRi1vbmx5ICovCj4gKwo+ICsgICAgYXNtIHZvbGF0aWxlKAo+ICsg
-ICAgICAgICJmbHcgZjAsICAgMCglMClcbiIKPiArICAgICAgICAiZmx3IGYxLCAgIDQoJTApXG4i
-Cj4gKyAgICAgICAgImZsdyBmMiwgICA4KCUwKVxuIgo+ICsgICAgICAgICJmbHcgZjMsICAxMigl
-MClcbiIKPiArICAgICAgICAiZmx3IGY0LCAgMTYoJTApXG4iCj4gKyAgICAgICAgImZsdyBmNSwg
-IDIwKCUwKVxuIgo+ICsgICAgICAgICJmbHcgZjYsICAyNCglMClcbiIKPiArICAgICAgICAiZmx3
-IGY3LCAgMjgoJTApXG4iCj4gKyAgICAgICAgImZsdyBmOCwgIDMyKCUwKVxuIgo+ICsgICAgICAg
-ICJmbHcgZjksICAzNiglMClcbiIKPiArICAgICAgICAiZmx3IGYxMCwgNDAoJTApXG4iCj4gKyAg
-ICAgICAgImZsdyBmMTEsIDQ0KCUwKVxuIgo+ICsgICAgICAgICJmbHcgZjEyLCA0OCglMClcbiIK
-PiArICAgICAgICAiZmx3IGYxMywgNTIoJTApXG4iCj4gKyAgICAgICAgImZsdyBmMTQsIDU2KCUw
-KVxuIgo+ICsgICAgICAgICJmbHcgZjE1LCA2MCglMClcbiIKPiArICAgICAgICAiZmx3IGYxNiwg
-NjQoJTApXG4iCj4gKyAgICAgICAgImZsdyBmMTcsIDY4KCUwKVxuIgo+ICsgICAgICAgICJmbHcg
-ZjE4LCA3MiglMClcbiIKPiArICAgICAgICAiZmx3IGYxOSwgNzYoJTApXG4iCj4gKyAgICAgICAg
-ImZsdyBmMjAsIDgwKCUwKVxuIgo+ICsgICAgICAgICJmbHcgZjIxLCA4NCglMClcbiIKPiArICAg
-ICAgICAiZmx3IGYyMiwgODgoJTApXG4iCj4gKyAgICAgICAgImZsdyBmMjMsIDkyKCUwKVxuIgo+
-ICsgICAgICAgICJmbHcgZjI0LCA5NiglMClcbiIKPiArICAgICAgICAiZmx3IGYyNSwgMTAwKCUw
-KVxuIgo+ICsgICAgICAgICJmbHcgZjI2LCAxMDQoJTApXG4iCj4gKyAgICAgICAgImZsdyBmMjcs
-IDEwOCglMClcbiIKPiArICAgICAgICAiZmx3IGYyOCwgMTEyKCUwKVxuIgo+ICsgICAgICAgICJm
-bHcgZjI5LCAxMTYoJTApXG4iCj4gKyAgICAgICAgImZsdyBmMzAsIDEyMCglMClcbiIKPiArICAg
-ICAgICAiZmx3IGYzMSwgMTI0KCUwKVxuIgo+ICsgICAgICAgIDoKPiArICAgICAgICA6ICJyIihz
-cmMtPmYpCj4gKyAgICAgICAgOiAibWVtb3J5Igo+ICsgICAgKTsKPiArCj4gKyNlbmRpZgo+ICsK
-PiArCWNzcl93cml0ZShDU1JfRkNTUiwgc3JjLT5mY3NyKTsKPiArfQo+ICsjZW5kaWYgLy8gRlAg
-cHJlc2VudAo+IC0tCj4gMi40My4wCj4gCgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5z
-YmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL29wZW5zYmkK
+On 2026-03-26 6:55 AM, dave.patel@riscstar.com wrote:
+> From: Dave Patel <dave.patel@riscstar.com>
+> 
+> This patch adds proper support for per-domain floating-point (FP) and
+> vector (V) contexts in the domain context switch logic. Each domain
+> now maintains its own FP and vector state, which is saved and restored
+> during domain switches.
+> 
+> Changes include:
+> 
+> - Added `fp_ctx` and `vec_ctx` members to `struct sbi_domain`.
+> - Introduced `sbi_fp_domain_init/exit()` and `sbi_vector_domain_init/exit()`
+>   to allocate and free per-domain FP and vector context.
+> - Modified `sbi_domain_register()` to initialize FP/Vector context per domain.
+> - Updated `switch_to_next_domain_context()` to save/restore FP and vector
+>   contexts safely:
+>     - Ensures FS/VS fields in `mstatus` are enabled (set to Initial) only if Off.
+>     - Restores original FS/VS bits after context switch.
+>     - Adds NULL checks to handle domains without FP or Vector extensions.
+> - Updated domain context deinit to free FP and vector contexts per domain.
+> - Added runtime checks for FP and vector extensions where needed.
+> - Corrected handling of MSTATUS FS/VS bits to avoid unsafe full-bit writes.
+> 
+> This improves support for multi-domain systems with FP and Vector
+> extensions, and prevents corruption of FP/Vector state during domain
+> switches.
+> 
+> Signed-off-by: Dave Patel <dave.patel@riscstar.com>
+> ---
+>  include/sbi/sbi_domain.h     |  4 ++++
+>  include/sbi/sbi_fp.h         |  7 ++++++
+>  include/sbi/sbi_vector.h     |  5 +++++
+>  lib/sbi/sbi_domain.c         | 22 +++++++++++++++++++
+>  lib/sbi/sbi_domain_context.c | 42 ++++++++++++++++++++++++++++++++++++
+>  lib/sbi/sbi_fp.c             | 31 ++++++++++++++++++++++++++
+>  lib/sbi/sbi_vector.c         | 30 ++++++++++++++++++++++++++
+>  7 files changed, 141 insertions(+)
+> 
+> diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+> index 882b62c2..e68ec46d 100644
+> --- a/include/sbi/sbi_domain.h
+> +++ b/include/sbi/sbi_domain.h
+> @@ -217,6 +217,10 @@ struct sbi_domain {
+>  	bool fw_region_inited;
+>  	/** per-domain wired-IRQ courier state */
+>  	void *virq_priv;
+
+Patch submissions should be based on top of the upstream master branch, unless
+noted in the cover letter. Please rebase.
+
+> +    /** per-domain float context state */
+> +    void *fp_ctx;
+> +    /** per-domain vector context state */
+> +    void *vec_ctx;
+
+There is no need for indirection through a pointer and the overhead of a
+separate allocation. Please embed the fp/vector context inside this struct. Then
+you do not need separate init/exit functions.
+
+>  };
+> 
+>  /** The root domain instance */
+> diff --git a/include/sbi/sbi_fp.h b/include/sbi/sbi_fp.h
+> index 5794b66f..2de9bf04 100644
+> --- a/include/sbi/sbi_fp.h
+> +++ b/include/sbi/sbi_fp.h
+> @@ -9,6 +9,9 @@
+>  #define __SBI_FP_H__
+> 
+>  #include <sbi/riscv_encoding.h>
+> +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_console.h>
+
+This looks like leftover debugging code.
+
+> 
+>  #if defined(__riscv_f) || defined(__riscv_d)
+> 
+> @@ -25,6 +28,8 @@ struct sbi_fp_context {
+> 
+>  void sbi_fp_save(struct sbi_fp_context *dst);
+>  void sbi_fp_restore(const struct sbi_fp_context *src);
+> +int  sbi_fp_domain_init(struct sbi_domain *dom);
+> +void sbi_fp_domain_exit(struct sbi_domain *dom);
+> 
+>  #else /* No FP (e.g., Zve32x) */
+> 
+> @@ -32,6 +37,8 @@ struct sbi_fp_context { };
+> 
+>  static inline void sbi_fp_save(struct sbi_fp_context *dst) { }
+>  static inline void sbi_fp_restore(const struct sbi_fp_context *src) { }
+> +static inline int  sbi_fp_domain_init(struct sbi_domain *dom) { return SBI_OK;}
+> +static inline void sbi_fp_domain_exit(struct sbi_domain *dom) {}
+> 
+>  #endif //defined(__riscv_f) || defined(__riscv_d)
+>  #endif //__SBI_VECTOR_H__
+> diff --git a/include/sbi/sbi_vector.h b/include/sbi/sbi_vector.h
+> index ae151406..c8295f05 100644
+> --- a/include/sbi/sbi_vector.h
+> +++ b/include/sbi/sbi_vector.h
+> @@ -10,6 +10,9 @@
+>  #define __SBI_VECTOR_H__
+> 
+>  #include <sbi/sbi_types.h>
+> +#include <sbi/sbi_domain.h>
+> +#include <sbi/sbi_error.h>
+> +#include <sbi/sbi_console.h>
+
+ditto
+
+> 
+>  #ifdef CONFIG_SBI_MAX_VLENB
+>  #define SBI_MAX_VLENB CONFIG_SBI_MAX_VLENB
+> @@ -30,6 +33,8 @@ struct sbi_vector_context {
+>  struct sbi_vector_context *sbi_current_vector_context(void);
+>  void sbi_vector_save(struct sbi_vector_context *dst);
+>  void sbi_vector_restore(const struct sbi_vector_context *src);
+> +int  sbi_vector_domain_init(struct sbi_domain *dom);
+> +void sbi_vector_domain_exit(struct sbi_domain *dom);
+> 
+>  #endif //__SBI_VECTOR_H__
+> 
+> diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+> index 498a1d56..cdc416b4 100644
+> --- a/lib/sbi/sbi_domain.c
+> +++ b/lib/sbi/sbi_domain.c
+> @@ -19,6 +19,8 @@
+>  #include <sbi/sbi_scratch.h>
+>  #include <sbi/sbi_string.h>
+>  #include <sbi/sbi_virq.h>
+> +#include <sbi/sbi_vector.h>
+> +#include <sbi/sbi_fp.h>
+> 
+>  SBI_LIST_HEAD(domain_list);
+> 
+> @@ -703,6 +705,26 @@ int sbi_domain_register(struct sbi_domain *dom,
+>  		return rc;
+>  	}
+> 
+> +    /* Init per-domain floating context */
+> +    rc = sbi_fp_domain_init(dom);
+> +    if (rc) {
+> +        sbi_printf("%s: fp init failed for %s (error %d)\n",
+> +                __func__, dom->name, rc);
+> +        sbi_list_del(&dom->node);
+> +        return rc;
+> +    }
+> +
+> +#ifdef __riscv_v
+> +    /* Init per-domain vector context */
+> +    rc = sbi_vector_domain_init(dom);
+> +    if (rc) {
+> +        sbi_printf("%s: vec init failed for %s (error %d)\n",
+> +                __func__, dom->name, rc);
+> +        sbi_list_del(&dom->node);
+> +        return rc;
+> +    }
+> +#endif
+> +
+>      return 0;
+>  }
+> 
+> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+> index 158f4990..fb843a91 100644
+> --- a/lib/sbi/sbi_domain_context.c
+> +++ b/lib/sbi/sbi_domain_context.c
+> @@ -18,6 +18,9 @@
+>  #include <sbi/sbi_domain_context.h>
+>  #include <sbi/sbi_platform.h>
+>  #include <sbi/sbi_trap.h>
+> +#include <sbi/sbi_vector.h>
+> +#include <sbi/sbi_fp.h>
+> +
+> 
+>  /** Context representation for a hart within a domain */
+>  struct hart_context {
+> @@ -143,6 +146,37 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+>  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSQOSID))
+>  		ctx->srmcfg	= csr_swap(CSR_SRMCFG, dom_ctx->srmcfg);
+> 
+> +    /* Read current mstatus */
+> +    unsigned long mstatus = csr_read(CSR_MSTATUS);
+> +    unsigned long new_mstatus = mstatus;
+> +
+> +    /* Ensure FS is enabled (not Off) */
+> +    if ((mstatus & MSTATUS_FS) == 0)
+> +        new_mstatus |= MSTATUS_FS;
+> +
+> +#ifdef __riscv_v
+> +    /* Ensure VS is enabled (not Off) */
+> +    if ((mstatus & MSTATUS_VS) == 0)
+> +        new_mstatus |= MSTATUS_VS;
+> +#endif
+> +
+> +    /* Update mstatus only if needed */
+> +    if (new_mstatus != mstatus)
+> +    csr_write(CSR_MSTATUS, new_mstatus);
+
+FS and VS are WARL. This above block can be just:
+
+	csr_set(CSR_MSTATUS, MSTATUS_FS | MSTATUS_VS);
+
+You don't need to restore mstatus because it will be loaded from the new
+domain's trap_ctx anyway (and the old domain's mstatus was already saved).
+
+Regards,
+Samuel
+
+> +
+> +    /* Save current domain context and restore target domain's F and V context */
+> +    sbi_fp_save(current_dom->fp_ctx);
+> +    sbi_fp_restore(target_dom->fp_ctx);
+> +#ifdef __riscv_v
+> +    sbi_vector_save(current_dom->vec_ctx);
+> +    sbi_vector_restore(target_dom->vec_ctx);
+> +#endif
+> +
+> +    /* Restore original mstatus if we modified it */
+> +    if (new_mstatus != mstatus) {
+> +        csr_write(CSR_MSTATUS, mstatus);
+> +    }
+> +
+>  	/* Save current trap state and restore target domain's trap state */
+>  	trap_ctx = sbi_trap_get_context(scratch);
+>  	sbi_memcpy(&ctx->trap_ctx, trap_ctx, sizeof(*trap_ctx));
+> @@ -286,5 +320,13 @@ int sbi_domain_context_init(void)
+> 
+>  void sbi_domain_context_deinit(void)
+>  {
+> +    struct sbi_domain *dom;
+> +    sbi_domain_for_each(dom) {
+> +#ifdef __riscv_v
+> +        sbi_vector_domain_exit(dom);
+> +#endif
+> +        sbi_fp_domain_exit(dom);
+> +    }
+> +
+>  	sbi_domain_unregister_data(&dcpriv);
+>  }
+> diff --git a/lib/sbi/sbi_fp.c b/lib/sbi/sbi_fp.c
+> index b6651577..ee0782d1 100644
+> --- a/lib/sbi/sbi_fp.c
+> +++ b/lib/sbi/sbi_fp.c
+> @@ -7,6 +7,7 @@
+>   */
+> 
+>  #include <sbi/riscv_asm.h>
+> +#include <sbi/sbi_heap.h>
+>  #include <sbi/riscv_encoding.h>
+>  #include <sbi/sbi_fp.h>
+> 
+> @@ -185,4 +186,34 @@ void sbi_fp_restore(const struct sbi_fp_context *src)
+> 
+>  	csr_write(CSR_FCSR, src->fcsr);
+>  }
+> +
+> +int sbi_fp_domain_init(struct sbi_domain *dom)
+> +{
+> +    if (!dom)
+> +        return SBI_EINVAL;
+> +
+> +    if (dom->fp_ctx)
+> +        return SBI_OK;
+> +
+> +   sbi_printf("[FPU] Init FP Context \n");
+> +
+> +   struct sbi_fp_context *fp;
+> +   fp = sbi_zalloc(sizeof(*fp));
+> +   if (!fp)
+> +       return SBI_ENOMEM;
+> +
+> +   dom->fp_ctx = fp;
+> +
+> +   return SBI_OK;
+> +}
+> +
+> +void sbi_fp_domain_exit(struct sbi_domain *dom)
+> +{
+> +   if (!dom || !dom->fp_ctx)
+> +        return;
+> +
+> +   sbi_free(dom->fp_ctx);
+> +   dom->fp_ctx = NULL;
+> +}
+> +
+>  #endif // FP present
+> diff --git a/lib/sbi/sbi_vector.c b/lib/sbi/sbi_vector.c
+> index e14b658c..2dfb9fbf 100644
+> --- a/lib/sbi/sbi_vector.c
+> +++ b/lib/sbi/sbi_vector.c
+> @@ -10,6 +10,7 @@
+>  #include <sbi/riscv_encoding.h>
+>  #include <sbi/riscv_asm.h>
+>  #include <sbi/sbi_vector.h>
+> +#include <sbi/sbi_heap.h>
+> 
+>  static inline unsigned long vector_vlenb(void)
+>  {
+> @@ -144,3 +145,32 @@ void sbi_vector_restore(const struct sbi_vector_context *src)
+> 
+>  #undef RESTORE_VREG
+>  }
+> +
+> +int sbi_vector_domain_init(struct sbi_domain *dom)
+> +{
+> +    if (!dom)
+> +        return SBI_EINVAL;
+> +
+> +    if (dom->vec_ctx)
+> +        return SBI_OK;
+> +
+> +   sbi_printf("[Vector] Init Vector Context \n");
+> +
+> +   struct sbi_vector_context *v;
+> +   v = sbi_zalloc(sizeof(*v));
+> +   if (!v)
+> +       return SBI_ENOMEM;
+> +
+> +   dom->vec_ctx = v;
+> +
+> +   return SBI_OK;
+> +}
+> +
+> +void sbi_vector_domain_exit(struct sbi_domain *dom)
+> +{
+> +   if (!dom || !dom->vec_ctx)
+> +        return;
+> +
+> +   sbi_free(dom->vec_ctx);
+> +   dom->vec_ctx = NULL;
+> +}
+> --
+> 2.43.0
+> 
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
