@@ -4,106 +4,200 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 72FEC10F3DD7
-	for <opensbi@archiver.kernel.org>; Sat, 28 Mar 2026 05:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 995D810D14AC
+	for <opensbi@archiver.kernel.org>; Mon, 30 Mar 2026 12:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Content-ID:In-Reply-To:
+	References:Message-ID:Date:Subject:CC:To:From:Reply-To:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=PSWx12G7AAOvdwcYTXH3yEZEaDqnycjwpm6PNodNkPE=; b=LvOaV3vIgVtK5p
-	my4vST0cnWmCyhzqFITQeDAIeq12eZoB1DJAlQfDrs0CMKyzkoPGozPxR/SifEveUpsXo4MM9zmch
-	gHpzsN9IwAYjFkuiX5vLrPmnJY0yQ122PxKjwm6rzOv6L5j5P1AjXk/GgoIPyx7iJsKdkyod6zu1A
-	a9NTFa7TNHn8RfEBywIaiqhB//cSCSUkrDSDeYZnbgbp8X/ACSHksNvBMhXx/DhCtztwzPrKrU2uW
-	O4/HqmVy75oSGbJNPY1p4lgdI3znU2SZrCQPsbfJ1q6C1s8d5WWQ2soZ5dZf7yeprJzfyz7HMbuiM
-	FxURfRvpFFHbvy42Cyhg==;
+	List-Owner; bh=tFCg5rToIiH854739Jb0ycy+N2b1R0ayINimBQ32Hgk=; b=ocqlMUTRBC/qFQ
+	xpSUhBN2wzBKV9yGPaDkGntGBz85p75OZ81dwrHdjwVBHRLRQXfx91Pky0cx96mcrVXWtl+wS9Hgr
+	yau+YonMVkBnEQ2SKq1TRb7O4j2BX+HecrCPsxj0fKcHD4Nj1kL73f6l/4Pti/26lJfLxVcEAimml
+	XQsd+Ajyv8mNCRzxNqV/MnfdPl71Ud6bnWavcfOYaij64Ypfg+xQgevrJyZ0zET+HrUPXqhasFjU+
+	avvPM4RqhNrUIVPvd/KdEpQ1K1e9/1wf1NDQpMBBcLLUVjMzuj/DdmkobthW3Ydl47KUVANo138RQ
+	OaiMrtv+Cv3ncIkNIXag==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w6MTA-00000008bOq-2rX1;
-	Sat, 28 Mar 2026 05:44:24 +0000
-Received: from mail-southcentralusazon11021128.outbound.protection.outlook.com ([40.93.194.128] helo=SN4PR0501CU005.outbound.protection.outlook.com)
+	id 1w7ByF-0000000BHVc-1S88;
+	Mon, 30 Mar 2026 12:43:55 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w6MT7-00000008bMf-1ylt
-	for opensbi@lists.infradead.org;
-	Sat, 28 Mar 2026 05:44:22 +0000
+	id 1w7ByE-0000000BHVT-0HUv;
+	Mon, 30 Mar 2026 12:43:54 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=MIME-Version:Content-Transfer-Encoding
+	:Content-ID:Content-Type:In-Reply-To:References:Message-ID:Date:Subject:CC:To
+	:From:Sender:Reply-To:Content-Description;
+	bh=rfxdN3IGhmRBr/bP5H4cp145n9bjQJRFDFJafSmI0hU=; b=Jg2LQbtSxgBoDXHDvUKHpZ95QT
+	RstSSR6ISorvYMKKy31IlKZJTT5G9VVTkDTWEtPv/6QfOBQU7I1ybAz5GkbjRblST7+FjKOWbUc/C
+	WIz5rhtxDsaW+d0k4DNijGnwj3O4UB2+RwSpCHf1RqP+xonLTnTgIKEfCsm6oU4yPScQTjN5EkX/P
+	S2Y63C+xeBwG9nQsq+qhhBdKzWu5vWB4tIS3dgEv5fix3+GV9h3EQ1IBDcpJvMpxIE5e9yFMU6tO/
+	dS7Tdw1DHidaO4wQgueA0aLeDuFPetG9zw54EwBviiEZtrQdplK6B3XB1M0XM88X3E1zCd9iZBiIn
+	qLV29niA==;
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	by desiato.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1w7BxS-0000000DqXo-2Ua4;
+	Mon, 30 Mar 2026 12:43:52 +0000
+Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 62U9VlAo2953401;
+	Mon, 30 Mar 2026 12:42:49 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-id:content-transfer-encoding:content-type:date:from
+	:in-reply-to:message-id:mime-version:references:subject:to; s=
+	qcppdkim1; bh=rfxdN3IGhmRBr/bP5H4cp145n9bjQJRFDFJafSmI0hU=; b=Kw
+	x5huqgnpkI9MIwJgt/Dyo+bYTp84eXayT5wa1UK0l5/Kn5aDiBpdx1I1R061N8KG
+	VHFX2pa4aabLqsXFxsi3sR9d4pgkQ0bBVSWEshqGq+Tja9kGUnhk27bjonkcjM5P
+	pUcv6zVZEyj3jHVQbjj/vf9Imf7/3moVf62OWvrPILa1XeIimZzR3VseKvJdwF+L
+	ZQ+EqRH8jE2dUFewNzqG/rk4zMTvI9l8fRtwUd5DweqgYsUcbsAXlu2NjNEt3xvi
+	I/tlkyRQeyuEQ2TFgf+YkfGhGinpnsOQbTajXRLLHoyCkrL3S6ObvaJWY+sje6jc
+	6p3PE07srlrf4yARyrCQ==
+Received: from ds2pr08cu001.outbound.protection.outlook.com (mail-ds2pr08cu00102.outbound.protection.outlook.com [40.93.13.74])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d6wqem47b-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 30 Mar 2026 12:42:48 +0000 (GMT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=o1/+JSl4g0vgrjMoZGzkfW/ntdGoGFkhG81hrx52SZKTo9Gv/NBxUt6VjFjm7T/YwQTRZKycapz9vp1GeafW6CVB+uAP5WD4CRkNsVMFeJv2+6xpTIhstRhe5K/aOh/+ZJfg6sHGzjnUGknrCxGPmbM06cCZrbcPGiNzOpN6cMVGpckWURZ/NHSnleLov2oTA2dAjyxTY/bN6DS6Uc1YeQgaJ4TtNA/j99cnjORCmitmkCVaSNmiKHysS8Zya1XcwUU9CWMww8wwv4fZ3PIYUyY1Qh1FfOAB64hM8Tr0+54+6nSETTPLh5VCym1mOJVoTwgsJZU/Nga6iYlc+rgO8A==
+ b=CzIkgWvgZqzCQoVeuYAEGD1mlQlNUZx0Wge5bPHj9bEuCS9yjRvSGb/gVYsy6uVJoaI0scbVTpKfP4AqrvjSm8rmvmDPzASuUb2yqAcb5SW6eMQvEfI4++Qgz/gMM08hwSf8KyigAOCSbsi+hqVjikOBs8A8PEOvFbRXssZ4NL1VDLGpnwZaLJvCFOv8t4GkP6v7Sy5xF/Wi6V0xeFgdlH2INXgP5U7sU8VacnmzHXJKquWIM/B5nHKMg/ipwv+kJHWLteKGYDqPAT0D/D2+qNJ2FLkrXyBZw87060usoSawWC/aYAz/LEZRecF82AoKfahYfHalzdVyJmeUMCB7TQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=F9rQub7/dTyfCSCv2M96DEwog7ULlkVKUT6oOfFg/ek=;
- b=Quyy7n13bWmPtNbJPvD2RpPxGhq2fEO2YmIxONxqjayS5/ZhpJfp1F/DCZe6mT31n1Ld4nXK5P+vslEOFb1I4rdrHLDDYKvQqdlqJ8lw795nkcvoM+ZeeUdf0mjDRpDZIiYklz5OV6yRZuzRYLatv8czRTEdO0XUbrjZxSLZM/Ohn+kHigDwNRSSF7mqa5pT/0A7Y32Bpw95raCX71onBDhM5W3ou5XqhIvZNroHhtx7bIJ5/+z2Forxd8VqUI9ps75yu7fjLiA9FwM4RqFCUyWCITP+4xYP2zAD8H0ehadErrmqD0/0q4jijSlbfuTcNLLfPl1C8kaIR/MiTuUEVw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=F9rQub7/dTyfCSCv2M96DEwog7ULlkVKUT6oOfFg/ek=;
- b=mbfjrAAxnn/x2PsuDeiBTXmVLMgKTawrhF3S7mmNcFcgW1ToBdqIvfkZO7lZafJSVpu+1wrJPeeshRnu1Y6qQ7gXOQgFrq2aeKv6GxoCx9FgZTAfhpbYWRtQ09mB1Y81BwAMOX91sZD9c9kRhwmzZv/GiDro/fFFeWA84ng36pBK3IrlUeojnfRAY7ffIWjYasEKf8R21EK23QA7yFRO+c5Z2BGU9Ru45qiA5GOO8XoO57liQKQUyCK0SC/JEynfhEcU0N9o3ni8RJCDXMg+ED+W4Q8nVdtpr+QVFTjLQReRiJ/Qn2LqrS/HTJy0ykUjGVu8Jl5H8KJ5FgWXdohwLA==
-Received: from SJ0PR03CA0374.namprd03.prod.outlook.com (2603:10b6:a03:3a1::19)
- by SA1PR22MB3780.namprd22.prod.outlook.com (2603:10b6:806:33d::8) with
+ bh=rfxdN3IGhmRBr/bP5H4cp145n9bjQJRFDFJafSmI0hU=;
+ b=RD48A+A/A3xTuZWkWgJ7zUPxrrCUM61bhy3DAn5tbpkGkF/ZwTucImz7bTVqxg9ONWIvHC+4V52P+dJG4Tzd7x4xzG6zVgxJkFEb2oBJZGSvBJ+LzkWs2IE00SSsb8C7y9csoHSr/OlL2/7tTBuKXUee7D+xOznads7HUTaNlWPgthHbOwO5O9p9PEqCsusAKtwKa7FaRMDl/+3NupAYD9NesLXZ86tcEjfKgstFSv5rzHV6BmIcU85UW/PceTBwq/k4xZ+iZXMdmicL4doOSGY9Dxr/Z6Jh3Xo5XuYnJpOOW+NW5fgd3i0lNaILm3a8lqe0qFvowKhZf53r0Cj81A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=qti.qualcomm.com; dmarc=pass action=none
+ header.from=qti.qualcomm.com; dkim=pass header.d=qti.qualcomm.com; arc=none
+Received: from BL0PR02MB4435.namprd02.prod.outlook.com (2603:10b6:208:4a::23)
+ by CYYPR02MB9761.namprd02.prod.outlook.com (2603:10b6:930:c1::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.23; Sat, 28 Mar
- 2026 05:44:13 +0000
-Received: from SJ5PEPF000001D0.namprd05.prod.outlook.com
- (2603:10b6:a03:3a1:cafe::6c) by SJ0PR03CA0374.outlook.office365.com
- (2603:10b6:a03:3a1::19) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.23 via Frontend Transport; Sat,
- 28 Mar 2026 05:44:13 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- SJ5PEPF000001D0.mail.protection.outlook.com (10.167.242.52) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.21
- via Frontend Transport; Sat, 28 Mar 2026 05:44:12 +0000
-Received: from davidAhead.lan (unknown [10.8.0.9])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 5EA6D80AAD;
-	Fri, 27 Mar 2026 22:44:11 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-To: opensbi@lists.infradead.org
-Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH 1/4] lib: utils: irqchip: aplic: Move register defines to public header
-Date: Fri, 27 Mar 2026 23:43:44 -0600
-Message-ID: <20260328054347.3706029-2-david.garcia@aheadcomputing.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260328054347.3706029-1-david.garcia@aheadcomputing.com>
-References: <20260328054347.3706029-1-david.garcia@aheadcomputing.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9745.28; Mon, 30 Mar
+ 2026 12:42:45 +0000
+Received: from BL0PR02MB4435.namprd02.prod.outlook.com
+ ([fe80::5818:27e:c1c8:7aa0]) by BL0PR02MB4435.namprd02.prod.outlook.com
+ ([fe80::5818:27e:c1c8:7aa0%4]) with mapi id 15.20.9745.027; Mon, 30 Mar 2026
+ 12:42:45 +0000
+From: Radim Krcmar <rkrcmar@qti.qualcomm.com>
+To: "dave.patel@riscstar.com" <dave.patel@riscstar.com>,
+        Samuel Holland
+	<samuel.holland@sifive.com>
+CC: Scott Bambrough <scott@riscstar.com>,
+        Robin Randhawa
+	<robin.randhawa@sifive.com>,
+        Anup Patel <anuppate@qti.qualcomm.com>,
+        Ray Mao
+	<raymond.mao@riscstar.com>,
+        Anup Patel <anuppate@qti.qualcomm.com>, Dhaval
+	<dhaval@rivosinc.com>,
+        Peter Lin <peter.lin@sifive.com>,
+        "opensbi@lists.infradead.org" <opensbi@lists.infradead.org>,
+        opensbi
+	<opensbi-bounces@lists.infradead.org>
+Subject: Re: [PATCH v3 1/3] lib: sbi: Add RISC-V vector context save/restore
+ support
+Thread-Topic: [PATCH v3 1/3] lib: sbi: Add RISC-V vector context save/restore
+ support
+Thread-Index: AQHcwEK1Dy6xhSoAe0mhK/kenSxUpw==
+Date: Mon, 30 Mar 2026 12:42:45 +0000
+Message-ID: <DHG4IUERGFUV.3TT9CFPZ9YEDG@qti.qualcomm.com>
+References: <20260327171601.169103-1-dave.patel@riscstar.com>
+ <20260327171601.169103-2-dave.patel@riscstar.com>
+In-Reply-To: <20260327171601.169103-2-dave.patel@riscstar.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: BL0PR02MB4435:EE_|CYYPR02MB9761:EE_
+x-ms-office365-filtering-correlation-id: e7e7a826-49a6-4898-7b26-08de8e59d7bc
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;ARA:13230040|366016|376014|1800799024|22082099003|56012099003|18002099003|38070700021;
+x-microsoft-antispam-message-info: UEir0kNisqwbdM2JbDPHAacgyAFNuxRkccjRNM90rv19YBXAZI09w7PvpPN+bItOEOpEKMpRdUr97aVg6AegHEeMZ8y1duQAwMRe9Z7AZf3zCo9v/9illJVnAEUGzYOA7xSaWedALolwSaNtJgaNN7JBtiTQ2dORVMxGr2ApJyTXXas/v9Xy7SNM/edl3jbMaDc9SCD04ZwjXW1B0weVBinjvPQtc+50gIGPInTFUghVnAA3Ao7/U/lsikUj1pyIXP6yYzNCaEQKk/gVuc6wzwTAuOHXJS85Ju9yiVqJ4PSfZmZmmPdbm0NTCSWcIfEv9ZoB0he49ufUuGn03Xzhbo5VUtWRhVd2Fc3mrGuseMoWQ7kPtJYQRD+ckjLNrnrEvW9EZD9ULZ//VcsGQaIbcLHBG3Gi8jiK08cXKFqG4kXYwgyquDf1JlAaXbJiHhbUBNtsBYYWZH3XOyduaaiVC2slZSyp7N0ihOXKciQYlkFUVMadRBSp0NxUjROYNcwbQUXJUepO2Rg/6isvosFuIraaZVsHn44C0uy5zyGOxg4BFjMg8iuONKa8gtcVtloits3rp6YmjCZ7+QrEotvAv2ujjp8Ocni0eu4rpTYgIB9+RbLQ/i3VXwoXmINJ8WIiKvJnhhZWx6KsW/dY5BIDPTwo4sgHQXmVYf/44AQWROzU4X+oLauhTstFMQysKAuBnxrimghv3isCWRtn046AYBzKMuU4rdnwEUetqNuNMxYCVFpEqd4cnDVU/hokPV7ejy3LpXxQEM116dOGSvqgl+5CzcmxLrWzJ/O3wKbXHew=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR02MB4435.namprd02.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(22082099003)(56012099003)(18002099003)(38070700021);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?VjJIRDhub0J1QTVjOG5BK0JwWDBKYUpoQjBOQ3FOYXlrMGdyMlVwVjB3d0FT?=
+ =?utf-8?B?MFpzamJyWm5UYkZnU0VOTXY1MSs2RktERnd3MEVBTWlVNHdJaHU4SEhja3hk?=
+ =?utf-8?B?RXAvUG5IYUt3ZzlRSXJvTC9qa0ZvdVRnVFdvZE56RHQ4dStVbjVzeTNFTUVW?=
+ =?utf-8?B?c1dRWTJGV09UNEQvK3ZIaTZpRW1SWnBqemQ0cXo0OC9nYlFGcVdsOWpSdktt?=
+ =?utf-8?B?VmdKZzNRalIxNlpPTXVjZXUxRnpScS93QWZmRGNSeFdGZkdCMjJDaURvanY1?=
+ =?utf-8?B?bE1UcVQ2YTY5Q3NsSHBIczlhbnR3K1pjM0E4cm0vTGQ5QXZJZkUvQmdBaVgv?=
+ =?utf-8?B?RHR2Zi9oL0daN01ZTlNWeFN5N3JLcXUvQXh0ZmRpWHI2V05iSUZxQWxzWlZu?=
+ =?utf-8?B?d1VubFpIL3JXdEpISG9xOGEzdXU1cm91Uk9ZYXdBdkZXN2dHY3hDMGk4YkZo?=
+ =?utf-8?B?SFBuYmxaNS9BZStDdXo3enFGZ1JLT0lWT1Y3VkFGeWNkbFJYbFFiWUh0T3dD?=
+ =?utf-8?B?M2xOanY0Z0NMa2lYTkFBYUt6OEJ0eW9YUGQ3RE9WVzZqcURxWXhITGU2azZo?=
+ =?utf-8?B?ckMvbzNxRnRNZU5kcitsQnlKU3VlTmZlNkV4Q1hXbEErQ3MzakQ1ZWd0VlhF?=
+ =?utf-8?B?aHpWbCsxSkJYQWFwbFRBR2hoS013WnRFNGNPTURXZUdpTS92anZwK3N3ZWcy?=
+ =?utf-8?B?ZjBvNmhjeldzSU0yMTJqNjNtdzMxTWRXc1ZHUGh2WnhZaVJzK3BUU1R1b082?=
+ =?utf-8?B?djk5bHkvdWo4akhwMHNaS21ETkNxdHU4RDRkYzNteHNMajQyZS9MRVBONWww?=
+ =?utf-8?B?UGo4V1pneHd1OEs2OSsycDg5QVlKUUJ0eFJQdU1oL2YrTHg0dlR2UDlOUDBY?=
+ =?utf-8?B?L3c5V1lCbkZEblU2Q252ei84cXRxaHlIbGJKM3JYV0tiRlRkU0crOFFVbENr?=
+ =?utf-8?B?NCtDNU5VeXpnVm1lOXNxTWFNOHlabFpLZjdHQTRDYitaeC9BaHY4UG8xNjdN?=
+ =?utf-8?B?My9waTNYa3dGbFRUOUhkWTV0alJ5VCtzN1NFekwvY2hucXg5Qk9oY3d6cHc5?=
+ =?utf-8?B?RWxrRUljQmR6SGp2UnJWdDNLYUZnUHRJeXZHTlZhS2lpaUt2by9icXNXUjZZ?=
+ =?utf-8?B?SlNBdStiY09hNWxUSEZsdlB1VjdrUldmS1FtWnVDTkhEOGRCOHBoZVFkMFpa?=
+ =?utf-8?B?elVURS9YMW5OdDNiQnRLTTg4OEJNUGlrQ1diN2tEV2xQUXhqMk1waEgzdUVF?=
+ =?utf-8?B?TUQvU1o0NUJheFF4aFZ6MndqN3ViZ2wxN2NVQzdkT1ZoZks3LzA3RjNHRktj?=
+ =?utf-8?B?L0owZzR2Nk44TnFkc0RLd0VQeU1xOVNJT09hZDUwcGZ1RWp2U1V2TDVMOE9l?=
+ =?utf-8?B?WXZMa0tDbS9OR1l3YlllUG5WZm5Yd0dKN08vdnJRWTA3M2ZqTlc2clJhQ2ha?=
+ =?utf-8?B?OHdxNUpVMmxpLzlNOVZoRkpLWmFUbmJQR3FFd2JPQmRsWW40VVpoZ1RqZElr?=
+ =?utf-8?B?UTBwemdjYzRraDZ6ZnlVaFArNHFmNFJ3Tnd0cWV2Z1Z0aVlROXIrU3o0eEM0?=
+ =?utf-8?B?M0FaWWJFL1N5bzBMR0VKUEFTNEE4RTh2L09zK1NnbXQrVjQxRFJ6MERWL1Zy?=
+ =?utf-8?B?L2pTL2xiVkFjeDNZTGhLb00zamFrYUpURjg2cjZBZ1g0YW15NlAzdWRnWFhB?=
+ =?utf-8?B?K2dUS05xTTg0ZisrQWloRnJaSWhOZlNMSlQzdkQ5bVlkSW45YllZVlVzTnVm?=
+ =?utf-8?B?NmRJZ2xZbFIwNHFSQldGR3crUHVmZ2ljeCtRSUVyUk1GeFh0K1VSQ2lNSFBn?=
+ =?utf-8?B?OHVSMlNkL1J5RHFFTUZHVHB0bXdPYWU5S2RXWlNndEJ2RzVxeWFmbXhsYzRQ?=
+ =?utf-8?B?TW9HYlB1b3dQaFVyZWdBTGhZU0pDbThUQmVva2hRelVKcnZrQmJCUWFKOGpl?=
+ =?utf-8?B?ZEticGhyM0loUnlIdE9HOFlseENJcFo4V2N2VUk3MFZaOFBITVYxbnFQTXg4?=
+ =?utf-8?B?bTM2eTVuYnJ1TDNQbnRWTHNRK292bnZEeEtVZjFORU12MnlUTERzdnRZV3k3?=
+ =?utf-8?B?dDRTb1E1S3RDRGMxYzN2YlVId3pVdGlHV0VCdVY3Y2xLcDVrL0V1MXZqK2tV?=
+ =?utf-8?B?SDhaUXJpTU5tQzQxdjF5bG9majdya0F2SmhBZ2tIVFR5emtSZ0hrUGJIdVN6?=
+ =?utf-8?B?clpYcHg1c3p4UGtTS2ZQQnUrelJxTWZwc1ZTQ3ZkREkvbUhDR1F2ZW53cUth?=
+ =?utf-8?B?Q2JTR3QrdG5mMlQvZEZZUUNWU2dlOGxabDNDZ1Nrb1lrUTlQMkRiWG5FcTAr?=
+ =?utf-8?B?TmltSmsxYjd5emVxRTdIei8xSDFETm1lK3J4dkhxYkhPdG1BMXZ0N1BqUG5N?=
+ =?utf-8?Q?BzzgmdeqfSNKynLQ=3D?=
+Content-ID: <121D4185E5957F479A075FBA22379A3A@namprd02.prod.outlook.com>
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PEPF000001D0:EE_|SA1PR22MB3780:EE_
-X-MS-Office365-Filtering-Correlation-Id: d1bc3168-cd4d-4d16-596c-08de8c8d0a50
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|82310400026|36860700016|18002099003|56012099003|22082099003|55112099003;
-X-Microsoft-Antispam-Message-Info: T0yWwR1W12ImV+fHNJZe96Ljp4LL/9EEiD4mashiGt1cMHRrM2Xz2cgAlf+XJ+Hb9E3+h8Pu/zWvfNJB91KJVsfrFN18yPnT0pruGvlbn7BQGoUxauhuaKyYu6kEJ9ecZo337JF2UVMRF/PmNdt4IlCZdO6D/7jdffVQ6B16oNiHUeFk/llHOzfW0w+JF8Y3oBQSsQAxbd/mDgMinRqzas5ouFQ1bUucHtk7pXstYCSgdPeSWlowaf0zSjgF/3GiKF+bjrbCbku47fgY2ecSqdprvcRqIZPAnMBf0779DzeHCCZm7lIjqPPKsZf1elJAhbSVnqI3I+ZZrsi8GfQCGb8SMQyJ5N0pOV2eOOHDoWM0+0EldrFl6lJjWze4lp1gkCFSruPo/GI6F3Q7MC0FgmH8DApf0roUOviU+pVZLVvIM/DYuYGJbeCsThEGUwJ6j5hpJTYdmMjAusCKRyCTSeSmFYPWndxbCzTZrpbHzo2Ss7MMuGljcn54J81dtCsXIRs6Z9l1UqjrJytLWtbhdXG/fQhZ6yhohvyIpn9X5txwtixY1f5LzxJJS/1kTxeuWXd+70I1BU6eILEKZs/P2jCoz7rXIjshktwrsj5hxORYr4TOvU5N5Gq80bu/tZySWoz/CKUlA6lDfqqPma1bs8fmvzorcu4VxhCxmeXK1vI90P4S3hyX6M9EFOPjMzywQ7WMuQwRs+DybohafBvp0zzuwiDVPqNa21tUQUZ0xfh8psed7q/jMivvWSq3nu5hCZenUmsb6DHFitO/E4UeYg==
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(82310400026)(36860700016)(18002099003)(56012099003)(22082099003)(55112099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: rROeOYxILYxxVq4wXv8M4laJRW8MqO7FluIiFwvb5lNm9pAOJnngHRE5h5IdBAfaD/zgCXIHTyTvD0b5oR5HHVjy7VAeL7nFjgVhaMplhXU/thGPoqXuV9nRCXRl0BTuE8Sc2ca927lNluUzn47WdU+ZIzvo6p470hAKk/JmW0zT9GuJQWqJmkKXpjj63V3u1zQOH39ZiLimw2B8qnAaW5AdmQcJiT5BhRCVF/qs8h++33k7a4esTIRTpjIzOFx0IdkS0ziLNkForkwXAAS7N1od0rT08lm7CuJyv/mb+21q0RZyFGaFlwcX7rjBV1huT8NVnJXfZiB8TI6CIIpA0heS+XpUsUGofuybJeMK2DKZdsByLE4hEjM/UFTH3l5Ib1m7tgUqmic6eMM8V93IU+Jtuz/PpS4zeDijacgMGjrZovjuh9SjPzLddewAxrD3
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Mar 2026 05:44:12.4181
+X-Exchange-RoutingPolicyChecked: GB+IUCHJEzowhuEVT9uQFcxdm/OnrGcIAHBMCKcsjMwH0YQxVMt8cSiwDP9p0cEx3liVbD9PRkzGhgE2AxkAb3I13sTfJdCDhneWgbk8Q76rmngIAqQRdqUWW/V7sWI0LaLhW2Nhff1gFK3IsTUbQm2Z6mKF6e/s2PbYnY0SpeRoDu0VqSWl+5NVNBDvVjfwZgYyoRK8jOJaLTQA7X/NjsJabbLUDK9tiEf2sZJuZqQ5hgy1lXtLzgCtR/OfXE/7iVK1Jf+NCA9TxEYojAbqN4Wo+Y80RRjSiPsejK+otRGGYkYNnKBwAZ43I0YXrUzso5fy9QeZ5cp1L1mF+yft+w==
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0: T2yOgpMbC+zfgRrHf0fEsmHdwLVa06HJWQxO1XLrjqe9jl849yVhja7lGnJklF5UDDMDyJ/uJfZHqXmQVWpD9uLSB+qjQAn8tSqQ4FUxdIW4n3tio+zKIseQBuqh0nLjSabwCJIq+JFcKfkUIrDCidpzWSKpgs+Ao4VDIzPB+CD2Ze7usJZdUYwyiMhuXIs1xlFF9RPbKP5SSYT0ImDJS2a/o6PqedEd0nzFE5EpFjrgHAEel39Z4ZkN/bcMNOwR8SK5uI7J7gedP4QseuRrCFJNV6Rd3/e2Lf4iYLcOIaPY4ay6dvl8rK9PcZPhZbJjeIEuOdbhc6x7O2HjuNtgL3Du7I3ddY9Ogg6cpR/Vbn0dSXGGO14cIzuZ+cojOw0kan2Vhv8Akcbe0hhE5AK3NAc1rMAOHzvPE5xjXsEMGgJmRUhBHR0F+PC7nqyNnlFKASyMP9Gi5Uk0iD/wbUXeelfkqT3E8OJyKx8uG77vLcyz/q0Ibd1ncK57sITaZcyJhdjqcrm0N+WKfn3855aUK1uorhHgRenPEYhZtqjHgGEi+5PkumB+bs7LYGMMkKXqhorNsx4dsh1J7mYHrp7SB5Yz+LV0rM+HWGSYWCPk7YktpOe8etH6ed3yR7YZ6vTL
+X-OriginatorOrg: qti.qualcomm.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR02MB4435.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e7e7a826-49a6-4898-7b26-08de8e59d7bc
+X-MS-Exchange-CrossTenant-originalarrivaltime: 30 Mar 2026 12:42:45.5770
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: d1bc3168-cd4d-4d16-596c-08de8c8d0a50
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: SJ5PEPF000001D0.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR22MB3780
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 98e9ba89-e1a1-4e38-9007-8bdabc25de1d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: aD79l1QpWADQu2gqrrCg40eP/xZ1c7Avg6+Xt4A/VGe/BCcjwrGCM+i02m6UhloKp6nuGbUfqWIXV/J/rmjMJ7wKUWCxpoBiyaaA3CV1+7Y=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYYPR02MB9761
+X-Authority-Analysis: v=2.4 cv=Jo78bc4C c=1 sm=1 tr=0 ts=69ca6fc8 cx=c_pps
+ a=1w3Rox83O5gulhrCDwffwQ==:117 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
+ a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=Yq5XynenixoA:10 a=f7IdgyKtn90A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=YMgV9FUhrdKAYTUUvYB2:22 a=ee_2aqc6AAAA:8
+ a=DsnocTpnZYD2-G3mty4A:9 a=QEXdDO2ut3YA:10 a=VOpmJXOdbJOWo2YY3GeN:22
+X-Proofpoint-GUID: 11FVbNNDP_hkeQGggSCT9AS5-ZfbT_19
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzMwMDA5OSBTYWx0ZWRfX3kxvQENbZVB7
+ W3zdcEKfMx4XIPmr1YFm8jBCFPGEYyeFhFz9V7IGi/VlLK2RJy5I8yL+OlWwua5FPUu0I9D5eJ7
+ 8rceT0dtbR7rTB5w6gAaLe9ddcJEJ+fFqcWt08xSN4IEFeeMgaZGRl50skiLyMST+sHONI9qPrB
+ spqo9BbdjIX0aPlK8Z+80JylLGpiFx3xuDgrWyKe8Mw36KLsNxyVFgRgn5bn9LH3OChWK61hlmE
+ xP4CnyoAKnHR1ZYschYxLkOHmh8ZqGQPuJB6hWGl+qeAt659lItEtEsDlHoQyznmPuWIF732grN
+ iyHodNlxUe0gEQCkzKrpR5/a2nZDpbJgdu5dpc6y1qKx+qZD9fGPJSJcRfQ+PJdpCoc7gCohhlp
+ r4jTDt4FDJ/vIU7lLaB5aHCN3jM4bYHIhWk1Cn9iII77VCRjFB+/ZltEFXENFAKtE0M34l0+2TR
+ gcU12l4BDI9aC3Cm3vw==
+X-Proofpoint-ORIG-GUID: 11FVbNNDP_hkeQGggSCT9AS5-ZfbT_19
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-03-29_05,2026-03-28_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ lowpriorityscore=0 phishscore=0 bulkscore=0 malwarescore=0 suspectscore=0
+ impostorscore=0 adultscore=0 priorityscore=1501 spamscore=0 clxscore=1011
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2603300099
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260327_224421_556686_15E8E1F0 
-X-CRM114-Status: UNSURE (   7.25  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260330_134308_994173_2C119676 
+X-CRM114-Status: GOOD (  15.93  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -120,251 +214,48 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The APLIC register-level defines (DOMAINCFG, SOURCECFG, TARGET, SETIE,
-CLRIE, IDC, MSICFG, etc.) are currently defined locally in aplic.c and
-not accessible to platform code. Platform implementations that need
-direct APLIC register access for custom interrupt configuration (e.g.
-MSI-mode source/target setup) have no way to use the canonical defines.
+2026-03-27T17:15:59+00:00, <dave.patel@riscstar.com>:
+> From: Dave Patel <dave.patel@riscstar.com>
+>
+> Eager context switch: Add support for saving and restoring RISC-V vector
+> extension state in OpenSBI. This introduces a per-hart vector context
+> structure and helper routines to perform full context save and restore.
+>
+> The vector context includes vl, vtype, vcsr CSRs along with storage for all
+> 32 vector registers. The register state is saved and restored using byte-wise
+> vector load/store instructions (vse8.v/vle8.v), making the implementation
+> independent of current SEW/LMUL configuration.
 
-Move these defines from aplic.c to the public aplic.h header so that
-platform code can configure APLIC registers without duplicating magic
-numbers. The defines match the RISC-V AIA specification. No functional
-change.
+Using the whole register store/load (vs8r/vl8r) is more appropriate.
+We must manipulate the whole architectural register file regardless of
+what is configured by lower privileged modes.
 
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
----
- include/sbi_utils/irqchip/aplic.h | 101 ++++++++++++++++++++++++++++++
- lib/utils/irqchip/aplic.c         | 101 ------------------------------
- 2 files changed, 101 insertions(+), 101 deletions(-)
+(I think vse/vle shouldn't be used for the purpose of context-switching
+ as it's too easy to introduce a security issue with them.)
 
-diff --git a/include/sbi_utils/irqchip/aplic.h b/include/sbi_utils/irqchip/aplic.h
-index 3461d1c7..286c8f94 100644
---- a/include/sbi_utils/irqchip/aplic.h
-+++ b/include/sbi_utils/irqchip/aplic.h
-@@ -14,6 +14,107 @@
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_irqchip.h>
- 
-+#define APLIC_MAX_IDC			(1UL << 14)
-+#define APLIC_MAX_SOURCE		1024
-+
-+#define APLIC_DOMAINCFG		0x0000
-+#define APLIC_DOMAINCFG_IE		(1 << 8)
-+#define APLIC_DOMAINCFG_DM		(1 << 2)
-+#define APLIC_DOMAINCFG_BE		(1 << 0)
-+
-+#define APLIC_SOURCECFG_BASE		0x0004
-+#define APLIC_SOURCECFG_D		(1 << 10)
-+#define APLIC_SOURCECFG_CHILDIDX_MASK	0x000003ff
-+#define APLIC_SOURCECFG_SM_MASK	0x00000007
-+#define APLIC_SOURCECFG_SM_INACTIVE	0x0
-+#define APLIC_SOURCECFG_SM_DETACH	0x1
-+#define APLIC_SOURCECFG_SM_EDGE_RISE	0x4
-+#define APLIC_SOURCECFG_SM_EDGE_FALL	0x5
-+#define APLIC_SOURCECFG_SM_LEVEL_HIGH	0x6
-+#define APLIC_SOURCECFG_SM_LEVEL_LOW	0x7
-+
-+#define APLIC_MMSICFGADDR		0x1bc0
-+#define APLIC_MMSICFGADDRH		0x1bc4
-+#define APLIC_SMSICFGADDR		0x1bc8
-+#define APLIC_SMSICFGADDRH		0x1bcc
-+
-+#define APLIC_xMSICFGADDRH_L		(1UL << 31)
-+#define APLIC_xMSICFGADDRH_HHXS_MASK	0x1f
-+#define APLIC_xMSICFGADDRH_HHXS_SHIFT	24
-+#define APLIC_xMSICFGADDRH_LHXS_MASK	0x7
-+#define APLIC_xMSICFGADDRH_LHXS_SHIFT	20
-+#define APLIC_xMSICFGADDRH_HHXW_MASK	0x7
-+#define APLIC_xMSICFGADDRH_HHXW_SHIFT	16
-+#define APLIC_xMSICFGADDRH_LHXW_MASK	0xf
-+#define APLIC_xMSICFGADDRH_LHXW_SHIFT	12
-+#define APLIC_xMSICFGADDRH_BAPPN_MASK	0xfff
-+
-+#define APLIC_xMSICFGADDR_PPN_SHIFT	12
-+
-+#define APLIC_xMSICFGADDR_PPN_HART(__lhxs) \
-+	((1UL << (__lhxs)) - 1)
-+
-+#define APLIC_xMSICFGADDR_PPN_LHX_MASK(__lhxw) \
-+	((1UL << (__lhxw)) - 1)
-+#define APLIC_xMSICFGADDR_PPN_LHX_SHIFT(__lhxs) \
-+	((__lhxs))
-+#define APLIC_xMSICFGADDR_PPN_LHX(__lhxw, __lhxs) \
-+	(APLIC_xMSICFGADDR_PPN_LHX_MASK(__lhxw) << \
-+	 APLIC_xMSICFGADDR_PPN_LHX_SHIFT(__lhxs))
-+
-+#define APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) \
-+	((1UL << (__hhxw)) - 1)
-+#define APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs) \
-+	((__hhxs) + APLIC_xMSICFGADDR_PPN_SHIFT)
-+#define APLIC_xMSICFGADDR_PPN_HHX(__hhxw, __hhxs) \
-+	(APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) << \
-+	 APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs))
-+
-+#define APLIC_SETIP_BASE		0x1c00
-+#define APLIC_SETIPNUM			0x1cdc
-+
-+#define APLIC_CLRIP_BASE		0x1d00
-+#define APLIC_CLRIPNUM			0x1ddc
-+
-+#define APLIC_SETIE_BASE		0x1e00
-+#define APLIC_SETIENUM			0x1edc
-+
-+#define APLIC_CLRIE_BASE		0x1f00
-+#define APLIC_CLRIENUM			0x1fdc
-+
-+#define APLIC_SETIPNUM_LE		0x2000
-+#define APLIC_SETIPNUM_BE		0x2004
-+
-+#define APLIC_TARGET_BASE		0x3004
-+#define APLIC_TARGET_HART_IDX_SHIFT	18
-+#define APLIC_TARGET_HART_IDX_MASK	0x3fff
-+#define APLIC_TARGET_GUEST_IDX_SHIFT	12
-+#define APLIC_TARGET_GUEST_IDX_MASK	0x3f
-+#define APLIC_TARGET_IPRIO_MASK	0xff
-+#define APLIC_TARGET_EIID_MASK	0x7ff
-+
-+#define APLIC_IDC_BASE			0x4000
-+#define APLIC_IDC_SIZE			32
-+
-+#define APLIC_IDC_IDELIVERY		0x00
-+
-+#define APLIC_IDC_IFORCE		0x04
-+
-+#define APLIC_IDC_ITHRESHOLD		0x08
-+
-+#define APLIC_IDC_TOPI			0x18
-+#define APLIC_IDC_TOPI_ID_SHIFT	16
-+#define APLIC_IDC_TOPI_ID_MASK	0x3ff
-+#define APLIC_IDC_TOPI_PRIO_MASK	0xff
-+
-+#define APLIC_IDC_CLAIMI		0x1c
-+
-+#define APLIC_DEFAULT_PRIORITY		1
-+#define APLIC_DISABLE_IDELIVERY		0
-+#define APLIC_ENABLE_IDELIVERY		1
-+#define APLIC_DISABLE_ITHRESHOLD	1
-+#define APLIC_ENABLE_ITHRESHOLD		0
-+
- #define APLIC_MAX_DELEGATE	16
- 
- struct aplic_msicfg_data {
-diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index ec69c82b..a20cecf2 100644
---- a/lib/utils/irqchip/aplic.c
-+++ b/lib/utils/irqchip/aplic.c
-@@ -14,107 +14,6 @@
- #include <sbi/sbi_error.h>
- #include <sbi_utils/irqchip/aplic.h>
- 
--#define APLIC_MAX_IDC			(1UL << 14)
--#define APLIC_MAX_SOURCE		1024
--
--#define APLIC_DOMAINCFG		0x0000
--#define APLIC_DOMAINCFG_IE		(1 << 8)
--#define APLIC_DOMAINCFG_DM		(1 << 2)
--#define APLIC_DOMAINCFG_BE		(1 << 0)
--
--#define APLIC_SOURCECFG_BASE		0x0004
--#define APLIC_SOURCECFG_D		(1 << 10)
--#define APLIC_SOURCECFG_CHILDIDX_MASK	0x000003ff
--#define APLIC_SOURCECFG_SM_MASK	0x00000007
--#define APLIC_SOURCECFG_SM_INACTIVE	0x0
--#define APLIC_SOURCECFG_SM_DETACH	0x1
--#define APLIC_SOURCECFG_SM_EDGE_RISE	0x4
--#define APLIC_SOURCECFG_SM_EDGE_FALL	0x5
--#define APLIC_SOURCECFG_SM_LEVEL_HIGH	0x6
--#define APLIC_SOURCECFG_SM_LEVEL_LOW	0x7
--
--#define APLIC_MMSICFGADDR		0x1bc0
--#define APLIC_MMSICFGADDRH		0x1bc4
--#define APLIC_SMSICFGADDR		0x1bc8
--#define APLIC_SMSICFGADDRH		0x1bcc
--
--#define APLIC_xMSICFGADDRH_L		(1UL << 31)
--#define APLIC_xMSICFGADDRH_HHXS_MASK	0x1f
--#define APLIC_xMSICFGADDRH_HHXS_SHIFT	24
--#define APLIC_xMSICFGADDRH_LHXS_MASK	0x7
--#define APLIC_xMSICFGADDRH_LHXS_SHIFT	20
--#define APLIC_xMSICFGADDRH_HHXW_MASK	0x7
--#define APLIC_xMSICFGADDRH_HHXW_SHIFT	16
--#define APLIC_xMSICFGADDRH_LHXW_MASK	0xf
--#define APLIC_xMSICFGADDRH_LHXW_SHIFT	12
--#define APLIC_xMSICFGADDRH_BAPPN_MASK	0xfff
--
--#define APLIC_xMSICFGADDR_PPN_SHIFT	12
--
--#define APLIC_xMSICFGADDR_PPN_HART(__lhxs) \
--	((1UL << (__lhxs)) - 1)
--
--#define APLIC_xMSICFGADDR_PPN_LHX_MASK(__lhxw) \
--	((1UL << (__lhxw)) - 1)
--#define APLIC_xMSICFGADDR_PPN_LHX_SHIFT(__lhxs) \
--	((__lhxs))
--#define APLIC_xMSICFGADDR_PPN_LHX(__lhxw, __lhxs) \
--	(APLIC_xMSICFGADDR_PPN_LHX_MASK(__lhxw) << \
--	 APLIC_xMSICFGADDR_PPN_LHX_SHIFT(__lhxs))
--
--#define APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) \
--	((1UL << (__hhxw)) - 1)
--#define APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs) \
--	((__hhxs) + APLIC_xMSICFGADDR_PPN_SHIFT)
--#define APLIC_xMSICFGADDR_PPN_HHX(__hhxw, __hhxs) \
--	(APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) << \
--	 APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs))
--
--#define APLIC_SETIP_BASE		0x1c00
--#define APLIC_SETIPNUM			0x1cdc
--
--#define APLIC_CLRIP_BASE		0x1d00
--#define APLIC_CLRIPNUM			0x1ddc
--
--#define APLIC_SETIE_BASE		0x1e00
--#define APLIC_SETIENUM			0x1edc
--
--#define APLIC_CLRIE_BASE		0x1f00
--#define APLIC_CLRIENUM			0x1fdc
--
--#define APLIC_SETIPNUM_LE		0x2000
--#define APLIC_SETIPNUM_BE		0x2004
--
--#define APLIC_TARGET_BASE		0x3004
--#define APLIC_TARGET_HART_IDX_SHIFT	18
--#define APLIC_TARGET_HART_IDX_MASK	0x3fff
--#define APLIC_TARGET_GUEST_IDX_SHIFT	12
--#define APLIC_TARGET_GUEST_IDX_MASK	0x3f
--#define APLIC_TARGET_IPRIO_MASK	0xff
--#define APLIC_TARGET_EIID_MASK	0x7ff
--
--#define APLIC_IDC_BASE			0x4000
--#define APLIC_IDC_SIZE			32
--
--#define APLIC_IDC_IDELIVERY		0x00
--
--#define APLIC_IDC_IFORCE		0x04
--
--#define APLIC_IDC_ITHRESHOLD		0x08
--
--#define APLIC_IDC_TOPI			0x18
--#define APLIC_IDC_TOPI_ID_SHIFT	16
--#define APLIC_IDC_TOPI_ID_MASK	0x3ff
--#define APLIC_IDC_TOPI_PRIO_MASK	0xff
--
--#define APLIC_IDC_CLAIMI		0x1c
--
--#define APLIC_DEFAULT_PRIORITY		1
--#define APLIC_DISABLE_IDELIVERY		0
--#define APLIC_ENABLE_IDELIVERY		1
--#define APLIC_DISABLE_ITHRESHOLD	1
--#define APLIC_ENABLE_ITHRESHOLD		0
--
- static SBI_LIST_HEAD(aplic_list);
- static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
- 				void *msicfgaddr, void *msicfgaddrH);
--- 
-2.43.0
+> The implementation follows an eager context switching model where the entire
+> vector state is saved and restored on every context switch. This provides a
+> simple and deterministic mechanism without requiring lazy trap-based
+> management.
 
+The code below uses the lower privilege's vl/vtype, which means that we
+do not save the entire vector register file, but only the subset that is
+currently configured by lower-privileges.  This creates a side-channel.
 
+> Notes:
+> - The SBI_MAX_VLENB is configured using CONFIG_SBI_MAX_VLENB.
+>
+> Signed-off-by: Dave Patel <dave.patel@riscstar.com>
+> ---
+> diff --git a/include/sbi/sbi_vector.h b/include/sbi/sbi_vector.h
+[...]
+> +	/* Restore CSRs first */
+> +	WRITE_CSR(vtype,  src->vtype);
+> +	WRITE_CSR(vl,     src->vl);
+
+vl and vtype are read-only registers... how does this work?
+
+Thanks.
 -- 
 opensbi mailing list
 opensbi@lists.infradead.org
