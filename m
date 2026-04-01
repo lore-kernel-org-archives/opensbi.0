@@ -4,83 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 6DD99FF60FB
-	for <opensbi@archiver.kernel.org>; Tue, 31 Mar 2026 10:00:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 353DF10F9318
+	for <opensbi@archiver.kernel.org>; Wed,  1 Apr 2026 02:08:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=eZUUv4W/Hwz0w4FTP639zp1K776uEjVx4yOXhtDoaqA=; b=kB7EK6Vkom/x70
-	rELuuisBmKVALCGUo9itWJFG1f2LDwApyds6LGHIdPJ8rVF3swth6/7HVPykAEd7sHkYYGrQN9kTt
-	DfFQnACQX/mVRWlXEOiVbu6vvdcKpxTq6tdfsB3c+1yr9BZvJ3HfEl/ZH8mxFYiRRSSmQGDucQMQP
-	ptyPmRfTBihVE7pJxJs4k4w8vY046oeFL9p4jtp6veCUh2QOu97JbAHHrXkmgJq1ZZIHS//Aa0W07
-	N03kN2L3tUAuyKub54IKPhWzt4DMNz6kJrlPJ0bqL+oVeJiWMfV7aVflzvbZO6D0/PHQXka0Gyith
-	FELUO0S5fpC6RDLUUflA==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=9ue/A6+4aS4EjtF/p6exa8K3Fn5p+oSQGcHobH/KpEM=; b=laZS4inQOKV14D
+	HyJqFr7L/8aGV9GeDKOuzqT+M7dSXUw7FVhdK0+Csvl6S9Rrpx2+rYtz7yorA96QQYhmz1Oxy32gI
+	KLmgAn7EjmbAne6ZMsDMjo8QKguhRlMoAt684RsX8/Y6nf3zvksPOTZW0Mvz36KH9i+9xrwVhRABP
+	+X78HoKymg5VzxSwDZ0RVOLfh7/VpnHv+ZO0e6n/0EQSKxbR0KudFl7Jp0f/voRZbxwhZykbuo3pH
+	gGQOG5iVYmT6GobU/pmAF8Na/942Smi4MivSQ77RJHAp8k0HIKd2vA/c+YNtLO/3/30b/oOqhbIBy
+	uOcllRgLaE3jsIakT9Pg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w7Vt4-0000000CjAg-09iz;
-	Tue, 31 Mar 2026 09:59:54 +0000
-Received: from mail-wr1-x42a.google.com ([2a00:1450:4864:20::42a])
+	id 1w7kzv-0000000Dohk-2Ro8;
+	Wed, 01 Apr 2026 02:07:59 +0000
+Received: from mail-pf1-x42f.google.com ([2607:f8b0:4864:20::42f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w7Vt1-0000000CjAL-3WvP
+	id 1w7kzs-0000000DohP-3fia
 	for opensbi@lists.infradead.org;
-	Tue, 31 Mar 2026 09:59:52 +0000
-Received: by mail-wr1-x42a.google.com with SMTP id ffacd0b85a97d-43d0245e24cso115204f8f.3
-        for <opensbi@lists.infradead.org>; Tue, 31 Mar 2026 02:59:51 -0700 (PDT)
+	Wed, 01 Apr 2026 02:07:58 +0000
+Received: by mail-pf1-x42f.google.com with SMTP id d2e1a72fcca58-82c2239140aso2568836b3a.0
+        for <opensbi@lists.infradead.org>; Tue, 31 Mar 2026 19:07:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774951190; x=1775555990; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=nxmY6GBHrjzRgMn8HJoAGab+jgEJ5wnlSK45ova9G5U=;
-        b=mhu0lr/ZuUV4u95X5OGrQcGoRkXLWkUeoZ3AXQyxMTNvDM898qh4oJWfOt/w1Rkc4k
-         SB75C3V2Z25kH4ZzAzCCBkgjIqT4Z/2x4AWO2Yw7xpLT4eWlgWBE4tz/NuThMdAXYAod
-         GUFLED6oPo02FkugYBVTSMNFWyVDOASs/GtCOd+PkKdaBLIJSqUcFwPQRm5XumexiBpW
-         Wszr8h0lLGmZQKvPw7sqw5oEjGaduiszwbzwEdvc0JQCvZv8Dgyecz84xeKodBBE3h8y
-         KnA1g+7SyqDV9rDzlx3G9Dd0KkgpLFKV0CCGkltp+nAwYJc52eL/QK3dd9+2/lnJBBTx
-         lRmA==
+        d=sifive.com; s=google; t=1775009275; x=1775614075; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=1f+YwEzwvwhZey6e1u9NsQOg1DN087/Slr4e0MTzEeo=;
+        b=d1k3jUJMCvYaQo3VTCuHVxckeczjS2N8RwQve2E3a4z/UaRIPIN0h6/51a9d+iGpQZ
+         3Sm71qKz0uZiXDBEkejif+0ATHcYvc+tZcLBeJYc/GXc+QL60w+Mug279BE52ZiWghaX
+         JxD1i07p+IfmkQe8LGhzMV4pppr8Y3zzPg8FkXy+cnTRVtcBzQqSMr8ZB1pC0QR8hfsp
+         +JQiGUCSptw4pBi/fWKVbLZ9PHOvxrSTTDTqp0/qD9ZnE3GqS2S0mLPe9C1mzRNDWoTS
+         5rMkHypxpoxc9arjcD+h9CzwxPOafv8Jh5a04dlNkreKRI4j6itZmENSbevv9IqgPmTL
+         xYdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774951190; x=1775555990;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nxmY6GBHrjzRgMn8HJoAGab+jgEJ5wnlSK45ova9G5U=;
-        b=KBHaKGVSrioh93F0Q6D6IbVyi/8IbYwZPmRvUoNSzkiPJcbd0Ig67G5CnjsevH2JP7
-         5vOySxWZFKJXRfCClLWbcrk2V4j7wL3qiVH4tM0m+cHObKpj7r6k4PBh3MZlrYgIgQ+7
-         KYyPjQYlrGLoFkHL24lsD2nGAlJPFHN3m82BgkFOboCs1yqYCywaZDYFJUIMC9dI2Xc/
-         wJSVVZKbSkJ7CDCAeDVNZkL3UE9IVW2xtSz6eNuPBxvDM37PDPcCfH1cohvyZ9VhKDkG
-         KBd9pYSbeHo9v1U4WT11+jvRPrQm9tobqt46cyTHtG88gI5oAXAaBAlo+/L64Q9WLUKn
-         jxow==
-X-Gm-Message-State: AOJu0YyQvBCXkaAc5l9XYSbGN61WlzIoRIsL/BYhq6XZkOAO0emeyGb0
-	/o/2QQtm+NnAg0SlE6vK6qIX3rOg4KLfJoXrowKX4WWiJFicfKeF/yYpp/VWoeGQ4Mw=
-X-Gm-Gg: ATEYQzzCCc+WdUGIMzHbJJRpGzXoVeiMLBfIXNBhOZkYIJ8ayfK0mfwJEHMCWksZQuY
-	0/kvSQ4ROL/l3/d53HsoLG3cmBkukTNznGmU9B8JM4VpPtT4KCyhjUEj1CmiPdp4rmAauQKFLul
-	lRJfBn0TKopkArRZEK3mOHaZyoLuO83XM0/Dc3bdGqITljAIjSjNBmWD0JzAEpCfkun5viFuS9o
-	d7eYYJGhotfSV/87KDtS1VcUycMSH6E3yJYFhA88vLiEk9TnNaE5+TQIRypuRwMxsZsPypWaxou
-	GOhdm7cseX2Q5fDR948f7hsBRfnntHLtZeuUoale2+ET2iMOPT34MrhlIPjKj0o7SnWRmBjM/Ue
-	kthtI3lZhEnr1lsBspvlXj29nbsvMGnmgAhQTCxpYApoi2Y7RFeMpZAvo1tAwpbjQ0MVFLnHUFY
-	5oBoaV0DcgskZMHZMT75ZDnl9o5caXD5EwMlm9ywxPJRBZ50sun8nj7fkx0pKAYcHP+o6m+oNFH
-	iDQIJiPhoqS58AUILJDf2T7N1L5BmbMbL2grXDBEbFfvJvrpVYcwRo=
-X-Received: by 2002:a05:6000:2582:b0:43c:fa7b:6f07 with SMTP id ffacd0b85a97d-43cfa7b7297mr7914883f8f.7.1774951189523;
-        Tue, 31 Mar 2026 02:59:49 -0700 (PDT)
-Received: from LT-5CD5216TNC.openchip.local ([2a0c:5a87:e304:8b00:15b1:a941:ca1a:2bfa])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43cf247102dsm31608917f8f.27.2026.03.31.02.59.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 31 Mar 2026 02:59:49 -0700 (PDT)
-From: buenocalvachejoel@gmail.com
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	Joel Bueno <buenocalvachejoel@gmail.com>
-Subject: [PATCH] firmware: fw_base: make stack guard setup conditional on Zkr
-Date: Tue, 31 Mar 2026 11:59:43 +0200
-Message-ID: <20260331095943.133791-1-buenocalvachejoel@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        d=1e100.net; s=20251104; t=1775009275; x=1775614075;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1f+YwEzwvwhZey6e1u9NsQOg1DN087/Slr4e0MTzEeo=;
+        b=P0SJjBEB6KHzp35TPqfn9OVAf9RRpz01pYBi/ix3rzsRgEgdoYliZEvQs3hmzu6AtP
+         uRHq0eHzsIdXmQjoMQDKFGbNB7CcTIt9nVvq3JLYG/EzO3XPTr7DjOoy30heVAUxowt0
+         pswiQBRHTD98nH2zCoFf50uKTyQ4wh9qUXNI9gaSEWzUq3Acgqiwv4sBy+cUWJ20hhs5
+         uAVPpiFW7vPzsD0bj0PsA70jX/KuZMfCxxcAocOSeWNho/Bnbdd61lOmR6jEr68SqbKa
+         U+s9XJACkQwYMdZgDHCBWEl/bcWbLr+cQE97E/wZQGE98eJm6qEvVAZ8A77ipABM1JP3
+         UYhQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWPr1TcguFFz8diyU3jAOCQ0tbALmY6TDg5NGRiOGYZsTVsC90I4Kk1ouky8/ueLG0vpkgu1mmb@lists.infradead.org
+X-Gm-Message-State: AOJu0YwQAqHYIAjqnFBI59n8hGxEr35sar76430tZ2dD01VUD5Kh4tdt
+	El4dwP+RtGe31+G+jGULO/hmvGy7tDuprWa3WCnlWV5U5V+hDnT4dyrwODErDRmNBWYg66ro386
+	5+WCRzWg=
+X-Gm-Gg: ATEYQzzi9ND46KNj6HSyyW8OcGI5sv3Y9f/6m0gzsCWrtqlTQa///jdv8+EoN7fRHak
+	tztLj/fxOUdoa39nBs1pmPJQeXp0AgoAnGsVlQkD/roJPq3SDZTvczGIYoWQWV6blrzZmoct0Xu
+	tCd+wfM0Iex7HoW/6ylpJ3bRyEf7Bt2f1ukMLnM6k5BtDNZc3RIq3yiAB0mJMT0WDSKnSWst2qN
+	EOBb1CCiW3LxXlO4rQPDXGsQ8SUYFv9qRkOOfako6T2CS80kDITJfsp5ciQHSa+SlZMx89VrUp0
+	xozU0jqa0wxB4iMRdaw7XuytNV7juld+RCFuRDLbnepXayNghnOJk/vxdSoeGEbK20Ru06nmTRT
+	0cG0tXdgH7Lz02hmk2t7nbRmmWSeamivmGoCbskhE6LDr+WwOlTYF3ZXvdOb5qZBlyQ+hmNV7/h
+	Jcd9LblEIoQviNwc4kBGiBUhHDPHPkyAw=
+X-Received: by 2002:a05:6a00:a0f:b0:829:7a15:9b96 with SMTP id d2e1a72fcca58-82ce8b48a65mr1728766b3a.54.1775009275509;
+        Tue, 31 Mar 2026 19:07:55 -0700 (PDT)
+Received: from [192.168.213.10] ([59.102.235.101])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82ca84646d3sm11178705b3a.15.2026.03.31.19.07.54
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 31 Mar 2026 19:07:55 -0700 (PDT)
+Message-ID: <2c87ff34-ea8a-48be-9b05-9f607700dc66@sifive.com>
+Date: Wed, 1 Apr 2026 10:07:53 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] firmware: fw_base: make stack guard setup conditional on
+ Zkr
+To: buenocalvachejoel@gmail.com, opensbi@lists.infradead.org
+Cc: anup@brainfault.org
+References: <20260331095943.133791-1-buenocalvachejoel@gmail.com>
+Content-Language: en-US
+From: Yu-Chine Peter Lin <peter.lin@sifive.com>
+In-Reply-To: <20260331095943.133791-1-buenocalvachejoel@gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260331_025951_896040_B47B8C31 
-X-CRM114-Status: UNSURE (   7.98  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260331_190756_954298_29D8E3F2 
+X-CRM114-Status: GOOD (  14.19  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -92,48 +97,62 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Joel Bueno <buenocalvachejoel@gmail.com>
+Hi Joel,
 
-Zkr isn't explicitly selected as a mandatory extension to run OpenSBI
-as per: docs/platform_requirements.md
+Thanks for the patch,
 
-Since this happens very early on the boot flow of OpenSBI where the
-dynamic extension checks haven't yet happened, we must guard the Zkr
-stack setup behind an ifdef block so that it only gets compiled for
-targets that do actually have the extension.
+On 3/31/26 5:59 PM, buenocalvachejoel@gmail.com wrote:
+> From: Joel Bueno <buenocalvachejoel@gmail.com>
+> 
+> Zkr isn't explicitly selected as a mandatory extension to run OpenSBI
+> as per: docs/platform_requirements.md
+> 
+> Since this happens very early on the boot flow of OpenSBI where the
+> dynamic extension checks haven't yet happened, we must guard the Zkr
+> stack setup behind an ifdef block so that it only gets compiled for
+> targets that do actually have the extension.
+> 
+> Signed-off-by: Joel Bueno <buenocalvachejoel@gmail.com>
+> ---
+>   firmware/fw_base.S | 2 ++
+>   1 file changed, 2 insertions(+)
+> 
+> diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+> index 63bb4473..9ea93907 100644
+> --- a/firmware/fw_base.S
+> +++ b/firmware/fw_base.S
+> @@ -107,6 +107,7 @@ _bss_zero:
+>   	add	s4, s4, __SIZEOF_POINTER__
+>   	blt	s4, s5, _bss_zero
+>   
+> +#if defined(__riscv_zkr)
+>   	/* Trying to initialize the stack guard via the Zkr extension */
+>   	lla	t0, __stack_chk_guard_done
+>   	csrw	CSR_MTVEC, t0
+> @@ -130,6 +131,7 @@ __stack_chk_guard_loop:
+>   	j	__stack_chk_guard_done
+>   	.align 3
+>   __stack_chk_guard_done:
+> +#endif
 
-Signed-off-by: Joel Bueno <buenocalvachejoel@gmail.com>
----
- firmware/fw_base.S | 2 ++
- 1 file changed, 2 insertions(+)
+The current trap-based detection mechanism is intentional and works 
+correctly
+on systems both with and without Zkr.
+Using #ifdef guards would break binary portability, e.g. using single 
+binary on
+heterogeneous systems (e.g., SMP with mixed Zkr/non-Zkr cores)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 63bb4473..9ea93907 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -107,6 +107,7 @@ _bss_zero:
- 	add	s4, s4, __SIZEOF_POINTER__
- 	blt	s4, s5, _bss_zero
- 
-+#if defined(__riscv_zkr)
- 	/* Trying to initialize the stack guard via the Zkr extension */
- 	lla	t0, __stack_chk_guard_done
- 	csrw	CSR_MTVEC, t0
-@@ -130,6 +131,7 @@ __stack_chk_guard_loop:
- 	j	__stack_chk_guard_done
- 	.align 3
- __stack_chk_guard_done:
-+#endif
- 
- 	/* Setup temporary trap handler */
- 	lla	s4, _start_hang
--- 
-2.43.0
+Regards,
+Peter Lin
+
+>   
+>   	/* Setup temporary trap handler */
+>   	lla	s4, _start_hang
 
 
 -- 
