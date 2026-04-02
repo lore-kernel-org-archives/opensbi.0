@@ -4,87 +4,157 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 253D81112240
-	for <opensbi@archiver.kernel.org>; Wed,  1 Apr 2026 23:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2EE66D39422
+	for <opensbi@archiver.kernel.org>; Thu,  2 Apr 2026 13:35:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:References:Cc:To:From:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:References:From:To:Cc:
+	Subject:Message-Id:Date:Mime-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=RdpjfQEu4M1hXa5AT17TbZL+/oQNdBTmNE3EFJ3+1Hw=; b=A+WzgzCqxj/uAz
-	UGm/Gy2OrcyU9AZRq2tb7g1ry/wTAdv7fq3lXeqGMYZRuC45JQXWbyJkEtX28dhXbxG27HW8UOnWV
-	Ntr5dSIxGLPD9wtzYbuo0NIkQvDDj5v/UoXDl5ecc1IiCdrLTIw2yTZahsz7QAa8EpZMh+EWJEbD8
-	Wr1T8ylviyHMIp1itLYKmxU3cM6G0TieY0FhXYovshYJtM/1w82wRuOewLSuZEm04ZrW8ijSSz9ub
-	DhR52UMXvalWpG61/GBw5iP3R4GTIU9bvjkJxCeSlNGz1515HKf/r+HofkCApSTr2SmrlWP2RoYnE
-	iB2w58bQhjoGBpUNLsiQ==;
+	List-Owner; bh=JzyzSxoWU8zwEoOTYCIj6GFcacByd6/iPjIVYJTm2OI=; b=U9dIaZBaL/z0G8
+	ygMQGrWDxxZNc+J9YBLFHhlZWvPkn7qOGLDFyJB37mAsDAlUPFqqGvMhtm2Nq/LMmQOxy5yLITEiW
+	rEfEIAe6ahQkdeOKl6LkCbM42IGO2CGH24gqiUxmwiAYA8lhZ6iDQcZJ6tGne0z3o+6bCXuFXTstH
+	vUCxd3QNQQA6QBd4ufpKpCLDJuEtXlaPm+XA3lzsd1lDmW0grSUVFJ417wzba9NPpXOaOJhZBfKMF
+	J3KcrT4GrGmswu8dSV8SbpzGvMseZPamBmb+1qQY7cYx/HvUBLGcFTPiIgdDDqSZnRJTUPsrWqYlu
+	CQkPr8Bf09HScssC1okQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w85Qi-0000000GSuN-1584;
-	Wed, 01 Apr 2026 23:57:00 +0000
-Received: from mail-dl1-x122d.google.com ([2607:f8b0:4864:20::122d])
+	id 1w8ICd-00000000BnV-0hZf;
+	Thu, 02 Apr 2026 13:35:19 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w85Qf-0000000GStQ-14WJ
+	id 1w8ICc-00000000BnF-2stM
+	for opensbi@bombadil.infradead.org;
+	Thu, 02 Apr 2026 13:35:18 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=In-Reply-To:References:From:To:Cc:
+	Subject:Message-Id:Date:Content-Type:Content-Transfer-Encoding:Mime-Version:
+	Sender:Reply-To:Content-ID:Content-Description;
+	bh=6f8Nq3+hw3HyosYAwM4ahlMK6gIwtIvVaPMiORAQipw=; b=Iy4rOQPH6rSyJ/KiNUN0uB8lAP
+	hQ2uJbc+jmp7jmVEytC4hrDJz1AAJp3ea7LJw1GC/RvMk67S1ApHndWNgR8TghLmUfy1ij6cdnWiM
+	WMnfsuBuvYooyhwf/BZs/YlSqIMCXCNKkBSEGR3oKnkySd7dAFAz5Zal453K1pi+n6YzovQ75/Bza
+	GdYD9DQuQ7+SlVDCeQ13xO7fjP2L+oirliFGTwu70vj4dzXsSmB7jefqgljwvpNFV3kNL6fd0LBkP
+	mUo2gqk57m/WXewVXzBtIE4u4761gO9AvCSW9cTtzAmXfmhYgmU0RFnwJix5e8vBQRParQKpYJmJ7
+	uU6njQ/Q==;
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	by desiato.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1w8ICY-00000002YoO-29BL
 	for opensbi@lists.infradead.org;
-	Wed, 01 Apr 2026 23:56:58 +0000
-Received: by mail-dl1-x122d.google.com with SMTP id a92af1059eb24-1271257ae53so394550c88.1
-        for <opensbi@lists.infradead.org>; Wed, 01 Apr 2026 16:56:56 -0700 (PDT)
+	Thu, 02 Apr 2026 13:35:17 +0000
+Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 632BW0aX948718
+	for <opensbi@lists.infradead.org>; Thu, 2 Apr 2026 13:35:11 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	6f8Nq3+hw3HyosYAwM4ahlMK6gIwtIvVaPMiORAQipw=; b=LF0q+XuzcERl5nxd
+	V42x/j68MxZ1b4H9NcnvXne3S2s+xw18D6RegYtlzpbliuBvL4eXA1nvfxuQ04L6
+	PKVNxvr8/XoeGbUJlX8FDI7fZN4ueMCfNpHeeVpGf4SYyNQ5q1YNMQ9dgfsvslQP
+	mayr4YyCwM0DDqwhYD3A6ioa+79trjOBsP4t6Xv44X9wEc0pdKtrCis0OA55HFqj
+	uXvoqGTccISG66cx6G8m4Rh4dYI99V+LsPWax7nj4eiJNZXkCHTVjqvUo0ZdDcaz
+	hi9DfhPicOAfbR76VtWx4CelJsAtVEH+54K/GMvrnA3M/3olAY1t7Mn8Qdl2duiE
+	ZH5XVQ==
+Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com [209.85.160.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d9qnu0haw-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Thu, 02 Apr 2026 13:35:11 +0000 (GMT)
+Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-5093025ffecso21374111cf.0
+        for <opensbi@lists.infradead.org>; Thu, 02 Apr 2026 06:35:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775087815; x=1775692615; darn=lists.infradead.org;
-        h=content-transfer-encoding:in-reply-to:content-language:references
-         :cc:to:from:subject:user-agent:mime-version:date:message-id:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=NATVv9ODaDzBca0UK8yV2auFTRsa0gCOISbI4d+bz7M=;
-        b=jXqiVgToMsgURH/MhJxgpeFT+OsnCYCr3H/AwjilLHO25L05DEBIV9i8lOea4qjuhp
-         egN1Z88rod/1iZIqEhW4yizbxrqm4B4kzuGUhEzytKBsaydmpEW6Dh+v37eLf9vOCj+6
-         l/6holuCC46T2iBATn5IZDUt+3FYojK+XGRbmnmwq7f6rNZMXx7I+JbN6bVecBz4tv3T
-         OtqeX3LcRN2WOCZFwV1NXXcqlU4cKfn26YYzIPlmjVgCSGU68nE3KtkB1b4Xhy5pe23z
-         hR0cmwOAhp4mjwtGZ9tr7xYqmn4GOZtlorR9sP1rni/zTmuUwAIE4Rwj91/If6z0FMMb
-         +gMg==
+        d=oss.qualcomm.com; s=google; t=1775136908; x=1775741708; darn=lists.infradead.org;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=6f8Nq3+hw3HyosYAwM4ahlMK6gIwtIvVaPMiORAQipw=;
+        b=YsAL3jo5mcMBDRnWYAVYlc6MXRMuvT/z7joiBQ5d5aNVbTMePzJ+2k6/JeBWKLnG+0
+         W0gVXMO0UAN5HbpDifRh+A/XqrP+9ogteVVtzHSdXQj41ZjxCBKzvdRiiAUr/wZN9/t3
+         Tzu9QAuQqIpoxRG4ri9x6ta4OmoFAIbMzMZGn1H+TItVyVCcfZD1wH+2H6h97ps7jpq3
+         /cOTCWbGRO4V7reO8A3DSIcMvLn+KjW1KEScqWheXYuC24ReNxjQ52fU2pQIfOPclhmJ
+         dONVoslwfrdG7fjJF+seAkIQa59nDYWnNwF1pvaolwsFxkrgrcDGD7f2rMHmzUtJyQpt
+         SAEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775087815; x=1775692615;
-        h=content-transfer-encoding:in-reply-to:content-language:references
-         :cc:to:from:subject:user-agent:mime-version:date:message-id:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=NATVv9ODaDzBca0UK8yV2auFTRsa0gCOISbI4d+bz7M=;
-        b=KN4/3BFcXmLO3xZE5SG1T9tZ/W2CfmlTB2itvVlvVhKPR3Rk7BbRH5izwX3L9szAcI
-         lQ3CZU+ZdmjkwPXCnU9qakg82XYX/f8n+d6sLnri97Pg2uuN/7C5HcFZewoAb2PMi/vE
-         DUG+oQeIaYe08Dhew+BYa7KFWtLujqy6Crx2kmFKy2/GEOl0l906QQbUO4fAu/1GrDS5
-         gwLIiGYvpskvIPsliV6GJlvPuj6z7L9kCSkRlpm4lpbnU+zDNoKZ8jTcs0PdwZXlhNct
-         invDnH2rt9rBHzaKWS8hZmmg2Nyy9bsK4QI28WRBGhBSJOg0SjOxqmKkQvL/2aWjU/Kq
-         6PAg==
-X-Gm-Message-State: AOJu0Yw8kOIC00xvqoMspCGfAbCerJ5DV6z3bTou27miei1swPlfXDS0
-	jQ756IjBPVa8T7LICeTSWsnFLeJcGdQDXoFFx5FJZedgrK2zT5uSvFzllL6JxQ==
-X-Gm-Gg: ATEYQzz7hax81QV2LLq8d7XXDTOPTkQEpPYtZepC/Yp02XqkNfazM2Cox6w0EsAFQaQ
-	vffWNT1VunYmccUex/GniWnoSG3/0dgvm9bp5wj0l9OxmBUd1leZTwepxhMzq8+n8WAtLtKkLpH
-	j7L+1KNm1ahXMx6SL0d4Ha/wWYRsbw5pRhKaQhHJvnG9Yj//Wdg/BW1lYRsj7vGZmijSoQvc4KJ
-	SUI1ch/RGuBzOQlwZyWo7q8CXSDsHHYdVkmsnpWwjvHT7egEH3Wu+bM9cknXIDKUE/f5s5sr5gM
-	vmX8Ib08L8cE+XwzMEVEgmxes6Y330AZRmzGHr7+MExhT/DHm/h8voGRodNJzxN9vzRdthR1Fv6
-	Q41r+0f9cobVy2pzBnZRfYhh97U6RvKzNHOJI15oz/Jc/4lMLBIaKbxM2EKK4p/ZsQySRRrMBs7
-	gvu+8FCu8sMKcHOzuo3emRzVrRRydylg3WAEe73Jb7K8A4C0c=
-X-Received: by 2002:a05:7022:fa2:b0:122:345:a944 with SMTP id a92af1059eb24-12be6574886mr2807085c88.29.1775087815183;
-        Wed, 01 Apr 2026 16:56:55 -0700 (PDT)
-Received: from [172.16.0.242] ([192.19.161.250])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12bede5a225sm1761699c88.9.2026.04.01.16.56.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 01 Apr 2026 16:56:54 -0700 (PDT)
-Message-ID: <d1557584-2f42-46e4-b2ae-07a902f3dca8@gmail.com>
-Date: Wed, 1 Apr 2026 17:02:01 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 6/7] lib: sbi: Rework load/store emulator instruction
- decoding
-From: Bo Gan <ganboing@gmail.com>
-To: opensbi@lists.infradead.org, dramforever@live.com,
- anup.patel@oss.qualcomm.com
-Cc: anup@brainfault.org, cleger@rivosinc.com, samuel.holland@sifive.com
-References: <20260210094044.72591-1-ganboing@gmail.com>
- <20260210094044.72591-7-ganboing@gmail.com>
-Content-Language: en-US
-In-Reply-To: <20260210094044.72591-7-ganboing@gmail.com>
+        d=1e100.net; s=20251104; t=1775136908; x=1775741708;
+        h=in-reply-to:references:from:to:cc:subject:message-id:date
+         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=6f8Nq3+hw3HyosYAwM4ahlMK6gIwtIvVaPMiORAQipw=;
+        b=YdRsu8Z6qmJJza1vrs4F7fDkXHxId4AAhrL3EPe2mC/Ee5w7w8rLDUJvWmxsEZBYuf
+         CN1jOTHEtVqPv0nczrBxXoZPh1A9vWjm9OVNOc8uq2oqm+N3ICpSn/D4dncnnzU6qCZw
+         vK5Pu6xydEfzgWxbRLd5pgBeZHePeOgItgmG1NdpYxntH0WA9K8wkkjmHUpb8jfIcmSV
+         0jJRyWnppPYtEjewvgRRjrKh3j1GfUzCS7L1THkcsDfM2u8ljc2MYgT+yQO91yDsKFIa
+         Sdg7swIESwOeFVg+gDRPKagEzzHkdlRCmaJMGLrUT4Jojd/7x797hZXTAorcUDlK+dc+
+         WITw==
+X-Forwarded-Encrypted: i=1; AJvYcCVoiNqgnB/eozP0jtrOccUZnv5ZPw104eQeXne2wMmN6Ue+lYjHI76nWIpFEmG8b4ScPy/gxa5l@lists.infradead.org
+X-Gm-Message-State: AOJu0YxMSjp1j9QmiGjrmpkSMHZHztyWnipPBYc9zbHvgOAJ5A64qQKw
+	Bvc7dhMY5QrCDrAw6eFgLTsXTrQMEf122wgZenNaTvq2Zj3v+4KHctL7Pq6dR/nEh6KjtAjm/At
+	793GYxnnUrmyLt9FPgDaWSNys3J933/mXMPRBy244YLh4c5XgDBiVkO8nIT+h57YAQyutDQzgLQ
+	==
+X-Gm-Gg: ATEYQzyV00XPqCbetvooEZalQuDsyvlHeAKG7+vpPmVfOuNcKo4zCnXJqT+S3S8FgEU
+	lPXChBCOUsRkJ24suVoqb1zQD68Lg1PWrL4K5dnIs6z24hDTuPpR2e9P4Up7tiJ23lBBF+iqWJr
+	WSlezDDZMeU+yP98KI8IT056Cx6aU4WG4Km4slTCB8t6POtToQIQGMqYeaGOaBvK0LwsGxuTehw
+	7sJigp0P/l25KxOfW4cdVnYSDZmBG5LnXV0sxGzCp6BMG8PNAOEWKQiuQIEdw0Yl288DCBQrzf1
+	6EEWYsNn9Al83zfr3LXP2W26PpftVIDhz6GHBvz4GL7bvdSYCRMnhW6i8nhEI86LTKcTRrMewOy
+	c4UB3SEhxm4Y/hfK31sWxZkPYjjWZZiaQy4BUsHQd5Tf10wI/GgtnNY8ysbbf
+X-Received: by 2002:ac8:6906:0:b0:50b:41b7:d6c2 with SMTP id d75a77b69052e-50d3bd3526cmr111479711cf.47.1775136908467;
+        Thu, 02 Apr 2026 06:35:08 -0700 (PDT)
+X-Received: by 2002:ac8:6906:0:b0:50b:41b7:d6c2 with SMTP id d75a77b69052e-50d3bd3526cmr111479041cf.47.1775136907917;
+        Thu, 02 Apr 2026 06:35:07 -0700 (PDT)
+Received: from localhost (ip-86-49-249-15.bb.vodafone.cz. [86.49.249.15])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b9c3c99fc09sm92146666b.17.2026.04.02.06.35.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Apr 2026 06:35:07 -0700 (PDT)
+Mime-Version: 1.0
+Date: Thu, 02 Apr 2026 15:35:05 +0200
+Message-Id: <DHIPIKMRJ56H.UTR2JQR6X23E@oss.qualcomm.com>
+Subject: Re: [PATCH v3 1/3] lib: sbi: Add RISC-V vector context save/restore
+ support
+Cc: "Scott Bambrough" <scott@riscstar.com>,
+        "Robin Randhawa"
+ <robin.randhawa@sifive.com>,
+        "Anup Patel" <anup.patel@qti.qualcomm.com>,
+        "Ray Mao" <raymond.mao@riscstar.com>,
+        "Anup Patel"
+ <anuppate@qti.qualcomm.com>,
+        "Dhaval" <dhaval@rivosinc.com>, "Peter Lin"
+ <peter.lin@sifive.com>,
+        <opensbi@lists.infradead.org>,
+        "opensbi"
+ <opensbi-bounces@lists.infradead.org>
+To: <dave.patel@riscstar.com>, "Samuel Holland" <samuel.holland@sifive.com>
+From: =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?=
+ <radim.krcmar@oss.qualcomm.com>
+References: <20260331055858.305207-1-dave.patel@riscstar.com>
+ <20260331055858.305207-2-dave.patel@riscstar.com>
+In-Reply-To: <20260331055858.305207-2-dave.patel@riscstar.com>
+X-Proofpoint-ORIG-GUID: 8-y8GHXMI-NOR34fNG8op_vVpe1sczK8
+X-Proofpoint-GUID: 8-y8GHXMI-NOR34fNG8op_vVpe1sczK8
+X-Authority-Analysis: v=2.4 cv=RoLI7SmK c=1 sm=1 tr=0 ts=69ce708f cx=c_pps
+ a=WeENfcodrlLV9YRTxbY/uA==:117 a=fuErIE+P63Icv3tqjtEZBw==:17
+ a=IkcTkHD0fZMA:10 a=A5OVakUREuEA:10 a=M51BFTxLslgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22
+ a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8 a=ee_2aqc6AAAA:8 a=4dUiZ8GAKDosNzctChQA:9
+ a=QEXdDO2ut3YA:10 a=kacYvNCVWA4VmyqE58fU:22 a=VOpmJXOdbJOWo2YY3GeN:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDAyMDEyMCBTYWx0ZWRfXzlzCfwxICCXx
+ ACanlDS99uzOCml6p5+a+4AigmRlxiQ5jBaNtcBBw5JnlaDAtPuNc+C3XY8aNZYwTIYSsIhcyqA
+ vmrlssdflyIm9DPAS76BG1XlQUAir/zlSVBDKz1//s6p5VHHdYmy4QRNi4uDhMDerF3tmPuJJVL
+ NkVmiRYnQi3dj1tDVQdDTAvcACgWY6C68p90cpl5IfBdSfJdqT4kZRfuPIU58lyb60L/r7dKLvr
+ dlxO1Q/RG7kZE7hAmL5dQxCM6pdUXLVwk3UcdQqUMPHOFnKLAH+92oc932rnw7XvfBIAfL9apBB
+ XdrYvyv2sK1yLTuPNpc3zX1owGQ5mR90jlBU5PnxkyI0Mfrb7x7dV9jBgxU1v5pjjH7jkA8N41H
+ KTL9mG5e3/48mV/raweSDw3T3J7ofPBDZrTfs3ogwiJ1H535N2KLUaZQ53pcZ5NGYip5USUfDJ2
+ xQMXpnq5i4dELW1QlCg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-04-02_02,2026-04-02_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 adultscore=0 clxscore=1015 priorityscore=1501
+ lowpriorityscore=0 impostorscore=0 suspectscore=0 phishscore=0 bulkscore=0
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2603050001
+ definitions=main-2604020120
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260401_165657_325765_327E55AC 
-X-CRM114-Status: GOOD (  41.05  )
+X-CRM114-CacheID: sfid-20260402_143514_965036_871D3FD7 
+X-CRM114-Status: GOOD (  10.92  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -96,588 +166,42 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-@Anup, any comments on this patch? I can address it together with your
-other comments. Thanks.
-
-Bo
-
-On 2/10/26 01:40, Bo Gan wrote:
-> Rehaul instruction decoding to fix the following issues:
-> 
-> - We assume the XLEN of previous mode is the same as MXLEN. However,
->    RVC instructions decodes differently in RV32 and RV64, so shouldn't
->    have assumed that.
-> - We assume it's a misaligned fault and the load/store offset is 0,
->    i.e., base address == fault address, but access faults can have
->    non-0 offset (on HW supporting misaligned accesses), so platform
->    specific load/store fault handler gets the wrong base address.
-> - No checking of [63:32] of tinst in RV64, which is explicitly
->    required by Privileged ISA 19.6.3. Must reject tinst with non-0
->    high 32 bits.
-> 
-> Thus, fix all the above. For misaligned load/store fault, the address
-> offset is always 0, thus we kill the use of base address, and use trap
-> address instead (same as before), which lets the compiler optimize out
-> imm parsing and other calculations.
-> 
-> I also analyzed the behavior of misaligned fault handler before fix.
-> With the following conditions met, it can trigger data corruption:
-> 
-> - HW doesn't transform instruction into tinst.
-> - HW doesn't support misaligned load/store, and OS doesn't enable
->    misaligned delegation, thus OpenSBI handler is in effect
-> - HW supports mixed XLEN, and M mode is running RV64, and the trapping
->    mode (U/VS/VU) is running RV32.
-> - The trapping instruction is c.f{l|s}w(sp).
-> 
-> Due to the incorrect insn decoding, the trapping instruction would
-> mistakenly be decoded as c.{l|s}d(sp). With this fix, c.f{l|s}w(sp)
-> in RV32 is now emulated correctly.
-> 
-> Validation:
-> The patch is validated to have fixed the issue with test cases running
-> on a modified version of QEMU that exposes misaligned faults [1], and
-> a further modified version that removes tinst transformation [2]. The
-> S-mode OS is a local build of Debian Trixie 6.12 kernel that enables
-> COMPAT (RV32), and the U-mode test application exercises all integer
-> and floating-point load/store (RVIFD64/32+RVC64/32) instructions with
-> all possible imm values. The patch is also tested on real HW (Sifive
-> P550/ESWIN EIC7700), which only supports RV64. On P550, the same test
-> was validated both in U mode and VU mode, where the host runs a 6.12
-> ESWIN vendor kernel that has some ESWIN SoC device driver patches [3]
-> applied, and the guest runs the exact same Debian Trixie 6.12 kernel
-> mentioned above.
-> 
-> [1] https://github.com/ganboing/qemu/tree/ganboing-misalign
-> [2] https://github.com/ganboing/qemu/tree/ganboing-misalign-no-tinst
-> [3] https://github.com/sifiveinc/riscv-linux/tree/rel/kernel-6.12/hifive-premier-p550
-> 
-> Fixes: 7219477f7b40 ("lib: Use MTINST CSR in misaligned load/store emulation")
-> Fixes: b5ae8e8a650d ("lib: Add misaligned load/store trap handling")
-> Fixes: 4c112650bbb0 ("lib: sbi: abstract out insn decoding to unify mem fault handlers")
-> Signed-off-by: Bo Gan <ganboing@gmail.com>
+2026-03-31T06:58:55+01:00, <dave.patel@riscstar.com>:
+> From: Dave Patel <dave.patel@riscstar.com>
+>
+> Eager context switch: Add support for saving and restoring RISC-V vector
+> extension state in OpenSBI. This introduces a per-hart vector context
+> structure and helper routines to perform full context save and restore.
+>
+> The vector context includes vl, vtype, vcsr CSRs along with storage for all
+> 32 vector registers. The register state is saved and restored using byte-wise
+> vector load/store instructions (vse8.v/vle8.v), making the implementation
+> independent of current SEW/LMUL configuration.
+>
+> The implementation follows an eager context switching model where the entire
+> vector state is saved and restored on every context switch. This provides a
+> simple and deterministic mechanism without requiring lazy trap-based
+> management.
+>
+> Notes:
+> - The SBI_MAX_VLENB is configured using CONFIG_SBI_MAX_VLENB.
+>
+> Signed-off-by: Dave Patel <dave.patel@riscstar.com>
 > ---
->   lib/sbi/sbi_trap_ldst.c | 427 +++++++++++++++++++++++++++-------------
->   1 file changed, 295 insertions(+), 132 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-> index 22c4d5a7..2371abca 100644
-> --- a/lib/sbi/sbi_trap_ldst.c
-> +++ b/lib/sbi/sbi_trap_ldst.c
-> @@ -44,30 +44,34 @@ ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
->   		return orig_tinst | (addr_offset << SH_RS1);
->   }
->   
-> +static inline bool sbi_trap_tinst_valid(ulong tinst)
-> +{
-> +	/*
-> +	 * Bit[0] == 1 implies trapped instruction value is
-> +	 * transformed instruction or custom instruction.
-> +	 * Also do proper checking per Privileged ISA 19.6.3,
-> +	 * and make sure high 32 bits of tinst is 0
-> +	 */
-> +	return tinst == (uint32_t)tinst && (tinst & 0x1);
-> +}
-> +
->   static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
->   				 sbi_trap_ld_emulator emu)
->   {
->   	const struct sbi_trap_info *orig_trap = &tcntx->trap;
->   	struct sbi_trap_regs *regs = &tcntx->regs;
-> -	ulong insn, insn_len;
-> +	ulong insn, insn_len, imm = 0, shift = 0, off = 0;
->   	union sbi_ldst_data val = { 0 };
->   	struct sbi_trap_info uptrap;
-> -	int rc, fp = 0, shift = 0, len = 0;
-> -	bool xform = false;
-> -
-> -	if (orig_trap->tinst & 0x1) {
-> -		/*
-> -		 * Bit[0] == 1 implies trapped instruction value is
-> -		 * transformed instruction or custom instruction.
-> -		 */
-> +	bool xform = false, fp = false, c_load = false, c_ldsp = false;
-> +	int rc, len = 0, prev_xlen = 0;
-> +
-> +	if (sbi_trap_tinst_valid(orig_trap->tinst)) {
->   		xform	 = true;
->   		insn	 = orig_trap->tinst | INSN_16BIT_MASK;
->   		insn_len = (orig_trap->tinst & 0x2) ? INSN_LEN(insn) : 2;
->   	} else {
-> -		/*
-> -		 * Bit[0] == 0 implies trapped instruction value is
-> -		 * zero or special value.
-> -		 */
-> +		/* trapped instruction value is zero or special value */
->   		insn = sbi_get_insn(regs->mepc, &uptrap);
->   		if (uptrap.cause) {
->   			return sbi_trap_redirect(regs, &uptrap);
-> @@ -75,92 +79,170 @@ static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
->   		insn_len = INSN_LEN(insn);
->   	}
->   
-> +	/**
-> +	 * Common for RV32/RV64:
-> +	 *    lb, lbu, lh, lhu, lw, flw, flw
-> +	 *    c.lbu, c.lh, c.lhu, c.lw, c.lwsp, c.fld, c.fldsp
-> +	 */
->   	if ((insn & INSN_MASK_LB) == INSN_MATCH_LB) {
-> -		len   = 1;
-> -		shift = 8 * (sizeof(ulong) - len);
-> +		len = -1;
->   	} else if ((insn & INSN_MASK_LBU) == INSN_MATCH_LBU) {
->   		len = 1;
-> -	} else if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
-> -		len   = 4;
-> -		shift = 8 * (sizeof(ulong) - len);
-> -#if __riscv_xlen == 64
-> -	} else if ((insn & INSN_MASK_LD) == INSN_MATCH_LD) {
-> -		len   = 8;
-> -		shift = 8 * (sizeof(ulong) - len);
-> -	} else if ((insn & INSN_MASK_LWU) == INSN_MATCH_LWU) {
-> -		len = 4;
-> -#endif
-> -#ifdef __riscv_flen
-> -	} else if ((insn & INSN_MASK_FLD) == INSN_MATCH_FLD) {
-> -		fp  = 1;
-> -		len = 8;
-> -	} else if ((insn & INSN_MASK_FLW) == INSN_MATCH_FLW) {
-> -		fp  = 1;
-> -		len = 4;
-> -#endif
-> +	} else if ((insn & INSN_MASK_C_LBU) == INSN_MATCH_C_LBU) {
-> +		/* Zcb */
-> +		len = 1;
-> +		imm = RVC_LB_IMM(insn);
-> +		c_load = true;
->   	} else if ((insn & INSN_MASK_LH) == INSN_MATCH_LH) {
-> -		len   = 2;
-> -		shift = 8 * (sizeof(ulong) - len);
-> +		len = -2;
-> +	} else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
-> +		/* Zcb */
-> +		len = -2;
-> +		imm = RVC_LH_IMM(insn);
-> +		c_load = true;
->   	} else if ((insn & INSN_MASK_LHU) == INSN_MATCH_LHU) {
->   		len = 2;
-> -#if __riscv_xlen >= 64
-> -	} else if ((insn & INSN_MASK_C_LD) == INSN_MATCH_C_LD) {
-> -		len   = 8;
-> -		shift = 8 * (sizeof(ulong) - len);
-> -		insn  = RVC_RS2S(insn) << SH_RD;
-> -	} else if ((insn & INSN_MASK_C_LDSP) == INSN_MATCH_C_LDSP &&
-> -		   ((insn >> SH_RD) & 0x1f)) {
-> -		len   = 8;
-> -		shift = 8 * (sizeof(ulong) - len);
-> -#endif
-> +	} else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
-> +		/* Zcb */
-> +		len = 2;
-> +		imm = RVC_LH_IMM(insn);
-> +		c_load = true;
-> +	} else if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
-> +		len = -4;
->   	} else if ((insn & INSN_MASK_C_LW) == INSN_MATCH_C_LW) {
-> -		len   = 4;
-> -		shift = 8 * (sizeof(ulong) - len);
-> -		insn  = RVC_RS2S(insn) << SH_RD;
-> +		/* Zca */
-> +		len = -4;
-> +		imm = RVC_LW_IMM(insn);
-> +		c_load = true;
->   	} else if ((insn & INSN_MASK_C_LWSP) == INSN_MATCH_C_LWSP &&
-> -		   ((insn >> SH_RD) & 0x1f)) {
-> -		len   = 4;
-> -		shift = 8 * (sizeof(ulong) - len);
-> +		GET_RD_NUM(insn)) {
-> +		/* Zca */
-> +		len = -4;
-> +		imm = RVC_LWSP_IMM(insn);
-> +		c_ldsp = true;
->   #ifdef __riscv_flen
-> +	} else if ((insn & INSN_MASK_FLW) == INSN_MATCH_FLW) {
-> +		len = 4;
-> +		fp = true;
-> +	} else if ((insn & INSN_MASK_FLD) == INSN_MATCH_FLD) {
-> +		len = 8;
-> +		fp = true;
->   	} else if ((insn & INSN_MASK_C_FLD) == INSN_MATCH_C_FLD) {
-> -		fp   = 1;
-> -		len  = 8;
-> -		insn = RVC_RS2S(insn) << SH_RD;
-> +		/* Zcd */
-> +		len = 8;
-> +		imm = RVC_LD_IMM(insn);
-> +		c_load = true;
-> +		fp = true;
->   	} else if ((insn & INSN_MASK_C_FLDSP) == INSN_MATCH_C_FLDSP) {
-> -		fp  = 1;
-> +		/* Zcd */
->   		len = 8;
-> -#if __riscv_xlen == 32
-> -	} else if ((insn & INSN_MASK_C_FLW) == INSN_MATCH_C_FLW) {
-> -		fp   = 1;
-> -		len  = 4;
-> -		insn = RVC_RS2S(insn) << SH_RD;
-> -	} else if ((insn & INSN_MASK_C_FLWSP) == INSN_MATCH_C_FLWSP) {
-> -		fp  = 1;
-> -		len = 4;
-> +		imm = RVC_LDSP_IMM(insn);
-> +		c_ldsp = true;
-> +		fp = true;
->   #endif
-> +	} else {
-> +		prev_xlen = sbi_regs_prev_xlen(regs);
-> +	}
-> +
-> +	/**
-> +	 * Must distinguish between rv64 and rv32, RVC instructions have
-> +	 * overlapping encoding:
-> +	 *     c.ld in rv64 == c.flw in rv32
-> +	 *     c.ldsp in rv64 == c.flwsp in rv32
-> +	 */
-> +	if (prev_xlen == 64) {
-> +		/* RV64 Only: lwu, ld, c.ld, c.ldsp  */
-> +		if ((insn & INSN_MASK_LWU) == INSN_MATCH_LWU) {
-> +			len = 4;
-> +		} else if ((insn & INSN_MASK_LD) == INSN_MATCH_LD) {
-> +			len = 8;
-> +		} else if ((insn & INSN_MASK_C_LD) == INSN_MATCH_C_LD) {
-> +			/* Zca */
-> +			len = 8;
-> +			imm = RVC_LD_IMM(insn);
-> +			c_load = true;
-> +		} else if ((insn & INSN_MASK_C_LDSP) == INSN_MATCH_C_LDSP &&
-> +			GET_RD_NUM(insn)) {
-> +			/* Zca */
-> +			len = 8;
-> +			imm = RVC_LDSP_IMM(insn);
-> +			c_ldsp = true;
-> +		}
-> +#ifdef __riscv_flen
-> +	} else if (prev_xlen == 32) {
-> +		/* RV32 Only: c.flw, c.flwsp */
-> +		if ((insn & INSN_MASK_C_FLW) == INSN_MATCH_C_FLW) {
-> +			/* Zcf */
-> +			len = 4;
-> +			imm = RVC_LW_IMM(insn);
-> +			c_load = true;
-> +			fp = true;
-> +		} else if ((insn & INSN_MASK_C_FLWSP) == INSN_MATCH_C_FLWSP) {
-> +			/* Zcf */
-> +			len = 4;
-> +			imm = RVC_LWSP_IMM(insn);
-> +			c_ldsp = true;
-> +			fp = true;
-> +		}
->   #endif
-> -	} else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
-> -		len = 2;
-> -		insn = RVC_RS2S(insn) << SH_RD;
-> -	} else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
-> -		len = 2;
-> +	}
-> +
-> +	if (len < 0) {
-> +		len = -len;
->   		shift = 8 * (sizeof(ulong) - len);
-> -		insn = RVC_RS2S(insn) << SH_RD;
->   	}
->   
-> -	rc = emu(xform ? 0 : insn, len, orig_trap->tval, &val, tcntx);
-> +	if (!len || orig_trap->cause == CAUSE_MISALIGNED_LOAD)
-> +		/* Unknown instruction or no need to calculate offset */
-> +		goto do_emu;
-> +
-> +	if (xform)
-> +		/* Transformed insn */
-> +		off = GET_RS1_NUM(insn);
-> +	else if (c_load)
-> +		/* non SP-based compressed load */
-> +		off = orig_trap->tval - GET_RS1S(insn, regs) - imm;
-> +	else if (c_ldsp)
-> +		/* SP-based compressed load */
-> +		off = orig_trap->tval - REG_VAL(2, regs) - imm;
-> +	else
-> +		/* I-type non-compressed load */
-> +		off = orig_trap->tval - GET_RS1(insn, regs) - (ulong)IMM_I(insn);
-> +	/**
-> +	 * Normalize offset, in case the XLEN of unpriv mode is smaller,
-> +	 * and/or pointer masking is in effect
-> +	 */
-> +	off &= (len - 1);
-> +
-> +do_emu:
-> +	rc = emu(xform ? 0 : insn, len, orig_trap->tval - off, &val, tcntx);
->   	if (rc <= 0)
->   		return rc;
-> +	if (!len)
-> +		goto epc_fixup;
-> +
-> +	if (!fp) {
-> +		ulong v = ((long)(val.data_ulong << shift)) >> shift;
->   
-> -	if (!fp)
-> -		SET_RD(insn, regs, ((long)(val.data_ulong << shift)) >> shift);
-> +		if (c_load)
-> +			SET_RDS(insn, regs, v);
-> +		else
-> +			SET_RD(insn, regs, v);
->   #ifdef __riscv_flen
-> -	else if (len == 8)
-> -		SET_F64_RD(insn, regs, val.data_u64);
-> -	else
-> -		SET_F32_RD(insn, regs, val.data_ulong);
-> +	} else if (len == 8) {
-> +		if (c_load)
-> +			SET_F64_RDS(insn, regs, val.data_u64);
-> +		else
-> +			SET_F64_RD(insn, regs, val.data_u64);
-> +	} else {
-> +		if (c_load)
-> +			SET_F32_RDS(insn, regs, val.data_ulong);
-> +		else
-> +			SET_F32_RD(insn, regs, val.data_ulong);
->   #endif
-> +	}
->   
-> +epc_fixup:
->   	regs->mepc += insn_len;
->   
->   	return 0;
-> @@ -171,25 +253,18 @@ static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
->   {
->   	const struct sbi_trap_info *orig_trap = &tcntx->trap;
->   	struct sbi_trap_regs *regs = &tcntx->regs;
-> -	ulong insn, insn_len;
-> +	ulong insn, insn_len, imm = 0, off = 0;
->   	union sbi_ldst_data val;
->   	struct sbi_trap_info uptrap;
-> -	int rc, len = 0;
-> -	bool xform = false;
-> -
-> -	if (orig_trap->tinst & 0x1) {
-> -		/*
-> -		 * Bit[0] == 1 implies trapped instruction value is
-> -		 * transformed instruction or custom instruction.
-> -		 */
-> +	bool xform = false, fp = false, c_store = false, c_stsp = false;
-> +	int rc, len = 0, prev_xlen = 0;
-> +
-> +	if (sbi_trap_tinst_valid(orig_trap->tinst)) {
->   		xform	 = true;
->   		insn	 = orig_trap->tinst | INSN_16BIT_MASK;
->   		insn_len = (orig_trap->tinst & 0x2) ? INSN_LEN(insn) : 2;
->   	} else {
-> -		/*
-> -		 * Bit[0] == 0 implies trapped instruction value is
-> -		 * zero or special value.
-> -		 */
-> +		/* trapped instruction value is zero or special value */
->   		insn = sbi_get_insn(regs->mepc, &uptrap);
->   		if (uptrap.cause) {
->   			return sbi_trap_redirect(regs, &uptrap);
-> @@ -197,62 +272,150 @@ static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
->   		insn_len = INSN_LEN(insn);
->   	}
->   
-> -	val.data_ulong = GET_RS2(insn, regs);
-> -
-> +	/**
-> +	 * Common for RV32/RV64:
-> +	 *    sb, sh, sw, fsw, fsd
-> +	 *    c.sb, c.sh, c.sw, c.swsp, c.fsd, c.fsdsp
-> +	 */
->   	if ((insn & INSN_MASK_SB) == INSN_MATCH_SB) {
->   		len = 1;
-> -	} else if ((insn & INSN_MASK_SW) == INSN_MATCH_SW) {
-> -		len = 4;
-> -#if __riscv_xlen == 64
-> -	} else if ((insn & INSN_MASK_SD) == INSN_MATCH_SD) {
-> -		len = 8;
-> -#endif
-> -#ifdef __riscv_flen
-> -	} else if ((insn & INSN_MASK_FSD) == INSN_MATCH_FSD) {
-> -		len	     = 8;
-> -		val.data_u64 = GET_F64_RS2(insn, regs);
-> -	} else if ((insn & INSN_MASK_FSW) == INSN_MATCH_FSW) {
-> -		len	       = 4;
-> -		val.data_ulong = GET_F32_RS2(insn, regs);
-> -#endif
-> +	} else if ((insn & INSN_MASK_C_SB) == INSN_MATCH_C_SB) {
-> +		/* Zcb */
-> +		len = 1;
-> +		imm = RVC_SB_IMM(insn);
-> +		c_store = true;
->   	} else if ((insn & INSN_MASK_SH) == INSN_MATCH_SH) {
->   		len = 2;
-> -#if __riscv_xlen >= 64
-> -	} else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD) {
-> -		len	       = 8;
-> -		val.data_ulong = GET_RS2S(insn, regs);
-> -	} else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP) {
-> -		len	       = 8;
-> -		val.data_ulong = GET_RS2C(insn, regs);
-> -#endif
-> +	} else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
-> +		/* Zcb */
-> +		len = 2;
-> +		imm = RVC_SH_IMM(insn);
-> +		c_store = true;
-> +	} else if ((insn & INSN_MASK_SW) == INSN_MATCH_SW) {
-> +		len = 4;
->   	} else if ((insn & INSN_MASK_C_SW) == INSN_MATCH_C_SW) {
-> -		len	       = 4;
-> -		val.data_ulong = GET_RS2S(insn, regs);
-> +		/* Zca */
-> +		len = 4;
-> +		imm = RVC_SW_IMM(insn);
-> +		c_store = true;
->   	} else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP) {
-> -		len	       = 4;
-> -		val.data_ulong = GET_RS2C(insn, regs);
-> +		/* Zca */
-> +		len = 4;
-> +		imm = RVC_SWSP_IMM(insn);
-> +		c_stsp = true;
->   #ifdef __riscv_flen
-> +	} else if ((insn & INSN_MASK_FSW) == INSN_MATCH_FSW) {
-> +		len = 4;
-> +		fp = true;
-> +	} else if ((insn & INSN_MASK_FSD) == INSN_MATCH_FSD) {
-> +		len = 8;
-> +		fp = true;
->   	} else if ((insn & INSN_MASK_C_FSD) == INSN_MATCH_C_FSD) {
-> -		len	     = 8;
-> -		val.data_u64 = GET_F64_RS2S(insn, regs);
-> +		/* Zcd */
-> +		len = 8;
-> +		imm = RVC_SD_IMM(insn);
-> +		c_store = true;
-> +		fp = true;
->   	} else if ((insn & INSN_MASK_C_FSDSP) == INSN_MATCH_C_FSDSP) {
-> -		len	     = 8;
-> -		val.data_u64 = GET_F64_RS2C(insn, regs);
-> -#if __riscv_xlen == 32
-> -	} else if ((insn & INSN_MASK_C_FSW) == INSN_MATCH_C_FSW) {
-> -		len	       = 4;
-> -		val.data_ulong = GET_F32_RS2S(insn, regs);
-> -	} else if ((insn & INSN_MASK_C_FSWSP) == INSN_MATCH_C_FSWSP) {
-> -		len	       = 4;
-> -		val.data_ulong = GET_F32_RS2C(insn, regs);
-> +		/* Zcd */
-> +		len = 8;
-> +		imm = RVC_SDSP_IMM(insn);
-> +		c_stsp = true;
-> +		fp = true;
->   #endif
-> +	} else {
-> +		prev_xlen = sbi_regs_prev_xlen(regs);
-> +	}
-> +
-> +	/**
-> +	 * Must distinguish between rv64 and rv32, RVC instructions have
-> +	 * overlapping encoding:
-> +	 *     c.sd in rv64 == c.fsw in rv32
-> +	 *     c.sdsp in rv64 == c.fswsp in rv32
-> +	 */
-> +	if (prev_xlen == 64) {
-> +		/* RV64 Only: sd, c.sd, c.sdsp */
-> +		if ((insn & INSN_MASK_SD) == INSN_MATCH_SD) {
-> +			len = 8;
-> +		} else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD) {
-> +			/* Zca */
-> +			len = 8;
-> +			imm = RVC_SD_IMM(insn);
-> +			c_store = true;
-> +		} else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP) {
-> +			/* Zca */
-> +			len = 8;
-> +			imm = RVC_SDSP_IMM(insn);
-> +			c_stsp = true;
-> +		}
-> +#ifdef __riscv_flen
-> +	} else if (prev_xlen == 32) {
-> +		/* RV32 Only: c.fsw, c.fswsp */
-> +		if ((insn & INSN_MASK_C_FSW) == INSN_MATCH_C_FSW) {
-> +			/* Zcf */
-> +			len = 4;
-> +			imm = RVC_SW_IMM(insn);
-> +			c_store = true;
-> +			fp = true;
-> +		} else if ((insn & INSN_MASK_C_FSWSP) == INSN_MATCH_C_FSWSP) {
-> +			/* Zcf */
-> +			len = 4;
-> +			imm = RVC_SWSP_IMM(insn);
-> +			c_stsp = true;
-> +			fp = true;
-> +		}
->   #endif
-> -	} else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
-> -		len		= 2;
-> -		val.data_ulong = GET_RS2S(insn, regs);
->   	}
->   
-> -	rc = emu(xform ? 0 : insn, len, orig_trap->tval, val, tcntx);
-> +	if (!fp) {
-> +		if (c_store)
-> +			val.data_ulong = GET_RS2S(insn, regs);
-> +		else if (c_stsp)
-> +			val.data_ulong = GET_RS2C(insn, regs);
-> +		else
-> +			val.data_ulong = GET_RS2(insn, regs);
-> +#ifdef __riscv_flen
-> +	} else if (len == 8) {
-> +		if (c_store)
-> +			val.data_u64 = GET_F64_RS2S(insn, regs);
-> +		else if (c_stsp)
-> +			val.data_u64 = GET_F64_RS2C(insn, regs);
-> +		else
-> +			val.data_u64 = GET_F64_RS2(insn, regs);
-> +	} else {
-> +		if (c_store)
-> +			val.data_ulong = GET_F32_RS2S(insn, regs);
-> +		else if (c_stsp)
-> +			val.data_ulong = GET_F32_RS2C(insn, regs);
-> +		else
-> +			val.data_ulong = GET_F32_RS2(insn, regs);
-> +#endif
-> +	}
-> +
-> +	if (!len || orig_trap->cause == CAUSE_MISALIGNED_STORE)
-> +		/* Unknown instruction or no need to calculate offset */
-> +		goto do_emu;
-> +
-> +	if (xform)
-> +		/* Transformed insn */
-> +		off = GET_RS1_NUM(insn);
-> +	else if (c_store)
-> +		/* non SP-based compressed store */
-> +		off = orig_trap->tval - GET_RS1S(insn, regs) - imm;
-> +	else if (c_stsp)
-> +		/* SP-based compressed store */
-> +		off = orig_trap->tval - REG_VAL(2, regs) - imm;
-> +	else
-> +		/* S-type non-compressed store */
-> +		off = orig_trap->tval - GET_RS1(insn, regs) - (ulong)IMM_S(insn);
-> +	/**
-> +	 * Normalize offset, in case the XLEN of unpriv mode is smaller,
-> +	 * and/or pointer masking is in effect
-> +	 */
-> +	off &= (len - 1);
-> +
-> +do_emu:
-> +	rc = emu(xform ? 0 : insn, len, orig_trap->tval - off, val, tcntx);
->   	if (rc <= 0)
->   		return rc;
->   
 
+You missed my comment on [v2 1/3]:
+https://lore.kernel.org/opensbi/DHG4IUERGFUV.3TT9CFPZ9YEDG@qti.qualcomm.com/
+
+The two points are:
+1. Possible cross-domain data access.
+2. Writes to read-only CSRs.
+
+Thanks.
 
 -- 
 opensbi mailing list
