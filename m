@@ -4,134 +4,104 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 037A8D6AAF7
-	for <opensbi@archiver.kernel.org>; Thu,  2 Apr 2026 18:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9B489E85389
+	for <opensbi@archiver.kernel.org>; Fri,  3 Apr 2026 20:29:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:References:Cc:Subject:From:
-	To:Message-Id:Date:Mime-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=nDTzXMt+I72piCgcfEoLHezJos6Rb9v6SYUubphHvY0=; b=303HUjMsDFdmbM
-	yu0qGXud4/5u0TSpJSNWczUz5VeGU7/XiAgofuM6zRxGKC32eogN5fcDCroVVyOot1s0wqgaxpgzS
-	dMBtX5XEnNLu5V8ERYqU4Nmh1jxXQdD7QqJ8Oip7eQGAteRFFjgGUmEJILgXbJSUNXgPZBn9JqJ4E
-	zVzTs/6A/j2HvwC94APGn2+Ba0KfDiLF3uhT+woX4PRpL5C1DSpF8hKyDOo84Xlj9epBI8BcVeNlf
-	vEyL8H0qEzOoggFXvh76RaykDNYYf5nXXz8P2ikxVhMPZd0NruGjhKyqwTpei3N8PJSO3NSfzXrMC
-	MS7p5GQH9kYvFg8srbVA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=WmpmWqkfgXxSWfjvIJpLUr3CmZpgPn+e/yQ2DJuFG34=; b=L6Oh87ovkUO2uc
+	mmM2/syQdUfgc5mLCDeZVxmPwtdfMxDi2aPZU/ykr9/4osyEErS2PBLzbhwHC7TiIoj9cYdhpZyHS
+	fmJCoStPn/uxVthsLgX4nWOXIYfYKRh9F0akXrdcd6tYukiK1yAgmR1UYTKyAglFhLUx+0mACfoYX
+	pRJncLoHjFalWfm1t0PL5ippOK84vEuvGA6sQVOyPKj5+hOgPNqafxMPDmBX8hPRC8YmuWigrQMTf
+	Z8gNM5oc27pfi+fkPgSA7WdZPVRb3m/mDiaimHrHNi8vH2FpNRh7AMocw07F4FpF5+f6ZdM7ot+qY
+	qFwx0VD8jPwynhB9NiOw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w8MrE-00000000f5W-0q3J;
-	Thu, 02 Apr 2026 18:33:32 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1w8l8o-00000002XCf-0X9v;
+	Fri, 03 Apr 2026 20:29:18 +0000
+Received: from mail-westusazon11020100.outbound.protection.outlook.com ([52.101.85.100] helo=BYAPR05CU005.outbound.protection.outlook.com)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w8MrB-00000000f4q-2n0k
+	id 1w8l8l-00000002XC4-32YZ
 	for opensbi@lists.infradead.org;
-	Thu, 02 Apr 2026 18:33:30 +0000
-Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 632G4S8B2255001
-	for <opensbi@lists.infradead.org>; Thu, 2 Apr 2026 18:33:28 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	sgqO0hn7uU6pUkhuXjz4Sx7nFTHrlwim87K6YerE1Bc=; b=Lcpup2UreNzHHAoF
-	/jRW1b7AWOQESgTplcJcwfe0D3vopHWOPVcA5hw0EbbYQw4TJhGzgOhTPwKifLx6
-	B3ssh0RwwehbfY56CLL6mbJN1OR6poUeaAHqmuJli7BktrvWrjL6ChD3F3AFoZF6
-	VEKi9QNqdRcbUllihdARtDdQjq+XNu91YDtuDu2alP5uwAQaOxn2Gz8f853JjMmR
-	56GvBXTHj5yG/ntV1zdNAizZ5yAbAzZZiHiSOsqBDHEKncx1Ut5iHA3DpnBd3iLT
-	lyGHKrXglyZwLcWLaYNy2AetOwxIgtLUKXwT1KczykDD8hF1CWlansnft69Gmogt
-	doP2Sw==
-Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com [209.85.160.198])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d9n4t2anu-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Thu, 02 Apr 2026 18:33:28 +0000 (GMT)
-Received: by mail-qt1-f198.google.com with SMTP id d75a77b69052e-50b4b81c632so1981311cf.1
-        for <opensbi@lists.infradead.org>; Thu, 02 Apr 2026 11:33:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1775154808; x=1775759608; darn=lists.infradead.org;
-        h=in-reply-to:references:cc:subject:from:to:message-id:date
-         :content-transfer-encoding:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=sgqO0hn7uU6pUkhuXjz4Sx7nFTHrlwim87K6YerE1Bc=;
-        b=hNket8drOU9Lv9mmI6X/YziNRr9UFHF0aYRuFivwKUgpnQrIcyc47/kzTvjXR0HcIn
-         XhHuiJCkX3O50ozVWFq7WAacQNrmKnqWnZiQPL0CFRGxKoiPHQS1Cy6zNbrhR5gOewAt
-         G8NICUbnUDxUNza4WsgbudgrqYK/xpfOsZAdtplzWTqYGVYqG8TMBtZR8TgEML4jqdQP
-         tvIQAuYfaaT1TZPoSsZlRjxYAcS1Y53Jv+UPymU2QmIRVe0n//sJepaBhBBfMfLn6zv1
-         3jguVEvLFr/mcUJm7FzjtkZ0my0ZxSSl3JS/1+NOavMdTk/KgYO5q1Ryh34qUhBgFHsb
-         QE0w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775154808; x=1775759608;
-        h=in-reply-to:references:cc:subject:from:to:message-id:date
-         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=sgqO0hn7uU6pUkhuXjz4Sx7nFTHrlwim87K6YerE1Bc=;
-        b=rR8f732WgKX5Rx6eEheMSrt8+yXU5+2YgxR+OF+h5RhvIWDxF6wKLli0rMhcqP2EcZ
-         SwBddeNPuWUBPdh8zcoMRwXFVOX3wk6rJyezH8HAciG3qa4+nq91ffPKSB/9nGJk2X4e
-         XSacVYq+9NH5if0wIeH7rluGuqtL05U8tnlsMfR5T7fZvR4FLLvWlUmOSx+EmTDvjJgt
-         MOcayRpG9TUqlCIunSOcP7ApJZ1nYFBV5YfEKWPxiBpnpCNIA2cKCJWb/+Z0OuBXN/CZ
-         1z8Sqsbh2TwiQHid6SqrdJeyvmtqd2hMGTqE7q4uKtq7JAmsjjUMXgNg2OO70HwFDugd
-         x6Dg==
-X-Gm-Message-State: AOJu0YxTofL3TD7sZONrlmUqFFHLtUAcvU8cslUVhhub9C8g62/Qu0pw
-	iFiJ/K9GlGv6hbTmp1CwjXCRvmJ1AH69ulEMQ/jUkgE5UORJ9AimiWgMQ2r2Vr7KpMk0bctXGE3
-	ABsLpKTXxpELv+lKslF9vhdA7AKjZfehfQ0mbMiEaICjkWD6vph8jLogaIKTaZBqlsA==
-X-Gm-Gg: ATEYQzz59LiFyJy/xHXeTqWk7z8WVEf6sNu5O8ucKUJ5Qx4pD5QC2doRov4VP/0fEeZ
-	b4ohcgpIh5szIFVZksLT8zDAE5AidOSOHX72aWGl6QVz/rUj0RK6UPw5Anf3V/5CmnJKb+5CEPD
-	99WCmn/5QX9uPk70XH4nc3J5ke7tDeecLHb79Y74CNUhhy4eBnnXmgHxraGfiiw/h7CW6jFCS0K
-	HxZZAgiozToWmuGiRcEfUvQFcmI1N2NKiwZLu9gmHB5QFshoptDUTHy0pVDRO1prQahyDRpPjeS
-	8Z02+4FgAvnpoTNXeS8lbAXnubr1EcN17VLSl3w0scPN7DgMqzZ2XyZKyIDlPg16lUpPFRpg+0z
-	LMDaTTkMM3QRSGvjsI2kdXbuDxgs0MkPGhIEfe61NA2/Wyqf+t6HgPZUVdFdN
-X-Received: by 2002:a05:622a:8c05:b0:509:23c5:3289 with SMTP id d75a77b69052e-50d62b6e383mr5456581cf.63.1775154807602;
-        Thu, 02 Apr 2026 11:33:27 -0700 (PDT)
-X-Received: by 2002:a05:622a:8c05:b0:509:23c5:3289 with SMTP id d75a77b69052e-50d62b6e383mr5456141cf.63.1775154807140;
-        Thu, 02 Apr 2026 11:33:27 -0700 (PDT)
-Received: from localhost (ip-86-49-249-15.bb.vodafone.cz. [86.49.249.15])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-66e034bb78esm1077851a12.24.2026.04.02.11.33.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Apr 2026 11:33:25 -0700 (PDT)
-Mime-Version: 1.0
-Date: Thu, 02 Apr 2026 20:33:24 +0200
-Message-Id: <DHIVUYXFU25U.LR66V59ZX5VH@oss.qualcomm.com>
-To: "Andrew Jones" <andrew.jones@oss.qualcomm.com>
-From: =?utf-8?q?Radim_Kr=C4=8Dm=C3=A1=C5=99?=
- <radim.krcmar@oss.qualcomm.com>
-Subject: Re: [PATCH] lib: sbi: Fix hw a/d updating defaults
-Cc: <opensbi@lists.infradead.org>, "Anup Patel"
- <anup.patel@oss.qualcomm.com>,
-        "Atish Patra" <atish.patra@linux.dev>,
-        "Daniel Henrique Barboza" <daniel.barboza@oss.qualcomm.com>,
-        "Sunil V L"
- <sunilvl@oss.qualcomm.com>,
-        "opensbi" <opensbi-bounces@lists.infradead.org>
-References: <20260401220845.190680-1-andrew.jones@oss.qualcomm.com>
- <DHIR92KV91LY.2IYTK8T6RQAJC@oss.qualcomm.com>
- <wtpswj3mvxnnfxbabm4vm74yl344bu7rixkjevcqomn6zp373b@4n54jk7mh6xu>
-In-Reply-To: <wtpswj3mvxnnfxbabm4vm74yl344bu7rixkjevcqomn6zp373b@4n54jk7mh6xu>
-X-Proofpoint-ORIG-GUID: 8nXxnarsgLxcsn4Nzup8uW3SQad28sLi
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDAyMDE2NiBTYWx0ZWRfX2Tsg9QBWhN5K
- O0nnsXGM5pJyv9ZsfRws0AUDkbm5smM4imldJCdam0AFxNt5XOKwjR6aAYr/TIFcbNNrZTeBoK2
- wi8w2m03aS51bO4zMcRzmeFnCyHCwUW8TIrrHkdmnjm4mm+ioqxNomGp2JeaU/EqoSbvqTxLlOp
- Ucs0qpZUHDilbtIDwuFfm3ZCt+m65fLKJcGZSODuEpQnxAc+pOTZUtnbGQRP18vpjMl1Dw2J9XK
- flr1kyNQufX2TZpxtyDQpY4Sd7u3Ex9yMCixjiwqHdlCe9kDWMuhB5NUnZSHOR88R60grrQOKqD
- mOXPlShnxHLaV3wjbdSzB1ytSXDq8gQgP+DPZ5SWjtCBOwYasbuJLf6kB+IWqTwrKiBDY7d/mCl
- HfWps4aVgiMHoISTIQNrU3e+xLfjlXrFwzay+QfdiVxiv1935yMlLM9P4cVAMtoC44eViiR4M8d
- ccWY7uSUoMUjo9QJ1bg==
-X-Proofpoint-GUID: 8nXxnarsgLxcsn4Nzup8uW3SQad28sLi
-X-Authority-Analysis: v=2.4 cv=Ap/jHe9P c=1 sm=1 tr=0 ts=69ceb678 cx=c_pps
- a=mPf7EqFMSY9/WdsSgAYMbA==:117 a=fuErIE+P63Icv3tqjtEZBw==:17
- a=IkcTkHD0fZMA:10 a=A5OVakUREuEA:10 a=M51BFTxLslgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22
- a=EUspDBNiAAAA:8 a=mCBAukHtTCtgy2VDrmYA:9 a=QEXdDO2ut3YA:10
- a=dawVfQjAaf238kedN5IG:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-04-02_03,2026-04-02_05,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 suspectscore=0 malwarescore=0 spamscore=0 clxscore=1015
- bulkscore=0 impostorscore=0 adultscore=0 lowpriorityscore=0 phishscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2604020166
+	Fri, 03 Apr 2026 20:29:16 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=OHRrfGropXwGryhrVVzBDJhUOQg502584DlefDrjG2lvZNYHbDwyhq18fQ9TU1pTB7MQKorY2xpG1fZaN6vFWziXTssrYtAZmTCuwr3gGo3Oa9He35y4NFgOO8Mr4scZ7QL6NOf5tpZ1hXZ2exPGxIsuY2EP1uXAxnvE9bTZGikAoaZauDU6TK3aL8cEwt2AWgCr+mI1AquUJMG2NNGU2/k7AgbIinbIJdT+WydW/R4gMngBCN3dA60GeP+XXarEuiL/8RYhmUBbvCM1byg6bH4JVHQJZvzVqsI0jGnPy/sofY5/aFmwDK9a3zro0bOKYvmHf53Aqw5RYm4k983Uqg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=6X/46RTrRXJTl3cNFZP25l+bb2zaxDJjLb6ApvkFABw=;
+ b=be+CsRrZenky/YiF9Cz876J3j3ptZpOMNXibPjIa+V8S3S86uY8Gcyuu6Y4Zun4VeyzvVeCHflRhJQ/xC1CT5XQ4IN8AOSD9nKh3Dcx4xivxr6zuBBvamdTlCjcNm+KOXYkzP3AbAPyHVG6Y6DoDpwJ23y3ldzJLomuemlsImQLPXkuJ873UCmpjbHy81Ty7owu9tQ5Oe3o5Gyq9Xkb/kGLfkXU+shuukVWL2fFJGPP7wuBh+s06oxXvG7x2XOAk85AG9h3Ztgrx29yWHoOb+b5Oot4rkhcKHhgNxdU72j/1t9obH/mZYBfgtpe6XKZuE8hISn3L6DzzndzHJJOQeg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
+ 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
+ smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
+ action=none header.from=aheadcomputing.com; dkim=none (message not signed);
+ arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6X/46RTrRXJTl3cNFZP25l+bb2zaxDJjLb6ApvkFABw=;
+ b=KpC42Wruxg948/Zy4iwHSzXdWvDFJigOVGUNud4cqmF5ThETygYhrQP2GR3eIqvlytHfWc0b4RAhDCr5dVVFYCp5g5Euh3GBFb8KgRk+6x1P3A+9Eg2Y6lMEVrpyrOIBVix2s7gtZKZ+fZf/8RNv/Pxz+EcoxMtIoECgqhhBJnjAXza18pfrOwN+mX6qZURmGGzxK2IWGLe2q2Owo86h/yhJNtCJY7ZjCwApHhfH384SNpfCjg+InxO1k+xVlbnJRpR+rUePPDKnVmHqCmldPz2F9FuIo6T8v0p/1APtQtbidBP1VMOpLFvqMd8bHr6+1OfM5lWROrmKya5R9M5wlA==
+Received: from DS7P220CA0004.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:1ca::11) by
+ CO6PR22MB2916.namprd22.prod.outlook.com (2603:10b6:303:14f::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.17; Fri, 3 Apr
+ 2026 20:29:10 +0000
+Received: from DM2PEPF00003FC7.namprd04.prod.outlook.com
+ (2603:10b6:8:1ca:cafe::f8) by DS7P220CA0004.outlook.office365.com
+ (2603:10b6:8:1ca::11) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.21 via Frontend Transport; Fri,
+ 3 Apr 2026 20:29:10 +0000
+X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
+ smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
+ header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
+Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
+ not designate 50.45.236.54 as permitted sender)
+ receiver=protection.outlook.com; client-ip=50.45.236.54;
+ helo=mail.aheadcomputing.com;
+Received: from mail.aheadcomputing.com (50.45.236.54) by
+ DM2PEPF00003FC7.mail.protection.outlook.com (10.167.23.24) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.17
+ via Frontend Transport; Fri, 3 Apr 2026 20:29:09 +0000
+Received: from davidAhead.lan (unknown [10.8.0.10])
+	by mail.aheadcomputing.com (Postfix) with ESMTP id 3D39C80FC6;
+	Fri,  3 Apr 2026 13:29:08 -0700 (PDT)
+From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
+To: opensbi@lists.infradead.org
+Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
+Subject: [PATCH] lib: utils/regmap: Fix reg_stride calculation in syscon regmap
+Date: Fri,  3 Apr 2026 14:29:03 -0600
+Message-ID: <20260403202903.3407945-1-david.garcia@aheadcomputing.com>
+X-Mailer: git-send-email 2.43.0
+MIME-Version: 1.0
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM2PEPF00003FC7:EE_|CO6PR22MB2916:EE_
+X-MS-Office365-Filtering-Correlation-Id: 71c95d3f-f0b4-4198-bfac-08de91bfa947
+X-MS-Exchange-AtpMessageProperties: SA
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|56012099003|18002099003|55112099003;
+X-Microsoft-Antispam-Message-Info: YEXYg6mqOReHSz1YCOKUuxQJsIps8M9OWjsLFevI0sDowtggGnbXvpRtglWwFM+W6bW+198BEE5tQsGr3f03ZnQ8U40zvTW9pIihvtTsGOPVVj7YI98RT2FF9CxWkGAoqUCGtm6EJhVHcqe5yjjWxLEd7o9EARJ3fjmUuvz2jyN6EbnZZ4sGuglVKnSPNVBdE+68ZKx6sYnc1ZtP5vYPOKmbG5Kn0/OfTOFDNh5fmVLsXdoHczVetczGfZCSJUkxg7ilwXQecUlIn44CmUGMOX0LgHuoffQLngkxjw1MvVNA6wcrs0uk21EYtCqyJnK28iC7nInNcbDJJdAnkPctjfTxNYIov0Hqhv7Bpx4oAbFWWGII4q3zv0jjEU3BHfIHrurZz8HSORLfVkhYsYxwesJ4rVUS1l4Bhh8o8mkv3H91o0YFruKhvRD6DskL0tiKVHZgfqEpRZdfrCcRX1nEhP3RxaFkvM+nbUOFQtvEkHxT1ZEcRUj3bMr57duADPwEuKEM5xtPFNHmFH88we+vCWjr4bE/BIj/TfnFDBCJPNhdVzXuqIhXF+TugDmBt3vevXTxBdSqYxaZROBBDpg17a2L4Hnj1MH+TPqwPnlEjtNsJ74r2YqueI1XBpZJOBInyNaxtsjavs5OwkYLGjlzV1IWAAi1a2JkzqgzyK4ZBAAB/dIHlr5dNrxExlXdVMG3IshxSdxaOPFKUTN+H1kb2MOYupGnqE+isGCr6n9h3VB6vJM95kGSsJuudDJQiHnXIxtmS+MXFobkROuff7CGzw==
+X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(56012099003)(18002099003)(55112099003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: C80wdZO2M+15X+v/6BxgsDZgljrGrNFXiFbW/1SQDTTKuuvW046FAakOnMG2XcFTEd9YSuPZtKwByRdg8rdEJDm4hsZCKIY2UqJS7plOdjeBJkbNS5wm50hN8zBrj/4XFixftuHoN6sRhx04mDrArvlfzeLEXDq17PgUvz2oN7q2ocQXP1XhkRUGJN/EgP8fWukr70PJYWlkpvk+oslDYnO45EjN7fq8WQUJkxBPZreVhc1eSN8RKXIplApubwZU4QKrAgd6ydUsswKUBmDV/pkOCXayy/1cwSW+NcPV/TkIET05h4kxzo9QRZDmgJpOcBEFGnTMO0Gte6cV9RlFgtrzrTFU3dcbBdrwI37J8g5e/iiqyyB49CLvYTGEoJMrhulTBnqnuriaBWMQPfs3NOdCdf/OcEgiQBciwXKYyw7PR6UCxKj35cncfXeJetgl
+X-OriginatorOrg: aheadcomputing.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Apr 2026 20:29:09.6733
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 71c95d3f-f0b4-4198-bfac-08de91bfa947
+X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM2PEPF00003FC7.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO6PR22MB2916
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260402_113329_717950_80750CD5 
-X-CRM114-Status: GOOD (  19.67  )
+X-CRM114-CacheID: sfid-20260403_132915_838221_900A4C49 
+X-CRM114-Status: UNSURE (   9.26  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -143,41 +113,46 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-MjAyNi0wNC0wMlQxMToyNDoyMC0wNTowMCwgQW5kcmV3IEpvbmVzIDxhbmRyZXcuam9uZXNAb3Nz
-LnF1YWxjb21tLmNvbT46Cj4gT24gVGh1LCBBcHIgMDIsIDIwMjYgYXQgMDQ6NTY6NDNQTSArMDIw
-MCwgUmFkaW0gS3LEjW3DocWZIHdyb3RlOgo+PiAyMDI2LTA0LTAxVDE3OjA4OjQ1LTA1OjAwLCBB
-bmRyZXcgSm9uZXMgPGFuZHJldy5qb25lc0Bvc3MucXVhbGNvbW0uY29tPjoKPj4gPiBUaGUgU3Zh
-ZGUgZHQtYmluZGluZyBkZXNjcmlwdGlvbiBzdGF0ZXMgdGhhdCBTdmFkdSBzaG91bGQgb25seQo+
-PiA+IGJlIGVuYWJsZWQgYXQgYm9vdCB0aW1lIHdoZW4gb25seSBTdmFkdSBpcyBwcmVzZW50IGlu
-IHRoZSBEVC4KPj4gPiBFbnN1cmUgdGhhdCdzIHRoZSBjYXNlLiBBbHNvLCB3aGVuIG9ubHkgU3Zh
-ZHUgaXMgc3VwcG9ydGVkLAo+PiA+IGRpc2FibGUgRldGVC5QVEVfQURfSFdfVVBEQVRJTkcsIGFz
-IHdlIG5lZWQgYm90aCB0byBzdXBwb3J0Cj4+ID4gdG9nZ2xpbmcuCj4+IAo+PiBEb2VzIFN2YWR1
-IHdpdGhvdXQgU3ZhZGUgbWVhbiB0aGF0IGJvdGggbWVudmNmZy5BRFVFIG9yIGhlbnZjZmcuQURV
-RSBhcmUKPj4gcmVhZC1vbmx5IDEgKHRoZSBJU0EgaXMgdmFndWUgZW5vdWdoIHRvIHBlcm1pdCB0
-aGlzKSwgb3IgaXMgaXQganVzdCBhbgo+PiBhd2t3YXJkIHdheSB0byBjb25maWd1cmUgdGhlIGRl
-ZmF1bHQsIHNvIEhTIG1vZGUgbXVzdCBhc3N1bWUgdGhhdAo+PiBoZW52Y2ZnLkFEVUU9MCB3aWxs
-IGJlIFN2YWRlPwo+Cj4gSSBjb3VsZG4ndCBmaW5kIGFueXRoaW5nIGluIHRoZSBzcGVjIHRoYXQg
-ZXhwbGljaXRseSBzdGF0ZXMgdGhlIEFEVUUgYml0Cj4gd2lsbCBiZWhhdmUgaGFzIHJlYWQtb25s
-eSBvbmUgd2hlbiBvbmx5IFN2YWR1IGlzIHN1cHBvcnRlZC4gSWYgdGhlIHNwZWMKPiBhdCBsZWFz
-dCBjbGFpbWVkIHRoYXQgdGhlIEFEVUUgZmllbGQgd2FzIFdBUkwgdGhlbiB3ZSBtaWdodCBpbmZl
-ciB0aGF0LAo+IGJ1dCBpdCBkb2Vzbid0IGV2ZW4gc2F5IHRoYXQuCgpZZWFoLCBpdCB3YXMgYSBs
-b25nIHNob3QgYW5kIEdyZWcganVzdCBjbGFyaWZpZWQgaW4gYW4gdW5yZWxhdGVkIHRocmVhZAp0
-aGF0IHRoZSB2YWx1ZXMgYXJlIHJlYWQtd3JpdGUgdW5sZXNzIGV4cGxpY2l0bHkgc3RhdGVkIG90
-aGVyd2lzZSwgc28KU3ZhZHUgaW1wbGllcyBTdmFkZSwgYW5kIHdlJ3JlIG1pc3VzaW5nIHRoZSBl
-eHRlbnNpb24gc3RyaW5nIHRvIGV4cHJlc3MKYSBkZWZhdWx0IGNvbmZpZ3VyYXRpb24gcGFyYW1l
-dGVyLgoKPj4gU3ZhZGUgaXMgbWFuZGF0b3J5IGluIFJWQSBwcm9maWxlcywgc28gdGhlIGNvcm5l
-ci1jYXNlIGNhc2UgaXQgbm90Cj4+IGFueXRoaW5nIEkgZXhwZWN0IHRvIHNlZS4uLgo+Cj4gWWVz
-LCBJIGV4cGVjdCBpZiBTdmFkdS1vbmx5IGhhcnRzIGFyZSBidWlsdCB0aGF0IHRoZXkgbGlrZWx5
-IHdpbGwgbWFrZQo+IEFEVUUgcmVhZC1vbmx5IDEsIHNvIEkgZG9uJ3QgZXhwZWN0IHRvIHNlZSBw
-cm9ibGVtcyB3aXRoIGp1c3QKPiB1bmNvbmRpdGlvbmFsbHkgc2V0dGluZyB0aGUgYml0IHRvIDEs
-IGFzIHdlIGRvIGhlcmUgKGFuZCBzaG91bGQgc2V0Cj4gaGVudmNmZy5BRFVFIGluIEtWTSBhcyB3
-ZWxsKS4KClJpZ2h0LCB3ZSdkIG9ubHkgaGF2ZSBhbiBpc3N1ZSBpZiBzb2Z0d2FyZSBhc3N1bWVk
-IHRoYXQgU3ZhZHUgd2l0aG91dApTdmFkZSBtZWFucyB0aGF0IGl0IGRvZXNuJ3QgaGF2ZSB0byBz
-ZXQgdGhlIGJpdCB0byAxIHRvIGF2b2lkIFN2YWRlLgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0
-Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+The reg_stride field represents the address stride in bytes between
+consecutive registers. The Linux kernel regmap framework validates
+register accesses using IS_ALIGNED(reg, map->reg_stride) as an address
+alignment check (drivers/base/regmap/regmap.c). The Linux kernel syscon
+driver (drivers/mfd/syscon.c) sets reg_stride directly to reg_io_width:
+
+  syscon_config.reg_stride = reg_io_width;
+
+The current OpenSBI code incorrectly multiplies reg_io_width by 8,
+converting a byte value to bits. Fix this by using reg_io_width directly
+as the stride value, consistent with the Linux kernel.
+
+Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
+---
+ lib/utils/regmap/fdt_regmap_syscon.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/utils/regmap/fdt_regmap_syscon.c b/lib/utils/regmap/fdt_regmap_syscon.c
+index 1309a55c..59cd5ee5 100644
+--- a/lib/utils/regmap/fdt_regmap_syscon.c
++++ b/lib/utils/regmap/fdt_regmap_syscon.c
+@@ -190,7 +190,7 @@ static int regmap_syscon_init(const void *fdt, int nodeoff,
+ 
+ 	srm->rmap.id = nodeoff;
+ 	srm->rmap.reg_shift = 0;
+-	srm->rmap.reg_stride = srm->reg_io_width * 8;
++	srm->rmap.reg_stride = srm->reg_io_width;
+ 	srm->rmap.reg_base = 0;
+ 	srm->rmap.reg_max = size / srm->reg_io_width;
+ 	switch (srm->reg_io_width) {
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
