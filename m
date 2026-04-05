@@ -4,104 +4,89 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9B489E85389
-	for <opensbi@archiver.kernel.org>; Fri,  3 Apr 2026 20:29:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id D806FE64014
+	for <opensbi@archiver.kernel.org>; Sun,  5 Apr 2026 07:24:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=WmpmWqkfgXxSWfjvIJpLUr3CmZpgPn+e/yQ2DJuFG34=; b=L6Oh87ovkUO2uc
-	mmM2/syQdUfgc5mLCDeZVxmPwtdfMxDi2aPZU/ykr9/4osyEErS2PBLzbhwHC7TiIoj9cYdhpZyHS
-	fmJCoStPn/uxVthsLgX4nWOXIYfYKRh9F0akXrdcd6tYukiK1yAgmR1UYTKyAglFhLUx+0mACfoYX
-	pRJncLoHjFalWfm1t0PL5ippOK84vEuvGA6sQVOyPKj5+hOgPNqafxMPDmBX8hPRC8YmuWigrQMTf
-	Z8gNM5oc27pfi+fkPgSA7WdZPVRb3m/mDiaimHrHNi8vH2FpNRh7AMocw07F4FpF5+f6ZdM7ot+qY
-	qFwx0VD8jPwynhB9NiOw==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=mkFcyntGcWZteYNzsbrHiJFD9FzF3MdFSYQogcV9mEE=; b=eLpx5ioBBw+cWr
+	n3a3MxrJ4kq9pYdhojRLZ/PY7DRGiHM+DO18xxxMGjFPysAsuPDZadF9SMEmex+Z49kT32x7T2rOM
+	tDMwfvrKd6ZpIGaExA4BYCG1Nzdzs+U/xPuusDXdiDaAawoqcYOs6rXKGaNqvKrKCdn69JJCDRSes
+	qBc3lA2rAPX/KIGecoqS/Hck8RvqH4fe4U4M/vAIxYW2bXjmhDelt0JPtwT9m+dGywqN5cc8hpjEM
+	I/xiMrainncXJboHRnKx4AJo8ehDZWqbkL5ulntLVmvUWsxcB8rddZfi+iGlqOyDvjGgtjH2mvpDW
+	YT2TFYufZ3+9Bhmw67bg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w8l8o-00000002XCf-0X9v;
-	Fri, 03 Apr 2026 20:29:18 +0000
-Received: from mail-westusazon11020100.outbound.protection.outlook.com ([52.101.85.100] helo=BYAPR05CU005.outbound.protection.outlook.com)
+	id 1w9Hq5-0000000426r-2ObT;
+	Sun, 05 Apr 2026 07:24:09 +0000
+Received: from mail-pj1-x1044.google.com ([2607:f8b0:4864:20::1044])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w8l8l-00000002XC4-32YZ
+	id 1w9Hq3-0000000426V-01Dg
 	for opensbi@lists.infradead.org;
-	Fri, 03 Apr 2026 20:29:16 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=OHRrfGropXwGryhrVVzBDJhUOQg502584DlefDrjG2lvZNYHbDwyhq18fQ9TU1pTB7MQKorY2xpG1fZaN6vFWziXTssrYtAZmTCuwr3gGo3Oa9He35y4NFgOO8Mr4scZ7QL6NOf5tpZ1hXZ2exPGxIsuY2EP1uXAxnvE9bTZGikAoaZauDU6TK3aL8cEwt2AWgCr+mI1AquUJMG2NNGU2/k7AgbIinbIJdT+WydW/R4gMngBCN3dA60GeP+XXarEuiL/8RYhmUBbvCM1byg6bH4JVHQJZvzVqsI0jGnPy/sofY5/aFmwDK9a3zro0bOKYvmHf53Aqw5RYm4k983Uqg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=6X/46RTrRXJTl3cNFZP25l+bb2zaxDJjLb6ApvkFABw=;
- b=be+CsRrZenky/YiF9Cz876J3j3ptZpOMNXibPjIa+V8S3S86uY8Gcyuu6Y4Zun4VeyzvVeCHflRhJQ/xC1CT5XQ4IN8AOSD9nKh3Dcx4xivxr6zuBBvamdTlCjcNm+KOXYkzP3AbAPyHVG6Y6DoDpwJ23y3ldzJLomuemlsImQLPXkuJ873UCmpjbHy81Ty7owu9tQ5Oe3o5Gyq9Xkb/kGLfkXU+shuukVWL2fFJGPP7wuBh+s06oxXvG7x2XOAk85AG9h3Ztgrx29yWHoOb+b5Oot4rkhcKHhgNxdU72j/1t9obH/mZYBfgtpe6XKZuE8hISn3L6DzzndzHJJOQeg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6X/46RTrRXJTl3cNFZP25l+bb2zaxDJjLb6ApvkFABw=;
- b=KpC42Wruxg948/Zy4iwHSzXdWvDFJigOVGUNud4cqmF5ThETygYhrQP2GR3eIqvlytHfWc0b4RAhDCr5dVVFYCp5g5Euh3GBFb8KgRk+6x1P3A+9Eg2Y6lMEVrpyrOIBVix2s7gtZKZ+fZf/8RNv/Pxz+EcoxMtIoECgqhhBJnjAXza18pfrOwN+mX6qZURmGGzxK2IWGLe2q2Owo86h/yhJNtCJY7ZjCwApHhfH384SNpfCjg+InxO1k+xVlbnJRpR+rUePPDKnVmHqCmldPz2F9FuIo6T8v0p/1APtQtbidBP1VMOpLFvqMd8bHr6+1OfM5lWROrmKya5R9M5wlA==
-Received: from DS7P220CA0004.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:1ca::11) by
- CO6PR22MB2916.namprd22.prod.outlook.com (2603:10b6:303:14f::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.17; Fri, 3 Apr
- 2026 20:29:10 +0000
-Received: from DM2PEPF00003FC7.namprd04.prod.outlook.com
- (2603:10b6:8:1ca:cafe::f8) by DS7P220CA0004.outlook.office365.com
- (2603:10b6:8:1ca::11) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.21 via Frontend Transport; Fri,
- 3 Apr 2026 20:29:10 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- DM2PEPF00003FC7.mail.protection.outlook.com (10.167.23.24) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.17
- via Frontend Transport; Fri, 3 Apr 2026 20:29:09 +0000
-Received: from davidAhead.lan (unknown [10.8.0.10])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 3D39C80FC6;
-	Fri,  3 Apr 2026 13:29:08 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-To: opensbi@lists.infradead.org
-Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH] lib: utils/regmap: Fix reg_stride calculation in syscon regmap
-Date: Fri,  3 Apr 2026 14:29:03 -0600
-Message-ID: <20260403202903.3407945-1-david.garcia@aheadcomputing.com>
-X-Mailer: git-send-email 2.43.0
+	Sun, 05 Apr 2026 07:24:08 +0000
+Received: by mail-pj1-x1044.google.com with SMTP id 98e67ed59e1d1-35da9c0c007so2820305a91.2
+        for <opensbi@lists.infradead.org>; Sun, 05 Apr 2026 00:24:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1775373845; x=1775978645; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=xcN4wtVSegVuOWORusyhGbj0hbiZhGyvNHjmin432aE=;
+        b=GQ4iYjdeWpoXWvOcdZXmN/UrK4Dw+muBaBIn3ZUEHOlE7pQ36Fpe9gss3EtVp+NITV
+         nrnYIhxyAwMXz0a2fXS53wp6+IBBSfGYv32d84IxfUHfkaQX2NzuX4ZVMhThxnuuAmEW
+         /wKVmU1eKSC+LTU0TPgSCxBuf5NyW48IElSRR5NJ4H4sbtfiAm2UNBigFWiM/XoGwlIt
+         byeQEHOqp2uWQdKnzS/l/7eeFkYTZCOfhHif+Sq0/28CXt85uq+G7Z8Oy0pzcp7JIRwb
+         lG8LbPa7JkV44VlV0v6tgy2Z/7EJ1IVLMdtMMcaMP1gTbAPJ0dpPFo7kx8s6v2Xs9LHA
+         BHzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775373845; x=1775978645;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=xcN4wtVSegVuOWORusyhGbj0hbiZhGyvNHjmin432aE=;
+        b=lAU8mdnVyMGw73XQDHZT+KCKZYXeRpXlOs/VgzgIpaynU4RagSZrzBHYPcCWR+NPoc
+         b8zvA2X5J5qWmAUqZma22ccDgQjLmyW8bW5K2xp1zdDQDx+Q9DNHwskIpMSG+9t1y7Ao
+         HzC6sH7W30WDIYCrnPcF1EQxCBes7/17PX9OT/d72dzbVm5gOzqpx15nOtiFkh588mfO
+         6IK4+d92r2d0Q9cN8QHhZzxH4v033Zw4UOqdvC18DIj3PjwbuMZv0qkrLKmY54Qbxm1G
+         PRv7yVu8bmyGRXrtjfetR966Ve+Md7PxhrhkL1rDHLtg874el0nPsdJItwmUN7ifhKug
+         B0mA==
+X-Forwarded-Encrypted: i=1; AJvYcCWe1eX79HaCZmPUt7JCaL0XFUCer+CuMTq3OUE+xl8vgcoq4Bc8vNC4xcxtR5O0yejMFiBMqQ99@lists.infradead.org
+X-Gm-Message-State: AOJu0YxpMN0ncTCGSYEkXe61Y/sAC7H6iyr7KXY9oPT8l9WUXsspaLSb
+	5lqadKW+x9CcZMo2x9XhMN/6CXG1JeI05zeb5q10MpOI9yKkAoWEdaVvTxIrHbnKwUY=
+X-Gm-Gg: AeBDieuK92+DhuuvgDnhAtzBebNrmxqSBRNfl+V+6IX9R8T5IKCh1sG+YnjEQM8QJYv
+	vIzWMAAXqu1RHrbYjly0ecyR8ensxajulo9/tzsnj5x/8DFf9DT36ZjwYJ4/uRPwoJdzRfP9gUv
+	WcpJ1WHRYNQbZjlfyTQdaE1Xe1Om8DAqrYtnGVUJ5TGRzaZvuhwVFK7ZMijkHSAJc7t2t1i4EIm
+	+CMt2RvDQ6oogpdV2ohmdYHsoh2ALfFDGzM9+EI+zdVbhN6I97w8GtnxCvY0krYRYBmjqyvTwxJ
+	augD1zt5bU1r/lPBLdxwJseenG0SMYx4cb3EfUb3WeeUnFKGs9PFq47YUaCNXsrkE9SjQodPKEX
+	01+4rz5C0moNKJa51OmWG9fJZaNAEXoXjILHDZIzXN2cJiPCEzNdPwxEDUvqRVJPmVPtjqp5ZHH
+	Xe78J23LGbTLZE8Bi0I70eX6ecL8d7GkjS36Rfvmb8pIxAKRbaQzBVDVZMaYUL2w==
+X-Received: by 2002:a17:90b:3dcb:b0:35b:e671:a527 with SMTP id 98e67ed59e1d1-35de679fc26mr8217209a91.3.1775373845575;
+        Sun, 05 Apr 2026 00:24:05 -0700 (PDT)
+Received: from [10.0.0.205] (1-169-192-175.dynamic-ip.hinet.net. [1.169.192.175])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35dd36a0595sm10633607a91.16.2026.04.05.00.24.03
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 05 Apr 2026 00:24:05 -0700 (PDT)
+Message-ID: <7177101d-8d27-429d-83c1-816d2edde2eb@sifive.com>
+Date: Sun, 5 Apr 2026 03:24:01 -0400
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM2PEPF00003FC7:EE_|CO6PR22MB2916:EE_
-X-MS-Office365-Filtering-Correlation-Id: 71c95d3f-f0b4-4198-bfac-08de91bfa947
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|56012099003|18002099003|55112099003;
-X-Microsoft-Antispam-Message-Info: YEXYg6mqOReHSz1YCOKUuxQJsIps8M9OWjsLFevI0sDowtggGnbXvpRtglWwFM+W6bW+198BEE5tQsGr3f03ZnQ8U40zvTW9pIihvtTsGOPVVj7YI98RT2FF9CxWkGAoqUCGtm6EJhVHcqe5yjjWxLEd7o9EARJ3fjmUuvz2jyN6EbnZZ4sGuglVKnSPNVBdE+68ZKx6sYnc1ZtP5vYPOKmbG5Kn0/OfTOFDNh5fmVLsXdoHczVetczGfZCSJUkxg7ilwXQecUlIn44CmUGMOX0LgHuoffQLngkxjw1MvVNA6wcrs0uk21EYtCqyJnK28iC7nInNcbDJJdAnkPctjfTxNYIov0Hqhv7Bpx4oAbFWWGII4q3zv0jjEU3BHfIHrurZz8HSORLfVkhYsYxwesJ4rVUS1l4Bhh8o8mkv3H91o0YFruKhvRD6DskL0tiKVHZgfqEpRZdfrCcRX1nEhP3RxaFkvM+nbUOFQtvEkHxT1ZEcRUj3bMr57duADPwEuKEM5xtPFNHmFH88we+vCWjr4bE/BIj/TfnFDBCJPNhdVzXuqIhXF+TugDmBt3vevXTxBdSqYxaZROBBDpg17a2L4Hnj1MH+TPqwPnlEjtNsJ74r2YqueI1XBpZJOBInyNaxtsjavs5OwkYLGjlzV1IWAAi1a2JkzqgzyK4ZBAAB/dIHlr5dNrxExlXdVMG3IshxSdxaOPFKUTN+H1kb2MOYupGnqE+isGCr6n9h3VB6vJM95kGSsJuudDJQiHnXIxtmS+MXFobkROuff7CGzw==
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(56012099003)(18002099003)(55112099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: C80wdZO2M+15X+v/6BxgsDZgljrGrNFXiFbW/1SQDTTKuuvW046FAakOnMG2XcFTEd9YSuPZtKwByRdg8rdEJDm4hsZCKIY2UqJS7plOdjeBJkbNS5wm50hN8zBrj/4XFixftuHoN6sRhx04mDrArvlfzeLEXDq17PgUvz2oN7q2ocQXP1XhkRUGJN/EgP8fWukr70PJYWlkpvk+oslDYnO45EjN7fq8WQUJkxBPZreVhc1eSN8RKXIplApubwZU4QKrAgd6ydUsswKUBmDV/pkOCXayy/1cwSW+NcPV/TkIET05h4kxzo9QRZDmgJpOcBEFGnTMO0Gte6cV9RlFgtrzrTFU3dcbBdrwI37J8g5e/iiqyyB49CLvYTGEoJMrhulTBnqnuriaBWMQPfs3NOdCdf/OcEgiQBciwXKYyw7PR6UCxKj35cncfXeJetgl
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Apr 2026 20:29:09.6733
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 71c95d3f-f0b4-4198-bfac-08de91bfa947
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM2PEPF00003FC7.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO6PR22MB2916
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH] sbi: add hardware isolation abstraction framework
+To: Raymond Mao <raymondmaoca@gmail.com>, opensbi@lists.infradead.org
+Cc: scott@riscstar.com, dave.patel@riscstar.com, raymond.mao@riscstar.com,
+ robin.randhawa@sifive.com, samuel.holland@sifive.com,
+ anup.patel@qti.qualcomm.com, anuppate@qti.qualcomm.com, anup@brainfault.org,
+ dhaval@rivosinc.com
+References: <20260317201849.903071-1-raymondmaoca@gmail.com>
+Content-Language: en-US
+From: Yu-Chien Peter Lin <peter.lin@sifive.com>
+In-Reply-To: <20260317201849.903071-1-raymondmaoca@gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260403_132915_838221_900A4C49 
-X-CRM114-Status: UNSURE (   9.26  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260405_002407_072546_F836E7FA 
+X-CRM114-Status: GOOD (  12.71  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,44 +98,130 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The reg_stride field represents the address stride in bytes between
-consecutive registers. The Linux kernel regmap framework validates
-register accesses using IS_ALIGNED(reg, map->reg_stride) as an address
-alignment check (drivers/base/regmap/regmap.c). The Linux kernel syscon
-driver (drivers/mfd/syscon.c) sets reg_stride directly to reg_io_width:
+Hi Raymond,
 
-  syscon_config.reg_stride = reg_io_width;
+On 3/17/26 4:18 PM, Raymond Mao wrote:
+> From: Raymond Mao <raymond.mao@riscstar.com>
+> 
+> Introduce a system-level hardware isolation framework with a
+> registration API and per-domain context tracking.
+> This establishes an abstraction that allows multiple mechanisms to
+> be composed while keeping core domain data structures independent
+> of any single platform implementation.
+> 
+> Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 
-The current OpenSBI code incorrectly multiplies reg_io_width by 8,
-converting a byte value to bits. Fix this by using reg_io_width directly
-as the stride value, consistent with the Linux kernel.
+Thank you for the RFC patch on the hardware isolation framework. I'm 
+currently
+reworking our internal WorldGuard patches and plan to share them for 
+development
+with Jim's WG QEMU simulation.
 
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
----
- lib/utils/regmap/fdt_regmap_syscon.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I wanted to offer some personal input based on my exploration of an 
+alternative
+approach which might be useful as we gather community feedback.
 
-diff --git a/lib/utils/regmap/fdt_regmap_syscon.c b/lib/utils/regmap/fdt_regmap_syscon.c
-index 1309a55c..59cd5ee5 100644
---- a/lib/utils/regmap/fdt_regmap_syscon.c
-+++ b/lib/utils/regmap/fdt_regmap_syscon.c
-@@ -190,7 +190,7 @@ static int regmap_syscon_init(const void *fdt, int nodeoff,
- 
- 	srm->rmap.id = nodeoff;
- 	srm->rmap.reg_shift = 0;
--	srm->rmap.reg_stride = srm->reg_io_width * 8;
-+	srm->rmap.reg_stride = srm->reg_io_width;
- 	srm->rmap.reg_base = 0;
- 	srm->rmap.reg_max = size / srm->reg_io_width;
- 	switch (srm->reg_io_width) {
--- 
-2.43.0
+The goal is to utilize WorldGuard for system-level protection in static
+partitioning TEE scenarios (e.g., OP-TEE). To achieve this, we need to
+work on two components:
 
+1. RISC-V Worlds ISA Extension
+
+The Worlds ISA extension [1] introduces per-hart World ID (WID) 
+management via
+CSRs like `mlwid` and `mwiddeleg`. These concepts should integrate naturally
+with OpenSBI's domain framework:
+
+- Each domain can be assigned a `next_wid` (corresponding to `mlwid`)
+- Each domain can be assigned a `next_widlist` (corresponding to 
+`mwiddeleg`)
+
+When OpenSBI switches to a target domain, it assigns the domain's 
+`next_wid` to
+`mlwid`, effectively enabling hardware-enforced physical address space 
+isolation
+for that supervisor domain.
+
+2. WorldGuard Checker Driver
+
+The WG checker driver parses device-tree information and programs the 
+WorldGuard
+checkers to create access control rules associating memory/device 
+regions with
+allowed World IDs.
+(We SiFive will also propose DT formats for this.)
+
+Device Isolation Example:
+
+deviceA: [0x10000000, 0x20000000) WID3
+deviceB: [0x20000000, 0x30000000) WID0, WID3 (shared)
+deviceC: [0x30000000, 0x40000000) WID0
+
+Memory Partitioning Example:
+
+Given a DRAM range `[0x8000_0000, 0x1_0000_0000)`, we can partition it 
+as follows:
+
+| Mode    | Main User | WID      | Physical Address Range 
+                    |
+|---------|-----------|----------|----------------------------------------------------------|
+| M-mode  | OpenSBI   |       3  | [0x8000_0000, 0x800C_0000) 
+                    |
+| SU-mode | Linux     | 0, 1, 3  | [0x800C_0000, 0xC000_0000), 
+[0xC100_0000, 0x1_0000_0000) |
+| SU-mode | OP-TEE    |    1, 3  | [0xC000_0000, 0xC100_0000) 
+                    |
+
+During a domain context switch, OpenSBI assigns the target domain's 
+`next_wid`
+to `mlwid`. This ensures that the hart can only access memory regions 
+associated
+with the active WID, providing hardware-enforced isolation.
+
+One open question I'm exploring is whether to extend 
+`sbi_domain_memregion` with
+WorldGuard-specific fields (flags, permissions, allowed WIDs) as bus checker
+region descriptor for following considerations:
+- WorldGuard checker slots will make use of TOR addressing mode, which
+   PMP does not
+- WorldGuard slots do not have execute permission semantics, unlike PMP
+- Reusing PMP-style flags directly may cause logic errors in functions like
+   `sbi_domain_check_addr()`
+
+I haven't fully implemented this yet, so the design may change as I work 
+through
+the details.
+
+In addition to the RISC-V Worlds ISA specification, I'd like to share 
+resources/
+found helpful for understanding WorldGuard and system-level protection:
+- [1] RISC-V Worlds ISA Extension:
+  
+https://github.com/riscv/riscv-worlds/releases/download/riscv-isa-release-4ae2105-2026-01-09/riscv-privileged.pdf
+
+- [2] RISC-V Secure System Partitioning with Worlds and TrustZone (v0.7.2):
+   https://github.com/MIPS/riscv-partitioning/releases/tag/v0.7.2
+
+- [3] RISC-V Platform Security Model (v0.5):
+   https://github.com/riscv/riscv-security-model/releases/tag/v.05
+
+- [4] RISC-V Implementing Application Processor TEEs (Whitepaper):
+  
+https://riscv.org/wp-content/uploads/2025/10/RISC-V-Implementing-Application-Processor-TEEs-REV-1.pdf
+
+Again, these are just my quick notes and personal input for this milestone.
+We should keep talking with the community to ensure our plan is on the right
+direction.
+
+Looking forward to collaborating on this!
+
+Best regards,
+Peter Lin
 
 -- 
 opensbi mailing list
