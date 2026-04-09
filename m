@@ -4,106 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id DF438F31E25
-	for <opensbi@archiver.kernel.org>; Thu,  9 Apr 2026 14:57:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1A7D7F364B4
+	for <opensbi@archiver.kernel.org>; Thu,  9 Apr 2026 19:20:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=MN8nRUJUsTyZBpsAyJl6aB3U8/iE6rzmRRcMGRMRhSc=; b=vQaTKRlJAJz3LT
-	myUzxk9RdAPr2oTB/DJzY+Kck2EPRpO6oiR6wzjH4T9wz908+JEP2s2E641mDJnqv0bWP5dhM86Fu
-	cIcwmO7ml/2VQkJpMVVOoaWr6A2WG/5jlHgqGylatdQDY8viXHxD5o7QlsMX5o42WW9aESxdPpniK
-	hliCKVJM4wKJknXYCTRWTiCKXLMMfeOUzeMxwFU23M2BDpxBh45uygJ/dKrgeBDOGfFTyJtq0FDpd
-	DZkWC8M9ocNBSGQfCjtfKW2H3gGWni28tG8bptxokJOVgCA+SlDCLKPC74I5UjaC7Wyd2s+izKsCG
-	jXxX7uvS0aoPJcm4VtXw==;
+	List-Owner; bh=TnP5SzjuyZuZjMp3hJoYTDDgpLs6Tm6FmgaH5IWamCQ=; b=oC17Qr2P9VmV9Y
+	hs14zl6Q1oJDS06xo5Uk21pnABtIIRNYgyxuG6mlwpWOJA2MtA9ueMldYhpVxV/wyRwajWA0HT7E4
+	O7aHM7TIBx2OUminAV5wTyRxG9nmvCLNariPTMQCdGl5B2u7132XIZMftOS+9g/fglxH1Cb/M3NOi
+	potZUj5Ul4WdlBms4mUTIdiUDro6K1ZJ1HOJbr64ABcK4dSgc5DxwW0aE2jhsRIAe1gnqB2FZEUXd
+	djDD+aSI2LhBDs1lPHeQGe2ARerdqgwK5MR3P+Qq/JeM9Rad3iVGdpklgxoFMs2by1cFnRcYjwLnE
+	RKt8NCIqHF0Rif3eIDNg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wAqp9-0000000AkNN-3hU2;
-	Thu, 09 Apr 2026 14:57:39 +0000
-Received: from mail-southcentralusazon11023113.outbound.protection.outlook.com ([40.93.196.113] helo=SA9PR02CU001.outbound.protection.outlook.com)
+	id 1wAuv9-0000000B97l-3c6U;
+	Thu, 09 Apr 2026 19:20:07 +0000
+Received: from mail-dy1-x1329.google.com ([2607:f8b0:4864:20::1329])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wAqp6-0000000AkMS-3mmo
+	id 1wAuv7-0000000B97M-0unQ
 	for opensbi@lists.infradead.org;
-	Thu, 09 Apr 2026 14:57:37 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lYa9OgHtO7745Qa9In26ZhmMf9LGgzlpoX9WDPWnblIdZDddhXJPJuzK2M09ms4OHrmTGjLBsR8OIyunYrfQ0FDoS4j4bJKnXdonCmSdya95NCCor/KHK8T44mK8GSun0V5V0MMBl9W3O0K9afZvnWTM9QLCK8h7U7A/KIhfTz4cuYcWKABBh68oTkAUey6YzWk3IScxlSyZnJ8bAFWe4VZ7AYKPmQgcrgoi/zM90Zz97a/nqq1BmDXqkI3IKVt6qR6eSoOxYL2B1cc6rdVWUEsFqQrBQ65BkCxIbTc7Pb6JLJAwfG4+jO/MsmlYfWPkjFwjDHkiZ/DgyZRXqy+HcA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yDQDKl5mKLR011sh5CQtdgrwx3COHb4FBwfyPx4uipY=;
- b=NmGYRUDX0tUhzU+q9eh/2bGJZ3pI7to8VXUAhhMIvuYowbN+tHKJESG5yPBv8LnqHEXinMU9ovGOAW8vVUgBun46+qrAU0QdduAtTLFOlDhZookLukSxHqzx67phSe1l6G9RY+wxcIC29sHq4Nu1/lsP40TNRM8oL8bR2mtY8Zh1B6sBEN1Zt1EgC0QHoG6Ps9LrmtFhj6pNt1R9Lwh2pXU8J8VQziIW7zHQnSaatT6dBDmeKB0yI+nWhBwL0Y5rj2EmZThWEVRnq9fZeg3RAWQhbNMtV3s4Gs/5GqQeqdce57Hs6Gh9SlKGLVQ8XwVgMKDmYstGWesIhCKs9NoAGQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yDQDKl5mKLR011sh5CQtdgrwx3COHb4FBwfyPx4uipY=;
- b=z9UDtBOTtcvXv6rrShGEqmky0BNUJngmOiJgBcYQ9dMsZk3RzujDFW2Qn1VgawyFUqB4pMBKY9wJb8gjjOBGbiiPp7Wr2aNBwoDy5YutdQecXQRkcadATwGZQnF61+JWMSvAwkuxmZy5jjL+RX4qkrB4myG4UoAqBsF91hJp59rjmVYEvAx5GP1Q2SnbZMaygh/cUWN3ZOvgBfCGh107uwUAWsdaajDaQVNLjB+m6aD0FnNaAZxIsAU36JLqnrlrHZiT5oiaGRUaXQiI/CWRT2W9t3txU5cOf5dlAMrnWsCW0mQ3mw769m0q5iIT9EFQMS6F1lgNPTfQyalnkawEZA==
-Received: from BYAPR07CA0104.namprd07.prod.outlook.com (2603:10b6:a03:12b::45)
- by SA1PR22MB942330.namprd22.prod.outlook.com (2603:10b6:806:4c1::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.20; Thu, 9 Apr
- 2026 14:57:29 +0000
-Received: from MWH0EPF000C6192.namprd02.prod.outlook.com
- (2603:10b6:a03:12b:cafe::ba) by BYAPR07CA0104.outlook.office365.com
- (2603:10b6:a03:12b::45) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.40 via Frontend Transport; Thu,
- 9 Apr 2026 14:57:28 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- MWH0EPF000C6192.mail.protection.outlook.com (10.167.249.102) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.21
- via Frontend Transport; Thu, 9 Apr 2026 14:57:28 +0000
-Received: from davidAhead.lan (unknown [10.8.0.20])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 8478380FD6;
-	Thu,  9 Apr 2026 07:57:27 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-To: opensbi@lists.infradead.org
-Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH 2/2] include: mailbox: Update RPMI notification structs and add Performance event definitions
-Date: Thu,  9 Apr 2026 08:57:16 -0600
-Message-ID: <20260409145716.2611852-3-david.garcia@aheadcomputing.com>
+	Thu, 09 Apr 2026 19:20:06 +0000
+Received: by mail-dy1-x1329.google.com with SMTP id 5a478bee46e88-2cc43ca447aso67092eec.1
+        for <opensbi@lists.infradead.org>; Thu, 09 Apr 2026 12:20:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tenstorrent.com; s=google; t=1775762404; x=1776367204; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=phyHgJpdfWS/vSlsNtTEeJdPw8Vzydg0XtJpIXKTexY=;
+        b=QR5dZZQnqqDJC2RESmStelcp0gE+xe27GnB0ROIiMtfUGF8CmyH0TLyOUNh3SlOtbj
+         8I9q+G+xaS9WD1xAauXEjRuLqzO1UGmkXT6pP53W0jouPbbKH8ygUbnO5sXXFyZB7959
+         e8LdOYHo5HNU4PKUupc/VABJbAJ8ph0wSwWlK+Tt/A0HhnJbCyOatxxMyY6nOfVUs41a
+         rtyFYdz1wdSL0PKHmXTsvlFzfqu/C7bixEYzEQP5JKTXXv078XxOF/bNi9UvqYYiKeBW
+         TTUL1oU8nWXIYESNL0h4Ed52b7JyUlwuu4XWByVFegACTlDL0GhZ3cwwR2d5fouPBCvb
+         XB+g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775762404; x=1776367204;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=phyHgJpdfWS/vSlsNtTEeJdPw8Vzydg0XtJpIXKTexY=;
+        b=WcVq5DEHD1yiF4DqNWz70qmhi1sPvfyEcyk7wYtyQGlVW+vXmRs59nr0iEz7mfqX7L
+         N0XGSASYA7DPYOhbunKjQvWcxrNF9UkWxeMiC8sly7u6117eyjB029EUwbUbG8wey7QP
+         OkApaB64p5oBH6myco4FOydHOgkDKG3cKc2+gOdYZORBgavzGEe3C0wadTbZnmHK2gER
+         +rmHzlegr3pEOK+SFOO1SjIDqlh2xKlyRORDtLb51mTR/s0RmjW2sPCfbG8Asu5wB16i
+         N4KIv7fdIauh1JkssvnF07zdrjsT8Xtz9uLHLrXnIIk7LPGjT4MkOmi31/UFjvPfhiVw
+         BuNA==
+X-Gm-Message-State: AOJu0YxU2Bf+J0z4XYfq7yec57QV7knPVCnTLZ4gvGMGcGdrxA/vEWLC
+	2xwxjfuiBIq0yOJATiBVhNRmyrUSrwS1V0rQUepNxb8lHLSIb/6tznyFDrPCURoiecOhCrFk5Ax
+	8Sw19
+X-Gm-Gg: AeBDietMAaqbk0UeL+80aLoCfGz2bYxot7QoQRGzo6bGZnZzH1FFXZeAdHFC3lkVMpe
+	oynXtNxJvxVs1E1uFgA/E79MO8ybisaltufGjpU5T3/SiR8x+sNrjLzsqG+qy+WQfTJy+TRsWMm
+	Cp3hGq37NLScnW8VWCovceqmD9PNSeeBcb5DV6tDl66YwTGmAhKguDUHtOWEBCKcgdvkqhSIYBT
+	amLM7MpNczI7i/p91lN/lx8PQOVFn3TMzaYscXi3XmyP21hQ7MriiMf+hmbCD6tHMe8UlnkikPa
+	8cAGbQtZufANSwgPB/j+Bg2beTkSg0izXN3vqUB7YFvzAWaCT5jh8qYoWTW3x95ivZsGMc1HznB
+	DIe5+cOhHOWeltNytOdeFeaY3VrPODbcloJ0qVFQKAN7RhL1i3CDdtx+CkLBMdOW9NPrxMqfBM1
+	olhQ2xskIsEhPdqzPijRT6s95Zf9FIBS97jbjuzXqx7hWLgaX7qw==
+X-Received: by 2002:a05:7022:6183:b0:12a:7181:2f12 with SMTP id a92af1059eb24-12c34eda887mr81803c88.3.1775762403799;
+        Thu, 09 Apr 2026 12:20:03 -0700 (PDT)
+Received: from ausc-rvsw-c-02.tenstorrent.com ([38.104.49.66])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12c3459faa7sm769481c88.2.2026.04.09.12.20.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Apr 2026 12:20:03 -0700 (PDT)
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
+To: Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org
+Subject: Re: [PATCH 3/7] firmware: Add RNMI/RNME handler infrastructure
+Date: Thu,  9 Apr 2026 19:19:43 +0000
+Message-ID: <20260409191943.291207-1-evvoevod@tenstorrent.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260409145716.2611852-1-david.garcia@aheadcomputing.com>
-References: <20260409145716.2611852-1-david.garcia@aheadcomputing.com>
+In-Reply-To: <CAAhSdy2PHSsMNib5Bscp1mWvdQTii_PG7jDpgR9vf_f=7x04sw@mail.gmail.com>
+References: <20260310183155.2186463-1-evvoevod@oss.tenstorrent.com> <20260310183155.2186463-4-evvoevod@oss.tenstorrent.com> <CAAhSdy2PHSsMNib5Bscp1mWvdQTii_PG7jDpgR9vf_f=7x04sw@mail.gmail.com>
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6192:EE_|SA1PR22MB942330:EE_
-X-MS-Office365-Filtering-Correlation-Id: d3055d3c-d0ed-44aa-4e3d-08de964851c5
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|36860700016|376014|82310400026|18002099003|55112099003|56012099003|22082099003;
-X-Microsoft-Antispam-Message-Info: 4lEQvSMD3SG+VxkulONpADqBVAcxuZ8s2G116NZnZTMEAiXl06YoYyh4J6dzQ3V90QcaclfaI8uHiq2cGrizpCLuRi3kLh54W+Rps6BQAx4284FCsjpMHRXpQl2Do5PZKvVRIa0MQpm4T3qSRdnNEb9TRqjs5XWrMt9ktcovGTzJvnRhXB1BorJmPRp93J+ZfmmVxJ4qq3erzu6ed0usJLHatFeevk7WhB3pd06lT7Ue22919q7dqdzFN8/QMpCXJtsPu64/GCGWfw5OVmblJjiL/APCED7MK2xKyOTxT8+rRAqGQu7RABWWl+1fkdF92vnrQujVLkxUbOfkEWCt/rrzU+kuWB1ozw2YpaahB/1WNlc5on4nhp/m+7tqrPZYEyKBYuUYWyVyDB1uHHksFkIGkSqmHKhFn4ypPiqmwposbQGggBOsduTX7BSiFKdTS01S+xJOGfOMvh6v6fvdZQqgTe7X1sD19CvrFYzis+kMk3YLQQHP1Ncskc3v67LduKXHJRK11XJCOoCHelmbLsy8GPa3LwMMZDelPa0b1PMJoPhIF7LbJ1aPiNZLTLPQulbC2EqP7UwJzSi2JiegvEYKXpHthdwonYHjeNqWKWJBWLYHLx7KWgyLcLzIqVJ8a/Jf1qxhr7aOfLqQRsglg0OO05jY/6OX9V4pMYaZL9TAfXgDTYfoIuPS3UxOaXy9nHW6elF5c5Ia0qLmAjQEduNEC4rjf14G2dXyjca5Niph34KkXUdgavjtHsS4+PIa91Xkh0wnf3bID39Hnu4xnw==
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(376014)(82310400026)(18002099003)(55112099003)(56012099003)(22082099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: nBrJ74tIyJNYNM6B5457GdiGVbAZFQhwmzAF7fS8GeXuJKxoZTgtQQCaV9kPtxh33BlZEuZ9QN3olpZKqMl6YKqkHbWUDcfJyu6Jtm3LHwaeELYUMbxIkWaApBM+zDiLY2Ju4IHjdBaCmUESCng9X1Lq1inyRj3k8+9K2v+PaWXDd7s5R4eMZ8WP45W+CPjFesstIkAakgwkhA+Cua6g96JggGqgHSxNkpdTlLMqSlMaO5gTEEBuziHlU1qkxBn6jpvH2hhtqlmRPzGajwNOHe01r8ImWm5Q59mJZQ2F3GM0b6wCwkr1QjRvq44HehX9+tDQYq8FgaPxhgQNpUNYoTzZD7hyrCqBhDeBnZKCe6rCEkKrpgyk9g7G7SSHduBL94dTHUG1AlIIjZiRQxPGeFU6cMdGmKG1osxn4c8NVuCiUzrIHnMcEA3Fled8rauc
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Apr 2026 14:57:28.6190
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: d3055d3c-d0ed-44aa-4e3d-08de964851c5
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: MWH0EPF000C6192.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR22MB942330
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260409_075736_943464_507DE0E3 
-X-CRM114-Status: UNSURE (   8.87  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260409_122005_313562_40F25A7E 
+X-CRM114-Status: GOOD (  17.82  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -120,105 +98,107 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add RPMI notification header size and offset macros, and event header
-composition macro. Add rpmi_event_notification_state enum with disable,
-enable, and return current state IDs. Add req_state field to
-rpmi_enable_notification_req and current_state field to
-rpmi_enable_notification_resp for RPMI spec compliance.
+On Wed, Apr 9, 2026 at 8:21 AM Anup Patel <anup@brainfault.org> wrote:
+> On Wed, Mar 11, 2026 at 12:03 AM Evgeny Voevodin
+> <evvoevod@tenstorrent.com> wrote:
+> >
+> > +.macro TRAP_CALL_C_RNME_ROUTINE
+> > +       /* Call C routine */
+> > +       add     a0, sp, zero
+> > +       call    sbi_rnme_handler
+> > +.endm
+> > +
+>
+> s/TRAP_CALL_C_RNME_ROUTINE/TRAP_CALL_C_RNMI_ROUTINE/
 
-Add notification event ID enum and data structures for RPMI Performance
-service group events: power change, limit change, and level change.
+This macro is used in the RNME (exception) path to call
+sbi_rnme_handler(), so the current name is intentional.
+See below for why RNME needs a separate path.
 
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
----
- include/sbi_utils/mailbox/rpmi_msgprot.h | 49 ++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+> > +_rnmi_handler:
+>
+> s/_rnmi_handler/_trap_rnmi_handler/
 
-diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
-index c35788f0..8526ace3 100644
---- a/include/sbi_utils/mailbox/rpmi_msgprot.h
-+++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
-@@ -87,6 +87,18 @@
- #define RPMI_DEF_TX_TIMEOUT			20
- #define RPMI_DEF_RX_TIMEOUT			20
- 
-+/** RPMI Notification header size */
-+#define RPMI_NOTIF_HDR_SIZE 16
-+
-+/** RPMI Notification header offsets */
-+#define RPMI_NOTIF_HDR_REMAINING_OFFSET 0x00
-+#define RPMI_NOTIF_HDR_RETURNED_OFFSET 0x04
-+#define RPMI_NOTIF_HDR_LOST_OFFSET 0x08
-+#define RPMI_NOTIF_HDR_RESERVED_OFFSET 0x0C
-+
-+/** RPMI Notification event header constructor */
-+#define RPMI_NOTIF_EVENT_HDR(eid, dlen) ((u32)(eid) << 16) | ((u32)(dlen) & 0xFFFF)
-+
- /**
-  * Common macro to generate composite version from major
-  * and minor version numbers.
-@@ -232,14 +244,24 @@ enum rpmi_servicegroup_id {
- 	RPMI_SRVGRP_VENDOR_END = 0xFFFF,
- };
- 
-+/** RPMI event notification state IDs */
-+enum rpmi_event_notification_state {
-+	RPMI_EVENT_NOTIF_DISABLE_STATE = 0,
-+	RPMI_EVENT_NOTIF_ENABLE_STATE = 1,
-+	RPMI_EVENT_NOTIF_RET_CURR_STATE = 2,
-+	RPMI_EVENT_NOTIF_MAX_COUNT = 3,
-+};
-+
- /** RPMI enable notification request */
- struct rpmi_enable_notification_req {
- 	u32 eventid;
-+	u32 req_state;
- };
- 
- /** RPMI enable notification response */
- struct rpmi_enable_notification_resp {
- 	s32 status;
-+	u32 current_state;
- };
- 
- /** RPMI Base ServiceGroup Service IDs */
-@@ -846,6 +868,33 @@ enum rpmi_performance_service_id {
- 	RPMI_PERF_SRV_MAX_COUNT,
- };
- 
-+/** RPMI Performance ServiceGroup Notification Event IDs */
-+enum rpmi_performance_event_id {
-+	RPMI_PERF_EVENT_POWER_CHANGE = 0x01,
-+	RPMI_PERF_EVENT_LIMIT_CHANGE = 0x02,
-+	RPMI_PERF_EVENT_LEVEL_CHANGE = 0x03,
-+	RPMI_PERF_EVENT_MAX_COUNT,
-+};
-+
-+/** RPMI Performance power change notification data */
-+struct rpmi_perf_event_power_change {
-+	u32 domain_id;
-+	u32 power_uw;
-+};
-+
-+/** RPMI Performance limit change notification data */
-+struct rpmi_perf_event_limit_change {
-+	u32 domain_id;
-+	u32 max_level;
-+	u32 min_level;
-+};
-+
-+/** RPMI Performance level change notification data */
-+struct rpmi_perf_event_level_change {
-+	u32 domain_id;
-+	u32 level;
-+};
-+
- struct rpmi_perf_get_num_domain_resp {
- 	s32 status;
- 	u32 num_domains;
--- 
-2.43.0
+Will fix. I'll also rename _rnme_handler to _trap_rnme_handler
+for consistency.
 
+> > +_rnme_handler:
+> > [...]
+> > +       /* mret - return from exception */
+> > +       mret
+> > +
+>
+> Drop this _rnme_handler because C handler can differentiate
+> between NME and NMI based on the MSB of mncause CSR.
+
+Per the Smrnmi extension specification, when an
+exception occurs with NMIE=0:
+
+  "the actions taken are the same as if the exception had
+   occurred while mnstatus.NMIE were set, except that the
+   program counter is set to the RNMI exception trap handler
+   address (rather than the address specified by mtvec)"
+
+This means RNME takes the normal M-mode trap action: it writes
+mepc, mcause, mstatus -- the regular M-mode CSRs, not MN* CSRs.
+mncause is not written by the RNME trap action (it only
+writes mepc, mcause, mstatus), so it retains whatever value
+it had before -- either from a preceding RNMI (MSB=1) or its
+unspecified reset value. In neither case does it reflect the
+RNME exception, so checking mncause MSB cannot reliably
+distinguish RNMI from RNME.
+
+mncause is only written with MSB=0 for exceptions when Smdbltrp
+is also implemented (from the mncause CSR description: "exception
+within M-mode that results in a double trap as specified in the
+Smdbltrp extension").
+With Smdbltrp, both paths go to NMIVEC and use MN* CSRs, so a
+single handler would work. Without it, they differ fundamentally:
+
+  RNMI: MNSCRATCH, MNEPC/MNSTATUS/MNCAUSE, mnret
+  RNME: MSCRATCH,  MEPC/MSTATUS/MCAUSE,    mret
+
+A single assembly entry point cannot serve both because the very
+first instruction must choose which scratch CSR to swap (MNSCRATCH
+vs MSCRATCH), and there is no CSR that can distinguish the two
+cases at that point.
+
+I'd like to keep both handlers for correctness with pure Smrnmi.
+Smdbltrp support (and the single-handler optimization) could be
+added in a follow-up series. Would that work?
+
+> > +       int (*rnme_handler)(struct sbi_trap_context *tcntx);
+> > +
+> > +       int (*rnmi_handler)(struct sbi_trap_context *tcntx);
+>
+> Drop these platform callbacks from this patch. We will be
+> extending sbi_irqchip to support NMIs. For NME, we will
+> can simply crash.
+
+Agreed. I'll remove the platform callbacks. For RNMI, I'll
+route through sbi_irqchip once that support is in place. For
+RNME, I'll simplify to just print diagnostics and hang.
+
+> > +struct sbi_trap_context *sbi_rnme_handler(struct sbi_trap_context *tcntx);
+> > +
+> > +struct sbi_trap_context *sbi_rnmi_handler(struct sbi_trap_context *tcntx);
+> > +
+>
+> Only one sbi_trap_rnmi_handler() needed here which will be
+> called for both NMI and NME.
+
+As described above, since the assembly entry points must be
+separate (different CSR sets), I'll keep two C functions:
+
+  - sbi_trap_rnmi_handler(): handles NMI interrupts, will
+    route through sbi_irqchip
+  - sbi_trap_rnme_handler(): handles exceptions with NMIE=0,
+    prints diagnostics and hangs
+
+Both will be renamed with the trap_ prefix as you suggested.
+
+Thanks,
+Evgeny
 
 -- 
 opensbi mailing list
