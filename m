@@ -4,36 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1F718F31E22
-	for <opensbi@archiver.kernel.org>; Thu,  9 Apr 2026 14:57:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DF438F31E25
+	for <opensbi@archiver.kernel.org>; Thu,  9 Apr 2026 14:57:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=LZzXakTNVgkaowJH17ZwK9BD3p7wLHTkHE47B9hJtns=; b=DW/mzsvrHi5vyH
-	q2iWxehEsQS+CjNMM5LGFJ8BQSmtZqplnwyV1rdU1ANJfZU5JoDCoki/XQU5uNLecFr7QB7zWxKPU
-	2oepF3OzqYL+QL5HgAlyIWBOYHzMFOblrsmo2cxFyhJAuW0kEhd5jnlYgGmYa/fpuR8xRdsIVXhwi
-	BEw6z/k+pDKX8jJ2HzUXBvww+hro6CW3o9HBn/N5VcTrGdAbt1rBVwEzSNU0ebLFLWFA7qL2y+Xq3
-	X3PDP+9gt2dqT8dHYKZMmazgqDtMsJhnQfT+2/XravM3A+3dPdNvMDJupqVVtQnmFzsHfYiiRYTVl
-	Erg7W+/XAWFhbLrOt5uw==;
+	List-Owner; bh=MN8nRUJUsTyZBpsAyJl6aB3U8/iE6rzmRRcMGRMRhSc=; b=vQaTKRlJAJz3LT
+	myUzxk9RdAPr2oTB/DJzY+Kck2EPRpO6oiR6wzjH4T9wz908+JEP2s2E641mDJnqv0bWP5dhM86Fu
+	cIcwmO7ml/2VQkJpMVVOoaWr6A2WG/5jlHgqGylatdQDY8viXHxD5o7QlsMX5o42WW9aESxdPpniK
+	hliCKVJM4wKJknXYCTRWTiCKXLMMfeOUzeMxwFU23M2BDpxBh45uygJ/dKrgeBDOGfFTyJtq0FDpd
+	DZkWC8M9ocNBSGQfCjtfKW2H3gGWni28tG8bptxokJOVgCA+SlDCLKPC74I5UjaC7Wyd2s+izKsCG
+	jXxX7uvS0aoPJcm4VtXw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wAqp7-0000000AkN5-46Mu;
-	Thu, 09 Apr 2026 14:57:37 +0000
-Received: from mail-westus2azlp170120002.outbound.protection.outlook.com ([2a01:111:f403:c007::2] helo=MW6PR02CU001.outbound.protection.outlook.com)
+	id 1wAqp9-0000000AkNN-3hU2;
+	Thu, 09 Apr 2026 14:57:39 +0000
+Received: from mail-southcentralusazon11023113.outbound.protection.outlook.com ([40.93.196.113] helo=SA9PR02CU001.outbound.protection.outlook.com)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wAqp5-0000000AkLv-2SEu
+	id 1wAqp6-0000000AkMS-3mmo
 	for opensbi@lists.infradead.org;
-	Thu, 09 Apr 2026 14:57:36 +0000
+	Thu, 09 Apr 2026 14:57:37 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=aZFI0pTi3cCkwuuIMk5krlCsYkDnf/fOTJ/3PEk0FKUx2/upD0eyrXXceDtp3DEqFU2FtUvRx13zkUt3c95e6Wm//HlCBPK4cBV0wuwNlsS1PKnwRJwspdTpyWJJcy3YuEpbaOISkSxaHr/grjkaV40cO4D/0FTOAHFwduzXyuAdnxUbQWoRGSVdmFx/lcslW54l82Xi8RIWcrCavS5kinlA583hd5RcMzjtTc/sNDK7bWkNuGBtBILjrTGqcFI8NMJuRbqp0fqmlQu66Rx2SQnk7MjLwzdGwCLfcaT/k8u5rtwtbKi1xKCHtwAsCqKo3j5wfm9Tp4mpp+q3sdB49A==
+ b=lYa9OgHtO7745Qa9In26ZhmMf9LGgzlpoX9WDPWnblIdZDddhXJPJuzK2M09ms4OHrmTGjLBsR8OIyunYrfQ0FDoS4j4bJKnXdonCmSdya95NCCor/KHK8T44mK8GSun0V5V0MMBl9W3O0K9afZvnWTM9QLCK8h7U7A/KIhfTz4cuYcWKABBh68oTkAUey6YzWk3IScxlSyZnJ8bAFWe4VZ7AYKPmQgcrgoi/zM90Zz97a/nqq1BmDXqkI3IKVt6qR6eSoOxYL2B1cc6rdVWUEsFqQrBQ65BkCxIbTc7Pb6JLJAwfG4+jO/MsmlYfWPkjFwjDHkiZ/DgyZRXqy+HcA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NfE7BfuuM8827ErVFI0GZyGqnOyhgG8j5KJFpG1bZ0s=;
- b=pUtkrwEHs6c1YWvdkjF0shp4TefAw7+7UuFM7W1kSFTPkKlPRNxLt1sc34eKvFNl6rty8jbqnUaPXqA3DZsyffJ7uzLFip1UWPs53lSe4WQKHuOeZIxVD6D6QAULwiqwH2Zs92j4eeNNdLb4HoNcPWs1W33JOxm9k/3I/oijtXaieTCLHXqpL2A+H9nXMSbftBsWaRx97R3tMQu45tNlDNN27yJUjNhbscJ5eaPAvW+hZEIezd0FETzwNfupI4lIGEF8QxBX6+c1Cm1wpePhpZflpo2UnhkP3J8EiTPH8FodBJ3C//JgfTNjKtkewDyElyfYNqpZ8YpRQtXzOZzHlQ==
+ bh=yDQDKl5mKLR011sh5CQtdgrwx3COHb4FBwfyPx4uipY=;
+ b=NmGYRUDX0tUhzU+q9eh/2bGJZ3pI7to8VXUAhhMIvuYowbN+tHKJESG5yPBv8LnqHEXinMU9ovGOAW8vVUgBun46+qrAU0QdduAtTLFOlDhZookLukSxHqzx67phSe1l6G9RY+wxcIC29sHq4Nu1/lsP40TNRM8oL8bR2mtY8Zh1B6sBEN1Zt1EgC0QHoG6Ps9LrmtFhj6pNt1R9Lwh2pXU8J8VQziIW7zHQnSaatT6dBDmeKB0yI+nWhBwL0Y5rj2EmZThWEVRnq9fZeg3RAWQhbNMtV3s4Gs/5GqQeqdce57Hs6Gh9SlKGLVQ8XwVgMKDmYstGWesIhCKs9NoAGQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
  50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
  smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
@@ -42,18 +42,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=NfE7BfuuM8827ErVFI0GZyGqnOyhgG8j5KJFpG1bZ0s=;
- b=gvcwCGcOKL7JO4AKCOLuTRd3JfhKKhS1JaGZSISdOk/QhlChMyCi2HCosbBPN23yg4nhc8cI2N3YxF1ZvgUpoQu++6lYQ0e6RGYe+uS2zipqOerpVcC9DAzf39zWuWE4VXcAIs8STDeN2QM70M0YWpcJfyRA2B1sDm3y/vpq+vlcLCKjDOZpCQcIWFkWoXGFt1iRq5R76E2dSw/MahOuuveIefPqAqo9ch24Grs3qTpyjj2L4RG1+ekVAghW1oh3k5n9iBFJYOaiAFKOQYEXHPTgpmordy2S0py/OdQo0AymCe9PLtA1wntAjVVEacRH8dRi2lbzn3Scp3/GjR2FUA==
-Received: from CH2PR03CA0008.namprd03.prod.outlook.com (2603:10b6:610:59::18)
- by BL1PPFAA7FD2635.namprd22.prod.outlook.com (2603:10b6:20f:fc04::f43) with
+ bh=yDQDKl5mKLR011sh5CQtdgrwx3COHb4FBwfyPx4uipY=;
+ b=z9UDtBOTtcvXv6rrShGEqmky0BNUJngmOiJgBcYQ9dMsZk3RzujDFW2Qn1VgawyFUqB4pMBKY9wJb8gjjOBGbiiPp7Wr2aNBwoDy5YutdQecXQRkcadATwGZQnF61+JWMSvAwkuxmZy5jjL+RX4qkrB4myG4UoAqBsF91hJp59rjmVYEvAx5GP1Q2SnbZMaygh/cUWN3ZOvgBfCGh107uwUAWsdaajDaQVNLjB+m6aD0FnNaAZxIsAU36JLqnrlrHZiT5oiaGRUaXQiI/CWRT2W9t3txU5cOf5dlAMrnWsCW0mQ3mw769m0q5iIT9EFQMS6F1lgNPTfQyalnkawEZA==
+Received: from BYAPR07CA0104.namprd07.prod.outlook.com (2603:10b6:a03:12b::45)
+ by SA1PR22MB942330.namprd22.prod.outlook.com (2603:10b6:806:4c1::8) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.15; Thu, 9 Apr
- 2026 14:57:27 +0000
-Received: from CH3PEPF0000000D.namprd04.prod.outlook.com
- (2603:10b6:610:59:cafe::6f) by CH2PR03CA0008.outlook.office365.com
- (2603:10b6:610:59::18) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.20; Thu, 9 Apr
+ 2026 14:57:29 +0000
+Received: from MWH0EPF000C6192.namprd02.prod.outlook.com
+ (2603:10b6:a03:12b:cafe::ba) by BYAPR07CA0104.outlook.office365.com
+ (2603:10b6:a03:12b::45) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.9769.40 via Frontend Transport; Thu,
- 9 Apr 2026 14:57:27 +0000
+ 9 Apr 2026 14:57:28 +0000
 X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
  smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
  header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
@@ -62,47 +62,48 @@ Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
  receiver=protection.outlook.com; client-ip=50.45.236.54;
  helo=mail.aheadcomputing.com;
 Received: from mail.aheadcomputing.com (50.45.236.54) by
- CH3PEPF0000000D.mail.protection.outlook.com (10.167.244.43) with Microsoft
+ MWH0EPF000C6192.mail.protection.outlook.com (10.167.249.102) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.21
- via Frontend Transport; Thu, 9 Apr 2026 14:57:27 +0000
+ via Frontend Transport; Thu, 9 Apr 2026 14:57:28 +0000
 Received: from davidAhead.lan (unknown [10.8.0.20])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 09DDA80AAA;
-	Thu,  9 Apr 2026 07:57:25 -0700 (PDT)
+	by mail.aheadcomputing.com (Postfix) with ESMTP id 8478380FD6;
+	Thu,  9 Apr 2026 07:57:27 -0700 (PDT)
 From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
 To: opensbi@lists.infradead.org
 Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH 1/2] lib: sbi_mpxy: Enable MPXY channel MSI availability determination
-Date: Thu,  9 Apr 2026 08:57:15 -0600
-Message-ID: <20260409145716.2611852-2-david.garcia@aheadcomputing.com>
+Subject: [PATCH 2/2] include: mailbox: Update RPMI notification structs and add Performance event definitions
+Date: Thu,  9 Apr 2026 08:57:16 -0600
+Message-ID: <20260409145716.2611852-3-david.garcia@aheadcomputing.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260409145716.2611852-1-david.garcia@aheadcomputing.com>
 References: <20260409145716.2611852-1-david.garcia@aheadcomputing.com>
 MIME-Version: 1.0
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF0000000D:EE_|BL1PPFAA7FD2635:EE_
-X-MS-Office365-Filtering-Correlation-Id: 46232891-7368-45e7-55b0-08de964850fb
+X-MS-TrafficTypeDiagnostic: MWH0EPF000C6192:EE_|SA1PR22MB942330:EE_
+X-MS-Office365-Filtering-Correlation-Id: d3055d3c-d0ed-44aa-4e3d-08de964851c5
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|36860700016|82310400026|376014|22082099003|18002099003|56012099003|55112099003;
-X-Microsoft-Antispam-Message-Info: oT1wp/9Zrf5d0KObSpXr69dA5wQDBUVjRaC9U8QpyELqQUDMPQTvPujUFwi6xdFw6YeBuy16JkMlR73DjEBy66bJXgbCYM4+x9l5Eoghz2n7WkcnwZM8TGylxeLF8Nu+4yXR0/BncZ7tjmVceP72USCgq1M/zeGjGPA4CRf0Bpv+/e23BeWkIB7DvCJfIGhpywKtuCKtjDNOlEKwtFValr+NZM+XrmxIulfewX/Yy47Owoxr6wiMvfme4tA4hY31vUsjceCQt6UdM2DJQd6A8EDWwmjB+D6JVLFBIKIHrVwpLz74t9tv4SyTcz51TLFhK/+ReDnVsUMR5BG8Gf78t50PMRNKPupUlpWnIUZlAQTmCmwbDOH4Q6qQ/MKJuhNWEIdz2ZuRlvxn7BFd9M7hRvcym3io/niTo3duY2CokWOwZ3CHU26zs1DznxMncvza0dgZjDe0fInAPjsyLjIcmy1d40EDgX34lXiqEMTiu6GVMDpHBoZR0TToTMrYXWW6YSLJzCoYy8mCTCwOuqOPQLzSgq631Zw/mkc+1E+2lpCcvuPof1Q1n3sKH0+oYrv65xNcUxCjlq8tasz3pIB5zD1lQ1M1GkuNFfgOVhy8bxBLfTlj7N7D3U2xUaMVbyOmEu3fqwcZVAOBfaHT6xbqAyrseG2/CjZK8O2xE5u1deinEPAcYSIHz+b2nwjZ+nUVs2YFIHB0al6qsr0hON57K4z/RpbhhyQz6WoWbmBnkzA1N11Z0sB07TYLZmsWE2A872UlmW954N2n4SlYu/ATIQ==
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(82310400026)(376014)(22082099003)(18002099003)(56012099003)(55112099003);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|36860700016|376014|82310400026|18002099003|55112099003|56012099003|22082099003;
+X-Microsoft-Antispam-Message-Info: 4lEQvSMD3SG+VxkulONpADqBVAcxuZ8s2G116NZnZTMEAiXl06YoYyh4J6dzQ3V90QcaclfaI8uHiq2cGrizpCLuRi3kLh54W+Rps6BQAx4284FCsjpMHRXpQl2Do5PZKvVRIa0MQpm4T3qSRdnNEb9TRqjs5XWrMt9ktcovGTzJvnRhXB1BorJmPRp93J+ZfmmVxJ4qq3erzu6ed0usJLHatFeevk7WhB3pd06lT7Ue22919q7dqdzFN8/QMpCXJtsPu64/GCGWfw5OVmblJjiL/APCED7MK2xKyOTxT8+rRAqGQu7RABWWl+1fkdF92vnrQujVLkxUbOfkEWCt/rrzU+kuWB1ozw2YpaahB/1WNlc5on4nhp/m+7tqrPZYEyKBYuUYWyVyDB1uHHksFkIGkSqmHKhFn4ypPiqmwposbQGggBOsduTX7BSiFKdTS01S+xJOGfOMvh6v6fvdZQqgTe7X1sD19CvrFYzis+kMk3YLQQHP1Ncskc3v67LduKXHJRK11XJCOoCHelmbLsy8GPa3LwMMZDelPa0b1PMJoPhIF7LbJ1aPiNZLTLPQulbC2EqP7UwJzSi2JiegvEYKXpHthdwonYHjeNqWKWJBWLYHLx7KWgyLcLzIqVJ8a/Jf1qxhr7aOfLqQRsglg0OO05jY/6OX9V4pMYaZL9TAfXgDTYfoIuPS3UxOaXy9nHW6elF5c5Ia0qLmAjQEduNEC4rjf14G2dXyjca5Niph34KkXUdgavjtHsS4+PIa91Xkh0wnf3bID39Hnu4xnw==
+X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(376014)(82310400026)(18002099003)(55112099003)(56012099003)(22082099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: c8QpK8uVpPEaOi/YdukvrbhZscPTzcIE4p4S+siZ4bnZuCDNudxYJ4olv+9EjUxIjF8hQG2iQDqIjRAkVecauQzWbqAdFxyxsoYsXPME5R5Ve4XQu2bsMk7EvDvhJPldQkdKa3lBHbuEThWuxhs0wpb5U1aFrHrWIjcZzTy0vbl/9pp9ATsZCCN84L3nAHf5B5msN9kQkiXHb5z5vh5S17we55Mv1qZO59PkAgioZpKTOwN6lf5PsnCTwvxHx1k2hYdrtaUI8kkVm8RfScK8Q1FJa0AU6Arkr+TDyf1HICr6jCyKExpxUApmt14CzChy6MItGp8RVWETTL0yn1YHCRDzEd62wHCghRoBJ+aBXFlObNN6udtG3gFgfK76SHsBs+aesGTIMpQ7w/43/I7I/Z5dm9GdDrkJoKcabPTEdgAVbxH5xXEX+jAdxq9+becY
+X-MS-Exchange-AntiSpam-MessageData-0: nBrJ74tIyJNYNM6B5457GdiGVbAZFQhwmzAF7fS8GeXuJKxoZTgtQQCaV9kPtxh33BlZEuZ9QN3olpZKqMl6YKqkHbWUDcfJyu6Jtm3LHwaeELYUMbxIkWaApBM+zDiLY2Ju4IHjdBaCmUESCng9X1Lq1inyRj3k8+9K2v+PaWXDd7s5R4eMZ8WP45W+CPjFesstIkAakgwkhA+Cua6g96JggGqgHSxNkpdTlLMqSlMaO5gTEEBuziHlU1qkxBn6jpvH2hhtqlmRPzGajwNOHe01r8ImWm5Q59mJZQ2F3GM0b6wCwkr1QjRvq44HehX9+tDQYq8FgaPxhgQNpUNYoTzZD7hyrCqBhDeBnZKCe6rCEkKrpgyk9g7G7SSHduBL94dTHUG1AlIIjZiRQxPGeFU6cMdGmKG1osxn4c8NVuCiUzrIHnMcEA3Fled8rauc
 X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Apr 2026 14:57:27.2582
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Apr 2026 14:57:28.6190
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 46232891-7368-45e7-55b0-08de964850fb
+X-MS-Exchange-CrossTenant-Network-Message-Id: d3055d3c-d0ed-44aa-4e3d-08de964851c5
 X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: CH3PEPF0000000D.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: MWH0EPF000C6192.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PPFAA7FD2635
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR22MB942330
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260409_075735_624145_D12C2414 
-X-CRM114-Status: GOOD (  10.91  )
+X-CRM114-CacheID: sfid-20260409_075736_943464_507DE0E3 
+X-CRM114-Status: UNSURE (   8.87  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -119,59 +120,102 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Use imsic_get_data() to determine MSI availability for each MPXY
-channel based on IMSIC presence per hart, instead of unconditionally
-disabling it.
+Add RPMI notification header size and offset macros, and event header
+composition macro. Add rpmi_event_notification_state enum with disable,
+enable, and return current state IDs. Add req_state field to
+rpmi_enable_notification_req and current_state field to
+rpmi_enable_notification_resp for RPMI spec compliance.
 
-Add a static inline stub for imsic_get_data() when CONFIG_IRQCHIP_IMSIC
-is not enabled.
+Add notification event ID enum and data structures for RPMI Performance
+service group events: power change, limit change, and level change.
 
 Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
 ---
- include/sbi_utils/irqchip/imsic.h | 2 ++
- lib/sbi/sbi_mpxy.c                | 8 ++++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ include/sbi_utils/mailbox/rpmi_msgprot.h | 49 ++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff --git a/include/sbi_utils/irqchip/imsic.h b/include/sbi_utils/irqchip/imsic.h
-index 88dd3cfb..68f3c4ad 100644
---- a/include/sbi_utils/irqchip/imsic.h
-+++ b/include/sbi_utils/irqchip/imsic.h
-@@ -54,6 +54,8 @@ static inline void imsic_local_irqchip_init(void) { }
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index c35788f0..8526ace3 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -87,6 +87,18 @@
+ #define RPMI_DEF_TX_TIMEOUT			20
+ #define RPMI_DEF_RX_TIMEOUT			20
  
- static inline int imsic_data_check(struct imsic_data *imsic) { return 0; }
- 
-+static inline struct imsic_data *imsic_get_data(u32 hartindex) { return NULL; }
++/** RPMI Notification header size */
++#define RPMI_NOTIF_HDR_SIZE 16
 +
- #endif
++/** RPMI Notification header offsets */
++#define RPMI_NOTIF_HDR_REMAINING_OFFSET 0x00
++#define RPMI_NOTIF_HDR_RETURNED_OFFSET 0x04
++#define RPMI_NOTIF_HDR_LOST_OFFSET 0x08
++#define RPMI_NOTIF_HDR_RESERVED_OFFSET 0x0C
++
++/** RPMI Notification event header constructor */
++#define RPMI_NOTIF_EVENT_HDR(eid, dlen) ((u32)(eid) << 16) | ((u32)(dlen) & 0xFFFF)
++
+ /**
+  * Common macro to generate composite version from major
+  * and minor version numbers.
+@@ -232,14 +244,24 @@ enum rpmi_servicegroup_id {
+ 	RPMI_SRVGRP_VENDOR_END = 0xFFFF,
+ };
  
- #endif
-diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
-index a83cf16c..8ff52bb6 100644
---- a/lib/sbi/sbi_mpxy.c
-+++ b/lib/sbi/sbi_mpxy.c
-@@ -20,6 +20,7 @@
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_byteorder.h>
-+#include <sbi_utils/irqchip/imsic.h>
++/** RPMI event notification state IDs */
++enum rpmi_event_notification_state {
++	RPMI_EVENT_NOTIF_DISABLE_STATE = 0,
++	RPMI_EVENT_NOTIF_ENABLE_STATE = 1,
++	RPMI_EVENT_NOTIF_RET_CURR_STATE = 2,
++	RPMI_EVENT_NOTIF_MAX_COUNT = 3,
++};
++
+ /** RPMI enable notification request */
+ struct rpmi_enable_notification_req {
+ 	u32 eventid;
++	u32 req_state;
+ };
  
- /** Shared memory size across all harts */
- static unsigned long mpxy_shmem_size = PAGE_SIZE;
-@@ -255,11 +256,10 @@ static int domain_mpxy_state_data_setup(struct sbi_domain *dom,
- 			return SBI_ENOMEM;
+ /** RPMI enable notification response */
+ struct rpmi_enable_notification_resp {
+ 	s32 status;
++	u32 current_state;
+ };
  
- 		/*
--		 * TODO: Proper support for checking msi support from
--		 * platform. Currently disable msi and sse and use
--		 * polling
-+		 * TODO: Proper support for checking sse support from
-+		 * platform. Currently disable sse and use polling
- 		 */
--		ms->msi_avail = false;
-+		ms->msi_avail = !!imsic_get_data(i);
- 		ms->sse_avail = false;
+ /** RPMI Base ServiceGroup Service IDs */
+@@ -846,6 +868,33 @@ enum rpmi_performance_service_id {
+ 	RPMI_PERF_SRV_MAX_COUNT,
+ };
  
- 		sbi_mpxy_shmem_disable(ms);
++/** RPMI Performance ServiceGroup Notification Event IDs */
++enum rpmi_performance_event_id {
++	RPMI_PERF_EVENT_POWER_CHANGE = 0x01,
++	RPMI_PERF_EVENT_LIMIT_CHANGE = 0x02,
++	RPMI_PERF_EVENT_LEVEL_CHANGE = 0x03,
++	RPMI_PERF_EVENT_MAX_COUNT,
++};
++
++/** RPMI Performance power change notification data */
++struct rpmi_perf_event_power_change {
++	u32 domain_id;
++	u32 power_uw;
++};
++
++/** RPMI Performance limit change notification data */
++struct rpmi_perf_event_limit_change {
++	u32 domain_id;
++	u32 max_level;
++	u32 min_level;
++};
++
++/** RPMI Performance level change notification data */
++struct rpmi_perf_event_level_change {
++	u32 domain_id;
++	u32 level;
++};
++
+ struct rpmi_perf_get_num_domain_resp {
+ 	s32 status;
+ 	u32 num_domains;
 -- 
 2.43.0
 
