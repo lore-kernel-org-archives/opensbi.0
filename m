@@ -4,100 +4,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1C5A8F4198E
-	for <opensbi@archiver.kernel.org>; Wed, 15 Apr 2026 11:00:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8F529F41998
+	for <opensbi@archiver.kernel.org>; Wed, 15 Apr 2026 12:38:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=MfZ6TR6Np1HV7e70NoCGoFS8qn2D333tXI8WDpKC++k=; b=vF2Dv3lDecGopf
-	mI1TRPHBwtxcLi9mIZDjtmAB9/r0Lc4i/jQNh1TqA2Yfhf3R7BejiAW0KcDHOR8foQJeJMSK5mUus
-	qzM8KwKxtFcu4gGHFF6wygiJzfHc6fFtmGwJDWHyTrwd5yKWmY63o6/D35B6iXrCycRDUReNXfXMF
-	V5qQztiulAA5yMIsXo9yYbJCZLO7cEwbUhtMbhUg8FMpFL3Eskwh/zhxpCyn6S7qednE4rSUvHyyA
-	8szEbBTQD0+GKEO0/9gDTn3Z8yiVyW/z8oF/uibgPfXCzWC3VWZ1bs1sR3JxlgWzzfYjhDg/N7H73
-	XrdfwEdSMFhnmchx5NXg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=WM6RpZOachq1CSdLAEFAdwPDrYp7Gca75xo7LEwI/t4=; b=SidDSWnCs5Ramh
+	LV58Q4h1aI1cwPbrqrWqZigvV8CzIG9+aKnIcj9nSKvukfoCH+GRk5q6S5hLM9KUmmu6NcJPw6tb7
+	Jr5UBPiVmvx37SXP/sCcM/Kfhl75clGkMP1gMAX3L2cIQgViJpOY+pIEbzK4kItdtfNpuh4FxMdY0
+	WaCvbwuHUHUkt2d1K1AD9g6342kbbfQSKFvznIHfNBG6t3X2oZ7dej7d0NPMTG3m0RsDY54w5+vqr
+	djq8gjMU+j91v9BI2DyslC/mzFc/TLqBDV2EUygWFaLMPzDRyU3ULEEAav2DMCrdUS7e2b+S/EBY8
+	hKlaJvnc7JmGJ3vPV9WA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wCxyq-000000010Ww-2Wy8;
-	Wed, 15 Apr 2026 11:00:24 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1wCzVT-000000018F8-33EB;
+	Wed, 15 Apr 2026 12:38:11 +0000
+Received: from out30-131.freemail.mail.aliyun.com ([115.124.30.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wCxyn-000000010Ve-2Lwp
-	for opensbi@lists.infradead.org;
-	Wed, 15 Apr 2026 11:00:22 +0000
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 63F5xTKq2773230;
-	Wed, 15 Apr 2026 11:00:08 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=qcppdkim1; bh=P91YyvlpDfyZW49bbaDuic7nuidmewwd1Wv
-	IVImUMy8=; b=ocmGCnbUgDdvlZjccwACZscb9eAP5tqGE2jvYCMJFijdVwZz+dw
-	Ep4xwkqHZSUaluF9jmYwU6jZHuhNvUpdOm0qPdLC14TSEsh768UARBNLS9gx0KvQ
-	lEcOX86DTH3IlMa8VbZxF0OYnikxiV1rCXbv7A6z1aXSL2BqM3i6sWbuYpoGTy4o
-	NVYUlFjLSAodn/Ocfrt/3JgCVcmDAilBCrfhWHWOHU3abOL9k6UMzhFquIsus3yU
-	7K6CuaTvSQsQE8nExy+5Mcje+ebT+wNhdPT0Jh6XBQ0jqNVJBATa1BStD8xpaCyb
-	a7bqoGBTRjiP4dtmMABWQsAlnm6QniSxGoA==
-Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dj50v126r-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 15 Apr 2026 11:00:07 +0000 (GMT)
-Received: from pps.filterd (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 63FB03jj029579;
-	Wed, 15 Apr 2026 11:00:03 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4dg5d11e7d-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 15 Apr 2026 11:00:03 +0000 (GMT)
-Received: from APBLRPPMTA01.qualcomm.com (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 63FB03V9029541;
-	Wed, 15 Apr 2026 11:00:03 GMT
-Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 63FB03Id029529
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 15 Apr 2026 11:00:03 +0000 (GMT)
-Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id D0FC421A6C; Wed, 15 Apr 2026 16:30:02 +0530 (+0530)
-From: Anup Patel <anup.patel@oss.qualcomm.com>
-To: Atish Patra <atish.patra@linux.dev>
-Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
-        Samuel Holland <samuel.holland@sifive.com>,
-        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
-        Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH 0/3] Timer events for OpenSBI
-Date: Wed, 15 Apr 2026 16:29:59 +0530
-Message-ID: <20260415110002.2610929-1-anup.patel@oss.qualcomm.com>
+	id 1wCzVQ-000000018Do-27RS;
+	Wed, 15 Apr 2026 12:38:09 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1776256684; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=IuRIdB05XOvFlg+W6dwU8jnLRNwetfEuTnQThR5If4M=;
+	b=K2Fa2ji8wIi9478pTCLGumeeTC2cuX+QO0wZnwqDtVpjc6D4AxaluURKLeURwWPouxyuDWQAir1A4gIgOco1bDw0cOT0feQ9qRfsxiG3RQ53Vsjp2PT2Gu8tWI+7nhTEajJksGKc/HI/lmQKIDFqeAJxGH6xPRZHLSkRYduQNz0=
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0X14hhr6_1776256677;
+Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X14hhr6_1776256677 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 15 Apr 2026 20:38:01 +0800
+From: Chen Pei <cp0613@linux.alibaba.com>
+To: wangruikang@iscas.ac.cn
+Cc: pjw@kernel.org,
+	anup@brainfault.org,
+	andrew.jones@oss.qualcomm.com,
+	guoren@kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	opensbi@lists.infradead.org
+Subject: Re: [PATCH v2] riscv: smp: Align secondary_start_sbi to 4 bytes
+Date: Wed, 15 Apr 2026 20:37:57 +0800
+Message-ID: <20260415123757.123581-1-cp0613@linux.alibaba.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <83397314-c7f3-4122-9587-80c29b1d13aa@iscas.ac.cn>
+References: <83397314-c7f3-4122-9587-80c29b1d13aa@iscas.ac.cn>
 MIME-Version: 1.0
-X-QCInternal: smtphost
-X-QCInternal: smtphost
-X-Proofpoint-GUID: aGQiiAYRpIrj5BRfkY8hMBi1aGeOtFRB
-X-Authority-Analysis: v=2.4 cv=eLMjSnp1 c=1 sm=1 tr=0 ts=69df6fb7 cx=c_pps
- a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=A5OVakUREuEA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=yOCtJkima9RkubShWh1s:22 a=NEAV23lmAAAA:8 a=amyLw63ENV4AMvtQeHgA:9
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDE1MDEwMSBTYWx0ZWRfX3Y36w9/A8+T5
- qahRu41tBVK9XR9expqflEj2ndfpro2KFWUwcfUiKoboIhEuNpBhfsLtCda6fgR/6z5lpm97G7Z
- lNzUPXuCTjOOaZZQ02J/1Zd1OFh0cvVc1aJvI5iuktiJFPLhnYb3qe8behGvv0OtUhz7cQjKq3Y
- Vfv2YYIKVLaf2msS/C3vuXXP1/FyeWL/yuM+1eyxij/8BVmE0xsieO8OnNiDHikdwJtlDY6v423
- fPbagZRmP7Jcel8OL5F2c5yuMV3k324hyfqthlmkTo5E0VQmvb2qriGPWhJm3M5thh+CxoJRXh8
- mvuadrtzAP+Bs1A1y2Yxp0bBXBTGTjDskii7jO14+c+d8eIyUczD6oRsSCkxXQpEulJvDV5YJzD
- 58ZC5HHeNKtg3v/43n9gI1c/18+lkFNUJ5DNyeNfiiibyJSbg9K4/uRCzYVDnjsuBF5/rEy9rih
- E87NzXoVhYFAk9KU2VA==
-X-Proofpoint-ORIG-GUID: aGQiiAYRpIrj5BRfkY8hMBi1aGeOtFRB
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-04-14_04,2026-04-13_04,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- adultscore=0 clxscore=1011 bulkscore=0 lowpriorityscore=0 impostorscore=0
- suspectscore=0 malwarescore=0 priorityscore=1501 spamscore=0 phishscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2604070000 definitions=main-2604150101
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260415_040021_601670_F8D3BBA9 
-X-CRM114-Status: UNSURE (   8.70  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260415_053808_752559_0829FE51 
+X-CRM114-Status: GOOD (  23.53  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -114,29 +70,93 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This series extends the sbi_timer framework to support
-timer events usable from any part of OpenSBI. The platform
-drivers in OpenSBI can use timer events for timeouts or
-periodic checks.
+On Wed, 15 Apr 2026 11:39:22 +0800, wangruikang@iscas.ac.cn wrote:
 
-These patches can also be found in sbi_timer_imp_v1 branch
-at: https://github.com/avpatel/opensbi.git
+> > During SMP boot, the secondary_start_sbi address is passed to the
+> > slave core via sbi_hsm_hart_start. In OpenSBI, this address is
+> > written to STVEC in sbi_hart_switch_mode.
+> 
+> This is certainly odd (OpenSBI git blames to initial git commit. No idea
+> why this was needed.) but technically permitted by the SBI HSM spec (see
+> below).
+> 
+> * Anup and other opensbi folks: Do you know/remember why it was there?
+> It's not really a bug, but some historical context would be appreciated.
 
-Anup Patel (3):
-  include: sbi: Add sbi_scratch_hartindex() macro
-  lib: sbi_timer: Introduce per-HART timer state
-  lib: sbi_timer: Add support for timer events
+Yes, looking forward to responses from Anup and other opensbi folks.
 
- include/sbi/sbi_scratch.h  |   6 +-
- include/sbi/sbi_timer.h    |  43 +++++++-
- lib/sbi/sbi_ecall_legacy.c |   4 +-
- lib/sbi/sbi_ecall_time.c   |   4 +-
- lib/sbi/sbi_timer.c        | 221 +++++++++++++++++++++++++++++++------
- 5 files changed, 234 insertions(+), 44 deletions(-)
+> > According to the privileged specification, the BASE field of STVEC
+> > must always be aligned on a 4-byte boundary. However, System.map
+> > reveals that secondary_start_sbi is not a 4-byte aligned address.
+> >
+> > For example, the address of secondary_start_sbi is
+> > 0xffffffff80001066, and the disassembly is as follows:
+> >
+> > Dump of assembler code from 0xffffffff80001052 to 0xffffffff8000107a:
+> >    0xffffffff80001052 <_start+4178>:    c.nop   -11
+> >    0xffffffff80001054 <_start+4180>:    auipc   gp,0x1a1f
+> >    0xffffffff80001058 <_start+4184>:    addi    gp,gp,84
+> >    0xffffffff8000105c <_start+4188>:    csrw    satp,a2
+> >    0xffffffff80001060 <_start+4192>:    sfence.vma
+> >    0xffffffff80001064 <_start+4196>:    ret
+> >    0xffffffff80001066 <_start+4198>:    csrw    sie,zero
+> >    0xffffffff8000106a <_start+4202>:    csrw    sip,zero
+> >    0xffffffff8000106e <_start+4206>:    li      t0,2
+> >    0xffffffff80001070 <_start+4208>:    csrw    scounteren,t0
+> >    0xffffffff80001074 <_start+4212>:    auipc   gp,0x1a1f
+> >    0xffffffff80001078 <_start+4216>:    addi    gp,gp,52
+> >
+> > When writing to STVEC at address 0xffffffff80001066, the actual
+> > write address is 0xffffffff80001064, corresponding to the address
+> > of the previous ret instruction.
+> Also technically permitted.
 
--- 
-2.43.0
+Yes, but this is unintended behavior, and we should avoid it.
 
+> > This is unexpected, and if an
+> > interrupt occurs at this point, it will cause unpredictable results.
+> >
+> > However, secondary_start_sbi immediately masks all interrupts and
+> > updates STVEC, so no problems occurred.
+> 
+> An interrupt cannot trap in between secondary_start_sbi starting and the
+> interrupts getting masked individually. The only arch state guaranteed
+> by HSM is [1]:
+> 
+> |Register Name | Register Value
+> |satp          | 0
+> |sstatus.SIE   | 0
+> |a0            | hartid
+> |a1            | `opaque` parameter
+> |All other registers remain in an undefined state.
+> 
+> Of which sstatus.SIE = 0 means that interrupts are masked in Supervisor
+> mode.
+> > In summary, it is more reasonable to make secondary_start_sbi
+> > satisfy 4-byte alignment.
+> 
+> Thus, it is unnecessary.
+> 
+> If this fixes a bug where an interrupt can trap into the wrong stvec for
+> you, then your firmware is broken.
+
+This isn't about fixing a bug (as mentioned earlier, it's highly unlikely
+to happen), but rather the STVEC check mechanism added to QEMU discovered
+this issue. Regarding the problem itself, I would appreciate any clarification
+or modifications from OpenSBI, but currently this modification is the simplest
+and most feasible.
+
+> Michael's suggestion about SYM_CODE_START still stands, but if you do
+> that, that's just a really minor refactoring, and in any case the
+> current commit message cannot stand.
+> 
+> Vivian "dramforever" Wang
+> 
+> [1]:
+> https://github.com/riscv-non-isa/riscv-sbi-doc/blob/v3.0/src/ext-hsm.adoc#function-hart-start-fid-0
+
+Thanks,
+Pei
 
 -- 
 opensbi mailing list
