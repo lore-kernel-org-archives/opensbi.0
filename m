@@ -4,84 +4,65 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8F609F45A0A
-	for <opensbi@archiver.kernel.org>; Fri, 10 Apr 2026 19:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0F58EFA0C22
+	for <opensbi@archiver.kernel.org>; Wed, 15 Apr 2026 03:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
+	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=BuKGHQ1PsRT8xleQJXjvkBgYIczBxNwdfUyIompZbTU=; b=s9XClAFsjLZMFz
-	rqrkVgMsdHwspX4bjPYvv/+U3eN7cMbYoV6E4v4CpOLLhv9JKCtiygt8NjqYui6jjWQxr6n29vtuR
-	VOfWVz7fS2NorcaMDusXRCMAF81p9OUxLSWxUfjUo3SX15F3Hq2R7glEqDVGTvxFk7q3GnSoU2HYe
-	N+kJnNYUx4SRVuBOfS5GBlkeX/YgDZlCEM7yEhHVQQRaCaWz5lDHrAqRqnpqWD1NjKKNcu24tJu9Q
-	ii603Rq6xNJcJWM2b3eHyacnBJSDfkdB3NCi3UyVE5eQIUTBsIrq46FWbpl7/tOlRfXWmlK2i4C2V
-	RteabgGjxoPl9Jp0BlZA==;
+	List-Owner; bh=6Zl07TD5WFhlGlMQYXvBMSAPujsAtz6cj6kTJ5Ay0lc=; b=1rzD3gnjZtTKDB
+	UXpDya7hoVSvH6uQ1dWL66Y4Z19hIRq4nYt1kgvq+SPIleSl8PaVDEkXxo548d8EtWtv4JXVi5aQ4
+	DynPsuoaISRzMTxPlS+9YcQWNSvKfwCgcGyIFxY7g23hYzHYPId6Z8+5ST1ank+RAQ9rpfDgWuEvS
+	LN2YkHn9T5KuN/yiZ6FHly6fs3AdIH5gTg57hBwSMXEZ6hoBcHmtS4pOIvzvA4lSdKuEVAzYajcKt
+	EyUXINbUQPJJEzgD2R0vGFC84aXZ9WSvSW8Hfcr3sUcly981mqvy9kJ4taXdebXjSlH0XnF1iqnqa
+	FObs3qsnwLLAFXjobSDg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wBHKN-0000000CiiN-3uNI;
-	Fri, 10 Apr 2026 19:15:39 +0000
-Received: from mail-dl1-x122a.google.com ([2607:f8b0:4864:20::122a])
+	id 1wCr6I-00000000WlO-48NB;
+	Wed, 15 Apr 2026 03:39:38 +0000
+Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wBHKK-0000000Cii2-3uOQ
-	for opensbi@lists.infradead.org;
-	Fri, 10 Apr 2026 19:15:38 +0000
-Received: by mail-dl1-x122a.google.com with SMTP id a92af1059eb24-12c1161232dso125778c88.1
-        for <opensbi@lists.infradead.org>; Fri, 10 Apr 2026 12:15:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tenstorrent.com; s=google; t=1775848536; x=1776453336; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aGjTPNX1zoamN5wQYm20J6hyEPl0jfMZI/rRKSEifl4=;
-        b=bnuwUX+byV7T/cI/CooQE1vHhsOM0P272HfodLzZCae8AuZ8FYDVshF0p5B/9mAc6o
-         Qd10xmjtELUFSKKMtVyw7FySps1GEvIsD9Czx8GVaE536aP1tTtqFTABCalc0wlqdd7Q
-         iVGLtK5fqvnqKDjgAj1JDp2BkNP3fIfW3ppTyirsfUz929Gzk/4vT6m7QKMbTw7h0dzo
-         ehTbuDf56Gu8+xYM8Y6eREOKknRZQmspRkwbODFubXnv6WeAMJzRx38SNGFYoT8JRagY
-         iAWPeUCoK0qKuH26S4E6B/MnwASrrcfy0EZ8FSZvyOLHdTSRFktCLefmT0PWDbEwR817
-         P5aw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775848536; x=1776453336;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=aGjTPNX1zoamN5wQYm20J6hyEPl0jfMZI/rRKSEifl4=;
-        b=nBeOeYaUHsSnwinS9Bs79BJDvRzTkMR0Iphrd1CYNX45WNhVR7LW0nlB/K7S/VhZPc
-         HMLbjECsxnVwr+4eYEYY9aKf/BjFE8yTr5aW495lk5E23gP12lRHm1v8CrC95qvM45nA
-         gl61Ls6LwqXFKFU3k2eVT/iflSH4yHjC2D6LrBamf+X8bOvcxx0nZ965SpDnpBidicqF
-         yAC3Yu2IZXpKwQZpjSGNuWF8a4PK6sX25WDY9ZXYt+aDyEzDHPFpR9Q33gnvh5AO6Uwy
-         2+vLzr+BTp59y2kMdDdAg8nyEwUs5++PBj6Lpnu0F5jhlEkWCfIesZIu+DbGXyzlqeje
-         CTGw==
-X-Gm-Message-State: AOJu0YztpPlQjobyAtIHX4Lp2+43SBIS4ykv8S0DNcG9Esi5Tio9m0AG
-	okz8a4euzbpGFtv6pjUL+TdeC680S3ni52XzGFYqDC4xYJoKvy2S8/w1Db3Luu/slZo=
-X-Gm-Gg: AeBDiesZWK02Wy6DTS/zGhM/DKgszgJfJojwq9fwOkqBasv3cy2vbipjYueoiLDZAHk
-	jcDchmmAEFBpjsTUYy6JH2P0pp5O2nG+2FThVJDDyR8/z4YXhHwycQvlbU8hGbYb2jH/9VsnueA
-	skCKhMB+ZrXGqIpuHx9Iay+L20GhOsbhXuxeJvIfFQhbv8RzV4m3nrkDKnsrXYC/La1MdC7utJG
-	eJ5TJZN+STzvA1XhPqFHATeyLpq5KhbqaPMippuESz3cJGQYSDeg+bVEn2b26XJq12SPHBQoejR
-	XefZP2krFCoZDs5RpLk9akXX2mfCNsWKzKb6jF8qefeSa9TNxIxidA/oLoWKregmVg+QbxscogE
-	Pd/N2btD3E/T5z+EPVE47+7i54EinlpdvxoPoPeZe2IklCk0XMai1qhQDujNBFNM8ipakfLni91
-	G3OldEgHhUnR1g2bplKUgtNqdtAcggrrM391P1/Iy07EpNZrS42A==
-X-Received: by 2002:a05:7022:b92:b0:12c:33dd:fa28 with SMTP id a92af1059eb24-12c34e6b5c2mr1223014c88.2.1775848533534;
-        Fri, 10 Apr 2026 12:15:33 -0700 (PDT)
-Received: from ausc-rvsw-c-02.tenstorrent.com ([38.104.49.66])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12c3459faa7sm5402802c88.2.2026.04.10.12.15.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Apr 2026 12:15:33 -0700 (PDT)
-From: Evgeny Voevodin <evvoevod@tenstorrent.com>
-To: Anup Patel <anup@brainfault.org>
-Cc: opensbi@lists.infradead.org,
-	evvoevod@tenstorrent.com
-Subject: Re: [PATCH 3/7] firmware: Add RNMI/RNME handler infrastructure
-Date: Fri, 10 Apr 2026 19:15:11 +0000
-Message-ID: <20260410191511.393063-1-evvoevod@tenstorrent.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <CAAhSdy2jFkLSH0WThrcEg36LDc+hwiGHRcHGOZ6+FxdO+ok+2Q@mail.gmail.com>
-References: <20260310183155.2186463-1-evvoevod@oss.tenstorrent.com> <20260310183155.2186463-4-evvoevod@oss.tenstorrent.com> <CAAhSdy2PHSsMNib5Bscp1mWvdQTii_PG7jDpgR9vf_f=7x04sw@mail.gmail.com> <20260409191943.291207-1-evvoevod@tenstorrent.com> <CAAhSdy2jFkLSH0WThrcEg36LDc+hwiGHRcHGOZ6+FxdO+ok+2Q@mail.gmail.com>
+	id 1wCr6E-00000000WkU-2Vvt;
+	Wed, 15 Apr 2026 03:39:37 +0000
+Received: from [192.168.0.109] (unknown [123.118.218.47])
+	by APP-05 (Coremail) with SMTP id zQCowABX7A9qCN9ptCuODQ--.13235S2;
+	Wed, 15 Apr 2026 11:39:22 +0800 (CST)
+Message-ID: <83397314-c7f3-4122-9587-80c29b1d13aa@iscas.ac.cn>
+Date: Wed, 15 Apr 2026 11:39:22 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] riscv: smp: Align secondary_start_sbi to 4 bytes
+To: cp0613@linux.alibaba.com, pjw@kernel.org, anup@brainfault.org,
+ andrew.jones@oss.qualcomm.com, guoren@kernel.org
+Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+ opensbi@lists.infradead.org, Anup Patel <anup@brainfault.org>
+References: <20260413132009.133752-1-cp0613@linux.alibaba.com>
+Content-Language: en-US
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+In-Reply-To: <20260413132009.133752-1-cp0613@linux.alibaba.com>
+X-CM-TRANSID: zQCowABX7A9qCN9ptCuODQ--.13235S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxCF18AF47XF1rKw17Kw1xZrb_yoW5Cw1Upr
+	yaq3Z8KrW5tw1Ivr1UGrW5W3y5trnrtayUJ3WUJF1F9rsxCF1IgrWS9FW7tF1DW34Fy3W2
+	yr4qva1UCw12yaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkIb7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I2
+	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
+	jxv20xvEc7CjxVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26F4UJVW0owA2z4x0Y4
+	vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xv
+	F2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r
+	4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwIxGrwCY1x0262kKe7AKxVWUAVWUtwCF
+	04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r
+	18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vI
+	r41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr
+	1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvE
+	x4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7IU5k9NDUUUUU==
+X-Originating-IP: [123.118.218.47]
+X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260410_121536_977468_7F28147A 
-X-CRM114-Status: GOOD (  12.18  )
+X-CRM114-CacheID: sfid-20260414_203935_025026_75CDB984 
+X-CRM114-Status: GOOD (  15.03  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -93,43 +74,65 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Fri, Apr 10, 2026 at 1:09 AM Anup Patel <anup@brainfault.org> wrote:
-> Clearly, for RNME, the existing _trap_handler() can be re-used
-> because _trap_handler() depends on same set of CSRs and mret
-> instruction.
->
-> I agree that code path RNME should be different from RNMI but
-> that does not mean we need three separate low-level handlers.
->
-> Further, the Smrnmi spec also states the following:
-> "For example, some implementations might use the address specified
-> in mtvec as the RNMI exception trap handler."
->
-> This means on platforms where mtvec points to the RNMI exception
-> trap handler address, we will have to anyway re-use _trap_handler()
-> and sbi_trap_handler() for RNMI exception handling.
-
-Thanks, I see your point about reusing _trap_handler/_hyp for RNME.
-Initially I thought that providing platform flexibility to handle
-RNME explicitly would be beneficial, but I agree -- we can reuse
-the existing trap handling machinery since RNME is fundamentally
-a regular M-mode trap entering at a different address.
-
-I'll remove _rnme_handler in v2 but will keep the platform callback
-for setting up RNMI/RNME vectors, since these are implementation-
-defined and each platform needs to initialize them. I'll replace
-the _rnme_handler argument with the trap handler address (read
-from mtvec) so the platform can program NMEVEC appropriately.
-
-Thanks,
-Evgeny
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+WyArY2Mgb3BlbnNiaSwgQW51cDogV2hhdCB3YXMgdGhlIGRlYWwgd2l0aCBzZXR0aW5nIHN0dmVj
+IGluIHNiaV9oYXJ0X3N3aXRjaF9tb2RlPyBdCgpPbiA0LzEzLzI2IDIxOjIwLCBjcDA2MTNAbGlu
+dXguYWxpYmFiYS5jb20gd3JvdGU6Cgo+IEZyb206IENoZW4gUGVpIDxjcDA2MTNAbGludXguYWxp
+YmFiYS5jb20+Cj4KPiBEdXJpbmcgU01QIGJvb3QsIHRoZSBzZWNvbmRhcnlfc3RhcnRfc2JpIGFk
+ZHJlc3MgaXMgcGFzc2VkIHRvIHRoZQo+IHNsYXZlIGNvcmUgdmlhIHNiaV9oc21faGFydF9zdGFy
+dC4gSW4gT3BlblNCSSwgdGhpcyBhZGRyZXNzIGlzCj4gd3JpdHRlbiB0byBTVFZFQyBpbiBzYmlf
+aGFydF9zd2l0Y2hfbW9kZS4KClRoaXMgaXMgY2VydGFpbmx5IG9kZCAoT3BlblNCSSBnaXQgYmxh
+bWVzIHRvIGluaXRpYWwgZ2l0IGNvbW1pdC4gTm8gaWRlYQp3aHkgdGhpcyB3YXMgbmVlZGVkLikg
+YnV0IHRlY2huaWNhbGx5IHBlcm1pdHRlZCBieSB0aGUgU0JJIEhTTSBzcGVjIChzZWUKYmVsb3cp
+LgoKKiBBbnVwIGFuZCBvdGhlciBvcGVuc2JpIGZvbGtzOiBEbyB5b3Uga25vdy9yZW1lbWJlciB3
+aHkgaXQgd2FzIHRoZXJlPwpJdCdzIG5vdCByZWFsbHkgYSBidWcsIGJ1dCBzb21lIGhpc3Rvcmlj
+YWwgY29udGV4dCB3b3VsZCBiZSBhcHByZWNpYXRlZC4KCj4gQWNjb3JkaW5nIHRvIHRoZSBwcml2
+aWxlZ2VkIHNwZWNpZmljYXRpb24sIHRoZSBCQVNFIGZpZWxkIG9mIFNUVkVDCj4gbXVzdCBhbHdh
+eXMgYmUgYWxpZ25lZCBvbiBhIDQtYnl0ZSBib3VuZGFyeS4gSG93ZXZlciwgU3lzdGVtLm1hcAo+
+IHJldmVhbHMgdGhhdCBzZWNvbmRhcnlfc3RhcnRfc2JpIGlzIG5vdCBhIDQtYnl0ZSBhbGlnbmVk
+IGFkZHJlc3MuCj4KPiBGb3IgZXhhbXBsZSwgdGhlIGFkZHJlc3Mgb2Ygc2Vjb25kYXJ5X3N0YXJ0
+X3NiaSBpcwo+IDB4ZmZmZmZmZmY4MDAwMTA2NiwgYW5kIHRoZSBkaXNhc3NlbWJseSBpcyBhcyBm
+b2xsb3dzOgo+Cj4gRHVtcCBvZiBhc3NlbWJsZXIgY29kZSBmcm9tIDB4ZmZmZmZmZmY4MDAwMTA1
+MiB0byAweGZmZmZmZmZmODAwMDEwN2E6Cj4gICAgMHhmZmZmZmZmZjgwMDAxMDUyIDxfc3RhcnQr
+NDE3OD46ICAgIGMubm9wICAgLTExCj4gICAgMHhmZmZmZmZmZjgwMDAxMDU0IDxfc3RhcnQrNDE4
+MD46ICAgIGF1aXBjICAgZ3AsMHgxYTFmCj4gICAgMHhmZmZmZmZmZjgwMDAxMDU4IDxfc3RhcnQr
+NDE4ND46ICAgIGFkZGkgICAgZ3AsZ3AsODQKPiAgICAweGZmZmZmZmZmODAwMDEwNWMgPF9zdGFy
+dCs0MTg4PjogICAgY3NydyAgICBzYXRwLGEyCj4gICAgMHhmZmZmZmZmZjgwMDAxMDYwIDxfc3Rh
+cnQrNDE5Mj46ICAgIHNmZW5jZS52bWEKPiAgICAweGZmZmZmZmZmODAwMDEwNjQgPF9zdGFydCs0
+MTk2PjogICAgcmV0Cj4gICAgMHhmZmZmZmZmZjgwMDAxMDY2IDxfc3RhcnQrNDE5OD46ICAgIGNz
+cncgICAgc2llLHplcm8KPiAgICAweGZmZmZmZmZmODAwMDEwNmEgPF9zdGFydCs0MjAyPjogICAg
+Y3NydyAgICBzaXAsemVybwo+ICAgIDB4ZmZmZmZmZmY4MDAwMTA2ZSA8X3N0YXJ0KzQyMDY+OiAg
+ICBsaSAgICAgIHQwLDIKPiAgICAweGZmZmZmZmZmODAwMDEwNzAgPF9zdGFydCs0MjA4PjogICAg
+Y3NydyAgICBzY291bnRlcmVuLHQwCj4gICAgMHhmZmZmZmZmZjgwMDAxMDc0IDxfc3RhcnQrNDIx
+Mj46ICAgIGF1aXBjICAgZ3AsMHgxYTFmCj4gICAgMHhmZmZmZmZmZjgwMDAxMDc4IDxfc3RhcnQr
+NDIxNj46ICAgIGFkZGkgICAgZ3AsZ3AsNTIKPgo+IFdoZW4gd3JpdGluZyB0byBTVFZFQyBhdCBh
+ZGRyZXNzIDB4ZmZmZmZmZmY4MDAwMTA2NiwgdGhlIGFjdHVhbAo+IHdyaXRlIGFkZHJlc3MgaXMg
+MHhmZmZmZmZmZjgwMDAxMDY0LCBjb3JyZXNwb25kaW5nIHRvIHRoZSBhZGRyZXNzCj4gb2YgdGhl
+IHByZXZpb3VzIHJldCBpbnN0cnVjdGlvbi4KQWxzbyB0ZWNobmljYWxseSBwZXJtaXR0ZWQuCj4g
+VGhpcyBpcyB1bmV4cGVjdGVkLCBhbmQgaWYgYW4KPiBpbnRlcnJ1cHQgb2NjdXJzIGF0IHRoaXMg
+cG9pbnQsIGl0IHdpbGwgY2F1c2UgdW5wcmVkaWN0YWJsZSByZXN1bHRzLgo+Cj4gSG93ZXZlciwg
+c2Vjb25kYXJ5X3N0YXJ0X3NiaSBpbW1lZGlhdGVseSBtYXNrcyBhbGwgaW50ZXJydXB0cyBhbmQK
+PiB1cGRhdGVzIFNUVkVDLCBzbyBubyBwcm9ibGVtcyBvY2N1cnJlZC4KCkFuIGludGVycnVwdCBj
+YW5ub3QgdHJhcCBpbiBiZXR3ZWVuIHNlY29uZGFyeV9zdGFydF9zYmkgc3RhcnRpbmcgYW5kIHRo
+ZQppbnRlcnJ1cHRzIGdldHRpbmcgbWFza2VkIGluZGl2aWR1YWxseS4gVGhlIG9ubHkgYXJjaCBz
+dGF0ZSBndWFyYW50ZWVkCmJ5IEhTTSBpcyBbMV06Cgp8UmVnaXN0ZXIgTmFtZSB8IFJlZ2lzdGVy
+IFZhbHVlCnxzYXRwwqAgwqAgwqAgwqAgwqAgfCAwCnxzc3RhdHVzLlNJRcKgIMKgfCAwCnxhMMKg
+IMKgIMKgIMKgIMKgIMKgIHwgaGFydGlkCnxhMcKgIMKgIMKgIMKgIMKgIMKgIHwgYG9wYXF1ZWAg
+cGFyYW1ldGVyCnxBbGwgb3RoZXIgcmVnaXN0ZXJzIHJlbWFpbiBpbiBhbiB1bmRlZmluZWQgc3Rh
+dGUuCgpPZiB3aGljaCBzc3RhdHVzLlNJRSA9IDAgbWVhbnMgdGhhdCBpbnRlcnJ1cHRzIGFyZSBt
+YXNrZWQgaW4gU3VwZXJ2aXNvcgptb2RlLgo+IEluIHN1bW1hcnksIGl0IGlzIG1vcmUgcmVhc29u
+YWJsZSB0byBtYWtlIHNlY29uZGFyeV9zdGFydF9zYmkKPiBzYXRpc2Z5IDQtYnl0ZSBhbGlnbm1l
+bnQuCgpUaHVzLCBpdCBpcyB1bm5lY2Vzc2FyeS4KCklmIHRoaXMgZml4ZXMgYSBidWcgd2hlcmUg
+YW4gaW50ZXJydXB0IGNhbiB0cmFwIGludG8gdGhlIHdyb25nIHN0dmVjIGZvcgp5b3UsIHRoZW4g
+eW91ciBmaXJtd2FyZSBpcyBicm9rZW4uCgpNaWNoYWVsJ3Mgc3VnZ2VzdGlvbiBhYm91dCBTWU1f
+Q09ERV9TVEFSVCBzdGlsbCBzdGFuZHMsIGJ1dCBpZiB5b3UgZG8KdGhhdCwgdGhhdCdzIGp1c3Qg
+YSByZWFsbHkgbWlub3IgcmVmYWN0b3JpbmcsIGFuZCBpbiBhbnkgY2FzZSB0aGUKY3VycmVudCBj
+b21taXQgbWVzc2FnZSBjYW5ub3Qgc3RhbmQuCgpWaXZpYW4gImRyYW1mb3JldmVyIiBXYW5nCgpb
+MV06Cmh0dHBzOi8vZ2l0aHViLmNvbS9yaXNjdi1ub24taXNhL3Jpc2N2LXNiaS1kb2MvYmxvYi92
+My4wL3NyYy9leHQtaHNtLmFkb2MjZnVuY3Rpb24taGFydC1zdGFydC1maWQtMAoKCi0tIApvcGVu
+c2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
