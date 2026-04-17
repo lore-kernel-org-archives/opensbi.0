@@ -4,85 +4,67 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2A4C8F8D76E
-	for <opensbi@archiver.kernel.org>; Thu, 16 Apr 2026 20:26:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 6427DF8E4A1
+	for <opensbi@archiver.kernel.org>; Fri, 17 Apr 2026 02:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
+	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=pVRedhCSjtgEWixVyLMSfBbcliQZ2T17DElso84Sp30=; b=a46ub6nKdABK7i
-	pjxNQFZb8/tE8zJSMSvVNkHb8ZzeoNfiPOYFbYK0j5b0iUvzPdFNEGrdPGWVdQKtYPJF0gYzkslJT
-	7OwBUJRndoOJCaO/HSG1IOt0NPNUOz3oUUgdteanyPbZDFNlw2zBVQtSUOQ/53R6xGLjbhpiAtuwn
-	D8CovcXP2YrCSK6Wv6ZWAAqiR53lRHGuYkhtw+V1EJUGh+QIHMx3XrtC/RaJXFmNrMTCUgFbnDDSa
-	67ftU3AgVYPLV+smTLd1krw7O0FRoPmecMo/W7MMbHiAkra/P71wUpt00o4UcOtFo2qQRydhTAdA7
-	xcAkijp/SmdOWq8hpj4A==;
+	List-Owner; bh=/cEK3Oh6sC5qpw0TL/2hKIaGe9Qzzg/1zbn2OdCX7y4=; b=A2c2fHpXuWeVHF
+	jESNdGcEET3PNUNFZXQNaWX/RBhnlPrZA3VNoQJpygfrtn+YcGnZtyQy2LGcrTTVdoEv+SxHGXYxk
+	Ncr7AJZRy2GdCcG41/YC4jY4RzkjfYIuyCHdaJEVXTXVMnM3s3MdpFcmZacisGZb0YCUUusAn42+r
+	rl/baSckN+IEXs1SQaowcCow8NI+LCvnuesgSXH/zXrcqc3PtOYlhBtyBh3iUqd0RcNtvXSqLLfaF
+	Et74evFQR7Wvju9Mp8mr6Yfxinj3v4wia8JQ+ofEm2SrIYQ+urR1wIZOYA8hjsSn5AC1L7KXRQ1WE
+	v7CCjley7Pg+rwfLsYdQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wDTIA-00000002zM2-3qmA;
-	Thu, 16 Apr 2026 20:26:26 +0000
-Received: from mail-dy1-x1332.google.com ([2607:f8b0:4864:20::1332])
+	id 1wDZGN-00000003LTu-2BvN;
+	Fri, 17 Apr 2026 02:48:59 +0000
+Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wDTI7-00000002zLG-3SOp
-	for opensbi@lists.infradead.org;
-	Thu, 16 Apr 2026 20:26:25 +0000
-Received: by mail-dy1-x1332.google.com with SMTP id 5a478bee46e88-2d89bbca7b5so152762eec.3
-        for <opensbi@lists.infradead.org>; Thu, 16 Apr 2026 13:26:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tenstorrent.com; s=google; t=1776371182; x=1776975982; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AfzxBnHhADISw/v0K5TeT/TxEgXT8gF6MljAjIxOuTw=;
-        b=GXORw69hOZM5CU6CQe7gNbVSazhnslAWHTi5wEirLAsdzCysda2P34iBp2/VrjuFz6
-         SG+j5mFqHc0Y+0v01pT0SzN0GkRmdFPQrVQn6YLiYnmlGUpWoE5YAo4Qr6gNsAkSwWBt
-         AMNP0+MjZs2sJ7nz94jigTB76dnZaTgJ1WeMDAFbHk5TaULHVdLkfbLT5ZYXveiJQKCT
-         vFCdHTVd80J1RwGLOQZwTdjeoQ3VMP6Yd4xBc4g350FoXY61j/GcjufQH+7TkDzoQU4s
-         ZY7ZBPU6CDX6jG5gBHj2xjE5OAFE5kALp/WE5ci88stIPtbSs1zHiRYqTNDxvCT5fx4Q
-         W9Bg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776371182; x=1776975982;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=AfzxBnHhADISw/v0K5TeT/TxEgXT8gF6MljAjIxOuTw=;
-        b=JWbJ0HxlcYOddcX/Ham4D/MteAUVjbK698yUcYDqxEgrz/ZXchAPzQAG0EKkPHJJUZ
-         zHv/2/5J5z2999bwAm7ZiOBTJWKoK8GahlxrnfTljccLwPCXs6T+nwnxERb2uC0QWBii
-         o8BkpNYcCvsK0MhXd6WwoomEAdr9I1SaPwVWU/f7/j+M6yOWFJU9LL1G7v63uohs0wGX
-         kDSSArTCZXm6O3lfeadMPrh+TAxa7mfv8j/yp9pz2Q38jhFf2KbwlRoFS+qCP+1kQdEJ
-         E9c8DkyoHjO+eBsiYBy4Co9QnOxwHESxxZe1ZjFCzgurQU1xQ9VoXMQHnOn+mQ1y19wc
-         FSOQ==
-X-Gm-Message-State: AOJu0YzPBHEC0nhnUvSnuh1C/Js8NLPFg1ZH9kwL9znO/2GyszVd9aEX
-	znbqlPlgr4RmN3NY6wwUGe6RWd9d5wqnUe+JgBH5ZoPzfnwUzR+8j4OC7Cq9bMa67JiQX/8H2Nz
-	bbKwY
-X-Gm-Gg: AeBDievABVDwPUKOFTYY9SN1JIUtV35wHGLMdS9SJrQeqeuK6ucgHlt1wtp6ENYecr2
-	UMZMETtkqa/CKueHHiOGytLIVgY9+Px6M5rvidvEtbwrODPgK79pLDX7E8WeKvPRI5DWI1ULlyB
-	NwqUMLyMusFXhyziy5uKv07Wt6qRn3YtPRQbcDyilXdRoRke5kAsU4ZaMKeLIvUAaCxzxfxFfg3
-	IBYmO/+FKOiTW4r+fS3hnhMq0FJKxfnoiDsxSY2+po9z/Fuu60OTx8LApGqswqhljdcQHqK2xHF
-	w55yyc+2p1R0LxEcYFn5LL3slSMvFemJc/EF1SBIH2OO1gvVN/KmYcKg3Vnj1RyCDYhrdkE/rz6
-	XGCpbb+wNjP9BugrRogrf2H/iZp+fWC/wtptJfvGTmQnvBPKjGL8DrEEY1f71/0q74HcyuB2UGw
-	T4O52KHWwPNmLDbbQ3l4aP4HArZzk2Pzgoz1OAxR7rtxXh4LO6Ak9hHU0EICnB
-X-Received: by 2002:a05:7301:100b:b0:2d1:9b35:4f03 with SMTP id 5a478bee46e88-2e2e70c3019mr150642eec.5.1776371182170;
-        Thu, 16 Apr 2026 13:26:22 -0700 (PDT)
-Received: from ausc-rvsw-c-02.tenstorrent.com ([38.104.49.66])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2de8f65f9bcsm10970513eec.22.2026.04.16.13.26.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Apr 2026 13:26:21 -0700 (PDT)
-From: Evgeny Voevodin <evvoevod@tenstorrent.com>
-To: Anup Patel <anup@brainfault.org>
-Cc: opensbi@lists.infradead.org,
-	evvoevod@tenstorrent.com
-Subject: Re: [PATCH 3/7] firmware: Add RNMI/RNME handler infrastructure
-Date: Thu, 16 Apr 2026 20:26:08 +0000
-Message-ID: <20260416202608.1125121-1-evvoevod@tenstorrent.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <CAAhSdy2jFkLSH0WThrcEg36LDc+hwiGHRcHGOZ6+FxdO+ok+2Q@mail.gmail.com>
-References: <20260310183155.2186463-1-evvoevod@oss.tenstorrent.com> <20260310183155.2186463-4-evvoevod@oss.tenstorrent.com> <CAAhSdy2PHSsMNib5Bscp1mWvdQTii_PG7jDpgR9vf_f=7x04sw@mail.gmail.com> <20260409191943.291207-1-evvoevod@tenstorrent.com> <CAAhSdy2jFkLSH0WThrcEg36LDc+hwiGHRcHGOZ6+FxdO+ok+2Q@mail.gmail.com>
+	id 1wDZGK-00000003LTI-1w0N;
+	Fri, 17 Apr 2026 02:48:58 +0000
+Received: from [10.213.21.49] (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowADnfBCTn+Fp3xTRDQ--.57733S2;
+	Fri, 17 Apr 2026 10:48:52 +0800 (CST)
+Message-ID: <c2b7a633-00c8-448f-9c76-3da087682657@iscas.ac.cn>
+Date: Fri, 17 Apr 2026 10:48:51 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] riscv: smp: Align secondary_start_sbi to 4 bytes
+To: Chen Pei <cp0613@linux.alibaba.com>
+Cc: pjw@kernel.org, anup@brainfault.org, andrew.jones@oss.qualcomm.com,
+ guoren@kernel.org, linux-kernel@vger.kernel.org,
+ linux-riscv@lists.infradead.org, opensbi@lists.infradead.org
+References: <83397314-c7f3-4122-9587-80c29b1d13aa@iscas.ac.cn>
+ <20260415123757.123581-1-cp0613@linux.alibaba.com>
+Content-Language: en-US
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+In-Reply-To: <20260415123757.123581-1-cp0613@linux.alibaba.com>
+X-CM-TRANSID: zQCowADnfBCTn+Fp3xTRDQ--.57733S2
+X-Coremail-Antispam: 1UD129KBjvdXoWrKr4DAr4kWF4rWw1fCryUJrb_yoWfXrb_ZF
+	Z0vrs0kw1jvFZ3Kw1fKF429r4Dua10gryYvFy0qwn7GasxXrn8Xr40vr1fX3WrX34FqF9x
+	Grn7Ja4xJwnFvjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUb2xYjsxI4VWDJwAYFVCjjxCrM7AC8VAFwI0_Gr0_Xr1l1xkIjI8I
+	6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM2
+	8CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW5JVW7JwA2z4x0Y4vE2Ix0
+	cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIE14v26F4UJVW0owA2z4x0Y4vEx4
+	A2jsIEc7CjxVAFwI0_Cr1j6rxdM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
+	64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r106r15McIj6I8E87Iv67AKxVWUJVW8Jw
+	Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lc7CjxVAaw2AFwI0_JF0_Jw1l42xK
+	82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGw
+	C20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48J
+	MIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMI
+	IF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E
+	87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxU7PEfUUUUU
+X-Originating-IP: [36.110.52.2]
+X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260416_132623_874416_AE78E5D7 
-X-CRM114-Status: GOOD (  12.55  )
+X-CRM114-CacheID: sfid-20260416_194856_908304_EDEBDD46 
+X-CRM114-Status: UNSURE (   8.22  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,50 +81,32 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Fri, Apr 10, 2026 at 1:09 AM Anup Patel <anup@brainfault.org> wrote:
-> > > Drop these platform callbacks from this patch. We will be
-> > > extending sbi_irqchip to support NMIs. For NME, we will
-> > > can simply crash.
-> >
-> > Agreed. I'll remove the platform callbacks. For RNMI, I'll
-> > route through sbi_irqchip once that support is in place. For
-> > RNME, I'll simplify to just print diagnostics and hang.
+On 4/15/26 20:37, Chen Pei wrote:
 
-Hi Anup,
+[...]
 
-I've been rebasing and reworking the Smrnmi series based on our
-discussion. I can remove the platform runtime callbacks
-(ops->rnmi_handler / ops->rnme_handler) as agreed, and I can still
-have the initial Smrnmi infrastructure in place: platforms install
-trap handlers for RNMI/RNME vectors, detect the extension from
-device tree, and initialize MNSCRATCH.
+>>> In summary, it is more reasonable to make secondary_start_sbi
+>>> satisfy 4-byte alignment.
+>> Thus, it is unnecessary.
+>>
+>> If this fixes a bug where an interrupt can trap into the wrong stvec for
+>> you, then your firmware is broken.
+> This isn't about fixing a bug (as mentioned earlier, it's highly unlikely
+> to happen),
 
-However, without irqchip NMI support there's no way for platforms
-to actually handle NMIs once they fire. The default RNMI handler
-would just log and hang. This means NMIs would need to stay
-disabled (NMIE=0) until that support lands, even on platforms that
-are otherwise ready for Smrnmi.
+It is *impossible* given correct HW and FW, but okay...
 
-I couldn't find ongoing work on irqchip NMI support, so I wanted
-to check how you'd like to proceed:
+> but rather the STVEC check mechanism added to QEMU discovered
+> this issue. Regarding the problem itself, I would appreciate any clarification
+> or modifications from OpenSBI, but currently this modification is the simplest
+> and most feasible.
 
-1. Ship the Smrnmi infrastructure with NMIs effectively disabled
-   (log and hang). Platforms carry local patches for NMI handling
-   until irqchip NMI support lands.
+The stvec CSR is WARL. If the "STVEC check mechanism" is complaining
+about usage of CSRs as specified, then the check is a false positive and
+is not something fixable.
 
-2. Keep ops->rnmi_handler as a temporary bridge, marked for
-   migration to irqchip.
+Vivian "dramforever" Wang
 
-3. Include a minimal irqchip NMI extension in this series: a
-   standalone registration API (sbi_irqchip_register_nmi_handler /
-   sbi_irqchip_process_nmi) with a simple static callback -- not
-   tied to a specific irqchip device since NMI is a system-level
-   event. Platforms would register their NMI handler during
-   irqchip_init, and sbi_trap_rnmi_handler would dispatch
-   through it.
-
-Thanks,
-Evgeny
 
 -- 
 opensbi mailing list
