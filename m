@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 17FD6EA719F
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9B4FBEA71A2
 	for <opensbi@archiver.kernel.org>; Sun, 19 Apr 2026 15:09:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,50 +12,50 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=+uYYT6nJ9cMxFI2a8y6NeGBV0RLYBjJPbNDVBNsuo98=; b=f78GoDQg/02iSa
-	ck7tMLMcGt+COB2KlLInrbDZo+HQFy5632E4MXdk8IcViumcxeYRPNg8QYdvtbaMXQAoXbNvxTd3p
-	eA1TEAvNoA6983o6MN6arOoTHhffdlZVezDx424WMzg9mp408bTYsFb1gZWDJbfSPzTTNeENhueej
-	pxChnZ/OfJu2IshX599hYTdwAaPSBDqPfOmbSA+7tVM8/iQKX+OuFBw0QtC06JfHjvllVdC4hGQ/g
-	XSGsxFfZ/b7sq0fQJc5ryCt2MbTVFNqIiAhWJwT4yfw9xnMxdVAEVwLMvZVVgBwqx7AlvJQ3bVqgb
-	JCCOrBTqsNbScQQp2pYg==;
+	List-Owner; bh=NY8qntMEu5W9WlpBwCExF17LlUPhDeJHrzIF931nQiU=; b=wqXwlaYeJvl/Yj
+	OzYGhor+6p/3/e/8mNl22+8VA3nOvDWKr5NYDIMzQUZ0KsU42hcos611paf47qSTRHMXqXibueOWC
+	cAIC03zV2QQgFNXWc3aiKWwkK/44nDlMQVMhMLNgBGCjWu3QtbfvYJzvQXaF3EZXRwwn1RRCUcoTI
+	Jo7nk6E7DvnJEy8wxmgCkdc/z2PceAKA/nKDZ8r2tvsJwIr0yog7yrFE5rniqB+f44H3bafLDbY8e
+	teh5ZNjBaCo7fUVZ7ZQrMNyVZulfMx4pAaQFEfCNLsqIB49nko6y3L/LLX6DwOsaDSp+0WmbujCh/
+	qS6KiXXq0rr6sqRkyuiA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wETlt-00000005sEj-2l6s;
-	Sun, 19 Apr 2026 15:09:17 +0000
+	id 1wETlu-00000005sFB-1Hzl;
+	Sun, 19 Apr 2026 15:09:18 +0000
 Received: from hall.aurel32.net ([2001:bc8:30d7:100::1])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wETlq-00000005sDh-3efJ
+	id 1wETlq-00000005sDi-3L4p
 	for opensbi@lists.infradead.org;
-	Sun, 19 Apr 2026 15:09:15 +0000
+	Sun, 19 Apr 2026 15:09:17 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=aurel32.net
 	; s=202004.hall; h=Content-Transfer-Encoding:MIME-Version:References:
 	In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Content-Type:From:Reply-To:
 	Subject:Content-ID:Content-Description:X-Debbugs-Cc;
-	bh=o5SeCtw89wWdCv2Aojtx42l0VpfqzBNXcnHFTU1Xpac=; b=xrshYe9e2WpQx5wtmPpnb1RrjR
-	dezAnvUYuLiBISN3jDmx6gyyaoPvNYRobVojjz6QHGNxHjK1b6JYFQuUc5cyC+hWEyBwJVNnWJFst
-	/p1Dw4Vf24tGb8HdqBo9Uk8UBAC1ev2MPDWXt5YL7wZc+0i6XcPNVcDvC1pUt/g3XzL4nOSVXZBAG
-	qBFAm1u2dw7wow43rQn3Qjil3rCGvuLOeIJG5ngsnYivO2IS54Lc0xFwkpPK+qXXpqQg1SKbTfL2G
-	JBZPYFn6UwD4ykjHSsC65uARnezLPaGoQSEb3IKUjeoZ+DiEKnnqO4soJvjH7Lb9J3DiWsz3hpkB9
-	SwC7yekA==;
+	bh=iri5KGkp/slv6HhjVn/aZZjwIDTF7TECFoCLFHO7Cno=; b=wqj82zpbBcfK4V50oknagg41EE
+	M/f7v61JuyMPt5JKN6P1cVtlXwvr5CmoXvzdrJxdIdkLgqqD6/Ttz1IUrwg4Z27xO6ulySivQZlHs
+	CCgjUcCdQ3JraPlZPM6r2ZUpL0fWkzhgfiNgPjJAMT0CQX9bXMnu8Ycds7OMeRBJr6txkxDltEDba
+	bAw0CwjYXtfC2ikH91GQZhEQ/hxvt2BaXOzU86vt5ETiHaBVESs4JWY9dhD/tAXAQYJ0k4v3SNRkd
+	d+90lpMFhc0Xy78CWl9gfRPp/sR3M2TT4TiCyh/8nYYC/jKnceiDKpLlPf9bpWvEy/VSf9ddJdJIA
+	JmQbtJeg==;
 Received: from authenticated user
 	by hall.aurel32.net with esmtpsa  (TLS1.3)  tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <aurelien@aurel32.net>)
-	id 1wETli-0000000CKQs-04kA;
-	Sun, 19 Apr 2026 17:09:06 +0200
+	id 1wETlh-0000000CKQr-434Z;
+	Sun, 19 Apr 2026 17:09:05 +0200
 From: Aurelien Jarno <aurelien@aurel32.net>
 To: opensbi@lists.infradead.org
 Cc: Aurelien Jarno <aurelien@aurel32.net>
-Subject: [PATCH 2/2] lib: utils/reset: add SpacemiT P1 PMIC support
-Date: Sun, 19 Apr 2026 16:49:20 +0200
-Message-ID: <20260419150857.2705843-3-aurelien@aurel32.net>
+Subject: [PATCH 1/2] lib: utils/i2c: add minimal SpacemiT I2C driver
+Date: Sun, 19 Apr 2026 16:49:19 +0200
+Message-ID: <20260419150857.2705843-2-aurelien@aurel32.net>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260419150857.2705843-1-aurelien@aurel32.net>
 References: <20260419150857.2705843-1-aurelien@aurel32.net>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260419_080914_916884_FA57FD7C 
-X-CRM114-Status: GOOD (  17.25  )
+X-CRM114-CacheID: sfid-20260419_080914_969309_67F3313F 
+X-CRM114-Status: GOOD (  20.97  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -72,177 +72,293 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The SpacemiT P1 is a PMIC commonly found with SpacemiT CPU like K1. Add
-a reset driver for it.
+Add a simple SpacemiT I2C driver for basic byte transfers over the I2C
+bus, prioritizing simplicity over performance. The driver operates in
+PIO mode and does not use interrupts, FIFO, or DMA.
+
+The controller is reset at the start of each transaction to ensure a
+known initial state, regardless of prior configuration by the kernel.
+This also avoids the need for additional error recovery code.
+
+This will be used for communication with onboard PMIC to reset and
+power-off the board.
 
 Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
 ---
- lib/utils/reset/Kconfig                 |   4 +
- lib/utils/reset/fdt_reset_spacemit_p1.c | 112 ++++++++++++++++++++++++
- lib/utils/reset/objects.mk              |   3 +
- platform/generic/configs/defconfig      |   1 +
- 4 files changed, 120 insertions(+)
- create mode 100644 lib/utils/reset/fdt_reset_spacemit_p1.c
+ lib/utils/i2c/Kconfig              |   4 +
+ lib/utils/i2c/fdt_i2c_spacemit.c   | 220 +++++++++++++++++++++++++++++
+ lib/utils/i2c/objects.mk           |   3 +
+ platform/generic/configs/defconfig |   1 +
+ 4 files changed, 228 insertions(+)
+ create mode 100644 lib/utils/i2c/fdt_i2c_spacemit.c
 
-diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
-index 4835921f..f98926e5 100644
---- a/lib/utils/reset/Kconfig
-+++ b/lib/utils/reset/Kconfig
-@@ -33,6 +33,10 @@ config FDT_RESET_SG2042_HWMON_MCU
- 	bool "Sophgo SG2042 hwmon MCU FDT reset driver"
+diff --git a/lib/utils/i2c/Kconfig b/lib/utils/i2c/Kconfig
+index 7fa32fcf..bdaaff62 100644
+--- a/lib/utils/i2c/Kconfig
++++ b/lib/utils/i2c/Kconfig
+@@ -14,6 +14,10 @@ config FDT_I2C_SIFIVE
+ 	bool "SiFive I2C FDT driver"
  	default n
  
-+config FDT_RESET_SPACEMIT_P1
-+	bool "SpacemiT P1 reset driver"
++config FDT_I2C_SPACEMIT
++	bool "SpacemiT I2C FDT driver"
 +	default n
 +
- config FDT_RESET_SUNXI_WDT
- 	bool "Sunxi WDT FDT reset driver"
- 	default n
-diff --git a/lib/utils/reset/fdt_reset_spacemit_p1.c b/lib/utils/reset/fdt_reset_spacemit_p1.c
+ config FDT_I2C_DW
+ 	bool "Synopsys Designware I2C FDT driver"
+ 	select I2C_DW
+diff --git a/lib/utils/i2c/fdt_i2c_spacemit.c b/lib/utils/i2c/fdt_i2c_spacemit.c
 new file mode 100644
-index 00000000..5312e741
+index 00000000..9009b6b6
 --- /dev/null
-+++ b/lib/utils/reset/fdt_reset_spacemit_p1.c
-@@ -0,0 +1,112 @@
++++ b/lib/utils/i2c/fdt_i2c_spacemit.c
+@@ -0,0 +1,220 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
 + * Copyright (c) 2026 Aurelien Jarno
++ *
 + * Authors:
 + *   Aurelien Jarno <aurelien@aurel32.net>
 + */
 +
-+#include <libfdt.h>
-+#include <platform_override.h>
-+#include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi_utils/fdt/fdt_driver.h>
++#include <sbi/riscv_io.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
++#include <sbi/sbi_timer.h>
++#include <sbi_utils/fdt/fdt_helper.h>
 +#include <sbi_utils/i2c/fdt_i2c.h>
 +
-+/* SpacemiT P1 Power Control Register 2 */
-+#define PWR_CTRL2		0x7e
-+#define PWR_CTRL2_SHUTDOWN	BIT(2)	/* Shutdown request */
-+#define PWR_CTRL2_RST		BIT(1)	/* Reset request */
++/* Controller registers */
++#define ICR_OFFSET	0x00		/* I2C control register */
++#define IDBR_OFFSET	0x0c		/* I2C data buffer register */
 +
-+static struct i2c_adapter *p1_adapter = NULL;
-+static uint32_t p1_reg = 0;
++/* Control register bits */
++#define ICR_START	BIT(0)		/* start */
++#define ICR_STOP	BIT(1)		/* stop */
++#define ICR_ACKNAK	BIT(2)		/* ACK(0) or NAK(1) */
++#define ICR_TB		BIT(3)		/* transfer byte */
++#define ICR_UR		BIT(10)		/* unit reset */
++#define ICR_SCLE	BIT(13)		/* SCL enable  */
++#define ICR_IUE		BIT(14)		/* unit enable */
 +
-+static int p1_system_reset_check(uint32_t type, uint32_t reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+		return 1;
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		return 255;
-+	}
++/* Timing */
++#define I2C_RESET_US	10
++#define I2C_TIMEOUT_US	1000
 +
-+	return 0;
-+}
-+
-+static void p1_ops(uint32_t type)
-+{
-+	uint8_t byte;
-+	int rc;
-+
-+	rc = i2c_adapter_reg_read(p1_adapter, p1_reg, PWR_CTRL2, &byte);
-+	if (rc) {
-+		sbi_printf("%s: cannot read P1 Power Control Register 2\n", __func__);
-+		return;
-+	}
-+
-+	if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
-+		byte |= PWR_CTRL2_SHUTDOWN;
-+	else
-+		byte |= PWR_CTRL2_RST;
-+
-+	rc = i2c_adapter_reg_write(p1_adapter, p1_reg, PWR_CTRL2, byte);
-+	if (rc)
-+		sbi_printf("%s: cannot write P1 Power Control Register 2\n", __func__);
-+}
-+
-+static void p1_system_reset(uint32_t type, uint32_t reason)
-+{
-+	switch (type) {
-+	case SBI_SRST_RESET_TYPE_SHUTDOWN:
-+	case SBI_SRST_RESET_TYPE_COLD_REBOOT:
-+	case SBI_SRST_RESET_TYPE_WARM_REBOOT:
-+		p1_ops(type);
-+		break;
-+	}
-+}
-+
-+static struct sbi_system_reset_device p1_reset = {
-+	.name = "spacemit-p1-reset",
-+	.system_reset_check = p1_system_reset_check,
-+	.system_reset = p1_system_reset
++struct spacemit_i2c_adapter {
++	unsigned long base;
++	struct i2c_adapter adapter;
 +};
 +
-+static int p1_reset_init(const void *fdt, int nodeoff,
-+			 const struct fdt_match *match)
++static inline void spacemit_i2c_set_reg(struct spacemit_i2c_adapter *adap,
++					uint8_t reg, uint32_t val)
 +{
-+	int rc, i2c_bus;
-+	uint64_t addr;
++	writel(val, (void *)adap->base + reg);
++}
 +
-+	/* we are spacemit,p1 node */
-+	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
++static inline uint32_t spacemit_i2c_get_reg(struct spacemit_i2c_adapter *adap,
++					    uint32_t reg)
++{
++	return readl((void *)adap->base + reg);
++}
++
++static void spacemit_i2c_reset(struct spacemit_i2c_adapter *adap)
++{
++	/* disable unit */
++	spacemit_i2c_set_reg(adap, ICR_OFFSET, 0);
++	sbi_timer_udelay(I2C_RESET_US);
++
++	/* reset unit */
++	spacemit_i2c_set_reg(adap, ICR_OFFSET, ICR_UR);
++	sbi_timer_udelay(I2C_RESET_US);
++
++	/* clear reset and enable unit and SCL */
++	spacemit_i2c_set_reg(adap, ICR_OFFSET, ICR_IUE | ICR_SCLE);
++}
++
++static int spacemit_i2c_wait_xfer_done(struct spacemit_i2c_adapter *adap)
++{
++	for (int i = 0; i < I2C_TIMEOUT_US; i++) {
++		uint32_t val = spacemit_i2c_get_reg(adap, ICR_OFFSET);
++
++		if (!(val & ICR_TB))
++			return 0;
++
++		sbi_timer_udelay(1);
++	};
++
++	return SBI_ETIMEDOUT;
++}
++
++static void spacemit_i2c_start_xfer(struct spacemit_i2c_adapter *adap,
++				    uint32_t ctrl)
++{
++	const uint32_t ctrl_mask = ICR_START | ICR_STOP | ICR_ACKNAK;
++	uint32_t val;
++
++	val = spacemit_i2c_get_reg(adap, ICR_OFFSET);
++	val &= ~ctrl_mask;
++	val |= (ctrl & ctrl_mask);
++	val |= ICR_TB;
++
++	spacemit_i2c_set_reg(adap, ICR_OFFSET, val);
++}
++
++static int spacemit_i2c_xfer_write(struct spacemit_i2c_adapter *adap,
++				   uint8_t byte, uint32_t ctrl)
++{
++	spacemit_i2c_set_reg(adap, IDBR_OFFSET, byte);
++	spacemit_i2c_start_xfer(adap, ctrl);
++
++	return spacemit_i2c_wait_xfer_done(adap);
++}
++
++static int spacemit_i2c_xfer_read(struct spacemit_i2c_adapter *adap,
++				  uint8_t *byte, uint32_t ctrl)
++{
++	int rc;
++
++	spacemit_i2c_start_xfer(adap, ctrl);
++
++	rc = spacemit_i2c_wait_xfer_done(adap);
 +	if (rc)
 +		return rc;
 +
-+	p1_reg = addr;
++	*byte = spacemit_i2c_get_reg(adap, IDBR_OFFSET);
++	return 0;
++}
 +
-+	/* find i2c bus parent node */
-+	i2c_bus = fdt_parent_offset(fdt, nodeoff);
-+	if (i2c_bus < 0)
-+		return i2c_bus;
++static int spacemit_i2c_adapter_write(struct i2c_adapter *ia, uint8_t addr,
++				      uint8_t reg, uint8_t *buffer, int len)
++{
++	struct spacemit_i2c_adapter *adap =
++		container_of(ia, struct spacemit_i2c_adapter, adapter);
++	int rc;
 +
-+	/* i2c adapter get */
-+	rc = fdt_i2c_adapter_get(fdt, i2c_bus, &p1_adapter);
++	/* reset controller to a known state */
++	spacemit_i2c_reset(adap);
++
++	/* send device address (in write mode) */
++	rc = spacemit_i2c_xfer_write(adap, addr << 1, ICR_START);
 +	if (rc)
 +		return rc;
 +
-+	sbi_system_reset_add_device(&p1_reset);
++	/* send register + data bytes */
++	for (int i = 0; i < len + 1; i++) {
++		uint32_t ctrl = (i == len) ? ICR_STOP : 0;
++		uint8_t byte = (i == 0) ? reg : buffer[i - 1];
++
++		rc = spacemit_i2c_xfer_write(adap, byte, ctrl);
++		if (rc)
++			return rc;
++	}
 +
 +	return 0;
 +}
 +
-+static const struct fdt_match p1_reset_match[] = {
-+	{ .compatible = "spacemit,p1", .data = (void *)true },
++static int spacemit_i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr,
++				     uint8_t reg, uint8_t *buffer, int len)
++{
++	struct spacemit_i2c_adapter *adap =
++		container_of(ia, struct spacemit_i2c_adapter, adapter);
++	int rc;
++
++	/* reset controller to a known state */
++	spacemit_i2c_reset(adap);
++
++	/* send device address (in write mode) */
++	rc = spacemit_i2c_xfer_write(adap, addr << 1, ICR_START);
++	if (rc)
++		return rc;
++
++	/* send register */
++	rc = spacemit_i2c_xfer_write(adap, reg, 0);
++	if (rc)
++		return rc;
++
++	/* repeated start and send device address (in read mode) */
++	rc = spacemit_i2c_xfer_write(adap, (addr << 1) | 1, ICR_START);
++	if (rc)
++		return rc;
++
++	/* read data bytes */
++	for (int i = 0; i < len; i++) {
++		uint32_t ctrl = (i == len - 1) ? (ICR_ACKNAK | ICR_STOP) : 0;
++
++		rc = spacemit_i2c_xfer_read(adap, &buffer[i], ctrl);
++		if (rc)
++			return rc;
++	}
++
++	return 0;
++}
++
++static int spacemit_i2c_init(const void *fdt, int nodeoff,
++			     const struct fdt_match *match)
++{
++	struct spacemit_i2c_adapter *adapter;
++	uint64_t base;
++	int rc;
++
++	adapter = sbi_zalloc(sizeof(*adapter));
++	if (!adapter)
++		return SBI_ENOMEM;
++
++	rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &base, NULL);
++	if (rc) {
++		sbi_free(adapter);
++		return rc;
++	}
++
++	adapter->base = base;
++	adapter->adapter.id = nodeoff;
++	adapter->adapter.write = spacemit_i2c_adapter_write;
++	adapter->adapter.read = spacemit_i2c_adapter_read;
++	rc = i2c_adapter_add(&adapter->adapter);
++	if (rc) {
++		sbi_free(adapter);
++		return rc;
++	}
++
++	return 0;
++}
++
++static const struct fdt_match spacemit_i2c_match[] = {
++	{ .compatible = "spacemit,k1-i2c" },
 +	{ },
 +};
 +
-+const struct fdt_driver fdt_reset_spacemit_p1 = {
-+	.match_table = p1_reset_match,
-+	.init = p1_reset_init,
++const struct fdt_driver fdt_i2c_adapter_spacemit = {
++	.match_table = spacemit_i2c_match,
++	.init = spacemit_i2c_init,
 +};
-diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
-index ac38b49d..3c681c27 100644
---- a/lib/utils/reset/objects.mk
-+++ b/lib/utils/reset/objects.mk
-@@ -20,6 +20,9 @@ libsbiutils-objs-$(CONFIG_FDT_RESET_HTIF) += reset/fdt_reset_htif.o
- carray-fdt_early_drivers-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += fdt_reset_sg2042_mcu
- libsbiutils-objs-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += reset/fdt_reset_sg2042_hwmon_mcu.o
+diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
+index d34d6648..91ac17ec 100644
+--- a/lib/utils/i2c/objects.mk
++++ b/lib/utils/i2c/objects.mk
+@@ -15,6 +15,9 @@ libsbiutils-objs-$(CONFIG_FDT_I2C) += i2c/fdt_i2c_adapter_drivers.carray.o
+ carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SIFIVE) += fdt_i2c_adapter_sifive
+ libsbiutils-objs-$(CONFIG_FDT_I2C_SIFIVE) += i2c/fdt_i2c_sifive.o
  
-+carray-fdt_early_drivers-$(CONFIG_FDT_RESET_SPACEMIT_P1) += fdt_reset_spacemit_p1
-+libsbiutils-objs-$(CONFIG_FDT_RESET_SPACEMIT_P1) += reset/fdt_reset_spacemit_p1.o
++carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SPACEMIT) += fdt_i2c_adapter_spacemit
++libsbiutils-objs-$(CONFIG_FDT_I2C_SPACEMIT) += i2c/fdt_i2c_spacemit.o
 +
- carray-fdt_early_drivers-$(CONFIG_FDT_RESET_SUNXI_WDT) += fdt_reset_sunxi_wdt
- libsbiutils-objs-$(CONFIG_FDT_RESET_SUNXI_WDT) += reset/fdt_reset_sunxi_wdt.o
+ carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_DW) += fdt_i2c_adapter_dw
+ libsbiutils-objs-$(CONFIG_FDT_I2C_DW) += i2c/fdt_i2c_dw.o
  
 diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index a9cb0f06..ae278856 100644
+index 1d3431e7..a9cb0f06 100644
 --- a/platform/generic/configs/defconfig
 +++ b/platform/generic/configs/defconfig
-@@ -51,6 +51,7 @@ CONFIG_FDT_RESET_GPIO=y
- CONFIG_FDT_RESET_HTIF=y
- CONFIG_FDT_RESET_RPMI=y
- CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
-+CONFIG_FDT_RESET_SPACEMIT_P1=y
- CONFIG_FDT_RESET_SUNXI_WDT=y
- CONFIG_FDT_RESET_SYSCON=y
- CONFIG_FDT_SERIAL=y
+@@ -31,6 +31,7 @@ CONFIG_FDT_HSM_RPMI=y
+ CONFIG_FDT_HSM_SIFIVE_TMC0=y
+ CONFIG_FDT_I2C=y
+ CONFIG_FDT_I2C_SIFIVE=y
++CONFIG_FDT_I2C_SPACEMIT=y
+ CONFIG_FDT_I2C_DW=y
+ CONFIG_FDT_IPI=y
+ CONFIG_FDT_IPI_MSWI=y
 -- 
 2.53.0
 
