@@ -4,84 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 16D07FAD3E6
-	for <opensbi@archiver.kernel.org>; Thu, 23 Apr 2026 00:59:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 36A93FAD3E1
+	for <opensbi@archiver.kernel.org>; Thu, 23 Apr 2026 01:01:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
 	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=eD9NS0I/5IC64cbyH9DceeviGnxhg3a/rjNMS2yeyD4=; b=iW2yYt2MubG/Ny
-	cGXFypO3va8uXuFOYO11+CIU3EIHiF3Rhy12hYIqw9/4IwLArz5OnHU2/HDmi0GfBS/3H1BSKCi+K
-	aEJ1e3Bp4DaSt7ge9VQAY0Kc79qIr/G+g6P6G44PgZw/C5K6kKsVpPAJw8Bz07kaZpiyRuaWgyiPl
-	gOnw9S1tejirOwxEE2hCw0Qrj7g/4jMh6mz8qHa6BzpTzsGkoKoH9HCDX1yFd0V+oZT0oTYhnS5Mm
-	LQNKHhVbSAPitpqEa3KChmwBowQx99bEKZy6dbbcmZiws89DR9oKcIXIdDf+BVgb6OUP+AFcmqcUh
-	wra8AR1V9E11qTmXkkLQ==;
+	List-Owner; bh=337DrQ4UuhQrSfrRPM9xu+AuDcJFcWUjjy/fI/N0Lnk=; b=bdf723i/1t5afq
+	Tpcm2wTRl6IPhqVqoheWAIrUG81IFVUKsyTiiWSk+RdNSLzfTwxkQq/e4kKnlCKcKCMAxgV1zfpFA
+	qOeGUzrLeVPCxc2e5OdFuv0WhKrY1SyiKF7MRI4UXC08uKRWVpPSjcVR8ADS8rdKdmu4vwdM0cq26
+	JcyGXQCivd99fTtByIVqpvhoLRPYwQT/IUNGtVV57dYoz189nO8wPxRPA0F0IjlLflBh52wQZEfL9
+	m5JdPB5gS97v/NdGqk0Lon2H+D6zEnAIQqGzUfDlki51feXgnbzeAfrMJcfokHxkfhhj6U99u5XiA
+	/18NlcH73VHTFvEXP0YA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wFiPv-0000000Aszf-1bb8;
-	Thu, 23 Apr 2026 00:59:43 +0000
-Received: from mail-pg1-x52b.google.com ([2607:f8b0:4864:20::52b])
+	id 1wFiRf-0000000At5S-3HPL;
+	Thu, 23 Apr 2026 01:01:31 +0000
+Received: from mail-pj1-x102d.google.com ([2607:f8b0:4864:20::102d])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wFiPs-0000000AszJ-3gXT
+	id 1wFiRd-0000000At57-35hK
 	for opensbi@lists.infradead.org;
-	Thu, 23 Apr 2026 00:59:41 +0000
-Received: by mail-pg1-x52b.google.com with SMTP id 41be03b00d2f7-c7973bbc16dso3962478a12.0
-        for <opensbi@lists.infradead.org>; Wed, 22 Apr 2026 17:59:39 -0700 (PDT)
+	Thu, 23 Apr 2026 01:01:30 +0000
+Received: by mail-pj1-x102d.google.com with SMTP id 98e67ed59e1d1-35da1af3e10so5770327a91.3
+        for <opensbi@lists.infradead.org>; Wed, 22 Apr 2026 18:01:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776905979; x=1777510779; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1776906089; x=1777510889; darn=lists.infradead.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=KFGVZhnJTKrzlrgKhO3gaiGedd72ydZdkBs/nRUsP3g=;
-        b=Q5ZRkwKXYYskg54sDi7w3Ims+MR3o7+/6HpW7mj99tu7h3K8sKEn509hlgCEicDf4n
-         4CGsAZQFcMS2e4STJgG6jFtYx7u27AxlAgeniZ0CV5MAuS6mFw2ZHKELfzsBK/D8GYfn
-         q7aLDeOEu0+FdBRAmgBpprGpFEkibEaT+aDjURUsHmacSHQYCfFbS+FvsMWZN9ZTKM+N
-         ZfgSN50gBItAmHinZS2m9Y9OsIOMfQTYGJg3ivW2MkHMizRKNApiFLun/rMqEFKZilgB
-         rydOsAKVBDEYxa2gGciGTG7ziRnQo3Q/sHWFsNa90M7cnHSN09KcjDk3DBnLfjeQVREd
-         Y03Q==
+        bh=Ru04ukFyTNbgsS5jNq4xWYwrPbZQ3XyE6ewhoElABZk=;
+        b=arX1j2eeAegzeiHNDMPRywZ76Yl1+DvDMSgvwyyF3AZn6hctTYghhbrMnjhOAjwAiM
+         SEyOn03l7bJYkDon4UZH0VWNFAK35rfee8ElsBQ+u10n1q5U1nDEsmWiC/MgGPelvLeB
+         W4r1GX6fkA5wnltRE/Z/qhm0Vnv3W0YIk+vtN17TmJJ+WWixvavyJqKE2qOL0RxF0imP
+         iKu/hT9yLIJWYvLZxReepoYnP/GBS/qHTgTweLfbrMbwyVilmFh4a9k9+YHNuaUik3zZ
+         fDzf7bO5hL8xM2DrLmyj7691T810NvW/WdDQnb6IPL7Eoy0erQqAGP3sl4Iqx2FY16Tv
+         iqeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776905979; x=1777510779;
+        d=1e100.net; s=20251104; t=1776906089; x=1777510889;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=KFGVZhnJTKrzlrgKhO3gaiGedd72ydZdkBs/nRUsP3g=;
-        b=KYxYxaI8KUhYYts2QxCO4mHG9b5WIogfinGtEsak97gCogcTfTCBrpmjL+o9+YeWAn
-         1pdlmqvcUY1qmw06RMwXmx9M5EDZ5cO2d8HY3ED58nQKnjkudOWW/jw7oB5z0aIQi2/G
-         LNJWvpCuLtWFLSKXHw10qetTrCdKIEolj1VkSV1zKXXf576frchiVMR1fi0uVVfl7THO
-         juR6ALANLd4/ERZ87AzHipGSxLxdRNgBzgh3PEiBvx7vbdqYZJUaKi9VJfO22g8Kwxb5
-         T9zSQKz0hlqBcRG5IKpb8QZtfG1qXFIGAJwpSzgPjdLz+J/Bfa0Ti0bxxdarb2MMfqqg
-         Ir5g==
-X-Gm-Message-State: AOJu0Yw9o46fQwfOKYjyxMQVd1zIysCfFUXt9qbhMgu3vWDQgu/iRPx+
-	MEqnYcmtmI69zm9dr6JM+JEEn3Iueg9F4ZX49bG/wekhtVi9qupnFn9vKSFnTw==
-X-Gm-Gg: AeBDiesD1WoVJ9VeKwt2MIrnsM6Jh+tUx7Q2tJ+61rOGOxhR9mmdxRv2SIa8wHBUi7l
-	2zWpGs8QxBZZAryBgDJF4NX7m/nzluYD+012yeZQJcUJX1ppnXPUrBWqrgLOeG3v9slTwb/Guw5
-	9M05/c+Z3pwfb5qT0aklEwzDApjrt4gGoeYFc3zIOKwXHIKSXQ0Hn0qb/Axb9fj1ehAMzUpjC2t
-	Ud7nEuIINHkqtJoKMyB1UAKEmS730uLwHpfUIizkGMM16Qwmo9WyVvAogyCwf++cRPWvWVl6XKV
-	zDUQwclaxaL1jEOznlh6fS1tYTJQp5zdja+j4LBAMEW1NZZ3x5KSsJwua+OWXWjxoojWG7J10Mv
-	Ujwj2Jc6UKb3URLT7BPUPH24EZYsa+cBPbhDp4bwqpDbIdLkyuqNHVB58tIiKlAkF5atlhQEvwb
-	cbCQfVODkWlWVQSvq9pETSz9rTh+9nzDcH82Q=
-X-Received: by 2002:a05:6a21:328b:b0:3a2:7ef4:81e7 with SMTP id adf61e73a8af0-3a27ef485cemr18614989637.45.1776905978821;
-        Wed, 22 Apr 2026 17:59:38 -0700 (PDT)
+        bh=Ru04ukFyTNbgsS5jNq4xWYwrPbZQ3XyE6ewhoElABZk=;
+        b=HkYNIJI3MchV6d7xrotuUYBecnENw3DtMXNYbW1iGykk1nCnb+KcNC5JNPhDMCEfCg
+         i0iFKymEo2IkD8cL4RoipYOFmBiStUoIjMTOKb8vWaNnijGSztfduWv1FMN60Ua3SI7T
+         lHcxoZEqaDFo9f0u0/qW2MzwDSdf29pViFE1q/mK1TDG9WQrbPX0PIp7FObvb7rfK9BB
+         m8es0H+aV4XcWXJM4R43JoVa7G09yNfcWv3/aGRgxYAUDSFUL0rUebWMxOES/NYaJeME
+         OlHs8pCFPXaoTYACRAFFNuzPhEVoHRNbfTzSq4xb9mRytfuQ3sQOJmq3h3+LwT7A/8Ck
+         4cPQ==
+X-Gm-Message-State: AOJu0YyUtOCIH5qHM7zkld8/HMoI7fKS3cUx6c9gw779kGXS/s5lsfs3
+	eI8IKxtmFix3lzbC/iOOE1tJY8WOn2JvwRSnxcu6AoAPSy3dHBS6UPey+Z2AthH8
+X-Gm-Gg: AeBDiesli15jfsnSsVNX83SX6HbEkdB7toVJU+P7z2dzGcp105KPebAzWEvqEW7F45i
+	ZQKW8NMB0AAX9xVn94cCSPOpRosiTOOL5EVpqs7WLi26lnvQrm6Y9Ezsn7R8iDw1ZtrkN9KaCOF
+	DPsaaLFS4wcyBsz5xHA+5ZmYPjpU2P0nwCfP4xCuRyHmyA2aMbabs5ZKopUB+loqZWsQ0utKuUv
+	uqwKSovXr+6a7jM3zzAr7CJ4jTM8ypPc/mAeIJe/SQAVDzyI8AG/I2+1x6HS+XdmfSa45kqVaX3
+	vzCtQv1zPmeO3rlX4gcsq/aphiNC9zUSGGBpgawregRFDu4cW1KLqOCG6zF9A/jC2rBzehfUad0
+	Pi00oY3YRTuooIwu1xTClGPSxj2J0652stWYZy85/idKfPmYlklDUjmCHqtDXsY9x9OQzhUTTnI
+	UOz1xhJiz83/dhoF2i7n2GOYRQ+INyfgXvTJ4=
+X-Received: by 2002:a17:90a:e704:b0:35f:ccf6:69a5 with SMTP id 98e67ed59e1d1-36140478a16mr24890606a91.20.1776906088732;
+        Wed, 22 Apr 2026 18:01:28 -0700 (PDT)
 Received: from localhost ([203.38.38.6])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c797703df68sm14271703a12.27.2026.04.22.17.59.37
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c7976f9cabfsm15545214a12.9.2026.04.22.18.01.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Apr 2026 17:59:37 -0700 (PDT)
-Date: Thu, 23 Apr 2026 10:59:34 +1000
+        Wed, 22 Apr 2026 18:01:28 -0700 (PDT)
+Date: Thu, 23 Apr 2026 11:01:24 +1000
 From: Nicholas Piggin <npiggin@gmail.com>
 To: Joel Stanley <joel@jms.id.au>
 Cc: opensbi@lists.infradead.org
-Subject: Re: [PATCH 2/4] lib: sbi: Move PMP encoding into a new file
-Message-ID: <aelrWTQA5dRlC_aM@lima-default>
+Subject: Re: [PATCH 4/4] platform: generic: tenstorrent: Add RISC-V IOMMU
+ support
+Message-ID: <aelvClhzx8JMr_Ca@lima-default>
 References: <20260310005000.3837512-1-npiggin@gmail.com>
- <20260310005000.3837512-2-npiggin@gmail.com>
- <CACPK8Xc_q-N7kNtixS75z8=cX3ryHY6Kw-+S-8NjZhd+q4173Q@mail.gmail.com>
+ <20260310005000.3837512-4-npiggin@gmail.com>
+ <CACPK8Xf4HHF1immMSW632KmAuwRc+7nuvhXnLyuVNPvdO7Lg-w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <CACPK8Xc_q-N7kNtixS75z8=cX3ryHY6Kw-+S-8NjZhd+q4173Q@mail.gmail.com>
+In-Reply-To: <CACPK8Xf4HHF1immMSW632KmAuwRc+7nuvhXnLyuVNPvdO7Lg-w@mail.gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260422_175940_941597_D4AA8ACE 
-X-CRM114-Status: GOOD (  25.68  )
+X-CRM114-CacheID: sfid-20260422_180129_774040_F6C7679C 
+X-CRM114-Status: GOOD (  12.49  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,81 +99,43 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Wed, Apr 01, 2026 at 11:20:53PM +1030, Joel Stanley wrote:
+On Wed, Apr 01, 2026 at 11:21:04PM +1030, Joel Stanley wrote:
 > On Tue, 10 Mar 2026 at 11:19, Nicholas Piggin <npiggin@gmail.com> wrote:
-> >
-> > The Tenstorrent RISC-V IOMMU PMP MMRs use the same encoding as PMP CSRs.
-> > In preparation to support it, move the non hart-specific PMP operations
-> > into their own file where they will also be used to build the IOMMU
-> > PMPs.
-> >
-> > Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 > 
-> > --- a/lib/sbi/riscv_asm.c
-> > +++ b/lib/sbi/riscv_asm.c
-> 
-> > +int is_pmp_entry_mapped(unsigned int entry)
-> > +{
-> > +       pmp_t pmp;
-> 
-> > +       if (hart_pmp_read(entry, &pmp))
-> > +               return pmp_enabled(&pmp);
-> 
-> The diff is a bit all over the place so I may have confused myself.
-> The patch keeps is_pmp_entry_mapped but changes the body from
-> 
->     if (pmp_get(entry, &prot, &addr, &log2len) != 0)
->         return false;
-> 
-> to
-> 
->     if (hart_pmp_read(entry, &pmp))
->         return pmp_enabled(&pmp);
-> 
-> but hart_pmp_read returns SBI_OK (0) on success. So we should keep the !=0?
-
-Yes, you're right.
-
-> 
-> > +int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
-> > +           unsigned long *log2len)
-> > +{
-> > +       pmp_t pmp;
-> > +       int rc;
-> >
-> > -       /* return details */
-> > -       *prot_out    = prot;
-> 
-> It looks like prot_out is no longer written to after your patch. This
-> hunk never made it into the new pmp_decode:
-> 
->        /* decode PMP config */
->        cfgmask = (0xffUL << pmpcfg_shift);
->        pmpcfg  = csr_read_num(pmpcfg_csr) & cfgmask;
->        prot    = pmpcfg >> pmpcfg_shift;
-
-Good catch.
-
 > > --- /dev/null
-> > +++ b/lib/sbi/sbi_pmp.c
-> > @@ -0,0 +1,91 @@
+> > +++ b/platform/generic/tenstorrent/iommu.c
 > 
-> > +int pmp_create(pmp_t *pmp, unsigned long prot, unsigned long addr,
-> > +           unsigned long log2len)
+> > +int tt_iommu_fdt_configure(const void *fdt)
 > > +{
-> > +       unsigned long addrmask, pmpaddr;
+> > +       const char *compatible = "tenstorrent,riscv-iommu";
+> > +       bool found_dt = false;
+> > +       int offset = -1;
 > > +
-> > +       /* check parameters */
-> > +       if (log2len > __riscv_xlen || log2len < PMP_SHIFT)
-> > +               return SBI_EINVAL;
+> > +       for (;;) {
+> > +               uint64_t addr, size;
+> > +               int rc;
+> > +
+> > +               offset = fdt_node_offset_by_compatible(fdt, offset, compatible);
+> > +               if (offset < 0)
+> > +                       break;
+> > +
+> > +               rc = fdt_get_node_addr_size_by_name(fdt, offset, "machine",
+> > +                                                   &addr, &size);
+> > +               if (rc < 0 || !size) {
+> > +                       sbi_printf("tenstorrent,riscv-iommu did not find "
+> > +                                       "machine regs\n");
+> > +                       continue;
+> > +               }
+> > +
+> > +               if (size < RISCV_IOMMU_REG_MACHINE_SIZE) {
+> > +                       sbi_printf("tenstorrent,riscv-iommu@0x%016lx "
+> > +                                  " machine regs region too small\n", addr);
+> > +                       continue;
+> > +               }
 > 
-> Here we check that log2len <=__riscv_xlen, but in pmp_decode below we
-> set log2len =  __riscv_xlen + 3. Is that just how it works, or should
-> pmp_decode be able to decode what pmp_create does?
+> should this set found_dt = true here?
 
-That + 3 looks wrong, I'll have to dig a bit more into it. I think I
-need to simplify and/or split the patch up so it's a bit more feasbile
-to review (and hopefully less buggy).
+Yes it should.
 
 Thanks,
 Nick
