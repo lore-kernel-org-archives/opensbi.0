@@ -4,80 +4,80 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A3D54FB44A2
-	for <opensbi@archiver.kernel.org>; Fri, 24 Apr 2026 04:17:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3ECFCFB44B9
+	for <opensbi@archiver.kernel.org>; Fri, 24 Apr 2026 06:25:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=L1PYUOhin7CJWDLjsvJFAizupP5nbkjuliE2+GzWbmE=; b=Z8rpFJPNhG0Za9
-	vIgyevALzspuYQwYrkJA5ml9fcIRSSzQDMyuEMrB+IXhdeGYzA7uuU/mQC81p/rRLPefVQDZ9Na63
-	Ey5QlYfA8ZaHmnNFNg+7ptliBk/GyhRlo3xUzL76Elz4ESofQzCl5RQqyANSibTnhqfutinvFH9SO
-	awJwzaEN4Vx4AQg7zIwAO/gpA6Dl4jjZqfYf9Xj9zISz1BXzTtxqWt17JVKsLlHemTwkUkZd0CKfj
-	G1Ry5nW/rgnO1i6C9CBRFgafrWJ7WcJYKh1MaeK9ADDCKeZc/ZmbxVW6ZGD12GHRFEYoweTX+ywNU
-	AuDVAWG2/LwtQG2UjI8A==;
+	List-Owner; bh=3wKaz81LjvhBDwfqObz2yBkVn5sNKF4Gitr0onOSpqU=; b=sBeGIpxObYLFti
+	9fYW+YG/AUX0byR8z8DqSCpBO2L1d5x18bIT0q5lt3VzzycsnzFhgueo0c4sRoZxB/kzTwQz+eM9o
+	JK9XDtNbCyNABpQ9hjCjy6Az8SsGRP43p9R/5PjVEMPEVSbJXVa8WRUpB7VjHENa2dTMUYEMlxZVO
+	vy2nL3014w0eWsPLNCgPZh0MftDq2KxYOMSut7+zJyRhRE5rr6VQxQqSArWd7OK91V6s4omewx5Hl
+	Q+hTLhrHm9aSEIW649W1falc1+TP205sZ2h8ONwoe0XXISQ56/vEN24RYS80elm6FukfncFQba42s
+	lYu7xBgdPSWAp8CzqVjA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wG7yz-0000000Cd4j-26at;
-	Fri, 24 Apr 2026 04:17:37 +0000
-Received: from mail-pj1-x102f.google.com ([2607:f8b0:4864:20::102f])
+	id 1wG9yk-0000000ChvD-1SN2;
+	Fri, 24 Apr 2026 06:25:30 +0000
+Received: from mail-pl1-x635.google.com ([2607:f8b0:4864:20::635])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wG7yw-0000000Cd4J-466L
+	id 1wG9yg-0000000Chud-1G5R
 	for opensbi@lists.infradead.org;
-	Fri, 24 Apr 2026 04:17:36 +0000
-Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-35da2d35eccso5169698a91.0
-        for <opensbi@lists.infradead.org>; Thu, 23 Apr 2026 21:17:34 -0700 (PDT)
+	Fri, 24 Apr 2026 06:25:29 +0000
+Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-2ab232cc803so36471935ad.3
+        for <opensbi@lists.infradead.org>; Thu, 23 Apr 2026 23:25:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777004253; x=1777609053; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1777011924; x=1777616724; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=V3xY9k1WU5UPKc8de7hw1ZmoKbU2NW58RfuCUeqFdZU=;
-        b=l785HNbnC3kNp1F0mTgYtTyz6aJN/E5/dlt72IZIDorPRVi3ItrS7ytN6JfX3kPJkm
-         VNJfTBmhkctuX4KzJ5jIEKGKQRiukFfsN/4e+fzBvi4QGizlscWseMUQyq/w7JIiam7u
-         XlEdaWkxqPR1IQSLZ7lx+Jew6lvn2mvBR5UuZ0BaZvpFmtyqx2vN4IxV3a5iaaF4vxeM
-         OaCYH91wFlSF4YQeaHD+KyW/IwMeew9VNb+nFs0n8g+EswADG3IOGADU39dq23TJ1tkG
-         X8oTN7ntSeuIkWz9sAYLoJzBqd4mvVipJznGU0WHKUbonnLDndg2wztmVHFMc7pXpw5a
-         t2QA==
+        bh=7IRqnfIDn0xayxSzVDTYteITTAfdnW6P9p1BzV12ZjE=;
+        b=g/Nu+fpMxoY/sK0IFNTvEwqj5uQV4UzDgzRnsx3GhVSW7jxzwhIMfNTWdxTN9izTlp
+         IbQxoLtxcjx1amFI8dnVvCt5k65uRPuhFAHS4cXM+feSjWIJdTdTSsyYk44Brz1s2K5h
+         ReBg7S9BtzONLBp/RUMA9tAmDjaywJM/o5Lg8D/PzYPJSugG3nU8lrSAwEj0LGKVZ2Q3
+         TGHzPRzrblKuDYm/+HmlS2C2mrHOEQzZ5VQpw4DdsVnTIGPb+EXvvw34sg0X1ltjUZfZ
+         61BeTb0Dtldwusm0W3idvGqI1FTwWM33PLlXD5xVfEd8c3UWQdi/CVVhhhaVYKO+QrYW
+         mhfg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777004253; x=1777609053;
+        d=1e100.net; s=20251104; t=1777011924; x=1777616724;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=V3xY9k1WU5UPKc8de7hw1ZmoKbU2NW58RfuCUeqFdZU=;
-        b=DY6jyRaMZjmGp+u5U3+jgPRANDcvwjgqnR6+qxxkmYQ++rrOO5Z/SvOLdJjPvUfRNe
-         2hSUlsSxqCzIm1irODBaDM0Dx4IN4Pmd358+BfJP8PPdnjeElJMB07vv5PgXoJrWfBFe
-         qQ/pYb7DR3FG3DAixGSlOyS1NDophwTGA9EDAuh+aOdIbc70vFeW+dpRP2R4QPrY8TLT
-         pEEWDrqZn9ZzjrAut8s0BdZ2tZrO8QjPZ50MJZm1yqj7CSjwP3MjN7KdQPGeoKJcRcXt
-         vEUb6uoX5EGHtgKQmW7Mwhjk9Ou9bD0HRW33GZSXfL8Vk65qVGc+UnWhOUci6JP1Yaoa
-         phPg==
-X-Gm-Message-State: AOJu0Yyt3AhGol0p1FvJLMqBSwmSYd5GWWuHrPlK3QqFf1sOXoqpa79W
-	tfMJZ0FY0rYLMZLGHKmhiyS47Olz043Zc1At2qJIzlwZyuSnQpCvJzosTb9M6A==
-X-Gm-Gg: AeBDiesQ+2EwO49nB8R6RUMoUX3Gux5mcw6k5d+C7m9/fdoKLZiQMvl2G5x04EXHncL
-	/ljkxT20pEjK5jbp/etvi/eeb3DgWo+3q0+ipE/Tu+wEvvSD1WTuHA82wF/YI6gqqzAJ+StQBDF
-	gCeA9VtPdgJI8kWA72RJmNALxmx3ZC9VJuGKfyKxGU2EOHDqrDNbhspwXPqi+jd6DgzG021/nUv
-	LMeY48EjN/nEDZzq1cwOD2L02IzHBH1ZCJA1AFwXWPrsdUtc0Ac5sBIhkbmG2zC9jt2bsjCEwcr
-	FtQZAj5d3TXo3O7ri8yS93lNioEwh3+uvdYqtrwyztsuASF+LzPTVJJkBpvY6cmnO4T4MvFbiJn
-	GRCuBqf0jdz5FdqMej3SEy2DBP5JIYuPBoBlXpFYCBLCzwoEE6IeDUVpUx4nCc3DGQuvB2DB4XW
-	r41uUCPLKeQVSllw8yLawOgQc4p7o/EGlPh86SzKAbxRZ/KmLXCHJwHbq1Yl++hqicYsQYFw==
-X-Received: by 2002:a17:90b:3f8f:b0:35c:30a8:341 with SMTP id 98e67ed59e1d1-3614046cd3amr31168263a91.13.1777004253247;
-        Thu, 23 Apr 2026 21:17:33 -0700 (PDT)
+        bh=7IRqnfIDn0xayxSzVDTYteITTAfdnW6P9p1BzV12ZjE=;
+        b=nyS1EIwtVrU31esZYxtuGDm/Iox2jmRrwh9nzRboqjUCWAjegcPfTMhifdO4RLX7U2
+         S59hGi60uuV65Xaf2XCLG/e5oV4mNtksoIfZxWCSnoYqefzM9LpdaOA3oilxWUKywjgc
+         bHTJ468wvRgZIGDj8GZQ0ZcPNJ4aQvKn1HBQOkGwl62RRFZK53RG5fSnJoyrWslDtZ7n
+         uHk1l0CHnYd9tOeYqpKo9QawqcIScXOUJIC+qMRoDn7oFTonpgobJ+r56xQT4c+S+/Cr
+         gu3gW/vX76C6aedP4r2k3g3vjypu8bl/z96KtHg7N32InowbDIL3rJwF4fAhi+SB284y
+         /Hgg==
+X-Gm-Message-State: AOJu0YyTjhu8EhhecUHPtxyf9yd08OfslmXb5BBfG+HB5UklHYjtLyyd
+	DCiW1sulQTagxITJItxh4yKKGMXJph0BpBcGL1ElYueWCyf1dlc8i3X52yNKuw==
+X-Gm-Gg: AeBDiesMfCLkqcprNoz2PO9f93PQziITE2mswMXdzL15UBjUowiZLRuKEhFEXX8EqBG
+	FDOvGv27sbGn2HN5/4BaUB7WcIVmRJsjFsipJySSM/2BVR/SP8BY7SsOYjM0KLMBXHZZQaYmOiO
+	eTyTfX/u9NTNEkieDnOw0/QujkfsR+OV2rWKo0+U829YHH0sRKTuN/DbFOvRtW8gfwPLKT1u8VU
+	jfAMQiUY6QDKQmpgpYcTfnOAqUdZHmUvMoiZLC6pyZU+VRrPJBQJlAJZKo3bWmWDfk5zghQWRDs
+	QPPx54uReXtzJzLvZOX8F4/KzfIC8RzXWQ6hy7zA/6PGGGQCby1mcFfakk5xVxufivtHZg3iNeI
+	6YxKLvqXI06KgLZFmB6PB25kyv6kSiPHnlGQ80C+T3etqDx4ShjWQpaxU2qrgDxyb/mOkg0JNes
+	OxR7vCazFqCzh86XYjS31nc/VNveIsaH5o37xCQ7g4goc1lVxBFYWa2O6IiOPghQn7klsYtA==
+X-Received: by 2002:a17:902:f549:b0:2b7:ac66:27ff with SMTP id d9443c01a7336-2b7ac66289cmr58615525ad.25.1777011924417;
+        Thu, 23 Apr 2026 23:25:24 -0700 (PDT)
 Received: from localhost (193-119-51-209.tpgi.com.au. [193.119.51.209])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-361418c3944sm27416917a91.8.2026.04.23.21.17.31
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b5fab55062sm215848215ad.84.2026.04.23.23.25.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Apr 2026 21:17:32 -0700 (PDT)
+        Thu, 23 Apr 2026 23:25:23 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH v2] platform: generic: Tenstorrent Atlantis support
-Date: Fri, 24 Apr 2026 14:17:25 +1000
-Message-ID: <20260424041725.173235-1-npiggin@gmail.com>
+Subject: [PATCH v3] platform: generic: Tenstorrent Atlantis support
+Date: Fri, 24 Apr 2026 16:25:19 +1000
+Message-ID: <20260424062520.238403-1-npiggin@gmail.com>
 X-Mailer: git-send-email 2.53.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260423_211735_045124_CC626C12 
-X-CRM114-Status: GOOD (  24.32  )
+X-CRM114-CacheID: sfid-20260423_232527_378159_960CA95A 
+X-CRM114-Status: GOOD (  24.17  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -100,6 +100,9 @@ CSR configuration.
 
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
+Since v2:
+- Fix silly 32-bit build issue.
+
 Since v1:
 - Drop the IOMMU since it depends on core PMP changes. I will work
   on those in parallel.
@@ -121,9 +124,9 @@ Nick
  platform/generic/tenstorrent/Kconfig          |   5 +
  platform/generic/tenstorrent/ascalon.c        |  53 +++++++
  platform/generic/tenstorrent/atlantis.c       |  50 +++++++
- platform/generic/tenstorrent/objects.mk       |  10 ++
+ platform/generic/tenstorrent/objects.mk       |  12 ++
  platform/generic/tenstorrent/pma.c            | 138 ++++++++++++++++++
- 11 files changed, 330 insertions(+)
+ 11 files changed, 332 insertions(+)
  create mode 100644 docs/platform/tt-atlantis.md
  create mode 100644 platform/generic/include/tenstorrent/ascalon.h
  create mode 100644 platform/generic/include/tenstorrent/pma.h
@@ -399,20 +402,22 @@ index 00000000..4c312f7e
 +};
 diff --git a/platform/generic/tenstorrent/objects.mk b/platform/generic/tenstorrent/objects.mk
 new file mode 100644
-index 00000000..1e4aeb2d
+index 00000000..17da2c5e
 --- /dev/null
 +++ b/platform/generic/tenstorrent/objects.mk
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,12 @@
 +#
 +# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
 +# SPDX-License-Identifier: BSD-2-Clause
 +#
 +
++ifeq ($(PLATFORM_RISCV_XLEN), 64)
 +platform-objs-y += tenstorrent/pma.o
 +platform-objs-$(CONFIG_CPU_TENSTORRENT_ASCALON) += tenstorrent/ascalon.o
 +
 +carray-platform_override_modules-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent_atlantis
 +platform-objs-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent/atlantis.o
++endif
 diff --git a/platform/generic/tenstorrent/pma.c b/platform/generic/tenstorrent/pma.c
 new file mode 100644
 index 00000000..daf60192
