@@ -4,80 +4,103 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3ECFCFB44B9
-	for <opensbi@archiver.kernel.org>; Fri, 24 Apr 2026 06:25:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id BCBB2FF885D
+	for <opensbi@archiver.kernel.org>; Sat, 25 Apr 2026 10:41:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=3wKaz81LjvhBDwfqObz2yBkVn5sNKF4Gitr0onOSpqU=; b=sBeGIpxObYLFti
-	9fYW+YG/AUX0byR8z8DqSCpBO2L1d5x18bIT0q5lt3VzzycsnzFhgueo0c4sRoZxB/kzTwQz+eM9o
-	JK9XDtNbCyNABpQ9hjCjy6Az8SsGRP43p9R/5PjVEMPEVSbJXVa8WRUpB7VjHENa2dTMUYEMlxZVO
-	vy2nL3014w0eWsPLNCgPZh0MftDq2KxYOMSut7+zJyRhRE5rr6VQxQqSArWd7OK91V6s4omewx5Hl
-	Q+hTLhrHm9aSEIW649W1falc1+TP205sZ2h8ONwoe0XXISQ56/vEN24RYS80elm6FukfncFQba42s
-	lYu7xBgdPSWAp8CzqVjA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=EkhEgsDBKD/LmwMlqeEosUv9te7ongkxUR6qjn0nZvs=; b=xRs8jnaFRZiG7j
+	DbJEDo2IOJEutL4RAWFerWylBXDWoE81lpGSTxaNTR52aU/vuTkVDR+jNt12c4IJLJxy8kt0rq8do
+	oNlEoloK8XPPqfoaqTLlEREAs65D0Ba9uZs4maQr6vCQeJ2AEqvoxe9jf1xbQ/VIybtyMxmW4qCHu
+	9NfvtBWce6+g3AlxHPbhwvWbG2IPINKrgeAjBoKGsYGdae8nIfvsX+ERHS8wpNf7kXnE7zzfMzeO/
+	hK8PlcunwF8Np2uama79QEQJWHKCbCKDh6hA7pmjYBEMb1SlrTzBAAsFgwYJ4ET6sPBfv4p19dot4
+	lwsoLa4UXYer8P8Dlm8Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wG9yk-0000000ChvD-1SN2;
-	Fri, 24 Apr 2026 06:25:30 +0000
-Received: from mail-pl1-x635.google.com ([2607:f8b0:4864:20::635])
+	id 1wGaRY-0000000ELsc-2YxJ;
+	Sat, 25 Apr 2026 10:41:00 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wG9yg-0000000Chud-1G5R
+	id 1wGaRV-0000000ELr9-3LYK
 	for opensbi@lists.infradead.org;
-	Fri, 24 Apr 2026 06:25:29 +0000
-Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-2ab232cc803so36471935ad.3
-        for <opensbi@lists.infradead.org>; Thu, 23 Apr 2026 23:25:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777011924; x=1777616724; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=7IRqnfIDn0xayxSzVDTYteITTAfdnW6P9p1BzV12ZjE=;
-        b=g/Nu+fpMxoY/sK0IFNTvEwqj5uQV4UzDgzRnsx3GhVSW7jxzwhIMfNTWdxTN9izTlp
-         IbQxoLtxcjx1amFI8dnVvCt5k65uRPuhFAHS4cXM+feSjWIJdTdTSsyYk44Brz1s2K5h
-         ReBg7S9BtzONLBp/RUMA9tAmDjaywJM/o5Lg8D/PzYPJSugG3nU8lrSAwEj0LGKVZ2Q3
-         TGHzPRzrblKuDYm/+HmlS2C2mrHOEQzZ5VQpw4DdsVnTIGPb+EXvvw34sg0X1ltjUZfZ
-         61BeTb0Dtldwusm0W3idvGqI1FTwWM33PLlXD5xVfEd8c3UWQdi/CVVhhhaVYKO+QrYW
-         mhfg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777011924; x=1777616724;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=7IRqnfIDn0xayxSzVDTYteITTAfdnW6P9p1BzV12ZjE=;
-        b=nyS1EIwtVrU31esZYxtuGDm/Iox2jmRrwh9nzRboqjUCWAjegcPfTMhifdO4RLX7U2
-         S59hGi60uuV65Xaf2XCLG/e5oV4mNtksoIfZxWCSnoYqefzM9LpdaOA3oilxWUKywjgc
-         bHTJ468wvRgZIGDj8GZQ0ZcPNJ4aQvKn1HBQOkGwl62RRFZK53RG5fSnJoyrWslDtZ7n
-         uHk1l0CHnYd9tOeYqpKo9QawqcIScXOUJIC+qMRoDn7oFTonpgobJ+r56xQT4c+S+/Cr
-         gu3gW/vX76C6aedP4r2k3g3vjypu8bl/z96KtHg7N32InowbDIL3rJwF4fAhi+SB284y
-         /Hgg==
-X-Gm-Message-State: AOJu0YyTjhu8EhhecUHPtxyf9yd08OfslmXb5BBfG+HB5UklHYjtLyyd
-	DCiW1sulQTagxITJItxh4yKKGMXJph0BpBcGL1ElYueWCyf1dlc8i3X52yNKuw==
-X-Gm-Gg: AeBDiesMfCLkqcprNoz2PO9f93PQziITE2mswMXdzL15UBjUowiZLRuKEhFEXX8EqBG
-	FDOvGv27sbGn2HN5/4BaUB7WcIVmRJsjFsipJySSM/2BVR/SP8BY7SsOYjM0KLMBXHZZQaYmOiO
-	eTyTfX/u9NTNEkieDnOw0/QujkfsR+OV2rWKo0+U829YHH0sRKTuN/DbFOvRtW8gfwPLKT1u8VU
-	jfAMQiUY6QDKQmpgpYcTfnOAqUdZHmUvMoiZLC6pyZU+VRrPJBQJlAJZKo3bWmWDfk5zghQWRDs
-	QPPx54uReXtzJzLvZOX8F4/KzfIC8RzXWQ6hy7zA/6PGGGQCby1mcFfakk5xVxufivtHZg3iNeI
-	6YxKLvqXI06KgLZFmB6PB25kyv6kSiPHnlGQ80C+T3etqDx4ShjWQpaxU2qrgDxyb/mOkg0JNes
-	OxR7vCazFqCzh86XYjS31nc/VNveIsaH5o37xCQ7g4goc1lVxBFYWa2O6IiOPghQn7klsYtA==
-X-Received: by 2002:a17:902:f549:b0:2b7:ac66:27ff with SMTP id d9443c01a7336-2b7ac66289cmr58615525ad.25.1777011924417;
-        Thu, 23 Apr 2026 23:25:24 -0700 (PDT)
-Received: from localhost (193-119-51-209.tpgi.com.au. [193.119.51.209])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b5fab55062sm215848215ad.84.2026.04.23.23.25.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Apr 2026 23:25:23 -0700 (PDT)
-From: Nicholas Piggin <npiggin@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH v3] platform: generic: Tenstorrent Atlantis support
-Date: Fri, 24 Apr 2026 16:25:19 +1000
-Message-ID: <20260424062520.238403-1-npiggin@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	Sat, 25 Apr 2026 10:40:59 +0000
+Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 63P3jk9B1016045;
+	Sat, 25 Apr 2026 10:40:54 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=bdVNLAvS8kI
+	ZG65WAf/ka3JRbXSVXlCPnkMd/09MrEw=; b=Z8Gbw/WKJmzwDUF5jdLT1Pr/bMb
+	gW2Zt9Je3lu2eUvhoBiYDV+4svhmMDmpXqo+iKGuioo9m3achifrLCco76SXkelZ
+	1pUEzxEnGAgZJ0QqVCkHN6gQ0SQNDgppjfbhBuNb9QGwg+CXpnmV+np1DAqBXKp4
+	ji3lgt2lMLcv/0gqqEI68GLjeVb2CiRC0wv/dYJkzYdGgdtR7lFCfA7XkeXo6ROC
+	gTkSTOK+iVwFrSZetgBjGf4QjTHxihavLNCFUVBdt5XjaNXJ7yM6iw1Y1MHqiRcd
+	XDUIoEfLcCa3q3qrJAESZO+IoVI4NgAIxfVVEoVlx/RO9SJQzkIDBZjFvRQ==
+Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4drp07gpwp-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 25 Apr 2026 10:40:53 +0000 (GMT)
+Received: from pps.filterd (APBLRPPMTA01.qualcomm.com [127.0.0.1])
+	by APBLRPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 63PAeoCJ005578;
+	Sat, 25 Apr 2026 10:40:50 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4drpph2c8a-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 25 Apr 2026 10:40:50 +0000 (GMT)
+Received: from APBLRPPMTA01.qualcomm.com (APBLRPPMTA01.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 63PAen9F005547;
+	Sat, 25 Apr 2026 10:40:49 GMT
+Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 63PAenX8005539
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 25 Apr 2026 10:40:49 +0000 (GMT)
+Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
+	id 1A25922156; Sat, 25 Apr 2026 16:10:49 +0530 (+0530)
+From: Anup Patel <anup.patel@oss.qualcomm.com>
+To: Atish Patra <atish.patra@linux.dev>
+Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
+        Samuel Holland <samuel.holland@sifive.com>,
+        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
+        Anup Patel <anup.patel@oss.qualcomm.com>,
+        Nicholas Piggin <npiggin@gmail.com>
+Subject: [PATCH v2 2/4] lib: sbi_timer: Introduce per-HART timer state
+Date: Sat, 25 Apr 2026 16:10:46 +0530
+Message-ID: <20260425104048.2335262-3-anup.patel@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260425104048.2335262-1-anup.patel@oss.qualcomm.com>
+References: <20260425104048.2335262-1-anup.patel@oss.qualcomm.com>
 MIME-Version: 1.0
+X-QCInternal: smtphost
+X-QCInternal: smtphost
+X-Authority-Analysis: v=2.4 cv=K8QS2SWI c=1 sm=1 tr=0 ts=69ec9a35 cx=c_pps
+ a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=A5OVakUREuEA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=yx91gb_oNiZeI1HMLzn7:22 a=EUspDBNiAAAA:8 a=pGLkceISAAAA:8
+ a=3A821fTzlExcq4CWNVkA:9
+X-Proofpoint-ORIG-GUID: YFvDzMGOGqNZLfAYSAgyeaspWA-pGV-v
+X-Proofpoint-GUID: YFvDzMGOGqNZLfAYSAgyeaspWA-pGV-v
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDI1MDEwNiBTYWx0ZWRfX46QvK4UAisyC
+ G/pdGsWSVPLx4wErrxJS5JKIji6wXQHuXByiBFTmZsSjfartG4RRTvQUFQoy6QsrSVG2a0r9jWr
+ Ab2vV0hqC/9s+qepRc4/cEQ92b9Htqo3t0Pl9X7MBEy620tb6n36PSMsBrYuoJYB85td3rIfyr3
+ LcFRImsmih0RvyCm2nXl/DwNS7yYKkXDf9Y7E5l9FwWcWtCgmddV0v9/GVBAWJyeyQHm/ex0MJj
+ /2IE/DH1DOa6CKnZJh9ClzWfRwanwdZbRegs0mPGx4nT07whw6CacD4iu6sXi3LXQJIMW2kkoNJ
+ /TlN0iQt/kOXYiZxnuiJyrDuillX2f5EM+G4qElZSmwXXO+0EFBU9R+RdGpTQQTJQsuabpiQTLP
+ xBl0XZmZBjxQyFR5GL4xIDEDoHQc4aoiL8CVtkUYzahjRNhn5J+yd5DPI8vzmw8erVuWy98rCX5
+ Zr6evAkxYZgy49XuQIQ==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-04-25_02,2026-04-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1011 impostorscore=0 spamscore=0 malwarescore=0 phishscore=0
+ priorityscore=1501 adultscore=0 lowpriorityscore=0 bulkscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2604200000 definitions=main-2604250106
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260423_232527_378159_960CA95A 
-X-CRM114-Status: GOOD (  24.17  )
+X-CRM114-CacheID: sfid-20260425_034057_963210_793BB9C8 
+X-CRM114-Status: GOOD (  13.01  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -94,476 +117,117 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add the Tenstorrent Atlantis as a generic-platform. This initial support
-enables the single_fw_region option, and verifies and prints HART PMA
-CSR configuration.
+Currently, only time_delta is per-HART so introduce per-HART timer
+state for having more per-HART timer information.
 
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
+Reviewed-by: Nicholas Piggin <npiggin@gmail.com>
 ---
-Since v2:
-- Fix silly 32-bit build issue.
+ lib/sbi/sbi_timer.c | 44 +++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
-Since v1:
-- Drop the IOMMU since it depends on core PMP changes. I will work
-  on those in parallel.
-
-Note the Atlantis hardware is not yet released, and QEMU models are in
-the process of being upstreamed, but at the moment not complete. We
-will continue to expand support and improve documentation for QEMU/HW
-as we get more pieces in place.
-
-Thanks,
-Nick
----
- docs/platform/generic.md                      |   2 +
- docs/platform/tt-atlantis.md                  |  35 +++++
- platform/generic/Kconfig                      |   6 +
- platform/generic/configs/defconfig            |   1 +
- .../generic/include/tenstorrent/ascalon.h     |  12 ++
- platform/generic/include/tenstorrent/pma.h    |  18 +++
- platform/generic/tenstorrent/Kconfig          |   5 +
- platform/generic/tenstorrent/ascalon.c        |  53 +++++++
- platform/generic/tenstorrent/atlantis.c       |  50 +++++++
- platform/generic/tenstorrent/objects.mk       |  12 ++
- platform/generic/tenstorrent/pma.c            | 138 ++++++++++++++++++
- 11 files changed, 332 insertions(+)
- create mode 100644 docs/platform/tt-atlantis.md
- create mode 100644 platform/generic/include/tenstorrent/ascalon.h
- create mode 100644 platform/generic/include/tenstorrent/pma.h
- create mode 100644 platform/generic/tenstorrent/Kconfig
- create mode 100644 platform/generic/tenstorrent/ascalon.c
- create mode 100644 platform/generic/tenstorrent/atlantis.c
- create mode 100644 platform/generic/tenstorrent/objects.mk
- create mode 100644 platform/generic/tenstorrent/pma.c
-
-diff --git a/docs/platform/generic.md b/docs/platform/generic.md
-index c48d6a9a..0b896ede 100644
---- a/docs/platform/generic.md
-+++ b/docs/platform/generic.md
-@@ -47,6 +47,7 @@ RISC-V Platforms Using Generic Platform
- * **SiFive HiFive Unleashed** (*[sifive_fu540.md]*)
- * **Spike** (*[spike.md]*)
- * **T-HEAD C9xx series Processors** (*[thead-c9xx.md]*)
-+* **Tenstorrent Atlantis Platform** (*[tt-atlantis.md]*)
- * **OpenPiton FPGA SoC** (*[fpga-openpiton.md]*)
- * **Ariane FPGA SoC** (*[fpga-ariane.md]*)
+diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+index 4088a597..9806c033 100644
+--- a/lib/sbi/sbi_timer.c
++++ b/lib/sbi/sbi_timer.c
+@@ -18,7 +18,11 @@
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_timer.h>
  
-@@ -57,5 +58,6 @@ RISC-V Platforms Using Generic Platform
- [sifive_fu540.md]: sifive_fu540.md
- [spike.md]: spike.md
- [thead-c9xx.md]: thead-c9xx.md
-+[tt-atlantis.md]: tt-atlantis.md
- [fpga-openpiton.md]: fpga-openpiton.md
- [fpga-ariane.md]: fpga-ariane.md
-diff --git a/docs/platform/tt-atlantis.md b/docs/platform/tt-atlantis.md
-new file mode 100644
-index 00000000..b9bdd238
---- /dev/null
-+++ b/docs/platform/tt-atlantis.md
-@@ -0,0 +1,35 @@
-+Tenstorrent Atlantis Platform
-+=============================
-+
-+The Tenstorrent Atlantis is an SoC and development board from
-+Tenstorrent in partnership with CoreLab Technology. It contains 8 RISC-V
-+RVA23 compliant Tenstorrent Ascalon cores with RISC-V AIA, RISC-V IOMMU,
-+and a range of devices and IO connectivity.
-+
-+To build the platform-specific library and firmware images, provide the
-+*PLATFORM=generic* parameter to the top level `make` command.
-+
-+Platform Options
-+----------------
-+
-+The *Tenstorrent Atlantis* platform does not have any platform-specific
-+options.
-+
-+Building Tenstorrent Atlantis Platform
-+--------------------------------------
-+
-+The Atlantis Platform is still under development. This section will be
-+expanded as firmware and support become available.
-+
-+QEMU support is currently being developed and initial support has been
-+proposed for upstream. To run QEMU that is patched with 'tt-atlantis'
-+machine support, run:
-+
-+```
-+qemu-system-riscv64 -M tt-atlantis -nographic \
-+	-bios build/platform/generic/firmware/fw_payload.bin \
-+    -kernel <linux_build_dir>/Image
-+```
-+
-+Recent (6.18) Linux/riscv 64-bit defconfig kernels should run the QEMU
-+tt-atlantis machine.
-diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
-index 600273d1..d594b140 100644
---- a/platform/generic/Kconfig
-+++ b/platform/generic/Kconfig
-@@ -89,6 +89,11 @@ config PLATFORM_STARFIVE_JH7110
- 	bool "StarFive JH7110 support"
- 	default n
- 
-+config PLATFORM_TENSTORRENT_ATLANTIS
-+	bool "Tenstorrent Atlantis support"
-+	select CPU_TENSTORRENT_ASCALON
-+	default n
-+
- config PLATFORM_THEAD
- 	bool "THEAD C9xx support"
- 	select THEAD_C9XX_ERRATA
-@@ -114,6 +119,7 @@ config PLATFORM_MIPS_P8700_BOSTON
- 
- source "$(OPENSBI_SRC_DIR)/platform/generic/andes/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/eswin/Kconfig"
-+source "$(OPENSBI_SRC_DIR)/platform/generic/tenstorrent/Kconfig"
- source "$(OPENSBI_SRC_DIR)/platform/generic/thead/Kconfig"
- 
- endif
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 1d3431e7..800f3f14 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -10,6 +10,7 @@ CONFIG_PLATFORM_SIFIVE_FU540=y
- CONFIG_PLATFORM_SIFIVE_FU740=y
- CONFIG_PLATFORM_SOPHGO_SG2042=y
- CONFIG_PLATFORM_STARFIVE_JH7110=y
-+CONFIG_PLATFORM_TENSTORRENT_ATLANTIS=y
- CONFIG_PLATFORM_THEAD=y
- CONFIG_PLATFORM_MIPS_P8700_EYEQ7H=y
- CONFIG_PLATFORM_MIPS_P8700_BOSTON=y
-diff --git a/platform/generic/include/tenstorrent/ascalon.h b/platform/generic/include/tenstorrent/ascalon.h
-new file mode 100644
-index 00000000..5d7b7635
---- /dev/null
-+++ b/platform/generic/include/tenstorrent/ascalon.h
-@@ -0,0 +1,12 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#ifndef __TENSTORRENT_ASCALON_H__
-+#define __TENSTORRENT_ASCALON_H__
-+
-+void tt_ascalon_discover_pmas_from_boot_hart(void);
-+void tt_ascalon_verify_pmas_nonboot_hart(void);
-+
-+#endif
-diff --git a/platform/generic/include/tenstorrent/pma.h b/platform/generic/include/tenstorrent/pma.h
-new file mode 100644
-index 00000000..051764ee
---- /dev/null
-+++ b/platform/generic/include/tenstorrent/pma.h
-@@ -0,0 +1,18 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#ifndef __TENSTORRENT_PMA_H__
-+#define __TENSTORRENT_PMA_H__
-+
-+/* Max number of PMAs for devices (CPU, IOMMU) for Tenstorrent platforms. */
-+#define TT_MAX_PMAS	32
-+
-+u64 tt_pma_get(unsigned int n);
-+void tt_pma_set(unsigned int n, u64 pma);
-+bool tt_pma_validate(unsigned int i, u64 pma);
-+void tt_pma_print(unsigned int i, u64 pma);
-+
-+#endif
-+
-diff --git a/platform/generic/tenstorrent/Kconfig b/platform/generic/tenstorrent/Kconfig
-new file mode 100644
-index 00000000..76c7fb32
---- /dev/null
-+++ b/platform/generic/tenstorrent/Kconfig
-@@ -0,0 +1,5 @@
-+# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+# SPDX-License-Identifier: BSD-2-Clause
-+
-+config CPU_TENSTORRENT_ASCALON
-+	bool
-diff --git a/platform/generic/tenstorrent/ascalon.c b/platform/generic/tenstorrent/ascalon.c
-new file mode 100644
-index 00000000..485144cd
---- /dev/null
-+++ b/platform/generic/tenstorrent/ascalon.c
-@@ -0,0 +1,53 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#include <sbi/riscv_asm.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_csr_detect.h>
-+
-+#include <tenstorrent/ascalon.h>
-+#include <tenstorrent/pma.h>
-+
-+#define CSR_PMACFG0	0x7e0
-+
-+void tt_ascalon_discover_pmas_from_boot_hart(void)
-+{
-+	struct sbi_trap_info trap = {0};
-+
-+	/* Whisper virtual platform does not implement PMA */
-+	csr_read_allowed(CSR_PMACFG0, &trap);
-+	if (trap.cause)
-+		return;
-+
-+	for (unsigned int i = 0; i < TT_MAX_PMAS; i++) {
-+		u64 pma = csr_read_num(CSR_PMACFG0 + i);
-+		if (!tt_pma_validate(i, pma)) {
-+			sbi_printf("HART%d: Bad boot PMA%02d 0x%016lx\n",
-+				   current_hartid(), i, pma);
-+		}
-+		tt_pma_set(i, pma);
-+
-+		if (pma)
-+			tt_pma_print(i, pma);
-+	}
-+}
-+
-+void tt_ascalon_verify_pmas_nonboot_hart(void)
-+{
-+	struct sbi_trap_info trap = {0};
-+
-+	/* Whisper virtual platform does not implement PMA */
-+	csr_read_allowed(CSR_PMACFG0, &trap);
-+	if (trap.cause)
-+		return;
-+
-+	for (unsigned int i = 0; i < TT_MAX_PMAS; i++) {
-+		u64 pma = csr_read_num(CSR_PMACFG0 + i);
-+		if (pma != tt_pma_get(i)) {
-+			sbi_printf("HART%d: Bad boot PMA%02d 0x%016lx does not match boot HART\n",
-+				   current_hartid(), i, pma);
-+		}
-+	}
-+}
-diff --git a/platform/generic/tenstorrent/atlantis.c b/platform/generic/tenstorrent/atlantis.c
-new file mode 100644
-index 00000000..4c312f7e
---- /dev/null
-+++ b/platform/generic/tenstorrent/atlantis.c
-@@ -0,0 +1,50 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#include <platform_override.h>
-+#include <libfdt.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_system.h>
-+#include <sbi/sbi_console.h>
-+
-+#include <tenstorrent/ascalon.h>
-+#include <tenstorrent/pma.h>
-+
-+static int tt_atlantis_final_init(bool cold_boot)
-+{
-+	if (cold_boot) {
-+		/* Boot firmware sets HART PMAs. Read and verify them. */
-+		tt_ascalon_discover_pmas_from_boot_hart();
-+	} else {
-+		/* Verify nonboot HARTs have PMAs matching boot HART */
-+		tt_ascalon_verify_pmas_nonboot_hart();
-+	}
-+
-+	return generic_final_init(cold_boot);
-+}
-+
-+static bool tt_atlantis_single_fw_region(void)
-+{
-+	return true;
-+}
-+
-+static int tt_atlantis_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match)
-+{
-+	generic_platform_ops.final_init = tt_atlantis_final_init;
-+	generic_platform_ops.single_fw_region = tt_atlantis_single_fw_region;
-+
-+	return 0;
-+}
-+
-+static const struct fdt_match tt_atlantis_match[] = {
-+	{ .compatible = "tenstorrent,atlantis" },
-+	{ },
+-static unsigned long time_delta_off;
++struct timer_state {
++	u64 time_delta;
 +};
 +
-+const struct fdt_driver tenstorrent_atlantis = {
-+	.match_table = tt_atlantis_match,
-+	.init = tt_atlantis_platform_init,
-+};
-diff --git a/platform/generic/tenstorrent/objects.mk b/platform/generic/tenstorrent/objects.mk
-new file mode 100644
-index 00000000..17da2c5e
---- /dev/null
-+++ b/platform/generic/tenstorrent/objects.mk
-@@ -0,0 +1,12 @@
-+#
-+# SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+# SPDX-License-Identifier: BSD-2-Clause
-+#
-+
-+ifeq ($(PLATFORM_RISCV_XLEN), 64)
-+platform-objs-y += tenstorrent/pma.o
-+platform-objs-$(CONFIG_CPU_TENSTORRENT_ASCALON) += tenstorrent/ascalon.o
-+
-+carray-platform_override_modules-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent_atlantis
-+platform-objs-$(CONFIG_PLATFORM_TENSTORRENT_ATLANTIS) += tenstorrent/atlantis.o
-+endif
-diff --git a/platform/generic/tenstorrent/pma.c b/platform/generic/tenstorrent/pma.c
-new file mode 100644
-index 00000000..daf60192
---- /dev/null
-+++ b/platform/generic/tenstorrent/pma.c
-@@ -0,0 +1,138 @@
-+/*
-+ * SPDX-FileCopyrightText: (c) 2025-2026 Tenstorrent USA, Inc.
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ */
-+
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_math.h>
-+#include <libfdt.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+
-+#include <tenstorrent/pma.h>
-+
-+/*
-+ * All PMAs in the system should be the same (after boot). The init code
-+ * must have set PMAs for all HARTs.
-+ */
-+
-+/*
-+ * Ascalon CPU and IOMMU PMA layout:
-+ * Field
-+ * [2:0]	Permission	[0] Read, [1] Write, [2] Execute
-+ * [4:3]	Memory type	00: Main memory, 01: IO memory relaxed,
-+ * 				10: IO memory channel 0, 11: IO memory channel 1
-+ * [6:5]	AMO type	00: AMONone, 01: AMOSwap,
-+ * 				10: AMOLogical, 11: AMOArithmetic
-+ * [7]		Cacheability (main memory type)
-+ * 				1: Cacheable, 0: Non-cacheable
-+ * 		Combining Capability (IO memory type)
-+ * 				1: Combining allowed, 0: Combining disallowed
-+ * [8]		Routing (coherency)
-+ * 				1: Coherent network, 0: Non-coherent network
-+ * [11:9]	Reserved
-+ * [51:12]	Physical address [51:12] base
-+ * [63:58]	Size log 2 (number of address LSB to ignore when matching)
-+ * 		0 = invalid entry (no match)
-+ */
-+
-+#define PMA_PERMISSION_R	0x1
-+#define PMA_PERMISSION_W	0x2
-+#define PMA_PERMISSION_X	0x4
-+#define PMA_PERMISSION_MASK	0x7
-+
-+#define PMA_TYPE_MAIN_MEMORY	0x0
-+#define PMA_TYPE_IO_RELAXED	0x8
-+#define PMA_TYPE_IO_ORDERED_0	0x10
-+#define PMA_TYPE_IO_ORDERED_1	0x18
-+#define PMA_TYPE_MASK		0x18
-+
-+#define PMA_AMO_NONE		0x0
-+#define PMA_AMO_SWAP		0x20
-+#define PMA_AMO_LOGICAL		0x40
-+#define PMA_AMO_ARITHMETIC	0x60
-+#define PMA_AMO_MASK		0x60
-+
-+#define PMA_MEMORY_CACHEABLE	0x80
-+#define PMA_IO_COMBINING	0x80
-+#define PMA_ROUTING_COHERENT	0x100
-+
-+#define PMA_FLAGS_MASK		0x00000000000001ffULL
-+#define PMA_ADDRESS_MASK	0x000ffffffffff000ULL
-+#define PMA_SIZE_MASK		0xfc00000000000000ULL
-+#define PMA_RESERVED_MASK	0x0300000000000e00ULL
-+
-+#define PMA_SIZE_SHIFT		58
-+
-+static u64 tt_pma_size(u64 pma)
-+{
-+	if ((pma & PMA_SIZE_MASK) == 0)
-+		return 0;
-+
-+	return 1ULL << ((pma & PMA_SIZE_MASK) >> PMA_SIZE_SHIFT);
-+}
-+
-+static u64 tt_pma_address(u64 pma)
-+{
-+	return (pma & PMA_ADDRESS_MASK) & ~((tt_pma_size(pma) - 1));
-+}
-+
-+bool tt_pma_validate(unsigned int i, u64 pma)
-+{
-+	if (!pma)
-+		return true;
-+
-+	if (pma & PMA_RESERVED_MASK) {
-+		sbi_printf("PMA%02u 0x%016lx contains reserved bits\n", i, pma);
-+		return false;
-+	}
-+
-+	if (tt_pma_size(pma) < 4096) {
-+		sbi_printf("PMA%02u 0x%016lx size < 4KB\n", i, pma);
-+		return false;
-+	}
-+
-+	if (tt_pma_address(pma) != (pma & PMA_ADDRESS_MASK)) {
-+		sbi_printf("PMA%02u 0x%016lx address is not aligned to size\n", i, pma);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+void tt_pma_print(unsigned int i, u64 pma)
-+{
-+	sbi_printf("PMA%02d                       : 0x%016lx-0x%016lx perm:%s%s%s type:%s %s %s amo:%s\n", i,
-+			tt_pma_address(pma), tt_pma_address(pma) + tt_pma_size(pma) - 1,
-+			pma & PMA_PERMISSION_R ? "R" : " ",
-+			pma & PMA_PERMISSION_W ? "W" : " ",
-+			pma & PMA_PERMISSION_X ? "X" : " ",
-+			(pma & PMA_TYPE_MASK) == PMA_TYPE_MAIN_MEMORY ? "main-memory" :
-+			 ((pma & PMA_TYPE_MASK) == PMA_TYPE_IO_RELAXED ? "io-relaxed" :
-+			  ((pma & PMA_TYPE_MASK) == PMA_TYPE_IO_ORDERED_0 ? "io-ordered-0" : "io-ordered-1")),
-+			(pma & PMA_TYPE_MASK) == PMA_TYPE_MAIN_MEMORY ?
-+			 (pma & PMA_MEMORY_CACHEABLE ? "cacheable" : "non-cacheable") :
-+			 (pma & PMA_IO_COMBINING ? "combining" : "non-combining"),
-+			pma & PMA_ROUTING_COHERENT ? "coherent" : "non-coherent",
-+			(pma & PMA_AMO_MASK) == PMA_AMO_NONE ? "none" :
-+			 ((pma & PMA_AMO_MASK) == PMA_AMO_SWAP ? "swap" :
-+			  ((pma & PMA_AMO_MASK) == PMA_AMO_LOGICAL ? "logical" : "arithmetic")));
-+}
-+
-+static u64 pmas[TT_MAX_PMAS];
-+
-+void tt_pma_set(unsigned int n, u64 pma)
-+{
-+	if (n >= TT_MAX_PMAS)
-+		sbi_panic("PMA exceeded TT_MAX_PMAS");
-+
-+	pmas[n] = pma;
-+}
-+
-+u64 tt_pma_get(unsigned int n)
-+{
-+	if (n >= TT_MAX_PMAS)
-+		sbi_panic("PMA exceeded TT_MAX_PMAS");
-+
-+	return pmas[n];
-+}
++static unsigned long timer_state_off;
+ static u64 (*get_time_val)(void);
+ static const struct sbi_timer_device *timer_dev = NULL;
+ 
+@@ -98,35 +102,37 @@ u64 sbi_timer_value(void)
+ 
+ u64 sbi_timer_virt_value(void)
+ {
+-	u64 *time_delta = sbi_scratch_offset_ptr(sbi_scratch_thishart_ptr(),
+-						 time_delta_off);
++	struct timer_state *tstate = sbi_scratch_thishart_offset_ptr(timer_state_off);
+ 
+-	return sbi_timer_value() + *time_delta;
++	return sbi_timer_value() + tstate->time_delta;
+ }
+ 
+ u64 sbi_timer_get_delta(void)
+ {
+-	u64 *time_delta = sbi_scratch_offset_ptr(sbi_scratch_thishart_ptr(),
+-						 time_delta_off);
++	struct timer_state *tstate = sbi_scratch_thishart_offset_ptr(timer_state_off);
+ 
+-	return *time_delta;
++	return tstate->time_delta;
+ }
+ 
+ void sbi_timer_set_delta(ulong delta)
+ {
+-	ulong *time_delta = sbi_scratch_offset_ptr(sbi_scratch_thishart_ptr(),
+-						   time_delta_off);
++	struct timer_state *tstate = sbi_scratch_thishart_offset_ptr(timer_state_off);
+ 
+-	*time_delta = delta;
++#if __riscv_xlen == 32
++	tstate->time_delta &= ~0xffffffffUL;
++	tstate->time_delta |= (u32)delta;
++#else
++	tstate->time_delta = delta;
++#endif
+ }
+ 
+ #if __riscv_xlen == 32
+ void sbi_timer_set_delta_upper(ulong delta_upper)
+ {
+-	ulong *time_delta = sbi_scratch_offset_ptr(sbi_scratch_thishart_ptr(),
+-						   time_delta_off);
++	struct timer_state *tstate = sbi_scratch_thishart_offset_ptr(timer_state_off);
+ 
+-	*(time_delta + 1) = delta_upper;
++	tstate->time_delta &= 0xffffffffUL;
++	tstate->time_delta |= (u64)delta << 32;
+ }
+ #endif
+ 
+@@ -176,13 +182,13 @@ void sbi_timer_set_device(const struct sbi_timer_device *dev)
+ 
+ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
+ {
+-	u64 *time_delta;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++	struct timer_state *tstate;
+ 	int ret;
+ 
+ 	if (cold_boot) {
+-		time_delta_off = sbi_scratch_alloc_offset(sizeof(*time_delta));
+-		if (!time_delta_off)
++		timer_state_off = sbi_scratch_alloc_offset(sizeof(*tstate));
++		if (!timer_state_off)
+ 			return SBI_ENOMEM;
+ 
+ 		if (sbi_hart_has_csr(scratch, SBI_HART_CSR_TIME))
+@@ -192,12 +198,12 @@ int sbi_timer_init(struct sbi_scratch *scratch, bool cold_boot)
+ 		if (ret)
+ 			return ret;
+ 	} else {
+-		if (!time_delta_off)
++		if (!timer_state_off)
+ 			return SBI_ENOMEM;
+ 	}
+ 
+-	time_delta = sbi_scratch_offset_ptr(scratch, time_delta_off);
+-	*time_delta = 0;
++	tstate = sbi_scratch_offset_ptr(scratch, timer_state_off);
++	tstate->time_delta = 0;
+ 
+ 	if (timer_dev && timer_dev->warm_init) {
+ 		ret = timer_dev->warm_init();
 -- 
-2.53.0
+2.43.0
 
 
 -- 
