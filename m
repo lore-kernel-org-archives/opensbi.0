@@ -4,83 +4,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 92F14FF8875
-	for <opensbi@archiver.kernel.org>; Thu, 30 Apr 2026 04:55:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 37EC4FF886F
+	for <opensbi@archiver.kernel.org>; Thu, 30 Apr 2026 04:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=vTX88+rWtXnkDhF4pELdykMOAghwi/nze8nN/alXf38=; b=j5LvNGNLI7KhiQ
-	IedkBszXKIGo07jTB2jArfmCD0TpJE8QNL7a3fYC+j7yfLOwbb0VJnD9P04NKu5HTrz398DT9LATq
-	8s+o1I3jEFlWbSBcx4AQBz000WflqQkT7hqIRj1apeDthZpb+qjGCDGQpjwzFrgYRDimzGnJi2mCr
-	fxAfJ74gntlLFHhsAh/domDKwWQNQuPByXfoC80tqfYb8/m+RxRhPX+I3DqHcWyec7VuQnCj8anYx
-	HFkrNuYEU+TDCJsvOm5I64ccvwXm8/LnvlKW5ARKUTryM1qFTCYpLkV+eGRqNC0v21N7M5nGPSc5M
-	MWXormvPKRzfu91pQh3w==;
+	List-Owner; bh=Ak23gEq5SYtpPu47vzXmsnYE51LESIZ4YaipvWx/xtQ=; b=bhI8tzVXoianJ6
+	CUD8PJNBkAIwIYQEJKHvITXvo9jBNu5ZVffekU+fGwd27D0waywMNy7ogj10OH3YgiB4RJsj9nzf6
+	2cddLYk/NxZeO5THy02B5F/NAdv4lcmWe2jOQh4db6EVVeb/LKF+TElI8kUHqK9mcNTdG3J9jve3p
+	ifjFvQt0UeX0HDaQJLyt1F9MV7ON61MtUOagvr+LnaS65jlAIPxmzM1L9pe1P4BHxKPGojCUYRcTn
+	wZEXQ33PKv9nFCVp225869NF8O0JoNhZVzmlZnFeptECQNnqTejhOOAJDnZ/q8ugOaFMla3SNoq5Z
+	bPlhLdDxKUcjl9ggJb0w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJRA-00000004g3M-3hbu;
-	Thu, 30 Apr 2026 04:55:44 +0000
-Received: from mail-pf1-f178.google.com ([209.85.210.178])
+	id 1wIJRF-00000004g4y-0e24;
+	Thu, 30 Apr 2026 04:55:49 +0000
+Received: from mail-pj1-x102f.google.com ([2607:f8b0:4864:20::102f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJR8-00000004g2d-3epp
+	id 1wIJRC-00000004g41-3dEV
 	for opensbi@lists.infradead.org;
-	Thu, 30 Apr 2026 04:55:43 +0000
-Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-83178c0f29cso367755b3a.0
-        for <opensbi@lists.infradead.org>; Wed, 29 Apr 2026 21:55:42 -0700 (PDT)
+	Thu, 30 Apr 2026 04:55:47 +0000
+Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-362e30526f8so186378a91.3
+        for <opensbi@lists.infradead.org>; Wed, 29 Apr 2026 21:55:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777524941; x=1778129741; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1777524945; x=1778129745; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=X1LLKCFvi1GEObqYGvHfiap+a5f2X0XLlziBBakRm+c=;
-        b=jA07QGVnvtfEW6OXL+9Gb7TAVszjG5HIQ+WoKIr/CvlTaJehfqVOnfPu+UAsL2Krqa
-         D1Wm/A4nBdFVY9WJHtKzOO0yYVazv1OO80mkQifiB6gmb8CzJAQIdzLn8SJQqQOuWwph
-         ZGOukpqIIC+oEolDLXaNH1Ehfe94l1MT/U997Vcp7Auqwq8/PqhP6sR/inK/ZHrG7eav
-         fcEbpwnvYXZqm9i/jBV92uBtWEypL7E9wmWcyvVHt9QCYPa2nP9A30bK/LHriMscWkfc
-         hFjyJw53mTa66kAZmUhVTqp9/ep+tqpiSXf058KyFqCJzp7hHwGEfQeKcDCqWLm8Tox9
-         fZUA==
+        bh=2ro9xvv1ROICGclp3fS2EhmhM42xM78dx6XTJNFMixs=;
+        b=sjP5fpO49Fw5LMi8mzzcYz5+GrNVARhGtyZx55o4WyfIkd9UOd+5KCk8Y4E0nyDrsK
+         dcU0ZDdHHJEYmVFO3swmpnKsK/P6EUsuWg4kK51Wd5HhJn0BVmSINJj3DLCFrSaaPO7g
+         5/Ej9uPy6XOnbazEQ63vkh1+tpwz7YBoguqv/Er7Yz0U0Z5Q2aKUnTOGQ2VB48eoZJlS
+         W+klg6aNWqhiReWSH1/IRRqSmcskyZLKGcVtjzYbuwvIgplTgtqwyqmGU++hQU0loBXp
+         fbc0c+tNaEbfr5TiKC8n7BxN4+WpftBzyEndNsGcEdw8YQkshrDdUBiHvweJvl+q/z8k
+         GcXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777524941; x=1778129741;
+        d=1e100.net; s=20251104; t=1777524945; x=1778129745;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=X1LLKCFvi1GEObqYGvHfiap+a5f2X0XLlziBBakRm+c=;
-        b=du7kCNNZuZDQsQYBaXlF6EBdkGtq6hhWgvcR1IdRBzYwVxw5fvuWbS6xNUH5yooJCR
-         i/g+/5oNlAm46c8KvStm1W+ACwSQJLwmTub05X+6CTvhujllo73qN0cI7WNHHH6EAxKq
-         PD7dINQwlesCIPgFXmGp+7wZFKK412PcZelSVcCk+pHl1Q5aTW+awkr3QNQU8tAx+u01
-         tq4GOapWz+eg/4p/z4QwyL7mD+kxGUEQ2uCdl+Kr6Oa3sDYjFC+p7KXe8960hh3HlMcP
-         kw1VDMqXbcM/Az+vBYzVxVR8ahAvfW31rP7guBitMBd/MjJcpuBN7mRfIsbDChQ6v9aM
-         Z0VQ==
-X-Gm-Message-State: AOJu0YxLh53sXey63zCcbn7cpptIKqNmw39wMx19DleGnXIdGtYllGuJ
-	IltyAXAetNC5KgTIsziCXZrs96WK9N3ubOOR/VtVjyTn4Pgt8dxW4IE5CTPErg==
-X-Gm-Gg: AeBDietnzwc8Ok8Snwakjh+X4xEkqF/HTZ1VBualvBlhhaeT8ccmHFcKj0HJCFPo6Rm
-	j0ncyDeChpa3u978aO3WIxX91iA7D490TvjQVdHfKLVorCD/AoxzbYVjH4Io59A+ZLf8rFIGmTb
-	VIswXYLysDzvoC0qKurhJI6ohbAKzJ36xXQbYSVg/Itr4xEPqGI7fEMbzXkjZXt8ONE2fFHZ7tp
-	sA07jCMnooJipfrMPytysJ+4yi1POy4nrV3HgwJsmBpHKHVyDSKYyazW3ucusiSYye1YQ1dxn7E
-	kgV41ykMSp6bOk5pL/BFUFrltIiWPmCQq0HJx1sBqlekuuyLlIwuSFDFgaj/xSXUw1ZFMYqVtLw
-	O/M57zuVfRI2JfovCYVV8r0ZRA4L3qtbQv59U6rGckwqaUhGTUALccvhU8saMsYGsJvEkryWHhy
-	Kwd7bat2SN/zVSF+rQaNG6xu1vNDNdrCZZVDuwFgd+1U8/nIEyuqd3xg==
-X-Received: by 2002:a05:6a00:1a8b:b0:82f:6e9:d1ba with SMTP id d2e1a72fcca58-834fdc480bcmr1667516b3a.37.1777524941021;
-        Wed, 29 Apr 2026 21:55:41 -0700 (PDT)
+        bh=2ro9xvv1ROICGclp3fS2EhmhM42xM78dx6XTJNFMixs=;
+        b=ruPfjANeFZjkM39J2fJmxpQTrK40xUn+aEz5FB2434Nj6ewwLLDRzQgRHjZGO29OqP
+         MQDLauCXeEeWpeTUtIYUozISfOyxwDr97wDLJBhuJepxE4xxqTadXHmGBiw6BljwAKP5
+         sGm9+gbmnWwp6Cg7IX33D9RAeQ0gsRvo6sUC2+UC7ZppYgmWnhHApG3gIwfulkBeuKzW
+         lubwF8diz2VvjCpKb5VUTiL5m5kajdY7I62UvS5p9k+NpUxxTU2gj1pjNtXH9Z0r0zOf
+         mWHeTFqb/3G8CR7kUOR1ADvVC9O5unZGWPuZjU/8QHQAPNr+UmhbETJcAg3F3xAcOeq9
+         WurQ==
+X-Gm-Message-State: AOJu0YyLrFYIPxO3tVLGHo7V7FKbIM/8UUzXnCPYPKfnvyVYRhhZ0uVD
+	vgTHWJwUqf3Yx+BQl1cadAzc89No9Fpjye5qM2SIhGFn7cp+6a1zHSkFShdTew==
+X-Gm-Gg: AeBDietYKh9oVEBk4kbjotRTolKJTBK77SZMff9anSYZl+Tsjv2azAcEExMCcfJlw2S
+	uTSynldCh/1iugW7z9pTUt1fEUviqOHcbw7ZGcx7D7MJKzG4wPAi2uxVszbooStfJIsgxErQHba
+	/mAiUlCvDvBwZLdRbFM40Ra+/rZQUhN2ezCJtJa3LoYeLH1k4z+6X0fehRG9EZNjgLIANuvNB6l
+	2isHa2wsOT69QqLqMInu3OxRrJy/jkPToCtCjWPpEBHMixxiBVp+KzcvLE7twAOUb4Yxq2s80u5
+	E0xFldn/gZBN93GtYygSj068QwXeaj+nc0O3hfcwXGk5HvAy/CWp33W9ftVKZa5pqmv0La+XQ/K
+	i2HXk43qKD4R+byostJ0o+CCeytbIYnThfev1JW1D0FjXSlqAES9ELYbu0S6ezKpxNV0/1xGApD
+	oVVSz9CI9+qcl88MXzRNx1Lr7OaGzd6rz100XgSEaOE6o=
+X-Received: by 2002:a17:90b:5830:b0:35f:b1f3:ac12 with SMTP id 98e67ed59e1d1-364c2f23000mr1376483a91.4.1777524945385;
+        Wed, 29 Apr 2026 21:55:45 -0700 (PDT)
 Received: from localhost ([124.158.97.178])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-834ed80ec94sm3805750b3a.52.2026.04.29.21.55.39
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-364be00b168sm1245524a91.12.2026.04.29.21.55.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Apr 2026 21:55:40 -0700 (PDT)
+        Wed, 29 Apr 2026 21:55:44 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH 1/7] lib: sbi: Introduce pmp_t type
-Date: Thu, 30 Apr 2026 14:55:18 +1000
-Message-ID: <20260430045528.420437-2-npiggin@gmail.com>
+Subject: [PATCH 2/7] lib: sbi: split PMP encoding and CSR access
+Date: Thu, 30 Apr 2026 14:55:19 +1000
+Message-ID: <20260430045528.420437-3-npiggin@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260430045528.420437-1-npiggin@gmail.com>
 References: <20260430045528.420437-1-npiggin@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260429_215542_914094_28FF926D 
-X-CRM114-Status: GOOD (  12.66  )
+X-CRM114-CacheID: sfid-20260429_215546_911215_4B5B92FE 
+X-CRM114-Status: GOOD (  14.39  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -97,118 +97,194 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-To help abstract details of PMP encoding and access, add a new pmp_t
-type which contains address and cfg in the format of the riscv CSRs.
-There is no functional change.
+Allow PMP encoding functions to be shared with non-hart PMP manipulation
+by splitting encoding / decoding and hart PMP CSR access into their own
+functions.
 
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
- lib/sbi/riscv_asm.c | 41 ++++++++++++++++++++++++++---------------
- 1 file changed, 26 insertions(+), 15 deletions(-)
+ lib/sbi/riscv_asm.c | 119 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 73 insertions(+), 46 deletions(-)
 
 diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 3e44320f..acb6b5e6 100644
+index acb6b5e6..e33e3c36 100644
 --- a/lib/sbi/riscv_asm.c
 +++ b/lib/sbi/riscv_asm.c
-@@ -272,6 +272,12 @@ void csr_write_num(int csr_num, unsigned long val)
- #undef switchcase_csr_write
+@@ -336,70 +336,50 @@ int is_pmp_entry_mapped(unsigned long entry)
+ 	return false;
  }
  
-+struct pmp {
-+	unsigned long addr;
-+	u8 cfg;
-+};
-+typedef struct pmp pmp_t;
-+
- static unsigned long ctz(unsigned long x)
+-int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+-	    unsigned long log2len)
++static int pmp_encode(pmp_t *pmp, unsigned long prot, unsigned long addr,
++		      unsigned long log2len)
  {
- 	unsigned long ret = 0;
-@@ -335,7 +341,8 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
- {
- 	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
- 	unsigned long cfgmask, pmpcfg;
--	unsigned long addrmask, pmpaddr;
-+	unsigned long addrmask;
-+	pmp_t pmp;
- 
+-	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+-	unsigned long cfgmask, pmpcfg;
+-	unsigned long addrmask;
+-	pmp_t pmp;
+-
  	/* check parameters */
- 	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
-@@ -356,25 +363,26 @@ int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
+-	if (n >= PMP_COUNT || log2len > __riscv_xlen || log2len < PMP_SHIFT)
++	if (log2len > __riscv_xlen || log2len < PMP_SHIFT)
+ 		return SBI_EINVAL;
+ 
+-	/* calculate PMP register and offset */
+-#if __riscv_xlen == 32
+-	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
+-	pmpcfg_shift = (n & 3) << 3;
+-#elif __riscv_xlen == 64
+-	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
+-	pmpcfg_shift = (n & 7) << 3;
+-#else
+-# error "Unexpected __riscv_xlen"
+-#endif
+-	pmpaddr_csr = CSR_PMPADDR0 + n;
+-
  	/* encode PMP config */
  	prot &= ~PMP_A;
  	prot |= (log2len == PMP_SHIFT) ? PMP_A_NA4 : PMP_A_NAPOT;
--	cfgmask = ~(0xffUL << pmpcfg_shift);
--	pmpcfg	= (csr_read_num(pmpcfg_csr) & cfgmask);
--	pmpcfg |= ((prot << pmpcfg_shift) & ~cfgmask);
-+	pmp.cfg = prot;
+-	pmp.cfg = prot;
++	pmp->cfg = prot;
  
  	/* encode PMP address */
  	if (log2len == PMP_SHIFT) {
--		pmpaddr = (addr >> PMP_SHIFT);
-+		pmp.addr = (addr >> PMP_SHIFT);
+-		pmp.addr = (addr >> PMP_SHIFT);
++		pmp->addr = (addr >> PMP_SHIFT);
  	} else {
  		if (log2len == __riscv_xlen) {
--			pmpaddr = -1UL;
-+			pmp.addr = -1UL;
+-			pmp.addr = -1UL;
++			pmp->addr = -1UL;
  		} else {
++			unsigned long addrmask;
  			addrmask = (1UL << (log2len - PMP_SHIFT)) - 1;
--			pmpaddr	 = ((addr >> PMP_SHIFT) & ~addrmask);
--			pmpaddr |= (addrmask >> 1);
-+			pmp.addr = ((addr >> PMP_SHIFT) & ~addrmask);
-+			pmp.addr |= (addrmask >> 1);
+-			pmp.addr = ((addr >> PMP_SHIFT) & ~addrmask);
+-			pmp.addr |= (addrmask >> 1);
++			pmp->addr = ((addr >> PMP_SHIFT) & ~addrmask);
++			pmp->addr |= (addrmask >> 1);
  		}
  	}
  
- 	/* write csrs */
--	csr_write_num(pmpaddr_csr, pmpaddr);
+-	/* write csrs */
+-	csr_write_num(pmpaddr_csr, pmp.addr);
+-	cfgmask = ~(0xffUL << pmpcfg_shift);
+-	pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
+-	pmpcfg |= (((unsigned long)pmp.cfg << pmpcfg_shift) & ~cfgmask);
+-	csr_write_num(pmpcfg_csr, pmpcfg);
+-
+-	return 0;
++	return SBI_OK;
+ }
+ 
+-int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+-	    unsigned long *log2len)
++int pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
++	    unsigned long log2len)
+ {
+ 	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
+-	unsigned long cfgmask, prot;
+-	unsigned long t1, addr, len;
++	unsigned long cfgmask, pmpcfg;
+ 	pmp_t pmp;
++	int rc;
+ 
+ 	/* check parameters */
+-	if (n >= PMP_COUNT || !prot_out || !addr_out || !log2len)
++	if (n >= PMP_COUNT)
+ 		return SBI_EINVAL;
+-	*prot_out = *addr_out = *log2len = 0;
++
++	rc = pmp_encode(&pmp, prot, addr, log2len);
++	if (rc)
++		return rc;
+ 
+ 	/* calculate PMP register and offset */
+ #if __riscv_xlen == 32
+@@ -413,16 +393,33 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ #endif
+ 	pmpaddr_csr = CSR_PMPADDR0 + n;
+ 
+-	cfgmask = (0xffUL << pmpcfg_shift);
+-	pmp.cfg = (csr_read_num(pmpcfg_csr) & cfgmask) >> pmpcfg_shift;
+-	pmp.addr = csr_read_num(pmpaddr_csr);
++	/* write csrs */
 +	csr_write_num(pmpaddr_csr, pmp.addr);
 +	cfgmask = ~(0xffUL << pmpcfg_shift);
 +	pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
 +	pmpcfg |= (((unsigned long)pmp.cfg << pmpcfg_shift) & ~cfgmask);
- 	csr_write_num(pmpcfg_csr, pmpcfg);
- 
- 	return 0;
-@@ -384,8 +392,9 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
- 	    unsigned long *log2len)
- {
- 	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
--	unsigned long cfgmask, pmpcfg, prot;
-+	unsigned long cfgmask, prot;
- 	unsigned long t1, addr, len;
-+	pmp_t pmp;
- 
- 	/* check parameters */
- 	if (n >= PMP_COUNT || !prot_out || !addr_out || !log2len)
-@@ -404,14 +413,16 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
- #endif
- 	pmpaddr_csr = CSR_PMPADDR0 + n;
- 
--	/* decode PMP config */
- 	cfgmask = (0xffUL << pmpcfg_shift);
--	pmpcfg	= csr_read_num(pmpcfg_csr) & cfgmask;
--	prot	= pmpcfg >> pmpcfg_shift;
-+	pmp.cfg = (csr_read_num(pmpcfg_csr) & cfgmask) >> pmpcfg_shift;
-+	pmp.addr = csr_read_num(pmpaddr_csr);
++	csr_write_num(pmpcfg_csr, pmpcfg);
 +
-+	/* decode PMP config */
-+	prot = pmp.cfg;
++	return 0;
++}
++
++static int pmp_decode(pmp_t *pmp, unsigned long *prot_out, unsigned long *addr_out,
++		      unsigned long *log2len)
++{
++	unsigned long prot;
++	unsigned long t1, addr, len;
++
++	/* check parameters */
++	if (!prot_out || !addr_out || !log2len)
++		return SBI_EINVAL;
++	*prot_out = *addr_out = *log2len = 0;
+ 
+ 	/* decode PMP config */
+-	prot = pmp.cfg;
++	prot = pmp->cfg;
  
  	/* decode PMP address */
  	if ((prot & PMP_A) == PMP_A_NAPOT) {
--		addr = csr_read_num(pmpaddr_csr);
-+		addr = pmp.addr;
+-		addr = pmp.addr;
++		addr = pmp->addr;
  		if (addr == -1UL) {
  			addr	= 0;
  			len	= __riscv_xlen;
-@@ -421,7 +432,7 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+@@ -432,7 +429,7 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
  			len	= (t1 + PMP_SHIFT + 1);
  		}
  	} else {
--		addr	= csr_read_num(pmpaddr_csr) << PMP_SHIFT;
-+		addr	= pmp.addr << PMP_SHIFT;
+-		addr	= pmp.addr << PMP_SHIFT;
++		addr	= pmp->addr << PMP_SHIFT;
  		len	= PMP_SHIFT;
  	}
  
+@@ -441,5 +438,35 @@ int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
+ 	*addr_out    = addr;
+ 	*log2len     = len;
+ 
+-	return 0;
++	return SBI_OK;
++}
++
++int pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
++	    unsigned long *log2len)
++{
++	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
++	unsigned long cfgmask;
++	pmp_t pmp;
++
++	/* check parameters */
++	if (n >= PMP_COUNT)
++		return SBI_EINVAL;
++
++	/* calculate PMP register and offset */
++#if __riscv_xlen == 32
++	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
++	pmpcfg_shift = (n & 3) << 3;
++#elif __riscv_xlen == 64
++	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
++	pmpcfg_shift = (n & 7) << 3;
++#else
++# error "Unexpected __riscv_xlen"
++#endif
++	pmpaddr_csr = CSR_PMPADDR0 + n;
++
++	cfgmask = (0xffUL << pmpcfg_shift);
++	pmp.cfg = (csr_read_num(pmpcfg_csr) & cfgmask) >> pmpcfg_shift;
++	pmp.addr = csr_read_num(pmpaddr_csr);
++
++	return pmp_decode(&pmp, prot_out, addr_out, log2len);
+ }
 -- 
 2.53.0
 
