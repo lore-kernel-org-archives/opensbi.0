@@ -4,98 +4,102 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id DE41CFF8875
-	for <opensbi@archiver.kernel.org>; Thu, 30 Apr 2026 04:56:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5BC11CCFA13
+	for <opensbi@archiver.kernel.org>; Thu, 30 Apr 2026 10:23:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=aACMbQZhbF0UB7gRnYxKVkNOlyZHIG5h17nFxZJAsuc=; b=renor2CMz4Nf0L
-	Fy4NMyc886IW1JgR9KQxP0dX+32ZlDDYw8+j1CafwUXJ77FliDDio0uE8W1ujTcHR9SZphEU+qfWy
-	xbhKNTZc8dtpY/+oyx5Dke9GJxqpBUcXoTnK6M/yHM0QU6YpMmBkOgmCh/Fd+N8Q3324IXvJmkBXw
-	/w+/InbNNNGRXHolbqfZiIILqfMn1TcLJJoenzmSMg4/vTbLvIRWFHslGe8uEM6u+4E8GiaL7ve2T
-	dIvegtPGJmPC1cWZjnNWOk0u1gFXa2bHzV2sbUmwEag77cwkFT4DdZpkYNxkzbK65SnyfvZoGylzc
-	d1wJ4kgtMuH4jcw2S9bw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=QZgikwmDwgmXWFkiSutHtuRgQZ9ssSyWLA171V2EN28=; b=zqpC6ktXC7WYyf
+	TY53Nu4tx8bj/a+tG/f8Y+aD2kovb6TeTipMbzxIHD6MRloXT4zxMBt5wp9xg5JD2x6GgqIkf+bYz
+	5nmmEmlQxe8ma2h9IVnntW0X1rdVfBM9XdUgyb/vZuTGQideap0bPN6l1UPchjHnNHtLgtwC52WGf
+	MZawRT9ozhaQfAMR0iY+KrGUkM5cpFVbSk3kzLkyFzqkosNfh6NnZq+B399MCvCJB48WzlwYnT9+l
+	tjyLX/X6Aiera9vqfwDa6qsvVWrqZpvoPvh22Szv8ahxaezpXj2TPdO02RnnvH7gADQNocLqUhhS/
+	HAB0f0BnjRDKJRk8R/HA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJRl-00000004gIt-3Gp0;
-	Thu, 30 Apr 2026 04:56:21 +0000
+	id 1wIOYV-00000005Bk8-45Ch;
+	Thu, 30 Apr 2026 10:23:39 +0000
 Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJRl-00000004gIR-0Sqh
+	id 1wIOYT-00000005Bjs-32rq
 	for opensbi@bombadil.infradead.org;
-	Thu, 30 Apr 2026 04:56:21 +0000
+	Thu, 30 Apr 2026 10:23:38 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
-	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=LkDous2/iMCynyzTMJFz68Dw24FI8Z3E+U3aZWla2As=; b=bkUzbbvvUah2EQnGvBkwSmHLbV
-	h9JkjjEQQnVawbf8zuLPZPDE/Ep505ug4OtW1mQh46IVMvsugv3tiP+Kj8VxY/ontNPyOxpLqsK24
-	jhgJtQORYjzV3HQEngTnbjmiLFzZtEpTVw8xKOWxSkCc0cvL+CP7+QGxezkTkEfjWFob8SunHRumb
-	cNf7vCKxhMiEUgwl9cP8/9HBGyKKcd/dc19ZtYvm6kWefPanlfWMYXX1637/BcPMYzjeS23Kb0D5H
-	IsHKYX+dWjVza6hfOSY1bp0QsnbCJA/qYLPzv4ECEbH+0/lFCdt7Tu8BrXd/5b8C0hpBDYcbWe9R2
-	yb5RaAxQ==;
-Received: from mail-pl1-x62f.google.com ([2607:f8b0:4864:20::62f])
+	:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=Xsd50O7EwlNhXePDo0+oXCZLfHVMCx2rzDk8ehf6CY4=; b=J9+K4Tx73OWF2i5GLTQGONBNXK
+	7TDSCpLYPHlN7eDomHlSWIdF8yl0m4GnhHbMOK5AYbM4NjZvlQiSEVDmS0BANpD+fNDkJEYSoL+tA
+	brRNOt2yjIgFM9SnxCO7Xe3+SVARwyl1wsU2RxU0YZ3qGPfLwNkJooTsOY4OysXbGJ70U6l8cxH4U
+	GPuphkTYZCdNZ9xEP6ogq9wv/N7Av/vAhJ4HZAcqYmc/BfzLWvDJWpuSU+4OcyNFdgIh5RQTccbR6
+	pFlQitSoGe/hEEYVA9EiEP5cXNZ24pEskDTCJMVBCWoi0NY3nK/LS1MGdCROA5K4TDgZQ4fvQtYpb
+	vh+b+7Ng==;
+Received: from mail-pj1-x1030.google.com ([2607:f8b0:4864:20::1030])
 	by desiato.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJRi-00000006deE-0619
+	id 1wIOYO-000000077N0-2D2a
 	for opensbi@lists.infradead.org;
-	Thu, 30 Apr 2026 04:56:19 +0000
-Received: by mail-pl1-x62f.google.com with SMTP id d9443c01a7336-2b458ca2296so3212105ad.0
-        for <opensbi@lists.infradead.org>; Wed, 29 Apr 2026 21:56:17 -0700 (PDT)
+	Thu, 30 Apr 2026 10:23:35 +0000
+Received: by mail-pj1-x1030.google.com with SMTP id 98e67ed59e1d1-35d90833cacso562921a91.2
+        for <opensbi@lists.infradead.org>; Thu, 30 Apr 2026 03:23:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777524975; x=1778129775; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LkDous2/iMCynyzTMJFz68Dw24FI8Z3E+U3aZWla2As=;
-        b=lNihaMrk2v1rhBrSWfOSAzL6jB+7QFXSdVek4qjqEJNXZfVk89yWBrOWMJ+HUktd0G
-         ScZDbNTmqf0/Aczz09QNjvc/iaB0dnOFsoHBjOXok0fvrGh/SCqgt/YqvD3G2QUWN0bf
-         4TQ/Cmabe9JZH6JuR8eyVmoqKYN8Q3Gl0vi90n4z3QMiTJ+M9GHVl0BaX8feTXfOo5Uv
-         Nmj15URvjSqibRDNobzsKCCyPW+ckYkyaH6aUkdinFcoVnCcKkHikBr2xpJYIdeLl+KS
-         1FVbTic/Tz04rfhMMyN+oYyR4YmObbIUmLslne0b+bxa6pjnUMx2ZzP4ZderJ5UITFSS
-         I9Xg==
+        d=bytedance.com; s=google; t=1777544604; x=1778149404; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Xsd50O7EwlNhXePDo0+oXCZLfHVMCx2rzDk8ehf6CY4=;
+        b=U2nJrWNaLi+Db2CVWWdrNBxGcCXE/aAoBVQylZLlAd+3mRAYWTnRrZNiL/CmG3AjP2
+         01wF/RdHZQZmsPj8IwYLJmiHTrSFHq7PI3/DrF9fnnyVA/lbLQMuDxz9gZRQQerIYapP
+         YdU1EPpM1ASk+SfSrv8goyMBle6VqxcviMcGgEmbDQkH93w+cMuyRxHtUMUPLawD4o2N
+         leS8kE1vYLP0Q+sijji4rayhVMuz6KhWxZeUhC7ibOf9C60ExVV8Sg7aY81hdsvREMyR
+         hQGUmIAiFbs/znlz1BD3uMiAkcVIsFQLoFQdP92q36z0u4ihH48oAJVf/PQKZ/ivulPv
+         yBNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777524975; x=1778129775;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=LkDous2/iMCynyzTMJFz68Dw24FI8Z3E+U3aZWla2As=;
-        b=S4kgbFLUPstBM0jg8Y93BG9QKFRw8hLsps+TyrznFE6vmQ0xnAL48+roE6YwAXA1Uw
-         HF1nSSvwKrKa/f6w2vehWUW/R953vW6KW10rUW3Hm4Cp+p/R5rCVyv4XWf4OAL3dwYV9
-         3zV0ZxUvjfERsfMQXXg+eOhGsKMB+vFrik/qPMhV/siExFZu87Rj2QqRy6571QMtm/GB
-         x6EZbWDA8lOzXFiAkrEQ4Hk99zP79KKufIVSDBa0JxwTbdrTTDoFn7AT8Tw8senaFw0P
-         QvsHOg2lYXMePFvYwwx5NGTm9NxJ0Y4KzgcWuG6KblOm9L9n22IRDVLdGvGxBdiuiAxg
-         l5CA==
-X-Gm-Message-State: AOJu0YytbYXYqh3rOEZ7DN5opwmvghjXmMmEapBN+9LykWb0PDT/pPhs
-	Xu6K5Cr6bVlnz2VwebNDgduoIFLrJ0/l744491mMJVAe76OpwEZXjVW7fXqW3Q==
-X-Gm-Gg: AeBDiet25QninFVMAS2Np5Go39c1Ie6mq/CEegWUT8ZK+yaQnyC7vBi/k9aXNM8rHdF
-	BuFD2BM5jT50AmgkEyYja25e/hczD+U0Po2pTFHU7pvQVW6sU1WxqhZdoSlGR3SbbKzOlhbnWOB
-	FhI/THdXfZ99+miabfBsaZPO+bG2r5h0r0+M19k+yaUgJDHcv0cfP3UM9aArt0AJST3gqPzgEx/
-	Sn6ezI9hamvc4bLW0r2rCvHVGIvpxr9wqELh9iMJtJwv4GuAadRCbhbwRtf5N5ISJFK5KB17tjh
-	buG0Ih74IkdfmklElBfzfOiNfWKj9P9R5yI1cdAWcAGoEGKO3LYcLcmug1eekj4zv9Tua1bYy94
-	T8QeZrlIPLkB6r65Q5SKFUyz390SvHVlfPG8E8F+uVdl5E01MQK1CZ1F864Fk3DXXi7bCF+Y5gL
-	A3cDGEqDBi3GKZy9eyWvL8FIt0zEPH4aR/GtZpnDAAfFA=
-X-Received: by 2002:a17:902:ef10:b0:2b9:4941:7f6e with SMTP id d9443c01a7336-2b9a2319b9cmr13498535ad.2.1777524975003;
-        Wed, 29 Apr 2026 21:56:15 -0700 (PDT)
-Received: from localhost ([124.158.97.178])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b98893f0b7sm42259725ad.40.2026.04.29.21.56.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Apr 2026 21:56:14 -0700 (PDT)
-From: Nicholas Piggin <npiggin@gmail.com>
+        d=1e100.net; s=20251104; t=1777544604; x=1778149404;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Xsd50O7EwlNhXePDo0+oXCZLfHVMCx2rzDk8ehf6CY4=;
+        b=fXiTemh5UfItw7ajxR7lN3RNi3WdQqkytqhtmE4u3ySFjNPvtB8LJsEXPHYsSPtYkO
+         Fyx21oJAQq+oZfGQnakncZaKDy/Wz2L8N78qw8TUrMseQMaTpqozgA3JTo5G6lawWrep
+         IultJK0xnwNgkCHg61JwGzSJOZ1yu+zoycN0nL5gqo/XAibjf9Kbp/NUB427PoEvIGiS
+         /AsVqX5w8GPPCPtpA5kWyNie0zrcUeV+QQfPIoUs071Y1tcoGzERZ3Q91IBrBZbvj8sl
+         3zS4PrYugbw4qqsAzHVussMEv+4K4XRAMwR6mqZ81cPPxxfKPBNWUg4ICgYVDr+wuUSg
+         i/Zw==
+X-Gm-Message-State: AOJu0YxD348Zsli3vEmqE6fUyhumzCOzVkPEhWHFzcPTvW9J+Thx4+ZN
+	kOk+fqSgRDNrukK0IxX0cLrZczbOFhSMU5ze8vowH1ELGAMGei0OCfdbT34kpfOWzesZ5C4cwVC
+	A1uuK
+X-Gm-Gg: AeBDiet6qlxbB2rvHEpDL1L/y+Gmc9zzmQ69Z30SjgzyjkdS3ClfiL8y9PaLwYpa93T
+	qErUZ9I8GVD6/DlpZPuOlTv/kQPEOhB5S84NGVcfTYw1DqwhhKX5UjM1riuehx5VA7h76VxZj42
+	fOWcN+FP/LuqlQ5GvxqTr0XyRCKZs1L1CfjfPbXovTx9dkPTX1yi3inX730mthSFOfRfc1agw2A
+	WXXM0ulhiEWOV6RJpqY8jdfPWlN8ZVSAJ3DglnB5vw0Y+7zuRUutTdN/FxvAlrPH0DKrWsGJqG4
+	UvlLP6YVdKmACEqlJwp1epx+c82bAzbn4Cd2oKIWecvEcGNir7Y93pQlKGsweePDufQJxOGkBc6
+	K+lB45Lmu7pXD3Fwyv/8d8OjATltqeIj6r16FlEbvYScd29KSTElgY+238y6m/VjZyrv57uDH8M
+	nEyOv/tguljBzDBzUqsndf+2bdQj67umjP+wx+VAr4AID/3r5vhekOFL5LdJHo6aVR8cHl+AYGA
+	9q1tENi3Q==
+X-Received: by 2002:a17:90b:3c4e:b0:361:4521:d311 with SMTP id 98e67ed59e1d1-364c309c2b0mr2392740a91.18.1777544604364;
+        Thu, 30 Apr 2026 03:23:24 -0700 (PDT)
+Received: from FJ7FR2JRQ3.bytedance.net ([139.177.225.247])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-364dbeb2db0sm321070a91.10.2026.04.30.03.23.20
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 30 Apr 2026 03:23:23 -0700 (PDT)
+From: Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
 To: opensbi@lists.infradead.org
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH 7/7] lib: sbi: Move hart PMP functions to sbi_hart_pmp.c
-Date: Thu, 30 Apr 2026 14:55:25 +1000
-Message-ID: <20260430045528.420437-9-npiggin@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260430045528.420437-1-npiggin@gmail.com>
-References: <20260430045528.420437-1-npiggin@gmail.com>
+Cc: cleger@rivosinc.com,
+	anup@brainfault.org,
+	atishp@atishpatra.org,
+	cuiyunhui@bytedance.com,
+	yuanzhu@bytedance.com,
+	Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
+Subject: [PATCH 0/2] lib: sbi: sse: fix interrupted context corruption
+Date: Thu, 30 Apr 2026 18:23:11 +0800
+Message-ID: <20260430102313.95249-1-zhangzhanpeng.jasper@bytedance.com>
+X-Mailer: git-send-email 2.50.1
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260430_055618_412770_A169EEE6 
-X-CRM114-Status: GOOD (  14.77  )
+X-CRM114-CacheID: sfid-20260430_112333_137009_4F53067B 
+X-CRM114-Status: GOOD (  11.92  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -112,316 +116,62 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The sbi_hart_pmp.c looks like a good place for the hart PMP CSR
-access functions.
+SSE `inject` builds a synthetic S-mode context to enter the registered
+S-mode handler. After the handler calls `complete`, OpenSBI resumes the
+context that was interrupted by the SSE event. That makes the SSE
+entry/completion path different from a normal interrupt path: the state
+visible while the handler is running is not necessarily the state that
+should be restored when the handler completes.
 
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
----
- include/sbi/riscv_asm.h    |  14 -----
- include/sbi/sbi_hart_pmp.h |  12 ++++
- lib/sbi/riscv_asm.c        | 109 ------------------------------------
- lib/sbi/sbi_hart_pmp.c     | 110 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 122 insertions(+), 123 deletions(-)
+The current code reconstructs part of the interrupted state from the
+handler-visible trap state and from the ABI-visible interrupted flags.
+That exposes two bugs:
 
-diff --git a/include/sbi/riscv_asm.h b/include/sbi/riscv_asm.h
-index f845320b..7765edb7 100644
---- a/include/sbi/riscv_asm.h
-+++ b/include/sbi/riscv_asm.h
-@@ -81,8 +81,6 @@
- 
- #ifndef __ASSEMBLER__
- 
--#include <sbi/sbi_types.h>
--
- #define csr_swap(csr, val)                                              \
- 	({                                                              \
- 		register unsigned long __v = (unsigned long)(val);      \
-@@ -211,18 +209,6 @@ int misa_xlen(void);
- /* Get RISC-V ISA string representation */
- void misa_string(int xlen, char *out, unsigned int out_sz);
- 
--/* Disable pmp entry at a given index */
--int hart_pmp_disable(unsigned int n);
--
--/* Check if the matching field is set */
--bool hart_is_pmp_enabled(unsigned int n);
--
--int hart_pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
--	    unsigned long log2len);
--
--int hart_pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
--	    unsigned long *log2len);
--
- #endif /* !__ASSEMBLER__ */
- 
- #endif
-diff --git a/include/sbi/sbi_hart_pmp.h b/include/sbi/sbi_hart_pmp.h
-index a7765d17..3e0219ac 100644
---- a/include/sbi/sbi_hart_pmp.h
-+++ b/include/sbi/sbi_hart_pmp.h
-@@ -9,6 +9,18 @@
- 
- #include <sbi/sbi_types.h>
- 
-+/* Disable pmp entry at a given index */
-+int hart_pmp_disable(unsigned int n);
-+
-+/* Check if the matching field is set */
-+bool hart_is_pmp_enabled(unsigned int n);
-+
-+int hart_pmp_set(unsigned int n, unsigned long prot,
-+		 unsigned long addr, unsigned long log2len);
-+
-+int hart_pmp_get(unsigned int n, unsigned long *prot_out,
-+		 unsigned long *addr_out, unsigned long *log2len);
-+
- struct sbi_scratch;
- 
- unsigned int sbi_hart_pmp_count(struct sbi_scratch *scratch);
-diff --git a/lib/sbi/riscv_asm.c b/lib/sbi/riscv_asm.c
-index 98a93462..a1e0f2f8 100644
---- a/lib/sbi/riscv_asm.c
-+++ b/lib/sbi/riscv_asm.c
-@@ -272,112 +272,3 @@ void csr_write_num(int csr_num, unsigned long val)
- #undef switchcase_csr_write_2
- #undef switchcase_csr_write
- }
--
--static int hart_pmp_read(pmp_t *pmp, unsigned int n)
--{
--	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
--	unsigned long cfgmask;
--
--	/* check parameters */
--	if (n >= PMP_COUNT)
--		return SBI_EINVAL;
--
--	/* calculate PMP register and offset */
--#if __riscv_xlen == 32
--	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--	pmpcfg_shift = (n & 3) << 3;
--#elif __riscv_xlen == 64
--	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
--	pmpcfg_shift = (n & 7) << 3;
--#else
--# error "Unexpected __riscv_xlen"
--#endif
--	pmpaddr_csr = CSR_PMPADDR0 + n;
--
--	cfgmask = (0xffUL << pmpcfg_shift);
--	pmp->cfg = (csr_read_num(pmpcfg_csr) & cfgmask) >> pmpcfg_shift;
--	pmp->addr = csr_read_num(pmpaddr_csr);
--
--	return SBI_OK;
--}
--
--static int hart_pmp_write(pmp_t *pmp, unsigned int n)
--{
--	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
--	unsigned long cfgmask, pmpcfg;
--
--	/* check parameters */
--	if (n >= PMP_COUNT)
--		return SBI_EINVAL;
--
--	/* calculate PMP register and offset */
--#if __riscv_xlen == 32
--	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
--	pmpcfg_shift = (n & 3) << 3;
--#elif __riscv_xlen == 64
--	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
--	pmpcfg_shift = (n & 7) << 3;
--#else
--# error "Unexpected __riscv_xlen"
--#endif
--	pmpaddr_csr = CSR_PMPADDR0 + n;
--
--	/* write csrs */
--	csr_write_num(pmpaddr_csr, pmp->addr);
--	cfgmask = ~(0xffUL << pmpcfg_shift);
--	pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
--	pmpcfg |= (((unsigned long)pmp->cfg << pmpcfg_shift) & ~cfgmask);
--	csr_write_num(pmpcfg_csr, pmpcfg);
--
--	return SBI_OK;
--}
--
--int hart_pmp_disable(unsigned int n)
--{
--	pmp_t pmp;
--	int rc;
--
--	rc = hart_pmp_read(&pmp, n);
--	if (rc)
--		return rc;
--
--	pmp.cfg = 0;
--
--	return hart_pmp_write(&pmp, n);
--}
--
--bool hart_is_pmp_enabled(unsigned int n)
--{
--	pmp_t pmp;
--
--	if (hart_pmp_read(&pmp, n) != SBI_OK)
--		return false;
--
--	return pmp_is_enabled(&pmp);
--}
--
--int hart_pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
--	    unsigned long log2len)
--{
--	pmp_t pmp;
--	int rc;
--
--	rc = pmp_encode(&pmp, prot, addr, log2len);
--	if (rc)
--		return rc;
--
--	return hart_pmp_write(&pmp, n);
--}
--
--int hart_pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
--	    unsigned long *log2len)
--{
--	pmp_t pmp;
--	int rc;
--
--	rc = hart_pmp_read(&pmp, n);
--	if (rc)
--		return rc;
--
--	return pmp_decode(&pmp, prot_out, addr_out, log2len);
--}
-diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
-index 8b7b091c..54cfd0cb 100644
---- a/lib/sbi/sbi_hart_pmp.c
-+++ b/lib/sbi/sbi_hart_pmp.c
-@@ -12,9 +12,119 @@
- #include <sbi/sbi_hfence.h>
- #include <sbi/sbi_math.h>
- #include <sbi/sbi_platform.h>
-+#include <sbi/sbi_pmp.h>
- #include <sbi/sbi_tlb.h>
- #include <sbi/riscv_asm.h>
- 
-+static int hart_pmp_read(pmp_t *pmp, unsigned int n)
-+{
-+	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
-+	unsigned long cfgmask;
-+
-+	/* check parameters */
-+	if (n >= PMP_COUNT)
-+		return SBI_EINVAL;
-+
-+	/* calculate PMP register and offset */
-+#if __riscv_xlen == 32
-+	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
-+	pmpcfg_shift = (n & 3) << 3;
-+#elif __riscv_xlen == 64
-+	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
-+	pmpcfg_shift = (n & 7) << 3;
-+#else
-+# error "Unexpected __riscv_xlen"
-+#endif
-+	pmpaddr_csr = CSR_PMPADDR0 + n;
-+
-+	cfgmask = (0xffUL << pmpcfg_shift);
-+	pmp->cfg = (csr_read_num(pmpcfg_csr) & cfgmask) >> pmpcfg_shift;
-+	pmp->addr = csr_read_num(pmpaddr_csr);
-+
-+	return SBI_OK;
-+}
-+
-+static int hart_pmp_write(pmp_t *pmp, unsigned int n)
-+{
-+	int pmpcfg_csr, pmpcfg_shift, pmpaddr_csr;
-+	unsigned long cfgmask, pmpcfg;
-+
-+	/* check parameters */
-+	if (n >= PMP_COUNT)
-+		return SBI_EINVAL;
-+
-+	/* calculate PMP register and offset */
-+#if __riscv_xlen == 32
-+	pmpcfg_csr   = CSR_PMPCFG0 + (n >> 2);
-+	pmpcfg_shift = (n & 3) << 3;
-+#elif __riscv_xlen == 64
-+	pmpcfg_csr   = (CSR_PMPCFG0 + (n >> 2)) & ~1;
-+	pmpcfg_shift = (n & 7) << 3;
-+#else
-+# error "Unexpected __riscv_xlen"
-+#endif
-+	pmpaddr_csr = CSR_PMPADDR0 + n;
-+
-+	/* write csrs */
-+	csr_write_num(pmpaddr_csr, pmp->addr);
-+	cfgmask = ~(0xffUL << pmpcfg_shift);
-+	pmpcfg  = (csr_read_num(pmpcfg_csr) & cfgmask);
-+	pmpcfg |= (((unsigned long)pmp->cfg << pmpcfg_shift) & ~cfgmask);
-+	csr_write_num(pmpcfg_csr, pmpcfg);
-+
-+	return SBI_OK;
-+}
-+
-+int hart_pmp_disable(unsigned int n)
-+{
-+	pmp_t pmp;
-+	int rc;
-+
-+	rc = hart_pmp_read(&pmp, n);
-+	if (rc)
-+		return rc;
-+
-+	pmp.cfg = 0;
-+
-+	return hart_pmp_write(&pmp, n);
-+}
-+
-+bool hart_is_pmp_enabled(unsigned int n)
-+{
-+	pmp_t pmp;
-+
-+	if (hart_pmp_read(&pmp, n) != SBI_OK)
-+		return false;
-+
-+	return pmp_is_enabled(&pmp);
-+}
-+
-+int hart_pmp_set(unsigned int n, unsigned long prot, unsigned long addr,
-+	    unsigned long log2len)
-+{
-+	pmp_t pmp;
-+	int rc;
-+
-+	rc = pmp_encode(&pmp, prot, addr, log2len);
-+	if (rc)
-+		return rc;
-+
-+	return hart_pmp_write(&pmp, n);
-+}
-+
-+int hart_pmp_get(unsigned int n, unsigned long *prot_out, unsigned long *addr_out,
-+	    unsigned long *log2len)
-+{
-+	pmp_t pmp;
-+	int rc;
-+
-+	rc = hart_pmp_read(&pmp, n);
-+	if (rc)
-+		return rc;
-+
-+	return pmp_decode(&pmp, prot_out, addr_out, log2len);
-+}
-+
- /*
-  * Smepmp enforces access boundaries between M-mode and
-  * S/U-mode. When it is enabled, the PMPs are programmed
+  - KVM Context Corruption
+
+    If SSE interrupts KVM guest execution, OpenSBI must restore the
+    virtualization state that was active before it entered the S-mode
+    handler context. Restoring only hstatus SPV/SPVP is insufficient on
+    a virtualization-enabled system because hstatus carries more H-mode
+    state. Likewise, MPV must come from the state captured before
+    OpenSBI rewrites the trap state for handler entry. Reconstructing
+    these values from handler-visible state can corrupt the KVM resume
+    context.
+    This follows the earlier discussion [1].
+
+  - SSE Handler's SSTATUS Leakage
+
+    SSE can interrupt kernel execution at any point and run a complex
+    handler. PMU-SSE is a real-world example: with PMU-SSE
+    enabled, `perf top` repeatedly enters the SSE handler and completion
+    paths at a high frequency. Any synthetic handler SIE/SPIE/SPP state
+    that leaks into the SSE-interrupted context is quickly exposed. With
+    the previous version, this could resume with mismatched privilege and
+    interrupt state and lead to an "environment call from U-mode" panic.
+
+Fix this by adding OpenSBI's private resume-state to `sbi_sse_event`.
+This state must persist from `inject` to `complete`, but it must not be
+stored in the SSE attributes: the attributes are ABI-visible and can be
+updated by the S-mode handler. Patch 1 saves and restores hstatus and
+the interrupted virtualization state. Patch 2 saves and restores the
+interrupted S-mode SIE/SPIE/SPP bits as a unit.
+
+PATCH 1 is the OpenSBI side of the KVM context corruption fix. The
+related Linux side should preserve the kernel stvec in do_sse() to help
+protect the virtualization context. I will send the relevant Linux
+patchset updates in the near future.
+
+[1] https://lore.kernel.org/r/9290f53d-3545-4299-9781-c1c558f71158@rivosinc.com
+
+Zhanpeng Zhang (2):
+  lib: sbi: sse: fix KVM context corruption
+  lib: sbi: sse: fix SSE handler sstatus leakage
+
+ lib/sbi/sbi_sse.c | 80 ++++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 47 insertions(+), 33 deletions(-)
+
 -- 
-2.53.0
-
+2.50.1 (Apple Git-155)
 
 -- 
 opensbi mailing list
