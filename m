@@ -4,82 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3B571CD1297
-	for <opensbi@archiver.kernel.org>; Thu, 30 Apr 2026 04:56:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5B13CFF886F
+	for <opensbi@archiver.kernel.org>; Thu, 30 Apr 2026 04:56:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=fXcvS1FBC214W6eukLD7vhHKJHFT+z1w+dXWbRzERzE=; b=Wzt8NOY4iCrpsk
-	2zdfWXI0l8KnLcw0Ulej/C/fdA7FuJOFr9Z7JPHCAeOzRKvWf1cul6GL2tOiR1wnfCytSrDohGqll
-	av8lTlREf3V38EeD6jcEnGWY8I72guKdj/8GfUuXYrl+rkhJYP5AjbmkwJ/Xb1rNPAIyOuDyYHj8c
-	qj89mY+dI8l7LYK/iGqICux8ZdZlteOdz3G0cr2QBOj/p6gQoFbL6yZpmQCV8DIp9wk+bFs5Tyb6o
-	5uRMYycxEbrB73w4TYY5AYAqDq4vtt91aT8vvZR1cufLEuyGZ9zbl9icOwK38oPHVetnX3CGP3gnv
-	1EirK6XE6nDQGowq1fBw==;
+	List-Owner; bh=lv9a4nszYfjpeDVwu68CnkMNSmKmP/GYCi6/PecebPM=; b=piB/gqNTPG/Q65
+	tGP21tNqO3KbTo5TDDxyu7bSFq7ZQBA2bE29nOKTYIr193u1wdqf9fstd96w/SxiXW8+jd81bHrlg
+	msbbD5Mm44F3wD7W22ereVth29u/6svlO7mSR0OiLuyvYlGLQcHon5x6rwCvVdIA6Ch2izqSIpi/1
+	uVJBYT8cYcnpI2EuyEmf1hZiqdU8EkslJ99bWIeQl4ek3o0JprIFQ38R8GA+dG60yho+IwwLlRRh7
+	J3e9jyWFINqV8AKM7DtCrmFliSIEcYM/9/V7gA1+ou6iEUYv3qfeWaosCiabgBTyYrt0efZwzXqcW
+	l38VQ/TBPI3kXMQZD/jg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJRL-00000004g76-1q1R;
-	Thu, 30 Apr 2026 04:55:55 +0000
+	id 1wIJRP-00000004g9N-0mdw;
+	Thu, 30 Apr 2026 04:55:59 +0000
 Received: from mail-pg1-x535.google.com ([2607:f8b0:4864:20::535])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wIJRI-00000004g5y-0pRC
+	id 1wIJRM-00000004g81-42GJ
 	for opensbi@lists.infradead.org;
-	Thu, 30 Apr 2026 04:55:53 +0000
-Received: by mail-pg1-x535.google.com with SMTP id 41be03b00d2f7-c6e2355739dso164288a12.2
-        for <opensbi@lists.infradead.org>; Wed, 29 Apr 2026 21:55:51 -0700 (PDT)
+	Thu, 30 Apr 2026 04:55:58 +0000
+Received: by mail-pg1-x535.google.com with SMTP id 41be03b00d2f7-c79662668bbso158512a12.1
+        for <opensbi@lists.infradead.org>; Wed, 29 Apr 2026 21:55:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777524951; x=1778129751; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1777524955; x=1778129755; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=JAnhRo1GxKPWg4HsNx3Qs6h3tWHZjxc6ikn+qpfz1So=;
-        b=WgP4/hCpZsqVW3Cn9LtIVw4lIu9i9h/omh6zXY4wFAmpxDwPv21dZ6zjubW6jZwZ4f
-         lvlnmnKDj+41iEcsFlsLTrQnkK96y/OrqvjnDzwlVtlDwH1FG2hLUO0qJfrGA96GAE7Z
-         R0lbrQeurDP2Jml9XvaxAA5VBoSsjV1dYKk3NC1mhHMcsHrVuCzCDLAABEK0e3h9JlDa
-         TtC8gtf/sQhsBEmBeO48HymUUfzBGjWHO/M6QFS+rKFkDTLAL+XlMd6qE6gr2kTeLOJ2
-         tWCXZNrSDj2WAyWbovksEP5vizzTQooUDFGheOKOHqLkU1s26MusnkP5EZBVo5o6bSnk
-         XzRQ==
+        bh=4kmUs9vb/vcr2mUVAAZf1T7BVHH8HGZpC2peAj4cQSM=;
+        b=XIDeq9DkVP4dmpKbV3u0grTItijwmk2CEUA97y9aytm7vtUFEOTpkcGIbrs2CTyJJL
+         nCkvr7etj9DZ5y4Gc38s0iy2PpnghdC1mMxnN1xBZxytvePpleIuCvpPQDjH+ZDxieNv
+         ECKjbFYn+ab5E1gAmrFMxwk2w93hj2zcjTAYkZDeRZZ0IsejGZAlr5G5bJyldnR02gif
+         PiCwHGm9aUCOJE3qphO3Ujk6ZGibpiTzuIcSW46InVWVstIKoqXMYnnJgAfO3b/b3dzP
+         chrikus+CcxeXECHXOwtiwH8fA6rSp7zYrq8yYUxo5q7sg6Tez/WN78loU/XJtzmd6pT
+         FidA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777524951; x=1778129751;
+        d=1e100.net; s=20251104; t=1777524955; x=1778129755;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=JAnhRo1GxKPWg4HsNx3Qs6h3tWHZjxc6ikn+qpfz1So=;
-        b=Mvz98AV0uA7yMtxgpfgdyXfXfbgirjpn+t+esJeuruyCK/3ZsXm597COXgLVBWg3xu
-         WZ4dfLt3kSBfOmuDOmeN8dnqKN/pTmjp2CZQeLxOM+6EKF28CbMJqEVCDP4zAsye9Vkq
-         dEwssE0tQDb6pc3vXl0NrkX8EP3e38dxT7YgezH8nnh+/lGfd2GO2iTRKC+f4/y2eQVh
-         ma8xW9sZKjo6qYBTGQuvoQqq7+UaUUawcB33bAKX+0dE6TQP4yzfYzEukwCqeFyHUXZp
-         XcSu/PCQ22diIJqmD37KJTIKtIohIarvc84UDCqLS7aHgpjYTcW7UrcLXgX0CRLPwSfH
-         izZA==
-X-Gm-Message-State: AOJu0Yx+I3Qi5XrTPkQVsXa2n7PWRdmtgCc/5PL5TX/wB0XzouTuiZS5
-	WDzHlN34g9HxyHiAxi3F5OQPRZc95tNvVWdCwYvOBMSaIGhULn2bA2CTe+IZTQ==
-X-Gm-Gg: AeBDieuLGBl6NvSIZOoCKwSlNjQfxiU5G5LvM6cnPYj7BCQT1clc/s4BQezuf+ekA3W
-	oc6hQzdTcMI3W01P+sjmhtP3DmhYmN3aCLnjS9wNPj8w0hi/JlZgmtQj+cE/MKoOtTY29bL8BKC
-	2eiS2sYQJqHdNEqyPJSoLxdFMENxCiYzFtm6pWgZFnI+WsZ2ihjZU4/MJPq0+G1Q9tXo4l+Ulax
-	MPqXNhloI2KsTtl/HMRXDHITfrT+85qSxyVXUIFYbE7O4S3pZPUtIPtyQ/VoCqDNjl1lwsPzMVB
-	zFLi8KJ1/Es/7Ho8T4ZKMXYLqwIQ6JjnkJ5/LCqDbL4OS05XiBeR4bx+1KbTTdE21h3ljRNFUCU
-	UyPhipY2sg4JCLti87yFitED8LWvSeB9awoNnYZaTwJc2Fzacx7dpjLv34/YdJo8cbv78FVfTrh
-	TWWqqCQ9cAf62iBbpoVd/FHD/wWzh3mM6SjV5xvOI81B5Ft415AfVF0A==
-X-Received: by 2002:a05:6a20:734f:b0:3a2:d79c:4149 with SMTP id adf61e73a8af0-3a3cf7c1702mr1581166637.28.1777524950594;
-        Wed, 29 Apr 2026 21:55:50 -0700 (PDT)
+        bh=4kmUs9vb/vcr2mUVAAZf1T7BVHH8HGZpC2peAj4cQSM=;
+        b=OyuAhQVyDAhM0xLj7AzTBsnIod4+L+NqQwLeXv/0XmutsYiaAW+AB1kGkHBJrLUB5h
+         4pNaQ46lqc4NB/kHKbVWZHNfmo0sDQNl9m1h1Pr+2RF9kJHPG8175VqewkTB97aEUEF8
+         OJOIhW2ObjOf6cEfHgGfAl0wpigFzJnUjO6MQ4hl1umM97AurhNSXfkX6KZOgF22qgXi
+         CgB70U3jZsU3G37lFJLBGPoyJrINw292p0rtqINWVOgAu/4iwQTE4SPzyDz8hlYGA6ft
+         IHOzrKBGAGyn0+l09OQ1qhYrWn/wZUtutXCEk0kbV+giJE7WJhNsn6FSxraN7CTwGCPo
+         0HKQ==
+X-Gm-Message-State: AOJu0YzHP76ioGc8L/jLxFwxe8ZgZDwk6Jm0xOIJ7axw3EGE0gEimaB9
+	ULKV4SjuT/eb2KZEdpMtYoAOgFAnMyXgUukQcYCsiyJsei2l4Ngd/diVv3homw==
+X-Gm-Gg: AeBDieuZcv4AmGe2nVnrtsmgiAKGgmLbfJBzlsL+gzm2Ei+6AS8IAfDealoub3gaUam
+	aH+dBpa0ky9yDmz75rTkP+J61tpZIHcLYkDMe64i0D+zF8yzQOy04OQ8ePZI7ZgWIozY2lQK20/
+	PmO7Yz7nOWz6SFlnoWUDPI1XLIQziTSJvYxqpqQbOORt9hwnlpj9xFmhWcPx7gLHP+gsxyKUSHn
+	tHQuwWfAkOz7VN59kKVB9UGClz+5EdCvC22GycoUKPQy26wPh2FKcG9XdUENcUgR54EZ4DQWxmy
+	rJhtO99c5tWSpjc2Bnw0MLk4149sCutR68nkbkEulRT2OwwiwbnTZ8K8PPhzqM6VvMJ02JsE8K1
+	EuW4chIgGWxEX40bvqwV+AY+dURo5EdQt/goxFaDewLh1xkFFczrVd0uwEWu7BGnTC9B6YqrIcr
+	l5pwOs+MQicj5pwXHjkZ5IkyFBXnr5XUYMl5KT7Pn9epw=
+X-Received: by 2002:a05:6a20:7f82:b0:3a2:ecb8:56d7 with SMTP id adf61e73a8af0-3a3cf8612c3mr1433331637.45.1777524955387;
+        Wed, 29 Apr 2026 21:55:55 -0700 (PDT)
 Received: from localhost ([124.158.97.178])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c7fd64f21b4sm3678364a12.21.2026.04.29.21.55.49
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c7fd6506f0csm4504626a12.27.2026.04.29.21.55.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Apr 2026 21:55:49 -0700 (PDT)
+        Wed, 29 Apr 2026 21:55:54 -0700 (PDT)
 From: Nicholas Piggin <npiggin@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Subject: [PATCH 3/7] lib: sbi: Move RISC-V PMP encoding functions to sbi_pmp.c
-Date: Thu, 30 Apr 2026 14:55:20 +1000
-Message-ID: <20260430045528.420437-4-npiggin@gmail.com>
+Subject: [PATCH 3/7] lib: sbi: Move non-HART PMP functions to sbi_pmp.c
+Date: Thu, 30 Apr 2026 14:55:21 +1000
+Message-ID: <20260430045528.420437-5-npiggin@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260430045528.420437-1-npiggin@gmail.com>
 References: <20260430045528.420437-1-npiggin@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260429_215552_246066_3007673D 
+X-CRM114-CacheID: sfid-20260429_215557_008917_E55041A4 
 X-CRM114-Status: GOOD (  19.99  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -97,8 +97,7 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Create a new file for handling the RISC-V PMP format and the new pmp_t
-type, as opposed to hart PMP CSR specific access.
+Create a new file for handling the RISC-V PMP format.
 
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
