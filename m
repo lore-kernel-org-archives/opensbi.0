@@ -4,127 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2C76ECD3430
-	for <opensbi@archiver.kernel.org>; Mon,  4 May 2026 15:23:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4FAE6FF885A
+	for <opensbi@archiver.kernel.org>; Mon,  4 May 2026 16:40:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=xYkS+VfxLD4FUvcu6ycmSFnJ7AYUmooRwRORaGw+xsI=; b=mzDrkkk2pLovYh
-	dtH2OHUIbXbrtLQMTjsbNk6m0P/lduXdrhUNjBwEKOuOhzXMVDsqCqT6cnwfTUZQ1/7uy5SFf7vDU
-	WQSlWzZDGASE1FG6p7tjxDsMeWbdrX+S6zSUUM3Pu41bT7JfV8xeUnBOkmACoI6XM5ZJqpMuvfbLm
-	drtZDy3hNjPAeS2aTzPjQAXkNScmEamXeQ9Bt3ag5FKT9RJQuL8R3teU6Swi4KfbGW7kvnjdm+ukB
-	HVxoDw/U1sc/FTM96jpuHOxFseSTpB+xGmWV2TgdJ+89glhh9Js7VBYuTvLxZNt0cIoCCSTwHYpad
-	Sv3RByQybvwawjug9fLA==;
+	List-Owner; bh=/gDo5UxMTJQXJIhOV/bZqOmcXTDvU/BTie6XTxEJU40=; b=BOtS6f6+Kreo3z
+	6NLTAatt5fuTJBWGs/BBQBCYU8zy6N9x11Quw87UxfMXAOIzc8o1OBww28rVW31eq/0OiRnm66BwT
+	88gu+PS2o5UzvNQfB9ugMyqr3lhfg+hHQNXBB3mfOPW7KK1fCFFx72/GDiRC2vRqaBFftgXABItUa
+	YAO8AUtVKRYOKSjodfwG/ERuIWZGYXBuR6v5IUZ9Mhb1Q25chfNqx+fqfC9XjTePtCSt8SekBlhRa
+	ROFXv0e1glp/jeUleG0PcbVRJZBb4F++2g+oNxWQH/7NmYZcIcA9pAK1sYAVZujqasy0dImM8bjia
+	b4CjSsUG59f/K4Wygnjw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wJv8p-0000000DaqJ-0HNc;
-	Mon, 04 May 2026 15:23:27 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1wJwLP-0000000Djv2-12pJ;
+	Mon, 04 May 2026 16:40:31 +0000
+Received: from mail-dy1-x132a.google.com ([2607:f8b0:4864:20::132a])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wJv8n-0000000Dapf-1h6l
+	id 1wJwLN-0000000DjuM-16hy
 	for opensbi@lists.infradead.org;
-	Mon, 04 May 2026 15:23:26 +0000
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 644Dwb6K3467600
-	for <opensbi@lists.infradead.org>; Mon, 4 May 2026 15:23:25 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=sSni3xcIfk3Ln0ptmn61hnDg
-	eHhl1IIrcDXZoV+nGM4=; b=Bg7UoVXRhqimzMgk/5ZBnbgTy59lN+Q0Ljl6mIkq
-	x3sRPlfqYxc6jsWfaTsPT1QFUmMFTr4lcevKT6IDFdAbugz2NrTryWhrkhggLgnW
-	H3lCgDdtDOS3FUzNDFS1RxUtEQ828BkE/xrFnuaOeEmPcOoHcaetRqktHBdtFi4R
-	qMU9kVvCeibb54UQ501R6exc7n+D7RMgH3bEDWVYmYo9TG4qo+AWcBg9vjA16Gs8
-	tSsoKzSD5TT57Lax2OoN90ExaIRTDoWwHZc1HeQaphB4AfL96xwsTeLWT23HujIH
-	7Myii/bsUG7gEncHtDxW3YZW5JhidtcYs+U9L306r5zAgQ==
-Received: from mail-pf1-f199.google.com (mail-pf1-f199.google.com [209.85.210.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4dxvtjrbyh-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Mon, 04 May 2026 15:23:24 +0000 (GMT)
-Received: by mail-pf1-f199.google.com with SMTP id d2e1a72fcca58-83565161a6eso558768b3a.1
-        for <opensbi@lists.infradead.org>; Mon, 04 May 2026 08:23:24 -0700 (PDT)
+	Mon, 04 May 2026 16:40:30 +0000
+Received: by mail-dy1-x132a.google.com with SMTP id 5a478bee46e88-2f24905306dso70281eec.2
+        for <opensbi@lists.infradead.org>; Mon, 04 May 2026 09:40:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1777908204; x=1778513004; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=sSni3xcIfk3Ln0ptmn61hnDgeHhl1IIrcDXZoV+nGM4=;
-        b=gO41M6NYNf4r3LrMdP5cAfTFo8xgMjfLSY1lOhSN7z4fqbZhigayP/HKRutPhRLfyO
-         0Gtvvi0Bf/ps8R0ZZq7tMz1RpGL4hC04PH0q9cPd+bPYrgBGJkNBQ4iPL43QySewmBPZ
-         Rk5gz7Mc/AYTJfc6l9uaizhYGFiE3UbxLzY1iX+4P0mmuLkbNJTlvbLOQGkwOdsIiJ9S
-         Er8MfedmC8Um2pOWPEJTMrkXdK1Vj4AU0s+wVuORKSEyM5tmbJ9jeMBDRUG1e3jCkb1H
-         7UHP98aHUS21YHJg4KOHeNLGWDdj0IYo42ulxAJy2ISIlnnTns3ckX37XsavedifPIRf
-         I0NA==
+        d=tenstorrent.com; s=google; t=1777912828; x=1778517628; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tTpUg0WDSTGVW2AXFwmhFWbp9hceZaZNc+v1Irt7j74=;
+        b=Rn70H+Gm7NXazMr7rYOCTYr9M6bm0c9zB3wmifMroRZLRVHvD1w9Um9FHq6NidX44a
+         ToBf6xmPeIpEMwSnoxbeJXWARc8MZvVtuN+e/Yp/XZB1W7LS+/Zy4vjjD2vsU/aUE6qc
+         6uO5No5pTolYhY/IcTGm4oOuQJI9mfs0FOtxMjSiqgFJBDNI9ZT/sp5oBudh/yCZCXU5
+         ZwAM3fPRNyYzaUce3jtox6MPO76Fu4ImRdwC+xhiE0+Y9l0YdlXWIMuAs/osiarRPct7
+         X2ZEXdecAA/kKG9nrWkkNc5XFa7AudwIDmX3Lk7lkXp675ztMjP8ECoLIGtzB60bVrb9
+         NnxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777908204; x=1778513004;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=sSni3xcIfk3Ln0ptmn61hnDgeHhl1IIrcDXZoV+nGM4=;
-        b=FWqz3hu9vReLSjCOQnxDAS1UhayFNEGe1QKLZWouuwG+CkzF0GfZwVf/eGEFV3+Jpj
-         YDzt6YfrD2lmYtN3tsoGrJ8xtv7BDYXimvRSQJkpiDzl9r3zjx2YNPu0eUyyGoJ68xTu
-         w1N70wCe5VXDYAZUWHwr4okfHY0aCQLmGC46PP6aUj5nf3WIUbFcJbBrqLaz80V99wvv
-         jzmKylQt26DdZMj06jC8EwktxAmkeI5sGADvTYWgDTLoCiYZIxcvJ5M4j4buGdDQlC0g
-         i6jg4Qp9xo8QsweLaYWEPpem9blOxnGgN1Eyfv8mItCLi2vMk5Xp000wblejWOvnb/fm
-         16ww==
-X-Gm-Message-State: AOJu0Yy3x2Taj15wzRiN25zFw3gFqrBQNH01JeXCL0c2GJJn2RFr3qqs
-	ecWd0wlQ2msUEcFsBT+2OII26aN/j4xh3rG3lrZB9BYV45JoRH3eKAgp+OfMCY1NLH8MGIL3RjF
-	quMc0OYVGipd8ES/Jf++eWr3rf4lUPwO1CtEb64FSSW2cQjG/gIuD5E0DNQqOxBxu0A==
-X-Gm-Gg: AeBDiesdzi9TRbHEWrbNh9AI5inhcacJtmcpsM/+/I8ddejDl/rsRRqhCqAeYGoEcqZ
-	953smsIq9M/02psPeKD0xcF54PjXkVoeDlQPszVgkj0ioczcTUaSJCw8pdAG6pj5ahGhtumOnvb
-	ZOUV2mo97Vaw03oM1UegqQQtM8jzBaxiLv+B9TyQEWUOi15Jpdp8t9RIWApH1u/fWjj8/7ZJNrA
-	qq09VmRpesAqpAMrJ/ZiHYjte2YVrvFhXO9vY6v8PHa+uAoWkWVw7GAUmlZ5a1wWFGGGi8sSftM
-	Cmp0JM6PXe53lSrUAjvJaSvSVK7dY5oz/bCKbXLP1ENZUVa2SS/M/m2Q8fTUE0c+CKGJl6b9bDw
-	f1BpjaG1bvx99YCChDxsypbbDxuVeIA155gYGbRg/io8NDvLf1q7reegE6dYt8kSVZrwWDl2Bll
-	b5h8UsbI1AdsFipuOFhM7WONPR/6Hs7YieBKD+ZM1Nthg/OrTg+7yPm11D
-X-Received: by 2002:a05:6a00:ab0d:b0:829:6e8c:bcf4 with SMTP id d2e1a72fcca58-838f91cb179mr42988b3a.0.1777908203542;
-        Mon, 04 May 2026 08:23:23 -0700 (PDT)
-X-Received: by 2002:a05:6a00:ab0d:b0:829:6e8c:bcf4 with SMTP id d2e1a72fcca58-838f91cb179mr42948b3a.0.1777908202965;
-        Mon, 04 May 2026 08:23:22 -0700 (PDT)
-Received: from hu-himchau-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8351587db67sm12106327b3a.13.2026.05.04.08.23.21
+        d=1e100.net; s=20251104; t=1777912828; x=1778517628;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=tTpUg0WDSTGVW2AXFwmhFWbp9hceZaZNc+v1Irt7j74=;
+        b=CT1RCXEm0EMQIC9hEvlCO3ayvvjv5oMERtonKUqmuD72+8wYr4XzgQTyfGumOAMumm
+         84ko9+VmabpGUoe9W60huq38v7ZclySiaNZ0iafvFgI4H4lDW0Ekh35JAqt+MGB11rlI
+         l14a88ASTjvAcI7GP4aD/16e3XKzDLeUXOiZAYeZyCE9lHuyIrPtMMwcaUcgbh6dDqrV
+         6UvVAfSUnrAmyMpOb5rlu3gSnsPU9lc+8rJUWzwPIGko9aIgf66pBN0Yi+rK0Gtm2qbu
+         K3US7OmhdA0eXyIxwlT9XwfKogJ0JJvTUZXRnUEJI242VQbQBkNSJyk75EXVXwFTaQww
+         1+oQ==
+X-Gm-Message-State: AOJu0YySRbltzOTPqSm3GRRGqeWR1CByNtjzAdH3GDFfRx2n1sBKuoJ4
+	AFOl6+OdSoQ8Kxwb/2zrPZF1rp9yW6HVI9o9yPa4j7TZD9p1dRodF7nied7CK1bc688=
+X-Gm-Gg: AeBDieszcHnaTbrURIxDoDem40lpHEC8EWyay00wr402mKH4I/C5x606ZqCrr2ylDCs
+	twrs/o7mgnmpsqLrHxh06NwL/OcCkzw+9A4mrAAxYl+HGNPXrM+BwwS5bjQvkfgOOdgmesznqiy
+	78/bRlRt2Q+V16Y5ZFOsl93HBFuOsbTPNbmRUnoE2vRcHGQ9RcpAJstI1BifcfrK1sW7OR8j1t4
+	MhYVGM1oVZuCgTLCsbJNboOQSgvk6cYw1+EQy/8hixKFLMBiLzaOUspfdo0Hq/72hvMrMWNpKSG
+	Spi/pBY0eRQTZTWRwaw0ZzCfVWKUJ10tjd/s+9G3Y3Wg+fvOFGL7bFgXLpmt78pspn/7Uiq9nhK
+	ub/IZN/6ZBXV9Gw7Hq1dVTeIM2wahbpaK+mTaaDirWYDzJ1zv/BVMr3fS5Y0LZgb3OzRYDaZptC
+	t/6L8I13Ck3j+vbpOqE7oE+F0b7601EWbRd1pQErT9sgpUCc1tUppgm2NXWE67
+X-Received: by 2002:a05:7301:1696:b0:2f3:c1a6:361f with SMTP id 5a478bee46e88-2f3c1a63eaamr146522eec.2.1777912826642;
+        Mon, 04 May 2026 09:40:26 -0700 (PDT)
+Received: from ausc-rvsw-c-02.tenstorrent.com ([38.104.49.66])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2ee393578f1sm17168272eec.13.2026.05.04.09.40.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 May 2026 08:23:22 -0700 (PDT)
-Date: Mon, 4 May 2026 20:53:18 +0530
-From: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-To: Nicholas Piggin <npiggin@gmail.com>
-Cc: opensbi@lists.infradead.org, Himanshu Chauhan <hchauhan@ventanamicro.com>
-Subject: Re: [PATCH 06/18] dbtr: Improve trigger update error checking
-Message-ID: <afi55pkq49uS6KAx@hu-himchau-blr.qualcomm.com>
-References: <20260313051948.4017134-1-npiggin@gmail.com>
- <20260313051948.4017134-7-npiggin@gmail.com>
+        Mon, 04 May 2026 09:40:26 -0700 (PDT)
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
+To: Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org,
+	Nylon Chen <nylon.chen@sifive.com>,
+	evvoevod@tenstorrent.com
+Subject: Re: [PATCH v2 4/5] lib: sbi: Create a spot to place Smrnmi detection before traps and after DT is ready
+Date: Mon,  4 May 2026 16:40:15 +0000
+Message-ID: <20260504164015.3775558-1-evvoevod@tenstorrent.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <CAAhSdy2CHgZ7cmrENKeJOenbcsgTVrQVNPFequqtmgufZ=1Epg@mail.gmail.com>
+References: <20260501211627.3293126-1-evvoevod@tenstorrent.com> <20260501211627.3293126-5-evvoevod@tenstorrent.com> <CAAhSdy2CHgZ7cmrENKeJOenbcsgTVrQVNPFequqtmgufZ=1Epg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20260313051948.4017134-7-npiggin@gmail.com>
-X-Proofpoint-GUID: Y_dkph7PElxxruaC5EoHxDwXRHiY_f0j
-X-Authority-Analysis: v=2.4 cv=KuN9H2WN c=1 sm=1 tr=0 ts=69f8b9ec cx=c_pps
- a=WW5sKcV1LcKqjgzy2JUPuA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=kj9zAlcOel0A:10 a=NGcC8JguVDcA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=YMgV9FUhrdKAYTUUvYB2:22
- a=JfrnYn6hAAAA:8 a=pGLkceISAAAA:8 a=FMuNmeIWY9h5isAileMA:9 a=CjuIK1q_8ugA:10
- a=OpyuDcXvxspvyRM73sMx:22 a=1CNFftbPRP8L7MoqJWF3:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTA0MDE1MSBTYWx0ZWRfX7Lo7MyVVpc8C
- a9eR3+zkCfyeo/kuTORNvomNWvLHYYP4EGaayDFkiQaGgW89+ejXJ2e0Swz9thVJn8RO7JF2FGf
- sz8yl+Vl/RrA1haBVcjF8/dS8bmMEcSxjEDoSglKXvu0HZIg3y8opj6q30HWnnMHnPTwSaHmBIZ
- xReX+6qEeSEu4Kytq0XkIegpIsE7S4ywPhGGh1NSkG496xZ+lB1tTKpyhjVVxGwr2BeSNB4pNfv
- LxTlGFdXq+PMJA/t2TPFif2yxO4VxquQStlzpnmuJILIvLHdOeWyETNbraLp1NDO2tDVYAGhiEl
- y0LekOamWVDUgZHbZARzdB00SsmF+/+oyHMlqc+7qaxAY5mZ9IIQA8OJjvIO1OeYIiPZHesXS7r
- U6nns2ZeN8OIEThEOPboPeNpSmulMVNE15YII1XOHHIO12IusPWQFkuMKHGn65OMyTHhTFYZ5oD
- hmiuNfvAU6VLtgyYNKw==
-X-Proofpoint-ORIG-GUID: Y_dkph7PElxxruaC5EoHxDwXRHiY_f0j
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-05-04_05,2026-04-30_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 clxscore=1015 adultscore=0 impostorscore=0 phishscore=0
- malwarescore=0 lowpriorityscore=0 spamscore=0 priorityscore=1501
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2604200000
- definitions=main-2605040151
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260504_082325_443612_5BC154CF 
-X-CRM114-Status: GOOD (  22.12  )
+X-CRM114-CacheID: sfid-20260504_094029_337352_3FDC4D44 
+X-CRM114-Status: UNSURE (   7.76  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -141,111 +100,43 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Fri, Mar 13, 2026 at 03:19:35PM +1000, Nicholas Piggin wrote:
-> Trigger updates should ensure all triggers can be upated without failure
-> before making any changes. Updates that change the trigger type must
-> also be disallowed according to SBI specification.
-> 
-> Change the style of shmem access and checking to match the trigger
-> install code and perform all checks first. Add the missing check to
-> prevent type change.
-> 
-> Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-> ---
->  lib/sbi/sbi_dbtr.c | 33 ++++++++++++++++++++++++++-------
->  1 file changed, 26 insertions(+), 7 deletions(-)
-> 
-> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-> index 224f2350..d2845fec 100644
-> --- a/lib/sbi/sbi_dbtr.c
-> +++ b/lib/sbi/sbi_dbtr.c
-> @@ -727,9 +727,9 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
->  int sbi_dbtr_update_trig(unsigned long smode,
->  			 unsigned long trig_count, unsigned long *out)
->  {
-> -	unsigned long trig_idx;
->  	struct sbi_dbtr_trigger *trig;
->  	union sbi_dbtr_shmem_entry *entry;
-> +	struct sbi_dbtr_data_msg *recv;
->  	void *shmem_base = NULL;
->  	struct sbi_dbtr_hart_triggers_state *hs = NULL;
->  
-> @@ -744,30 +744,49 @@ int sbi_dbtr_update_trig(unsigned long smode,
->  		return SBI_ERR_NO_SHMEM;
->  
->  	shmem_base = hart_shmem_base(hs);
-> +	sbi_hart_protection_map_range((unsigned long)shmem_base,
-> +				      trig_count * sizeof(*entry));
-Hi Nicholas,
+Hi Anup,
 
-I would suggest to verify the value of trig_count before making a large map entry.
-It would also help in the two loops below.
+Two concerns about the suggested approach.
 
->  
-> +	/* Check requested triggers configuration */
->  	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-> -		sbi_hart_protection_map_range((unsigned long)entry, sizeof(*entry));
-> -		trig_idx = entry->id.idx;
-> +		unsigned long trig_idx, tdata1;
->  
-> +		trig_idx = entry->id.idx;
->  		if (trig_idx >= hs->total_trigs) {
-> -			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
->  			*out = _idx;
-> +			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-> +							trig_count * sizeof(*entry));
+1) Enablement of NMIs before the platform has set up its NMI handler
+introduces a window of possible hang. While NMIE=1, the trap handler is
+not defined, so if an NMI arrives, the trap jumps to nowhere.
 
-A forward goto to bailout in success/error condition would be better.
+The v2 series keeps NMIE=0 until smrnmi_handlers_init() has installed
+both NMIVEC and the regular trap entry, which avoids this hole.
 
-Thanks
-Regards
-Himanshu
+More generally: on Smrnmi-enabled platforms, there is really no way to
+use any trap-based mechanism until the platform has set its NMI handlers.
+Holding off them until after a call to the platform's
+smrnmi_handlers_init() is mandatory to prevent possible hangs.
 
->  			return SBI_ERR_INVALID_PARAM;
->  		}
->  
->  		trig = INDEX_TO_TRIGGER(trig_idx);
-> -
->  		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED))) {
-> -			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
->  			*out = _idx;
-> +			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-> +							trig_count * sizeof(*entry));
->  			return SBI_ERR_FAILED;
->  		}
->  
-> +		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
-> +		tdata1 = lle_to_cpu(recv->tdata1);
-> +		if (TDATA1_GET_TYPE(tdata1) != TDATA1_GET_TYPE(trig->tdata1)) {
-> +			*out = _idx;
-> +			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-> +							trig_count * sizeof(*entry));
-> +			return SBI_ERR_INVALID_PARAM;
-> +		}
-> +	}
-> +
-> +	/* Update triggers */
-> +	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-> +		trig = INDEX_TO_TRIGGER(entry->id.idx);
->  		dbtr_trigger_setup(trig, &entry->data);
-> -		sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
->  		dbtr_trigger_enable(trig);
->  	}
->  
-> +	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-> +					trig_count * sizeof(*entry));
-> +
->  	return SBI_SUCCESS;
->  }
->  
-> -- 
-> 2.51.0
-> 
-> 
-> -- 
-> opensbi mailing list
-> opensbi@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+2) About the stack canary concern with the C-side __stack_chk_guard_init().
+
+The danger pattern "canary already pushed on stack" only triggers if a
+function call which returns is currently on stack, which means
+__stack_chk_guard variable will be checked against its value on prologue.
+Neither C nor asm functions currently on stack return or use epilogue
+check of __stack_chk_guard. The full call chain to __stack_chk_guard_init()
+consists of:
+
+  asm _start
+   -> sbi_init()              __noreturn
+      -> init_coldboot()      __noreturn
+         -> __stack_chk_guard_init()    asm, no canary
+
+Even if asm side falls back to `return`, it is still `j _start_hang`
+which also doesn't check epilogue.
+
+Could you reconsider patch 4/5 with this context?
+
+Thanks,
+Evgeny
 
 -- 
 opensbi mailing list
