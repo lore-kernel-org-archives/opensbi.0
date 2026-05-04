@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1ED9BCD342F
-	for <opensbi@archiver.kernel.org>; Mon,  4 May 2026 17:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id EAEB9CD3427
+	for <opensbi@archiver.kernel.org>; Mon,  4 May 2026 17:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=kWh+jPLDo1C8OO+ZnKOOeXqj1yuTNKfEZyduju22OV4=; b=45DSamSapJJLc8
-	g+XXbF+6NYvqS7XFE6w4d6uTcWqoko+w5j+EFzBSjVzUbDbnafZVbCpJVrDaVKrO7vkqsl22FsBPr
-	w7Ocbgyl97ljEftIT/8JFjZxgf5TBgwrdKk1Em9OTxOtX00+XGGewB2+JOpkMOReyw6f65yIPVu3i
-	wu5fvtzOqiZu8xn7bbTghfVCowsZ+pq280ToAJ078fIYh3MHS0q3CFuuzGtHs7hOMmHRl3E/40ebG
-	0v82B4NuIjr15tWis9qzAQlMh6v7i4ruG+63ctpqv11glfUgVWwTDvQ1rCAtrVF8n9c387hJlWLjY
-	VMspUhLV9Ec8QbHECFWg==;
+	List-Owner; bh=3HF7UQxdaUxvlz6zoUfIAsk+K3p3qyunJw3mn8cbBuI=; b=saBDQYasCPea7t
+	BWWyHn7zUa2XYJqiNO73r0pRUFXAMgL/Gh5xg7qx/sIiiXn6MTnoSkZQNTHgeAP6sXFAp6dUW+rwU
+	YjzQEgDM9Lcs9ePQcOOSFQCetaU0IEgSWx/W8zBhktWTN68IsKdOj2+qmEclnh82l1lf2dxbS9fYI
+	Wg9a12Gj74ucOnAIieuGdbHIGEF0zBJ50qOWp7r21V4pmo2HW906NIiFif4FR0c78KUrxMZPS2Mic
+	d5aoTFUp+yJy6fkOWCVfTzG5ZKD7tcnuCAHOUG942k9/kzkdiTWN4SeTZds5I1t5ip9+q/kmdI1aA
+	lzjOmwbULuvlKOY066Cw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wJwrn-0000000Do1C-0sqb;
-	Mon, 04 May 2026 17:13:59 +0000
-Received: from mail-qt1-x830.google.com ([2607:f8b0:4864:20::830])
+	id 1wJwrq-0000000Do3G-2GYA;
+	Mon, 04 May 2026 17:14:02 +0000
+Received: from mail-qt1-x82f.google.com ([2607:f8b0:4864:20::82f])
 	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wJwrk-0000000Do0P-0vNL
+	id 1wJwrn-0000000Do1B-3sjS
 	for opensbi@lists.infradead.org;
-	Mon, 04 May 2026 17:13:57 +0000
-Received: by mail-qt1-x830.google.com with SMTP id d75a77b69052e-506a6cf8242so31542781cf.1
-        for <opensbi@lists.infradead.org>; Mon, 04 May 2026 10:13:55 -0700 (PDT)
+	Mon, 04 May 2026 17:14:01 +0000
+Received: by mail-qt1-x82f.google.com with SMTP id d75a77b69052e-50fbd79350dso42718721cf.3
+        for <opensbi@lists.infradead.org>; Mon, 04 May 2026 10:13:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777914835; x=1778519635; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1777914838; x=1778519638; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RFaMmgwjrsy5U8HvY0ktvxMU7qArSdQGKJmR+y2FugY=;
-        b=Thv+djctHCtEzR5SpMI5W+4DXCD/WqYOcml+OYm1HXVUWVzOP8CAZZUWy7Tve3Bk4t
-         zZx/IwG9npdtOVKKxtNGLSNY0N/14RzfeYTMf6y9viH6uUsFpdJgcGUQsRf8dj374muX
-         GZXo9X7tfzVNCkkz5crmfMtoOK7LdhjhXIiiNuJ+/pgqcTX7EkcNJ+gsv0kqDCLgoUqx
-         sAEwqkGjbGA9WKjwuaG8EiB1ASdQUT2nCPUZpXGM0oLGulZK0WbVhZ9dG2pnWFgY2Ura
-         O7Fx51RC/dtS7YfvJe745Me73phsFS3okijt5+4Q5d7qiylhtMmooIm49MWzE8JFIw2f
-         e0jw==
+        bh=9OpKhF7v0veecnKjbGBugILaGD4WV2r6Nl33+nrBSIA=;
+        b=BjJhQ/v6lHylGHR5eYEf+Iki3sLmsxkP7FItiTew8klo5G057IKggcuyeYI4PjgAq0
+         nD02KtmnNZLbMlUGKjIoQIr2CzED9s2k75OvhwDmq253q7ONaNv1jAvYDlKhJ4+U0DOt
+         +oV03dGlI6K7ViyUp3BH00wkoEVwxhFXOOPQsw6CHQ5xCUZ7r8BZtQhollBKjf/8KKA/
+         m3ICo+1nxwAZgVuhnR4DN22gK43CFffG2fBM3LHMETM7xPCOoPGmTimT53TZkw+bxAv3
+         /QnXzW61FjJp6BaggZWTqYHhpFGunDVMtTeWGnD1Ed2+BG9MHjMUaeRR2TsM59vmy/EC
+         al9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777914835; x=1778519635;
+        d=1e100.net; s=20251104; t=1777914838; x=1778519638;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=RFaMmgwjrsy5U8HvY0ktvxMU7qArSdQGKJmR+y2FugY=;
-        b=gZQPDPOLzHOTOs0bLSTBlGXWCi83sKLswnwLufJjApLJDA86RxZ+p0YSq9cdr50tPP
-         rLqmHHHwiBROnZA2hcyn5ZySdimAD2jTY6qIfaG1XYKR0ywkmR6ggpTb2r74c0ezvdtV
-         30MJj6UYZwzN0cFkgu4gIsReDEdeQFXUhVbluL3YEeBY87XWqPZpe0pQOPHoyBq+xk77
-         30AiIJsK3XILvrZNAnJRRy6EkliWoSBEGzhSoAlCbXaRh9CJ3rNOob+iVscnxLbj1t3c
-         YK08jNC9OgBuAJc6ieq6P3Zzhn3KBnDMTqKMDj4HN0zlk1YK4K9MW3Wn0kjC0vGpde+P
-         T7OA==
-X-Gm-Message-State: AOJu0YyWrMdbDGtoezNuNL7F/D8ys/m4cujIHYljv95ForVHCNgbA1RC
-	4dI31jjMpAjUlpcyTAwe/OwkGUoogSi5vRYRmKfdueNey82unZXVMDiaDpsqMkRJ
-X-Gm-Gg: AeBDievG5+T8DkRBp8MmkXuIvy6A8A4MjxwAAFOcakSiXEjlNv0rVMsc58VZY0pxZih
-	6eqvSTxlqJFbjBD7OfGtP55Ix64kBmDHz8kC7rG4tAoP4oijZgXyUNjnCjOY9H2YU7WC20vIB/b
-	1BAdkFsB2lA1kWueH/kilhy/Vw4Igg6F5o7V76M5eQxsJwu+AKmxuflybHTfCnvbpZKQYfqLtJK
-	5y+/O/ZpjfkYV5yiKzXVR3JnJLDf8n8JJnuFfOcAZXz4DysYWm4ohfNQt0W5dKGOclM+rOoJFP4
-	n5KKewfJYbzXdxC8nwTX8rm/WLAS5zAeDMxP9SyPM3V3zwrTHUFscd2nP22f0y5wvl+e8Kbw6Nr
-	RA8OurZ/tLuAlaBxKAaQkFBlnwUshdil7SKhoTnbN/cC8QVWs7npAi1nWGHgQ9tBwDeW8gRj8e6
-	kPvFkGuB871SLsHnHyXFidzdEAvGKHVv7729HCEojA1kyn4QuXYJsB1GbP46qLgP47MGWBdfzQE
-	njA7t4O6XrtviwUxsBP0A==
-X-Received: by 2002:a05:622a:2608:b0:50e:2b1e:9d14 with SMTP id d75a77b69052e-5104bf0a3d3mr158482811cf.29.1777914834669;
-        Mon, 04 May 2026 10:13:54 -0700 (PDT)
+        bh=9OpKhF7v0veecnKjbGBugILaGD4WV2r6Nl33+nrBSIA=;
+        b=JcEF89poS0akm1yASl74MF4LyZ7+SL/LHtSYorTpgfD292zOXiBfKAxgTSo9LHSRrk
+         6ArtB8XUhqF9PoTA0VQ67dVzDqStrMmnP5jspArF3dVZwx1HtxbCZVUQAoyzKql4K7a+
+         UJfzJ8Ph7NG7OKpcMq2VeW6riJQtFRluiT4W/IO3kBJtBRmW/Jgs4KWmiWCbYdmhiXL8
+         EhB378p6C86Ao3voIb6TXDg6Vf1NFwyxHtVbewSs4iRHkuAQ6qu06L3LqbOcyY0edJz+
+         SR7VtlKiMZrsIY7t63CeFhoMOpQUrYbu+6by9WH29/WaBMIOHSt/ACFs8IxdI3A1BXdT
+         1cmQ==
+X-Gm-Message-State: AOJu0Yyvda1Kkm56IeR7hBf1tQx6KuV1SqGKerJKMCZpTx+JV8G/x0AP
+	Z8lvEnU61GXCCRvGDxRf8ATnT+4b/xYPZgk01SGeUIyXc4JWXiFKIvJqZhgtqgaopJc=
+X-Gm-Gg: AeBDievlx7Zd4sEuIGAru9drtJ1b07SxyvpM424RR6gdWVIgdhddxdkAq1EiIasG/8J
+	PLwQpiv+1CD3w0Z/qGcXdCXL9K53JBkgqP6H8U9BtNEc3VGe1RrzBbd51C61tFB9UGehTxUQTSN
+	rJ8//bwt+4K4UbMQrE3wCyTJ2hxhrhyDCVxkyzIUS+ENeiiab4NfjQXX6LYLcwSVGKQz6z3wEms
+	p1oux8JfSjmFosCfJQjAQyUZKnRq9ycLrnbujMlr8t27zCXZNWMznI/Ua8QtHla5K5TUjsJfHNj
+	EeXQrufmFO0jXm3oQ/a/46L9x2phjDZShEAuNNxJm22i+b6wFR3Y2bdnNgRfkAw9/Ix0dYpZuak
+	gVNhJ7CcyyFQ6SnIy5tJ80iDyElF4g+LnV7FBQ2OfgVXPxbog6VW9eCXw2IkcOMClawQ1EwpmQS
+	1NMZnVFF60kS5GsEqj8/aA1wzwYP9IUj5ROVMKQKSWsl350wlQNpEH6pT8lLDv3ICxNv8VkQtSd
+	SCiNXTWAaJJN/gFEdl7VQ==
+X-Received: by 2002:a05:622a:208:b0:50f:783f:31a8 with SMTP id d75a77b69052e-5104bf428eamr152963271cf.28.1777914838181;
+        Mon, 04 May 2026 10:13:58 -0700 (PDT)
 Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51040927789sm102332871cf.11.2026.05.04.10.13.53
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51040927789sm102332871cf.11.2026.05.04.10.13.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 May 2026 10:13:54 -0700 (PDT)
+        Mon, 04 May 2026 10:13:57 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -81,16 +81,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 2/3] [NOT-FOR-UPSTREAM] lib: utils: irqchip: add QEMU virt test for APLIC wired IRQs
-Date: Mon,  4 May 2026 13:13:41 -0400
-Message-Id: <20260504171342.1655882-2-raymondmaoca@gmail.com>
+Subject: [PATCH v2 3/3] [NOT-FOR-UPSTREAM] platform: generic: virt: add APLIC M-mode IRQ test overlay
+Date: Mon,  4 May 2026 13:13:42 -0400
+Message-Id: <20260504171342.1655882-3-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260504171342.1655882-1-raymondmaoca@gmail.com>
 References: <20260504171342.1655882-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260504_101356_285408_4B6DD05C 
-X-CRM114-Status: GOOD (  16.35  )
+X-CRM114-CacheID: sfid-20260504_101359_974919_4FCB6277 
+X-CRM114-Status: GOOD (  13.63  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,131 +109,64 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add a QEMU virt specific test hook for validating APLIC wired external
-interrupt handling.
+Stock QEMU virt,aia=aplic delegates all wired IRQs from the M-mode
+APLIC to its child S-mode APLIC, which prevents the local
+APLIC_QEMU_WIRED_TEST path from exercising M-mode wired IRQ delivery.
 
-When APLIC_QEMU_WIRED_TEST is enabled, keep the test path limited to
-hwirq 10 and only register it when the current APLIC instance is the
-M-mode direct-mode provider and that interrupt is not delegated to a
-child domain.
-This keeps the test path compatible with the generic APLIC changes
-while still allowing a DT overlay to expose an M-mode wired IRQ on
-QEMU virt.
+Add a DT overlay that changes the M-mode APLIC delegation ranges from
+1..96 to 1..9 and 11..96, leaving hwirq 10 local to the M-mode APLIC.
+This matches the local test path, which uses UART RX on hwirq 10.
+
+The overlay is intended to be applied on top of a base DTB dumped from
+the same QEMU virt,aia=aplic command line, so the embedded child
+phandle matches that dumped base DTB.
+
+Usage:
+- dump the base DTB from the target QEMU command line
+- compile this file as a DT overlay and apply it to the dumped base DTB
+- boot QEMU with the merged DTB and APLIC_QEMU_WIRED_TEST=y to verify
+  M-mode wired IRQ delivery
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- Makefile                  |  3 ++
- lib/utils/irqchip/aplic.c | 62 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 65 insertions(+)
+ .../virt/aplic_mmode_wired_irq_test.dts       | 28 +++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 platform/generic/virt/aplic_mmode_wired_irq_test.dts
 
-diff --git a/Makefile b/Makefile
-index 46541063..418ee1aa 100644
---- a/Makefile
-+++ b/Makefile
-@@ -399,6 +399,9 @@ CFLAGS		+=	$(GENFLAGS)
- CFLAGS		+=	$(platform-cflags-y)
- CFLAGS		+=	-fPIE -pie
- CFLAGS		+=	$(firmware-cflags-y)
-+ifeq ($(APLIC_QEMU_WIRED_TEST),y)
-+CFLAGS		+=	-DAPLIC_QEMU_WIRED_TEST
-+endif
- 
- CPPFLAGS	+=	$(GENFLAGS)
- CPPFLAGS	+=	$(platform-cppflags-y)
-diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index 3f4991b5..82efdb71 100644
---- a/lib/utils/irqchip/aplic.c
-+++ b/lib/utils/irqchip/aplic.c
-@@ -112,6 +112,7 @@
- #define APLIC_DEFAULT_PRIORITY		1
- #define APLIC_DISABLE_IDELIVERY		0
- #define APLIC_ENABLE_IDELIVERY		1
-+#define APLIC_QEMU_TEST_HWIRQ		10
- #define APLIC_DISABLE_ITHRESHOLD	1
- #define APLIC_ENABLE_ITHRESHOLD		0
- 
-@@ -119,6 +120,41 @@ static SBI_LIST_HEAD(aplic_list);
- static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
- 				void *msicfgaddr, void *msicfgaddrH);
- 
-+#ifdef APLIC_QEMU_WIRED_TEST
+diff --git a/platform/generic/virt/aplic_mmode_wired_irq_test.dts b/platform/generic/virt/aplic_mmode_wired_irq_test.dts
+new file mode 100644
+index 00000000..8fb976b5
+--- /dev/null
++++ b/platform/generic/virt/aplic_mmode_wired_irq_test.dts
+@@ -0,0 +1,28 @@
++/dts-v1/;
++/plugin/;
 +
-+#define UART_QEMU_MMIO 0x10000000UL
-+
-+static void aplic_test_uart_handler(void)
-+{
-+	volatile u8 *uart = (volatile u8 *)UART_QEMU_MMIO;
-+
-+	/* Drain RX FIFO to clear the interrupt source */
-+	while (uart[0x05] & 0x01) {        /* LSR.DR */
-+		u8 ch = uart[0x00];            /* RBR */
-+
-+		sbi_printf("[APLIC TEST] UART got '%c'(0x%02x)\n",
-+			   (ch >= 32 && ch < 127) ? ch : '.', ch);
-+	}
-+
-+	/* (Optional) read IIR to acknowledge on some models */
-+	(void)uart[0x02]; /* IIR is at offset 2 when DLAB=0; */
-+}
-+
-+static void aplic_hwirq_test_run(unsigned long aplic_addr)
-+{
-+	volatile u8 *uart = (volatile u8 *)UART_QEMU_MMIO;
-+
-+	/* UART: enable RX interrupt */
-+	uart[0x02] = 0x07;          /* FCR enable+clear */
-+	uart[0x04] |= (1 << 3);     /* MCR.OUT2 */
-+	uart[0x01] |= 0x01;         /* IER.ERBFI */
-+	while (uart[0x05] & 0x01)   /* drain */
-+		(void)uart[0x00];
-+
-+	sbi_printf("[APLIC TEST] Setup done. Type keys now.\n");
-+}
-+#endif
-+
- static void aplic_init(struct aplic_data *aplic)
- {
- 	struct aplic_delegate_data *deleg;
-@@ -245,6 +281,20 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
- 	return 0;
- }
- 
-+#ifdef APLIC_QEMU_WIRED_TEST
-+static int aplic_hwirq_handler(u32 hwirq, void *opaque)
-+{
-+	(void)opaque;
-+
-+	sbi_printf("[APLIC] Enter registered hwirq %u raw handler callback\n",
-+		   hwirq);
-+
-+	if (hwirq == 10)
-+		aplic_test_uart_handler();
-+
-+	return SBI_OK;
-+}
-+#endif
- static inline void *aplic_idc_base(unsigned long aplic_addr, u32 idc_index)
- {
- 	return (void *)(aplic_addr + APLIC_IDC_BASE +
-@@ -541,6 +591,18 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 
- 	/* Attach to the aplic list */
- 	sbi_list_add_tail(&aplic->node, &aplic_list);
-+#ifdef APLIC_QEMU_WIRED_TEST
-+	if (aplic_mmode_direct(aplic) &&
-+	    !aplic_hwirq_delegated(aplic, APLIC_QEMU_TEST_HWIRQ)) {
-+		rc = sbi_irqchip_register_handler(&aplic->irqchip,
-+						  APLIC_QEMU_TEST_HWIRQ, 1,
-+						  aplic_hwirq_handler, NULL);
-+		if (rc)
-+			return rc;
- 
-+		/* Enable test in M-mode before jumping to any payload */
-+		aplic_hwirq_test_run(aplic->addr);
-+	}
-+#endif
- 	return 0;
- }
++/ {
++	fragment@0 {
++		target-path = "/soc/interrupt-controller@c000000";
++		__overlay__ {
++			/*
++			 * Stock QEMU virt,aia=aplic delegates all wired IRQs from
++			 * the M-mode APLIC to its child S-mode APLIC:
++			 *
++			 *   <child-phandle 1 96>
++			 *
++			 * Keep hwirq 10 local to the M-mode APLIC by delegating
++			 * only 1..9 and 11..96 to the child APLIC. This matches
++			 * the local OpenSBI APLIC_QEMU_WIRED_TEST path, which
++			 * exercises wired IRQ delivery via hwirq 10 (UART RX).
++			 *
++			 * This overlay is intended to be applied on top of a base
++			 * DTB dumped from the same QEMU virt,aia=aplic command
++			 * line. The child phandle value below therefore matches
++			 * that dumped base DTB.
++			 */
++			riscv,delegate = <0x04 0x01 0x09 0x04 0x0b 0x60>;
++			riscv,delegation = <0x04 0x01 0x09 0x04 0x0b 0x60>;
++		};
++	};
++};
 -- 
 2.25.1
 
