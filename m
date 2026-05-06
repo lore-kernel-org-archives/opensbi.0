@@ -4,93 +4,104 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A1469CD3427
-	for <opensbi@archiver.kernel.org>; Mon,  4 May 2026 17:40:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AFB4ECD342C
+	for <opensbi@archiver.kernel.org>; Wed,  6 May 2026 14:38:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=6rNnbSjVyfEa/MRt5sgvnf+3qcs32wbMPzpCC1Q+9ZI=; b=oBrvld5rqX7VuH
-	wdXul5jTZYJJxTUsGzKJ6v8apOd9EaV+eOfWiLWyWsnK0i8Op2XCTPs7HmfXJqGJXM5BYoGFNqZCF
-	NVcupthmtXT7XGWYr5qu+OUSOcjawEPdxZMNkRW7kcf4uUFRG2z0XSCbUIAuOWM77BmJI5KqKq5x6
-	VeCwRUCDkJR6ZOA1ZAq5uHUl9gHuhZMScT6CknTZuo9XUuhjEr7wPiKNa/hT3lorRbyESOgYjEtYN
-	uJhx9maoR8lYBsg1SOE30/6uiMTCf+Tw4BJfOsmKDP/gtKQZU/Lu08Q7757qBi4gUe/Htp0371DhB
-	SNEx3E62efBzIGiZfZ2A==;
+	List-Owner; bh=x/A9ThmiDKwC4yhNhKuMfVwy+7p8GeObZBF3IybFrKg=; b=SJFgdT/mwMYVqM
+	iGGW2eLVARRafMl8Vg6haM3dn5MjN53FIa37uJEmomlWFRwE5g0YaFeO1bHgO1JLyYEOAHvRKSFrH
+	IfSsW0hLlFazW/6C7cX49A/dvQW+iysQV0eImEez7CbYFWTt9s2hXQV7yRlVDnROMs77raOrM8U9e
+	l+2WyaEofdWxFYFjhb77jlSxJCro/BDeGueZnkaU0XrSg5ESvzfQg69fZ+W1MKCLoslNkzWoVS6zb
+	+GAlXwUVGKewECVXCeNxopzfDRqCREW6r2+ewsiBTs8EXTZWNqvpyG2XJKutkcLyjlRTnYKhGOOwr
+	eRMosdF+aSBaCJK/wYdA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
-	by bombadil.infradead.org with esmtp (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wJxH2-0000000DsOx-3x2D;
-	Mon, 04 May 2026 17:40:04 +0000
-Received: from mail-qv1-xf2d.google.com ([2607:f8b0:4864:20::f2d])
-	by bombadil.infradead.org with esmtps (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wJxH0-0000000DsNi-36eT
+	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wKdOM-000000017Qb-1duU;
+	Wed, 06 May 2026 14:38:26 +0000
+Received: from mail-oo1-xc2d.google.com ([2607:f8b0:4864:20::c2d])
+	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wKdOK-000000017Q4-49lq
 	for opensbi@lists.infradead.org;
-	Mon, 04 May 2026 17:40:03 +0000
-Received: by mail-qv1-xf2d.google.com with SMTP id 6a1803df08f44-8b4000e51fdso41791746d6.1
-        for <opensbi@lists.infradead.org>; Mon, 04 May 2026 10:40:02 -0700 (PDT)
+	Wed, 06 May 2026 14:38:25 +0000
+Received: by mail-oo1-xc2d.google.com with SMTP id 006d021491bc7-6948d7ccfbbso2768605eaf.1
+        for <opensbi@lists.infradead.org>; Wed, 06 May 2026 07:38:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778078303; cv=none;
+        d=google.com; s=arc-20240605;
+        b=GlE6WGQ+KwXzPJfE9k/w6uUABuTRoyRG0gaWHmy+ckKbt0bMwadcL7zoTu2QIjK0Mz
+         tvFUo77osmgVZU9P/r902mjOu4I2L6EpuUEY/NX1uJdOl7V4niGS9YbwelLhtsX6vLmx
+         dBpoPjD4c/kV6EKLLm5W/eh5PcDOBKV91VZI01N+c766A+Ix/XniHwi1cQn1Gs6LJp9Z
+         hb/xM7w5QsJ3YMKVR/meZDhNNP7BsioewMyVwcQfFmFlk1cZf9ihZcraAz6w69AeNBhz
+         G/9+e/FDqZtf2LF4b7Su+AtXIUjNcAHbTXNWHL2I5i6Sg5Ozi2c7fUs/BuECmfLg3IQo
+         O0+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=axOOieFE6gd/AhcppxvjYib7AMtPuRxHOAYxO2covx4=;
+        fh=ZAtPgNT/mWeTZ6vNEkZRyB0hM0YzwkpsSL1tZLHA+mM=;
+        b=AO9t0cUhn9yUV6C3NtL4VSjJapnze2JcEzRxKaNkmD+TmLZMzxuY8xtzf1zazNISzu
+         wXbYv2D9meQXqNzah3c/BqC/paOTowcAX7/G6u0ScMdsM9wKyhgf2Ykp41hLt2m2TE9+
+         barikSQSG6DWxML0KLGiwh0yx/cLFkSwmATRqBfgP53aOmOrm6CjzZlrRiaXGW1J4+aD
+         6EVIZ8jbIPhDJatCybgXq6pJ+p6vSGTEh9uRze+aKCcRizZD4AquqJ0GzVuoYTrHzW4B
+         XSnpAjTtRAPTqyLHmY67MYIiVRBA1kBro2YFAnkZwJimbJUcBrtDSmsurQ+WnthHrF8J
+         Z9+g==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777916401; x=1778521201; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=brainfault-org.20251104.gappssmtp.com; s=20251104; t=1778078303; x=1778683103; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4YQPDoHpiJeQxU3obhCG31jLnUD3j5n+F9vM0AJlLYc=;
-        b=WNGTHHp3/l/oPICLkC9bnhwyM/C8zkWzPCuJIKvr3mGy6VUFpcxnkrVr/Sheg8vqxB
-         g1ToKPE2Y9Tol1a++KsHKikbO8d24kQdvNUcMphQaiJLCswk+9ks9+35Obf1B3yz6j8a
-         nIPm0ZhZ4Iz9zLZabOwoxCoAhP8sAnEjhzUiLeJaFQzs2DCuqzSiwwSOeSF0HaxxYJoE
-         w3Ud+mVGjJdIyyNetOpWLbRG1OW73KAVylzsByomNetmVDfEiqxtQINuLM3NqQ+TY+D9
-         goI1F+s6rq2dae4UgroB+fCn4dM6hBZ/JCCuaioksNkquwdAFZTvm33hSbzx/9Mypwlg
-         i+2A==
+        bh=axOOieFE6gd/AhcppxvjYib7AMtPuRxHOAYxO2covx4=;
+        b=ik2d15tRuXqYNcN3bheE5sKpbb7eogUAm1jhZOyG1sYznFPVyEyQgUxUyDYgDQyU7S
+         wpbUt1ObYFuq3qFzG4Yrikej/Budq+P34LFRHqTEV6nqzQZpBP/cF4YdXX4NV2u/ZksB
+         b2H4kq11wJPXPktFqh7W9H+fizyraOOie3s8tvSRK7TfA5eGStGThYAgGDRPRFe5qZ0N
+         KnV3vd6LyG7KzcOnuc2huGTsS8JZ2BRnREMC0HC7roJGP6XfCxGX3Ja6MsNaPNsH0STZ
+         PYPIsZtZcPED1NIaAQkuCN/U+uS1yTYEbuXHeMqjjE3I0HdhcvXwtfJJ4ltx38vfRV9Z
+         PxZw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777916401; x=1778521201;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20251104; t=1778078303; x=1778683103;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=4YQPDoHpiJeQxU3obhCG31jLnUD3j5n+F9vM0AJlLYc=;
-        b=omYQmJcHjqspvDxbPgZCacatzA4GdxS9/uNttY3UZJxrL6FisfvjLmNZnVq3Br8GKU
-         nJvtW1Zjk0gNeWTPzMYqhW+Dheu3zQJZMhxhGOd8g+dOxHt/RTmEhHzvMzhwxb+QvIOY
-         pQD+95kHyh6kIxSclWAygMkrsddIHh/K76cfx51euHO5ljoeOe8aciLHQFynXCvIvhk5
-         UhB2I3ei9rLv2ru1oe+eZEn1KvHkl6ZrqrlrPLoCvxT/dQWo058dYa+kcftF0tld4VM9
-         NCKXws3A/zlD8tyl2gXTiD+Hzr9XO5nckCWz9oJTwHAKXPXxF6XpkxBlovH4KFqksYbt
-         4LAA==
-X-Gm-Message-State: AOJu0YysrtXDfCYaIe278X0UP4X1fiCdYNy+Z7ibpPGrY3BJtBWvO4m0
-	fqFWx496OMsVLmVWaL0R2e58ub8l0WjNmnegMjUrLRZVdcT0TscJ4stneAvBdhryxj4=
-X-Gm-Gg: AeBDiesvLIp+1Bvq76nvVtt8tFGrT8Ll2TpAkZX/9hWNpiz6/kAzAfvBGKehU471QyA
-	qZciZi0LX5Zc0lkIYNo+XwyUh3SzN4znmAyhSOLt9+hepMdAc09fKeu6+BOU+YXcnfI47lqw7yQ
-	ONFZXgwR2yw9u8I++SPleeii14AMQcbEPgW+nE4oU3x9YMpA69RPhtl5Q5u18r95FivAqdCUeig
-	X38dOAZPkgi+Kg6VdW5utBi9GmLGZMAM5I2Oz8dvjD4MyHK5PB+XQ5hopyMt83lDfZ0w0cx+aX4
-	gnV5rjfrC/FAZMC/UFQ4HrP1l1yqbtvfMpnBoKTYJuaoRQRFhqXndJk6qC5pC3aazXzhAg34l9J
-	ZwxNFUCL1nTzwLKkU905toUz03ABRWljIWAznWGy5k+9/ZwMqI/1EH5Z7bbXmNNyaHoEQTk/fwB
-	j9pl+FQoTjPhXNoYvkcGp5IZOp7iaXo1nzbOQx2gKLsYeCHonyBBFBO4zCpI1iuax0y2pQ5WlAT
-	3FR2y0kKOGBlq2HYmxOg3WVtnlTg5K0
-X-Received: by 2002:a05:6214:c2e:b0:8b1:f2b7:cfba with SMTP id 6a1803df08f44-8b665ffee1amr173260846d6.1.1777916400374;
-        Mon, 04 May 2026 10:40:00 -0700 (PDT)
-Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b5395c5b4csm128087586d6.16.2026.05.04.10.39.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 May 2026 10:40:00 -0700 (PDT)
-From: Raymond Mao <raymondmaoca@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: scott@riscstar.com,
-	dave.patel@riscstar.com,
-	raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com,
-	samuel.holland@sifive.com,
-	anup.patel@qti.qualcomm.com,
-	anuppate@qti.qualcomm.com,
-	anup@brainfault.org,
-	dhaval@rivosinc.com,
-	peter.lin@sifive.com
-Subject: [PATCH 2/2] sbi: route domain lifecycle transitions through hwiso hooks
-Date: Mon,  4 May 2026 13:39:48 -0400
-Message-Id: <20260504173948.1663823-2-raymondmaoca@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260504173948.1663823-1-raymondmaoca@gmail.com>
-References: <20260504173948.1663823-1-raymondmaoca@gmail.com>
+        bh=axOOieFE6gd/AhcppxvjYib7AMtPuRxHOAYxO2covx4=;
+        b=L16vzOCCBXpgfXpfT2oO6Prz8azLBOWT/6fGP6+dCktFsrDW5A3R7rSOwijKTZgBFi
+         nvOF0QOGWntZ77xfR8zQCjdhs9TLRyFL9mPmGlgvupQoGvhrO4MP6Dn8EPdVl8ETT8Xv
+         o+6HXl6puhu7/CWI4vqCU7Qm2nWFFDvTupwiBXHEw3IyWdOZkAehuHeeOoivB5NYkag5
+         FM/EvR+HtvNkudOHjlRLONONkxmqDMO0lDIeA/nM/KHg2dlN63n/sRA26LMvHVjWZx28
+         sH16ckxlrSOiAoiNUhlCiAknXu1zPlGHz2yBL0yLHtsgmPcfn1xnAosaQNolVUfCXKze
+         Agkw==
+X-Gm-Message-State: AOJu0YzPu93ZyN5R9L5dQ5co9dCbyaRsTo+brCxFRcg7/vNu58Rq5RnR
+	D7DqxfxC1PyIKP5YC7+gXt28GcYpZLQNTkxKScA2IQ8JM4EtQMYaFyCXeVQLWHfDZHXUu91uYCF
+	J7utDHRo2p/4ujmQ4jXWIVD0YRv6mLSpQibo+98cWGxD2vQXwBt6dU06Rkw==
+X-Gm-Gg: AeBDiesfqw7A2ExknFeiyufdJS1LNr1SfS/WHhLPD4uIg7MiQnRwHIsH6F2XVoB/cwq
+	vyjdWTqthgaMuMpsw9FtO+qX80pg6QMzr2bYZoRU0YFHEa6uT9OXCz+oOh3esLMW6umLRYzYZa6
+	e3gdR2lhGgwCNU1x57SwiPWVNai+6/lL3BC9PneyKSjG+SxXpAsozW+dqz0nm685a4sqEeaks05
+	k8CePMsAACgmj7F5FQAWGKz50gabA0yun+AIV/azFQ6FzpFSKnwFP86/68PhYi5pZTkRCtvlXj9
+	jWAJ9yQJl2hLKeOEPsX8ZqseIelq1LpyPyZ5pObpp5sbtjBog2y13VKxk4kAWvMWctn6Upbgp9c
+	/s32ZPjOOihMXiGYDrliVo1yNMH1/wFMWYYonSLmkn4pV1jo=
+X-Received: by 2002:a05:6820:61e:b0:696:248f:807a with SMTP id
+ 006d021491bc7-69998d3251emr1881861eaf.40.1778078303247; Wed, 06 May 2026
+ 07:38:23 -0700 (PDT)
 MIME-Version: 1.0
-X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260504_104002_795928_6F229EA8 
-X-CRM114-Status: GOOD (  14.70  )
+References: <20260501211627.3293126-1-evvoevod@tenstorrent.com>
+ <20260501211627.3293126-5-evvoevod@tenstorrent.com> <CAAhSdy2CHgZ7cmrENKeJOenbcsgTVrQVNPFequqtmgufZ=1Epg@mail.gmail.com>
+ <20260504164015.3775558-1-evvoevod@tenstorrent.com>
+In-Reply-To: <20260504164015.3775558-1-evvoevod@tenstorrent.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Wed, 6 May 2026 20:08:11 +0530
+X-Gm-Features: AVHnY4KpIjwJKXVX5V1MlN2j-dAOrii2BW8CzcNzn3uhOxAJhdRTFxBnvbrprpI
+Message-ID: <CAAhSdy2GUYS--zred2cetcC=6z00J5M+5ZkWZXGOyoNjCaHQ+w@mail.gmail.com>
+Subject: Re: [PATCH v2 4/5] lib: sbi: Create a spot to place Smrnmi detection
+ before traps and after DT is ready
+To: Evgeny Voevodin <evvoevod@tenstorrent.com>
+Cc: opensbi@lists.infradead.org, Nylon Chen <nylon.chen@sifive.com>
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20260506_073825_171412_5A2608FA 
+X-CRM114-Status: GOOD (  18.23  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,174 +113,45 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Raymond Mao <raymond.mao@riscstar.com>
-
-Invoke HWISO boot/domain initialization during domain finalization
-and FDT domain population, and call mechanism exit/enter hooks
-around domain context switches and secondary hart bring-up.
-
-This makes hardware-isolation state follow the same lifecycle as PMP
-and domain assignment.
-
-Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
----
- lib/sbi/sbi_domain.c         | 19 +++++++++++++++++++
- lib/sbi/sbi_domain_context.c | 10 ++++++++++
- lib/sbi/sbi_hsm.c            |  5 +++++
- lib/utils/fdt/fdt_domain.c   |  7 +++++++
- 4 files changed, 41 insertions(+)
-
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 374ac36b..ef308925 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -17,6 +17,8 @@
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
-+#include <sbi/sbi_hwiso.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
- 
- /*
-  * We allocate an extra element because sbi_domain_for_each() expects
-@@ -695,6 +697,15 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
- 	u32 i, dhart;
- 	struct sbi_domain *dom;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
-+	void *fdt = fdt_get_address();
-+
-+	/* Configure system-level hardware isolation mechanisms at boot */
-+	rc = sbi_hwiso_init(fdt);
-+	if (rc) {
-+		sbi_printf("%s: hw isolation init failed (error %d)\n",
-+			   __func__, rc);
-+		return rc;
-+	}
- 
- 	/* Initialize and populate domains for the platform */
- 	rc = sbi_platform_domains_init(plat);
-@@ -704,6 +715,14 @@ int sbi_domain_finalize(struct sbi_scratch *scratch, u32 cold_hartid)
- 		return rc;
- 	}
- 
-+	/* Prepare root domain hwiso contexts even without DT parsing */
-+	rc = sbi_hwiso_domain_init(fdt, -1, &root);
-+	if (rc) {
-+		sbi_printf("%s: root hw isolation init failed (error %d)\n",
-+			   __func__, rc);
-+		return rc;
-+	}
-+
- 	/* Startup boot HART of domains */
- 	sbi_domain_for_each(i, dom) {
- 		/* Domain boot HART index */
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index a3d3988d..aa7eb01b 100755
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -11,6 +11,7 @@
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_hwiso.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_domain_context.h>
-@@ -33,6 +34,9 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
- 	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 	unsigned int pmp_count = sbi_hart_pmp_count(scratch);
- 
-+	/* Exit first so mechanisms can tear down current domain state. */
-+	sbi_hwiso_domain_exit(current_dom, target_dom);
-+
- 	/* Assign current hart to target domain */
- 	spin_lock(&current_dom->assigned_harts_lock);
- 	sbi_hartmask_clear_hartindex(hartindex, &current_dom->assigned_harts);
-@@ -50,6 +54,12 @@ static void switch_to_next_domain_context(struct sbi_context *ctx,
- 	}
- 	sbi_hart_pmp_configure(scratch);
- 
-+	/*
-+	 * Enter after PMP reconfiguration so mechanisms can rely on the
-+	 * target domain's base isolation being in effect.
-+	 */
-+	sbi_hwiso_domain_enter(target_dom, current_dom);
-+
- 	/* Save current CSR context and restore target domain's CSR context */
- 	ctx->sstatus	= csr_swap(CSR_SSTATUS, dom_ctx->sstatus);
- 	ctx->sie	= csr_swap(CSR_SIE, dom_ctx->sie);
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 35c84de2..69d70304 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -19,6 +19,7 @@
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_hwiso.h>
- #include <sbi/sbi_init.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_platform.h>
-@@ -145,6 +146,7 @@ void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
- 	unsigned long next_arg1;
- 	unsigned long next_addr;
- 	unsigned long next_mode;
-+	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct sbi_hsm_data *hdata = sbi_scratch_offset_ptr(scratch,
- 							    hart_data_offset);
- 
-@@ -157,6 +159,9 @@ void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
- 	next_mode = scratch->next_mode;
- 	hsm_start_ticket_release(hdata);
- 
-+	if (dom)
-+		sbi_hwiso_domain_enter(dom, NULL);
-+
- 	sbi_hart_switch_mode(hartid, next_arg1, next_addr, next_mode, false);
- }
- 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index fa1c3575..ac0074ed 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_hwiso.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-@@ -439,6 +440,11 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 	else
- 		dom->system_suspend_allowed = false;
- 
-+	/* Parse per-domain hardware isolation configuration */
-+	err = sbi_hwiso_domain_init(fdt, domain_offset, dom);
-+	if (err)
-+		goto fail_free_all;
-+
- 	/* Find /cpus DT node */
- 	cpus_offset = fdt_path_offset(fdt, "/cpus");
- 	if (cpus_offset < 0) {
-@@ -483,6 +489,7 @@ static int __fdt_parse_domain(void *fdt, int domain_offset, void *opaque)
- 	return 0;
- 
- fail_free_all:
-+	sbi_hwiso_domain_cleanup(dom);
- 	sbi_free(mask);
- fail_free_regions:
- 	sbi_free(dom->regions);
--- 
-2.25.1
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gTW9uLCBNYXkgNCwgMjAyNiBhdCAxMDoxMOKAr1BNIEV2Z2VueSBWb2V2b2Rpbgo8ZXZ2b2V2
+b2RAdGVuc3RvcnJlbnQuY29tPiB3cm90ZToKPgo+IEhpIEFudXAsCj4KPiBUd28gY29uY2VybnMg
+YWJvdXQgdGhlIHN1Z2dlc3RlZCBhcHByb2FjaC4KPgo+IDEpIEVuYWJsZW1lbnQgb2YgTk1JcyBi
+ZWZvcmUgdGhlIHBsYXRmb3JtIGhhcyBzZXQgdXAgaXRzIE5NSSBoYW5kbGVyCj4gaW50cm9kdWNl
+cyBhIHdpbmRvdyBvZiBwb3NzaWJsZSBoYW5nLiBXaGlsZSBOTUlFPTEsIHRoZSB0cmFwIGhhbmRs
+ZXIgaXMKPiBub3QgZGVmaW5lZCwgc28gaWYgYW4gTk1JIGFycml2ZXMsIHRoZSB0cmFwIGp1bXBz
+IHRvIG5vd2hlcmUuCj4KPiBUaGUgdjIgc2VyaWVzIGtlZXBzIE5NSUU9MCB1bnRpbCBzbXJubWlf
+aGFuZGxlcnNfaW5pdCgpIGhhcyBpbnN0YWxsZWQKPiBib3RoIE5NSVZFQyBhbmQgdGhlIHJlZ3Vs
+YXIgdHJhcCBlbnRyeSwgd2hpY2ggYXZvaWRzIHRoaXMgaG9sZS4KPgo+IE1vcmUgZ2VuZXJhbGx5
+OiBvbiBTbXJubWktZW5hYmxlZCBwbGF0Zm9ybXMsIHRoZXJlIGlzIHJlYWxseSBubyB3YXkgdG8K
+PiB1c2UgYW55IHRyYXAtYmFzZWQgbWVjaGFuaXNtIHVudGlsIHRoZSBwbGF0Zm9ybSBoYXMgc2V0
+IGl0cyBOTUkgaGFuZGxlcnMuCj4gSG9sZGluZyBvZmYgdGhlbSB1bnRpbCBhZnRlciBhIGNhbGwg
+dG8gdGhlIHBsYXRmb3JtJ3MKPiBzbXJubWlfaGFuZGxlcnNfaW5pdCgpIGlzIG1hbmRhdG9yeSB0
+byBwcmV2ZW50IHBvc3NpYmxlIGhhbmdzLgo+Cj4gMikgQWJvdXQgdGhlIHN0YWNrIGNhbmFyeSBj
+b25jZXJuIHdpdGggdGhlIEMtc2lkZSBfX3N0YWNrX2Noa19ndWFyZF9pbml0KCkuCj4KPiBUaGUg
+ZGFuZ2VyIHBhdHRlcm4gImNhbmFyeSBhbHJlYWR5IHB1c2hlZCBvbiBzdGFjayIgb25seSB0cmln
+Z2VycyBpZiBhCj4gZnVuY3Rpb24gY2FsbCB3aGljaCByZXR1cm5zIGlzIGN1cnJlbnRseSBvbiBz
+dGFjaywgd2hpY2ggbWVhbnMKPiBfX3N0YWNrX2Noa19ndWFyZCB2YXJpYWJsZSB3aWxsIGJlIGNo
+ZWNrZWQgYWdhaW5zdCBpdHMgdmFsdWUgb24gcHJvbG9ndWUuCj4gTmVpdGhlciBDIG5vciBhc20g
+ZnVuY3Rpb25zIGN1cnJlbnRseSBvbiBzdGFjayByZXR1cm4gb3IgdXNlIGVwaWxvZ3VlCj4gY2hl
+Y2sgb2YgX19zdGFja19jaGtfZ3VhcmQuIFRoZSBmdWxsIGNhbGwgY2hhaW4gdG8gX19zdGFja19j
+aGtfZ3VhcmRfaW5pdCgpCj4gY29uc2lzdHMgb2Y6Cj4KPiAgIGFzbSBfc3RhcnQKPiAgICAtPiBz
+YmlfaW5pdCgpICAgICAgICAgICAgICBfX25vcmV0dXJuCj4gICAgICAgLT4gaW5pdF9jb2xkYm9v
+dCgpICAgICAgX19ub3JldHVybgo+ICAgICAgICAgIC0+IF9fc3RhY2tfY2hrX2d1YXJkX2luaXQo
+KSAgICBhc20sIG5vIGNhbmFyeQo+Cj4gRXZlbiBpZiBhc20gc2lkZSBmYWxscyBiYWNrIHRvIGBy
+ZXR1cm5gLCBpdCBpcyBzdGlsbCBgaiBfc3RhcnRfaGFuZ2AKPiB3aGljaCBhbHNvIGRvZXNuJ3Qg
+Y2hlY2sgZXBpbG9ndWUuCj4KPiBDb3VsZCB5b3UgcmVjb25zaWRlciBwYXRjaCA0LzUgd2l0aCB0
+aGlzIGNvbnRleHQ/Cj4KClNvdW5kcyBnb29kIGJ1dCBJIHN0aWxsIHJlcXVpcmUgc29tZSBjaGFu
+Z2VzLgoKVGhpcyBwYXRjaCBuZWVkcyB0byBiZSBzcGxpdCBpbnRvIHR3byBwYXRjaGVzOgoxKSBU
+aGUgZmlyc3QgcGF0Y2ggc2hvdWxkIG9ubHkgbW92ZSBzYmlfcGxhdGZvcm1fZXh0ZW5zaW9uc19p
+bml0KCkKYmVmb3JlIHRyYXAtYmFzZWQgZmVhdHVyZSBkZXRlY3Rpb24KMikgVGhlIHNlY29uZCBw
+YXRjaCBzaG91bGQgbW92ZSBaa3IgYmFzZWQgc3RhY2sgY2FuYXJ5CmluaXRpYWxpemF0aW9uIGlu
+dG8gQyBjb2RlLiBObyBuZWVkIGZvciBwcmVzZXJ2aW5nIHRoZSBleGlzdGluZwpfX3N0YWNrX2No
+a19ndWFyZF9pbml0KCkgaW50ZWFkIHdlIGNhbiBpbml0aWFsaXplIF9fc3RhY2tfY2hrX2d1YXJk
+CnZhcmlhYmxlIGRpcmVjdGx5IGZyb20gaW5pdF9jb2xkYm9vdCgpCgpSZWdhcmRzLApBbnVwCgot
+LSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
+Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
