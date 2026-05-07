@@ -4,104 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id AFB4ECD342C
-	for <opensbi@archiver.kernel.org>; Wed,  6 May 2026 14:38:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7FFE5CD343F
+	for <opensbi@archiver.kernel.org>; Thu,  7 May 2026 18:08:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=x/A9ThmiDKwC4yhNhKuMfVwy+7p8GeObZBF3IybFrKg=; b=SJFgdT/mwMYVqM
-	iGGW2eLVARRafMl8Vg6haM3dn5MjN53FIa37uJEmomlWFRwE5g0YaFeO1bHgO1JLyYEOAHvRKSFrH
-	IfSsW0hLlFazW/6C7cX49A/dvQW+iysQV0eImEez7CbYFWTt9s2hXQV7yRlVDnROMs77raOrM8U9e
-	l+2WyaEofdWxFYFjhb77jlSxJCro/BDeGueZnkaU0XrSg5ESvzfQg69fZ+W1MKCLoslNkzWoVS6zb
-	+GAlXwUVGKewECVXCeNxopzfDRqCREW6r2+ewsiBTs8EXTZWNqvpyG2XJKutkcLyjlRTnYKhGOOwr
-	eRMosdF+aSBaCJK/wYdA==;
+	List-Owner; bh=K3gp3YVnQEqjtGMimTn7eTyRlea7xVICP4yups0dz9Q=; b=m7Sy+ucPMMyODZ
+	aq0/u8NtVKehJ42ncli9rtcZ4AAnpnTGsOJb9Z9B1SLHZJEFz0jsOwGYN/at9QcPmRbCf3cOjDCRe
+	KpFpnx6970TcGN0hOjtMj504RAyrjZVz9ZJBSA6wYW4t1lIfHjdG+NtAlRpyAKrWne6Z2hR8pu+AG
+	tXVhqPD76H1Csp1s9w4nVr+Wl/CbyGA57j9e511EwIGcrvTJ9XxeUx+fyv9zb56WNh4yfNpTOGjLu
+	7jvZxhd+xSCILTPZZ8dcNFa9V5MMfJKIjUkDtccxbMBHDhl1JXRHU7Wn84nRzMWv0cCT9YWY3XBtn
+	5qRsI13cr/nu4FU6qifw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wKdOM-000000017Qb-1duU;
-	Wed, 06 May 2026 14:38:26 +0000
-Received: from mail-oo1-xc2d.google.com ([2607:f8b0:4864:20::c2d])
+	id 1wL39N-00000004YSf-0FLs;
+	Thu, 07 May 2026 18:08:41 +0000
+Received: from mail-dy1-x132e.google.com ([2607:f8b0:4864:20::132e])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wKdOK-000000017Q4-49lq
+	id 1wL39G-00000004YPr-3v81
 	for opensbi@lists.infradead.org;
-	Wed, 06 May 2026 14:38:25 +0000
-Received: by mail-oo1-xc2d.google.com with SMTP id 006d021491bc7-6948d7ccfbbso2768605eaf.1
-        for <opensbi@lists.infradead.org>; Wed, 06 May 2026 07:38:24 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778078303; cv=none;
-        d=google.com; s=arc-20240605;
-        b=GlE6WGQ+KwXzPJfE9k/w6uUABuTRoyRG0gaWHmy+ckKbt0bMwadcL7zoTu2QIjK0Mz
-         tvFUo77osmgVZU9P/r902mjOu4I2L6EpuUEY/NX1uJdOl7V4niGS9YbwelLhtsX6vLmx
-         dBpoPjD4c/kV6EKLLm5W/eh5PcDOBKV91VZI01N+c766A+Ix/XniHwi1cQn1Gs6LJp9Z
-         hb/xM7w5QsJ3YMKVR/meZDhNNP7BsioewMyVwcQfFmFlk1cZf9ihZcraAz6w69AeNBhz
-         G/9+e/FDqZtf2LF4b7Su+AtXIUjNcAHbTXNWHL2I5i6Sg5Ozi2c7fUs/BuECmfLg3IQo
-         O0+A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=axOOieFE6gd/AhcppxvjYib7AMtPuRxHOAYxO2covx4=;
-        fh=ZAtPgNT/mWeTZ6vNEkZRyB0hM0YzwkpsSL1tZLHA+mM=;
-        b=AO9t0cUhn9yUV6C3NtL4VSjJapnze2JcEzRxKaNkmD+TmLZMzxuY8xtzf1zazNISzu
-         wXbYv2D9meQXqNzah3c/BqC/paOTowcAX7/G6u0ScMdsM9wKyhgf2Ykp41hLt2m2TE9+
-         barikSQSG6DWxML0KLGiwh0yx/cLFkSwmATRqBfgP53aOmOrm6CjzZlrRiaXGW1J4+aD
-         6EVIZ8jbIPhDJatCybgXq6pJ+p6vSGTEh9uRze+aKCcRizZD4AquqJ0GzVuoYTrHzW4B
-         XSnpAjTtRAPTqyLHmY67MYIiVRBA1kBro2YFAnkZwJimbJUcBrtDSmsurQ+WnthHrF8J
-         Z9+g==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Thu, 07 May 2026 18:08:39 +0000
+Received: by mail-dy1-x132e.google.com with SMTP id 5a478bee46e88-2ee34d7e55aso113226eec.0
+        for <opensbi@lists.infradead.org>; Thu, 07 May 2026 11:08:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20251104.gappssmtp.com; s=20251104; t=1778078303; x=1778683103; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=tenstorrent.com; s=google; t=1778177314; x=1778782114; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=axOOieFE6gd/AhcppxvjYib7AMtPuRxHOAYxO2covx4=;
-        b=ik2d15tRuXqYNcN3bheE5sKpbb7eogUAm1jhZOyG1sYznFPVyEyQgUxUyDYgDQyU7S
-         wpbUt1ObYFuq3qFzG4Yrikej/Budq+P34LFRHqTEV6nqzQZpBP/cF4YdXX4NV2u/ZksB
-         b2H4kq11wJPXPktFqh7W9H+fizyraOOie3s8tvSRK7TfA5eGStGThYAgGDRPRFe5qZ0N
-         KnV3vd6LyG7KzcOnuc2huGTsS8JZ2BRnREMC0HC7roJGP6XfCxGX3Ja6MsNaPNsH0STZ
-         PYPIsZtZcPED1NIaAQkuCN/U+uS1yTYEbuXHeMqjjE3I0HdhcvXwtfJJ4ltx38vfRV9Z
-         PxZw==
+        bh=EpB3YcnGU7X+N4SRTdXhRi2bV7L+1uKKq2fDYHJM7rw=;
+        b=K5wHCZzzB//BaLySXIAAPRZWruDospXilda7i83H9snfOL/sSGgaujp4mlfYYV1d9y
+         v3MOu8lrSuuSdo85gU2A21nVPNQRx2md87Q4URdmrdjhnTGyis7PxNlX/sKGvS7TuRDu
+         wQaEfkX5egpr2//Uhu1W3Pj510LjE6joAoz70lqxyNOnM3wRir9jmSGs+INjyOIcImfs
+         3dL8QMVAf+i9Fo5vjLuLIz8st34+h1gSqiz/vx6JWocbnZz4anrlE8GfFPGahu7jvV22
+         FHMjR9KMu1SBaLTc955KlD1gXIVMU5BDB/CAJboeCn3qkppqzi0xrw3EzQqDKwuNOlgY
+         YpgQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778078303; x=1778683103;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20251104; t=1778177314; x=1778782114;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=axOOieFE6gd/AhcppxvjYib7AMtPuRxHOAYxO2covx4=;
-        b=L16vzOCCBXpgfXpfT2oO6Prz8azLBOWT/6fGP6+dCktFsrDW5A3R7rSOwijKTZgBFi
-         nvOF0QOGWntZ77xfR8zQCjdhs9TLRyFL9mPmGlgvupQoGvhrO4MP6Dn8EPdVl8ETT8Xv
-         o+6HXl6puhu7/CWI4vqCU7Qm2nWFFDvTupwiBXHEw3IyWdOZkAehuHeeOoivB5NYkag5
-         FM/EvR+HtvNkudOHjlRLONONkxmqDMO0lDIeA/nM/KHg2dlN63n/sRA26LMvHVjWZx28
-         sH16ckxlrSOiAoiNUhlCiAknXu1zPlGHz2yBL0yLHtsgmPcfn1xnAosaQNolVUfCXKze
-         Agkw==
-X-Gm-Message-State: AOJu0YzPu93ZyN5R9L5dQ5co9dCbyaRsTo+brCxFRcg7/vNu58Rq5RnR
-	D7DqxfxC1PyIKP5YC7+gXt28GcYpZLQNTkxKScA2IQ8JM4EtQMYaFyCXeVQLWHfDZHXUu91uYCF
-	J7utDHRo2p/4ujmQ4jXWIVD0YRv6mLSpQibo+98cWGxD2vQXwBt6dU06Rkw==
-X-Gm-Gg: AeBDiesfqw7A2ExknFeiyufdJS1LNr1SfS/WHhLPD4uIg7MiQnRwHIsH6F2XVoB/cwq
-	vyjdWTqthgaMuMpsw9FtO+qX80pg6QMzr2bYZoRU0YFHEa6uT9OXCz+oOh3esLMW6umLRYzYZa6
-	e3gdR2lhGgwCNU1x57SwiPWVNai+6/lL3BC9PneyKSjG+SxXpAsozW+dqz0nm685a4sqEeaks05
-	k8CePMsAACgmj7F5FQAWGKz50gabA0yun+AIV/azFQ6FzpFSKnwFP86/68PhYi5pZTkRCtvlXj9
-	jWAJ9yQJl2hLKeOEPsX8ZqseIelq1LpyPyZ5pObpp5sbtjBog2y13VKxk4kAWvMWctn6Upbgp9c
-	/s32ZPjOOihMXiGYDrliVo1yNMH1/wFMWYYonSLmkn4pV1jo=
-X-Received: by 2002:a05:6820:61e:b0:696:248f:807a with SMTP id
- 006d021491bc7-69998d3251emr1881861eaf.40.1778078303247; Wed, 06 May 2026
- 07:38:23 -0700 (PDT)
+        bh=EpB3YcnGU7X+N4SRTdXhRi2bV7L+1uKKq2fDYHJM7rw=;
+        b=O3HJjcd1PtYURjgQmTOB+Pzk9aKGFG5eSwV8ihd5z2RBUedRUWCUm6IFwl7YZsOdqe
+         kJi5Iw5HdCmXCq3hNM+NNgt3iXhq3sxFk287kOdnst51wWvrhCQF8kIxD8Ow9IBSZXJc
+         0QXrZqPv8fJQQ1UO9DVRZq6Y3bALt7CsSz71b3hoNmwa1zsmW5KA0+xDxdfM1jClWJVX
+         mlcgaYsi7P4U9Y6lJfE4oHKg63loXN1/Fmsn774v9Bzqtx26V5oHy/pQmN6OTSBwzApX
+         6wVnI1pa8mBe/KM/SNUpVoJGM9Ek21pGQQzMqv2ZxQPIGTTL+7AU8OvDcfDkzmwpw55D
+         E6Yg==
+X-Gm-Message-State: AOJu0YwqFaiuJfviqppqO418DSRarnUwJ50CI7zOlrkzIEfCQTJHmHQe
+	Cm50oEwWRCN/H4pSRge8BzFP9O3rJMCwvpUUTheq7dIxQQaizldEuAjc0A7sXrCNKvA=
+X-Gm-Gg: AeBDiesoORkWN0xEw0IsefwPmCXIpzhgBK6AipezD77OJp7u5S/Qsnn9m3tFDcBtbZZ
+	ioY10MB6JB4N588HehOU/E1XKkZItLejGghQE4qMihWSxY0kg3nsFk/KOtXbgTDmAN+SP+hD7Bl
+	XyI1vhsKON2nsaIBXCCKk3G9Q00tUPUQ6lig0IiSBchIb7u/viL7LVhwkMUiAsHk7IDIdts6E4f
+	Fz3PHvHQbImCrw6nGNDQI0yjyhPSXpW7EINWcGMyRZXgQ3cyKbpxINYJErLVp/jK6mPgAYdcnDg
+	ttOgN+kfSqo9iZpgutf0ESlrAxpEX4nb024Xnc+jl5JVvuaZVi/iG7dDIYrAB4SIjklAFuEk4cx
+	z0ebJo6vxvgc+RF7iH9mk52j/8GuncATVJEMZ4Nlj2YhECB6gvk4XZ0MIVm9koBuXSGEieZA8cp
+	G9aUbwck+T2iDc/59yuxjQFYNaRCXgawpki1JF4VzrUdGNlGA1Wg==
+X-Received: by 2002:a05:7300:2327:b0:2d5:9438:2a02 with SMTP id 5a478bee46e88-2f5671e15a8mr2291585eec.1.1778177312731;
+        Thu, 07 May 2026 11:08:32 -0700 (PDT)
+Received: from ausc-rvsw-c-02.tenstorrent.com ([38.104.49.66])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f82b5636besm78285eec.2.2026.05.07.11.08.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 May 2026 11:08:32 -0700 (PDT)
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
+To: Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org,
+	Nylon Chen <nylon.chen@sifive.com>,
+	evvoevod@tenstorrent.com
+Subject: [PATCH v3 1/6] include: sbi_scratch: Add tmp1 scratch space for RNMI context saving
+Date: Thu,  7 May 2026 18:08:02 +0000
+Message-ID: <0a5d241fa1db03e71a3f56be24708cbbc8037e28.1778176768.git.evvoevod@tenstorrent.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1778176768.git.evvoevod@tenstorrent.com>
+References: <cover.1778176768.git.evvoevod@tenstorrent.com>
 MIME-Version: 1.0
-References: <20260501211627.3293126-1-evvoevod@tenstorrent.com>
- <20260501211627.3293126-5-evvoevod@tenstorrent.com> <CAAhSdy2CHgZ7cmrENKeJOenbcsgTVrQVNPFequqtmgufZ=1Epg@mail.gmail.com>
- <20260504164015.3775558-1-evvoevod@tenstorrent.com>
-In-Reply-To: <20260504164015.3775558-1-evvoevod@tenstorrent.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Wed, 6 May 2026 20:08:11 +0530
-X-Gm-Features: AVHnY4KpIjwJKXVX5V1MlN2j-dAOrii2BW8CzcNzn3uhOxAJhdRTFxBnvbrprpI
-Message-ID: <CAAhSdy2GUYS--zred2cetcC=6z00J5M+5ZkWZXGOyoNjCaHQ+w@mail.gmail.com>
-Subject: Re: [PATCH v2 4/5] lib: sbi: Create a spot to place Smrnmi detection
- before traps and after DT is ready
-To: Evgeny Voevodin <evvoevod@tenstorrent.com>
-Cc: opensbi@lists.infradead.org, Nylon Chen <nylon.chen@sifive.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260506_073825_171412_5A2608FA 
-X-CRM114-Status: GOOD (  18.23  )
+X-CRM114-CacheID: sfid-20260507_110834_972620_2E989D98 
+X-CRM114-Status: UNSURE (   9.97  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,45 +95,82 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gTW9uLCBNYXkgNCwgMjAyNiBhdCAxMDoxMOKAr1BNIEV2Z2VueSBWb2V2b2Rpbgo8ZXZ2b2V2
-b2RAdGVuc3RvcnJlbnQuY29tPiB3cm90ZToKPgo+IEhpIEFudXAsCj4KPiBUd28gY29uY2VybnMg
-YWJvdXQgdGhlIHN1Z2dlc3RlZCBhcHByb2FjaC4KPgo+IDEpIEVuYWJsZW1lbnQgb2YgTk1JcyBi
-ZWZvcmUgdGhlIHBsYXRmb3JtIGhhcyBzZXQgdXAgaXRzIE5NSSBoYW5kbGVyCj4gaW50cm9kdWNl
-cyBhIHdpbmRvdyBvZiBwb3NzaWJsZSBoYW5nLiBXaGlsZSBOTUlFPTEsIHRoZSB0cmFwIGhhbmRs
-ZXIgaXMKPiBub3QgZGVmaW5lZCwgc28gaWYgYW4gTk1JIGFycml2ZXMsIHRoZSB0cmFwIGp1bXBz
-IHRvIG5vd2hlcmUuCj4KPiBUaGUgdjIgc2VyaWVzIGtlZXBzIE5NSUU9MCB1bnRpbCBzbXJubWlf
-aGFuZGxlcnNfaW5pdCgpIGhhcyBpbnN0YWxsZWQKPiBib3RoIE5NSVZFQyBhbmQgdGhlIHJlZ3Vs
-YXIgdHJhcCBlbnRyeSwgd2hpY2ggYXZvaWRzIHRoaXMgaG9sZS4KPgo+IE1vcmUgZ2VuZXJhbGx5
-OiBvbiBTbXJubWktZW5hYmxlZCBwbGF0Zm9ybXMsIHRoZXJlIGlzIHJlYWxseSBubyB3YXkgdG8K
-PiB1c2UgYW55IHRyYXAtYmFzZWQgbWVjaGFuaXNtIHVudGlsIHRoZSBwbGF0Zm9ybSBoYXMgc2V0
-IGl0cyBOTUkgaGFuZGxlcnMuCj4gSG9sZGluZyBvZmYgdGhlbSB1bnRpbCBhZnRlciBhIGNhbGwg
-dG8gdGhlIHBsYXRmb3JtJ3MKPiBzbXJubWlfaGFuZGxlcnNfaW5pdCgpIGlzIG1hbmRhdG9yeSB0
-byBwcmV2ZW50IHBvc3NpYmxlIGhhbmdzLgo+Cj4gMikgQWJvdXQgdGhlIHN0YWNrIGNhbmFyeSBj
-b25jZXJuIHdpdGggdGhlIEMtc2lkZSBfX3N0YWNrX2Noa19ndWFyZF9pbml0KCkuCj4KPiBUaGUg
-ZGFuZ2VyIHBhdHRlcm4gImNhbmFyeSBhbHJlYWR5IHB1c2hlZCBvbiBzdGFjayIgb25seSB0cmln
-Z2VycyBpZiBhCj4gZnVuY3Rpb24gY2FsbCB3aGljaCByZXR1cm5zIGlzIGN1cnJlbnRseSBvbiBz
-dGFjaywgd2hpY2ggbWVhbnMKPiBfX3N0YWNrX2Noa19ndWFyZCB2YXJpYWJsZSB3aWxsIGJlIGNo
-ZWNrZWQgYWdhaW5zdCBpdHMgdmFsdWUgb24gcHJvbG9ndWUuCj4gTmVpdGhlciBDIG5vciBhc20g
-ZnVuY3Rpb25zIGN1cnJlbnRseSBvbiBzdGFjayByZXR1cm4gb3IgdXNlIGVwaWxvZ3VlCj4gY2hl
-Y2sgb2YgX19zdGFja19jaGtfZ3VhcmQuIFRoZSBmdWxsIGNhbGwgY2hhaW4gdG8gX19zdGFja19j
-aGtfZ3VhcmRfaW5pdCgpCj4gY29uc2lzdHMgb2Y6Cj4KPiAgIGFzbSBfc3RhcnQKPiAgICAtPiBz
-YmlfaW5pdCgpICAgICAgICAgICAgICBfX25vcmV0dXJuCj4gICAgICAgLT4gaW5pdF9jb2xkYm9v
-dCgpICAgICAgX19ub3JldHVybgo+ICAgICAgICAgIC0+IF9fc3RhY2tfY2hrX2d1YXJkX2luaXQo
-KSAgICBhc20sIG5vIGNhbmFyeQo+Cj4gRXZlbiBpZiBhc20gc2lkZSBmYWxscyBiYWNrIHRvIGBy
-ZXR1cm5gLCBpdCBpcyBzdGlsbCBgaiBfc3RhcnRfaGFuZ2AKPiB3aGljaCBhbHNvIGRvZXNuJ3Qg
-Y2hlY2sgZXBpbG9ndWUuCj4KPiBDb3VsZCB5b3UgcmVjb25zaWRlciBwYXRjaCA0LzUgd2l0aCB0
-aGlzIGNvbnRleHQ/Cj4KClNvdW5kcyBnb29kIGJ1dCBJIHN0aWxsIHJlcXVpcmUgc29tZSBjaGFu
-Z2VzLgoKVGhpcyBwYXRjaCBuZWVkcyB0byBiZSBzcGxpdCBpbnRvIHR3byBwYXRjaGVzOgoxKSBU
-aGUgZmlyc3QgcGF0Y2ggc2hvdWxkIG9ubHkgbW92ZSBzYmlfcGxhdGZvcm1fZXh0ZW5zaW9uc19p
-bml0KCkKYmVmb3JlIHRyYXAtYmFzZWQgZmVhdHVyZSBkZXRlY3Rpb24KMikgVGhlIHNlY29uZCBw
-YXRjaCBzaG91bGQgbW92ZSBaa3IgYmFzZWQgc3RhY2sgY2FuYXJ5CmluaXRpYWxpemF0aW9uIGlu
-dG8gQyBjb2RlLiBObyBuZWVkIGZvciBwcmVzZXJ2aW5nIHRoZSBleGlzdGluZwpfX3N0YWNrX2No
-a19ndWFyZF9pbml0KCkgaW50ZWFkIHdlIGNhbiBpbml0aWFsaXplIF9fc3RhY2tfY2hrX2d1YXJk
-CnZhcmlhYmxlIGRpcmVjdGx5IGZyb20gaW5pdF9jb2xkYm9vdCgpCgpSZWdhcmRzLApBbnVwCgot
-LSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
-Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+RNMI handlers use MNSCRATCH instead of MSCRATCH and need separate scratch
+space from regular trap handling. Add tmp1 for RNMI context while tmp0
+remains for regular traps.
+
+Signed-off-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
+---
+ firmware/fw_base.S        |  3 ++-
+ include/sbi/sbi_scratch.h | 11 ++++++++---
+ 2 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 63bb4473..cdb15429 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -258,9 +258,10 @@ _scratch_init:
+ 	/* Store hartid-to-scratch function address in scratch space */
+ 	lla	a4, _hartid_to_scratch
+ 	REG_S	a4, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET(tp)
+-	/* Clear trap_context and tmp0 in scratch space */
++	/* Clear trap_context, tmp0 and tmp1 in scratch space */
+ 	REG_S	zero, SBI_SCRATCH_TRAP_CONTEXT_OFFSET(tp)
+ 	REG_S	zero, SBI_SCRATCH_TMP0_OFFSET(tp)
++	REG_S	zero, SBI_SCRATCH_TMP1_OFFSET(tp)
+ 	/* Store firmware options in scratch space */
+ 	MOV_3R	s0, a0, s1, a1, s2, a2
+ #ifdef FW_OPTIONS
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index 58d54628..a6edeb2d 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -40,12 +40,14 @@
+ #define SBI_SCRATCH_TRAP_CONTEXT_OFFSET		(11 * __SIZEOF_POINTER__)
+ /** Offset of tmp0 member in sbi_scratch */
+ #define SBI_SCRATCH_TMP0_OFFSET			(12 * __SIZEOF_POINTER__)
++/** Offset of tmp1 member in sbi_scratch */
++#define SBI_SCRATCH_TMP1_OFFSET			(13 * __SIZEOF_POINTER__)
+ /** Offset of options member in sbi_scratch */
+-#define SBI_SCRATCH_OPTIONS_OFFSET		(13 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_OPTIONS_OFFSET		(14 * __SIZEOF_POINTER__)
+ /** Offset of hartindex member in sbi_scratch */
+-#define SBI_SCRATCH_HARTINDEX_OFFSET		(14 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_HARTINDEX_OFFSET		(15 * __SIZEOF_POINTER__)
+ /** Offset of extra space in sbi_scratch */
+-#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(15 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(16 * __SIZEOF_POINTER__)
+ /** Maximum size of sbi_scratch (4KB) */
+ #define SBI_SCRATCH_SIZE			(0x1000)
+ 
+@@ -83,6 +85,8 @@ struct sbi_scratch {
+ 	unsigned long trap_context;
+ 	/** Temporary storage */
+ 	unsigned long tmp0;
++	/** Temporary storage */
++	unsigned long tmp1;
+ 	/** Options for OpenSBI library */
+ 	unsigned long options;
+ 	/** Index of the hart */
+@@ -106,6 +110,7 @@ assert_member_offset(struct sbi_scratch, platform_addr, SBI_SCRATCH_PLATFORM_ADD
+ assert_member_offset(struct sbi_scratch, hartid_to_scratch, SBI_SCRATCH_HARTID_TO_SCRATCH_OFFSET);
+ assert_member_offset(struct sbi_scratch, trap_context, SBI_SCRATCH_TRAP_CONTEXT_OFFSET);
+ assert_member_offset(struct sbi_scratch, tmp0, SBI_SCRATCH_TMP0_OFFSET);
++assert_member_offset(struct sbi_scratch, tmp1, SBI_SCRATCH_TMP1_OFFSET);
+ assert_member_offset(struct sbi_scratch, options, SBI_SCRATCH_OPTIONS_OFFSET);
+ assert_member_offset(struct sbi_scratch, hartindex, SBI_SCRATCH_HARTINDEX_OFFSET);
+ 
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
