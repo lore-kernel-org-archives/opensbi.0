@@ -4,85 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CC15FCD3442
-	for <opensbi@archiver.kernel.org>; Thu,  7 May 2026 18:08:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 408ABCD343F
+	for <opensbi@archiver.kernel.org>; Thu,  7 May 2026 18:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=6K7u2McX02LahGLsBxWtuijs7vpPb8jiQktPRokyjl0=; b=bmnbol6jCrDJ18
-	S8rtUWAIPmuwaBuh+vrnrKYUN5eT9IUpX9/+USyurHGxIeYBlsphmgDnhlskYE8NXt8latjBwfQkx
-	pKVb/S/nrp+xtZ/a0Szgwg4BvD6axX/g/BsVlDuYnSfXa7y0+6K/qFfl89oyvVP/AMUgDmd4WtpsX
-	gYf/zV3SIQgZIs8d44kAJzvIladokVByRwBPyFPgt4kC4r8zjiljCrkk5MjtZAaa/cWbNFTwv6K6m
-	//2bENrdCCErj5mRS6ou/DrajWanjDOf/dm5SEnKCRNfYhU1O1B33m163dH4QGyy3lb1QKAx9LBMy
-	pXkccSJWipPpfs6R4Sbw==;
+	List-Owner; bh=WpG9DKpNa4OHIsDcIWgQsHvT/kMlnL2ZUM9O9umQAtg=; b=mc+Giy9GzckxDP
+	cOarqrCEq87OLo2iE7DhMiAuVRRMgFPgxlEZLSk2ua4EOpV/pUP2KpbHmjJjrd6F/tKwN0WaCmLkI
+	Cl9ddZDw7D7tu22pqeBTc/8yq09NjjKwv44HeFIhKo1ytoTgVWGwYDupt82nIBd3JyQB87hZNq+s7
+	oal7xgnd7QE2PGwIi9hq7diAL6FnTc3pLYO7PkdbIi69IGLV9BVBxqp/pAK/XC3RcfvMVBCKf5uBV
+	yD7IK2JpqWqENZzbTQvtan37lvhx5Lxjw/3fkv5Dwcpzn2rh9+N1EadKPKV24yD543SGYtLOkslE4
+	dJMV91+m7aebmcBnewYg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wL39P-00000004YTX-0u8B;
+	id 1wL39P-00000004YTh-1DKq;
 	Thu, 07 May 2026 18:08:43 +0000
-Received: from mail-dy1-x132c.google.com ([2607:f8b0:4864:20::132c])
+Received: from mail-dy1-x132d.google.com ([2607:f8b0:4864:20::132d])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wL39J-00000004YQM-0qKv
+	id 1wL39K-00000004YQP-2Kfw
 	for opensbi@lists.infradead.org;
 	Thu, 07 May 2026 18:08:40 +0000
-Received: by mail-dy1-x132c.google.com with SMTP id 5a478bee46e88-2bda3b4318dso73941eec.1
-        for <opensbi@lists.infradead.org>; Thu, 07 May 2026 11:08:36 -0700 (PDT)
+Received: by mail-dy1-x132d.google.com with SMTP id 5a478bee46e88-2bda3b4318dso73942eec.1
+        for <opensbi@lists.infradead.org>; Thu, 07 May 2026 11:08:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tenstorrent.com; s=google; t=1778177316; x=1778782116; darn=lists.infradead.org;
+        d=tenstorrent.com; s=google; t=1778177318; x=1778782118; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=WMAy/1ekOq+o/zxmTWa5jCecYYIirGSx5KI11PORyKE=;
-        b=WyB9ZRQmdzvj9ud9568embbPhVukFCzF71RzctYZIrrCtIfe6QAU1efGGF89ePLjk1
-         flMRvGXrPJ2rIuvAE8ZkZ4gwI3ZDml+o58MxZ6plHAxWTtVJV9tia3COrY+Lh64OabAP
-         xMLif6+ky84l4q7Gi9WrQYo6k0tUEu2VRqkZea46PZ0Aaacs2sNic9DqOtN2TrlxdCXs
-         nSvyvuPY8a8jYw2T+55+G7AqH8WoH4jCf9ULUeLux/rOZv3m2WZqmY+/xMeup0O/d1Bk
-         3TPfJqW4xHKnId6m1IyY96hsVMrMW2TYXJy48303eGSEwjWk0bI6VqABts7aBBiA7GN7
-         nSaw==
+        bh=kP9CaZKoRUJBGrl5/DpJge0EPlNAd2uMj/yO07evThE=;
+        b=AqHNVFKMDYhXLlTM0+fkNP4+MlH4231KOHoHsgdNseSI4ml+GH0VhB7NcJaBlZHrKe
+         9fdfw8KSyJmMURquLvSipzyLI/gczMaV8nELMph73k/p1QTbVg1rrVn8nRwSvmJWjAHM
+         dnHw/kiRn1d/C3bPNcGQSHXRp8Wz/QU31Q6KbInf9/j2pto+t80+gfIS35I56EXhNKYg
+         90eHg806UVaLS0ZYnIVxaTlQMktvH74Csq8SV94Z9A3KPTrvQevsZBI43D1YqmkLoROP
+         wpzZhoq9b2CXxpp1NSos0ybG5tG2K0xuJINT8XHEsJcsB+FNCCUP55rbwBCPgu9Ayais
+         VphQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778177316; x=1778782116;
+        d=1e100.net; s=20251104; t=1778177318; x=1778782118;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=WMAy/1ekOq+o/zxmTWa5jCecYYIirGSx5KI11PORyKE=;
-        b=PgweYSluHgrWv11N0wTuPgviqm/b6GDhQ6vWIqtSJBxApdJw6ohG+RlsvZhdiizUMM
-         ELv/gwcUWVlmlY/EetZeDCea28KUDdkqWi08IPs7GmTzCNN3GiKqaEncttuSWBXLWBNj
-         X2A2vpbnmYmbK6KIeEX7SeKpW0p4tXHFhu9kJZq+bw9Zty1f5JNv3Bkt3V/UKm6wCqqA
-         Rm4pnWDRnFsS0o53J+CrRCIZwTM+ao2HlLFCjMAfyDdaDYbj0xmT8ME+FvJildn/4r69
-         0y7HzarJqcZcokHD3OanqLFHIfdZCSBSNmiQ/welksF5uriRrVh7XEvmKkxeWcNkaB/9
-         XuLw==
-X-Gm-Message-State: AOJu0Yz0FwLOwmQsL2DtrQi+OMe1SAoEpCGvTKEGh7Nn1Sbpb+I4iENb
-	tDm4vvNS+IKaGZg3AauwuFt6tz6JSUZOeQ9Swic5BwfpKFd5PZdKt9KFouNJdPNDL4o=
-X-Gm-Gg: Acq92OEHGGS4iLmWoIeOkMp2B9bCiBnjudO2Tm6sdE6gTwrkUZT875R9WxMWVRNE4Yc
-	VkLrEMrCS76YzAxja86VsqdERy1XKdEb/R7ttNqUShlwg+Gq8+Wt8Y/t9N0dawcXlg0yfKkfNHs
-	ab04B7TSewGrCl1Sv732mqA3zjeVW35Q+aD70hWGWTZmg2Qpyin99ARjyEqciqiRACxkgpKETxQ
-	husHLwSsu5exzZxxqAosNnY3J696i6hEDN1j2qlqZJE3VvcGQCYg6bBHTyPOJUeh6e50l/pKqHk
-	Ol3Uhk7pZ/pCr4ZD7MEOP0nIQ3Pn7rdiKPjmXXj1x8LWHjpl6KccP5lGmGKDBmyAdkU2woXEJTW
-	Eu2esmhXEG8s53iVlKYGySVXZu5G/IygMyYhnVoByrzbV4mfN+FPprkl1Ne2hccpMakNqWRsy5O
-	a/CQLACj88KWobLkJkIZ9DJUY1jHiCLJc2nfKBb3DkK3y8KlM+Sw==
-X-Received: by 2002:a05:7301:3f07:b0:2c0:c55c:156f with SMTP id 5a478bee46e88-2f54bd97b6amr2245143eec.4.1778177314684;
-        Thu, 07 May 2026 11:08:34 -0700 (PDT)
+        bh=kP9CaZKoRUJBGrl5/DpJge0EPlNAd2uMj/yO07evThE=;
+        b=NgmI19iy67QNb3SgMlAPDYO/f5Z60aFw27v1wisB9afGkjPNe2FJTCOWiSd7ZF8PWp
+         FvpMlbuoFnmqCN4abvmbJbE60rVSnU0cHUNYCfKozmsmA2vYCZ1afZbk+xNVJ0oGK/RZ
+         qNOETVrzqq3S10WWOA+ObQDzbKvxgDUt/1WSWJfMHZoUdRM0wjSrb2Ee5h82ePc5Ds4d
+         ztIBFAiv+JrjwQIYY3EoyvWRo85jCtlZCSXizdk1z573cPc+tD/dEZxHL1TB5EWAK0f3
+         kusgEVKevOvtfQkkSzqCzTGhsHqRaXp6/lG3ov2CMpzmUbAPbNgLQK2gO00ePojYFitV
+         tzvw==
+X-Gm-Message-State: AOJu0YxYARswLw4KpH2yy6GR1ii9zGWWl5V54kEhNQ0zkjFQVkOBbtz5
+	XmFwu7CDOnd7XjeHZQnge6fG6w1csWrf00V3ANB57cPWU1rl3jYVDcJQX0poyxC6Iy0=
+X-Gm-Gg: Acq92OGL+qxPqRQVduMovl+j8OQgUjVa/MDWNhI4cx40CxlBoDLhwtbchzg2wA3wz9E
+	Y7zvqNbxeZbAVEyQYMGzDfEIGBP+QkllgtquHA4+MToV5kWBg/g5WiTmAy0ZCCG+XQ6Dt0Inf8v
+	oyvryCA4Gn6fRB1G51wAsnUnMdUiWFMNfPjnQ+db+AF7+S4Rk/b7KeN+Giou3VL8CnT/9v414oo
+	UCBxF3Jxmh1JPAKYBHIEirvEY/c6ivoaWEREQMyOmZjccAlweoQu8l6T5B0owPG1j99aS7OoaQd
+	eAb1sgKHNXtYXd/ZSU0s5ednbKVMmm/QJYoJvQnxUNPHlxB+bGzvlTvNMfrXOIpwJ7SZGwLSofA
+	/2ZGeIy5tPNbaOTKGCUnhPAudAVrH9ovAZ2EPQ1pC1N0R/+brW+nMlWYnXntrakzvnTOSeteZGp
+	DZZStu9Hrq2LJu7uI5YhTyQFTf+OCGd7Nz4jAMIkwDHGOLX+UiPw==
+X-Received: by 2002:a05:7300:3b08:b0:2f3:3835:2010 with SMTP id 5a478bee46e88-2f54c37e2eamr1993925eec.6.1778177317540;
+        Thu, 07 May 2026 11:08:37 -0700 (PDT)
 Received: from ausc-rvsw-c-02.tenstorrent.com ([38.104.49.66])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f82b5636besm78285eec.2.2026.05.07.11.08.33
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f82b5636besm78285eec.2.2026.05.07.11.08.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 May 2026 11:08:34 -0700 (PDT)
+        Thu, 07 May 2026 11:08:37 -0700 (PDT)
 From: Evgeny Voevodin <evvoevod@tenstorrent.com>
 To: Anup Patel <anup@brainfault.org>
 Cc: opensbi@lists.infradead.org,
 	Nylon Chen <nylon.chen@sifive.com>,
 	evvoevod@tenstorrent.com
-Subject: [PATCH v3 3/6] firmware: Add RNMI handler infrastructure
-Date: Thu,  7 May 2026 18:08:04 +0000
-Message-ID: <050ae6d2762ba8d5b9dfb3cc1960a23aa3d6c549.1778176768.git.evvoevod@tenstorrent.com>
+Subject: [PATCH v3 6/6] lib: sbi: hart: Detect and enable Smrnmi before trap-based feature detection
+Date: Thu,  7 May 2026 18:08:07 +0000
+Message-ID: <88b1470e1e3348d454b4b995a11a85c01914f7af.1778176768.git.evvoevod@tenstorrent.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1778176768.git.evvoevod@tenstorrent.com>
 References: <cover.1778176768.git.evvoevod@tenstorrent.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260507_110838_693475_9B79F9A2 
-X-CRM114-Status: GOOD (  16.53  )
+X-CRM114-CacheID: sfid-20260507_110838_954099_BA25C800 
+X-CRM114-Status: GOOD (  13.22  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,278 +99,80 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Implement basic Resumable NMI (RNMI) handler support for the RISC-V
-Smrnmi extension.
+The location of the RNMI/E trap vectors in the Smrnmi extension is
+implementation-defined, so platforms with vendor-specific NMI vector
+mechanisms must install the firmware's NMI entry points themselves.
 
-The new _trap_rnmi_handler assembly entry point saves context using the
-Smrnmi MN* CSRs (MNSCRATCH, MNEPC, MNSTATUS, MNCAUSE) and returns via
-mnret. It dispatches to sbi_trap_rnmi_handler(), which optionally calls
-a platform-specific ops->rnmi_handler callback for actual NMI
-processing. If no platform handler is registered or it fails, the
-event is reported as an unhandled NMI.
+Add an smrnmi_handlers_init() callback to sbi_platform_operations that
+receives the firmware entry points and lets platform code install them
+at the hardware-specific vector locations. Two pointers are passed:
 
-The RNMI handler reuses the generic trap context structure but stores MN*
-CSR values (MNEPC, MNSTATUS, MNCAUSE) into the corresponding generic
-fields (mepc, mstatus, cause) for compatibility with existing trap
-infrastructure.
+  - _trap_rnmi_handler: the dedicated RNMI entry point that saves
+    context using the Smrnmi MN* CSRs and returns via mnret.
+  - _trap_handler: the regular M-mode trap entry since RNME is taken
+    as a regular M-mode trap with NMIE=0.
+
+When Smrnmi is present, install the platform's NMI vectors via the new
+callback, initialize MNSCRATCH with the per-hart scratch pointer, and
+set MNSTATUS.NMIE.
+
+Smrnmi-enabled platforms must register smrnmi_handlers_init; if the
+extension is detected but no callback is registered, sbi_panic() is
+called since enabling NMIs without handlers in place would route
+subsequent traps into nowhere.
 
 Signed-off-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- firmware/fw_base.S         | 121 +++++++++++++++++++++++++++++++++++++
- include/sbi/sbi_platform.h |   4 ++
- include/sbi/sbi_trap.h     |   2 +
- lib/sbi/sbi_trap.c         |  39 ++++++++++++
- 4 files changed, 166 insertions(+)
+ include/sbi/sbi_platform.h |  4 ++++
+ lib/sbi/sbi_hart.c         | 20 ++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index cdb15429..043de7d7 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -529,6 +529,45 @@ memcmp:
- 	csrrw	tp, CSR_MSCRATCH, tp
- .endm
- 
-+.macro	TRAP_SAVE_AND_SETUP_SP_T0_NMI
-+	/* Swap TP and MNSCRATCH (for RNMI) */
-+	csrrw	tp, CSR_MNSCRATCH, tp
-+
-+	/* Save T0 in scratch space */
-+	REG_S	t0, SBI_SCRATCH_TMP1_OFFSET(tp)
-+
-+	/*
-+	 * Set T0 to appropriate exception stack
-+	 *
-+	 * Came_From_M_Mode = ((MNSTATUS.MNPP < PRV_M) ? 1 : 0) - 1;
-+	 * Exception_Stack = TP ^ (Came_From_M_Mode & (SP ^ TP))
-+	 */
-+	csrr	t0, CSR_MNSTATUS
-+	srl	t0, t0, 11		/* MNPP is at bits 11-12 */
-+	and	t0, t0, PRV_M
-+	slti	t0, t0, PRV_M
-+	add	t0, t0, -1
-+	xor	sp, sp, tp
-+	and	t0, t0, sp
-+	xor	sp, sp, tp
-+	xor	t0, tp, t0
-+
-+	/* Save original SP on exception stack */
-+	REG_S	sp, (SBI_TRAP_REGS_OFFSET(sp) - SBI_TRAP_CONTEXT_SIZE)(t0)
-+
-+	/* Set SP to exception stack and make room for trap context */
-+	add	sp, t0, -(SBI_TRAP_CONTEXT_SIZE)
-+
-+	/* Restore T0 from scratch space */
-+	REG_L	t0, SBI_SCRATCH_TMP1_OFFSET(tp)
-+
-+	/* Save T0 on stack */
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
-+
-+	/* Swap TP and MNSCRATCH */
-+	csrrw	tp, CSR_MNSCRATCH, tp
-+.endm
-+
- .macro	TRAP_SAVE_MEPC_MSTATUS have_mstatush
- 	/* Save MEPC and MSTATUS CSRs */
- 	csrr	t0, CSR_MEPC
-@@ -543,6 +582,20 @@ memcmp:
- 	.endif
- .endm
- 
-+.macro	TRAP_SAVE_MNEPC_MNSTATUS have_mstatush
-+	/*
-+	 * Save MNEPC and MNSTATUS CSRs (for RNMI)
-+	 * Note: Trap context structure has generic field names (mepc, mstatus),
-+	 * we store MN* CSR values into these same structure fields.
-+	 */
-+	csrr	t0, CSR_MNEPC
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
-+	csrr	t0, CSR_MNSTATUS
-+	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
-+	/* MNSTATUSH doesn't exist in SMRNMI spec */
-+	REG_S	zero, SBI_TRAP_REGS_OFFSET(mstatusH)(sp)
-+.endm
-+
- .macro	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
- 	/* Save all general regisers except SP and T0 */
- 	REG_S	zero, SBI_TRAP_REGS_OFFSET(zero)(sp)
-@@ -606,12 +659,36 @@ memcmp:
- 	CLEAR_MDT t0
- .endm
- 
-+.macro	TRAP_SAVE_NMI_INFO
-+	/*
-+	 * Save NMI trap info (MNCAUSE, no MNTVAL in spec)
-+	 * Note: Trap info structure has generic field names (cause, tval, etc.),
-+	 * we store MN* CSR values into these same structure fields.
-+	 */
-+	csrr	t0, CSR_MNCAUSE
-+	REG_S	t0, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(cause))(sp)
-+	/* MNTVAL doesn't exist in SMRNMI spec */
-+	REG_S	zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval))(sp)
-+	REG_S	zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tval2))(sp)
-+	REG_S	zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(tinst))(sp)
-+	REG_S	zero, (SBI_TRAP_REGS_SIZE + SBI_TRAP_INFO_OFFSET(gva))(sp)
-+
-+	/* We are ready to take another trap, clear MDT */
-+	CLEAR_MDT t0
-+.endm
-+
- .macro	TRAP_CALL_C_ROUTINE
- 	/* Call C routine */
- 	add	a0, sp, zero
- 	call	sbi_trap_handler
- .endm
- 
-+.macro	TRAP_CALL_C_RNMI_ROUTINE
-+	/* Call C routine */
-+	add	a0, sp, zero
-+	call	sbi_trap_rnmi_handler
-+.endm
-+
- .macro	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
- 	/* Restore all general regisers except A0 and T0 */
- 	REG_L	ra, SBI_TRAP_REGS_OFFSET(ra)(a0)
-@@ -660,6 +737,19 @@ memcmp:
- 	csrw	CSR_MEPC, t0
- .endm
- 
-+.macro	TRAP_RESTORE_MNEPC_MNSTATUS
-+	/*
-+	 * Restore MNSTATUS and MNEPC CSRs (for RNMI)
-+	 * Note: Load from generic structure fields (mstatus, mepc) and
-+	 * restore to NMI-specific CSRs (MNSTATUS, MNEPC).
-+	 * No MNSTATUSH in SMRNMI spec.
-+	 */
-+	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
-+	csrw	CSR_MNSTATUS, t0
-+	REG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-+	csrw	CSR_MNEPC, t0
-+.endm
-+
- .macro TRAP_RESTORE_A0_T0
- 	/* Restore T0 */
- 	REG_L	t0, SBI_TRAP_REGS_OFFSET(t0)(a0)
-@@ -724,6 +814,37 @@ _trap_handler_hyp:
- 
- 	mret
- 
-+	.section .entry, "ax", %progbits
-+	.align 3
-+	.globl _trap_rnmi_handler
-+_trap_rnmi_handler:
-+	/*
-+	 * NMI interrupt handler using MN* CSRs
-+	 *
-+	 * Context detection via MNPP (previous privilege mode):
-+	 * - If MNPP < M-mode: use exception stack (TP)
-+	 * - If MNPP == M-mode: use current stack (SP)
-+	 * This handles nested interrupt cases.
-+	 */
-+	TRAP_SAVE_AND_SETUP_SP_T0_NMI
-+
-+	TRAP_SAVE_MNEPC_MNSTATUS 0
-+
-+	TRAP_SAVE_GENERAL_REGS_EXCEPT_SP_T0
-+
-+	TRAP_SAVE_NMI_INFO
-+
-+	TRAP_CALL_C_RNMI_ROUTINE
-+
-+	TRAP_RESTORE_GENERAL_REGS_EXCEPT_A0_T0
-+
-+	TRAP_RESTORE_MNEPC_MNSTATUS
-+
-+	TRAP_RESTORE_A0_T0
-+
-+	/* mnret - return from NMI (SMRNMI extension) */
-+	.word 0x70200073
-+
- 	.section .entry, "ax", %progbits
- 	.align 3
- 	.globl _reset_regs
 diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index e65d9877..715df499 100644
+index 715df499..fe382b56 100644
 --- a/include/sbi/sbi_platform.h
 +++ b/include/sbi/sbi_platform.h
-@@ -149,6 +149,10 @@ struct sbi_platform_operations {
- 			unsigned long log2len);
+@@ -150,6 +150,10 @@ struct sbi_platform_operations {
  	/** platform specific pmp disable on current HART */
  	void (*pmp_disable)(unsigned int n);
-+
-+	/** platform specific Smrnmi NMI handler.
-+	 *  Returns SBI_SUCCESS on success, error code if NMI cannot be handled. */
-+	int (*rnmi_handler)(struct sbi_trap_context *tcntx);
- };
  
- /** Platform default per-HART stack size for exception/interrupt handling */
-diff --git a/include/sbi/sbi_trap.h b/include/sbi/sbi_trap.h
-index 731a0c98..091a2446 100644
---- a/include/sbi/sbi_trap.h
-+++ b/include/sbi/sbi_trap.h
-@@ -289,6 +289,8 @@ static inline void sbi_trap_set_context(struct sbi_scratch *scratch,
- 
- struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx);
- 
-+struct sbi_trap_context *sbi_trap_rnmi_handler(struct sbi_trap_context *tcntx);
++	/** platform specific Smrnmi handlers init on current HART */
++	void (*smrnmi_handlers_init)(void (*rnmi_handler)(void),
++			void (*rnme_handler)(void));
 +
- #endif
+ 	/** platform specific Smrnmi NMI handler.
+ 	 *  Returns SBI_SUCCESS on success, error code if NMI cannot be handled. */
+ 	int (*rnmi_handler)(struct sbi_trap_context *tcntx);
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 781161e5..92c602aa 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -532,6 +532,26 @@ static int hart_detect_features(struct sbi_scratch *scratch)
+ 	if (rc)
+ 		return rc;
  
- #endif
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index f41db4d1..1e55b885 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -20,6 +20,7 @@
- #include <sbi/sbi_irqchip.h>
- #include <sbi/sbi_trap_ldst.h>
- #include <sbi/sbi_pmu.h>
-+#include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_sse.h>
- #include <sbi/sbi_timer.h>
-@@ -375,3 +376,41 @@ trap_done:
- 	sbi_trap_set_context(scratch, tcntx->prev_context);
- 	return tcntx;
- }
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMRNMI)) {
++		const struct sbi_platform *plat = sbi_platform_thishart_ptr();
++		const struct sbi_platform_operations *ops = sbi_platform_ops(plat);
++		extern void _trap_rnmi_handler(void);
++		extern void _trap_handler(void);
 +
-+/**
-+ * Default Resumable NMI (RNMI) handler
-+ *
-+ * This function is called from the _trap_rnmi_handler assembly code.
-+ * It provides a simple wrapper that calls the platform-specific
-+ * NMI handler if registered. If no handler is registered, it prints
-+ * diagnostic information and hangs, similar to unhandled traps.
-+ *
-+ * Note: The trap context stores NMI CSR values (MNCAUSE, MNEPC, MNSTATUS)
-+ * in the generic trap context fields (cause, mepc, mstatus).
-+ *
-+ * @param tcntx Pointer to trap context (saved on stack)
-+ * @return Same trap context pointer (needed for restore macros)
-+ */
-+struct sbi_trap_context *sbi_trap_rnmi_handler(struct sbi_trap_context *tcntx)
-+{
-+	int rc;
-+	const struct sbi_platform *plat = sbi_platform_thishart_ptr();
-+	const struct sbi_platform_operations *ops = sbi_platform_ops(plat);
++		if (!ops || !ops->smrnmi_handlers_init)
++			sbi_panic("Smrnmi detected, but platform lacks smrnmi_handlers_init callback\n");
 +
-+	/* Call platform-specific NMI handler if registered */
-+	if (ops && ops->rnmi_handler) {
-+		rc = ops->rnmi_handler(tcntx);
-+		if (rc) {
-+			/* Platform handler failed to handle NMI */
-+			sbi_trap_error("platform NMI handler failed", rc, tcntx);
-+		}
-+		return tcntx;
++		/* Reuse _trap_handler for the RNME slot since RNME is taken
++		 * as a regular M-mode trap with NMIE=0. */
++		ops->smrnmi_handlers_init(_trap_rnmi_handler, _trap_handler);
++
++		/* Initialize MNSCRATCH for the RNMI handler */
++		csr_write(CSR_MNSCRATCH, scratch);
++
++		/* Enable NMIs */
++		csr_set(CSR_MNSTATUS, MNSTATUS_NMIE);
 +	}
 +
-+	/* No platform handler - treat as unhandled NMI */
-+	sbi_trap_error("unhandled NMI (no platform rnmi_handler)",
-+		       SBI_ENOTSUPP, tcntx);
-+
-+	/* Never returns */
-+	return tcntx;
-+}
+ #define __check_hpm_csr(__csr, __mask) 					  \
+ 	oldval = csr_read_allowed(__csr, &trap);			  \
+ 	if (!trap.cause) {						  \
 -- 
 2.43.0
 
