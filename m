@@ -4,102 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 458F9CD342F
-	for <opensbi@archiver.kernel.org>; Fri,  8 May 2026 05:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A8B23CD3436
+	for <opensbi@archiver.kernel.org>; Fri,  8 May 2026 16:32:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=6zGqfnHoBMp88vbmA99Zfhmm5ADxUv4bHOQsiyQ/y5E=; b=bbjTJv2V8QngDt
-	ruv1crLra7rLImHt93Sz2VDylg63G4iSgVI8eeAzZv+dZUYtwg0Pmtq4fqNZaoGbbL+U/tk+mi4Zl
-	BH7JSI9j49ENWgqkZWdsff3m6XuAgeEwjW5YkqKnO+SfmKpr8kpR4Z3m3pllkkRIpYxDdzUhXkh3Y
-	JE8vUZCb+CcdKnHWRx8Eq3REq+MjZFuuSrIsmGAOQBtDa2Si/6zMVI3ncLrju2Phq4qUF8/2is+qd
-	91w+SREDM4ZTiTuaGoUewHurlDALz3N1N6nS7W9fYZhtjJaea0hajmgfiyyXvrDmDC5JGgoXgMbG7
-	wWPWABw5CDSGM/hgPUJA==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
+	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=a3pPmKxSclerPXYKVeOu4M40fYo9vw4pTkyN3eoYJvc=; b=U/xID40HnRDSNx
+	GtbVChVndhD+/lqGlgE/XLOz/JpBgLRbu9kApuCPXAAXq5i2LJtdoukNCNEvhRZndtzzZo91TdqTN
+	fTQiyWRMqrXT2tz3d9BXLKoMUbwPwL7J/7/TrAPEjVeVSfE9lDoJmZJMqOayFtQaBlgQUy0VKXnqp
+	LeQVcOMoDxBEVKwfuw9lGKgvhIeQ0gxnCR822cIsnxwlcknWFMF44MBKDe+AoJwcGFq8u7I+4qHAR
+	4/itHOBXm3z/Pq+nYNSm4GjPUxUZ2DhTrELTVdXzVdd8AaL/E80WfPsMD2ozB72hhtRPUppuDF7eE
+	G8LaG+EM0AoWMr6QANyA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wLDM9-00000005ZxW-1Unu;
-	Fri, 08 May 2026 05:02:33 +0000
-Received: from mail-oo1-xc2d.google.com ([2607:f8b0:4864:20::c2d])
+	id 1wLO88-000000070I8-2gv1;
+	Fri, 08 May 2026 16:32:48 +0000
+Received: from mail-yw1-x1134.google.com ([2607:f8b0:4864:20::1134])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wLDM6-00000005Zx2-1qJ1
+	id 1wLO85-000000070HO-1lQH
 	for opensbi@lists.infradead.org;
-	Fri, 08 May 2026 05:02:31 +0000
-Received: by mail-oo1-xc2d.google.com with SMTP id 006d021491bc7-6966d0665baso1092809eaf.1
-        for <opensbi@lists.infradead.org>; Thu, 07 May 2026 22:02:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778216549; cv=none;
-        d=google.com; s=arc-20240605;
-        b=GbKXnNRijJsYrjGYuS+lDa7FNbvvejuFPiKcnxLYWtOHnZIbps6xoejVkZ+G3CVd0e
-         P+MQUrdlox11XU037yCaGwVBbvrd04d0+9Ci0hZafnCO5imqwOUvbEjD9FBtNPeFJxkL
-         1o4qlhoz+qWW1bjj8D6JMU5fVPYUrAomBhdZ1+W2fslVh+/ymfBiMaYZz9JhxxO/EV+s
-         xtBOWk7k2T2koHI1atBUrLeemuNk3tHEx18z5jKK1vLHPjyuMLnghvq4nZPgwsj3SPkN
-         DVvmq+6zMf1KdXIliQWjLysUIu37sK3/raLXoKWUlOwr3StaTvFNJD3hzsocTHHAK0Ei
-         O3gA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=UuWQ7iVulyZYU1hZbLwgHBb0S9FWVmtqXMk2EBnWjgg=;
-        fh=ZAtPgNT/mWeTZ6vNEkZRyB0hM0YzwkpsSL1tZLHA+mM=;
-        b=QoefzQ/sYCIx3v8POBMFWpnFOZR2mHVbpwAqwrIcdhbWDISaYZkCHgGBvsuEZ7x96W
-         oNXhvOViVvAvpbx5PvrZ2cU5oUkDkAOnybrm+EuUVvNAJMobeRcZUP7IESK7IXC+v8a6
-         NzC/ZUvk/omYurza9cy/rlL3ETfGoapP2JlcPgoyHpAW8Hfircl8Mc0SWO/yHQtrwAsF
-         HxSxG2fMLJjyzn+SyIItyI74dW1U5IOfcqw4En0IErpIF4+gEFwvkAh7CZyDLEGC5gun
-         djHWNReGXyBP9FMlxFeH3gNARbEwbvgvDfSOHQzyqg51c3lcwIP6neUZ8CWtkOzw+wXz
-         v1TQ==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Fri, 08 May 2026 16:32:47 +0000
+Received: by mail-yw1-x1134.google.com with SMTP id 00721157ae682-7bde9d73678so24844257b3.0
+        for <opensbi@lists.infradead.org>; Fri, 08 May 2026 09:32:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault-org.20251104.gappssmtp.com; s=20251104; t=1778216549; x=1778821349; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UuWQ7iVulyZYU1hZbLwgHBb0S9FWVmtqXMk2EBnWjgg=;
-        b=SWIOJWShO+42iwgo++GiiHBbMcKzuFiQoiZjYMMtC7GIUhsK6EZVcrYCTpOPw8ggsC
-         PnBFa98bhgzfcauwe6FhBIt235omKN1qMCLhBskIsu+aB5+eFIRCsg0fjRiJiFzVZJgQ
-         xRReIXnRIr3s+nwRQh6Zmkw2XTeHbfeoQCRUfYUqrQGtpYskFmj/FYmX1W/Eh+J3+5c1
-         Li2duVBIr82DT/wKEdsnR2GMP6T+nuiSWDH+qxZllNVaHeEoLATeemTMHd/CKyc8mreR
-         RGSNOIMKGICEUb1qxnNsEpJNVb0L9nUVhwuNKBn0+KnUf1nLFDv3Qhtb5fQZNqYrT0+P
-         3evQ==
+        d=tenstorrent.com; s=google; t=1778257963; x=1778862763; darn=lists.infradead.org;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=pS7QDMyTPn+qXeEhdqM1p9kWQ8gc0iqQRoSfcLjmYu4=;
+        b=Swt63v6Ia1Q2bS9a5EZXNKhqH7PXKrFjsheDIa12DH99/iYcUPo0RvkGQPDPq/w/63
+         US1LAC00MZbeA68/sIq25IaofgDwOCsOW9HuFj381kc3opmYAxYnT1Y4Hc1kqB8VFyT9
+         2XSpQymRoVUGTZQXkpSEmHGd3ZnrKdxktUyV1Ei+xx27BVI/Ft4+C1z8fznYDNaBmWrk
+         l+TORKM47f/U/z6n3NtNLgBMxfcDWX9ZpYODmolmuUCTf6TUxN7eftYUyhkiX1looosL
+         QL5MNPUVHOo+TCJuxSsNBlSN4i1XpA2pFOcs7SLxFkk4Hm0PHxgLxoMt1QlMBVF3YuU0
+         u/lQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778216549; x=1778821349;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=UuWQ7iVulyZYU1hZbLwgHBb0S9FWVmtqXMk2EBnWjgg=;
-        b=pW/D//jiopDCsKb+q4r3CXleZIKjWNBUyxGo2vXlr6wfY7NFtsGLjYuMTkrgckmIMr
-         PdbbC3qiWjCRMwe7HKaPKV617K8Z23JmMzvB3tw1MsMyuLbXyufVcy37YjLr+y2IExDv
-         ECQxSTWLvnYjRqm4a9iI4GCFdfVmY70GGBPrFJEoGFFWLfX4+xLse5Ri+Bt7KLb9p6Uu
-         Qna90xhiAlbeXASl18jpRRiiFl5b+lxQbKSXEw2ywBhLjrN5mRRD2Lgs1BadY6AJMyv6
-         ZUvNv6zFhDnF5NZAErMm4wE5P0S5nzS6vDSuQ83AvhXEtx889Qb3tpCLrkJs7KbYQRl0
-         vrhg==
-X-Gm-Message-State: AOJu0YwGpMlukmdq2JESh+1Kluri0PEsRhYOqd9wszTXzdKD6BRyGKoh
-	Qsak9fyC90QzHdqZ9bfTf2p0OnoQwhHDQGtcgRrKUrMRNr8NzNqKze32l1UE8vskDGAVfwyIKda
-	1qiftz9jkIQkVaXFsj3OODdE9K6VCPP+cgJqa1rxfSQ==
-X-Gm-Gg: AeBDietZ24eIsYGgmLuPfXenqqetQdJdtkIaIAAvw3mfUm05fsYZ4g6g5H6xAOW2MqV
-	Sc/vxUYdBOX9AMLuNLsdOC53LgVXHhh7ns4ATdUSGUVnWgyOuJ80XDwoazWV4Makgk15fQtxx2o
-	O0DVU1wY4m4ImydzioqtZd9bRlMMhfLDWSQayrhfBnzG+yRO2kl3ju/BFFrCU6kx0IICMiUcROv
-	smNoMxEEB2XNaAVgOu/zMPI78ct3ktZmhW4MO8pKE2swyTjwyyuaZKPT3WefVNeRx5FTVU5tbDu
-	Q4raRNsCX3vD4pMMwniaQ5zNr9FM12aPAvtC9xpwaJoQ5kN8iA3MAvX5lDPFybLwO+5AMHHS0X0
-	Wy0CAR84chgYBe+xNRdve87zImknwEukIwXvjZA==
-X-Received: by 2002:a05:6820:218:b0:694:8f37:708a with SMTP id
- 006d021491bc7-69998cbccb8mr6275989eaf.15.1778216548851; Thu, 07 May 2026
- 22:02:28 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1778257963; x=1778862763;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=pS7QDMyTPn+qXeEhdqM1p9kWQ8gc0iqQRoSfcLjmYu4=;
+        b=EGP/vJcGD7IQ0n4QxYZJkKxGhgIWdVpnoq/QV/aQmRoiIQD39/YF9pqIJQpQw3TpUT
+         P1zVQSL9ahHHHvxSNya55Iuf8FlvrGFkPFW8LUwyI84pbp/fZvo3513nXY2FfyPLsexi
+         rhD/hPehK6fy0s9TVMThcNVEyiX2myIpSM5x3ZrRTuhvYt/R5vb2irKREYrbv06li5Hu
+         uR5f2ItMaCPTF304MYSmR+Fpx/uQ7N5l9QfND/Xaxdqgv2NXuU/Fydt49l/Rm6YewzEh
+         NQIAj4SxGLwiguG/cshCxOL6VZE6MU4LGRZo3jGk1RT3NvV2yYRaT1T+jQf7NqQsDjHS
+         cSJQ==
+X-Gm-Message-State: AOJu0Yw6SnscZNRf+Q42kSMDsDZXSIoP7X8G8YAHBaqGTnXKQsN8JZli
+	QsZNb2tn8PI+OKihUNKVZWYE8fhBP+6b5J4p6Znc97+APBiwxBAp9CXncRwEneRzmBbrK2QbSsU
+	5tO9t
+X-Gm-Gg: Acq92OHEHzhmM5I1iNPgCjLz8quCd/JeJT4F80lHFEAPmHaeE/x/JyrYOli5GnECzfx
+	I3eL8JdCx7YYGzvKL5d65Fug84AKsBG5ZOOuwfVs1/kZffLPd/c9zk6ZOo7VEvNE3ShSF2p9GHV
+	ZRODPhCpE1wwZ7zsjGz5IHCaxpZirbDnWaRr5dHQTZnTxaFsoBmuXGWeh/f9q4yJVi5hsyYAUbf
+	plaV6pFdQIsG3Jph2v6IeB35+3GsffPMMk1Xqw5aOSMTdHhCbZaqdN/YOTdfPF9cTOTEs/aKgaM
+	s1I82qdPzLxRt8JjIRPpdBnVBZzOzQYEXEI0xpn7dycMxB9G6oxnRBjcLzCquE80zE6+MWMKtlL
+	qZmJCdZXOxlk9zSId92zw91WOMUIHRV6msHPsdRxJoRMY4bu4loIx0vP2P3Mq52CqocdKPlRkit
+	SXesZwoTKXTeHrR2aPgxbDvzVoAtEc04k+Sjc8Xe87TS+EQB8IRLljvNg4XzcEJw6roYCE+pUVe
+	OCViKu2HTTO7YAyhjV9qg4tJaFC
+X-Received: by 2002:a05:690c:9982:b0:7bd:69b8:f2e7 with SMTP id 00721157ae682-7bf04b72939mr70512667b3.12.1778257963372;
+        Fri, 08 May 2026 09:32:43 -0700 (PDT)
+Received: from [192.168.2.129] ([2600:1700:220:59e0:4175:b791:de2f:a20e])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-7bd7d849afesm90571867b3.49.2026.05.08.09.32.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 08 May 2026 09:32:42 -0700 (PDT)
+From: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+Date: Fri, 08 May 2026 11:32:30 -0500
+Subject: [PATCH] platform: Fix payload alignment when FW_TEXT_START isn't
+ 2M/4M aligned
 MIME-Version: 1.0
-References: <cover.1778176768.git.evvoevod@tenstorrent.com> <acd52b0f3468758bc5f09e6a45662341b31d4d87.1778176768.git.evvoevod@tenstorrent.com>
-In-Reply-To: <acd52b0f3468758bc5f09e6a45662341b31d4d87.1778176768.git.evvoevod@tenstorrent.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Fri, 8 May 2026 10:32:17 +0530
-X-Gm-Features: AVHnY4JOVbK9kOYDU7rQS23-XumHyJvdpdFFlcd0zsUBPKnMpdZ6DPIQr7Y8ziw
-Message-ID: <CAAhSdy2gGxBDuFud4BAferOV1DgNf5vn2j3cFvf24AT2gZkS0Q@mail.gmail.com>
-Subject: Re: [PATCH v3 5/6] lib: sbi: Move Zkr entropy initialization from
- fw_base.S to init_coldboot
-To: Evgeny Voevodin <evvoevod@tenstorrent.com>
-Cc: opensbi@lists.infradead.org, Nylon Chen <nylon.chen@sifive.com>
+Message-Id: <20260508-payload_alignment-v1-1-6628b4ec1ed3@oss.tenstorrent.com>
+X-B4-Tracking: v=1; b=H4sIAB0Q/mkC/yXMQQqDMBBG4avIrA2k0tjQqxSRMf61U2yUxIoi3
+ t3YLr/FextFBEGke7ZRwCxRBp9wyTNyL/YdlLTJVOii1EZbNfLaD9zW3EvnP/CTMsYatiXcDVd
+ K3RjwlOX3fFR/x2/zhpvOEe37AfACvGV1AAAA
+X-Change-ID: 20260508-payload_alignment-5585a86ec7e4
+To: opensbi@lists.infradead.org
+Cc: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+X-Mailer: b4 0.15.1
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260507_220230_539598_8E0CD5FA 
-X-CRM114-Status: GOOD (  22.23  )
+X-CRM114-CacheID: sfid-20260508_093245_491557_0A372884 
+X-CRM114-Status: GOOD (  11.95  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -111,92 +96,78 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVGh1LCBNYXkgNywgMjAyNiBhdCAxMTozOOKAr1BNIEV2Z2VueSBWb2V2b2Rpbgo8ZXZ2b2V2
-b2RAdGVuc3RvcnJlbnQuY29tPiB3cm90ZToKPgo+IEN1cnJlbnQgcGxhY2VtZW50IG9mIGVudHJv
-cHkgaW5pdGlhbGl6YXRpb24gdmlhIFprciBleHRlbnNpb24gcmVxdWlyZXMgYQo+IHRyYXAtYmFz
-ZWQgbWVjaGFuaXNtIHRvIGhhbmRsZSBhYnNlbnQgWmtyIGV4dGVuc2lvbiBjYXNlLiBJbiBwcmVz
-ZW5jZSBvZgo+IFNtcm5taSBleHRlbnNpb24gbm8gdHJhcC1iYXNlZCBtZWNoYW5pc21zIHNob3Vs
-ZCBiZSB1c2VkIGJlZm9yZSBTbXJubWkgaXMKPiBkZXRlY3RlZCBhbmQgZW5hYmxlZCBvdGhlcndp
-c2UgdHJhcCB3aWxsIGp1bXAgdG8gdW5kZWZpbmVkIGxvY2F0aW9uLgo+IE1vdmUgc3RhY2sgZ3Vh
-cmQgaW5pdGlhbGl6YXRpb24gaW50byBpbml0X2NvbGRib290IGZ1bmN0aW9uIGJvZHkgYWZ0ZXIK
-PiBkZXZpY2UgdHJlZSBoYXMgYmVlbiBwYXJzZWQgc28gd2Uga25vdyBpZiBaa3IgZXh0ZW5zaW9u
-IGlzIGltcGxlbWVudGVkIGJ5Cj4gdGhlIHBsYXRmb3JtIHdoaWNoIGhlbHBzIHRvIGF2b2lkIHRy
-YXAtYmFzZWQgZGlzY292ZXJ5Lgo+IGluaXRfY29sZGJvb3QoKSBpcyBhIHNhZmUgcGxhY2UgdG8g
-aW5pdGlhbGl6ZSBlbnRyb3B5IGJlY2F1c2UgaXQgZG9lc24ndAo+IHJldHVybiBzbyBubyBjaGVj
-ayBvZiBfX3N0YWNrX2Noa19ndWFyZCBhZ2FpbnN0IHZhbHVlIG9uIGVudHJ5Cj4gd2lsbCBiZSBk
-b25lLgo+Cj4gU2lnbmVkLW9mZi1ieTogRXZnZW55IFZvZXZvZGluIDxldnZvZXZvZEB0ZW5zdG9y
-cmVudC5jb20+CgpMR1RNLgoKUmV2aWV3ZWQtYnk6IEFudXAgUGF0ZWwgPGFudXBAYnJhaW5mYXVs
-dC5vcmc+CgpSZWdhcmRzLApBbnVwCgo+IC0tLQo+ICBmaXJtd2FyZS9md19iYXNlLlMgfCAzMiAt
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICBsaWIvc2JpL3NiaV9pbml0LmMgfCAz
-MSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gIDIgZmlsZXMgY2hhbmdlZCwgMzEg
-aW5zZXJ0aW9ucygrKSwgMzIgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvZmlybXdhcmUv
-ZndfYmFzZS5TIGIvZmlybXdhcmUvZndfYmFzZS5TCj4gaW5kZXggMDQzZGU3ZDcuLjVkNjU0MGQ3
-IDEwMDY0NAo+IC0tLSBhL2Zpcm13YXJlL2Z3X2Jhc2UuUwo+ICsrKyBiL2Zpcm13YXJlL2Z3X2Jh
-c2UuUwo+IEBAIC0xMDcsMzAgKzEwNyw2IEBAIF9ic3NfemVybzoKPiAgICAgICAgIGFkZCAgICAg
-czQsIHM0LCBfX1NJWkVPRl9QT0lOVEVSX18KPiAgICAgICAgIGJsdCAgICAgczQsIHM1LCBfYnNz
-X3plcm8KPgo+IC0gICAgICAgLyogVHJ5aW5nIHRvIGluaXRpYWxpemUgdGhlIHN0YWNrIGd1YXJk
-IHZpYSB0aGUgWmtyIGV4dGVuc2lvbiAqLwo+IC0gICAgICAgbGxhICAgICB0MCwgX19zdGFja19j
-aGtfZ3VhcmRfZG9uZQo+IC0gICAgICAgY3NydyAgICBDU1JfTVRWRUMsIHQwCj4gLSAgICAgICBs
-aSAgICAgIHQwLCAwCj4gLSAgICAgICBsaSAgICAgIHQzLCBTRUVEX09QVFNfRVMxNgo+IC0gICAg
-ICAgbGkgICAgICB0NCwgU0VFRF9FTlRST1BZX01BU0sKPiAtICAgICAgIGxpICAgICAgdDUsIF9f
-U0laRU9GX1BPSU5URVJfXwo+IC1fX3N0YWNrX2Noa19ndWFyZF9sb29wOgo+IC0gICAgICAgY3Ny
-cncgICB0MSwgQ1NSX1NFRUQsIHgwCj4gLSAgICAgICBsaSAgICAgIHQyLCBTRUVEX09QVFNfTUFT
-Swo+IC0gICAgICAgYW5kICAgICB0MiwgdDIsIHQxCj4gLSAgICAgICBiZ3R1ICAgIHQyLCB0Mywg
-X19zdGFja19jaGtfZ3VhcmRfZG9uZQo+IC0gICAgICAgYmx0dSAgICB0MiwgdDMsIF9fc3RhY2tf
-Y2hrX2d1YXJkX2xvb3AKPiAtICAgICAgIGFuZCAgICAgdDEsIHQxLCB0NAo+IC0gICAgICAgc2xs
-aSAgICB0MCwgdDAsIDE2Cj4gLSAgICAgICBvciAgICAgIHQwLCB0MCwgdDEKPiAtICAgICAgIGFk
-ZGkgICAgdDUsIHQ1LCAtMgo+IC0gICAgICAgYmd0eiAgICB0NSwgX19zdGFja19jaGtfZ3VhcmRf
-bG9vcAo+IC0gICAgICAgbGxhICAgICB0MSwgX19zdGFja19jaGtfZ3VhcmQKPiAtICAgICAgIFJF
-R19TICAgdDAsIDAodDEpCj4gLSAgICAgICBqICAgICAgIF9fc3RhY2tfY2hrX2d1YXJkX2RvbmUK
-PiAtICAgICAgIC5hbGlnbiAzCj4gLV9fc3RhY2tfY2hrX2d1YXJkX2RvbmU6Cj4gLQo+ICAgICAg
-ICAgLyogU2V0dXAgdGVtcG9yYXJ5IHRyYXAgaGFuZGxlciAqLwo+ICAgICAgICAgbGxhICAgICBz
-NCwgX3N0YXJ0X2hhbmcKPiAgICAgICAgIGNzcncgICAgQ1NSX01UVkVDLCBzNAo+IEBAIC04OTUs
-MTQgKzg3MSw2IEBAIF9fc3RhY2tfY2hrX2ZhaWw6Cj4gICAgICAgICBsYSAgICAgIGEwLCAuTHN0
-YWNrX2NvcnJ1cHRfbXNnCj4gICAgICAgICBjYWxsICAgIHNiaV9wYW5pYwo+Cj4gLSAgICAgICAv
-KiBJbml0aWFsIHZhbHVlIG9mIHRoZSBzdGFjayBndWFyZCB2YXJpYWJsZSAqLwo+IC0gICAgICAg
-LnNlY3Rpb24gLmRhdGEKPiAtICAgICAgIC5hbGlnbiAzCj4gLSAgICAgICAuZ2xvYmwgX19zdGFj
-a19jaGtfZ3VhcmQKPiAtICAgICAgIC50eXBlIF9fc3RhY2tfY2hrX2d1YXJkLCAlb2JqZWN0Cj4g
-LV9fc3RhY2tfY2hrX2d1YXJkOgo+IC0gICAgICAgUklTQ1ZfUFRSICAgICAgIDB4OTVCNUZGNUEK
-PiAtCj4gICNpZmRlZiBGV19GRFRfUEFUSAo+ICAgICAgICAgLnNlY3Rpb24gLnJvZGF0YQo+ICAg
-ICAgICAgLmFsaWduIDQKPiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlfaW5pdC5jIGIvbGliL3Ni
-aS9zYmlfaW5pdC5jCj4gaW5kZXggYWFlMDM1ZTEuLmIyNDhlNzNmIDEwMDY0NAo+IC0tLSBhL2xp
-Yi9zYmkvc2JpX2luaXQuYwo+ICsrKyBiL2xpYi9zYmkvc2JpX2luaXQuYwo+IEBAIC0yMTgsNiAr
-MjE4LDggQEAgc3RhdGljIHZvaWQgd2FrZV9jb2xkYm9vdF9oYXJ0cyhzdHJ1Y3Qgc2JpX3NjcmF0
-Y2ggKnNjcmF0Y2gpCj4gICAgICAgICBfX3NtcF9zdG9yZV9yZWxlYXNlKCZjb2xkYm9vdF9kb25l
-LCAxKTsKPiAgfQo+Cj4gK3Vuc2lnbmVkIGxvbmcgX19zdGFja19jaGtfZ3VhcmQgPSAweDk1QjVG
-RjVBOwo+ICsKPiAgc3RhdGljIHVuc2lnbmVkIGxvbmcgZW50cnlfY291bnRfb2Zmc2V0Owo+ICBz
-dGF0aWMgdW5zaWduZWQgbG9uZyBpbml0X2NvdW50X29mZnNldDsKPgo+IEBAIC0yNjksNiArMjcx
-LDM1IEBAIHN0YXRpYyB2b2lkIF9fbm9yZXR1cm4gaW5pdF9jb2xkYm9vdChzdHJ1Y3Qgc2JpX3Nj
-cmF0Y2ggKnNjcmF0Y2gsIHUzMiBoYXJ0aWQpCj4gICAgICAgICBpZiAocmMpCj4gICAgICAgICAg
-ICAgICAgIHNiaV9oYXJ0X2hhbmcoKTsKPgo+ICsgICAgICAgLyoKPiArICAgICAgICAqIEluaXRp
-YWxpemUgc3RhY2sgZ3VhcmQgdmlhIFprciBlbnRyb3B5IHNvdXJjZSBpZiBaa3IgaXMKPiArICAg
-ICAgICAqIGltcGxlbWVudGVkIGFjY29yZGluZyB0byBkZXZpY2UgdHJlZS4gV3JpdGluZyBuZXcg
-c2VlZCB2YWx1ZQo+ICsgICAgICAgICogdG8gX19zdGFja19jaGtfZ3VhcmQgaXMgc2FmZSBoZXJl
-IGJlY2F1c2UgZnVuY3Rpb24gZG9lc24ndAo+ICsgICAgICAgICogcmV0dXJuIGFuZCBubyBjaGVj
-ayBhZ2FpbnN0IHZhbHVlIG9uIGVudHJ5IHdpbGwgYmUgZG9uZS4KPiArICAgICAgICAqLwo+ICsg
-ICAgICAgaWYgKHNiaV9oYXJ0X2hhc19leHRlbnNpb24oc2NyYXRjaCwgU0JJX0hBUlRfRVhUX1pL
-UikpIHsKPiArICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBndWFyZF92YWwgPSAwOwo+ICsg
-ICAgICAgICAgICAgICBpbnQgY2h1bmtzID0gc2l6ZW9mKHVuc2lnbmVkIGxvbmcpIC8gc2l6ZW9m
-KHVpbnQxNl90KTsKPiArICAgICAgICAgICAgICAgYm9vbCByZXMgPSB0cnVlOwo+ICsKPiArICAg
-ICAgICAgICAgICAgd2hpbGUgKGNodW5rcykgewo+ICsgICAgICAgICAgICAgICAgICAgICAgIHVu
-c2lnbmVkIGxvbmcgc2VlZCA9IGNzcl9zd2FwKENTUl9TRUVELCAwKTsKPiArICAgICAgICAgICAg
-ICAgICAgICAgICB1bnNpZ25lZCBsb25nIG9wc3QgPSBzZWVkICYgU0VFRF9PUFRTX01BU0s7Cj4g
-Kwo+ICsgICAgICAgICAgICAgICAgICAgICAgIGlmIChvcHN0ID09IFNFRURfT1BUU19ERUFEKSB7
-Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXMgPSBmYWxzZTsKPiArICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOwo+ICsgICAgICAgICAgICAgICAgICAgICAg
-IH0KPiArICAgICAgICAgICAgICAgICAgICAgICBpZiAob3BzdCA9PSBTRUVEX09QVFNfRVMxNikg
-ewo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZ3VhcmRfdmFsID0gKGd1YXJkX3Zh
-bCA8PCAxNikgfCAoc2VlZCAmIFNFRURfRU5UUk9QWV9NQVNLKTsKPiArICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIGNodW5rcy0tOwo+ICsgICAgICAgICAgICAgICAgICAgICAgIH0KPiAr
-ICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsKPiArICAgICAgICAgICAgICAgfQo+ICsg
-ICAgICAgICAgICAgICBpZiAocmVzKQo+ICsgICAgICAgICAgICAgICAgICAgICAgIF9fc3RhY2tf
-Y2hrX2d1YXJkID0gZ3VhcmRfdmFsOwo+ICsgICAgICAgfQo+ICsKPiAgICAgICAgIHJjID0gc2Jp
-X3RpbWVyX2luaXQoc2NyYXRjaCwgdHJ1ZSk7Cj4gICAgICAgICBpZiAocmMpCj4gICAgICAgICAg
-ICAgICAgIHNiaV9oYXJ0X2hhbmcoKTsKPiAtLQo+IDIuNDMuMAo+CgotLSAKb3BlbnNiaSBtYWls
-aW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
-YWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+The payload for FW_PAYLOAD needs to be placed at a 2M/4M aligned address
+(for 64/32 bit systems) and the current makefile uses FW_PAYLOAD_OFFSET
+to achieve this. This only works if FW_TEXT_START is already 2M/4M
+aligned. Most existing physical/virtual platforms have used a
+FW_TEXT_START of 0x0 or 0x80000000, so this hasn't been an issue so far.
+If, for example, FW_TEXT_START is 0x80000, the payload would end up
+placed at 0x280000 on a 64 bit system, which isn't a 2M aligned
+address.
+
+Update the makefile to use FW_PAYLOAD_ALIGN instead. This will ensure
+that the address picked for the payload is 2M/4M aligned irrespective of
+where FW_TEXT_START is.
+
+Signed-off-by: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+---
+To: opensbi@lists.infradead.org
+---
+ platform/generic/objects.mk  | 4 ++--
+ platform/template/objects.mk | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index c4a8fee2..ca7fb8b7 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -35,9 +35,9 @@ FW_JUMP_FDT_OFFSET=0x2200000
+ FW_PAYLOAD=y
+ ifeq ($(PLATFORM_RISCV_XLEN), 32)
+   # This needs to be 4MB aligned for 32-bit system
+-  FW_PAYLOAD_OFFSET=0x400000
++  FW_PAYLOAD_ALIGN=0x400000
+ else
+   # This needs to be 2MB aligned for 64-bit system
+-  FW_PAYLOAD_OFFSET=0x200000
++  FW_PAYLOAD_ALIGN=0x200000
+ endif
+ FW_PAYLOAD_FDT_OFFSET=$(FW_JUMP_FDT_OFFSET)
+diff --git a/platform/template/objects.mk b/platform/template/objects.mk
+index f240a557..9b4bc928 100644
+--- a/platform/template/objects.mk
++++ b/platform/template/objects.mk
+@@ -85,11 +85,11 @@ FW_PAYLOAD=<y|n>
+ # This needs to be 4MB aligned for 32-bit support
+ # This needs to be 2MB aligned for 64-bit support
+ ifeq ($(PLATFORM_RISCV_XLEN), 32)
+-FW_PAYLOAD_OFFSET=0x400000
++FW_PAYLOAD_ALIGN=0x400000
+ else
+-FW_PAYLOAD_OFFSET=0x200000
++FW_PAYLOAD_ALIGN=0x200000
+ endif
+-# FW_PAYLOAD_ALIGN=0x1000
++# FW_PAYLOAD_OFFSET=0x400000
+ # FW_PAYLOAD_PATH="path to next boot stage binary image file"
+ # FW_PAYLOAD_FDT_OFFSET=0x2200000
+ #
+
+---
+base-commit: 2257e9957103aac7df8089a59b9d4bdda7c592ce
+change-id: 20260508-payload_alignment-5585a86ec7e4
+
+Best regards,
+--  
+Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
