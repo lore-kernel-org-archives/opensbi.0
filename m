@@ -4,99 +4,99 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 801CBCD3447
-	for <opensbi@archiver.kernel.org>; Sat,  9 May 2026 19:24:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 90BFECD3447
+	for <opensbi@archiver.kernel.org>; Sat,  9 May 2026 19:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
 	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Y1tCgrLrDWBY28VSYNPDWXKZNq6SNl0HO/J2H0A/04E=; b=HhlUMifozH5+cZ
-	jTRir4qT5HdQFypeiAHmnaFdQ2Si0YIxukcHhzDArMT0tBJHWmLhXImPphFNJXNynXU9LOnbxOjpi
-	TEh815zIkC7rsKkBGzZWCK5aLAw/so0QwYRQ3LVJR9fp3kVdXoYbjKZ7p2y8njI+BxGFBZ9HMCkKY
-	AhFJ2btTJVboKP47jIck4fPpuWMynBdeWptgHGlyBOhgbgSbH22siTHd/JWU8ZB+VE+r/LEWAcSNY
-	97mi7HWStcXRUW5+HCSkeH65J20JI2a3YqWZ3WKJTC6G1McJuKir9cIIci8TiXb2m+xWoX5tFa2wd
-	r423hF+53mk/2GCpSjXA==;
+	List-Owner; bh=ONvOjpxwQbDgmlPjD2ZNkwyDDBkWtBe4jeJLYCwMC2Y=; b=zLOv7I6FVrJGlr
+	+tryAXqPEgpV+kRmgrzeNql72VPR8bpvHtC8GdKuydK7CU4PddPwGXBs0TZ5K6r44y/xduzoNjCv4
+	4hzpjfeHU4EUW4s84sKB5eFDt8hY0nzPI6huRqM/ITg7YAt103twRugHg+HpOVRfoAw6s0PratI8F
+	AfmPXX5jWmMFMpb1NaE2yrIFIyaDa8WiQ96R2N2SdYyXVRgDzOV92rZ1ibn0JtTxRvupPaOls4Nt5
+	dNWMqnzcQNVqNa3OBW35iTmxxEospbdsmPXnVbMkJutCZQldRm1QbA1d9H9YgGZlwQxIxP9AMsnwH
+	wooU1AkRkoiTsng9292Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wLnHh-00000009Wk9-2xF6;
-	Sat, 09 May 2026 19:24:21 +0000
-Received: from mail-ed1-x52d.google.com ([2a00:1450:4864:20::52d])
+	id 1wLnI2-00000009Wne-3S3k;
+	Sat, 09 May 2026 19:24:42 +0000
+Received: from mail-ed1-x52b.google.com ([2a00:1450:4864:20::52b])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wLnHf-00000009WjN-0YN9
+	id 1wLnI0-00000009Wmz-2XvD
 	for opensbi@lists.infradead.org;
-	Sat, 09 May 2026 19:24:20 +0000
-Received: by mail-ed1-x52d.google.com with SMTP id 4fb4d7f45d1cf-67be871ed3fso5964923a12.1
-        for <opensbi@lists.infradead.org>; Sat, 09 May 2026 12:24:18 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778354657; cv=none;
+	Sat, 09 May 2026 19:24:41 +0000
+Received: by mail-ed1-x52b.google.com with SMTP id 4fb4d7f45d1cf-67b7c77865dso5008912a12.2
+        for <opensbi@lists.infradead.org>; Sat, 09 May 2026 12:24:40 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778354679; cv=none;
         d=google.com; s=arc-20240605;
-        b=iqkDloQFWxj056G4czdUFPNoYhyKPeb8perKHQxNzNRtsH25CF5zTXnI5tOdwYj59r
-         EDe3NXAzKkOrizCjC6ixX9ClRfUHxvQlG2PaWTcN2BR39i0XibnMoMhrUevyFguScA2t
-         nQCAXT7vSBWPvRdGT+Cbwk4a27zABeeC1eG5iB0vYcQ/TYUSWcgZGU+MS2XaA1RbRXOh
-         18XwFrQV5inLQVdDUq6ixEqsOm4YClIYxQvlUsgNMEHv7mfziFw6JH8O9b2qNGLXuU1+
-         wx2faeG7qCSAx0fBi/q1c8vvlFYUHUcDLKjCkAziHeNEGzIoaZSmYqh7MMcoTITnJMXg
-         ccrQ==
+        b=KTlz0HQUbviXnjggLbJMY6WiDTC+HetkKT8wigoC6ZiR8RrwtlGcGhLAe7uRUr5UOh
+         UMTAt17rAmVgSBxSfjDKE5n3cmOfUOUxcwp32qUlIfzKWq9sINuMJU2VSL8JM1az8n/b
+         6KgvyjBifm0t8qi1BmLiaeuBlk0v3QpDgCjlil/dzB9gPse7AR5iGz6ZpL37n0JYqKFP
+         2Y+YXD7XWATQGyKwIkz+TzABWGVdl7O7AhXArfZp4PHIfunpPlIYPK1aTIWxII9e1ZgC
+         nm5jAF+UayzO74/7zlamU2B9zbAsVG1Ru0EoCFqj1hEzvYg+/YS8rmUpLh8+yixbzuDE
+         WeIQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:dkim-signature;
-        bh=QSO39wZblHc2MqV7f4dqmszPYEv/0ohHrHAUsXpDpeI=;
+        bh=o97G15H2Zm3VOOA4oQ2NBHEWHBaj/E+OExMb48INqqY=;
         fh=ShLZuGA5Ga9ZSwTp3CGA04qdm0rmXd4x3VKZmN6jqbE=;
-        b=c1C4myEE3wxRTKDx/p9VGDDSLUxLKebYL9i3VzltU0BEwQTaZ2ITBgIs7PC6iI+qpt
-         baR3VrnsFZB/9+CGk4p1nj5AUMFoobT8s9yvkmJDZ1jY4XVqhhPTpvvDqgHvwXEZwSoo
-         0xpo0TDkZk7KIrsCiHBlP1nWmBp/uZt0lqn3VQMgV57eMuNcXIFiPkQV+C1KraKLe4P4
-         q+L/VHADdRhgHb3kFaFN0fFaYn8c7ZKhp+MxS4lssN8xN+u4M/qvHKyqOUCb1BI63kck
-         Juhkfivgi+v0WVlj33+CuoOcwTWI17bzrxI47g0/1N5mC5Ml0PFewk+3ra9C93yusbSm
-         TRdw==;
+        b=L/BCbbegAdNHEjbyl8tL6blIxGmgrf8IezowhWNxWvJYaiaJs7Lmu8rNJXx7BKOgC6
+         iBcSBzMZ046oUaCUy0oVVWcjUl815/YzG/sMdtXyyhag3e9OSzOxWx+7juvtwRSCj+X3
+         gmbw2cx7uYRpPYIrNarPqRJqT0+wVngf2/uqfyqS/SObgHpY7fRpeLljKmT34ZLIxwXr
+         3zCXzioCg1toTVQ7AtT330GsrFVQLHIEUieatAaG7jkZnc9IF89JXGxwckQyVwaJBlAk
+         ntAVUbKdRHZBiIfaOSHjD2A4XCni3UKZ4CmM5852hkGBFCCSNr9stoc/ZoAr5HHaNR46
+         mJFg==;
         darn=lists.infradead.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778354657; x=1778959457; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1778354679; x=1778959479; darn=lists.infradead.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=QSO39wZblHc2MqV7f4dqmszPYEv/0ohHrHAUsXpDpeI=;
-        b=OujVWz/LoQa0SDD1nUytWDCJ82A5566gjTBQVcnL8Y9m0xOicngOof0rQY/1O0+rOB
-         in4oRf5hnd50TGODgi+bx8Ti+KHVXSmAvAEkelcfqp7pVH2elIBo6nrlN6sOKW3ukFXq
-         RSnR3Kqp73mSpFrcqbHrWgQ+Kg0gWvwsX6JFH2/w5mKigSpVYzT/0P6XYFAAZkbxr00R
-         N4G+sL/igtG66N6T+C4x1NMmOhZNNxsz60wn6TwyzC+jGdM17AXQ8ldmcwpjcyzYfQ2C
-         R1x67RZ/mgwN2BQUyUZUSkB1qvlDYw1B2L5H9ROf6y7R3OloHXdBSgzsCFFa3bFPOIhi
-         deIQ==
+        bh=o97G15H2Zm3VOOA4oQ2NBHEWHBaj/E+OExMb48INqqY=;
+        b=mmwDrLuMMX4BfPpiLl5J6PjQImcNfZMXiM1GRmvn2VCjx7JLD7PeY//86uUBs/oQ8x
+         w7VL1p07fwvoVvK3x9wSucfa36v8T6Y0bxeo8cgcMH6f97VsqWy9cDxMMkvTPskfDJ1Q
+         nzeZmln6qTnDre0wXD4ykfg9yJ38Ax4wPQRG2M9VaUMMC/inLjJUasF5i52M+1dU+25M
+         K+0d+OMrShTE/sMNCcv4JqNRZNoSXVcK75f3urBcxmIGIm4y9eDOwQtvJKfWpSvqbNDl
+         IP6DHr2By1rKdkhDikpSqWzq42jnmu5OdZZO+STVyHQyjb1hq2FcwroO6nypNnTLpPxa
+         P+VA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778354657; x=1778959457;
+        d=1e100.net; s=20251104; t=1778354679; x=1778959479;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QSO39wZblHc2MqV7f4dqmszPYEv/0ohHrHAUsXpDpeI=;
-        b=sD9n4B1gKeGAWKjWnZMH9Q18EzqwKKrBY5LkutaC92CVGabHld7MnNb4gRKl0wuXXw
-         U5gjbpKXrbo62EfgdZ3LxF/9Q09wc8bjhoBZwgFnqzY4vN/z1VIpHAKtR1FmiSYhLX38
-         EeIvrjZ7JvZQibRow/PeUJgFS2Iu5f/JyMNVYcqBaW9zJ9qYtjipjRIYNlsjz+kxJWEZ
-         kGpor52Yjqr+pffAFH7WlrcXDNOZJr0JIIcDg3lcoHE1M72sHzTJe42i2MAFXBntglx7
-         QWVyknNoC7zTq+A30BabZx0qlKJ4+QX2plXpeOvN+W2QGSeKxEWMCpkdbn9puX/setNB
-         9faw==
-X-Gm-Message-State: AOJu0YyGPAb5a+eb7FCr47luOvGZApxgFasminggjx/f3yruozdHeY3d
-	gZA3ZHDIX+k4NQqXHehKxJwk9N8olY6OyGbD9piFkigomtEikHfM1b9NtKqmeADuzBJ1Vv++s7O
-	QpxWqZK3KKZOebRGQBPRiMphGTLUW4RJAIA==
-X-Gm-Gg: Acq92OFoyjxQp913BORTBWs0a25rUoEyE1HlcDUfrz4WknMPqtDQjeHQS5rKDVry6Im
-	S+jUw7mvFzNN8hFpI/O2mHrm88D01NBMK2lQhqvPIP9USGfzW635EezyHJgosoOhP7UeXRzCzv5
-	9KUYU2ZehaIyvmD6ydMSUBcm0YSQ390qTaMAO4+Zbw5MYzhUVjLY9uR+rgM3Mf2xR+4Kwmq6vQd
-	7xE8sAsNw7vPPTpsRy8Tb4VJuyz7TvXtGD40J9r7B47Y7NbIPu6B5Uohhh2+gDL8lAhtP2Rlel6
-	xzbh
-X-Received: by 2002:a05:6402:529b:b0:662:ac7e:aac9 with SMTP id
- 4fb4d7f45d1cf-67f716df31dmr1386735a12.20.1778354657035; Sat, 09 May 2026
- 12:24:17 -0700 (PDT)
+        bh=o97G15H2Zm3VOOA4oQ2NBHEWHBaj/E+OExMb48INqqY=;
+        b=MeJYArzcVg67A5JOpuUvmew5U7Y3BsD2a/yuQmV2YDxzCOCsoN5ag4dIJwv2YVlQJq
+         Dk/dZfETUeTIgONCzjgDN+T1wIxQPcz/8z7oDJJyxQuYFPtKPTbLgc8VcPu1AJOXxert
+         57hq8f3/TsgGqz1qXV+OmTURlm1TKclTpM5GZXzEQN3oda19T7lbxFtM0JokZzI9c3Le
+         /TDe7LAOsf3zOyuweRhxPl0MvWY45HXreqAyt6BcrB+BfL7us2rj5sQJy/VwlJZfMT88
+         lH1pp120/KsDTh85J5xaNxtfIswHg0Nbzr8gj+J+kK0tPl4OVBqb4Yq7g5EM7Rg3LnRg
+         k06g==
+X-Gm-Message-State: AOJu0YzJsj+weWBRMlSYDc8lQ+yMTUU9w1YG50HJthlSEF6YDCSHvtqO
+	GFehDfTlvnBqzZL01okkgxB0gbiTunyH6MLaKC70TZ4Fo7uxZDDjXe5WrPZml8/q8iRZ4aaonMs
+	v3WZQighVGNVsvKXC5UUL8ozg/OPwUUcGaQ==
+X-Gm-Gg: Acq92OH9yNhkzDfQMh3020H1D1Z1WphK30v0IUCoAdQAI/r8Gg+D/0RV4Wdgn5nMqga
+	2Mf9CybebtB95hSHNU/rYSbTgcSACZ0jHXTnOpd+cYDD1Gv4NLEW+ctlt3avsyLJhv1XvoQlCKf
+	SGmWwkEoeR8o4VAQxVfSg6YG0ozpCA4NjVsaNwkf3Hi+eXeMiWEevw/e/9O+lw70EkDBjCfHvIk
+	mN/cxg9pFjJjTB1ah17qTHB2mFN+Py67cwMlN0RX0Z0RsMEiAim3VGJYzSLwDkF0YSCP/9KTwPO
+	7G2zMrZEuiTdLWI=
+X-Received: by 2002:a05:6402:e08:b0:67c:1ed6:2790 with SMTP id
+ 4fb4d7f45d1cf-67d6489faf8mr9078222a12.20.1778354678616; Sat, 09 May 2026
+ 12:24:38 -0700 (PDT)
 MIME-Version: 1.0
-References: <20260419150857.2705843-1-aurelien@aurel32.net> <20260419150857.2705843-2-aurelien@aurel32.net>
-In-Reply-To: <20260419150857.2705843-2-aurelien@aurel32.net>
+References: <20260419150857.2705843-1-aurelien@aurel32.net> <20260419150857.2705843-3-aurelien@aurel32.net>
+In-Reply-To: <20260419150857.2705843-3-aurelien@aurel32.net>
 From: Anand Moon <linux.amoon@gmail.com>
-Date: Sun, 10 May 2026 00:53:59 +0530
-X-Gm-Features: AVHnY4Kr45BTEeZrXRGwB55yFg7HYVU2AQ0sWhQmnMewyKcpxoLytRmU0SQdHhA
-Message-ID: <CANAwSgS7=ooyk_9MKatO7Oz3mz3=4CObYB6B70BgNZF7S462-g@mail.gmail.com>
-Subject: Re: [PATCH 1/2] lib: utils/i2c: add minimal SpacemiT I2C driver
+Date: Sun, 10 May 2026 00:54:21 +0530
+X-Gm-Features: AVHnY4Kh-8Z3W2MjKplAz3_1wB0vpKb0TSRR4CR0NYybGzVO7lkeebeRlObDQRk
+Message-ID: <CANAwSgS21243A+v_+ruLVTAZB2=SNp0pFxjMGXz1OENon13tjA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] lib: utils/reset: add SpacemiT P1 PMIC support
 To: Aurelien Jarno <aurelien@aurel32.net>
 Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260509_122419_227676_2AFE8A01 
-X-CRM114-Status: GOOD (  32.74  )
+X-CRM114-CacheID: sfid-20260509_122440_686479_4820457A 
+X-CRM114-Status: GOOD (  26.99  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -117,297 +117,182 @@ Hi Aurelien,
 
 On Sun, 19 Apr 2026 at 20:40, Aurelien Jarno <aurelien@aurel32.net> wrote:
 >
-> Add a simple SpacemiT I2C driver for basic byte transfers over the I2C
-> bus, prioritizing simplicity over performance. The driver operates in
-> PIO mode and does not use interrupts, FIFO, or DMA.
->
-> The controller is reset at the start of each transaction to ensure a
-> known initial state, regardless of prior configuration by the kernel.
-> This also avoids the need for additional error recovery code.
->
-> This will be used for communication with onboard PMIC to reset and
-> power-off the board.
+> The SpacemiT P1 is a PMIC commonly found with SpacemiT CPU like K1. Add
+> a reset driver for it.
 >
 > Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+
 Tested-by: Anand Moon <linux.amoon@gmail.com>
 
 Thanks
 -Anand
 > ---
->  lib/utils/i2c/Kconfig              |   4 +
->  lib/utils/i2c/fdt_i2c_spacemit.c   | 220 +++++++++++++++++++++++++++++
->  lib/utils/i2c/objects.mk           |   3 +
->  platform/generic/configs/defconfig |   1 +
->  4 files changed, 228 insertions(+)
->  create mode 100644 lib/utils/i2c/fdt_i2c_spacemit.c
+>  lib/utils/reset/Kconfig                 |   4 +
+>  lib/utils/reset/fdt_reset_spacemit_p1.c | 112 ++++++++++++++++++++++++
+>  lib/utils/reset/objects.mk              |   3 +
+>  platform/generic/configs/defconfig      |   1 +
+>  4 files changed, 120 insertions(+)
+>  create mode 100644 lib/utils/reset/fdt_reset_spacemit_p1.c
 >
-> diff --git a/lib/utils/i2c/Kconfig b/lib/utils/i2c/Kconfig
-> index 7fa32fcf..bdaaff62 100644
-> --- a/lib/utils/i2c/Kconfig
-> +++ b/lib/utils/i2c/Kconfig
-> @@ -14,6 +14,10 @@ config FDT_I2C_SIFIVE
->         bool "SiFive I2C FDT driver"
+> diff --git a/lib/utils/reset/Kconfig b/lib/utils/reset/Kconfig
+> index 4835921f..f98926e5 100644
+> --- a/lib/utils/reset/Kconfig
+> +++ b/lib/utils/reset/Kconfig
+> @@ -33,6 +33,10 @@ config FDT_RESET_SG2042_HWMON_MCU
+>         bool "Sophgo SG2042 hwmon MCU FDT reset driver"
 >         default n
 >
-> +config FDT_I2C_SPACEMIT
-> +       bool "SpacemiT I2C FDT driver"
+> +config FDT_RESET_SPACEMIT_P1
+> +       bool "SpacemiT P1 reset driver"
 > +       default n
 > +
->  config FDT_I2C_DW
->         bool "Synopsys Designware I2C FDT driver"
->         select I2C_DW
-> diff --git a/lib/utils/i2c/fdt_i2c_spacemit.c b/lib/utils/i2c/fdt_i2c_spacemit.c
+>  config FDT_RESET_SUNXI_WDT
+>         bool "Sunxi WDT FDT reset driver"
+>         default n
+> diff --git a/lib/utils/reset/fdt_reset_spacemit_p1.c b/lib/utils/reset/fdt_reset_spacemit_p1.c
 > new file mode 100644
-> index 00000000..9009b6b6
+> index 00000000..5312e741
 > --- /dev/null
-> +++ b/lib/utils/i2c/fdt_i2c_spacemit.c
-> @@ -0,0 +1,220 @@
+> +++ b/lib/utils/reset/fdt_reset_spacemit_p1.c
+> @@ -0,0 +1,112 @@
 > +/*
 > + * SPDX-License-Identifier: BSD-2-Clause
 > + *
 > + * Copyright (c) 2026 Aurelien Jarno
-> + *
 > + * Authors:
 > + *   Aurelien Jarno <aurelien@aurel32.net>
 > + */
 > +
-> +#include <sbi/riscv_io.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_heap.h>
-> +#include <sbi/sbi_timer.h>
-> +#include <sbi_utils/fdt/fdt_helper.h>
+> +#include <libfdt.h>
+> +#include <platform_override.h>
+> +#include <sbi/sbi_bitops.h>
+> +#include <sbi/sbi_console.h>
+> +#include <sbi/sbi_system.h>
+> +#include <sbi_utils/fdt/fdt_driver.h>
 > +#include <sbi_utils/i2c/fdt_i2c.h>
 > +
-> +/* Controller registers */
-> +#define ICR_OFFSET     0x00            /* I2C control register */
-> +#define IDBR_OFFSET    0x0c            /* I2C data buffer register */
+> +/* SpacemiT P1 Power Control Register 2 */
+> +#define PWR_CTRL2              0x7e
+> +#define PWR_CTRL2_SHUTDOWN     BIT(2)  /* Shutdown request */
+> +#define PWR_CTRL2_RST          BIT(1)  /* Reset request */
 > +
-> +/* Control register bits */
-> +#define ICR_START      BIT(0)          /* start */
-> +#define ICR_STOP       BIT(1)          /* stop */
-> +#define ICR_ACKNAK     BIT(2)          /* ACK(0) or NAK(1) */
-> +#define ICR_TB         BIT(3)          /* transfer byte */
-> +#define ICR_UR         BIT(10)         /* unit reset */
-> +#define ICR_SCLE       BIT(13)         /* SCL enable  */
-> +#define ICR_IUE                BIT(14)         /* unit enable */
+> +static struct i2c_adapter *p1_adapter = NULL;
+> +static uint32_t p1_reg = 0;
 > +
-> +/* Timing */
-> +#define I2C_RESET_US   10
-> +#define I2C_TIMEOUT_US 1000
+> +static int p1_system_reset_check(uint32_t type, uint32_t reason)
+> +{
+> +       switch (type) {
+> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +               return 1;
+> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> +               return 255;
+> +       }
 > +
-> +struct spacemit_i2c_adapter {
-> +       unsigned long base;
-> +       struct i2c_adapter adapter;
+> +       return 0;
+> +}
+> +
+> +static void p1_ops(uint32_t type)
+> +{
+> +       uint8_t byte;
+> +       int rc;
+> +
+> +       rc = i2c_adapter_reg_read(p1_adapter, p1_reg, PWR_CTRL2, &byte);
+> +       if (rc) {
+> +               sbi_printf("%s: cannot read P1 Power Control Register 2\n", __func__);
+> +               return;
+> +       }
+> +
+> +       if (type == SBI_SRST_RESET_TYPE_SHUTDOWN)
+> +               byte |= PWR_CTRL2_SHUTDOWN;
+> +       else
+> +               byte |= PWR_CTRL2_RST;
+> +
+> +       rc = i2c_adapter_reg_write(p1_adapter, p1_reg, PWR_CTRL2, byte);
+> +       if (rc)
+> +               sbi_printf("%s: cannot write P1 Power Control Register 2\n", __func__);
+> +}
+> +
+> +static void p1_system_reset(uint32_t type, uint32_t reason)
+> +{
+> +       switch (type) {
+> +       case SBI_SRST_RESET_TYPE_SHUTDOWN:
+> +       case SBI_SRST_RESET_TYPE_COLD_REBOOT:
+> +       case SBI_SRST_RESET_TYPE_WARM_REBOOT:
+> +               p1_ops(type);
+> +               break;
+> +       }
+> +}
+> +
+> +static struct sbi_system_reset_device p1_reset = {
+> +       .name = "spacemit-p1-reset",
+> +       .system_reset_check = p1_system_reset_check,
+> +       .system_reset = p1_system_reset
 > +};
 > +
-> +static inline void spacemit_i2c_set_reg(struct spacemit_i2c_adapter *adap,
-> +                                       uint8_t reg, uint32_t val)
+> +static int p1_reset_init(const void *fdt, int nodeoff,
+> +                        const struct fdt_match *match)
 > +{
-> +       writel(val, (void *)adap->base + reg);
-> +}
+> +       int rc, i2c_bus;
+> +       uint64_t addr;
 > +
-> +static inline uint32_t spacemit_i2c_get_reg(struct spacemit_i2c_adapter *adap,
-> +                                           uint32_t reg)
-> +{
-> +       return readl((void *)adap->base + reg);
-> +}
-> +
-> +static void spacemit_i2c_reset(struct spacemit_i2c_adapter *adap)
-> +{
-> +       /* disable unit */
-> +       spacemit_i2c_set_reg(adap, ICR_OFFSET, 0);
-> +       sbi_timer_udelay(I2C_RESET_US);
-> +
-> +       /* reset unit */
-> +       spacemit_i2c_set_reg(adap, ICR_OFFSET, ICR_UR);
-> +       sbi_timer_udelay(I2C_RESET_US);
-> +
-> +       /* clear reset and enable unit and SCL */
-> +       spacemit_i2c_set_reg(adap, ICR_OFFSET, ICR_IUE | ICR_SCLE);
-> +}
-> +
-> +static int spacemit_i2c_wait_xfer_done(struct spacemit_i2c_adapter *adap)
-> +{
-> +       for (int i = 0; i < I2C_TIMEOUT_US; i++) {
-> +               uint32_t val = spacemit_i2c_get_reg(adap, ICR_OFFSET);
-> +
-> +               if (!(val & ICR_TB))
-> +                       return 0;
-> +
-> +               sbi_timer_udelay(1);
-> +       };
-> +
-> +       return SBI_ETIMEDOUT;
-> +}
-> +
-> +static void spacemit_i2c_start_xfer(struct spacemit_i2c_adapter *adap,
-> +                                   uint32_t ctrl)
-> +{
-> +       const uint32_t ctrl_mask = ICR_START | ICR_STOP | ICR_ACKNAK;
-> +       uint32_t val;
-> +
-> +       val = spacemit_i2c_get_reg(adap, ICR_OFFSET);
-> +       val &= ~ctrl_mask;
-> +       val |= (ctrl & ctrl_mask);
-> +       val |= ICR_TB;
-> +
-> +       spacemit_i2c_set_reg(adap, ICR_OFFSET, val);
-> +}
-> +
-> +static int spacemit_i2c_xfer_write(struct spacemit_i2c_adapter *adap,
-> +                                  uint8_t byte, uint32_t ctrl)
-> +{
-> +       spacemit_i2c_set_reg(adap, IDBR_OFFSET, byte);
-> +       spacemit_i2c_start_xfer(adap, ctrl);
-> +
-> +       return spacemit_i2c_wait_xfer_done(adap);
-> +}
-> +
-> +static int spacemit_i2c_xfer_read(struct spacemit_i2c_adapter *adap,
-> +                                 uint8_t *byte, uint32_t ctrl)
-> +{
-> +       int rc;
-> +
-> +       spacemit_i2c_start_xfer(adap, ctrl);
-> +
-> +       rc = spacemit_i2c_wait_xfer_done(adap);
+> +       /* we are spacemit,p1 node */
+> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &addr, NULL);
 > +       if (rc)
 > +               return rc;
 > +
-> +       *byte = spacemit_i2c_get_reg(adap, IDBR_OFFSET);
-> +       return 0;
-> +}
+> +       p1_reg = addr;
 > +
-> +static int spacemit_i2c_adapter_write(struct i2c_adapter *ia, uint8_t addr,
-> +                                     uint8_t reg, uint8_t *buffer, int len)
-> +{
-> +       struct spacemit_i2c_adapter *adap =
-> +               container_of(ia, struct spacemit_i2c_adapter, adapter);
-> +       int rc;
+> +       /* find i2c bus parent node */
+> +       i2c_bus = fdt_parent_offset(fdt, nodeoff);
+> +       if (i2c_bus < 0)
+> +               return i2c_bus;
 > +
-> +       /* reset controller to a known state */
-> +       spacemit_i2c_reset(adap);
-> +
-> +       /* send device address (in write mode) */
-> +       rc = spacemit_i2c_xfer_write(adap, addr << 1, ICR_START);
+> +       /* i2c adapter get */
+> +       rc = fdt_i2c_adapter_get(fdt, i2c_bus, &p1_adapter);
 > +       if (rc)
 > +               return rc;
 > +
-> +       /* send register + data bytes */
-> +       for (int i = 0; i < len + 1; i++) {
-> +               uint32_t ctrl = (i == len) ? ICR_STOP : 0;
-> +               uint8_t byte = (i == 0) ? reg : buffer[i - 1];
-> +
-> +               rc = spacemit_i2c_xfer_write(adap, byte, ctrl);
-> +               if (rc)
-> +                       return rc;
-> +       }
+> +       sbi_system_reset_add_device(&p1_reset);
 > +
 > +       return 0;
 > +}
 > +
-> +static int spacemit_i2c_adapter_read(struct i2c_adapter *ia, uint8_t addr,
-> +                                    uint8_t reg, uint8_t *buffer, int len)
-> +{
-> +       struct spacemit_i2c_adapter *adap =
-> +               container_of(ia, struct spacemit_i2c_adapter, adapter);
-> +       int rc;
-> +
-> +       /* reset controller to a known state */
-> +       spacemit_i2c_reset(adap);
-> +
-> +       /* send device address (in write mode) */
-> +       rc = spacemit_i2c_xfer_write(adap, addr << 1, ICR_START);
-> +       if (rc)
-> +               return rc;
-> +
-> +       /* send register */
-> +       rc = spacemit_i2c_xfer_write(adap, reg, 0);
-> +       if (rc)
-> +               return rc;
-> +
-> +       /* repeated start and send device address (in read mode) */
-> +       rc = spacemit_i2c_xfer_write(adap, (addr << 1) | 1, ICR_START);
-> +       if (rc)
-> +               return rc;
-> +
-> +       /* read data bytes */
-> +       for (int i = 0; i < len; i++) {
-> +               uint32_t ctrl = (i == len - 1) ? (ICR_ACKNAK | ICR_STOP) : 0;
-> +
-> +               rc = spacemit_i2c_xfer_read(adap, &buffer[i], ctrl);
-> +               if (rc)
-> +                       return rc;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static int spacemit_i2c_init(const void *fdt, int nodeoff,
-> +                            const struct fdt_match *match)
-> +{
-> +       struct spacemit_i2c_adapter *adapter;
-> +       uint64_t base;
-> +       int rc;
-> +
-> +       adapter = sbi_zalloc(sizeof(*adapter));
-> +       if (!adapter)
-> +               return SBI_ENOMEM;
-> +
-> +       rc = fdt_get_node_addr_size(fdt, nodeoff, 0, &base, NULL);
-> +       if (rc) {
-> +               sbi_free(adapter);
-> +               return rc;
-> +       }
-> +
-> +       adapter->base = base;
-> +       adapter->adapter.id = nodeoff;
-> +       adapter->adapter.write = spacemit_i2c_adapter_write;
-> +       adapter->adapter.read = spacemit_i2c_adapter_read;
-> +       rc = i2c_adapter_add(&adapter->adapter);
-> +       if (rc) {
-> +               sbi_free(adapter);
-> +               return rc;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static const struct fdt_match spacemit_i2c_match[] = {
-> +       { .compatible = "spacemit,k1-i2c" },
+> +static const struct fdt_match p1_reset_match[] = {
+> +       { .compatible = "spacemit,p1", .data = (void *)true },
 > +       { },
 > +};
 > +
-> +const struct fdt_driver fdt_i2c_adapter_spacemit = {
-> +       .match_table = spacemit_i2c_match,
-> +       .init = spacemit_i2c_init,
+> +const struct fdt_driver fdt_reset_spacemit_p1 = {
+> +       .match_table = p1_reset_match,
+> +       .init = p1_reset_init,
 > +};
-> diff --git a/lib/utils/i2c/objects.mk b/lib/utils/i2c/objects.mk
-> index d34d6648..91ac17ec 100644
-> --- a/lib/utils/i2c/objects.mk
-> +++ b/lib/utils/i2c/objects.mk
-> @@ -15,6 +15,9 @@ libsbiutils-objs-$(CONFIG_FDT_I2C) += i2c/fdt_i2c_adapter_drivers.carray.o
->  carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SIFIVE) += fdt_i2c_adapter_sifive
->  libsbiutils-objs-$(CONFIG_FDT_I2C_SIFIVE) += i2c/fdt_i2c_sifive.o
+> diff --git a/lib/utils/reset/objects.mk b/lib/utils/reset/objects.mk
+> index ac38b49d..3c681c27 100644
+> --- a/lib/utils/reset/objects.mk
+> +++ b/lib/utils/reset/objects.mk
+> @@ -20,6 +20,9 @@ libsbiutils-objs-$(CONFIG_FDT_RESET_HTIF) += reset/fdt_reset_htif.o
+>  carray-fdt_early_drivers-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += fdt_reset_sg2042_mcu
+>  libsbiutils-objs-$(CONFIG_FDT_RESET_SG2042_HWMON_MCU) += reset/fdt_reset_sg2042_hwmon_mcu.o
 >
-> +carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_SPACEMIT) += fdt_i2c_adapter_spacemit
-> +libsbiutils-objs-$(CONFIG_FDT_I2C_SPACEMIT) += i2c/fdt_i2c_spacemit.o
+> +carray-fdt_early_drivers-$(CONFIG_FDT_RESET_SPACEMIT_P1) += fdt_reset_spacemit_p1
+> +libsbiutils-objs-$(CONFIG_FDT_RESET_SPACEMIT_P1) += reset/fdt_reset_spacemit_p1.o
 > +
->  carray-fdt_i2c_adapter_drivers-$(CONFIG_FDT_I2C_DW) += fdt_i2c_adapter_dw
->  libsbiutils-objs-$(CONFIG_FDT_I2C_DW) += i2c/fdt_i2c_dw.o
+>  carray-fdt_early_drivers-$(CONFIG_FDT_RESET_SUNXI_WDT) += fdt_reset_sunxi_wdt
+>  libsbiutils-objs-$(CONFIG_FDT_RESET_SUNXI_WDT) += reset/fdt_reset_sunxi_wdt.o
 >
 > diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-> index 1d3431e7..a9cb0f06 100644
+> index a9cb0f06..ae278856 100644
 > --- a/platform/generic/configs/defconfig
 > +++ b/platform/generic/configs/defconfig
-> @@ -31,6 +31,7 @@ CONFIG_FDT_HSM_RPMI=y
->  CONFIG_FDT_HSM_SIFIVE_TMC0=y
->  CONFIG_FDT_I2C=y
->  CONFIG_FDT_I2C_SIFIVE=y
-> +CONFIG_FDT_I2C_SPACEMIT=y
->  CONFIG_FDT_I2C_DW=y
->  CONFIG_FDT_IPI=y
->  CONFIG_FDT_IPI_MSWI=y
+> @@ -51,6 +51,7 @@ CONFIG_FDT_RESET_GPIO=y
+>  CONFIG_FDT_RESET_HTIF=y
+>  CONFIG_FDT_RESET_RPMI=y
+>  CONFIG_FDT_RESET_SG2042_HWMON_MCU=y
+> +CONFIG_FDT_RESET_SPACEMIT_P1=y
+>  CONFIG_FDT_RESET_SUNXI_WDT=y
+>  CONFIG_FDT_RESET_SYSCON=y
+>  CONFIG_FDT_SERIAL=y
 > --
 > 2.53.0
 >
