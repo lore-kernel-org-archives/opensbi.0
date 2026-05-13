@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C0732CD37B6
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3CF6ACD4F35
 	for <opensbi@archiver.kernel.org>; Wed, 13 May 2026 07:14:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=uAzoXd3IrfgRsUN7xw9hStFfVG2GefQ/pqSm+/683PU=; b=dgybiMBsRNuk71
-	ngd10BEwPzlArwQtGrl/e0z8OlU1JlwjYH14ivgSdIgqamcHmXrEDmXwGwCs256Y5OYfEXf4F3ILf
-	vd1Mlm4HhbIiEhN1FDZiyXhUvb3AQlfwwKwQCCyviDkocG2KX0Y9y/rasK6JNd5adeqO0+aMX1YgW
-	EIe5VB9hW6aH6eJlc2FjMsKvCtNLSoEtW7pU3ZwuBek8aER0dZjjhT4JwSIsDi+Rh8QIqQVD6i9ZA
-	lXQPVjFTtV2PL5DkBDlixVmhkaBz+ZU2nL9AZQEM95+dFP9vr5reKRa7HCXID3FQ8eC8idGHyB3dg
-	3sqOipVWasOnuwd2u+bQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=vBpxModO2Dmop2yazS/ytCVUnS1V10J88NIKMArSm4U=; b=NSnHL8/6yUKiUJ
+	8mIUnGPRAR+XhTkkfsaZqkiZ0Q46Od+1DS26k0O1SYDf16uZ5WmVjEUlSnuFdvpAOAB4cG9UEsLdu
+	dvnca9anj/lKPCna5nlnIs3mwE/AJFI7AAdtlGHCA4yl3xDGTHq2+ZY4xq1AM81OkZNvn6o/TQcsP
+	Ba0sqNd1KEoBMydX4mx3MNKswt6fL9SilkPmFyjOKl8hHPauHG1FQ/eeGbMLtIi6DVhSUG2yYC+D4
+	YFrDeHfrSAndUi9QeZscQawGrNnwSdnejP3SMERrn5H1sL34NvO4gVTH2wywvd7fqIUjM+G9FbbBu
+	rANyfT5uXaPTg022fPOg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wN3nX-00000001X86-1kA2;
-	Wed, 13 May 2026 07:14:27 +0000
-Received: from mail-wm1-x334.google.com ([2a00:1450:4864:20::334])
+	id 1wN3na-00000001X9m-32am;
+	Wed, 13 May 2026 07:14:30 +0000
+Received: from mail-wm1-x332.google.com ([2a00:1450:4864:20::332])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wN3nU-00000001X72-389j
+	id 1wN3nX-00000001X7d-2qBx
 	for opensbi@lists.infradead.org;
-	Wed, 13 May 2026 07:14:26 +0000
-Received: by mail-wm1-x334.google.com with SMTP id 5b1f17b1804b1-48a7fe4f40bso73026725e9.0
-        for <opensbi@lists.infradead.org>; Wed, 13 May 2026 00:14:23 -0700 (PDT)
+	Wed, 13 May 2026 07:14:28 +0000
+Received: by mail-wm1-x332.google.com with SMTP id 5b1f17b1804b1-488b0046078so52774835e9.1
+        for <opensbi@lists.infradead.org>; Wed, 13 May 2026 00:14:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=riscstar-com.20251104.gappssmtp.com; s=20251104; t=1778656462; x=1779261262; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=rDF+xOIKqwUS7MYpSNMUCe27qoxcJqdVcBdckBdLrCE=;
-        b=PZNCuCarc4/jYwX3DhG2ESZTCqethDcEaBVFI/tzNm86f7i5pqKAyXiyUpv/OLLeZA
-         S9ZbDcnihn8sk17kbzz/g0FVfRU2Dio+ypPqgMlJ8exFwkMtnjYu9IVR5un1fMRtSshr
-         +PkEg+TbuO8l1RUeYMSJntojkCo2MwGlS3hxsanE12Xk+KPP6+UWttNwq2mAJRTiBxPv
-         v88qpWtJPal7kuVV/j5HSzjjnBaP42bC9caNIVnCBGVH6N78BUqRDyuRPD/5xf+9PPIX
-         Zjflmz8qNb6rNgow1vEtqj3ukExI5MlEQjwtiLVfsUWjt+vxkK7Nrqenz3BdMJBRUR8h
-         tY4Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778656462; x=1779261262;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=riscstar-com.20251104.gappssmtp.com; s=20251104; t=1778656466; x=1779261266; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rDF+xOIKqwUS7MYpSNMUCe27qoxcJqdVcBdckBdLrCE=;
-        b=pbQUuubs6tjVB51in0x4T+BqGnL6pa4m8gC9B1QE2CbEM5BjrgvCQ93WHbiC1q2+Oz
-         ai2Osca5SS0EsI0eUOZuu/ApmLAbVPJvJ08h6hhtNfVRWiGZCJLousBG10jcXhh5E61U
-         U8Kb+MRYUKxexiAZYWCF/m4vxberlPVQAS09echRtVMNyQEeKRLZJhcBin6S8UPCjjGU
-         AL7dzlHBm8Q8yjjkZFpt4MqvK6m5VhviGz754szxQsT4msVMBOv/E6gRjM9yTvciMmI2
-         h6RiDhJ3/op1qH6OP6fKP0e2h/vsCdZm1+bBnNh+j4rYbdYZdPGVQMTQPXZmlBd+m3d1
-         4qxQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8/yFCFUFkSIN2t+hh6nPIxYgNldR7ozlPEi5K25CFIP1Wmx7l6o0XxsjgPt3k9yoWYnu3AQynm@lists.infradead.org
-X-Gm-Message-State: AOJu0YzVl1E66Bwj6XYx/1TNGw9l7PxsdaxNVyQn7Ql2YBzGlYAbf9y+
-	+ehvICbt8xMnyJb5J8uGspyGvtFPxI/FB9aod9yWCXgUUi9WjiaIrjrSMqISs6WsXm0=
-X-Gm-Gg: Acq92OGdv6gEoWocX49rZ3V9L+GwU1+I8DaBvhHIOIUX1+ztBeAnWJAR2/kvSz9eg23
-	+qq5FVdZjGXJi0KUx1QehjC6pI/nwu9VBKCKDBdvpRdA/5NHyWuRo+zdTUv+OLq8A1vHY7LeqtC
-	/fmiBgCb8BpS/GDv02sjinTRgcyWHBx0/uzIkJlwMMuZmPbLsFvB295jdv4uiBjf5rj+z8GTOkb
-	JlhGbhnXtn5yIV0fChp3Kx3laZza5r7yNJ3BcbOb4JeMqxdYo+AO9LVwPHvy3VbfT1JtiBLDOGs
-	89V63D8JhKPtHtwM2fcy89Wdc3ch9UbG3oFdE/XTS9vJLGoOn8ze0BC8Yr03HnC0u6JHXdHRNm4
-	eDNLUCV+XnydH+bmGXc/kunGuUqyvt+HwkRR2z57fm7id/o9Cdkv8zeaVds3f1zE5PXh745KSvx
-	SIU/RQuoKrsOsFxWZJiXytfuNGJ+lMVQmKOGzUKEQQ6JkBZEBFF7jNNQKsCaSXG6nfgTPN8hXLJ
-	G/pcA==
-X-Received: by 2002:a05:600c:c84:b0:489:1e8a:90b4 with SMTP id 5b1f17b1804b1-48fce9e4f87mr19541165e9.21.1778656462409;
-        Wed, 13 May 2026 00:14:22 -0700 (PDT)
+        bh=FHFrs5AjNCd8I/DDgclnVmgoyc5BxtqKyj8lH7C5pyc=;
+        b=PY6mVCJYIDxWOg2tjZH6EQRuqvSErbnlOF/ac5EoMLGPu+L1jBLAjNKAJcA+Za9O3P
+         iucAW3A2O5WFsOJlKx1+GqE/zQADHDolxHrrhXeiMvHDca0TcqVDm7sVk6cUjQehbO+v
+         hOZbcMpH5P9nYEg/z7KVUdfYDEWetUlV+ASguI8DI7Gz7R1Khi9Tfv1pIQZbWWfa4BXI
+         KpFmVaKq9+OIfa5r8tyN2u2p3sTAD4ZN5MUxGuXELl/C5e0n8uGnrb+t9eFLhnGTKFvY
+         3jAyoGcJolLgMPDlFi5dTR6LCzwvSLpf9hR5nYexm1vR5BuGHG9XI+JIdWwDRRKPuYZ1
+         Uzkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778656466; x=1779261266;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=FHFrs5AjNCd8I/DDgclnVmgoyc5BxtqKyj8lH7C5pyc=;
+        b=sMQNduR9VEpxLkCvdPCxj1C1xzFfPAABuh6GiDGn+il4ujZcMY2IN1I4Ta//0Qq12I
+         0zFu/fZe7c6fwMiWjWrV2UEsWeNvZ91FzL0IEVOpei+D0eAk7mfKG351wKxpEgKHa2XN
+         W2c7DV4lCoHFTILbULw2l/JfI/dd7l74+Bv8zlt+GaO9be+TVjca9wOP5+sCb79uTuBf
+         ANgkZ2JlEszs8pc/JFnGd4l9P8w6q4xQnCJtiH7ZLKx+/9kbD3nR7m2HBY/XakUwP+Qn
+         PSPpGsXZk6jfrXard1IxztUB0bGUpWeGdQTzQNNYPsLja9gwLBLdmOfbrQ5nPrlaWJOq
+         VpPg==
+X-Forwarded-Encrypted: i=1; AFNElJ8t9C8S5trTWj4t0dbXQijw+F2I2jekiwqZblTjFVl0AGm9ELVLs+oASywbWVmQ5L38bVWO790Y@lists.infradead.org
+X-Gm-Message-State: AOJu0Yx+RvOEEMB76pLBkCiT5+rD+DaKYnGTy60vuFfb/n6O3awMFWX1
+	peu1a/KJN0OyACnPfylbfaUVzTYdeurcFWE1oceUTltjDHtfZ3rTFlStfaG7hUVaw1Y=
+X-Gm-Gg: Acq92OH+SpjA5khkWcwTjhuKYGV0CxEBv2GlkTYaxtGBJ7xm48BHIA0c+Tbt5U+Yq28
+	/wTpY4CznBhE8Cbj0hbTqaFaxBt+uaYl/vrZBy6yMxmJ9NAt+c17aiOuDR98BFjdF0m1F3e9cnn
+	fGWPNp7s61Cw9AQyZjFznPPTdoheZ5Z9BYVNTYmy6NUI7NxS56b216tNpvyO8olSY51U53tj/Dl
+	BjRVo7sf1KgI530jbXSr36mhRM8kShfmJd+O+R68xQrXeHlSS9MlAe3M1ANhe2N+4ApH5ejz4fJ
+	iO1YC4B7OPFaHNB0R3w0UOhjlxC4U1tNsmaX3nGPkrl/7Cb8uSuRm9UITwom6TEMS8ieEUGb62u
+	dI1XHwJYBkcxdi6zHZ0d8COFP8vIpfHEmhhuuwLikMJxGGyLvNWpM9zRc21g/vlbEYxj3ZmhRUs
+	cmNTKYDCStCIDtsJrkL2AXuGBdUL7eHZJFBZShtIRaTGXanySvvv63+zV5UkQaHSLzO9Y=
+X-Received: by 2002:a05:600c:a087:b0:486:fa35:aef2 with SMTP id 5b1f17b1804b1-48fc9a02812mr27064565e9.4.1778656465583;
+        Wed, 13 May 2026 00:14:25 -0700 (PDT)
 Received: from Dev-EliteBook.Home (97e782b0.skybroadband.com. [151.231.130.176])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e8e5efe71sm39558345e9.1.2026.05.13.00.14.21
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e8e5efe71sm39558345e9.1.2026.05.13.00.14.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 13 May 2026 00:14:22 -0700 (PDT)
+        Wed, 13 May 2026 00:14:25 -0700 (PDT)
 From: dave.patel@riscstar.com
 To: Anup Patel <anup.patel@oss.qualcomm.com>,
 	Anup Patel <anuppate@qti.qualcomm.com>
@@ -80,15 +80,16 @@ Cc: Scott Bambrough <scott@riscstar.com>,
 	Dhaval <dhaval@rivosinc.com>,
 	Peter Lin <peter.lin@sifive.com>,
 	opensbi@lists.infradead.org
-Subject: [PATCH v4 0/3] Add eager FP and RISC-V vector context switching support
-Date: Wed, 13 May 2026 08:14:15 +0100
-Message-ID: <20260513071418.50957-1-dave.patel@riscstar.com>
+Subject: [PATCH v4 3/3] lib: sbi: domain FP/Vector context support for context switch
+Date: Wed, 13 May 2026 08:14:18 +0100
+Message-ID: <20260513071418.50957-4-dave.patel@riscstar.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260513071418.50957-1-dave.patel@riscstar.com>
+References: <20260513071418.50957-1-dave.patel@riscstar.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260513_001424_924574_C0366737 
-X-CRM114-Status: UNSURE (   6.53  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260513_001427_748232_83CF3934 
+X-CRM114-Status: GOOD (  14.81  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -105,23 +106,117 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Hi Anup,
-        Thank you for taking out time and reviewing the patches.
-Following your review comments, I have made following changes. Also I have
-tested the changes.
+From: Dave Patel <dave.patel@riscstar.com>
 
-The changes include:
-	- Dropping CONFIG_SBI_MAX_VLENB and sbi_vector_domain_init()
-	- struct sbi_vector_context vec_ctx is now struct * in
-	  'struct hart_context'
-	- changing READ_CSR and WRITE_CSR to vcsr_read and vcsr_write
+This patch adds proper support for per-domain floating-point (FP) and
+vector (V) contexts in the domain context switch logic. Each domain
+now maintains its own FP and vector state, which is saved and restored
+during domain switches.
 
-I have covered all your comments, please can you have a look and let me know.
+Changes include:
 
-Thanks and Regards,
-Dave
+- Added `fp_ctx` and `vec_ctx` members to `struct hart_context`.
+- Introduced dynamic vector struct allocation for vlenb in 'struct hart_context'
+  to allocate and free per-domain FP and vector context.
+- Modified `sbi_domain_register()` to initialize FP/Vector context per domain.
+- Updated `switch_to_next_domain_context()` to save/restore FP and vector
+  contexts safely:
+    - Ensures FS/VS fields in `mstatus` are enabled (set to Initial) only if Off.
+- Added runtime checks for FP and vector extensions where needed.
+
+This improves support for multi-domain systems with FP and Vector
+extensions, and prevents corruption of FP/Vector state during domain
+switches.
 
 Signed-off-by: Dave Patel <dave.patel@riscstar.com>
+---
+ include/sbi/sbi_domain.h     |  2 ++
+ lib/sbi/sbi_domain_context.c | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 882b62c2..05a5d86c 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -16,6 +16,8 @@
+ #include <sbi/sbi_hartmask.h>
+ #include <sbi/sbi_domain_context.h>
+ #include <sbi/sbi_domain_data.h>
++#include <sbi/sbi_vector.h>
++#include <sbi/sbi_fp.h>
+
+ struct sbi_scratch;
+
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 158f4990..5e180698 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -18,6 +18,9 @@
+ #include <sbi/sbi_domain_context.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_trap.h>
++#include <sbi/sbi_vector.h>
++#include <sbi/sbi_fp.h>
++
+
+ /** Context representation for a hart within a domain */
+ struct hart_context {
+@@ -55,6 +58,11 @@ struct hart_context {
+ 	struct hart_context *prev_ctx;
+ 	/** Is context initialized and runnable */
+ 	bool initialized;
++
++	/** float context state */
++	struct sbi_fp_context fp_ctx;
++	/** vector context state */
++	struct sbi_vector_context *vec_ctx;
+ };
+
+ static struct sbi_domain_data dcpriv;
+@@ -143,6 +151,15 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSQOSID))
+ 		ctx->srmcfg	= csr_swap(CSR_SRMCFG, dom_ctx->srmcfg);
+
++	/* Make sure FS and VS is on before context switch */
++	csr_set(CSR_MSTATUS, MSTATUS_FS | MSTATUS_VS);
++
++	/* Eager context switch F and V */
++	sbi_fp_save(&ctx->fp_ctx);
++	sbi_fp_restore(&dom_ctx->fp_ctx);
++	sbi_vector_save(ctx->vec_ctx);
++	sbi_vector_restore(dom_ctx->vec_ctx);
++
+ 	/* Save current trap state and restore target domain's trap state */
+ 	trap_ctx = sbi_trap_get_context(scratch);
+ 	sbi_memcpy(&ctx->trap_ctx, trap_ctx, sizeof(*trap_ctx));
+@@ -170,6 +187,10 @@ static int hart_context_init(u32 hartindex)
+ {
+ 	struct hart_context *ctx;
+ 	struct sbi_domain *dom;
++	unsigned long vlenb = vector_vlenb();
++
++	/* Calculate size: base struct + 32 registers of vlenb size */
++	size_t vec_size = sizeof(struct sbi_vector_context) + (32 * vlenb);
+
+ 	sbi_domain_for_each(dom) {
+ 		if (!sbi_hartmask_test_hartindex(hartindex,
+@@ -180,6 +201,13 @@ static int hart_context_init(u32 hartindex)
+ 		if (!ctx)
+ 			return SBI_ENOMEM;
+
++		/* Allocate the vector context pointer */
++		ctx->vec_ctx = sbi_zalloc(vec_size);
++		if (!ctx->vec_ctx) {
++			sbi_free(ctx);
++			return SBI_ENOMEM;
++		}
++
+ 		/* Bind context and domain */
+ 		ctx->dom = dom;
+ 		hart_context_set(dom, hartindex, ctx);
+--
+2.43.0
+
 
 -- 
 opensbi mailing list
