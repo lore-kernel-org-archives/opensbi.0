@@ -4,69 +4,69 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 79680CD4851
-	for <opensbi@archiver.kernel.org>; Wed, 13 May 2026 07:14:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C0732CD37B6
+	for <opensbi@archiver.kernel.org>; Wed, 13 May 2026 07:14:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=47COVgY6GbyyC0L71NGT2rz0tsVYTdIf4vrMUKCl9Ug=; b=iNQtVkkQc5nMRd
-	hbWYs2rD/loMuMxQfiR5pUg6K0KuPejt0wcdpVMdrZSl+m4ithsQ3XWY4SHpjs+cD8fOeaRwEgYiz
-	50JhjwWfwvPD2KvPGPK4vWmmOLgIn+7rdipcqw1HnE32SzXJfsXIh+nVeebc4ie+VIhb7pNdKGelW
-	OgJn35p9Go5i2lzzWBq65qDNXKi96w4nEbHCrju+Xly6FDbKVUyZ1jZzvPkk0BwYKBj0kZpOb87ka
-	qq4kmblwl/VR4t9MtZzNsQt1R1fby27b/wyqJBfPGvcKUi63cjjMZGSENcD+sthlZDYMsdummrO6h
-	5Th/68Ug3EWet/viosPg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=uAzoXd3IrfgRsUN7xw9hStFfVG2GefQ/pqSm+/683PU=; b=dgybiMBsRNuk71
+	ngd10BEwPzlArwQtGrl/e0z8OlU1JlwjYH14ivgSdIgqamcHmXrEDmXwGwCs256Y5OYfEXf4F3ILf
+	vd1Mlm4HhbIiEhN1FDZiyXhUvb3AQlfwwKwQCCyviDkocG2KX0Y9y/rasK6JNd5adeqO0+aMX1YgW
+	EIe5VB9hW6aH6eJlc2FjMsKvCtNLSoEtW7pU3ZwuBek8aER0dZjjhT4JwSIsDi+Rh8QIqQVD6i9ZA
+	lXQPVjFTtV2PL5DkBDlixVmhkaBz+ZU2nL9AZQEM95+dFP9vr5reKRa7HCXID3FQ8eC8idGHyB3dg
+	3sqOipVWasOnuwd2u+bQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wN3nY-00000001X8e-218g;
-	Wed, 13 May 2026 07:14:28 +0000
-Received: from mail-wr1-x433.google.com ([2a00:1450:4864:20::433])
-	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wN3nW-00000001X79-0rbh
-	for opensbi@lists.infradead.org;
+	id 1wN3nX-00000001X86-1kA2;
 	Wed, 13 May 2026 07:14:27 +0000
-Received: by mail-wr1-x433.google.com with SMTP id ffacd0b85a97d-43d75312379so4810356f8f.1
-        for <opensbi@lists.infradead.org>; Wed, 13 May 2026 00:14:25 -0700 (PDT)
+Received: from mail-wm1-x334.google.com ([2a00:1450:4864:20::334])
+	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wN3nU-00000001X72-389j
+	for opensbi@lists.infradead.org;
+	Wed, 13 May 2026 07:14:26 +0000
+Received: by mail-wm1-x334.google.com with SMTP id 5b1f17b1804b1-48a7fe4f40bso73026725e9.0
+        for <opensbi@lists.infradead.org>; Wed, 13 May 2026 00:14:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=riscstar-com.20251104.gappssmtp.com; s=20251104; t=1778656464; x=1779261264; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UpG1FsVLCDv422fKA6pCPgyzW4YvJ2BwoQTcZVY7s5s=;
-        b=xtMDQ91EnE0c7fvEn81ya4GaXe7363Xj1UOVRfE4+z0W9PJaBFLae+ehSWzahS4Tnd
-         s9SFHAsn57WuIG6oFnaq3tIdzfhNHEQyvlOLFp+IVXlKdI3L07+XurIM0mr4xNnyesDa
-         xlkkkufCLdBhHsNxbYVjIUpjpPmF+g0Z1OeeH+MSGB3YHrD7eZaUDuFdZGpYkBBBEhNN
-         VODTfJ1Ff/9yJ7DyZ4PR5P9a63nJRvk5VLJmcpTbobFZuvsDMrOi7gb4CCk2vHf4cAPQ
-         ftXh4hrEVfJ+HYKCKbroSSGPBqIkz/V2jWwMGJH585Ke29R/Qg27db0OjbRppo0IfB+z
-         jxFQ==
+        d=riscstar-com.20251104.gappssmtp.com; s=20251104; t=1778656462; x=1779261262; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=rDF+xOIKqwUS7MYpSNMUCe27qoxcJqdVcBdckBdLrCE=;
+        b=PZNCuCarc4/jYwX3DhG2ESZTCqethDcEaBVFI/tzNm86f7i5pqKAyXiyUpv/OLLeZA
+         S9ZbDcnihn8sk17kbzz/g0FVfRU2Dio+ypPqgMlJ8exFwkMtnjYu9IVR5un1fMRtSshr
+         +PkEg+TbuO8l1RUeYMSJntojkCo2MwGlS3hxsanE12Xk+KPP6+UWttNwq2mAJRTiBxPv
+         v88qpWtJPal7kuVV/j5HSzjjnBaP42bC9caNIVnCBGVH6N78BUqRDyuRPD/5xf+9PPIX
+         Zjflmz8qNb6rNgow1vEtqj3ukExI5MlEQjwtiLVfsUWjt+vxkK7Nrqenz3BdMJBRUR8h
+         tY4Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778656464; x=1779261264;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=UpG1FsVLCDv422fKA6pCPgyzW4YvJ2BwoQTcZVY7s5s=;
-        b=nzUSRkmpVb4j89+8yGVR5yseYMw7cd3xXmT0m4uHQ9BxiAzDrfulAtUG/HF5ivPRBD
-         CdtANSVzBobvnhcarxz5jDwDaEzTKqmqfgXrsbIkrXgeCbtzuXGMKS8dvmGXuwMUU5ex
-         U21XcB/ePqvNZrsZDWAcHv8aJ5jBUsUgQt5oduCb8tcTjuDYMZBfPOe9oDVJ2QgnFV7S
-         Lz/2yc2gW31AZBlI6+94Y0UlipYfnaR51Ro5oIiorHvt8DT7KzUKN3BCd6up7Z2G/jdu
-         AVxzPJUEnu72rHW6czClth6r4+agl/m3K3u6glJAlnerOBj6HUvIe+m68nzuQ2bRla4i
-         i00Q==
-X-Forwarded-Encrypted: i=1; AFNElJ/MzU4lL8sJneLWCj7YvBZDq4DslfwFSPsVdNaAXQicMT7HW254+ZHEtbOBvSUS0xP266p8vQjS@lists.infradead.org
-X-Gm-Message-State: AOJu0YxzRjiQMnxDpmljIIicqAo4W1/5NGVj0uPLaYOA4p3K6Ik5NWuZ
-	kV4iLe/rTXCBB3SbmD9JwV0QR15S4mrAIvA93fzJeNkyuaeYul72tdmz0tlnALzuV6Q=
-X-Gm-Gg: Acq92OHIA0mHRO5hKbfb4VUnq6o6jYm/A/ERLezUj4yIPnCP34cbLPb/1NY7TgRNt+L
-	ohWO2B7nEY+uepqkt4r/BoGHHoNaLyT9aD1eT3MLtq9gEo9+DdLagRzM/KhHAznQbWcdzOvsLx+
-	fycq1Qp50uiMquf23ozVuR7JyFa0nAbZPkdaChQKavng1j55ahS9hMMpS5M7YdZzacn4cnXtoRs
-	fHeeaafW0k+ZocPH0clI65rvLOps8H4n4fMlt3UbiW0U9jWOTKlDHz2NKdQszq1uSrbHXpJn6QB
-	G45j8tAvkpK3P55ZYnos/goco69tM8Lg3vDU0H/KTzf+/dtMR/KzO5sje0LDcMt8pgTZSCt7LV2
-	8VIl+HoVMT5Bzqok+M++f85LrLANM2ZSFAQM/nuQa7htjfWfMEtFlAAHbj9QfycVy2RX0M92kiP
-	UYneB+SSmXqloLW9fIpPyH08ApIvNmjmN2oowC+wxakEXgBmDFpiY8uQWqxPdtsym8Vcg=
-X-Received: by 2002:a05:600c:4503:b0:48a:534a:eed8 with SMTP id 5b1f17b1804b1-48fc971f11bmr29362425e9.1.1778656464048;
-        Wed, 13 May 2026 00:14:24 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1778656462; x=1779261262;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=rDF+xOIKqwUS7MYpSNMUCe27qoxcJqdVcBdckBdLrCE=;
+        b=pbQUuubs6tjVB51in0x4T+BqGnL6pa4m8gC9B1QE2CbEM5BjrgvCQ93WHbiC1q2+Oz
+         ai2Osca5SS0EsI0eUOZuu/ApmLAbVPJvJ08h6hhtNfVRWiGZCJLousBG10jcXhh5E61U
+         U8Kb+MRYUKxexiAZYWCF/m4vxberlPVQAS09echRtVMNyQEeKRLZJhcBin6S8UPCjjGU
+         AL7dzlHBm8Q8yjjkZFpt4MqvK6m5VhviGz754szxQsT4msVMBOv/E6gRjM9yTvciMmI2
+         h6RiDhJ3/op1qH6OP6fKP0e2h/vsCdZm1+bBnNh+j4rYbdYZdPGVQMTQPXZmlBd+m3d1
+         4qxQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8/yFCFUFkSIN2t+hh6nPIxYgNldR7ozlPEi5K25CFIP1Wmx7l6o0XxsjgPt3k9yoWYnu3AQynm@lists.infradead.org
+X-Gm-Message-State: AOJu0YzVl1E66Bwj6XYx/1TNGw9l7PxsdaxNVyQn7Ql2YBzGlYAbf9y+
+	+ehvICbt8xMnyJb5J8uGspyGvtFPxI/FB9aod9yWCXgUUi9WjiaIrjrSMqISs6WsXm0=
+X-Gm-Gg: Acq92OGdv6gEoWocX49rZ3V9L+GwU1+I8DaBvhHIOIUX1+ztBeAnWJAR2/kvSz9eg23
+	+qq5FVdZjGXJi0KUx1QehjC6pI/nwu9VBKCKDBdvpRdA/5NHyWuRo+zdTUv+OLq8A1vHY7LeqtC
+	/fmiBgCb8BpS/GDv02sjinTRgcyWHBx0/uzIkJlwMMuZmPbLsFvB295jdv4uiBjf5rj+z8GTOkb
+	JlhGbhnXtn5yIV0fChp3Kx3laZza5r7yNJ3BcbOb4JeMqxdYo+AO9LVwPHvy3VbfT1JtiBLDOGs
+	89V63D8JhKPtHtwM2fcy89Wdc3ch9UbG3oFdE/XTS9vJLGoOn8ze0BC8Yr03HnC0u6JHXdHRNm4
+	eDNLUCV+XnydH+bmGXc/kunGuUqyvt+HwkRR2z57fm7id/o9Cdkv8zeaVds3f1zE5PXh745KSvx
+	SIU/RQuoKrsOsFxWZJiXytfuNGJ+lMVQmKOGzUKEQQ6JkBZEBFF7jNNQKsCaSXG6nfgTPN8hXLJ
+	G/pcA==
+X-Received: by 2002:a05:600c:c84:b0:489:1e8a:90b4 with SMTP id 5b1f17b1804b1-48fce9e4f87mr19541165e9.21.1778656462409;
+        Wed, 13 May 2026 00:14:22 -0700 (PDT)
 Received: from Dev-EliteBook.Home (97e782b0.skybroadband.com. [151.231.130.176])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e8e5efe71sm39558345e9.1.2026.05.13.00.14.22
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48e8e5efe71sm39558345e9.1.2026.05.13.00.14.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Wed, 13 May 2026 00:14:22 -0700 (PDT)
 From: dave.patel@riscstar.com
@@ -80,16 +80,15 @@ Cc: Scott Bambrough <scott@riscstar.com>,
 	Dhaval <dhaval@rivosinc.com>,
 	Peter Lin <peter.lin@sifive.com>,
 	opensbi@lists.infradead.org
-Subject: [PATCH v4 1/3] lib: sbi: Add RISC-V vector context save/restore support
-Date: Wed, 13 May 2026 08:14:16 +0100
-Message-ID: <20260513071418.50957-2-dave.patel@riscstar.com>
+Subject: [PATCH v4 0/3] Add eager FP and RISC-V vector context switching support
+Date: Wed, 13 May 2026 08:14:15 +0100
+Message-ID: <20260513071418.50957-1-dave.patel@riscstar.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260513071418.50957-1-dave.patel@riscstar.com>
-References: <20260513071418.50957-1-dave.patel@riscstar.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260513_001426_278095_EC2EB2D4 
-X-CRM114-Status: GOOD (  15.23  )
+X-CRM114-CacheID: sfid-20260513_001424_924574_C0366737 
+X-CRM114-Status: UNSURE (   6.53  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -106,218 +105,23 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Dave Patel <dave.patel@riscstar.com>
+Hi Anup,
+        Thank you for taking out time and reviewing the patches.
+Following your review comments, I have made following changes. Also I have
+tested the changes.
 
-Eager context switch: Add support for saving and restoring RISC-V vector
-extension state in OpenSBI. This introduces a per-hart vector context
-structure and helper routines to perform full context save and restore.
+The changes include:
+	- Dropping CONFIG_SBI_MAX_VLENB and sbi_vector_domain_init()
+	- struct sbi_vector_context vec_ctx is now struct * in
+	  'struct hart_context'
+	- changing READ_CSR and WRITE_CSR to vcsr_read and vcsr_write
 
-The vector context includes vcsr CSRs along with storage for all 32 vector
-registers. The register state is saved and restored using byte-wise vector
-load/store instructions (vs8r/vl8r).
+I have covered all your comments, please can you have a look and let me know.
 
-The implementation follows an eager context switching model where the entire
-vector state is saved and restored on every context switch. This provides a
-simple and deterministic mechanism without requiring lazy trap-based
-management.
+Thanks and Regards,
+Dave
 
 Signed-off-by: Dave Patel <dave.patel@riscstar.com>
----
- include/sbi/sbi_vector.h |  28 ++++++++
- lib/sbi/objects.mk       |   1 +
- lib/sbi/sbi_vector.c     | 136 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 165 insertions(+)
- create mode 100644 include/sbi/sbi_vector.h
- create mode 100644 lib/sbi/sbi_vector.c
-
-diff --git a/include/sbi/sbi_vector.h b/include/sbi/sbi_vector.h
-new file mode 100644
-index 00000000..bbd857c3
---- /dev/null
-+++ b/include/sbi/sbi_vector.h
-@@ -0,0 +1,28 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2026 RISCstar Solutions.
-+ *
-+ * Authors:
-+ *   Dave Patel <dave.patel@riscstar.com>
-+ */
-+
-+#ifndef __SBI_VECTOR_H__
-+#define __SBI_VECTOR_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+struct sbi_vector_context {
-+	unsigned long vcsr;
-+	unsigned long vstart;
-+
-+	/* size depends on VLEN */
-+	uint8_t vregs[];
-+};
-+
-+void sbi_vector_save(struct sbi_vector_context *dst);
-+void sbi_vector_restore(const struct sbi_vector_context *src);
-+unsigned long vector_vlenb(void);
-+
-+#endif //__SBI_VECTOR_H__
-+
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 97cc4521..ddb2e7ac 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -109,3 +109,4 @@ libsbi-objs-y += sbi_trap_v_ldst.o
- libsbi-objs-y += sbi_unpriv.o
- libsbi-objs-y += sbi_expected_trap.o
- libsbi-objs-y += sbi_cppc.o
-+libsbi-objs-y += sbi_vector.o
-diff --git a/lib/sbi/sbi_vector.c b/lib/sbi/sbi_vector.c
-new file mode 100644
-index 00000000..0085aa02
---- /dev/null
-+++ b/lib/sbi/sbi_vector.c
-@@ -0,0 +1,136 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2026 RISCstar Solutions.
-+ *
-+ * Authors:
-+ *	 Dave Patel <dave.patel@riscstar.com>
-+ */
-+
-+#include <sbi/sbi_domain.h>
-+#include <sbi/riscv_encoding.h>
-+#include <sbi/riscv_asm.h>
-+#include <sbi/sbi_vector.h>
-+#include <sbi/sbi_types.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_console.h>
-+
-+#ifdef OPENSBI_CC_SUPPORT_VECTOR
-+
-+unsigned long vector_vlenb(void)
-+{
-+	unsigned long vlenb = 0;
-+
-+	asm volatile (
-+		".option push\n\t"
-+		".option arch, +v\n\t"
-+		"csrr %0, vlenb\n\t"
-+		".option pop\n\t"
-+		: "=r"(vlenb)
-+		:
-+		: "memory");
-+
-+	return vlenb;
-+}
-+
-+void sbi_vector_save(struct sbi_vector_context *dst)
-+{
-+	if (!dst)
-+		return;
-+
-+#define vcsr_read(dst, csr)				\
-+	({						\
-+		asm volatile (				\
-+			"	.option push\n\t"	\
-+			"	.option arch, +v\n\t"	\
-+			"	csrr %0, " #csr "\n\t"	\
-+			"	.option pop\n\t"	\
-+			:	"=r"(dst)		\
-+			:				\
-+			:	"memory");		\
-+	})						\
-+
-+	/* Step 1: Save CSRs */
-+	vcsr_read(dst->vcsr,   vcsr);
-+	vcsr_read(dst->vstart, vstart);
-+
-+#undef vcsr_read
-+
-+	ulong vlenb = vector_vlenb();
-+	uint8_t *base = dst->vregs;
-+
-+	/* Step 3: Save vector registers */
-+#define SAVE_VREG(i)						\
-+	({							\
-+	asm volatile(						\
-+		"	.option push\n\t"			\
-+		"	.option arch, +v\n\t"			\
-+		"	vs8r.v v" #i ", (%0)\n\t"		\
-+		"	.option pop\n\t"			\
-+		::	"r"(base + (i) * vlenb)	: "memory");	\
-+	})							\
-+
-+	SAVE_VREG(0);
-+	SAVE_VREG(8);
-+	SAVE_VREG(16);
-+	SAVE_VREG(24);
-+
-+#undef SAVE_VREG
-+}
-+
-+void sbi_vector_restore(const struct sbi_vector_context *src)
-+{
-+	if (!src)
-+		return;
-+
-+	const uint8_t *base = src->vregs;
-+	ulong vlenb = vector_vlenb();
-+
-+	/* Step 2: Restore vector registers */
-+#define RESTORE_VREG(i)					\
-+	({							\
-+	asm volatile(						\
-+		"	.option push\n\t"			\
-+		"	.option arch, +v\n\t"			\
-+		"	vl8r.v v" #i ", (%0)\n\t"		\
-+		"	.option pop\n\t"			\
-+		::	"r"(base + (i) * vlenb) : "memory");	\
-+	 })							\
-+
-+	RESTORE_VREG(0);
-+	RESTORE_VREG(8);
-+	RESTORE_VREG(16);
-+	RESTORE_VREG(24);
-+#undef RESTORE_VREG
-+
-+	/* Step 3: Restore CSR's last */
-+#define vcsr_write(csr, val)			\
-+	({					\
-+	asm volatile(				\
-+		"	.option push\n\t"	\
-+		"	.option arch, +v\n\t"	\
-+		"	csrw " #csr ", %0\n\t"	\
-+		"	.option pop\n\t"	\
-+		:				\
-+		:	"r"(val)		\
-+		:	"memory");		\
-+	 })					\
-+
-+	/* Restore CSRs first */
-+	vcsr_write(vcsr,   src->vcsr);
-+	vcsr_write(vstart, src->vstart);
-+#undef vcsr_write
-+}
-+
-+#else
-+
-+void sbi_vector_save(struct sbi_vector_context *dst)
-+{
-+}
-+
-+void sbi_vector_restore(const struct sbi_vector_context *src)
-+{
-+}
-+
-+#endif /* OPENSBI_CC_SUPPORT_VECTOR */
---
-2.43.0
-
 
 -- 
 opensbi mailing list
