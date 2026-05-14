@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 15138CD4F41
-	for <opensbi@archiver.kernel.org>; Thu, 14 May 2026 22:58:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 85908CD4F39
+	for <opensbi@archiver.kernel.org>; Thu, 14 May 2026 22:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=82q2IFOFwnFn7+zIFglF2JMdm/U1MZUql3vjSHv9VhU=; b=RyZuzW1tkZ0L2l
-	Erg1zjxTOwvRXg/b91x3KNinar11NriqQhPZdUQASeJTCSluh/hq2jhWQEiMaxUwY/I5DEuIp7tJD
-	xmcaYZMA6LmzDAvssKxYfXfX0r0ArVmRdb68ENhKjTvt1y0xt12d8DD5MamREJDytUOQRICKWNljS
-	NsKDF0shSqbnpYFkpmE72pqGy9cEnDJs5rEyymhnqTRTvQTN3dlfNTe/5JGVvd5HcKs1hfZtCqigM
-	opgFjwpeKp6osd0RWGFMEVe5tIRuK3js52aKqVEVHGiIFzUsQK+woBtlPG11yEm1TFRa/7wd+MnE2
-	OvkdoKHLcDxLOAEtgmLg==;
+	List-Owner; bh=YcfmGtKeLnYXd+U/gksEU1BDR116YmX1TWTvTAC99mw=; b=yeaqOhBBD136hf
+	GUI2k7aLmSoFdBofYYoHORvC0eup3VzsnEyZ3NL1p+Vusqw3eSA4W550fxymKzpHv76BTzn5PwAuX
+	OEoBwodEymXtHu9UihiCvXNURQOIUc9SBGDgBOKHm4X94jhfOJJs+S3LnGIwIBfas41xJvvZRj3aB
+	XSS7uTnsRBomfOPKyvgLTY30O8CpHuENNHHnkpq1Lc2SZ4BbErQjk17Ur7CU1S8NpFzmLNoE/ao+a
+	NtFd/aH7dFBAzeAQq/RFMYtrKCG2VxI9juCT/ucHmfGkOvS9Dpodiey9HX3jdfW5h7P/fs7Y3ZY84
+	WREjZBuCf4eqHtybzR8Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wNf0a-00000006m0r-15TL;
-	Thu, 14 May 2026 22:58:24 +0000
-Received: from mail-qv1-xf35.google.com ([2607:f8b0:4864:20::f35])
+	id 1wNf0f-00000006m5l-2Zmj;
+	Thu, 14 May 2026 22:58:29 +0000
+Received: from mail-qv1-xf34.google.com ([2607:f8b0:4864:20::f34])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wNf0X-00000006lyM-3MY2
+	id 1wNf0d-00000006m2g-10kD
 	for opensbi@lists.infradead.org;
-	Thu, 14 May 2026 22:58:23 +0000
-Received: by mail-qv1-xf35.google.com with SMTP id 6a1803df08f44-8bb09239328so70622936d6.3
-        for <opensbi@lists.infradead.org>; Thu, 14 May 2026 15:58:21 -0700 (PDT)
+	Thu, 14 May 2026 22:58:28 +0000
+Received: by mail-qv1-xf34.google.com with SMTP id 6a1803df08f44-8b4298d271fso133128356d6.3
+        for <opensbi@lists.infradead.org>; Thu, 14 May 2026 15:58:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778799500; x=1779404300; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1778799506; x=1779404306; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Qqd2gIPUySJie44BySMftc6VNYYeOIcoSAR7wufd3CM=;
-        b=HC7Va3fN0QwemTrmUHtOLlHCvBoJwrZGivk4bWljB2yvXsHbxep6Bj7G5DyL+/+RfF
-         GfY7YP8aVB6htcRlO/tPsdR77xa6hiaxndHxfckxOhyhk4nYB9bewMCmL+12LxBHGbIz
-         C9Uztl9+Bs4nNQQ6NkU1LAogAltRnOEEEwOWk4/Mn7XV0b6KmhpOqE7wmHVJTSZGb2Vb
-         Xy5eFGplvAI5PEqfQT27uzgT9J3/AL8CCECI8G0mQB8gWaHBDZOhA7ay+DhFHAd4zbZY
-         nBoSlBWYnhNQA1kOTe/YQanu3Gcsc4JkTGfFWX9jpFZGGCyIvGbLERgcHgHfWPxR3F6S
-         rziw==
+        bh=m1MwrApCDgBZqkiFCvRZ4dDoviULjdi5FtmKaZth3us=;
+        b=I2tAUOeI0csH+it2A6tMXnbJ0gK3yEF4x96hyNowjjQb6AJBUAWz4DHPXeouBcQNrr
+         JpSWdrUZbbvjP1MdLD9T4RBwJXoU3aDqlwK0cJNX8LIXMy8j4ceDz/Fcos6EukVIGpwU
+         eVazeBOnvkxOhByPcogL+o8MOM9k2H55fAO7ehqZj7jD/JAUSjzePMCRcEC8EKj1Jyi6
+         r3pt2SxKvgyu3vkpZW04hAZeiThaXSZQxiiwf6i+xsPnEj4anzpoHhTmz8tgaCdEX9mR
+         pkjtgUbuZeMDMbkoqpaKGFfeblFtd0WCKoGawEUf46Ba32p4agb+ZJeb9Wy8N14469oz
+         TB3Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778799500; x=1779404300;
+        d=1e100.net; s=20251104; t=1778799506; x=1779404306;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Qqd2gIPUySJie44BySMftc6VNYYeOIcoSAR7wufd3CM=;
-        b=pDOxZAP0kzUhr9SujSUufUlKnOfTR03OG6I1c0cF5hdFaUWcmKPCPG+Z0NrufUnUrr
-         uDIwOyq5awfVt2WUXSqEmtCvKMRznW/zyOmlQ9BQix6mm8391Ex5h/5FRYgGAu9SBIn8
-         F0ovhSLlkX7b+RQehi9ToneTzFBdhNwlO8IuCGx4h24/QqCY3IGVmSnUUDL3Sx5jDA28
-         0f+aDchKiH+1osOgrH3V5OP5ENNhRpLIM0qIYX41uy+S1eLNCbAB/agcNPn+4VdAzirN
-         Y28zWyHa9GH7hTCWFIZ8XqVoetu2zpgV9jIabgqe9slFLEMoXrp3YCM4wCobfK3i2gsv
-         JeYA==
-X-Gm-Message-State: AOJu0Yy357W7C2IWkLzmYONBlwCLJ/8vIEOCJvuYsr9ksT5aXDX+xJOO
-	V9j4wOO9sQoEOvAiSQ4DMzTVNw9j0nn2Z8D+9Sat80XpJoCAV2pHxoG+Jf87vg==
-X-Gm-Gg: Acq92OH06cXmAkbT6SzqGQJRLpEP2UzPj6vAlN9REfJHh4DpeOLR4KswvXDnuh+uBUE
-	WQC/Q2EtvppVf/sv9GK4OP35VBJ7VpaKZFMTzlkJs4EgARLJdPnTRmz0LWqo7pIcQ5ArqIFjkZq
-	dYjz4u23ldVgAyyPFPDWpjpNo/kerbx9bdxPKVQXciRWYUoeRwi4pDknMloD41fhL2K6wHTQEqa
-	7bD6rpm2+njPIG2YV1O2gSiFdL5zVfqGPa/4ZClz3otxnT9D5DJGyvFIwo8BJwlD0QLneqC3Kp9
-	/VhemebUOGhtjk6hojnyQNCQqydqcsL/6zKvWEedkYKO7ouvCqORyz/1IrSxwBcLFBXtvd1BcX/
-	ypMRQiWK2GU7+7ZtM2iU1wnVXHNqBadWV3ndhuGYFsLMBeb6gQAK/t5Tv1VD/7+3Eq5z/h7IGfk
-	CB9dVoc2owXKsxYS54TFHtZcx6dsfosIGUvAL/mtM3bIOLScXcel+hVlGupOhWFTccNBDbcjnVV
-	20k1HXl7WE=
-X-Received: by 2002:a05:6214:319f:b0:8b1:f784:7ecc with SMTP id 6a1803df08f44-8ca0f6f49efmr27967996d6.46.1778799500289;
-        Thu, 14 May 2026 15:58:20 -0700 (PDT)
+        bh=m1MwrApCDgBZqkiFCvRZ4dDoviULjdi5FtmKaZth3us=;
+        b=OIUPXFWl1iA/YHbEg/NFSlaacVQPSJeD7Dc/tO6CAMYyhC2sOQx7hfKE11wXdlJotm
+         6Cc+dZnnATJaHbdfYGviLSpB4gwsIfqJqrYsfRSh4/Jx0P5asUpp6vEJp/qnw1tg5dfU
+         SiCG8IJ9qWv0r6mSTHTNSWuH0xN8v71HABLbWiHaU4v6Wk/JApgtabzATUkHWySSVGld
+         xeazmhWhygP7jBaplSwkC3jmu8n+dlri/HS2oRcFh6K2djuWr5fb9+mvWoMMCVaVaDy7
+         9Bi9eXHRsLg7sDAgQWESa8fLHfsfJbmLP7Di0HOC4lmcg7nrg4wUSF2FMn1xTGw4wkn3
+         P+AQ==
+X-Gm-Message-State: AOJu0Yxeqi7tX1uEM1qzWIIKYXUgJHiJlmeMdygUIDiRor519dQR5A1y
+	HFFqz0edjU4a2i1ZjKZdcN8DcdC/dnt8vsj260Nhh8bQt3AQHd+rSMUDBuckDw==
+X-Gm-Gg: Acq92OH0n9nHQZUpQ/d7ybCdTQpH6laHc1vn6S4mmCo8iZRhflpsqxJrbkiy19ZSJD3
+	YjJLJBFL6U7OhNmWtThTFc90HQeXQ67U8KNE/PsacxCgFFQM/jkm+3jNuFBXasaM8Pkug8/RBeT
+	nNKjnTYdU/ZDR8hHZllhl/2PgJ3jqdgp6gasYeTQRrAKzclzz/zpbOVOhy4BPj6ZmoT6UhhxqMx
+	Y/MZcN+1NoEUvH32jXhotyVqjRZMxwjrMBb7DxBsqYUzonhPR1wIleQ0sIg8w1gGYl5pPXVxuUH
+	ZD4ljhNRH2DgZ5vYrOjkhRMnLy1LP/VR6NpAU9hDiaSj6ZBsQsz+TObRqRkkTJaAJgS6M1aG5k8
+	31NC6VAgusPQrxVu7z9B2C4kp8xeLmO1aAXxdGhJiTY78XHqkCxBB4PyOkl5HPJKT2P9kBTsRD6
+	TQ7Z12MBElfdxUfA3fNvDGHpKN3VQ7gFZDsHBBI92x88CHu481Z9RACWzwWTxZGB1/1Ev6Q1Ucv
+	EcBUejrEBTPPd0Mr6t+fQ==
+X-Received: by 2002:a05:6214:601b:b0:8bd:c9ca:7b5c with SMTP id 6a1803df08f44-8ca0f6e4e26mr26494606d6.44.1778799505771;
+        Thu, 14 May 2026 15:58:25 -0700 (PDT)
 Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8c90c16366csm34974426d6.40.2026.05.14.15.58.19
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8c90c16366csm34974426d6.40.2026.05.14.15.58.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 May 2026 15:58:20 -0700 (PDT)
+        Thu, 14 May 2026 15:58:25 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -81,16 +81,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH 04/10] lib: sbi: Add VIRQ ecall extension
-Date: Thu, 14 May 2026 18:57:50 -0400
-Message-Id: <20260514225756.2255758-5-raymondmaoca@gmail.com>
+Subject: [PATCH 07/10] lib: utils: irqchip: derive APLIC targets from sysirq nodes
+Date: Thu, 14 May 2026 18:57:53 -0400
+Message-Id: <20260514225756.2255758-8-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260514225756.2255758-1-raymondmaoca@gmail.com>
 References: <20260514225756.2255758-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260514_155821_861120_D5359823 
-X-CRM114-Status: GOOD (  16.51  )
+X-CRM114-CacheID: sfid-20260514_155827_305693_3E0AAA98 
+X-CRM114-Status: GOOD (  17.30  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,151 +109,164 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add vendor SBI extension ecall for VIRQ.
-This allows S-mode payload to pop/complete the next pending VIRQ has
-couried into the current domain.
+Derive a per-HWIRQ target hartindex map from each sysirq node's
+target domain boot-hart, and store the result in aplic_data.
+This is used for setting IDC target per HWIRQ under irqchip driver
+instead of hardcoding to a specific target.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi/sbi_ecall_interface.h | 26 ++++++++++++++
- lib/sbi/Kconfig                   | 10 ++++++
- lib/sbi/objects.mk                |  3 ++
- lib/sbi/sbi_ecall_virq.c          | 56 +++++++++++++++++++++++++++++++
- 4 files changed, 95 insertions(+)
- create mode 100644 lib/sbi/sbi_ecall_virq.c
+ include/sbi_utils/irqchip/aplic.h     |   1 +
+ lib/utils/irqchip/fdt_irqchip_aplic.c | 103 ++++++++++++++++++++++++++
+ 2 files changed, 104 insertions(+)
 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index 9a776f79..37937a0c 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -126,6 +126,32 @@
- #define SBI_EXT_FWFT_SET		0x0
- #define SBI_EXT_FWFT_GET		0x1
+diff --git a/include/sbi_utils/irqchip/aplic.h b/include/sbi_utils/irqchip/aplic.h
+index 3461d1c7..d6e088f8 100644
+--- a/include/sbi_utils/irqchip/aplic.h
++++ b/include/sbi_utils/irqchip/aplic.h
+@@ -47,6 +47,7 @@ struct aplic_data {
+ 	struct aplic_msicfg_data msicfg_smode;
+ 	struct aplic_delegate_data delegate[APLIC_MAX_DELEGATE];
+ 	u32 *idc_map;
++	u32 *hwirq_target_hartindex;
+ };
  
-+#ifdef CONFIG_SBI_ECALL_VIRQ
-+
-+/* Vendor extension base range is defined by the SBI spec. Choose a private ID. */
-+#define SBI_EXT_VIRQ			0x0900524d
-+
-+/* Function IDs for SBI_EXT_VIRQ */
-+#define SBI_EXT_VIRQ_POP		0
-+#define SBI_EXT_VIRQ_COMPLETE		1
-+
-+/*
-+ * SBI_EXT_VIRQ_POP
-+ * Returns:
-+ *   a0: SBI error code (0 for success)
-+ *   a1: next pending VIRQ (VIRQ_INVALID if none pending)
-+ */
-+
-+/*
-+ * SBI_EXT_VIRQ_COMPLETE
-+ * Input:
-+ *   a0: VIRQ to complete
-+ * Returns:
-+ *   a0: SBI error code (0 for success)
-+ */
-+
-+#endif
-+
- enum sbi_fwft_feature_t {
- 	SBI_FWFT_MISALIGNED_EXC_DELEG		= 0x0,
- 	SBI_FWFT_LANDING_PAD			= 0x1,
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index c6cc04bc..cbb74640 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -69,4 +69,14 @@ config SBI_ECALL_SSE
- config SBI_ECALL_MPXY
- 	bool "MPXY extension"
- 	default y
-+
-+config SBI_ECALL_VIRQ
-+	bool "VIRQ extension"
-+	default y
-+	help
-+	  Enable the OpenSBI VIRQ ecall extension.
-+	  This extension allows an S-mode payload to pop a pending
-+	  virtual interrupt and complete its deferred host interrupt
-+	  handling after the payload has consumed the event.
-+
- endmenu
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 184bf173..ea816e92 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -64,6 +64,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_MPXY) += ecall_mpxy
- libsbi-objs-$(CONFIG_SBI_ECALL_MPXY) += sbi_ecall_mpxy.o
+ int aplic_cold_irqchip_init(struct aplic_data *aplic);
+diff --git a/lib/utils/irqchip/fdt_irqchip_aplic.c b/lib/utils/irqchip/fdt_irqchip_aplic.c
+index f9b567f5..cbbdf8d8 100644
+--- a/lib/utils/irqchip/fdt_irqchip_aplic.c
++++ b/lib/utils/irqchip/fdt_irqchip_aplic.c
+@@ -13,6 +13,7 @@
+ #include <sbi/sbi_console.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_heap.h>
++#include <sbi/sbi_scratch.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/irqchip/aplic.h>
+@@ -54,6 +55,88 @@ static int irqchip_aplic_update_idc_map(const void *fdt, int nodeoff,
+ 	return 0;
+ }
  
-+carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_VIRQ) += ecall_virq
-+libsbi-objs-$(CONFIG_SBI_ECALL_VIRQ) += sbi_ecall_virq.o
-+
- libsbi-objs-y += sbi_bitmap.o
- libsbi-objs-y += sbi_bitops.o
- libsbi-objs-y += sbi_console.o
-diff --git a/lib/sbi/sbi_ecall_virq.c b/lib/sbi/sbi_ecall_virq.c
-new file mode 100644
-index 00000000..a84a83d7
---- /dev/null
-+++ b/lib/sbi/sbi_ecall_virq.c
-@@ -0,0 +1,56 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * Copyright (c) 2026 RISCstar Solutions.
-+ *
-+ * Author: Raymond Mao <raymond.mao@riscstar.com>
-+ */
-+
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_trap.h>
-+#include <sbi/sbi_virq.h>
-+
-+static int sbi_ecall_virq_handler(unsigned long extid,
-+				  unsigned long funcid,
-+				  struct sbi_trap_regs *regs,
-+				  struct sbi_ecall_return *out)
++static u32 irqchip_aplic_domain_boot_hartindex(void *fdt, int domain_offset)
 +{
-+	(void)extid;
++	int len, cpu_offset;
++	const fdt32_t *val;
 +
-+	sbi_printf("[ECALL VIRQ] VIRQ ecall handler, funcid: %ld\n", funcid);
++	val = fdt_getprop(fdt, domain_offset, "boot-hart", &len);
++	if (val && len >= 4) {
++		cpu_offset = fdt_node_offset_by_phandle(fdt,
++							fdt32_to_cpu(*val));
++		if (cpu_offset >= 0) {
++			u32 hartid;
 +
-+	switch (funcid) {
-+	case SBI_EXT_VIRQ_POP:
-+		out->value = (unsigned long)sbi_virq_pop_thishart();
-+		return SBI_OK;
-+	case SBI_EXT_VIRQ_COMPLETE:
-+		u32 virq = (u32)regs->a0;
++			if (!fdt_parse_hart_id(fdt, cpu_offset, &hartid)) {
++				u32 hidx = sbi_hartid_to_hartindex(hartid);
 +
-+		sbi_virq_complete_thishart(virq);
-+		regs->a0 = 0;
-+		return SBI_OK;
-+	default:
-+		return SBI_ENOTSUPP;
++				if (sbi_hartindex_valid(hidx))
++					return hidx;
++			}
++		}
++	}
++
++	return current_hartindex();
++}
++
++static void irqchip_aplic_fill_hwirq_targets_from_sysirq(const void *fdt,
++							 int aplic_nodeoff,
++							 struct aplic_data *pd)
++{
++	int chosen_off, nodeoff;
++	int len, rc, index;
++	const fdt32_t *val;
++	u32 boot_hartindex;
++
++	if (!fdt || aplic_nodeoff < 0 || !pd || !pd->hwirq_target_hartindex)
++		return;
++
++	chosen_off = fdt_path_offset(fdt, "/chosen/opensbi-domains");
++	if (chosen_off < 0)
++		return;
++
++	fdt_for_each_subnode(nodeoff, fdt, chosen_off) {
++		if (fdt_node_check_compatible(fdt, nodeoff,
++					      "opensbi,mpxy-sysirq"))
++			continue;
++
++		val = fdt_getprop(fdt, nodeoff, "opensbi,domain", &len);
++		if (!val || len < 4)
++			continue;
++
++		rc = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
++		if (rc < 0)
++			continue;
++
++		boot_hartindex = irqchip_aplic_domain_boot_hartindex((void *)fdt,
++								     rc);
++
++		for (index = 0; ; index++) {
++			struct fdt_phandle_args args;
++
++			rc = fdt_parse_phandle_with_args(fdt, nodeoff,
++							 "interrupts-extended",
++							 "#interrupt-cells",
++							 index, &args);
++			if (rc)
++				break;
++			if (args.args_count < 1)
++				continue;
++			if (args.node_offset != aplic_nodeoff)
++				continue;
++
++			u32 hwirq = args.args[0];
++
++			if (!hwirq || hwirq > pd->num_source)
++				continue;
++
++			if (pd->hwirq_target_hartindex[hwirq] == -1U)
++				pd->hwirq_target_hartindex[hwirq] =
++					boot_hartindex;
++		}
 +	}
 +}
 +
-+struct sbi_ecall_extension ecall_virq;
+ static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
+ 				   const struct fdt_match *match)
+ {
+@@ -85,6 +168,24 @@ static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
+ 			goto fail_free_idc_map;
+ 	}
+ 
++	/* Precompute target hartindex per HWIRQ from DT. */
++	if (pd->targets_mmode) {
++		u32 i;
 +
-+static int sbi_ecall_virq_register_extensions(void)
-+{
-+	int ret;
++		pd->hwirq_target_hartindex =
++			sbi_zalloc(sizeof(*pd->hwirq_target_hartindex) *
++				   (pd->num_source + 1));
++		if (!pd->hwirq_target_hartindex) {
++			rc = SBI_ENOMEM;
++			goto fail_free_idc_map;
++		}
 +
-+	ret = sbi_ecall_register_extension(&ecall_virq);
-+	sbi_printf("[ECALL VIRQ] register VIRQ ecall extensions, ret=%d\n", ret);
-+	return ret;
-+}
++		for (i = 0; i <= pd->num_source; i++)
++			pd->hwirq_target_hartindex[i] = -1U;
 +
-+struct sbi_ecall_extension ecall_virq = {
-+	.name        = "virq",
-+	.extid_start = SBI_EXT_VIRQ,
-+	.extid_end   = SBI_EXT_VIRQ,
-+	.register_extensions    = sbi_ecall_virq_register_extensions,
-+	.handle      = sbi_ecall_virq_handler,
-+};
++		irqchip_aplic_fill_hwirq_targets_from_sysirq(fdt, nodeoff, pd);
++	}
++
+ 	rc = aplic_cold_irqchip_init(pd);
+ 	if (rc)
+ 		goto fail_free_idc_map;
+@@ -93,6 +194,8 @@ static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
+ 	return 0;
+ 
+ fail_free_idc_map:
++	if (pd->hwirq_target_hartindex)
++		sbi_free(pd->hwirq_target_hartindex);
+ 	if (pd->num_idc)
+ 		sbi_free(pd->idc_map);
+ fail_free_data:
 -- 
 2.25.1
 
