@@ -4,70 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id D93EECD4F25
-	for <opensbi@archiver.kernel.org>; Thu, 14 May 2026 22:58:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 89760CD4F3D
+	for <opensbi@archiver.kernel.org>; Thu, 14 May 2026 22:58:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=xhhk3TU4K/ex/CX/cqmJyTcmZX5Z34MMCD0InUv1B1w=; b=eu0Ql3+biwfi1c
-	OHq8kwKGAeBzsGgOlt3lH1bPqZMee9pDD/syXMzBqVDSZYYsFWbrHsZwsdtB3xzhM5XWDrISNLQT+
-	EXvUI+sKbAVgc+GSnDejrEOAUCZn77W4NhiWsNkUhT04mGONIBSW+lPjebFeZA7f7L6D+bjqDBokX
-	QrgSngoJ53ng8D7jyJkpA1mjhJ6sQNIFb7RoL+ebBdmqvVMlBAnPTs0D+AVjEVifQKq+jzI2/lxWx
-	pgmnnefdH4tdlXjRHwSq6026xh+VRo8jVwGrbn9R4o/5hXZhy50ZtvWppMztMJ/Aw7l8PS5ylGHFX
-	dWViru2hVmRfVqYipY3w==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=9EuGQFWAqnc/7Jf10cVZj5b6rUkkogK7j1p4v/+nOS4=; b=GZwTfvfNznXMJ6
+	t4330WGq7VyEbFHi4tYdpDeFvMrW5OwiQpCD17Cjz4x4wGFpGo4qiA3HWIJTVNGXBF86IPliCgrIy
+	82P4cKgaIf2WbSZ71jKZAVnoNx54lOF0IJ1eVCrzQWsRR5SnFiGiCVhP4CvWYwuKB0qkHPFSqKh7r
+	LQ5MHk9AoVZMoCVgtY994dUpYs9C7QD5fmoUPAx4NtCwAL+tnnPVdVIW/LgbLWhuvBDCthmx4WGa2
+	yHTe0FZx1lUOUmSme/yULrBEWjntVhPSL+8RKlxwC3/IrVlnYuwzBy/8VdQUOvAznkE1B+vMb7LJn
+	ic+QtXYYXzOPyBNqCS5g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wNf0Q-00000006lv8-2PRv;
-	Thu, 14 May 2026 22:58:14 +0000
-Received: from mail-qv1-xf2f.google.com ([2607:f8b0:4864:20::f2f])
+	id 1wNf0T-00000006lwR-2isg;
+	Thu, 14 May 2026 22:58:17 +0000
+Received: from mail-qt1-x832.google.com ([2607:f8b0:4864:20::832])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wNf0N-00000006luH-34Ke
+	id 1wNf0Q-00000006lv3-3pIH
 	for opensbi@lists.infradead.org;
-	Thu, 14 May 2026 22:58:13 +0000
-Received: by mail-qv1-xf2f.google.com with SMTP id 6a1803df08f44-8b3fe2f19a4so81596486d6.2
-        for <opensbi@lists.infradead.org>; Thu, 14 May 2026 15:58:11 -0700 (PDT)
+	Thu, 14 May 2026 22:58:16 +0000
+Received: by mail-qt1-x832.google.com with SMTP id d75a77b69052e-50e5b55062fso63843911cf.2
+        for <opensbi@lists.infradead.org>; Thu, 14 May 2026 15:58:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778799490; x=1779404290; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=6B9ceZB0pPAgjl1YXosYpuwp6TSTmJgbYcHeAEZ+5x8=;
-        b=l3gCdFBCLJTGAl1iyGichHQcdVEgtvQYvXFj33y709wcTD61ZPn3jG/yg8Zq0P2LGU
-         jDe4YLp+62JxxPRy3qXrfjtStgdMYJAuRmufWkLIxvV/aJ4ruqmbziCcZI5uXy/Mrdky
-         hdRGdp4Dhmgw6L41OR7pEjMsx7QIcliqpZwc1VZiNBpbUMbxhG1o7/j7QQ/V7ifku7pG
-         xeSaTPqYp0Wc70EVnpgFeerceqwOS53CO5ND89cdUhzvige28fIyk3XNK94Faz8aLZpH
-         oRhYC1PjFH/I9kCfKObAqtqWjbw2S7KoEH8zOvHRE7gYwukJ1C0QPKh5Kq+zL02J7kWU
-         xWFg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778799490; x=1779404290;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1778799493; x=1779404293; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=6B9ceZB0pPAgjl1YXosYpuwp6TSTmJgbYcHeAEZ+5x8=;
-        b=j/p4S4/lTFEgMN6AQL1DAO756t4nZmpQLbxRsY/Je2M8blrmdrht7aQbH3ey1/M3n0
-         C6CPEXLPjyZ+6LvUoz0AltecKvw+0K5SV2A/9FV2JMzJuBdVqMvTDJVN1m0ebbpBQtb4
-         y3MslIcqIIssrq5/kNWMDQL1eYjDUfJRmT94v9xaET3dyt51MeGfFbmStcFMF7tqTrxW
-         8DJcb4DDDzJAArEZYj5ZTgxVi0OlAN8OYdGWHWbous1zS15PXV5u3OC9kTWT90c12T4v
-         7cAyv8PGYgEy4zr/waLSZnPMSd6VxVIUwY/xiktNBwl/oqAtHWU3SmGaHnMb26qHgNSG
-         GBBQ==
-X-Gm-Message-State: AOJu0Ywyurha477v6MTzE5j9sqCN0i/coWJDrPLA+hh99ejqeXbysC/v
-	aCEWTdzkzmcbu0nOB1Z0Zus2DsdLeDtkPww233qd3EruL7ZGhY1N+w1fic5g+g==
-X-Gm-Gg: Acq92OEYtxfsBfdz66F+F1a4N76hWCcOM8d1Q/41KrVhC76rkyr7O5y/bPtTubYWcq0
-	9zQzD6MFFfV8fFLlUUJN88zQ/yaPFd+ahWzI0CpHsJzlexPUKf5VxEJb2ZPu7+bay2CdwuDs1F3
-	DCNwssCiK1mKL2b2SZLeSrVja8GZ5i0lVDSaw17ZOLYv+I+uFY6I3nf95N94S+J+UWxIDUAgnM9
-	8sf+CLB85ScxuAcF1G35Q+ZHY4ktie6xM0t2hob85hr6+fELZuz7mcxxweKw512t2C1N8EcsPfO
-	Zt+UV1/6kktsG4s5CSnkbueEwfD/Xkjq6Jv4J3TEB7RNttyIUcaxQwBqzDWPJbc4Kw5k/mDz3UR
-	x/QVYWVDU0k4h9VUCjxeaD3B9bg9bHE9o+b1cTVja6Op3IJPq5OdRbUOSF2f11IDaVuBsOEXIEE
-	/bF7QoDd4TOJoT3busDx8DEZNKNZilscTLhiXZKhXXsEznmPaR4sQZ+OCf9bKw0ylM9P0BKpGDs
-	RaqoW7l8zc=
-X-Received: by 2002:a05:6214:3290:b0:89c:ac72:2f6e with SMTP id 6a1803df08f44-8ca0f6e1bd3mr27407076d6.43.1778799490034;
-        Thu, 14 May 2026 15:58:10 -0700 (PDT)
+        bh=3CBbJXvOHBZl+WiItxp3ug2ZoV9rGXwMa2OdXOZ6TvY=;
+        b=kpCVUxmH12S5J1BZDSTl5dOjGnuKUydhQpMQe5OTHoEisVZpITpmsfTr1Cw0k2NStp
+         7UAvkROPMHWKyRujUtieM+kMVitt555ZfyQqWONMDrWajeS9tgNwfwo26sbE28Jlu3iJ
+         NNOw5VLKFLDOKMOnGFmxuRQ9sfBdbQJLm26ypuWxjcR5ONOCr1wMkLnVpdi6jXX+QR3T
+         ozyMAvGT72iLtuleJDX9JQ7ez1lF/OoxEuN6BrlgPOeV1PS1Y7N2Fu3473kUvmMxT5x8
+         yXtpXixPyE2HvWVNvrZ3pi3M/6FL7424zmWOJs82626gXop/UV5Hxh+/L2BFhLHgoFud
+         6mMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778799493; x=1779404293;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=3CBbJXvOHBZl+WiItxp3ug2ZoV9rGXwMa2OdXOZ6TvY=;
+        b=GTlfukDFIRrfnmAkELyMRy7Fg7T/qWkV5Gc8wKZyJXDZnK5YGnbq1hKsLgqSEV2CSd
+         x3q4MbuWxZnjcCSkI0gfOB2FKMpWELIkyf6Hzu+i09UXx7wr5weePLcOp6t9CIJ9mjhm
+         foaR8I2PQ/4YBhqi9DXjtsz6MQ9ArNAmat12iCsGWNXY58CQJrLLcnMJ1lVyGibQBv0F
+         7geeEky1PmZpDs1ujQrTFGpRK+m4YqCd1mxGsgD74MwyGf0KvpoN/Tj/9T130DypPL0z
+         qGHhLbRfLJ0dhvCTnSPy4EKxNB8akTfJn35hJjVyVi3Qg4DPqXcdVme8Y+yNjbILGfKu
+         l9YA==
+X-Gm-Message-State: AOJu0YyfXjjwrukAGn2OF+TBJE1LJNGENi4gBUnVMPMhNWoNpeWMGpNp
+	TyYYF/7CJRvoUMWaLgtvmfB9Ue4afhtOIYiu+aXYLbVki7MYEQHGlFjqDsaxQg==
+X-Gm-Gg: Acq92OGgWF3ojcXRAwIf5BAacxvRLZ+G1+tDhqaDNW2WFqXyqpOchMqqC7JKAG+7Ml9
+	9ATRbTviqKKqT+PtJPm02LrL0Nf+60VoeVj/MMr0p0EnSwKtMd6sfFek1cf0Z7Dkqwq1yWld++t
+	swNl6nTeWRy6dL8XRDWssKJOBpyPYr5Mns2TktvFA12MIMLMFh3RWZBptkTLWnCUtAk+RkPhHNi
+	P4m3XkzY0r3dpTzbQiJj4tEDrFXr5LXqlx8r7blna52c9z706AQ/BD0X8OA9GVpl//MRqPTDiMj
+	hUdX+H8T1YaZdQ2RBFuLfJijioIlsfKPQ9kmbKnEgbv5AuFYMoPTYcPuP3HBmJnkQMcFqnbnZJh
+	Pc9d9fyUKVOJCMfqGsLLEdNNU/CRo1hodEBI1j+O+yIDY88NZUDVNkQXeVlMQSWMlRt/3MxgsF9
+	UIH6j1XyDJlnsO91PobtzC07tySKZ9xxTXfOgfyFCzqQdUaikgmae683d8eJleNuNSyC7gJ4MM9
+	eSky4+bGM4vj9k1yz6wow==
+X-Received: by 2002:ac8:5c92:0:b0:50f:783d:8cb1 with SMTP id d75a77b69052e-5165a29619bmr21015441cf.58.1778799493349;
+        Thu, 14 May 2026 15:58:13 -0700 (PDT)
 Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8c90c16366csm34974426d6.40.2026.05.14.15.58.09
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8c90c16366csm34974426d6.40.2026.05.14.15.58.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 May 2026 15:58:09 -0700 (PDT)
+        Thu, 14 May 2026 15:58:13 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -80,14 +81,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH 00/10] Introduce Virtual IRQ (VIRQ) framework
-Date: Thu, 14 May 2026 18:57:46 -0400
-Message-Id: <20260514225756.2255758-1-raymondmaoca@gmail.com>
+Subject: [PATCH 01/10] lib: irqchip: add S-mode notification helpers
+Date: Thu, 14 May 2026 18:57:47 -0400
+Message-Id: <20260514225756.2255758-2-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20260514225756.2255758-1-raymondmaoca@gmail.com>
+References: <20260514225756.2255758-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260514_155811_813531_EEE1F490 
-X-CRM114-Status: GOOD (  13.21  )
+X-CRM114-CacheID: sfid-20260514_155814_959671_6A599A3C 
+X-CRM114-Status: GOOD (  10.25  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -106,78 +109,85 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-This series introduces a Virtual IRQ (VIRQ) framework for OpenSBI to
-support domain-aware wired interrupt couriering.
+Add irqchip helpers to set/clear S-mode notification (SEIP-based),
+In addition to set/clear, expose a get API to read the current
+notification state so upper layers can do edge-triggered notification.
 
-The main use case is to let OpenSBI receive a host HWIRQ in M-mode,
-map it into a per-channel VIRQ number space, route it to a target
-domain, notify the target S-mode payload, and let that payload
-pop/complete the pending VIRQ through an SBI ecall interface.
+Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
+---
+ include/sbi/sbi_irqchip.h | 24 ++++++++++++++++++++++++
+ lib/sbi/sbi_irqchip.c     | 18 +++++++++++++++++-
+ 2 files changed, 41 insertions(+), 1 deletion(-)
 
-The implementation is organized as follows:
-
-  - add irqchip helpers for S-mode pending notification
-  - extend domain context switching to support VIRQ-driven
-    cross-domain couriering and return-to-previous-domain flow
-  - add the core VIRQ mapping, routing, and per-(domain,hart)
-    pending queue framework
-  - add a VIRQ vendor ecall extension for POP and COMPLETE
-  - parse sysirq routing rules from DT under /chosen/opensbi-domains
-  - derive APLIC target hart routing from sysirq nodes
-  - update the irqchip/APLIC path to support deferred completion and
-    per-HWIRQ APLIC targets
-  - document the DT binding and routing rules
-
-The DT routing model is based on "opensbi,mpxy-sysirq" nodes.
-Each interrupts-extended entry contributes one routed physical source,
-its entry index becomes the VIRQ number within the selected
-opensbi,mpxy-channel-id, and opensbi,domain selects the destination
-OpenSBI domain.
-
-This series depends on a previous patch set:
-[PATCH v2 1/3] lib: utils: irqchip: implement APLIC hwirq operation hooks
-https://lore.kernel.org/opensbi/20260504171342.1655882-1-raymondmaoca@gmail.com/#t
-
-Raymond Mao (10):
-  lib: irqchip: add S-mode notification helpers
-  lib: sbi: domain: adaptation for supporting VIRQ couriering domain
-    context switch
-  lib: sbi: Add Virtual IRQ (VIRQ) subsystem
-  lib: sbi: Add VIRQ ecall extension
-  lib: sbi: domain: add domain lookup by name
-  lib: utils: fdt: parse sysirq routing from DT
-  lib: utils: irqchip: derive APLIC targets from sysirq nodes
-  lib: irqchip: support deferred completion and per-HWIRQ APLIC targets
-  lib: sbi: domain: ensure boot_hartid is assigned
-  docs: domain: document sysirq VIRQ mapping and routing rules
-
- docs/domain_support.md                |   63 ++
- include/sbi/sbi_domain.h              |    7 +
- include/sbi/sbi_domain_context.h      |   24 +
- include/sbi/sbi_ecall_interface.h     |   26 +
- include/sbi/sbi_irqchip.h             |   24 +
- include/sbi/sbi_virq.h                |  492 +++++++++++
- include/sbi_utils/fdt/fdt_helper.h    |   17 +
- include/sbi_utils/irqchip/aplic.h     |    1 +
- lib/sbi/Kconfig                       |   10 +
- lib/sbi/objects.mk                    |    4 +
- lib/sbi/sbi_domain.c                  |   49 ++
- lib/sbi/sbi_domain_context.c          |  152 +++-
- lib/sbi/sbi_ecall_virq.c              |   56 ++
- lib/sbi/sbi_irqchip.c                 |   39 +-
- lib/sbi/sbi_trap.c                    |   16 +
- lib/sbi/sbi_virq.c                    | 1136 +++++++++++++++++++++++++
- lib/utils/fdt/fdt_domain.c            |  119 ++-
- lib/utils/fdt/fdt_helper.c            |   49 ++
- lib/utils/irqchip/aplic.c             |   60 +-
- lib/utils/irqchip/fdt_irqchip_aplic.c |  103 +++
- 20 files changed, 2429 insertions(+), 18 deletions(-)
- create mode 100644 include/sbi/sbi_virq.h
- create mode 100644 lib/sbi/sbi_ecall_virq.c
- create mode 100644 lib/sbi/sbi_virq.c
-
+diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
+index 77b54110..7f23615a 100644
+--- a/include/sbi/sbi_irqchip.h
++++ b/include/sbi/sbi_irqchip.h
+@@ -110,4 +110,28 @@ int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot);
+ /** Exit interrupt controllers */
+ void sbi_irqchip_exit(struct sbi_scratch *scratch);
+ 
++/**
++ * Notify S-mode for a pending virtual interrupt on this hart.
++ *
++ * The irqchip layer abstracts the notification mechanism; on platforms that
++ * use SEIP, this sets mip.SEIP.
++ */
++int sbi_irqchip_notify_smode_set(void);
++
++/**
++ * Clear S-mode notification for virtual interrupts on this hart.
++ *
++ * The irqchip layer abstracts the notification mechanism; on platforms that
++ * use SEIP, this clears mip.SEIP.
++ */
++void sbi_irqchip_notify_smode_clear(void);
++
++/**
++ * Read S-mode notification state for virtual interrupts on this hart.
++ *
++ * The irqchip layer abstracts the notification mechanism; on platforms that
++ * use SEIP, this reads mip.SEIP.
++ */
++bool sbi_irqchip_notify_smode_get(void);
++
+ #endif
+diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
+index f8599fa6..e022d534 100644
+--- a/lib/sbi/sbi_irqchip.c
++++ b/lib/sbi/sbi_irqchip.c
+@@ -122,7 +122,7 @@ int sbi_irqchip_raw_handler_default(struct sbi_irqchip_device *chip, u32 hwirq)
+ 	sbi_printf("[IRQCHIP] Calling hwirq %u raw handler callback\n", hwirq);
+ 	rc = h->callback(hwirq, h->priv);
+ 
+-	if (chip->hwirq_eoi) {
++	if (chip->hwirq_eoi && rc != SBI_EALREADY) {
+ 		sbi_printf("[IRQCHIP] Calling EOI of hwirq %u\n", hwirq);
+ 		chip->hwirq_eoi(chip, hwirq);
+ 	}
+@@ -320,3 +320,19 @@ void sbi_irqchip_exit(struct sbi_scratch *scratch)
+ 	if (hd && hd->chip && hd->chip->process_hwirqs)
+ 		csr_clear(CSR_MIE, MIP_MEIP);
+ }
++
++int sbi_irqchip_notify_smode_set(void)
++{
++	csr_set(CSR_MIP, MIP_SEIP);
++	return 0;
++}
++
++void sbi_irqchip_notify_smode_clear(void)
++{
++	csr_clear(CSR_MIP, MIP_SEIP);
++}
++
++bool sbi_irqchip_notify_smode_get(void)
++{
++	return !!(csr_read(CSR_MIP) & MIP_SEIP);
++}
 -- 
 2.25.1
+
 
 -- 
 opensbi mailing list
