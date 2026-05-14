@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 85908CD4F39
-	for <opensbi@archiver.kernel.org>; Thu, 14 May 2026 22:58:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AE7C8CD4F25
+	for <opensbi@archiver.kernel.org>; Thu, 14 May 2026 22:58:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=YcfmGtKeLnYXd+U/gksEU1BDR116YmX1TWTvTAC99mw=; b=yeaqOhBBD136hf
-	GUI2k7aLmSoFdBofYYoHORvC0eup3VzsnEyZ3NL1p+Vusqw3eSA4W550fxymKzpHv76BTzn5PwAuX
-	OEoBwodEymXtHu9UihiCvXNURQOIUc9SBGDgBOKHm4X94jhfOJJs+S3LnGIwIBfas41xJvvZRj3aB
-	XSS7uTnsRBomfOPKyvgLTY30O8CpHuENNHHnkpq1Lc2SZ4BbErQjk17Ur7CU1S8NpFzmLNoE/ao+a
-	NtFd/aH7dFBAzeAQq/RFMYtrKCG2VxI9juCT/ucHmfGkOvS9Dpodiey9HX3jdfW5h7P/fs7Y3ZY84
-	WREjZBuCf4eqHtybzR8Q==;
+	List-Owner; bh=G8Uw00BheBZg2Fvd4gR4vgrtjyPN1XsjO6EfYl7lb24=; b=VNTJXhObFVnaVN
+	r1931wGq5iGV3CpH0/YbJzEnfx26e2bqAXXdr669dp3iwtGktpiYl/jlYjyuSrDNfmvr36vKn9b+l
+	Td0x45uamxCL5646axd/Z1W+cvZyUqOGVaitJAaX0+GJoqz24u+cxHXzCrklENPmqQz4D9iIAdo8z
+	gxWBS63IqIlzvcfaMhfwnGivsqYtLfMPlhtpIggVjBd8xH2GT1TiQTBAGbCFz5P2mt7p/ljwHLMZL
+	FkAMdxCvK41W4XIduWszPJKkDo4l/k8jzU0bmk+U6AKOmkeJIgkgqj3aNabyOvMuWtJx9i8rgXORd
+	Ets2KgtqcTjW/R6f32TA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wNf0f-00000006m5l-2Zmj;
-	Thu, 14 May 2026 22:58:29 +0000
-Received: from mail-qv1-xf34.google.com ([2607:f8b0:4864:20::f34])
+	id 1wNf0h-00000006m7n-2vkZ;
+	Thu, 14 May 2026 22:58:31 +0000
+Received: from mail-qv1-xf36.google.com ([2607:f8b0:4864:20::f36])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wNf0d-00000006m2g-10kD
+	id 1wNf0e-00000006m4V-3uRI
 	for opensbi@lists.infradead.org;
-	Thu, 14 May 2026 22:58:28 +0000
-Received: by mail-qv1-xf34.google.com with SMTP id 6a1803df08f44-8b4298d271fso133128356d6.3
-        for <opensbi@lists.infradead.org>; Thu, 14 May 2026 15:58:26 -0700 (PDT)
+	Thu, 14 May 2026 22:58:30 +0000
+Received: by mail-qv1-xf36.google.com with SMTP id 6a1803df08f44-8c92737a8d3so8751146d6.1
+        for <opensbi@lists.infradead.org>; Thu, 14 May 2026 15:58:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778799506; x=1779404306; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1778799507; x=1779404307; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=m1MwrApCDgBZqkiFCvRZ4dDoviULjdi5FtmKaZth3us=;
-        b=I2tAUOeI0csH+it2A6tMXnbJ0gK3yEF4x96hyNowjjQb6AJBUAWz4DHPXeouBcQNrr
-         JpSWdrUZbbvjP1MdLD9T4RBwJXoU3aDqlwK0cJNX8LIXMy8j4ceDz/Fcos6EukVIGpwU
-         eVazeBOnvkxOhByPcogL+o8MOM9k2H55fAO7ehqZj7jD/JAUSjzePMCRcEC8EKj1Jyi6
-         r3pt2SxKvgyu3vkpZW04hAZeiThaXSZQxiiwf6i+xsPnEj4anzpoHhTmz8tgaCdEX9mR
-         pkjtgUbuZeMDMbkoqpaKGFfeblFtd0WCKoGawEUf46Ba32p4agb+ZJeb9Wy8N14469oz
-         TB3Q==
+        bh=nAPu8svqAobePpZN0TO9jgIKKrtGuLJJsHG/JJ9OsMs=;
+        b=JE3paHE06Jz3CIvmdymUGL+W9ts4svJjfTFJhNXtUSVTjGWBYr1qDryXnEvHkAexHA
+         sXYD5U6rQ4/v3FipUM5NVOfjDqYi6gnStrMa98yIPL4Syp0w4UFSK70QyxyRkUN3KzkD
+         VXdhv3+bKVzKGRYk+u5dcn4paVAzHeEp7osLSpSbYpUdBKbk5fQqMk+mNnJrFKtxan8T
+         uoFE8TDoRJyBaDaBeTEU1jKt9eDmoU2UHu1AzatdvEGG2lG53kKf7ouCfOm3Lyz5d54A
+         SJf2HfuBslBAq1G+oQRvczBxvObMsbFh+fV3XCSukVQOGvZod/nhUPuPfr8fZQQhriVd
+         3XwQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778799506; x=1779404306;
+        d=1e100.net; s=20251104; t=1778799507; x=1779404307;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=m1MwrApCDgBZqkiFCvRZ4dDoviULjdi5FtmKaZth3us=;
-        b=OIUPXFWl1iA/YHbEg/NFSlaacVQPSJeD7Dc/tO6CAMYyhC2sOQx7hfKE11wXdlJotm
-         6Cc+dZnnATJaHbdfYGviLSpB4gwsIfqJqrYsfRSh4/Jx0P5asUpp6vEJp/qnw1tg5dfU
-         SiCG8IJ9qWv0r6mSTHTNSWuH0xN8v71HABLbWiHaU4v6Wk/JApgtabzATUkHWySSVGld
-         xeazmhWhygP7jBaplSwkC3jmu8n+dlri/HS2oRcFh6K2djuWr5fb9+mvWoMMCVaVaDy7
-         9Bi9eXHRsLg7sDAgQWESa8fLHfsfJbmLP7Di0HOC4lmcg7nrg4wUSF2FMn1xTGw4wkn3
-         P+AQ==
-X-Gm-Message-State: AOJu0Yxeqi7tX1uEM1qzWIIKYXUgJHiJlmeMdygUIDiRor519dQR5A1y
-	HFFqz0edjU4a2i1ZjKZdcN8DcdC/dnt8vsj260Nhh8bQt3AQHd+rSMUDBuckDw==
-X-Gm-Gg: Acq92OH0n9nHQZUpQ/d7ybCdTQpH6laHc1vn6S4mmCo8iZRhflpsqxJrbkiy19ZSJD3
-	YjJLJBFL6U7OhNmWtThTFc90HQeXQ67U8KNE/PsacxCgFFQM/jkm+3jNuFBXasaM8Pkug8/RBeT
-	nNKjnTYdU/ZDR8hHZllhl/2PgJ3jqdgp6gasYeTQRrAKzclzz/zpbOVOhy4BPj6ZmoT6UhhxqMx
-	Y/MZcN+1NoEUvH32jXhotyVqjRZMxwjrMBb7DxBsqYUzonhPR1wIleQ0sIg8w1gGYl5pPXVxuUH
-	ZD4ljhNRH2DgZ5vYrOjkhRMnLy1LP/VR6NpAU9hDiaSj6ZBsQsz+TObRqRkkTJaAJgS6M1aG5k8
-	31NC6VAgusPQrxVu7z9B2C4kp8xeLmO1aAXxdGhJiTY78XHqkCxBB4PyOkl5HPJKT2P9kBTsRD6
-	TQ7Z12MBElfdxUfA3fNvDGHpKN3VQ7gFZDsHBBI92x88CHu481Z9RACWzwWTxZGB1/1Ev6Q1Ucv
-	EcBUejrEBTPPd0Mr6t+fQ==
-X-Received: by 2002:a05:6214:601b:b0:8bd:c9ca:7b5c with SMTP id 6a1803df08f44-8ca0f6e4e26mr26494606d6.44.1778799505771;
-        Thu, 14 May 2026 15:58:25 -0700 (PDT)
+        bh=nAPu8svqAobePpZN0TO9jgIKKrtGuLJJsHG/JJ9OsMs=;
+        b=LgS0pdveRgMEURBg19dFaXUrmcL64r/yHCCzo9aEZjSKm0ANCeTKG7BhflU82J+R1q
+         jwekWiUM/L68MHPSeqH2QlWRWHXz1ied0uXDun4dsbyHDnv2X3tuh3GVxMBKNfYltjdV
+         HMbw78sHDmQgEtdM+xwIApnJV7Fg6V4PeUUdFDlUAtlFIEB6NdHK9nVBxBCc6FirTkrA
+         zpPMfdQR8IYqtrzPSiXZ+nViwNREU4Si+ftMBOjZA3GsDBJp/F83KIAP6LnqW55u1+lx
+         o9b3gERumMNoqPeKj8XZnW3PNlwOAb39NByIiNwjwvqQhid4tazlq3PLXYePTQpeTpeq
+         kYvA==
+X-Gm-Message-State: AOJu0Yyd6i/zo7l5tE8sJSI8cPXbCAMx2cOgV0lL3VUOnkZzxKzfoLAO
+	yQRMfRycShjhZ/iWMBFCI4tXrFaqXBa3bgRFjrOd1BCGge6Fd6qhLoZPUC3fWw==
+X-Gm-Gg: Acq92OEMIHatjaN5usotNjdkFpNhOPxgHE25UqvlZ/NexpS1lEjUX1Vd7KVMy4GjYga
+	uCDbctxT16KacVfKrrJ6VAvSI5wKSawTz7+4U4r36+c16N2vZOjCrPHUxlS5fCjCm3T7gsa7snb
+	PqlxAEcdun5YEiVjBQwWfq27JgfoDiOb54S31KT/gzKgzSI6rPFSBoSUAVJ4elmZbOqupZ7HB/a
+	8Z1ul5jDbvPAmi5/6MVNahXVAz4egl2IBSqItmkykhPiVGdCwCV4AxvqzDXU11Jw1tKjF/wE9nE
+	VC20CXpWdhrkRqzpEH6RDQDtJyz6yAR1n+tBz/0WLua4b3Y3L44tNHcialT1s931mU0u+hv4a5b
+	CisVzAQnhQL8lkkj6RH5NPwiVL2vnjUqcp/00OWm/UZrDcQ5OJyBwMXSm6OS11tkPyQn8Qdv0Fh
+	6uENWFBXe7NDyD5EgE2oPTa8f4P2TCjDg3Tf6GICpYAy9wXFQQss9WIg/fV5mWycRODQBnndT/f
+	Kj2sLpGl1k=
+X-Received: by 2002:a05:6214:4708:b0:8ac:b4d5:50e4 with SMTP id 6a1803df08f44-8ca0f67fc67mr26177476d6.38.1778799507505;
+        Thu, 14 May 2026 15:58:27 -0700 (PDT)
 Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8c90c16366csm34974426d6.40.2026.05.14.15.58.24
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8c90c16366csm34974426d6.40.2026.05.14.15.58.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 May 2026 15:58:25 -0700 (PDT)
+        Thu, 14 May 2026 15:58:27 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -81,16 +81,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH 07/10] lib: utils: irqchip: derive APLIC targets from sysirq nodes
-Date: Thu, 14 May 2026 18:57:53 -0400
-Message-Id: <20260514225756.2255758-8-raymondmaoca@gmail.com>
+Subject: [PATCH 08/10] lib: irqchip: support deferred completion and per-HWIRQ APLIC targets
+Date: Thu, 14 May 2026 18:57:54 -0400
+Message-Id: <20260514225756.2255758-9-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260514225756.2255758-1-raymondmaoca@gmail.com>
 References: <20260514225756.2255758-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260514_155827_305693_3E0AAA98 
-X-CRM114-Status: GOOD (  17.30  )
+X-CRM114-CacheID: sfid-20260514_155828_990216_102C000A 
+X-CRM114-Status: GOOD (  16.69  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,164 +109,176 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Derive a per-HWIRQ target hartindex map from each sysirq node's
-target domain boot-hart, and store the result in aplic_data.
-This is used for setting IDC target per HWIRQ under irqchip driver
-instead of hardcoding to a specific target.
+Lazily resolve the active irqchip provider for each hart when the
+scratch-local provider is not yet populated.
+Program APLIC target IDCs from the precomputed per-HWIRQ hart map,
+and treat SBI_EALREADY as deferred completion so the normal process
+path does not complete an interrupt that will be finished later by
+the VIRQ flow.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi_utils/irqchip/aplic.h     |   1 +
- lib/utils/irqchip/fdt_irqchip_aplic.c | 103 ++++++++++++++++++++++++++
- 2 files changed, 104 insertions(+)
+ lib/sbi/sbi_irqchip.c     | 21 ++++++++++++++
+ lib/utils/irqchip/aplic.c | 60 ++++++++++++++++++++++++++++++---------
+ 2 files changed, 68 insertions(+), 13 deletions(-)
 
-diff --git a/include/sbi_utils/irqchip/aplic.h b/include/sbi_utils/irqchip/aplic.h
-index 3461d1c7..d6e088f8 100644
---- a/include/sbi_utils/irqchip/aplic.h
-+++ b/include/sbi_utils/irqchip/aplic.h
-@@ -47,6 +47,7 @@ struct aplic_data {
- 	struct aplic_msicfg_data msicfg_smode;
- 	struct aplic_delegate_data delegate[APLIC_MAX_DELEGATE];
- 	u32 *idc_map;
-+	u32 *hwirq_target_hartindex;
- };
+diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
+index e022d534..45b2992f 100644
+--- a/lib/sbi/sbi_irqchip.c
++++ b/lib/sbi/sbi_irqchip.c
+@@ -45,11 +45,28 @@ struct sbi_irqchip_hart_data {
+ static unsigned long irqchip_hart_data_off;
+ static SBI_LIST_HEAD(irqchip_list);
  
- int aplic_cold_irqchip_init(struct aplic_data *aplic);
-diff --git a/lib/utils/irqchip/fdt_irqchip_aplic.c b/lib/utils/irqchip/fdt_irqchip_aplic.c
-index f9b567f5..cbbdf8d8 100644
---- a/lib/utils/irqchip/fdt_irqchip_aplic.c
-+++ b/lib/utils/irqchip/fdt_irqchip_aplic.c
-@@ -13,6 +13,7 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <sbi_utils/irqchip/fdt_irqchip.h>
- #include <sbi_utils/irqchip/aplic.h>
-@@ -54,6 +55,88 @@ static int irqchip_aplic_update_idc_map(const void *fdt, int nodeoff,
- 	return 0;
- }
- 
-+static u32 irqchip_aplic_domain_boot_hartindex(void *fdt, int domain_offset)
++static struct sbi_irqchip_device *sbi_irqchip_find_hart_device(u32 hartindex)
 +{
-+	int len, cpu_offset;
-+	const fdt32_t *val;
++	struct sbi_irqchip_device *chip;
 +
-+	val = fdt_getprop(fdt, domain_offset, "boot-hart", &len);
-+	if (val && len >= 4) {
-+		cpu_offset = fdt_node_offset_by_phandle(fdt,
-+							fdt32_to_cpu(*val));
-+		if (cpu_offset >= 0) {
-+			u32 hartid;
-+
-+			if (!fdt_parse_hart_id(fdt, cpu_offset, &hartid)) {
-+				u32 hidx = sbi_hartid_to_hartindex(hartid);
-+
-+				if (sbi_hartindex_valid(hidx))
-+					return hidx;
-+			}
-+		}
++	sbi_list_for_each_entry(chip, &irqchip_list, node) {
++		if (!chip->process_hwirqs)
++			continue;
++		if (!sbi_hartmask_test_hartindex(hartindex, &chip->target_harts))
++			continue;
++		return chip;
 +	}
 +
-+	return current_hartindex();
++	return NULL;
 +}
 +
-+static void irqchip_aplic_fill_hwirq_targets_from_sysirq(const void *fdt,
-+							 int aplic_nodeoff,
-+							 struct aplic_data *pd)
-+{
-+	int chosen_off, nodeoff;
-+	int len, rc, index;
-+	const fdt32_t *val;
-+	u32 boot_hartindex;
-+
-+	if (!fdt || aplic_nodeoff < 0 || !pd || !pd->hwirq_target_hartindex)
-+		return;
-+
-+	chosen_off = fdt_path_offset(fdt, "/chosen/opensbi-domains");
-+	if (chosen_off < 0)
-+		return;
-+
-+	fdt_for_each_subnode(nodeoff, fdt, chosen_off) {
-+		if (fdt_node_check_compatible(fdt, nodeoff,
-+					      "opensbi,mpxy-sysirq"))
-+			continue;
-+
-+		val = fdt_getprop(fdt, nodeoff, "opensbi,domain", &len);
-+		if (!val || len < 4)
-+			continue;
-+
-+		rc = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
-+		if (rc < 0)
-+			continue;
-+
-+		boot_hartindex = irqchip_aplic_domain_boot_hartindex((void *)fdt,
-+								     rc);
-+
-+		for (index = 0; ; index++) {
-+			struct fdt_phandle_args args;
-+
-+			rc = fdt_parse_phandle_with_args(fdt, nodeoff,
-+							 "interrupts-extended",
-+							 "#interrupt-cells",
-+							 index, &args);
-+			if (rc)
-+				break;
-+			if (args.args_count < 1)
-+				continue;
-+			if (args.node_offset != aplic_nodeoff)
-+				continue;
-+
-+			u32 hwirq = args.args[0];
-+
-+			if (!hwirq || hwirq > pd->num_source)
-+				continue;
-+
-+			if (pd->hwirq_target_hartindex[hwirq] == -1U)
-+				pd->hwirq_target_hartindex[hwirq] =
-+					boot_hartindex;
-+		}
-+	}
-+}
-+
- static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
- 				   const struct fdt_match *match)
+ int sbi_irqchip_process(void)
  {
-@@ -85,6 +168,24 @@ static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
- 			goto fail_free_idc_map;
+ 	struct sbi_irqchip_hart_data *hd;
+ 
+ 	hd = sbi_scratch_thishart_offset_ptr(irqchip_hart_data_off);
++	if (hd && !hd->chip)
++		hd->chip = sbi_irqchip_find_hart_device(current_hartindex());
+ 	if (!hd || !hd->chip || !hd->chip->process_hwirqs)
+ 		return SBI_ENODEV;
+ 
+@@ -306,6 +323,8 @@ int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot)
  	}
  
-+	/* Precompute target hartindex per HWIRQ from DT. */
-+	if (pd->targets_mmode) {
-+		u32 i;
+ 	hd = sbi_scratch_thishart_offset_ptr(irqchip_hart_data_off);
++	if (hd && !hd->chip)
++		hd->chip = sbi_irqchip_find_hart_device(current_hartindex());
+ 	if (hd && hd->chip && hd->chip->process_hwirqs)
+ 		csr_set(CSR_MIE, MIP_MEIP);
+ 
+@@ -317,6 +336,8 @@ void sbi_irqchip_exit(struct sbi_scratch *scratch)
+ 	struct sbi_irqchip_hart_data *hd;
+ 
+ 	hd = sbi_scratch_thishart_offset_ptr(irqchip_hart_data_off);
++	if (hd && !hd->chip)
++		hd->chip = sbi_irqchip_find_hart_device(current_hartindex());
+ 	if (hd && hd->chip && hd->chip->process_hwirqs)
+ 		csr_clear(CSR_MIE, MIP_MEIP);
+ }
+diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+index 82efdb71..77743685 100644
+--- a/lib/utils/irqchip/aplic.c
++++ b/lib/utils/irqchip/aplic.c
+@@ -306,6 +306,8 @@ static inline struct aplic_data *aplic_irqchip_to_data(struct sbi_irqchip_device
+ 	return container_of(chip, struct aplic_data, irqchip);
+ }
+ 
++static bool aplic_mmode_direct(const struct aplic_data *aplic);
 +
-+		pd->hwirq_target_hartindex =
-+			sbi_zalloc(sizeof(*pd->hwirq_target_hartindex) *
-+				   (pd->num_source + 1));
-+		if (!pd->hwirq_target_hartindex) {
-+			rc = SBI_ENOMEM;
-+			goto fail_free_idc_map;
+ static bool aplic_hwirq_delegated(const struct aplic_data *aplic, u32 hwirq)
+ {
+ 	u32 i;
+@@ -441,10 +443,49 @@ static int aplic_hwirq_claim(struct sbi_irqchip_device *chip, u32 *hwirq)
+ 	return SBI_OK;
+ }
+ 
++static void aplic_set_target(struct aplic_data *aplic, u32 hwirq, u32 idc_index)
++{
++	unsigned long idc;
++
++	if (!aplic->addr || !hwirq || hwirq > aplic->num_source)
++		return;
++	if (aplic->num_idc <= idc_index)
++		return;
++
++	idc = aplic->addr + APLIC_IDC_BASE +
++	      (unsigned long)idc_index * APLIC_IDC_SIZE;
++
++	writel((idc_index << APLIC_TARGET_HART_IDX_SHIFT) |
++	       APLIC_DEFAULT_PRIORITY,
++	       (void *)(aplic->addr + APLIC_TARGET_BASE + (hwirq - 1) * 4));
++
++	/* IDC delivery */
++	writel(APLIC_ENABLE_IDELIVERY, (void *)(idc + APLIC_IDC_IDELIVERY));
++	writel(APLIC_ENABLE_ITHRESHOLD, (void *)(idc + APLIC_IDC_ITHRESHOLD));
++}
++
++static int aplic_hwirq_setup_target_idc_index(struct aplic_data *aplic,
++					      struct sbi_irqchip_device *chip,
++					      u32 hwirq)
++{
++	u32 hartindex;
++	int idc_index;
++
++	if (aplic->hwirq_target_hartindex) {
++		hartindex = aplic->hwirq_target_hartindex[hwirq];
++		if (hartindex != -1U) {
++			idc_index = aplic_hartindex_to_idc_index(aplic, hartindex);
++			if (idc_index >= 0)
++				return idc_index;
 +		}
-+
-+		for (i = 0; i <= pd->num_source; i++)
-+			pd->hwirq_target_hartindex[i] = -1U;
-+
-+		irqchip_aplic_fill_hwirq_targets_from_sysirq(fdt, nodeoff, pd);
 +	}
 +
- 	rc = aplic_cold_irqchip_init(pd);
- 	if (rc)
- 		goto fail_free_idc_map;
-@@ -93,6 +194,8 @@ static int irqchip_aplic_cold_init(const void *fdt, int nodeoff,
- 	return 0;
++	return aplic_hwirq_target_idc_index(chip);
++}
++
+ static int aplic_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq)
+ {
+ 	struct aplic_data *aplic = aplic_irqchip_to_data(chip);
+-	unsigned long idc;
+ 	int idc_index;
  
- fail_free_idc_map:
-+	if (pd->hwirq_target_hartindex)
-+		sbi_free(pd->hwirq_target_hartindex);
- 	if (pd->num_idc)
- 		sbi_free(pd->idc_map);
- fail_free_data:
+ 	if (!hwirq || hwirq > aplic->num_source)
+@@ -454,29 +495,19 @@ static int aplic_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq)
+ 	if (aplic_hwirq_delegated(aplic, hwirq))
+ 		return SBI_ENOTSUPP;
+ 
+-	idc_index = aplic_hwirq_target_idc_index(chip);
++	idc_index = aplic_hwirq_setup_target_idc_index(aplic, chip, hwirq);
+ 	if (idc_index < 0)
+ 		return idc_index;
+ 
+-	idc = aplic->addr + APLIC_IDC_BASE + idc_index * APLIC_IDC_SIZE;
+-
+ 	/* APLIC: sourcecfg/target/enable */
+ 	writel(APLIC_SOURCECFG_SM_LEVEL_HIGH,
+ 	       (void *)(aplic->addr + APLIC_SOURCECFG_BASE + (hwirq - 1) * 4));
+-
+-	writel(((u32)idc_index << APLIC_TARGET_HART_IDX_SHIFT) |
+-	       APLIC_DEFAULT_PRIORITY,
+-	       (void *)(aplic->addr + APLIC_TARGET_BASE + (hwirq - 1) * 4));
+-
++	aplic_set_target(aplic, hwirq, (u32)idc_index);
+ 	writel(hwirq, (void *)(aplic->addr + APLIC_SETIENUM));
+ 
+ 	/* Direct mode for aia=aplic: DM=0 => don't set DM bit */
+ 	writel(aplic_domaincfg_value(), (void *)(aplic->addr + APLIC_DOMAINCFG));
+ 
+-	/* IDC delivery */
+-	writel(APLIC_ENABLE_IDELIVERY, (void *)(idc + APLIC_IDC_IDELIVERY));
+-	writel(APLIC_ENABLE_ITHRESHOLD, (void *)(idc + APLIC_IDC_ITHRESHOLD));
+-
+ 	return SBI_OK;
+ }
+ 
+@@ -502,6 +533,9 @@ static int aplic_process_hwirqs(struct sbi_irqchip_device *chip)
+ 		}
+ 
+ 		rc = sbi_irqchip_process_hwirq(chip, hwirq);
++		/* Deferred completion paths consume the IRQ without EOI here. */
++		if (rc == SBI_EALREADY)
++			return SBI_OK;
+ 		if (rc)
+ 			return rc;
+ 	}
 -- 
 2.25.1
 
