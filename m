@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id F20E3CD4F54
-	for <opensbi@archiver.kernel.org>; Tue, 19 May 2026 20:34:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 5EB60CD5BA4
+	for <opensbi@archiver.kernel.org>; Tue, 19 May 2026 20:34:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=lVKe4ZT1tezmfO2HFFJ75fDSKc4TnTaNBrulxh+SrPc=; b=chXNfzsqHen9tX
-	vMhw6XrUJbkQe3rufgC2Yx3oGgFuxXXk+ZOnFd+9Nc79NYdb8a9M9C+asxXxyEz7Y6wpIFacuRE3w
-	H/7e81xv+8/LMbFjQikrmeMGGfLZ40bG6Pgy/nwZsxmse5bCjTYd4MG+7smzXCslPTRvNBuF5zZAi
-	peZA4IPXCHP+gG1t9VZvfi1Yuhuuurd8WqPo+8R8qI017xKssldDM20dgP4bEgwLsofKWh3LQWRTL
-	KBxoAnYAQSbtix3iXtWA6PYONTGQ9NN3TlWYesxegeq6bRigqQBel/5yl9202yTHfzw4dcqVX0t+X
-	lgc+ol6LI9isDMKHStWw==;
+	List-Owner; bh=ae9nOwvZdazdmFgHLMUFqnNko7in2S1WuDuYiRfQk5s=; b=Dc4JccETOY6RkG
+	sOzNZMEDmNr0LnznBqbRxlpoh0Z9KBmeHS76bjJvrXMc1KvolqcYBoH+ClfV0VjIQ59oJj8SZuTHD
+	g5SXAEcjJ3NFQXuzufPWq76IU8SE9/Cx5fiEYIKUEzQ9eto6np+BRL6uLFpeoV+Q0AQ8YOSV67piH
+	qWl7z6NsRIzwcKNIuneJWag0F+lPSVl/brUM8PymnvyppN73fNastITYx1xGjPeVYHlcus1Ng49AT
+	hUHkiwBzAkwzzJWFHmNvU1Qwmd75/Us9Mu+XmAG+V42WXuyMf1XB4GasuYFhdeW2J3QDbBgbarJi4
+	y9ayNp/vJklCNmfRLAtQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wPR8d-00000002j5Y-3DIL;
-	Tue, 19 May 2026 20:34:03 +0000
-Received: from mail-qt1-x830.google.com ([2607:f8b0:4864:20::830])
+	id 1wPR8g-00000002j6U-2cvQ;
+	Tue, 19 May 2026 20:34:06 +0000
+Received: from mail-qt1-x834.google.com ([2607:f8b0:4864:20::834])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wPR8a-00000002j3H-2exx
+	id 1wPR8c-00000002j3v-1p4N
 	for opensbi@lists.infradead.org;
-	Tue, 19 May 2026 20:34:01 +0000
-Received: by mail-qt1-x830.google.com with SMTP id d75a77b69052e-50e63771d91so43029441cf.0
-        for <opensbi@lists.infradead.org>; Tue, 19 May 2026 13:34:00 -0700 (PDT)
+	Tue, 19 May 2026 20:34:03 +0000
+Received: by mail-qt1-x834.google.com with SMTP id d75a77b69052e-50fb4a7d704so36697131cf.1
+        for <opensbi@lists.infradead.org>; Tue, 19 May 2026 13:34:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779222839; x=1779827639; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1779222841; x=1779827641; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=SFcyYrStlFqNln9T+UoBlrM5+NGUHucmUqioke2XrwY=;
-        b=DCvZ7v3kXFg/ICaJ7ddNzXb7G4DPW+1R/ihqB59yQRNsdciHAc0NZe+fZgTDzInezT
-         1OyNkj/bx+EmRjMkdv06IrLgCdcXqFM4f/gYZe6skPo1bpEiJorcFXkA3xsxOaWlq4yt
-         TyQlDIiqB4W9IumKh2aTBD/pvAUeBgA0s1BmRvSCOY87bzO40XBqJCEwhtpklpOEz4+Y
-         EH4FlEmH9SyDsU4PMaXqEGuUrlb3inmCY0FZu8WWTTjofbG9QgKNum/LdWFv5PPckdvF
-         r/mpMS3qEPXrvaw60kD8s7LLhro/mlwLDLR1rftLYCBDG504NepBON5mmRHYSzEuh8uK
-         TTJg==
+        bh=afa8RqTOqCfZrOURxfEgdo9E9kFuYq1x2eFoq9BcG1o=;
+        b=p8uN23MX0KU8EX5htmvb4woFNlwPUwe2o++Fm6wmlKS5B3anw9aZEqn4Iz7cXViHDx
+         yPQ7qf44ktge0yg8pn5oXrABCloW+OY8ZDsocLcCXdkX/aI0osPl1lyITgjmJpyQS7Yo
+         hVDxg1KwIsDSFeySKfGNHGYI7Jrmp6OrZxewt/WPHsqEyhtf/mMIey/+rlecpHgMpWU+
+         9lKM/k8anGXtQqiXmI/YlIZz0rDhEcTeoxfV85pWwtkqbDn/N/opJPbfR5ynGBVXZyj/
+         GOe9fE7QYlMYEgXlgiJ7C8wJAaPdkie99VaK8PSMIOvslhZR/5ZgEsdt7SsBAs6YQZUn
+         1mRQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779222839; x=1779827639;
+        d=1e100.net; s=20251104; t=1779222841; x=1779827641;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=SFcyYrStlFqNln9T+UoBlrM5+NGUHucmUqioke2XrwY=;
-        b=BUkj4DeUAOCydSw1bZBFYdwh5EQwc+Ns8lPzqxfx/+C7YP5zDHy1QxRvFCUf00hauQ
-         2voYJEOJ+Qgv/9KfL3aeKgix6xRSlx3XgQULz60xBOCK/5WYs7lqQvV9zp/SnB8fs7Yk
-         ePHOnrnzmAuDEBxnSlvHPiNiYhgnGiCwm+YcavDKO8xnIyNB6/dFGSchqyG4T6duWptl
-         YfIrimWt121DefTbHmE6JzyUdVJOg2Fq6AVdTggptE1mmOCxadztUbsWKe0/x+xqC0Xj
-         FDHTXLtjg1jPkFpvaDOUJ06vEg6NEU0e8zSvZpHTd+67iBGOQKGCcDLiYiggTFH/XPWJ
-         ZQdQ==
-X-Gm-Message-State: AOJu0YwZPCTKJia7//oBVK8lGWdG2eJw8ArLTg/KNC28KpOcNrhyK11+
-	/ciqPpWKWDt/lfvWFBcAXctxFNMj4FsQlFCs8IibvBqy8h8kapsx+bPK7yGnTA==
-X-Gm-Gg: Acq92OHw1PrqyqpUiDzn55wvTXTlqJb/cPT6C00JaajcvKOvvOLUrAiV7oXytT8LenC
-	Ex+2MKVjadXbHmMaw1t6gdbArUuYFgQJwzfkBOQpB1SPRsxKROeJ3TxhzwtsX1JspcKeDYIeQDg
-	5PwVhjT/wQe5VM7xg+fLFjI/SkpV/yq1R6PHII+qMNJCEqLdoH5E0UM5G+3av0eKQwjzALNo5b8
-	XRE8r83zdJ3U9Tcl44IaAIAqV45Sdmlh73WwEpYdsjRv9irFhBO2wkyuIsIo7wTQLbVDOqQPfz4
-	1k/b4jFABRIbqT6ozcOiNLf7nKK5SJp7Lp8sMo9nmioVN9RoIyCtfn+4lfkOpKDFcapqF7E8c+L
-	zGR2TPv/+SUeC/jDglx3egmJmEj0swck5NFfE6pps6xE3u154Co4ZAoBas5nitZAhsVfxljd6Sd
-	6SUfxOPSXsVoGM2vF+AFjgQtFOMPgRYSDz9juexxJCei9sceDhX7hAmMlIBtDoXpoLRBTXqAUFP
-	Xm2saeo1229rhzZvnjaBSNd8zfmXwii
-X-Received: by 2002:a05:622a:5c0d:b0:509:1009:e7a6 with SMTP id d75a77b69052e-5165a219a59mr290300071cf.43.1779222839293;
-        Tue, 19 May 2026 13:33:59 -0700 (PDT)
+        bh=afa8RqTOqCfZrOURxfEgdo9E9kFuYq1x2eFoq9BcG1o=;
+        b=UukeX+EMHOXVuOT1Oe4+JANKcSUBKDAQhSy9eAbuHvkLQgSrnnnRWIbULxR9k9RyFp
+         0HZwHVbOMFdwj0aR6OnKxklDcgMWoh3+LybLTBr+hmkY5qVk/SRDrg6EHyA1/xMvsXkd
+         vUcd9cTAITTpB/qvi2ctMk9zZF65iMOt7UWSLYvLm1Y4hGhOrgalq5HhbuNVuqEiPCK8
+         k1nlXGaCafjtkhpwjDhOXP0sWpQyDob0fO7wbl9DGsmGVppMHeWOctV+d/7Xq4m6Z2rj
+         gV52U0T6Xybe/hgoGJV3j6z3a0e/6/QoMZ42h4Syc8V3OA05OdJ9u9WuCCsObmTDQ91Y
+         jj0w==
+X-Gm-Message-State: AOJu0YywKRsqTU9gD4S4zFxbNlTTlFkKTfqvRxohw3YzhxZjRHh1Cz45
+	G9b2f9UbCMC19LTRWf4Cp85RVuG2bEaOavcbFWsH/3SFRg9f5EgV57uxGTwsmw==
+X-Gm-Gg: Acq92OEqT8Zk8COQUxKCkr5kLSX4u0XpAQypZ6HvKfeExnaCTemXZnq/jGktyCI9lqf
+	LI4OU0fYx++zIjPNj3Ph4cjkimup5lnlllXWZG6kv4rasFH0p5QEwnMC/L7L1rC0pAL2mHgiLIo
+	fi1UiEJeGQs0NjqqpAjMUOrJr0H/LW5ptWP1PgOzgLpCeCBcyHWy/BqOyU5A4UWhDC6LpfoCFml
+	towBp5OZIb7Av/pdke8XY/MROfQ8YC6Rgzc9G+rdNdUwlUerpEaiNMKFY3k11HspxSVOEWbD8Uy
+	qFS1FD0/v9fteOXHiEP5VYPKI59koPwKr2AsxhSinyHvTnywzx26JLCFx9cS0e5TPJcp6eGbvNz
+	lahY3gJfR5QGL82x6sBTy5dErrXp3gQFSh4mfq+sbz9lxdAhMWpQXuZjDW49SlM6l/wexrNLh1G
+	XN5o0QViQ4rG2spD+WMnKq6h7iTkRjDJT1HuzaSUZynBUiW2MuIzcua8gFEoZtJMuHcE8EpAtxy
+	rz8kYsNLLqlkLV/bBKZIA==
+X-Received: by 2002:a05:622a:130a:b0:50d:a301:2fc0 with SMTP id d75a77b69052e-5165a077858mr309067641cf.26.1779222840996;
+        Tue, 19 May 2026 13:34:00 -0700 (PDT)
 Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5164581aed3sm173787461cf.23.2026.05.19.13.33.58
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5164581aed3sm173787461cf.23.2026.05.19.13.34.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 May 2026 13:33:59 -0700 (PDT)
+        Tue, 19 May 2026 13:34:00 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -81,16 +81,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH 5/7] test: add generic hwiso SBI unit coverage
-Date: Tue, 19 May 2026 16:33:29 -0400
-Message-Id: <20260519203331.2773185-6-raymondmaoca@gmail.com>
+Subject: [PATCH 6/7] platform: virt: add QEMU virt WorldGuard hwiso tests
+Date: Tue, 19 May 2026 16:33:30 -0400
+Message-Id: <20260519203331.2773185-7-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260519203331.2773185-1-raymondmaoca@gmail.com>
 References: <20260519203331.2773185-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260519_133400_699653_1641F11A 
-X-CRM114-Status: GOOD (  19.67  )
+X-CRM114-CacheID: sfid-20260519_133402_543969_B487A493 
+X-CRM114-Status: GOOD (  17.56  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,367 +109,357 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add a generic HWISO SBI unit suite that exercises boot-time
-initialization and domain-switch hook sequencing without embedding one
-platform mechanism's policy directly into the core test driver.
-
-Provide a small test registration layer so each HWISO mechanism can
-supply its own state and quiesce assertions.
+Add QEMU virt WorldGuard mechanism-specific tests for boot-time
+checker programming and runtime CSR state, and verify the expected
+root / domain@0 / domain@1 behavior through the HWISO test callback
+API.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi/sbi_hwiso_test.h |  33 +++++++
- lib/sbi/objects.mk           |   3 +
- lib/sbi/sbi_hwiso_test.c     | 167 +++++++++++++++++++++++++++++++++++
- lib/sbi/sbi_hwiso_testlib.c  | 108 ++++++++++++++++++++++
- 4 files changed, 311 insertions(+)
- create mode 100644 include/sbi/sbi_hwiso_test.h
- create mode 100644 lib/sbi/sbi_hwiso_test.c
- create mode 100644 lib/sbi/sbi_hwiso_testlib.c
+ platform/generic/objects.mk                   |   1 +
+ .../generic/virt/qemu_virt_wgchecker_test.c   | 321 ++++++++++++++++++
+ 2 files changed, 322 insertions(+)
+ create mode 100644 platform/generic/virt/qemu_virt_wgchecker_test.c
 
-diff --git a/include/sbi/sbi_hwiso_test.h b/include/sbi/sbi_hwiso_test.h
-new file mode 100644
-index 00000000..3970df5a
---- /dev/null
-+++ b/include/sbi/sbi_hwiso_test.h
-@@ -0,0 +1,33 @@
-+/* SPDX-License-Identifier: BSD-2-Clause */
-+/*
-+ * Copyright (c) 2026 RISCstar Solutions Corporation.
-+ *
-+ * Author: Raymond Mao <raymond.mao@riscstar.com>
-+ */
-+
-+#ifndef __SBI_HWISO_TEST_H__
-+#define __SBI_HWISO_TEST_H__
-+
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_hwiso.h>
-+#include <sbi/sbi_unit_test.h>
-+
-+#ifdef CONFIG_SBIUNIT
-+struct sbi_hwiso_test_ops {
-+	void (*boot_test)(struct sbiunit_test_case *test);
-+	void (*domain_state_test)(struct sbiunit_test_case *test,
-+				 const struct sbi_domain *dom, void *ctx);
-+	void (*domain_quiesce_test)(struct sbiunit_test_case *test,
-+				    const struct sbi_domain *dom, void *ctx);
-+};
-+
-+int sbi_hwiso_test_register(const struct sbi_hwiso_ops *ops,
-+			    const struct sbi_hwiso_test_ops *test_ops);
-+void sbi_hwiso_test_boot(struct sbiunit_test_case *test);
-+void sbi_hwiso_test_domain_state(struct sbiunit_test_case *test,
-+				 const struct sbi_domain *dom);
-+void sbi_hwiso_test_domain_quiesced(struct sbiunit_test_case *test,
-+				    const struct sbi_domain *dom);
-+#endif
-+
-+#endif
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index 6091499a..8839d13c 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -13,9 +13,12 @@ libsbi-objs-y += riscv_hardfp.o
- libsbi-objs-y += riscv_locks.o
- libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
- libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
-+libsbi-objs-$(CONFIG_SBIUNIT) += sbi_hwiso_testlib.o
+diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
+index 80bd65ea..be58873a 100644
+--- a/platform/generic/objects.mk
++++ b/platform/generic/objects.mk
+@@ -23,6 +23,7 @@ platform-objs-y += platform_override_modules.o
+ platform-objs-y += worldguard.o
+ platform-objs-y += wgchecker2.o
+ platform-objs-y += virt/qemu_virt_worldguard.o
++platform-objs-$(CONFIG_SBIUNIT) += virt/qemu_virt_wgchecker_test.o
  
- libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
-+libsbi-objs-$(CONFIG_SBIUNIT) += sbi_hwiso_test.o
- carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += hwiso_test_suite
- carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
- 
- libsbi-objs-y += sbi_ecall.o
-diff --git a/lib/sbi/sbi_hwiso_test.c b/lib/sbi/sbi_hwiso_test.c
+ # Blobs to build
+ FW_TEXT_START=0x80000000
+diff --git a/platform/generic/virt/qemu_virt_wgchecker_test.c b/platform/generic/virt/qemu_virt_wgchecker_test.c
 new file mode 100644
-index 00000000..716596e2
+index 00000000..0eeaa3a0
 --- /dev/null
-+++ b/lib/sbi/sbi_hwiso_test.c
-@@ -0,0 +1,167 @@
++++ b/platform/generic/virt/qemu_virt_wgchecker_test.c
+@@ -0,0 +1,321 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +/*
 + * Copyright (c) 2026 RISCstar Solutions Corporation.
 + *
 + * Author: Raymond Mao <raymond.mao@riscstar.com>
 + */
++#include <libfdt.h>
 +#include <sbi/riscv_encoding.h>
++#include <sbi/riscv_io.h>
 +#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_domain_context.h>
++#include <sbi/sbi_error.h>
 +#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_heap.h>
 +#include <sbi/sbi_hwiso.h>
 +#include <sbi/sbi_hwiso_test.h>
 +#include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_trap.h>
++#include <sbi/sbi_string.h>
 +#include <sbi/sbi_unit_test.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <wgchecker2.h>
++#include <worldguard.h>
 +
-+static u32 hwiso_collect_switch_domains(struct sbi_domain *current,
-+					struct sbi_domain **targets,
-+					u32 max_targets)
++struct qemu_virt_wg_slot_expect {
++	bool check_addr;
++	u64 addr;
++	u64 perm;
++	u32 cfg;
++};
++
++struct qemu_virt_wg_checker_expect {
++	const char *path;
++	u32 slot_count;
++	struct qemu_virt_wg_slot_expect *slots;
++	struct qemu_virt_wg_slot_expect last_slot;
++};
++
++struct qemu_virt_wg_expect {
++	u32 wid;
++	u32 widlist_mask;
++	bool check_slwid;
++	u32 slwid;
++};
++
++static u64 qemu_virt_wg_mmio_read64(unsigned long addr)
++{
++#if __riscv_xlen != 32
++	return readq((void *)addr);
++#else
++	return readl((void *)addr) | ((u64)readl((void *)(addr + 4)) << 32);
++#endif
++}
++
++static struct qemu_virt_wg_slot_expect qemu_virt_wg_dram_slots[] = {
++	{
++		.check_addr = true,
++		.addr = 0x20000000ULL,
++		.perm = 0,
++		.cfg = WGCHECKER2_SLOT_CFG_A_OFF,
++	},
++	{
++		.check_addr = true,
++		.addr = 0x30000000ULL,
++		.perm = 0xcf,
++		.cfg = WGCHECKER2_SLOT_CFG_A_TOR,
++	},
++	{
++		.check_addr = true,
++		.addr = 0x30400000ULL,
++		.perm = 0xcc,
++		.cfg = WGCHECKER2_SLOT_CFG_A_TOR,
++	},
++	{
++		.check_addr = true,
++		.addr = 0x40000000ULL,
++		.perm = 0xcf,
++		.cfg = WGCHECKER2_SLOT_CFG_A_TOR,
++	},
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++};
++
++static struct qemu_virt_wg_slot_expect qemu_virt_wg_zero_slots[] = {
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++	{ .check_addr = true, .addr = 0, .perm = 0, .cfg = 0 },
++};
++
++static const struct qemu_virt_wg_checker_expect qemu_virt_wg_checker_expects[] = {
++	{
++		.path = "/soc/wgchecker@6000000",
++		.slot_count = 16,
++		.slots = qemu_virt_wg_dram_slots,
++		.last_slot = { .perm = 0, .cfg = 0 },
++	},
++	{
++		.path = "/soc/wgchecker@6001000",
++		.slot_count = 16,
++		.slots = qemu_virt_wg_zero_slots,
++		.last_slot = { .perm = 0xc3, .cfg = WGCHECKER2_SLOT_CFG_A_TOR },
++	},
++	{
++		.path = "/soc/wgchecker@6002000",
++		.slot_count = 1,
++		.slots = NULL,
++		.last_slot = { .perm = 0xc0, .cfg = WGCHECKER2_SLOT_CFG_A_TOR },
++	},
++};
++
++static const struct qemu_virt_wg_expect qemu_virt_wg_root_expect = {
++	.wid = 3,
++	.widlist_mask = 0,
++	.check_slwid = false,
++};
++
++static const struct qemu_virt_wg_expect qemu_virt_wg_domain0_expect = {
++	.wid = 0,
++	.widlist_mask = 0xb,
++	.check_slwid = true,
++	.slwid = 0,
++};
++
++static const struct qemu_virt_wg_expect qemu_virt_wg_domain1_expect = {
++	.wid = 1,
++	.widlist_mask = 0xa,
++	.check_slwid = true,
++	.slwid = 1,
++};
++
++static struct sbi_domain *qemu_virt_wg_find_domain(const char *name)
 +{
 +	u32 i;
-+	u32 count = 0;
 +	struct sbi_domain *dom;
 +
-+	if (!targets || !max_targets)
-+		return 0;
-+
 +	sbi_domain_for_each(i, dom) {
-+		if (dom == current || dom == &root)
-+			continue;
-+
-+		targets[count++] = dom;
-+		if (count == max_targets)
-+			return count;
-+	}
-+
-+	if (current != &root && count < max_targets)
-+		targets[count++] = &root;
-+
-+	return count;
-+}
-+
-+static void hwiso_snapshot_context(struct sbi_context *ctx)
-+{
-+	struct sbi_trap_regs *trap_regs;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
-+					     SBI_TRAP_REGS_SIZE);
-+	ctx->regs = *trap_regs;
-+	ctx->sstatus = csr_read(CSR_SSTATUS);
-+	ctx->sie = csr_read(CSR_SIE);
-+	ctx->stvec = csr_read(CSR_STVEC);
-+	ctx->sscratch = csr_read(CSR_SSCRATCH);
-+	ctx->sepc = csr_read(CSR_SEPC);
-+	ctx->scause = csr_read(CSR_SCAUSE);
-+	ctx->stval = csr_read(CSR_STVAL);
-+	ctx->sip = csr_read(CSR_SIP);
-+	ctx->satp = csr_read(CSR_SATP);
-+	ctx->scounteren = 0;
-+	ctx->senvcfg = 0;
-+	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
-+		ctx->scounteren = csr_read(CSR_SCOUNTEREN);
-+	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
-+		ctx->senvcfg = csr_read(CSR_SENVCFG);
-+	ctx->initialized = true;
-+}
-+
-+static struct sbi_context *hwiso_ensure_context(struct sbiunit_test_case *test,
-+						struct sbi_domain *dom,
-+						struct sbi_context *tmpl,
-+						u32 hartindex)
-+{
-+	struct sbi_context *dom_ctx;
-+
-+	dom_ctx = sbi_hartindex_to_domain_context(hartindex, dom);
-+	if (!dom_ctx) {
-+		dom_ctx = sbi_zalloc(sizeof(*dom_ctx));
-+		SBIUNIT_ASSERT_NE(test, dom_ctx, NULL);
-+		dom_ctx->dom = dom;
-+		dom->hartindex_to_context_table[hartindex] = dom_ctx;
-+	}
-+
-+	if (tmpl) {
-+		*dom_ctx = *tmpl;
-+		dom_ctx->dom = dom;
-+		dom->hartindex_to_context_table[hartindex] = dom_ctx;
-+	}
-+
-+	return dom_ctx;
-+}
-+
-+static void hwiso_boot_test(struct sbiunit_test_case *test)
-+{
-+	sbi_hwiso_test_boot(test);
-+}
-+
-+static void hwiso_domain_switch_test(struct sbiunit_test_case *test)
-+{
-+	struct sbi_domain *cur_dom = sbi_domain_thishart_ptr();
-+	struct sbi_context *ctx = sbi_domain_context_thishart_ptr();
-+	struct sbi_domain *switch_doms[2];
-+	struct sbi_context *cur_ctx;
-+	struct sbi_context tmpl_ctx;
-+	u32 switch_count;
-+	u32 i;
-+	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	bool debug_on = false;
-+
-+	SBIUNIT_ASSERT_NE(test, cur_dom, NULL);
-+
-+	if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS)
-+		debug_on = true;
-+	else
-+		scratch->options |= SBI_SCRATCH_DEBUG_PRINTS;
-+
-+	if (!ctx) {
-+		cur_ctx = sbi_zalloc(sizeof(*cur_ctx));
-+		SBIUNIT_ASSERT_NE(test, cur_ctx, NULL);
-+		cur_ctx->dom = cur_dom;
-+		cur_dom->hartindex_to_context_table[hartindex] = cur_ctx;
-+		ctx = cur_ctx;
-+	}
-+
-+	hwiso_snapshot_context(ctx);
-+	tmpl_ctx = *ctx;
-+	switch_count = hwiso_collect_switch_domains(cur_dom, switch_doms, 2);
-+
-+	(void)hwiso_ensure_context(test, cur_dom, NULL, hartindex);
-+	for (i = 0; i < switch_count; i++)
-+		(void)hwiso_ensure_context(test, switch_doms[i], &tmpl_ctx,
-+					   hartindex);
-+
-+	if (!switch_count)
-+		goto out;
-+
-+	sbi_hwiso_domain_exit(cur_dom, switch_doms[0]);
-+	sbi_hwiso_test_domain_quiesced(test, cur_dom);
-+	sbi_hwiso_domain_enter(switch_doms[0], cur_dom);
-+	sbi_hwiso_test_domain_state(test, switch_doms[0]);
-+	sbi_hwiso_domain_exit(switch_doms[0], cur_dom);
-+	sbi_hwiso_test_domain_quiesced(test, switch_doms[0]);
-+	sbi_hwiso_domain_enter(cur_dom, switch_doms[0]);
-+	sbi_hwiso_test_domain_state(test, cur_dom);
-+
-+	for (i = 0; i < switch_count; i++) {
-+		SBIUNIT_ASSERT_EQ(test, sbi_domain_context_enter(switch_doms[i]), 0);
-+		sbi_hwiso_test_domain_state(test, switch_doms[i]);
-+	}
-+
-+	SBIUNIT_ASSERT_EQ(test, sbi_domain_context_enter(cur_dom), 0);
-+	sbi_hwiso_test_domain_state(test, cur_dom);
-+
-+out:
-+	if (!debug_on)
-+		scratch->options &= ~SBI_SCRATCH_DEBUG_PRINTS;
-+}
-+
-+static struct sbiunit_test_case hwiso_test_cases[] = {
-+	SBIUNIT_TEST_CASE(hwiso_boot_test),
-+	SBIUNIT_TEST_CASE(hwiso_domain_switch_test),
-+	SBIUNIT_END_CASE,
-+};
-+
-+SBIUNIT_TEST_SUITE(hwiso_test_suite, hwiso_test_cases);
-diff --git a/lib/sbi/sbi_hwiso_testlib.c b/lib/sbi/sbi_hwiso_testlib.c
-new file mode 100644
-index 00000000..2a988088
---- /dev/null
-+++ b/lib/sbi/sbi_hwiso_testlib.c
-@@ -0,0 +1,108 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * Copyright (c) 2026 RISCstar Solutions Corporation.
-+ *
-+ * Author: Raymond Mao <raymond.mao@riscstar.com>
-+ */
-+
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_heap.h>
-+#include <sbi/sbi_hwiso_test.h>
-+#include <sbi/sbi_list.h>
-+
-+struct sbi_hwiso_test_node {
-+	const struct sbi_hwiso_ops *ops;
-+	const struct sbi_hwiso_test_ops *test_ops;
-+	struct sbi_dlist node;
-+};
-+
-+static SBI_LIST_HEAD(hwiso_test_ops_list);
-+
-+static const struct sbi_hwiso_test_ops *
-+sbi_hwiso_find_test_ops(const struct sbi_hwiso_ops *ops)
-+{
-+	struct sbi_hwiso_test_node *entry;
-+
-+	sbi_list_for_each_entry(entry, &hwiso_test_ops_list, node) {
-+		if (entry->ops == ops)
-+			return entry->test_ops;
++		if (!sbi_strcmp(dom->name, name))
++			return dom;
 +	}
 +
 +	return NULL;
 +}
 +
-+int sbi_hwiso_test_register(const struct sbi_hwiso_ops *ops,
-+			    const struct sbi_hwiso_test_ops *test_ops)
++static const struct qemu_virt_wg_expect *
++qemu_virt_wg_domain_expect(const struct sbi_domain *dom)
 +{
-+	struct sbi_hwiso_test_node *node;
++	if (dom == &root)
++		return &qemu_virt_wg_root_expect;
++	if (dom && !sbi_strcmp(dom->name, "root"))
++		return &qemu_virt_wg_root_expect;
++	if (!dom)
++		return NULL;
++	if (!sbi_strcmp(dom->name, "domain@0"))
++		return &qemu_virt_wg_domain0_expect;
++	if (!sbi_strcmp(dom->name, "domain@1"))
++		return &qemu_virt_wg_domain1_expect;
 +
-+	if (!ops || !test_ops)
-+		return SBI_EINVAL;
-+	if (sbi_hwiso_find_test_ops(ops))
-+		return SBI_EALREADY;
-+
-+	node = sbi_zalloc(sizeof(*node));
-+	if (!node)
-+		return SBI_ENOMEM;
-+
-+	node->ops = ops;
-+	node->test_ops = test_ops;
-+	SBI_INIT_LIST_HEAD(&node->node);
-+	sbi_list_add_tail(&node->node, &hwiso_test_ops_list);
-+
-+	return 0;
++	return NULL;
 +}
 +
-+void sbi_hwiso_test_boot(struct sbiunit_test_case *test)
++static void qemu_virt_wg_assert_checker(struct sbiunit_test_case *test,
++					const struct qemu_virt_wg_checker_expect *expect)
 +{
-+	struct sbi_hwiso_test_node *entry;
++	void *fdt = fdt_get_address();
++	u64 base, size, addr, perm;
++	u32 cfg, slot;
++	int node, rc;
 +
-+	sbi_list_for_each_entry(entry, &hwiso_test_ops_list, node) {
-+		if (!entry->test_ops->boot_test)
-+			continue;
-+		entry->test_ops->boot_test(test);
++	node = fdt_path_offset(fdt, expect->path);
++	SBIUNIT_ASSERT(test, node >= 0);
++
++	rc = fdt_get_node_addr_size(fdt, node, 0, &base, &size);
++	SBIUNIT_ASSERT_EQ(test, rc, 0);
++	(void)size;
++
++	SBIUNIT_ASSERT_EQ(test,
++				  readl((void *)(unsigned long)
++					(base + WGCHECKER2_MMIO_NSLOTS)),
++			  expect->slot_count);
++	SBIUNIT_ASSERT_EQ(test,
++				  qemu_virt_wg_mmio_read64(base + WGCHECKER2_MMIO_ERRCAUSE),
++			  0UL);
++	SBIUNIT_ASSERT_EQ(test,
++				  qemu_virt_wg_mmio_read64(base + WGCHECKER2_MMIO_ERRADDR),
++			  0UL);
++
++	for (slot = 1; slot < expect->slot_count; slot++) {
++		addr = qemu_virt_wg_mmio_read64(
++				base + WGCHECKER2_MMIO_SLOT_BASE +
++				slot * WGCHECKER2_MMIO_SLOT_STRIDE +
++				WGCHECKER2_MMIO_SLOT_ADDR);
++		perm = qemu_virt_wg_mmio_read64(
++				base + WGCHECKER2_MMIO_SLOT_BASE +
++				slot * WGCHECKER2_MMIO_SLOT_STRIDE +
++				WGCHECKER2_MMIO_SLOT_PERM);
++		cfg = readl((void *)(unsigned long)
++				    (base + WGCHECKER2_MMIO_SLOT_BASE +
++				     slot * WGCHECKER2_MMIO_SLOT_STRIDE +
++				     WGCHECKER2_MMIO_SLOT_CFG)) &
++			      WGCHECKER2_SLOT_CFG_A_MASK;
++
++		if (expect->slots[slot - 1].check_addr)
++			SBIUNIT_ASSERT_EQ(test, addr, expect->slots[slot - 1].addr);
++		SBIUNIT_ASSERT_EQ(test, perm, expect->slots[slot - 1].perm);
++		SBIUNIT_ASSERT_EQ(test, cfg, expect->slots[slot - 1].cfg);
 +	}
++
++	perm = qemu_virt_wg_mmio_read64(
++			base + WGCHECKER2_MMIO_SLOT_BASE +
++			expect->slot_count * WGCHECKER2_MMIO_SLOT_STRIDE +
++			WGCHECKER2_MMIO_SLOT_PERM);
++	cfg = readl((void *)(unsigned long)
++		    (base + WGCHECKER2_MMIO_SLOT_BASE +
++		     expect->slot_count * WGCHECKER2_MMIO_SLOT_STRIDE +
++		     WGCHECKER2_MMIO_SLOT_CFG)) &
++		      WGCHECKER2_SLOT_CFG_A_MASK;
++	SBIUNIT_ASSERT_EQ(test, perm, expect->last_slot.perm);
++	SBIUNIT_ASSERT_EQ(test, cfg, expect->last_slot.cfg);
 +}
 +
-+void sbi_hwiso_test_domain_state(struct sbiunit_test_case *test,
-+				 const struct sbi_domain *dom)
++static void qemu_virt_wg_assert_state(struct sbiunit_test_case *test,
++				      const struct sbi_domain *dom, void *ctx)
 +{
-+	const struct sbi_hwiso_test_ops *test_ops;
-+	u32 i;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	const struct qemu_virt_wg_expect *expect;
 +
-+	if (!dom || !dom->hwiso_ctxs)
++	(void)ctx;
++
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWG))
++		return;
++	expect = qemu_virt_wg_domain_expect(dom);
++	if (!expect)
 +		return;
 +
-+	for (i = 0; i < dom->hwiso_ctx_count; i++) {
-+		if (!dom->hwiso_ctxs[i].ops)
-+			continue;
++	SBIUNIT_ASSERT_EQ(test, csr_read(CSR_MLWID), expect->wid);
 +
-+		test_ops = sbi_hwiso_find_test_ops(dom->hwiso_ctxs[i].ops);
-+		if (!test_ops || !test_ops->domain_state_test)
-+			continue;
-+
-+		test_ops->domain_state_test(test, dom, dom->hwiso_ctxs[i].ctx);
-+	}
-+}
-+
-+void sbi_hwiso_test_domain_quiesced(struct sbiunit_test_case *test,
-+				    const struct sbi_domain *dom)
-+{
-+	const struct sbi_hwiso_test_ops *test_ops;
-+	u32 i;
-+
-+	if (!dom || !dom->hwiso_ctxs)
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SSWG))
 +		return;
 +
-+	for (i = 0; i < dom->hwiso_ctx_count; i++) {
-+		if (!dom->hwiso_ctxs[i].ops)
-+			continue;
++	SBIUNIT_ASSERT_EQ(test, csr_read(CSR_MWIDDELEG), expect->widlist_mask);
++	if (!expect->check_slwid)
++		return;
 +
-+		test_ops = sbi_hwiso_find_test_ops(dom->hwiso_ctxs[i].ops);
-+		if (!test_ops || !test_ops->domain_quiesce_test)
-+			continue;
-+
-+		test_ops->domain_quiesce_test(test, dom,
-+					      dom->hwiso_ctxs[i].ctx);
-+	}
++	SBIUNIT_ASSERT_EQ(test, csr_read(CSR_SLWID), expect->slwid);
 +}
++
++static void qemu_virt_wg_assert_quiesced(struct sbiunit_test_case *test,
++					 const struct sbi_domain *dom, void *ctx)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++
++	(void)dom;
++	(void)ctx;
++
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWG))
++		return;
++
++	SBIUNIT_ASSERT_EQ(test, csr_read(CSR_MLWID), qemu_virt_wg_root_expect.wid);
++
++	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SSWG))
++		return;
++
++	SBIUNIT_ASSERT_EQ(test, csr_read(CSR_MWIDDELEG), 0UL);
++}
++
++static void qemu_virt_wg_boot_test(struct sbiunit_test_case *test)
++{
++	struct sbi_domain *dom0, *dom1;
++	u32 i;
++
++	for (i = 0;
++	     i < (sizeof(qemu_virt_wg_checker_expects) /
++		  sizeof(qemu_virt_wg_checker_expects[0]));
++	     i++)
++		qemu_virt_wg_assert_checker(test, &qemu_virt_wg_checker_expects[i]);
++
++	SBIUNIT_ASSERT_EQ(test, worldguard_test_check_runtime_state(true), 0);
++	SBIUNIT_ASSERT_EQ(test, wgchecker2_checker_count(), 3);
++
++	dom0 = qemu_virt_wg_find_domain("domain@0");
++	dom1 = qemu_virt_wg_find_domain("domain@1");
++	SBIUNIT_ASSERT_NE(test, dom0, NULL);
++	SBIUNIT_ASSERT_NE(test, dom1, NULL);
++	SBIUNIT_ASSERT_EQ(test,
++			  worldguard_test_check_domain_state(
++				dom0, true, qemu_virt_wg_domain0_expect.wid,
++				qemu_virt_wg_domain0_expect.widlist_mask),
++			  0);
++	SBIUNIT_ASSERT_EQ(test,
++			  worldguard_test_check_domain_state(
++				dom1, true, qemu_virt_wg_domain1_expect.wid,
++				qemu_virt_wg_domain1_expect.widlist_mask),
++			  0);
++	SBIUNIT_ASSERT_EQ(test,
++			  worldguard_test_check_domain_state(&root, false, 0, 0),
++			  0);
++}
++
++const struct sbi_hwiso_test_ops qemu_virt_worldguard_test_ops = {
++	.boot_test = qemu_virt_wg_boot_test,
++	.domain_state_test = qemu_virt_wg_assert_state,
++	.domain_quiesce_test = qemu_virt_wg_assert_quiesced,
++};
 -- 
 2.25.1
 
