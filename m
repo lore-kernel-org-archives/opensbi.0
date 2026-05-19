@@ -4,93 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 33560CD4F5B
-	for <opensbi@archiver.kernel.org>; Tue, 19 May 2026 20:34:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9FBA2CD4F54
+	for <opensbi@archiver.kernel.org>; Tue, 19 May 2026 22:50:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=NpO+6ANBKMdm33DAnMDCeRryJnwOw9Sa8yeXa10mEG8=; b=RtXG9xCSGf1LgE
-	/z/Q5cqmNlhH+Bi3JK3hQ+NH28ZwGPWISt+cde2D3zRia+ckCHuPMDrAu2i2zAEm9wnyuMJ/31N+7
-	NJRdlwjrxil3PANxuCwST1M5HCQxayzGBV/ehuFx2h7CpfouXzTP99ggm+0eJu7wSlns2o3ICWcWz
-	eTM4G7FDPtjOq7sPIyuH0MU83yj63e1lEMNeLwy6BLxMMm8dzIVpye3S1jmX9vmqxCpjfhqci2BQh
-	r53QMfEd46AsIN6+PReMitSH+b2eZ4oNBNx/TiAdtyoqj2oAR7RHo2D84j341NMrVxPVqBM6moLQE
-	Ziqk0XQ65qwEJXWDyM6w==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=BdmkyRuT6aqvkB4KoxEbRrVpF/8Td/0AIiKDkj9BD+c=; b=K8c1gqKU3wpxQD
+	q/PD2SM3wqB5xnxj+qDZvVSJmcVL+OLefqVlqYlyCfWM3D7X0BgqC7MVU0opi/GA+VFBt6X31Zg1z
+	B3V1IeK9HuECcSHZzeB7dnBZCW7sPKr9v6ocP6wMIM6ET5EAnvAr9/s7IGrPxXGC2TTQw0l/iHzVt
+	DHkjRrR1eoXxeuqFFlNuaazfoiMHINjqe2G2x+7GpCxvsvBSILJZJDnteWh4Z9V5zP18ZjRsdcbSB
+	sHNW0AQ5id+JECf6KpC1vWySIKll7Hl/ZL8JdD80PNqXI20SZRxLPmzIauQvqVANoPgMto3Ky2HU2
+	kGLbQsDBFsGIevXGmgeg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wPR8h-00000002j8O-3r5B;
-	Tue, 19 May 2026 20:34:07 +0000
-Received: from mail-qt1-x830.google.com ([2607:f8b0:4864:20::830])
+	id 1wPTGt-000000030UI-20xv;
+	Tue, 19 May 2026 22:50:43 +0000
+Received: from mail-dy1-x1330.google.com ([2607:f8b0:4864:20::1330])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wPR8d-00000002j4l-2Mlu
+	id 1wPTGr-000000030Tg-2101
 	for opensbi@lists.infradead.org;
-	Tue, 19 May 2026 20:34:04 +0000
-Received: by mail-qt1-x830.google.com with SMTP id d75a77b69052e-50d87610513so49525951cf.3
-        for <opensbi@lists.infradead.org>; Tue, 19 May 2026 13:34:03 -0700 (PDT)
+	Tue, 19 May 2026 22:50:42 +0000
+Received: by mail-dy1-x1330.google.com with SMTP id 5a478bee46e88-2f0f13b7c1eso214842eec.0
+        for <opensbi@lists.infradead.org>; Tue, 19 May 2026 15:50:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779222842; x=1779827642; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=7cDLUtXNbpGFl4V0gIYixLKHny/NXotLtX2tgYtXlxQ=;
-        b=C8nlqHCW1M7D5uKvZWeUAQOkl5MiVE6QMTrYEkrM4bfoglrqtyxNCANBWT03aVK1IA
-         P+g+vLbj19LPEZEati469DhFPXcAjzrUXfYPam4sY1Naf8P7W8FCZ5nHzdCIv/ypTZ1W
-         NiRBp0z74BroS8SSgNh5MbPBtEwh/qlcE8ZQMHUXBBxHK9+jEVDE/Wd5xZP2xDK4yVQO
-         zg0baFm/PKATejnU21zw9w0IXSHPSBFQRo78jE2pkr4h1vQhYsurD31oyRWHcy/dn/8Z
-         BHLBFEZ2+x6PsfMFha/SqRMnZtZ1UdirE7ZMY6+kQ0pecpeGTnLlB0eVsR1hmAthPmc0
-         bWpA==
+        d=tenstorrent.com; s=google; t=1779231040; x=1779835840; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=KLyP9BSwTWR84mL73zzr3lhGyJ1+4/8SVmAYjJkKGek=;
+        b=LUERKuGm1iNIDT/8MVqzwNg04JL83qgkKhXoiPaFryfYfpHE0jpkaiCNEBLungd32K
+         LlSeljWaefsLwLMkmV4qGXpbnvoSVUP/dnbcsc2zVzFgnVbmni/w65nIyBpgCJ7/AGdX
+         DF357TnaG6tCgDa330MnYtjCgwY6d23yLAYNFJ+VAit/QA6SGErXuGfL5rAo4FHIYA0D
+         QE1d8wyEDgwL1MSINDyFPBYf6yC7O44L9+JUBl+81KjVpjlxhzzpRyD3IKYN5Bai/7sf
+         jv3e2+NgyxjBHMSBP6hyglEyWM7ALVoxd0mp1N2Vsif0lIPdteLN94sg5E5oho7Al0bs
+         YJzQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779222842; x=1779827642;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=7cDLUtXNbpGFl4V0gIYixLKHny/NXotLtX2tgYtXlxQ=;
-        b=hNQscKq3i0qHsehu2Ranm4w8tx7OwXFPZqaOmtDqIaSVaBmyQCiFXogxPHUyVmsR9+
-         FY3PB/FQaAHLq9B/B7oiFlRyW/O5ZOhEvjRb7HpA1gaghRWMd+xOisMxsmtxHGxOU86r
-         05wIeJLEqVy1p8AXYgTZPkE0RrNasMvWMVCn6IL4F5EATwVoXi6G/Xox70Q4z2Tzdjrp
-         VHRpVTEKl1oBuVvV2+L67EYhSuU5xTQmQLNc5Oj1CyR9LoNJEqJsyqvUh06oSOxeyzJd
-         tvWNU/s51fZrFMsz1kxUzccD955uS1CcSiTHw2Z0T5gsvZWKRUrTwG4QXPvA9kSt3191
-         AoRg==
-X-Gm-Message-State: AOJu0YxPO3gDAvCm0+n7R4ryluIObzhKVtpihOmL/pVZr5qsct2AT6YM
-	r9ZK85jNwYiYXrFWa0cGcS+QxaD00VzX3GDQSoU+e5Ht90v82pCJPPJP40e43w==
-X-Gm-Gg: Acq92OGG+uJSw1WRrMxrt+ue6KmHVDfa2VgORnU4DzOjT0CoyvbyMlCDiEZdjZ4MZk/
-	njlnw6VqMryrlyi4p3W7ddf3KiUsAeoWBJ6GP4uLyz9kM0PRhHC1E6ygHGNQYahpBrzpXR1oZko
-	SWIh1YUOkrynKQQqIUJ1tMpjUn3rE/Rv6YLumQ2kGnaS5PZ6wRVDqXaAyAdcy+ZyZ83crmX9J58
-	Wcrta3tf6mQa/A4/FfPAmFrclAdQL+TwCXN+srvh+Vs8Skg13oDQDMqpSW0FI7mYVMVybKOZ6jA
-	k+aNB3CBW8j3roZzELHyClDbDFP4uVfTRg2qwnGpWviDWwZurrMgBBjSDYM7Sbgvke1d3ycrxq5
-	pv7VX+X8m+ktNdrQ5vMKJ8oGW8p6dRm4wMrXM5u1pOU5dGRpFBJbAh3XQEWt7e3ttiqatw4AeFH
-	HfJfdXPa1IFtayKqaCVm1OUIuvNrdkOPv3UN/lSQ4NYy62hhm8XYTf7BkUnymuP1bHoDopdeHQP
-	ZPr4EA8QJo=
-X-Received: by 2002:a05:622a:4112:b0:50d:8049:2f22 with SMTP id d75a77b69052e-5165a0072ddmr279053551cf.3.1779222842555;
-        Tue, 19 May 2026 13:34:02 -0700 (PDT)
-Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5164581aed3sm173787461cf.23.2026.05.19.13.34.01
+        d=1e100.net; s=20251104; t=1779231040; x=1779835840;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KLyP9BSwTWR84mL73zzr3lhGyJ1+4/8SVmAYjJkKGek=;
+        b=i952cPJJsXeA+1PQ4BXYUrWJsufDC9a5LjLRbVoOnx9SToD/NjVzTiUTYMThjwclOf
+         sAOvB0nEMDHf4kQHTpBI7MG2Ne3PQLPOBTIPBGIORvk3tTPmb3oCLicfJk+2Usd5SYaf
+         QwZJqvaGIWcPAUntTmOzAB5HdyqXVhD/SFAZAm9fjOtK39f1NhSE1MYRHGMazfafw+Tz
+         qgu1SpVFcKItVpmXqWfODRZTwk1+uwYhLB3Vh9dUlNh+BLdrD4cMV73sEcg2Mi6hEdzQ
+         KBBFUfQ9de5o/Vk96AssDhzpyGbV1HrmXBKdwT477BRopu3Ne6qwbrPLAwvupTc55s2b
+         0QLg==
+X-Gm-Message-State: AOJu0Yyr5a2FX5f64P4mX8ZuycXitaL+Ehp3ajEDk0YIbiBGlcQCPz7l
+	pwgspNaqmOC8nZpvHmx0JKo8AyyCwSXxNletPZtlQ9WHwtZTCWLZTA5/t8ldxwsObQ5WEForEEY
+	8HStR
+X-Gm-Gg: Acq92OFH06zOrRcFFTKhJCFEppGCZv5C+cORykMVZgMgmau1gbyHxfAe/82eQFMjFBc
+	wkSjY7b1zezKywb97D6s/mtIWTmvD4d4m2ZZQaRxFezuVdH4rfkVgd5GtWp5erost5T8PR/Oky+
+	J77ijAvyvVFvvDsMnqupHG/J23eygC5SwuoWhJo3gSpJnr+ZF4+XltOBONylpy1Azf0H3SBxFav
+	RXsHNB1Jg2UlqfiIQBBN29dXV75T1VWd7Uxp9uuvSp2afUqHFw+nEJ2uzVX+OKT49h8WSwpfiOe
+	/PxxO+OK+3TO/ScHehEb4vPEC9hQ9QIg60GzKW4jhPBlU5WFfYRR7wNipDZIuu/DwJ4bqjfkv3v
+	ACkE1axeoBo1t6kQ2wBOR65wg+o1A4a1HArIa5S1Z2hTADmKaZRg/SfGXBuV26V+/BCwk63mxD5
+	hl1P68lmde5/pYArTREhkafDJ41pP85YzaVGZKN7bmANAZmVH7gcN8pR0Z9Xd2rw==
+X-Received: by 2002:a05:7301:290b:b0:2f3:3835:2005 with SMTP id 5a478bee46e88-3039870695fmr4760594eec.6.1779231040228;
+        Tue, 19 May 2026 15:50:40 -0700 (PDT)
+Received: from ausc-rvsw-c-02.tail89d63.ts.net ([38.104.49.66])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30294500a97sm20109448eec.9.2026.05.19.15.50.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 May 2026 13:34:02 -0700 (PDT)
-From: Raymond Mao <raymondmaoca@gmail.com>
+        Tue, 19 May 2026 15:50:39 -0700 (PDT)
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
 To: opensbi@lists.infradead.org
-Cc: scott@riscstar.com,
-	dave.patel@riscstar.com,
-	raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com,
-	samuel.holland@sifive.com,
-	anup.patel@qti.qualcomm.com,
-	anuppate@qti.qualcomm.com,
-	anup@brainfault.org,
-	dhaval@rivosinc.com,
-	peter.lin@sifive.com
-Subject: [PATCH 7/7] platform: virt: add WorldGuard HWISO failure-mode SBIUNIT test
-Date: Tue, 19 May 2026 16:33:31 -0400
-Message-Id: <20260519203331.2773185-8-raymondmaoca@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260519203331.2773185-1-raymondmaoca@gmail.com>
-References: <20260519203331.2773185-1-raymondmaoca@gmail.com>
+Cc: evvoevod@tenstorrent.com
+Subject: [PATCH] lib: sbi: Apply budget restriction when polling Zkr CSR state transition
+Date: Tue, 19 May 2026 22:50:14 +0000
+Message-ID: <20260519225014.244672-1-evvoevod@tenstorrent.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260519_133403_630757_0D653D90 
-X-CRM114-Status: GOOD (  13.87  )
+X-CRM114-CacheID: sfid-20260519_155041_522739_BB76A66B 
+X-CRM114-Status: GOOD (  12.98  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -107,166 +95,79 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Raymond Mao <raymond.mao@riscstar.com>
+Zkr architecture doesn't define a time limit on state transitions
+which results in hanging on unresponsive or event-driven platforms.
+To prevent this, we need to limit polling iterations and fall back
+in case the budget is over, and stack guard keeps its initial value.
+The budget is configurable with CONFIG_SBI_INIT_ZKR_POLL_BUDGET,
+defaulting to 1000 iterations.
+Successful reads do not consume a try.
 
-Extend the generic HWISO SBIUNIT test hook interface with a
-failure-test callback and invoke it from a new hwiso_failure_mode_test
-case.
-
-Implement the QEMU virt WorldGuard failure-mode test by switching into
-domain@0's WorldGuard state, issuing an intentional denied store to a
-protected DRAM address, and verifying that the access raises the
-expected store access fault with the faulting address recorded in
-tval.
-Also print the captured trap cause and trap value so the negative-path
-result is visible in the runtime log.
-
-Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
+Signed-off-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
 ---
- include/sbi/sbi_hwiso_test.h                  |  2 ++
- lib/sbi/sbi_hwiso_test.c                      |  6 ++++
- lib/sbi/sbi_hwiso_testlib.c                   | 11 ++++++
- .../generic/virt/qemu_virt_wgchecker_test.c   | 35 +++++++++++++++++++
- 4 files changed, 54 insertions(+)
+ lib/sbi/Kconfig    | 12 ++++++++++++
+ lib/sbi/sbi_init.c | 12 +++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/include/sbi/sbi_hwiso_test.h b/include/sbi/sbi_hwiso_test.h
-index 3970df5a..354e8d17 100644
---- a/include/sbi/sbi_hwiso_test.h
-+++ b/include/sbi/sbi_hwiso_test.h
-@@ -15,6 +15,7 @@
- #ifdef CONFIG_SBIUNIT
- struct sbi_hwiso_test_ops {
- 	void (*boot_test)(struct sbiunit_test_case *test);
-+	void (*failure_test)(struct sbiunit_test_case *test);
- 	void (*domain_state_test)(struct sbiunit_test_case *test,
- 				 const struct sbi_domain *dom, void *ctx);
- 	void (*domain_quiesce_test)(struct sbiunit_test_case *test,
-@@ -24,6 +25,7 @@ struct sbi_hwiso_test_ops {
- int sbi_hwiso_test_register(const struct sbi_hwiso_ops *ops,
- 			    const struct sbi_hwiso_test_ops *test_ops);
- void sbi_hwiso_test_boot(struct sbiunit_test_case *test);
-+void sbi_hwiso_test_failure(struct sbiunit_test_case *test);
- void sbi_hwiso_test_domain_state(struct sbiunit_test_case *test,
- 				 const struct sbi_domain *dom);
- void sbi_hwiso_test_domain_quiesced(struct sbiunit_test_case *test,
-diff --git a/lib/sbi/sbi_hwiso_test.c b/lib/sbi/sbi_hwiso_test.c
-index 716596e2..6b8384d4 100644
---- a/lib/sbi/sbi_hwiso_test.c
-+++ b/lib/sbi/sbi_hwiso_test.c
-@@ -96,6 +96,11 @@ static void hwiso_boot_test(struct sbiunit_test_case *test)
- 	sbi_hwiso_test_boot(test);
- }
+diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
+index c6cc04bc..a11f788c 100644
+--- a/lib/sbi/Kconfig
++++ b/lib/sbi/Kconfig
+@@ -6,6 +6,18 @@ config CONSOLE_EARLY_BUFFER_SIZE
+ 	int "Early console buffer size (bytes)"
+ 	default 256
  
-+static void hwiso_failure_mode_test(struct sbiunit_test_case *test)
-+{
-+	sbi_hwiso_test_failure(test);
-+}
++config SBI_INIT_ZKR_POLL_BUDGET
++	int "Zkr seed polling budget (iterations)"
++	default 1000
++	help
++	  Maximum number of iterations to poll CSR_SEED when initializing
++	  the stack guard variable. The Zkr specification doesn't define
++	  a time limit on transitioning to ES16 between polls, which
++	  makes it impossible to tell whether entropy is being
++	  accumulated slowly or the entropy source is not functioning.
++	  This also limits the wait time on systems with an event-driven
++	  entropy source. A successful read doesn't consume a try.
 +
- static void hwiso_domain_switch_test(struct sbiunit_test_case *test)
- {
- 	struct sbi_domain *cur_dom = sbi_domain_thishart_ptr();
-@@ -160,6 +165,7 @@ out:
+ config SBI_ECALL_TIME
+ 	bool "Timer extension"
+ 	default y
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index b248e73f..7a0c4f74 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -280,20 +280,26 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
+ 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_ZKR)) {
+ 		unsigned long guard_val = 0;
+ 		int chunks = sizeof(unsigned long) / sizeof(uint16_t);
+-		bool res = true;
++		unsigned int tries = CONFIG_SBI_INIT_ZKR_POLL_BUDGET;
++		bool res = false;
  
- static struct sbiunit_test_case hwiso_test_cases[] = {
- 	SBIUNIT_TEST_CASE(hwiso_boot_test),
-+	SBIUNIT_TEST_CASE(hwiso_failure_mode_test),
- 	SBIUNIT_TEST_CASE(hwiso_domain_switch_test),
- 	SBIUNIT_END_CASE,
- };
-diff --git a/lib/sbi/sbi_hwiso_testlib.c b/lib/sbi/sbi_hwiso_testlib.c
-index 2a988088..2dfb8646 100644
---- a/lib/sbi/sbi_hwiso_testlib.c
-+++ b/lib/sbi/sbi_hwiso_testlib.c
-@@ -64,6 +64,17 @@ void sbi_hwiso_test_boot(struct sbiunit_test_case *test)
- 	}
- }
+-		while (chunks) {
++		while (chunks && tries) {
+ 			unsigned long seed = csr_swap(CSR_SEED, 0);
+ 			unsigned long opst = seed & SEED_OPTS_MASK;
++			res = false;
  
-+void sbi_hwiso_test_failure(struct sbiunit_test_case *test)
-+{
-+	struct sbi_hwiso_test_node *entry;
+ 			if (opst == SEED_OPTS_DEAD) {
+-				res = false;
+ 				break;
+ 			}
+ 			if (opst == SEED_OPTS_ES16) {
+ 				guard_val = (guard_val << 16) | (seed & SEED_ENTROPY_MASK);
+ 				chunks--;
++				res = true;
++				/* Successful read doesn't consume a try */
++				tries++;
+ 			}
 +
-+	sbi_list_for_each_entry(entry, &hwiso_test_ops_list, node) {
-+		if (!entry->test_ops->failure_test)
-+			continue;
-+		entry->test_ops->failure_test(test);
-+	}
-+}
-+
- void sbi_hwiso_test_domain_state(struct sbiunit_test_case *test,
- 				 const struct sbi_domain *dom)
- {
-diff --git a/platform/generic/virt/qemu_virt_wgchecker_test.c b/platform/generic/virt/qemu_virt_wgchecker_test.c
-index 0eeaa3a0..eaaa39f7 100644
---- a/platform/generic/virt/qemu_virt_wgchecker_test.c
-+++ b/platform/generic/virt/qemu_virt_wgchecker_test.c
-@@ -7,14 +7,17 @@
- #include <libfdt.h>
- #include <sbi/riscv_encoding.h>
- #include <sbi/riscv_io.h>
-+#include <sbi/sbi_console.h>
- #include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hwiso.h>
- #include <sbi/sbi_hwiso_test.h>
- #include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_trap.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_unit_test.h>
-+#include <sbi/sbi_unpriv.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- #include <wgchecker2.h>
- #include <worldguard.h>
-@@ -40,6 +43,8 @@ struct qemu_virt_wg_expect {
- 	u32 slwid;
- };
- 
-+#define QEMU_VIRT_WG_DENIED_STORE_ADDR		0xc0001000UL
-+
- static u64 qemu_virt_wg_mmio_read64(unsigned long addr)
- {
- #if __riscv_xlen != 32
-@@ -314,8 +319,38 @@ static void qemu_virt_wg_boot_test(struct sbiunit_test_case *test)
- 			  0);
- }
- 
-+static void qemu_virt_wg_failure_test(struct sbiunit_test_case *test)
-+{
-+	struct sbi_domain *cur_dom = sbi_domain_thishart_ptr();
-+	struct sbi_domain *dom0 = qemu_virt_wg_find_domain("domain@0");
-+	struct sbi_trap_info trap = { 0 };
-+
-+	SBIUNIT_ASSERT_NE(test, cur_dom, NULL);
-+	SBIUNIT_ASSERT_NE(test, dom0, NULL);
-+
-+	if (cur_dom != dom0) {
-+		sbi_hwiso_domain_exit(cur_dom, dom0);
-+		sbi_hwiso_domain_enter(dom0, cur_dom);
-+	}
-+
-+	sbi_store_u32((u32 *)QEMU_VIRT_WG_DENIED_STORE_ADDR, 0x5a5aa5a5U,
-+		      &trap);
-+
-+	if (cur_dom != dom0) {
-+		sbi_hwiso_domain_exit(dom0, cur_dom);
-+		sbi_hwiso_domain_enter(cur_dom, dom0);
-+	}
-+
-+	sbi_printf("[WG TEST] failure trap cause=0x%lx tval=0x%lx\n",
-+		   trap.cause, trap.tval);
-+
-+	SBIUNIT_ASSERT_EQ(test, trap.cause, CAUSE_STORE_ACCESS);
-+	SBIUNIT_ASSERT_EQ(test, trap.tval, QEMU_VIRT_WG_DENIED_STORE_ADDR);
-+}
-+
- const struct sbi_hwiso_test_ops qemu_virt_worldguard_test_ops = {
- 	.boot_test = qemu_virt_wg_boot_test,
-+	.failure_test = qemu_virt_wg_failure_test,
- 	.domain_state_test = qemu_virt_wg_assert_state,
- 	.domain_quiesce_test = qemu_virt_wg_assert_quiesced,
- };
++			tries--;
+ 			continue;
+ 		}
+ 		if (res)
 -- 
-2.25.1
+2.43.0
 
 
 -- 
