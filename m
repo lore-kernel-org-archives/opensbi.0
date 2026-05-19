@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C094BCD4F5B
-	for <opensbi@archiver.kernel.org>; Tue, 19 May 2026 20:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id F20E3CD4F54
+	for <opensbi@archiver.kernel.org>; Tue, 19 May 2026 20:34:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=yR8FNrAaure1lP6i2hfWV6dpgSCqqEfesu+Ek8IlN5Y=; b=0pFeNUi0iqZu39
-	3AeWgbCGc/Ycvc7s45FPrirFo1m99PYst07yRF7mSjrP/0W6owgmdWCQGGOcoWHbDsCJMqclVoeTf
-	/xyC7phtpEYQ3ul0hXb5gOyweSWqM4uioUgNdpjr9Hx3iCdhcM/HtwZ1YpSAW20BBlUAWUunPBrcO
-	pFjJJjpy4z3XLxgKaEmlEY5aEJ9JqBeDfcBn0jJlMvpXLAA6vrIh0Ox9K2wgf3zVfoNXaWJVkTGsY
-	uq3ux1OK4BrAJrzXyRJf1hpkO4xBWa3zo0rxDAYR4XBaPSI0BZQdQv0vshAKmPleQKyVqO45XYkJF
-	QAnJsEZgaRPRUVWmeysA==;
+	List-Owner; bh=lVKe4ZT1tezmfO2HFFJ75fDSKc4TnTaNBrulxh+SrPc=; b=chXNfzsqHen9tX
+	vMhw6XrUJbkQe3rufgC2Yx3oGgFuxXXk+ZOnFd+9Nc79NYdb8a9M9C+asxXxyEz7Y6wpIFacuRE3w
+	H/7e81xv+8/LMbFjQikrmeMGGfLZ40bG6Pgy/nwZsxmse5bCjTYd4MG+7smzXCslPTRvNBuF5zZAi
+	peZA4IPXCHP+gG1t9VZvfi1Yuhuuurd8WqPo+8R8qI017xKssldDM20dgP4bEgwLsofKWh3LQWRTL
+	KBxoAnYAQSbtix3iXtWA6PYONTGQ9NN3TlWYesxegeq6bRigqQBel/5yl9202yTHfzw4dcqVX0t+X
+	lgc+ol6LI9isDMKHStWw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wPR8c-00000002j4B-1uTD;
-	Tue, 19 May 2026 20:34:02 +0000
-Received: from mail-qv1-xf2b.google.com ([2607:f8b0:4864:20::f2b])
+	id 1wPR8d-00000002j5Y-3DIL;
+	Tue, 19 May 2026 20:34:03 +0000
+Received: from mail-qt1-x830.google.com ([2607:f8b0:4864:20::830])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wPR8Y-00000002j1w-3r3a
+	id 1wPR8a-00000002j3H-2exx
 	for opensbi@lists.infradead.org;
-	Tue, 19 May 2026 20:34:00 +0000
-Received: by mail-qv1-xf2b.google.com with SMTP id 6a1803df08f44-899d6b7b073so50647776d6.2
-        for <opensbi@lists.infradead.org>; Tue, 19 May 2026 13:33:58 -0700 (PDT)
+	Tue, 19 May 2026 20:34:01 +0000
+Received: by mail-qt1-x830.google.com with SMTP id d75a77b69052e-50e63771d91so43029441cf.0
+        for <opensbi@lists.infradead.org>; Tue, 19 May 2026 13:34:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779222838; x=1779827638; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1779222839; x=1779827639; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=2sJ8Yw+eU/ad58SRswQmstItDYgGMC7UPt3Nkez8FtI=;
-        b=QrchqJV1IV0pVhXPdtZNf2PAQGlqBqZwqQ+Q/8MsqoiJTIbS1sKvW4uMdVV8cmahnR
-         Jpgx7kIZ2Zg+XZkBNgu/04Hya02n6rlucfLJnlCLcHlu7ere2LO7mSKk/6J1wQ8iiViY
-         F1XU08RHXv5TILTwIhJDf9cEzrZJ63aMTQErKl7VcNNKISptsOkqTKykDOe3G/uTd1Z+
-         GhRneZsAccaP69G0ypVFDKOzhjyZFwEH6VZW/7W4QtpTtWOq2GQtXCo3TtWR6b5TtcWT
-         VMOeNtYFhWVRxicnEBf2YbUdwbWKVNpFBQlrSCJ21FLZXMz65yZBEjBevy0617iFJfMY
-         8b2w==
+        bh=SFcyYrStlFqNln9T+UoBlrM5+NGUHucmUqioke2XrwY=;
+        b=DCvZ7v3kXFg/ICaJ7ddNzXb7G4DPW+1R/ihqB59yQRNsdciHAc0NZe+fZgTDzInezT
+         1OyNkj/bx+EmRjMkdv06IrLgCdcXqFM4f/gYZe6skPo1bpEiJorcFXkA3xsxOaWlq4yt
+         TyQlDIiqB4W9IumKh2aTBD/pvAUeBgA0s1BmRvSCOY87bzO40XBqJCEwhtpklpOEz4+Y
+         EH4FlEmH9SyDsU4PMaXqEGuUrlb3inmCY0FZu8WWTTjofbG9QgKNum/LdWFv5PPckdvF
+         r/mpMS3qEPXrvaw60kD8s7LLhro/mlwLDLR1rftLYCBDG504NepBON5mmRHYSzEuh8uK
+         TTJg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779222838; x=1779827638;
+        d=1e100.net; s=20251104; t=1779222839; x=1779827639;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=2sJ8Yw+eU/ad58SRswQmstItDYgGMC7UPt3Nkez8FtI=;
-        b=XzWyNF4CHAOIzK7N+zrtWLhCSc/cg3RElNL6Vm3uGYBzWLN84d2LwTgYyWIDP+meGW
-         hJyBcOcUy/TgLlRI6y8HjOZiFuc4UcWCtG1STU6bCFCe1WS0CvGdp4PqPnNjA4HCNyDc
-         4lN9oFrEui3q439UAlZDCaqH0gS8SGA34kj3LsbWQ9r7eZ57SYHMbWaMhzx1wcbyMG0C
-         3/JoOtxGnAee2mQGsbJyFwdiNp8jg8MnKpbvFFOmo3xQvnNEkU5Z2WNYu1pMDOg26idu
-         u+q0Lir0TdGhijx6NdjUoeovvQfqW6oZPEb4pwF7FWVLm+5fOBk7ZDEDMFyQJe6UceCl
-         6bzA==
-X-Gm-Message-State: AOJu0YxkUPsj7y/vDDDNHWZEtzmrvyqk6ZtWTIvD5GK/mokFFZGlTKkq
-	dv917GTdojE8t1K0BY8FWVEDhUwrIdYLtCcybOeY0K5QqfhvE/kcu3YsZdLplw==
-X-Gm-Gg: Acq92OHZh/HthCUEWr07PanmFGpv19C5EdONMWj49JDWR8qH7RYD9JPQXEnKwNJvHS8
-	FEfqTUe5wgRzrnPV4xH77EVRRRdvDfYSblDSrJEBJ21P7Zn6qkiY/QxRPZ7uVT3+IbnUZsO/q3t
-	78L50vwnvno0LBuXEBidxitXBIXImBSO50RyoAphFfg51dSMNDLJ5pcVXf8lYlr+5V2OwpMZiEs
-	00q6N5eIJAuQQxlvyZSlhNunQL/iHdgMsYy92ZopmfLD+HmQxDQeL1Gy3U0t7VsFax/cgcMYWVt
-	2hy3DL6QzBiG5mot1rpQf6F2BMPE86CWg3uFgQakdyaoln1Yyz35+lGghRT9uQ0fdlowQ2nCpAn
-	/8g/JobjRH2PyEDFpcCQtazApReSlbArlzcyO4zY7YAX4CPQgNdWRTmC00+pt+QoZ/WIAjdWj1t
-	FoarPaN5Pm/YImYSlcJlkJ8/aWkbBUIwpVri8ElY4T9tYL/NLzOJ4BwIkeppC85SBDlZTaOg0IS
-	Ri9JyeMFw/ai9tu+X1ZPw==
-X-Received: by 2002:a05:622a:5908:b0:50d:736a:6259 with SMTP id d75a77b69052e-51659fbe97cmr294351741cf.3.1779222837554;
-        Tue, 19 May 2026 13:33:57 -0700 (PDT)
+        bh=SFcyYrStlFqNln9T+UoBlrM5+NGUHucmUqioke2XrwY=;
+        b=BUkj4DeUAOCydSw1bZBFYdwh5EQwc+Ns8lPzqxfx/+C7YP5zDHy1QxRvFCUf00hauQ
+         2voYJEOJ+Qgv/9KfL3aeKgix6xRSlx3XgQULz60xBOCK/5WYs7lqQvV9zp/SnB8fs7Yk
+         ePHOnrnzmAuDEBxnSlvHPiNiYhgnGiCwm+YcavDKO8xnIyNB6/dFGSchqyG4T6duWptl
+         YfIrimWt121DefTbHmE6JzyUdVJOg2Fq6AVdTggptE1mmOCxadztUbsWKe0/x+xqC0Xj
+         FDHTXLtjg1jPkFpvaDOUJ06vEg6NEU0e8zSvZpHTd+67iBGOQKGCcDLiYiggTFH/XPWJ
+         ZQdQ==
+X-Gm-Message-State: AOJu0YwZPCTKJia7//oBVK8lGWdG2eJw8ArLTg/KNC28KpOcNrhyK11+
+	/ciqPpWKWDt/lfvWFBcAXctxFNMj4FsQlFCs8IibvBqy8h8kapsx+bPK7yGnTA==
+X-Gm-Gg: Acq92OHw1PrqyqpUiDzn55wvTXTlqJb/cPT6C00JaajcvKOvvOLUrAiV7oXytT8LenC
+	Ex+2MKVjadXbHmMaw1t6gdbArUuYFgQJwzfkBOQpB1SPRsxKROeJ3TxhzwtsX1JspcKeDYIeQDg
+	5PwVhjT/wQe5VM7xg+fLFjI/SkpV/yq1R6PHII+qMNJCEqLdoH5E0UM5G+3av0eKQwjzALNo5b8
+	XRE8r83zdJ3U9Tcl44IaAIAqV45Sdmlh73WwEpYdsjRv9irFhBO2wkyuIsIo7wTQLbVDOqQPfz4
+	1k/b4jFABRIbqT6ozcOiNLf7nKK5SJp7Lp8sMo9nmioVN9RoIyCtfn+4lfkOpKDFcapqF7E8c+L
+	zGR2TPv/+SUeC/jDglx3egmJmEj0swck5NFfE6pps6xE3u154Co4ZAoBas5nitZAhsVfxljd6Sd
+	6SUfxOPSXsVoGM2vF+AFjgQtFOMPgRYSDz9juexxJCei9sceDhX7hAmMlIBtDoXpoLRBTXqAUFP
+	Xm2saeo1229rhzZvnjaBSNd8zfmXwii
+X-Received: by 2002:a05:622a:5c0d:b0:509:1009:e7a6 with SMTP id d75a77b69052e-5165a219a59mr290300071cf.43.1779222839293;
+        Tue, 19 May 2026 13:33:59 -0700 (PDT)
 Received: from ubuntu.localdomain (172-97-209-197.cpe.distributel.net. [172.97.209.197])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5164581aed3sm173787461cf.23.2026.05.19.13.33.55
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5164581aed3sm173787461cf.23.2026.05.19.13.33.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 May 2026 13:33:57 -0700 (PDT)
+        Tue, 19 May 2026 13:33:59 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -81,16 +81,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH 4/7] platform: generic: add WorldGuard hwiso support with wgchecker2
-Date: Tue, 19 May 2026 16:33:28 -0400
-Message-Id: <20260519203331.2773185-5-raymondmaoca@gmail.com>
+Subject: [PATCH 5/7] test: add generic hwiso SBI unit coverage
+Date: Tue, 19 May 2026 16:33:29 -0400
+Message-Id: <20260519203331.2773185-6-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260519203331.2773185-1-raymondmaoca@gmail.com>
 References: <20260519203331.2773185-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260519_133359_081786_04F6B9D4 
-X-CRM114-Status: GOOD (  25.74  )
+X-CRM114-CacheID: sfid-20260519_133400_699653_1641F11A 
+X-CRM114-Status: GOOD (  19.67  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,44 +109,30 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add WorldGuard support for the hardware isolation framework on the
-generic platform.
+Add a generic HWISO SBI unit suite that exercises boot-time
+initialization and domain-switch hook sequencing without embedding one
+platform mechanism's policy directly into the core test driver.
 
-Implement boot-time parsing of sifive,wgchecker2 checker instances and
-their subordinate resource permissions from the FDT, then program the
-checker MMIO state according to the worldguard_cfg rules described for
-each protected resource.
-
-Add WorldGuard runtime support to parse per-hart CPU defaults and
-per-domain WorldGuard metadata, and use that state to reprogram MLWID,
-MWIDDELEG, and SLWID during domain transitions.
-
-Keep the QEMU virt platform code as the integration layer that
-registers the WorldGuard hardware isolation mechanism for the virt
-platform.
+Provide a small test registration layer so each HWISO mechanism can
+supply its own state and quiesce assertions.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- platform/generic/include/wgchecker2.h        |  55 ++
- platform/generic/include/worldguard.h        |  45 ++
- platform/generic/objects.mk                  |   3 +
- platform/generic/platform.c                  |  11 +
- platform/generic/virt/qemu_virt_worldguard.c |  42 ++
- platform/generic/wgchecker2.c                | 585 +++++++++++++++++++
- platform/generic/worldguard.c                | 522 +++++++++++++++++
- 7 files changed, 1263 insertions(+)
- create mode 100644 platform/generic/include/wgchecker2.h
- create mode 100644 platform/generic/include/worldguard.h
- create mode 100644 platform/generic/virt/qemu_virt_worldguard.c
- create mode 100644 platform/generic/wgchecker2.c
- create mode 100644 platform/generic/worldguard.c
+ include/sbi/sbi_hwiso_test.h |  33 +++++++
+ lib/sbi/objects.mk           |   3 +
+ lib/sbi/sbi_hwiso_test.c     | 167 +++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_hwiso_testlib.c  | 108 ++++++++++++++++++++++
+ 4 files changed, 311 insertions(+)
+ create mode 100644 include/sbi/sbi_hwiso_test.h
+ create mode 100644 lib/sbi/sbi_hwiso_test.c
+ create mode 100644 lib/sbi/sbi_hwiso_testlib.c
 
-diff --git a/platform/generic/include/wgchecker2.h b/platform/generic/include/wgchecker2.h
+diff --git a/include/sbi/sbi_hwiso_test.h b/include/sbi/sbi_hwiso_test.h
 new file mode 100644
-index 00000000..37b4bfe0
+index 00000000..3970df5a
 --- /dev/null
-+++ b/platform/generic/include/wgchecker2.h
-@@ -0,0 +1,55 @@
++++ b/include/sbi/sbi_hwiso_test.h
+@@ -0,0 +1,33 @@
 +/* SPDX-License-Identifier: BSD-2-Clause */
 +/*
 + * Copyright (c) 2026 RISCstar Solutions Corporation.
@@ -154,1325 +140,336 @@ index 00000000..37b4bfe0
 + * Author: Raymond Mao <raymond.mao@riscstar.com>
 + */
 +
-+#ifndef __PLATFORM_GENERIC_WGCHECKER2_H__
-+#define __PLATFORM_GENERIC_WGCHECKER2_H__
-+
-+#include <sbi/sbi_types.h>
-+
-+#define WGCHECKER2_COMPAT			"sifive,wgchecker2"
-+#define WGCHECKER2_CFG_NODE			"worldguard_cfg"
-+
-+#define WGCHECKER2_PROP_SLOT_COUNT		"sifive,slot-count"
-+#define WGCHECKER2_PROP_SUBORDINATES		"sifive,subordinates"
-+#define WGCHECKER2_PROP_PERMS			"perms"
-+
-+/*
-+ * The current wgchecker2 model uses a 64-bit permission register with
-+ * 2 bits per world, so the current checker model tracks at most 32 WIDs.
-+ */
-+#define WGCHECKER2_MAX_WIDS			32
-+
-+/* The current wgchecker2 model requires 4 KiB slot alignment. */
-+#define WGCHECKER2_MIN_ALIGN			0x1000ULL
-+
-+/* Current wgchecker2 MMIO register layout. */
-+#define WGCHECKER2_MMIO_NSLOTS			0x008
-+#define WGCHECKER2_MMIO_ERRCAUSE		0x010
-+#define WGCHECKER2_MMIO_ERRADDR			0x018
-+#define WGCHECKER2_MMIO_SLOT_BASE		0x020
-+#define WGCHECKER2_MMIO_SLOT_STRIDE		0x020
-+#define WGCHECKER2_MMIO_SLOT_ADDR		0x000
-+#define WGCHECKER2_MMIO_SLOT_PERM		0x008
-+#define WGCHECKER2_MMIO_SLOT_CFG		0x010
-+
-+/* Current wgchecker2 slot cfg.A[1:0] encoding. */
-+#define WGCHECKER2_SLOT_CFG_A_MASK		0x3
-+#define WGCHECKER2_SLOT_CFG_A_OFF		0x0
-+#define WGCHECKER2_SLOT_CFG_A_TOR		0x1
-+
-+struct wgchecker2_range {
-+	u64 base;
-+	u64 size;
-+	u64 perm;
-+};
-+
-+u32 wgchecker2_count_platform_checkers(void *fdt);
-+int wgchecker2_init(void *fdt);
-+void wgchecker2_cleanup(void);
-+u32 wgchecker2_checker_count(void);
-+
-+#endif
-diff --git a/platform/generic/include/worldguard.h b/platform/generic/include/worldguard.h
-new file mode 100644
-index 00000000..ed1e70b8
---- /dev/null
-+++ b/platform/generic/include/worldguard.h
-@@ -0,0 +1,45 @@
-+/* SPDX-License-Identifier: BSD-2-Clause */
-+/*
-+ * Copyright (c) 2026 RISCstar Solutions Corporation.
-+ *
-+ * Author: Raymond Mao <raymond.mao@riscstar.com>
-+ */
-+
-+#ifndef __PLATFORM_GENERIC_WORLDGUARD_H__
-+#define __PLATFORM_GENERIC_WORLDGUARD_H__
++#ifndef __SBI_HWISO_TEST_H__
++#define __SBI_HWISO_TEST_H__
 +
 +#include <sbi/sbi_domain.h>
 +#include <sbi/sbi_hwiso.h>
-+#include <sbi/sbi_types.h>
-+
-+#define WORLDGUARD_CPU_COMPAT		"riscv,wgcpu"
-+#define WORLDGUARD_CPU_NODE		"worldguard"
-+
-+#define WORLDGUARD_PROP_WID		"worldguard,wid"
-+#define WORLDGUARD_PROP_WIDLIST		"worldguard,widlist"
-+#define WORLDGUARD_PROP_MWID		"mwid"
-+#define WORLDGUARD_PROP_MWIDLIST	"mwidlist"
-+
-+struct wg_cpu_defaults {
-+	u32 trusted_wid;
-+	u32 nworlds;
-+	u32 valid_wid_mask;
-+};
-+
-+struct worldguard_domain_ctx {
-+	bool has_wid;
-+	u32 wid;
-+	u32 widlist_mask;
-+};
-+
-+int worldguard_register(void);
-+const struct sbi_hwiso_ops *worldguard_ops_get(void);
++#include <sbi/sbi_unit_test.h>
 +
 +#ifdef CONFIG_SBIUNIT
-+int worldguard_test_check_runtime_state(bool runtime_enabled);
-+int worldguard_test_check_domain_state(const struct sbi_domain *dom,
-+				       bool expect_ctx, u32 wid,
-+				       u32 widlist_mask);
++struct sbi_hwiso_test_ops {
++	void (*boot_test)(struct sbiunit_test_case *test);
++	void (*domain_state_test)(struct sbiunit_test_case *test,
++				 const struct sbi_domain *dom, void *ctx);
++	void (*domain_quiesce_test)(struct sbiunit_test_case *test,
++				    const struct sbi_domain *dom, void *ctx);
++};
++
++int sbi_hwiso_test_register(const struct sbi_hwiso_ops *ops,
++			    const struct sbi_hwiso_test_ops *test_ops);
++void sbi_hwiso_test_boot(struct sbiunit_test_case *test);
++void sbi_hwiso_test_domain_state(struct sbiunit_test_case *test,
++				 const struct sbi_domain *dom);
++void sbi_hwiso_test_domain_quiesced(struct sbiunit_test_case *test,
++				    const struct sbi_domain *dom);
 +#endif
 +
 +#endif
-diff --git a/platform/generic/objects.mk b/platform/generic/objects.mk
-index 85aa723a..80bd65ea 100644
---- a/platform/generic/objects.mk
-+++ b/platform/generic/objects.mk
-@@ -20,6 +20,9 @@ platform-runcmd = qemu-system-riscv$(PLATFORM_RISCV_XLEN) -M virt -m 256M \
- # Objects to build
- platform-objs-y += platform.o
- platform-objs-y += platform_override_modules.o
-+platform-objs-y += worldguard.o
-+platform-objs-y += wgchecker2.o
-+platform-objs-y += virt/qemu_virt_worldguard.o
+diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
+index 6091499a..8839d13c 100644
+--- a/lib/sbi/objects.mk
++++ b/lib/sbi/objects.mk
+@@ -13,9 +13,12 @@ libsbi-objs-y += riscv_hardfp.o
+ libsbi-objs-y += riscv_locks.o
+ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_test.o
+ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_unit_tests.o
++libsbi-objs-$(CONFIG_SBIUNIT) += sbi_hwiso_testlib.o
  
- # Blobs to build
- FW_TEXT_START=0x80000000
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index b76c2a2f..7326b709 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -11,6 +11,7 @@
- #include <platform_override.h>
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_error.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_platform.h>
-@@ -30,6 +31,8 @@
- #include <sbi_utils/rpxy/fdt_rpxy.h>
- #include <sbi_utils/serial/semihosting.h>
+ libsbi-objs-$(CONFIG_SBIUNIT) += sbi_bitmap_test.o
++libsbi-objs-$(CONFIG_SBIUNIT) += sbi_hwiso_test.o
+ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += bitmap_test_suite
++carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += hwiso_test_suite
+ carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += console_test_suite
  
-+extern int qemu_virt_worldguard_register(void *fdt);
-+
- /* List of platform override modules generated at compile time */
- extern const struct platform_override *platform_override_modules[];
- extern unsigned long platform_override_modules_size;
-@@ -222,9 +225,17 @@ static int generic_nascent_init(void)
- 
- static int generic_early_init(bool cold_boot)
- {
-+	int rc;
-+
- 	if (cold_boot)
- 		fdt_reset_init();
- 
-+	if (cold_boot) {
-+		rc = qemu_virt_worldguard_register(fdt_get_address());
-+		if (rc && rc != SBI_EALREADY)
-+			return rc;
-+	}
-+
- 	if (!generic_plat || !generic_plat->early_init)
- 		return 0;
- 
-diff --git a/platform/generic/virt/qemu_virt_worldguard.c b/platform/generic/virt/qemu_virt_worldguard.c
+ libsbi-objs-y += sbi_ecall.o
+diff --git a/lib/sbi/sbi_hwiso_test.c b/lib/sbi/sbi_hwiso_test.c
 new file mode 100644
-index 00000000..b5cdab81
+index 00000000..716596e2
 --- /dev/null
-+++ b/platform/generic/virt/qemu_virt_worldguard.c
-@@ -0,0 +1,42 @@
++++ b/lib/sbi/sbi_hwiso_test.c
+@@ -0,0 +1,167 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +/*
-+ * QEMU virt WorldGuard registration shim
-+ *
 + * Copyright (c) 2026 RISCstar Solutions Corporation.
 + *
 + * Author: Raymond Mao <raymond.mao@riscstar.com>
 + */
-+
-+#include <libfdt.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hwiso_test.h>
-+#include <worldguard.h>
-+
-+#ifdef CONFIG_SBIUNIT
-+extern const struct sbi_hwiso_test_ops qemu_virt_worldguard_test_ops;
-+#endif
-+
-+int qemu_virt_worldguard_register(void *fdt)
-+{
-+	int rc;
-+
-+	if (!fdt)
-+		return 0;
-+
-+	if (fdt_node_check_compatible(fdt, 0, "riscv-virtio") &&
-+	    fdt_node_check_compatible(fdt, 0, "qemu,virt"))
-+		return 0;
-+
-+	rc = worldguard_register();
-+	if (rc)
-+		return rc;
-+
-+#ifdef CONFIG_SBIUNIT
-+	rc = sbi_hwiso_test_register(worldguard_ops_get(),
-+				     &qemu_virt_worldguard_test_ops);
-+	if (rc && rc != SBI_EALREADY)
-+		return rc;
-+#endif
-+
-+	return 0;
-+}
-diff --git a/platform/generic/wgchecker2.c b/platform/generic/wgchecker2.c
-new file mode 100644
-index 00000000..bd3fab15
---- /dev/null
-+++ b/platform/generic/wgchecker2.c
-@@ -0,0 +1,585 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * wgchecker2 model support
-+ *
-+ * Copyright (c) 2026 RISCstar Solutions Corporation.
-+ *
-+ * Author: Raymond Mao <raymond.mao@riscstar.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_error.h>
++#include <sbi/riscv_encoding.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_domain_context.h>
++#include <sbi/sbi_hart.h>
 +#include <sbi/sbi_heap.h>
-+#include <sbi/sbi_string.h>
-+#include <wgchecker2.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi/sbi_hwiso.h>
++#include <sbi/sbi_hwiso_test.h>
++#include <sbi/sbi_scratch.h>
++#include <sbi/sbi_trap.h>
++#include <sbi/sbi_unit_test.h>
 +
-+struct wgchecker2_checker {
-+	char name[32];
-+	u64 mmio_base;
-+	u64 mmio_size;
-+	u32 slot_count;
-+	u32 subordinate_count;
-+	bool full_checker_rule;
-+	u64 full_checker_perm;
-+	u32 range_count;
-+	struct wgchecker2_range *ranges;
-+};
-+
-+struct wgchecker2_platform_ctx {
-+	u32 checker_count;
-+	struct wgchecker2_checker *checkers;
-+};
-+
-+static struct wgchecker2_platform_ctx *wgchecker2_platform;
-+
-+static void wgchecker2_free_platform_ctx(struct wgchecker2_platform_ctx *platform)
++static u32 hwiso_collect_switch_domains(struct sbi_domain *current,
++					struct sbi_domain **targets,
++					u32 max_targets)
 +{
 +	u32 i;
-+
-+	if (!platform)
-+		return;
-+
-+	for (i = 0; i < platform->checker_count; i++)
-+		sbi_free(platform->checkers[i].ranges);
-+
-+	sbi_free(platform->checkers);
-+	sbi_free(platform);
-+}
-+
-+static u64 wgchecker2_read_cells(const fdt32_t *cells, int count)
-+{
-+	u64 val = 0;
-+	int i;
-+
-+	for (i = 0; i < count; i++)
-+		val = (val << 32) | fdt32_to_cpu(cells[i]);
-+
-+	return val;
-+}
-+
-+static void wgchecker2_write64(u64 addr, u64 val)
-+{
-+#if __riscv_xlen != 32
-+	writeq(val, (void *)(unsigned long)addr);
-+#else
-+	writel((u32)val, (void *)(unsigned long)addr);
-+	writel((u32)(val >> 32), (void *)(unsigned long)(addr + 4));
-+#endif
-+}
-+
-+static void wgchecker2_write32(u64 addr, u32 val)
-+{
-+	writel(val, (void *)(unsigned long)addr);
-+}
-+
-+static u64 wgchecker2_slot_addr_encode(u64 addr)
-+{
-+	return addr >> 2;
-+}
-+
-+static bool wgchecker2_range_is_aligned(u64 base, u64 size)
-+{
-+	if (!size)
-+		return false;
-+
-+	if (base & (WGCHECKER2_MIN_ALIGN - 1))
-+		return false;
-+	if (size & (WGCHECKER2_MIN_ALIGN - 1))
-+		return false;
-+
-+	return true;
-+}
-+
-+static void wgchecker2_sort_ranges(struct wgchecker2_checker *checker)
-+{
-+	struct wgchecker2_range tmp;
-+	u32 i, j;
-+
-+	for (i = 1; i < checker->range_count; i++) {
-+		tmp = checker->ranges[i];
-+		j = i;
-+		while (j > 0 && checker->ranges[j - 1].base > tmp.base) {
-+			checker->ranges[j] = checker->ranges[j - 1];
-+			j--;
-+		}
-+		checker->ranges[j] = tmp;
-+	}
-+}
-+
-+static int wgchecker2_compact_ranges(struct wgchecker2_checker *checker)
-+{
-+	struct wgchecker2_range *prev, *cur;
-+	u64 prev_end, cur_end;
-+	u32 i, out = 0;
-+
-+	if (!checker->range_count)
-+		return 0;
-+
-+	wgchecker2_sort_ranges(checker);
-+
-+	for (i = 0; i < checker->range_count; i++) {
-+		cur = &checker->ranges[i];
-+		cur_end = cur->base + cur->size;
-+		if (cur_end <= cur->base)
-+			return SBI_EINVAL;
-+
-+		if (!out) {
-+			checker->ranges[out++] = *cur;
-+			continue;
-+		}
-+
-+		prev = &checker->ranges[out - 1];
-+		prev_end = prev->base + prev->size;
-+		if (cur->base < prev_end)
-+			return SBI_EINVAL;
-+
-+		if (cur->base == prev_end && cur->perm == prev->perm) {
-+			prev->size += cur->size;
-+			continue;
-+		}
-+
-+		checker->ranges[out++] = *cur;
-+	}
-+
-+	checker->range_count = out;
-+	return 0;
-+}
-+
-+static int wgchecker2_get_reg_cells(void *fdt, int resource_node,
-+				     int *addr_cells, int *size_cells)
-+{
-+	int parent;
-+
-+	parent = fdt_parent_offset(fdt, resource_node);
-+	if (parent < 0)
-+		return SBI_EINVAL;
-+
-+	*addr_cells = fdt_address_cells(fdt, parent);
-+	*size_cells = fdt_size_cells(fdt, parent);
-+	if (*addr_cells <= 0 || *addr_cells > 2 || *size_cells <= 0 ||
-+	    *size_cells > 2)
-+		return SBI_EINVAL;
-+
-+	return 0;
-+}
-+
-+static int wgchecker2_count_reg_entries(void *fdt, int resource_node,
-+					int reg_node)
-+{
-+	const fdt32_t *reg;
-+	int addr_cells, size_cells, entry_cells, len, rc;
-+
-+	rc = wgchecker2_get_reg_cells(fdt, resource_node, &addr_cells,
-+					      &size_cells);
-+	if (rc)
-+		return rc;
-+
-+	reg = fdt_getprop(fdt, reg_node, "reg", &len);
-+	if (!reg || len <= 0)
-+		return 0;
-+
-+	entry_cells = addr_cells + size_cells;
-+	if (len % (entry_cells * (int)sizeof(fdt32_t)))
-+		return SBI_EINVAL;
-+
-+	return len / (entry_cells * (int)sizeof(fdt32_t));
-+}
-+
-+static int wgchecker2_parse_perms(void *fdt, int cfg_node, u64 **out_perms,
-+				  u32 *out_count)
-+{
-+	const fdt32_t *perms;
-+	u64 *vals;
-+	int len, i, count;
-+
-+	*out_perms = NULL;
-+	*out_count = 0;
-+
-+	perms = fdt_getprop(fdt, cfg_node, WGCHECKER2_PROP_PERMS, &len);
-+	if (!perms || len <= 0)
-+		return 0;
-+
-+	if (len % (2 * (int)sizeof(fdt32_t)))
-+		return SBI_EINVAL;
-+
-+	count = len / (2 * (int)sizeof(fdt32_t));
-+	vals = sbi_calloc(sizeof(*vals), count);
-+	if (!vals)
-+		return SBI_ENOMEM;
-+
-+	for (i = 0; i < count; i++, perms += 2)
-+		vals[i] = wgchecker2_read_cells(perms, 2);
-+
-+	*out_perms = vals;
-+	*out_count = count;
-+	return 0;
-+}
-+
-+static int wgchecker2_fill_ranges(void *fdt, int resource_node, int reg_node,
-+				  const u64 *perms, u32 perm_count,
-+				  struct wgchecker2_range *ranges,
-+				  u32 range_count)
-+{
-+	const fdt32_t *reg;
-+	u64 base, size;
-+	int addr_cells, size_cells, entry_cells, len, i, rc;
-+
-+	rc = wgchecker2_get_reg_cells(fdt, resource_node, &addr_cells,
-+					      &size_cells);
-+	if (rc)
-+		return rc;
-+
-+	reg = fdt_getprop(fdt, reg_node, "reg", &len);
-+	if (!reg || len <= 0)
-+		return SBI_EINVAL;
-+
-+	entry_cells = addr_cells + size_cells;
-+	for (i = 0; i < (int)range_count; i++, reg += entry_cells) {
-+		base = wgchecker2_read_cells(reg, addr_cells);
-+		size = wgchecker2_read_cells(reg + addr_cells, size_cells);
-+		if (!wgchecker2_range_is_aligned(base, size))
-+			return SBI_EINVAL;
-+
-+		ranges[i].base = base;
-+		ranges[i].size = size;
-+		ranges[i].perm = perms[(perm_count == 1) ? 0 : i];
-+	}
-+
-+	return 0;
-+}
-+
-+static int wgchecker2_parse_checker_rules(void *fdt, int checker_node,
-+					  struct wgchecker2_checker *checker)
-+{
-+	const fdt32_t *subs;
-+	u64 *perms = NULL;
-+	int cfg_node, len, i, rc = 0, reg_count;
-+	u32 perm_count = 0;
-+	int child;
-+
-+	subs = fdt_getprop(fdt, checker_node, WGCHECKER2_PROP_SUBORDINATES, &len);
-+	if (!subs || len <= 0)
-+		return 0;
-+	if (len % (int)sizeof(fdt32_t))
-+		goto err;
-+
-+	checker->subordinate_count = len / sizeof(fdt32_t);
-+	if (!checker->slot_count)
-+		goto err;
-+
-+	checker->ranges = sbi_calloc(sizeof(*checker->ranges),
-+				     checker->slot_count);
-+	if (!checker->ranges)
-+		return SBI_ENOMEM;
-+
-+	for (i = 0; i < checker->subordinate_count; i++) {
-+		child = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(subs[i]));
-+		if (child < 0) {
-+			rc = child;
-+			goto err;
-+		}
-+
-+		cfg_node = fdt_subnode_offset(fdt, child, WGCHECKER2_CFG_NODE);
-+		if (cfg_node < 0)
-+			continue;
-+
-+		rc = wgchecker2_parse_perms(fdt, cfg_node, &perms, &perm_count);
-+		if (rc)
-+			goto err;
-+		if (!perm_count)
-+			continue;
-+
-+		reg_count = wgchecker2_count_reg_entries(fdt, child, cfg_node);
-+		if (reg_count < 0)
-+			goto err;
-+
-+		if (!reg_count && checker->subordinate_count == 1 &&
-+		    perm_count == 1) {
-+			if (checker->range_count)
-+				goto err;
-+			checker->full_checker_rule = true;
-+			checker->full_checker_perm = perms[0];
-+			sbi_free(perms);
-+			perms = NULL;
-+			continue;
-+		}
-+
-+		if (!reg_count)
-+			reg_count = wgchecker2_count_reg_entries(fdt, child, child);
-+		if (reg_count <= 0)
-+			goto err;
-+
-+		if (perm_count != 1 && perm_count != (u32)reg_count)
-+			goto err;
-+		if (checker->full_checker_rule)
-+			goto err;
-+		if (checker->range_count + reg_count > checker->slot_count)
-+			goto err;
-+
-+		rc = wgchecker2_fill_ranges(
-+			fdt, child,
-+			(fdt_getprop(fdt, cfg_node, "reg", NULL) ? cfg_node : child),
-+			perms, perm_count,
-+			&checker->ranges[checker->range_count], reg_count);
-+		sbi_free(perms);
-+		perms = NULL;
-+		if (rc)
-+			goto err;
-+
-+		checker->range_count += reg_count;
-+	}
-+
-+	if (checker->full_checker_rule)
-+		return 0;
-+
-+	return wgchecker2_compact_ranges(checker);
-+
-+err:
-+	sbi_free(perms);
-+	return rc ? rc : SBI_EINVAL;
-+}
-+
-+static int wgchecker2_parse_checker(void *fdt, int checker_node,
-+				    struct wgchecker2_checker *checker)
-+{
-+	const fdt32_t *val;
-+	u64 base = 0, size = 0;
-+	int len, rc;
-+
-+	rc = fdt_get_node_addr_size(fdt, checker_node, 0, &base, &size);
-+	if (rc)
-+		return rc;
-+
-+	val = fdt_getprop(fdt, checker_node, WGCHECKER2_PROP_SLOT_COUNT, &len);
-+	if (!val || len < (int)sizeof(fdt32_t))
-+		return SBI_EINVAL;
-+
-+	checker->mmio_base = base;
-+	checker->mmio_size = size;
-+	checker->slot_count = fdt32_to_cpu(val[0]);
-+	sbi_snprintf(checker->name, sizeof(checker->name), "%s",
-+		     fdt_get_name(fdt, checker_node, NULL));
-+
-+	return wgchecker2_parse_checker_rules(fdt, checker_node, checker);
-+}
-+
-+static void wgchecker2_program_clear_slots(const struct wgchecker2_checker *checker)
-+{
-+	u32 slot;
-+
-+	for (slot = 1; slot < checker->slot_count; slot++) {
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_ADDR, 0);
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_PERM, 0);
-+		wgchecker2_write32(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_CFG, 0);
-+	}
-+}
-+
-+static void wgchecker2_program_clear_last_slot(const struct wgchecker2_checker *checker)
-+{
-+	wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+			   checker->slot_count * WGCHECKER2_MMIO_SLOT_STRIDE +
-+			   WGCHECKER2_MMIO_SLOT_PERM, 0);
-+	wgchecker2_write32(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+			   checker->slot_count * WGCHECKER2_MMIO_SLOT_STRIDE +
-+			   WGCHECKER2_MMIO_SLOT_CFG, 0);
-+}
-+
-+static void wgchecker2_program_clear_slots_from(const struct wgchecker2_checker *checker,
-+						u32 first_slot)
-+{
-+	u32 slot;
-+
-+	if (first_slot >= checker->slot_count)
-+		return;
-+
-+	for (slot = first_slot; slot < checker->slot_count; slot++) {
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_ADDR, 0);
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_PERM, 0);
-+		wgchecker2_write32(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_CFG, 0);
-+	}
-+}
-+
-+static int wgchecker2_program_checker(const struct wgchecker2_checker *checker)
-+{
-+	u64 prev_end = 0;
-+	u32 required_slots = 0, slot = 1, i;
-+
-+	wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_ERRCAUSE, 0);
-+	wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_ERRADDR, 0);
-+
-+	if (checker->full_checker_rule) {
-+		wgchecker2_program_clear_slots(checker);
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   checker->slot_count * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_PERM,
-+				   checker->full_checker_perm);
-+		wgchecker2_write32(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   checker->slot_count * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_CFG,
-+				   WGCHECKER2_SLOT_CFG_A_TOR);
-+		return 0;
-+	}
-+
-+	for (i = 0; i < checker->range_count; i++) {
-+		if (!i || checker->ranges[i].base != prev_end)
-+			required_slots++;
-+		required_slots++;
-+		prev_end = checker->ranges[i].base + checker->ranges[i].size;
-+	}
-+
-+	if (required_slots > checker->slot_count - 1)
-+		return SBI_EINVAL;
-+
-+	prev_end = 0;
-+	for (i = 0; i < checker->range_count; i++) {
-+		const struct wgchecker2_range *range = &checker->ranges[i];
-+		u64 end = range->base + range->size;
-+
-+		if (!i || range->base != prev_end) {
-+			wgchecker2_write64(checker->mmio_base +
-+					   WGCHECKER2_MMIO_SLOT_BASE +
-+					   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+					   WGCHECKER2_MMIO_SLOT_ADDR,
-+					   wgchecker2_slot_addr_encode(range->base));
-+			wgchecker2_write64(checker->mmio_base +
-+					   WGCHECKER2_MMIO_SLOT_BASE +
-+					   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+					   WGCHECKER2_MMIO_SLOT_PERM, 0);
-+			wgchecker2_write32(checker->mmio_base +
-+					   WGCHECKER2_MMIO_SLOT_BASE +
-+					   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+					   WGCHECKER2_MMIO_SLOT_CFG,
-+					   WGCHECKER2_SLOT_CFG_A_OFF);
-+			slot++;
-+		}
-+
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_ADDR,
-+				   wgchecker2_slot_addr_encode(end));
-+		wgchecker2_write64(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_PERM, range->perm);
-+		wgchecker2_write32(checker->mmio_base + WGCHECKER2_MMIO_SLOT_BASE +
-+				   slot * WGCHECKER2_MMIO_SLOT_STRIDE +
-+				   WGCHECKER2_MMIO_SLOT_CFG,
-+				   WGCHECKER2_SLOT_CFG_A_TOR);
-+		prev_end = end;
-+		slot++;
-+	}
-+
-+	/*
-+	 * Keep the reset-time trusted-WID bypass slot alive until the new
-+	 * rule set is fully programmed, otherwise the DRAM checker can deny
-+	 * OpenSBI's own RAM accesses mid-update.
-+	 */
-+	wgchecker2_program_clear_slots_from(checker, slot);
-+	wgchecker2_program_clear_last_slot(checker);
-+
-+	return 0;
-+}
-+
-+u32 wgchecker2_count_platform_checkers(void *fdt)
-+{
-+	int checker_node;
 +	u32 count = 0;
++	struct sbi_domain *dom;
 +
-+	if (!fdt)
++	if (!targets || !max_targets)
 +		return 0;
 +
-+	checker_node = -1;
-+	while (true) {
-+		checker_node = fdt_node_offset_by_compatible(fdt, checker_node,
-+						     WGCHECKER2_COMPAT);
-+		if (checker_node < 0)
-+			break;
-+		if (fdt_getprop(fdt, checker_node, WGCHECKER2_PROP_SUBORDINATES,
-+				NULL))
-+			count++;
++	sbi_domain_for_each(i, dom) {
++		if (dom == current || dom == &root)
++			continue;
++
++		targets[count++] = dom;
++		if (count == max_targets)
++			return count;
 +	}
++
++	if (current != &root && count < max_targets)
++		targets[count++] = &root;
 +
 +	return count;
 +}
 +
-+int wgchecker2_init(void *fdt)
++static void hwiso_snapshot_context(struct sbi_context *ctx)
 +{
-+	struct wgchecker2_platform_ctx *platform;
-+	int checker_node, rc;
-+	u32 count, idx = 0;
++	struct sbi_trap_regs *trap_regs;
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 +
-+	wgchecker2_cleanup();
++	trap_regs = (struct sbi_trap_regs *)(csr_read(CSR_MSCRATCH) -
++					     SBI_TRAP_REGS_SIZE);
++	ctx->regs = *trap_regs;
++	ctx->sstatus = csr_read(CSR_SSTATUS);
++	ctx->sie = csr_read(CSR_SIE);
++	ctx->stvec = csr_read(CSR_STVEC);
++	ctx->sscratch = csr_read(CSR_SSCRATCH);
++	ctx->sepc = csr_read(CSR_SEPC);
++	ctx->scause = csr_read(CSR_SCAUSE);
++	ctx->stval = csr_read(CSR_STVAL);
++	ctx->sip = csr_read(CSR_SIP);
++	ctx->satp = csr_read(CSR_SATP);
++	ctx->scounteren = 0;
++	ctx->senvcfg = 0;
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
++		ctx->scounteren = csr_read(CSR_SCOUNTEREN);
++	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
++		ctx->senvcfg = csr_read(CSR_SENVCFG);
++	ctx->initialized = true;
++}
 +
-+	if (!fdt)
-+		return 0;
++static struct sbi_context *hwiso_ensure_context(struct sbiunit_test_case *test,
++						struct sbi_domain *dom,
++						struct sbi_context *tmpl,
++						u32 hartindex)
++{
++	struct sbi_context *dom_ctx;
 +
-+	count = wgchecker2_count_platform_checkers(fdt);
-+	if (!count)
-+		return 0;
-+
-+	platform = sbi_zalloc(sizeof(*platform));
-+	if (!platform)
-+		return SBI_ENOMEM;
-+
-+	platform->checker_count = count;
-+	platform->checkers = sbi_calloc(sizeof(*platform->checkers), count);
-+	if (!platform->checkers) {
-+		sbi_free(platform);
-+		return SBI_ENOMEM;
++	dom_ctx = sbi_hartindex_to_domain_context(hartindex, dom);
++	if (!dom_ctx) {
++		dom_ctx = sbi_zalloc(sizeof(*dom_ctx));
++		SBIUNIT_ASSERT_NE(test, dom_ctx, NULL);
++		dom_ctx->dom = dom;
++		dom->hartindex_to_context_table[hartindex] = dom_ctx;
 +	}
 +
-+	checker_node = -1;
-+	while (true) {
-+		checker_node = fdt_node_offset_by_compatible(fdt, checker_node,
-+						     WGCHECKER2_COMPAT);
-+		if (checker_node < 0)
-+			break;
-+		if (!fdt_getprop(fdt, checker_node, WGCHECKER2_PROP_SUBORDINATES,
-+				 NULL))
-+			continue;
-+
-+		rc = wgchecker2_parse_checker(fdt, checker_node,
-+					      &platform->checkers[idx]);
-+		if (rc) {
-+			wgchecker2_free_platform_ctx(platform);
-+			return rc;
-+		}
-+
-+		rc = wgchecker2_program_checker(&platform->checkers[idx]);
-+		if (rc) {
-+			wgchecker2_free_platform_ctx(platform);
-+			return rc;
-+		}
-+		idx++;
++	if (tmpl) {
++		*dom_ctx = *tmpl;
++		dom_ctx->dom = dom;
++		dom->hartindex_to_context_table[hartindex] = dom_ctx;
 +	}
 +
-+	wgchecker2_platform = platform;
-+	return 0;
++	return dom_ctx;
 +}
 +
-+void wgchecker2_cleanup(void)
++static void hwiso_boot_test(struct sbiunit_test_case *test)
 +{
-+	if (!wgchecker2_platform)
-+		return;
-+
-+	wgchecker2_free_platform_ctx(wgchecker2_platform);
-+	wgchecker2_platform = NULL;
++	sbi_hwiso_test_boot(test);
 +}
 +
-+u32 wgchecker2_checker_count(void)
++static void hwiso_domain_switch_test(struct sbiunit_test_case *test)
 +{
-+	return wgchecker2_platform ? wgchecker2_platform->checker_count : 0;
++	struct sbi_domain *cur_dom = sbi_domain_thishart_ptr();
++	struct sbi_context *ctx = sbi_domain_context_thishart_ptr();
++	struct sbi_domain *switch_doms[2];
++	struct sbi_context *cur_ctx;
++	struct sbi_context tmpl_ctx;
++	u32 switch_count;
++	u32 i;
++	u32 hartindex = sbi_hartid_to_hartindex(current_hartid());
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	bool debug_on = false;
++
++	SBIUNIT_ASSERT_NE(test, cur_dom, NULL);
++
++	if (scratch->options & SBI_SCRATCH_DEBUG_PRINTS)
++		debug_on = true;
++	else
++		scratch->options |= SBI_SCRATCH_DEBUG_PRINTS;
++
++	if (!ctx) {
++		cur_ctx = sbi_zalloc(sizeof(*cur_ctx));
++		SBIUNIT_ASSERT_NE(test, cur_ctx, NULL);
++		cur_ctx->dom = cur_dom;
++		cur_dom->hartindex_to_context_table[hartindex] = cur_ctx;
++		ctx = cur_ctx;
++	}
++
++	hwiso_snapshot_context(ctx);
++	tmpl_ctx = *ctx;
++	switch_count = hwiso_collect_switch_domains(cur_dom, switch_doms, 2);
++
++	(void)hwiso_ensure_context(test, cur_dom, NULL, hartindex);
++	for (i = 0; i < switch_count; i++)
++		(void)hwiso_ensure_context(test, switch_doms[i], &tmpl_ctx,
++					   hartindex);
++
++	if (!switch_count)
++		goto out;
++
++	sbi_hwiso_domain_exit(cur_dom, switch_doms[0]);
++	sbi_hwiso_test_domain_quiesced(test, cur_dom);
++	sbi_hwiso_domain_enter(switch_doms[0], cur_dom);
++	sbi_hwiso_test_domain_state(test, switch_doms[0]);
++	sbi_hwiso_domain_exit(switch_doms[0], cur_dom);
++	sbi_hwiso_test_domain_quiesced(test, switch_doms[0]);
++	sbi_hwiso_domain_enter(cur_dom, switch_doms[0]);
++	sbi_hwiso_test_domain_state(test, cur_dom);
++
++	for (i = 0; i < switch_count; i++) {
++		SBIUNIT_ASSERT_EQ(test, sbi_domain_context_enter(switch_doms[i]), 0);
++		sbi_hwiso_test_domain_state(test, switch_doms[i]);
++	}
++
++	SBIUNIT_ASSERT_EQ(test, sbi_domain_context_enter(cur_dom), 0);
++	sbi_hwiso_test_domain_state(test, cur_dom);
++
++out:
++	if (!debug_on)
++		scratch->options &= ~SBI_SCRATCH_DEBUG_PRINTS;
 +}
-diff --git a/platform/generic/worldguard.c b/platform/generic/worldguard.c
++
++static struct sbiunit_test_case hwiso_test_cases[] = {
++	SBIUNIT_TEST_CASE(hwiso_boot_test),
++	SBIUNIT_TEST_CASE(hwiso_domain_switch_test),
++	SBIUNIT_END_CASE,
++};
++
++SBIUNIT_TEST_SUITE(hwiso_test_suite, hwiso_test_cases);
+diff --git a/lib/sbi/sbi_hwiso_testlib.c b/lib/sbi/sbi_hwiso_testlib.c
 new file mode 100644
-index 00000000..a951459b
+index 00000000..2a988088
 --- /dev/null
-+++ b/platform/generic/worldguard.c
-@@ -0,0 +1,522 @@
++++ b/lib/sbi/sbi_hwiso_testlib.c
+@@ -0,0 +1,108 @@
 +// SPDX-License-Identifier: BSD-2-Clause
 +/*
-+ * Generic WorldGuard runtime support
-+ *
 + * Copyright (c) 2026 RISCstar Solutions Corporation.
 + *
 + * Author: Raymond Mao <raymond.mao@riscstar.com>
 + */
 +
-+#include <libfdt.h>
-+#include <sbi/riscv_encoding.h>
-+#include <sbi/sbi_domain.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hartmask.h>
 +#include <sbi/sbi_heap.h>
-+#include <sbi/sbi_hwiso.h>
-+#include <sbi/sbi_scratch.h>
-+#include <worldguard.h>
-+#include <wgchecker2.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi/sbi_hwiso_test.h>
++#include <sbi/sbi_list.h>
 +
-+struct worldguard_platform_ctx {
-+	u32 hart_count;
-+	bool runtime_enabled;
-+	struct wg_cpu_defaults *hart_defaults;
++struct sbi_hwiso_test_node {
++	const struct sbi_hwiso_ops *ops;
++	const struct sbi_hwiso_test_ops *test_ops;
++	struct sbi_dlist node;
 +};
 +
-+static struct worldguard_platform_ctx *worldguard_platform;
++static SBI_LIST_HEAD(hwiso_test_ops_list);
 +
-+static u32 worldguard_wid_mask(u32 wid)
++static const struct sbi_hwiso_test_ops *
++sbi_hwiso_find_test_ops(const struct sbi_hwiso_ops *ops)
 +{
-+	return (wid < WGCHECKER2_MAX_WIDS) ? (1U << wid) : 0;
-+}
-+
-+static void worldguard_free_platform(void)
-+{
-+	if (!worldguard_platform)
-+		return;
-+
-+	sbi_free(worldguard_platform->hart_defaults);
-+	sbi_free(worldguard_platform);
-+	worldguard_platform = NULL;
-+}
-+
-+static bool worldguard_runtime_enabled(void)
-+{
-+	return worldguard_platform && worldguard_platform->runtime_enabled;
-+}
-+
-+static void worldguard_init_cpu_defaults(struct worldguard_platform_ctx *platform)
-+{
-+	u32 i;
-+
-+	if (!platform || !platform->hart_defaults)
-+		return;
-+
-+	for (i = 0; i < platform->hart_count; i++) {
-+		platform->hart_defaults[i].trusted_wid = 0;
-+		platform->hart_defaults[i].nworlds = 1;
-+		platform->hart_defaults[i].valid_wid_mask = 0x1;
-+	}
-+}
-+
-+static int worldguard_parse_wid_prop(void *fdt, int node, const char *prop_name,
-+				     u32 *out_wid)
-+{
-+	const fdt32_t *prop;
-+	int len;
-+
-+	if (!out_wid)
-+		return SBI_EINVAL;
-+
-+	prop = fdt_getprop(fdt, node, prop_name, &len);
-+	if (!prop)
-+		return SBI_ENOENT;
-+	if (len != (int)sizeof(fdt32_t))
-+		return SBI_EINVAL;
-+
-+	*out_wid = fdt32_to_cpu(prop[0]);
-+	if (*out_wid >= WGCHECKER2_MAX_WIDS)
-+		return SBI_EINVAL;
-+
-+	return 0;
-+}
-+
-+static int worldguard_parse_widlist(void *fdt, int node, const char *prop_name,
-+				    u32 *out_mask)
-+{
-+	const fdt32_t *prop;
-+	u32 mask = 0, count, wid;
-+	int len, i;
-+
-+	if (!out_mask)
-+		return SBI_EINVAL;
-+
-+	*out_mask = 0;
-+
-+	prop = fdt_getprop(fdt, node, prop_name, &len);
-+	if (!prop)
-+		return 0;
-+	if (len < 0 || (len % (int)sizeof(fdt32_t)))
-+		return SBI_EINVAL;
-+
-+	count = len / sizeof(fdt32_t);
-+	if (count > WGCHECKER2_MAX_WIDS)
-+		return SBI_EINVAL;
-+
-+	for (i = 0; i < (int)count; i++) {
-+		wid = fdt32_to_cpu(prop[i]);
-+		if (wid >= WGCHECKER2_MAX_WIDS)
-+			return SBI_EINVAL;
-+		if (mask & worldguard_wid_mask(wid))
-+			return SBI_EINVAL;
-+
-+		mask |= worldguard_wid_mask(wid);
-+	}
-+
-+	*out_mask = mask;
-+	return 0;
-+}
-+
-+static int worldguard_parse_cpu_defaults(void *fdt,
-+					 struct worldguard_platform_ctx *platform)
-+{
-+	struct wg_cpu_defaults *cpu_defaults;
-+	u32 hartid, hartindex, max_wid;
-+	int cpus_offset, cpu_offset, wgcpu, rc;
-+
-+	if (!fdt || !platform || !platform->hart_defaults)
-+		return 0;
-+
-+	cpus_offset = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_offset < 0)
-+		return 0;
-+
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		if (fdt_parse_hart_id(fdt, cpu_offset, &hartid))
-+			continue;
-+
-+		hartindex = sbi_hartid_to_hartindex(hartid);
-+		if (!sbi_hartindex_valid(hartindex) ||
-+		    hartindex >= platform->hart_count)
-+			continue;
-+
-+		wgcpu = fdt_subnode_offset(fdt, cpu_offset, WORLDGUARD_CPU_NODE);
-+		if (wgcpu < 0 || fdt_node_check_compatible(
-+					 fdt, wgcpu, WORLDGUARD_CPU_COMPAT))
-+			continue;
-+
-+		cpu_defaults = &platform->hart_defaults[hartindex];
-+		rc = worldguard_parse_wid_prop(fdt, wgcpu, WORLDGUARD_PROP_MWID,
-+					       &cpu_defaults->trusted_wid);
-+		if (rc)
-+			return rc;
-+
-+		max_wid = cpu_defaults->trusted_wid;
-+		rc = worldguard_parse_widlist(fdt, wgcpu,
-+					      WORLDGUARD_PROP_MWIDLIST,
-+					      &cpu_defaults->valid_wid_mask);
-+		if (rc)
-+			return rc;
-+
-+		cpu_defaults->valid_wid_mask |=
-+			worldguard_wid_mask(cpu_defaults->trusted_wid);
-+		if (cpu_defaults->valid_wid_mask) {
-+			u32 wid;
-+
-+			for (wid = 0; wid < WGCHECKER2_MAX_WIDS; wid++) {
-+				if (cpu_defaults->valid_wid_mask & (1U << wid))
-+					max_wid = wid;
-+			}
-+		}
-+
-+		cpu_defaults->nworlds = max_wid + 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static bool worldguard_has_cpu_runtime(void *fdt)
-+{
-+	u32 hartid;
-+	int cpus_offset, cpu_offset, wgcpu;
-+
-+	if (!fdt)
-+		return false;
-+
-+	cpus_offset = fdt_path_offset(fdt, "/cpus");
-+	if (cpus_offset < 0)
-+		return false;
-+
-+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-+		if (fdt_parse_hart_id(fdt, cpu_offset, &hartid))
-+			continue;
-+
-+		wgcpu = fdt_subnode_offset(fdt, cpu_offset, WORLDGUARD_CPU_NODE);
-+		if (wgcpu < 0)
-+			continue;
-+		if (fdt_node_check_compatible(fdt, wgcpu, WORLDGUARD_CPU_COMPAT))
-+			continue;
-+
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static int worldguard_validate_domain_ctx(const struct sbi_domain *dom,
-+					  const struct worldguard_domain_ctx *ctx)
-+{
-+	const struct wg_cpu_defaults *cpu_defaults;
-+	u32 hartindex;
-+
-+	if (!worldguard_platform || !dom || !ctx || dom == &root ||
-+	    !dom->possible_harts)
-+		return 0;
-+
-+	for (hartindex = 0; hartindex < worldguard_platform->hart_count;
-+	     hartindex++) {
-+		if (!sbi_hartmask_test_hartindex(hartindex, dom->possible_harts))
-+			continue;
-+
-+		cpu_defaults = &worldguard_platform->hart_defaults[hartindex];
-+		if (!(cpu_defaults->valid_wid_mask & worldguard_wid_mask(ctx->wid)))
-+			return SBI_EINVAL;
-+		if (ctx->widlist_mask & ~cpu_defaults->valid_wid_mask)
-+			return SBI_EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct wg_cpu_defaults *worldguard_current_cpu_defaults(void)
-+{
-+	u32 hartindex;
-+
-+	if (!worldguard_platform || !worldguard_platform->hart_defaults)
-+		return NULL;
-+
-+	hartindex = sbi_hartid_to_hartindex(current_hartid());
-+	if (!sbi_hartindex_valid(hartindex) ||
-+	    hartindex >= worldguard_platform->hart_count)
-+		return NULL;
-+
-+	return &worldguard_platform->hart_defaults[hartindex];
-+}
-+
-+static u32 worldguard_fallback_wid(void)
-+{
-+	const struct wg_cpu_defaults *cpu_defaults =
-+		worldguard_current_cpu_defaults();
-+
-+	return cpu_defaults ? cpu_defaults->trusted_wid : 0;
-+}
-+
-+static u32 worldguard_valid_wid_mask(void)
-+{
-+	const struct wg_cpu_defaults *cpu_defaults =
-+		worldguard_current_cpu_defaults();
-+
-+	return cpu_defaults ? cpu_defaults->valid_wid_mask :
-+			      worldguard_wid_mask(worldguard_fallback_wid());
-+}
-+
-+static u32 worldguard_select_slwid(u32 widlist_mask, bool has_wid, u32 wid,
-+				   u32 fallback)
-+{
-+	u32 i;
-+
-+	if (!widlist_mask)
-+		return fallback;
-+
-+	if (has_wid && (worldguard_wid_mask(wid) & widlist_mask))
-+		return wid;
-+
-+	for (i = 0; i < WGCHECKER2_MAX_WIDS; i++) {
-+		if (widlist_mask & (1U << i))
-+			return i;
-+	}
-+
-+	return fallback;
-+}
-+
-+static void worldguard_program_wid_state(u32 mlwid, u32 mwiddeleg, u32 slwid)
-+{
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+
-+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWG))
-+		return;
-+
-+	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SSWG)) {
-+		csr_write(CSR_MLWID, mlwid);
-+		return;
-+	}
-+
-+	csr_write(CSR_MWIDDELEG, 0);
-+	csr_write(CSR_MLWID, mlwid);
-+	if (mwiddeleg) {
-+		csr_write(CSR_MWIDDELEG, mwiddeleg);
-+		csr_write(CSR_SLWID, slwid);
-+	}
-+}
-+
-+static int worldguard_init(void *fdt)
-+{
-+	struct worldguard_platform_ctx *platform;
-+	u32 checker_count;
-+	bool has_runtime;
-+	int rc;
-+
-+	wgchecker2_cleanup();
-+	worldguard_free_platform();
-+
-+	if (!fdt)
-+		return 0;
-+
-+	checker_count = wgchecker2_count_platform_checkers(fdt);
-+	has_runtime = worldguard_has_cpu_runtime(fdt);
-+	if (!checker_count && !has_runtime)
-+		return 0;
-+
-+	platform = sbi_zalloc(sizeof(*platform));
-+	if (!platform)
-+		return SBI_ENOMEM;
-+
-+	platform->hart_count = sbi_scratch_last_hartindex() + 1;
-+	platform->runtime_enabled = has_runtime;
-+	platform->hart_defaults = sbi_calloc(sizeof(*platform->hart_defaults),
-+					      platform->hart_count);
-+	if (!platform->hart_defaults) {
-+		sbi_free(platform);
-+		return SBI_ENOMEM;
-+	}
-+
-+	worldguard_init_cpu_defaults(platform);
-+	rc = worldguard_parse_cpu_defaults(fdt, platform);
-+	if (rc) {
-+		sbi_free(platform->hart_defaults);
-+		sbi_free(platform);
-+		return rc;
-+	}
-+
-+	worldguard_platform = platform;
-+
-+	if (checker_count) {
-+		rc = wgchecker2_init(fdt);
-+		if (rc) {
-+			worldguard_free_platform();
-+			wgchecker2_cleanup();
-+			return rc;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int worldguard_domain_init(void *fdt, int domain_offset,
-+				  struct sbi_domain *dom, void **out_ctx)
-+{
-+	struct worldguard_domain_ctx *ctx;
-+	int hoff, child, rc;
-+	bool found = false;
-+
-+	if (!out_ctx)
-+		return SBI_EINVAL;
-+
-+	*out_ctx = NULL;
-+	if (!worldguard_runtime_enabled())
-+		return 0;
-+	if (!fdt || domain_offset < 0)
-+		return 0;
-+
-+	hoff = fdt_subnode_offset(fdt, domain_offset, "hw-isolation");
-+	if (hoff < 0)
-+		return (dom == &root) ? 0 : SBI_EINVAL;
-+
-+	fdt_for_each_subnode(child, fdt, hoff) {
-+		if (fdt_node_check_compatible(fdt, child, WGCHECKER2_COMPAT))
-+			continue;
-+		found = true;
-+		break;
-+	}
-+
-+	if (!found)
-+		return (dom == &root) ? 0 : SBI_EINVAL;
-+
-+	ctx = sbi_zalloc(sizeof(*ctx));
-+	if (!ctx)
-+		return SBI_ENOMEM;
-+
-+	rc = worldguard_parse_wid_prop(fdt, child, WORLDGUARD_PROP_WID,
-+				       &ctx->wid);
-+	if (rc)
-+		goto err_free_ctx;
-+	ctx->has_wid = true;
-+
-+	rc = worldguard_parse_widlist(fdt, child, WORLDGUARD_PROP_WIDLIST,
-+				      &ctx->widlist_mask);
-+	if (rc)
-+		goto err_free_ctx;
-+
-+	rc = worldguard_validate_domain_ctx(dom, ctx);
-+	if (rc)
-+		goto err_free_ctx;
-+
-+	*out_ctx = ctx;
-+	return 0;
-+
-+err_free_ctx:
-+	sbi_free(ctx);
-+	return rc;
-+}
-+
-+static void worldguard_domain_exit(const struct sbi_domain *src,
-+				   const struct sbi_domain *dst, void *ctx)
-+{
-+	u32 mlwid = worldguard_fallback_wid();
-+
-+	(void)ctx;
-+	if (!worldguard_runtime_enabled())
-+		return;
-+
-+	worldguard_program_wid_state(mlwid, 0, mlwid);
-+
-+}
-+
-+static void worldguard_domain_enter(const struct sbi_domain *dst,
-+				    const struct sbi_domain *src, void *ctx)
-+{
-+	struct worldguard_domain_ctx *dctx = ctx;
-+	u32 valid_mask = worldguard_valid_wid_mask();
-+	u32 mlwid = worldguard_fallback_wid();
-+	u32 mwiddeleg = 0;
-+	u32 slwid = mlwid;
-+
-+	(void)src;
-+	if (!worldguard_runtime_enabled())
-+		return;
-+
-+	if (dctx && dctx->has_wid && (worldguard_wid_mask(dctx->wid) & valid_mask))
-+		mlwid = dctx->wid;
-+
-+	if (dctx)
-+		mwiddeleg = dctx->widlist_mask & valid_mask;
-+	slwid = worldguard_select_slwid(mwiddeleg, dctx && dctx->has_wid,
-+					dctx ? dctx->wid : 0, mlwid);
-+
-+	worldguard_program_wid_state(mlwid, mwiddeleg, slwid);
-+
-+}
-+
-+static void worldguard_domain_cleanup(struct sbi_domain *dom, void *ctx)
-+{
-+	(void)dom;
-+	sbi_free(ctx);
-+}
-+
-+static const struct sbi_hwiso_ops worldguard_ops = {
-+	.name = WGCHECKER2_COMPAT,
-+	.init = worldguard_init,
-+	.domain_init = worldguard_domain_init,
-+	.domain_exit = worldguard_domain_exit,
-+	.domain_enter = worldguard_domain_enter,
-+	.domain_cleanup = worldguard_domain_cleanup,
-+};
-+
-+int worldguard_register(void)
-+{
-+	return sbi_hwiso_register(&worldguard_ops);
-+}
-+
-+const struct sbi_hwiso_ops *worldguard_ops_get(void)
-+{
-+	return &worldguard_ops;
-+}
-+
-+#ifdef CONFIG_SBIUNIT
-+static struct worldguard_domain_ctx *
-+worldguard_test_find_domain_ctx(const struct sbi_domain *dom)
-+{
-+	u32 i;
-+
-+	if (!dom || !dom->hwiso_ctxs)
-+		return NULL;
-+
-+	for (i = 0; i < dom->hwiso_ctx_count; i++) {
-+		if (dom->hwiso_ctxs[i].ops != &worldguard_ops)
-+			continue;
-+
-+		return dom->hwiso_ctxs[i].ctx;
++	struct sbi_hwiso_test_node *entry;
++
++	sbi_list_for_each_entry(entry, &hwiso_test_ops_list, node) {
++		if (entry->ops == ops)
++			return entry->test_ops;
 +	}
 +
 +	return NULL;
 +}
 +
-+int worldguard_test_check_runtime_state(bool runtime_enabled)
++int sbi_hwiso_test_register(const struct sbi_hwiso_ops *ops,
++			    const struct sbi_hwiso_test_ops *test_ops)
 +{
-+	if (!worldguard_platform)
-+		return runtime_enabled ? SBI_ENOENT : 0;
-+	if (worldguard_platform->runtime_enabled != runtime_enabled)
++	struct sbi_hwiso_test_node *node;
++
++	if (!ops || !test_ops)
 +		return SBI_EINVAL;
++	if (sbi_hwiso_find_test_ops(ops))
++		return SBI_EALREADY;
++
++	node = sbi_zalloc(sizeof(*node));
++	if (!node)
++		return SBI_ENOMEM;
++
++	node->ops = ops;
++	node->test_ops = test_ops;
++	SBI_INIT_LIST_HEAD(&node->node);
++	sbi_list_add_tail(&node->node, &hwiso_test_ops_list);
 +
 +	return 0;
 +}
 +
-+int worldguard_test_check_domain_state(const struct sbi_domain *dom,
-+				       bool expect_ctx, u32 wid,
-+				       u32 widlist_mask)
++void sbi_hwiso_test_boot(struct sbiunit_test_case *test)
 +{
-+	struct worldguard_domain_ctx *ctx = worldguard_test_find_domain_ctx(dom);
++	struct sbi_hwiso_test_node *entry;
 +
-+	if (!expect_ctx)
-+		return ctx ? SBI_EINVAL : 0;
-+	if (!ctx || !ctx->has_wid)
-+		return SBI_ENOENT;
-+	if (ctx->wid != wid || ctx->widlist_mask != widlist_mask)
-+		return SBI_EINVAL;
-+
-+	return 0;
++	sbi_list_for_each_entry(entry, &hwiso_test_ops_list, node) {
++		if (!entry->test_ops->boot_test)
++			continue;
++		entry->test_ops->boot_test(test);
++	}
 +}
-+#endif
++
++void sbi_hwiso_test_domain_state(struct sbiunit_test_case *test,
++				 const struct sbi_domain *dom)
++{
++	const struct sbi_hwiso_test_ops *test_ops;
++	u32 i;
++
++	if (!dom || !dom->hwiso_ctxs)
++		return;
++
++	for (i = 0; i < dom->hwiso_ctx_count; i++) {
++		if (!dom->hwiso_ctxs[i].ops)
++			continue;
++
++		test_ops = sbi_hwiso_find_test_ops(dom->hwiso_ctxs[i].ops);
++		if (!test_ops || !test_ops->domain_state_test)
++			continue;
++
++		test_ops->domain_state_test(test, dom, dom->hwiso_ctxs[i].ctx);
++	}
++}
++
++void sbi_hwiso_test_domain_quiesced(struct sbiunit_test_case *test,
++				    const struct sbi_domain *dom)
++{
++	const struct sbi_hwiso_test_ops *test_ops;
++	u32 i;
++
++	if (!dom || !dom->hwiso_ctxs)
++		return;
++
++	for (i = 0; i < dom->hwiso_ctx_count; i++) {
++		if (!dom->hwiso_ctxs[i].ops)
++			continue;
++
++		test_ops = sbi_hwiso_find_test_ops(dom->hwiso_ctxs[i].ops);
++		if (!test_ops || !test_ops->domain_quiesce_test)
++			continue;
++
++		test_ops->domain_quiesce_test(test, dom,
++					      dom->hwiso_ctxs[i].ctx);
++	}
++}
 -- 
 2.25.1
 
