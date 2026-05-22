@@ -4,102 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 57EB0CD5BB3
-	for <opensbi@archiver.kernel.org>; Fri, 22 May 2026 14:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id F32D7CD5BB0
+	for <opensbi@archiver.kernel.org>; Fri, 22 May 2026 22:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
+	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=UXu5MTw5rHBj7u3OXye+h4hSvKQGdoKtCIv4qMhlYFY=; b=d9UIEKyAjbt4g8
-	9Se0vIZfHoOzaoWvab30vCXZzXaSBUFOtEht1cjLSpkjY3ucumM9hz4Dngq4EBWZyDYpyFIqVzGrs
-	QccF1s68jnkEGHNOdEcU+x7r1IO+Bqmga9oavvah0HY0TQzf+MMksBRbHl0TBBAcuTR3S8NugFCrB
-	iEnkHmHCRu7Z4djmxKH/bKhHe+yR1zkk59CYOaPi0ky2sVNXSr1n3SspRAZRVC9+AD2TH54sZAnXd
-	xSR+Xg9iwjGtcNMKdI4hjKltAEzHAGuRc+ZZa0ZcQ3QfiZ62UePKbIvoVgH3g+loXOJl5Z724v//l
-	kxbzkU+x6RP9XKUzZQSw==;
+	List-Owner; bh=lKuYIWn9ZAqRE14xnZgNiOrFnWCiHw78gXm47osBLiM=; b=O7ggFW8UeeS0pE
+	VCTwN/Dx0KMsiFr+4T2SVdZX7HVbwpkfpNbsrAxpPTur9O2n5RKQftqMAK6tOZ5d4H6M9/D/vO3xM
+	RzBJoKRI5+mq29XsylerDGXGLm+XSgSuH5zNYGD81ycN9t3CS4ouiVcWBFlYo67ZACfdQAEL1Fo/D
+	zsWj9Z42PyMTEvE49oHKZ956ABd8/W5FZ9bmWpA2SOAe7vY0g5g+2/xB+Pyajiay3cAwF2z8aKZ0J
+	M/SD7qpmSSz9wvqUnxLsO2ZA5h9LUJ9jvhnpXkJO/xl3u6WxD4uGuli0Xf1u5/QVY9rd6e9P/q//H
+	FvmPF/9GVv8v6pV5LqKA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wQR8n-0000000BAQu-3zaJ;
-	Fri, 22 May 2026 14:46:21 +0000
-Received: from mail-northcentralusazon11023124.outbound.protection.outlook.com ([40.107.201.124] helo=CH4PR04CU002.outbound.protection.outlook.com)
+	id 1wQYlJ-0000000C9YZ-3fwW;
+	Fri, 22 May 2026 22:54:37 +0000
+Received: from mail-yx1-xb12e.google.com ([2607:f8b0:4864:20::b12e])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wQR8l-0000000BAQI-3OFk
+	id 1wQYlH-0000000C9Xo-0eJl
 	for opensbi@lists.infradead.org;
-	Fri, 22 May 2026 14:46:21 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=iErGXi31keWtcfP6a9NEJBObEvvRdpdWCVeH6N6ZKkksCQt4Vr/qMRNDZp0EU2yMP1XcsPNkwI6SZu5ldnlGMBZTaNT5A4TG4Wm7kTbjpcOcylIVRPb6lUdFxmxS/Yxu3JLMlYkhmoY+r6QdiGOfABIztSD33a14WhDY7v6WEWte3WHhpYKDkfx88/W+KnBPaPh/9hsReCdGPNwYR32is2+CXmsPjfOBdrmqgTIosMQzwAcqszLS7YVZO+ym/9TUnh23GXRvltOgsD8hAk+pWy/+tsmXZSmNYaU2Xg4ld2m3PnBs2JS/XSaq1CU3wOfZ6ASXcKANWaejLNPGAWcTkw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TAiiWUZBkjjsD+fC72CbXwhF4sdWkhF8NUexQkDnAwc=;
- b=iWY5UFOXjHHM1pbYmMRX1kzCRhm+ZrpQ7z+b+s+Op1Q/VY6H82kFAi9HXCskxh3CBq5qrK8lcHv3LW+g7e2ePlKmBFwv4F+6AM3eqYCbLZ118hZVTkpRtrgUFTv+mEEU0CCIYnf3VLLdaBBE89PwgG04q6WOcG9pT9jsfVzgQOTooxCcPK5RpFxJiyfVS5CtUe0xiH73195Krmm/vqcBcxNSIrMLIiq4VFNXbH2r2+oJcJtWhRNplE0CO93XUuMMlvmg3Jlq9huUvlml5EAGimdD4UWkZ6cW/rtJp4SwiXZZEikDTqiPhuSWfuDD4lo3ufzGyrhphO1hdnUqm0e1cQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TAiiWUZBkjjsD+fC72CbXwhF4sdWkhF8NUexQkDnAwc=;
- b=aMtbjTfnZKmx5ilV01qvMCnYt8p2qr+VjUHOl0YhTqLP2Ey6P8An5+cY2BoXKOtrHeNZ92cVr9dGfxsFyy4r65n5vnuyYPuoEYwseQZWugeaxl/TH/GUphkfAoWXzq+cr6WLpNE7blWR/vi3lx73eiFvwUFiPva3sViu/2iS03Gv44wZ/F6OuNtkg7NrBN3tbZTjT8/D2tr0i/VjZGqbqr4uC04CrOWw6rYdDqb6cxCAKd79T1Fb7iSBR0fqHfAkPgutqKbep931EGeE2WQxRONzu1frFVAvJsGdwWJozlEGOp9DBd8JKZYq6EVTjeUs91jl4VCoc131wkLk9K8z/Q==
-Received: from DS7P220CA0011.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:1ca::16) by
- DS6PR22MB996741.namprd22.prod.outlook.com (2603:10b6:8:460::8) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.48.17; Fri, 22 May 2026 14:46:11 +0000
-Received: from DS2PEPF000061C8.namprd02.prod.outlook.com
- (2603:10b6:8:1ca:cafe::34) by DS7P220CA0011.outlook.office365.com
- (2603:10b6:8:1ca::16) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.48.17 via Frontend Transport; Fri, 22
- May 2026 14:46:11 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- DS2PEPF000061C8.mail.protection.outlook.com (10.167.23.75) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.71.7 via
- Frontend Transport; Fri, 22 May 2026 14:46:11 +0000
-Received: from davidAhead.lan (unknown [10.8.0.17])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 20F6F80916;
-	Fri, 22 May 2026 07:46:10 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-To: opensbi@lists.infradead.org
-Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH] lib: sbi_pmu: Honor CLEAR_VALUE/AUTO_START for all hardware event types
-Date: Fri, 22 May 2026 08:46:07 -0600
-Message-ID: <20260522144608.3433470-1-david.garcia@aheadcomputing.com>
-X-Mailer: git-send-email 2.43.0
+	Fri, 22 May 2026 22:54:36 +0000
+Received: by mail-yx1-xb12e.google.com with SMTP id 956f58d0204a3-65e39d1dd38so7402861d50.3
+        for <opensbi@lists.infradead.org>; Fri, 22 May 2026 15:54:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tenstorrent.com; s=google; t=1779490474; x=1780095274; darn=lists.infradead.org;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=r57DHEkL07p2syY2fX1EGuD9s3bNyllnbAGtF/oFQ80=;
+        b=HgDbDY3t/xKT6nlx0FSmTdNEU156mle7w/LW4k8XN3fVp/Wf3ENIS4NE8Xj4HTRAvk
+         5ag7oHT5MUBg6a9L4Gp2WRn1DABFOEyd8DxEk/EE5Q2kuCJ2LIat0tz5cDNae1ha4Amd
+         5XBrEHIIGbPZXXkRCSV7YoLg/5KNQxudxqzo61ybXLVnS2IgoJG6DCgCKf+yaI3+bCKC
+         GPEHc+ByaggYZ5VYCBDlEsyWkBW6kRqaIpUPpSQVRC8SHcaU31PU5zN6ox8wrcsO8VD1
+         Ik2g3+GCSyQs2xoWd53snjj1mThKAVY++ZOIXoxY2XO2XT6w7Cz08B9k3YPlcOfm/7Wv
+         I1bg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779490474; x=1780095274;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=r57DHEkL07p2syY2fX1EGuD9s3bNyllnbAGtF/oFQ80=;
+        b=Io5Gl8QLyQm9a2MV0E3v8cAOAC3z/TTpcBWaWA2ejMUnaT9d/KFR8v70sIbCZfw6G1
+         /3cRnRDyIy/b74A9x+SVgS563SAwuuwd2FnQ6/7TfREBGxd2IeBpWln5xDYBfwm/01KB
+         66/oWoMso2DDuVz+lrhTmq/r3GlM6j/t1832gnEjHVaJW8tUH12UWtuZREUYMb33ruGp
+         4atcVfpw2YWJsIEQsS3il/CehNmZdXjYEh6C6z6lD8na1fhJmLjeq8afMbXFTkXecbWl
+         gybJPGZk3lpwlKydTRf1mczAPANmLaMFAXqGBR6aM4b22r5J0bFyZS+BA37wah1kEYIk
+         MQwg==
+X-Gm-Message-State: AOJu0YyFirsjOsQAFNbwa1QdLYmPz+f+7+5KFP9aW14Cc0jI9QJiD7ds
+	PYpCDvICk08LxhqK+1NHZLwmOEkrFu739svbAnHhaZrmjIH2d+Nt246bpbF62SMUDq3nca0jrEr
+	UoPCg
+X-Gm-Gg: Acq92OHKXgihH8Ffpw80P78pP5Z61X9v4UezDRIsT7GHz1+uHwf+e1rpI+HowWy8OfK
+	FC2GFwqmWq3yYxSCZtd9VhnjZQZXZa8vaI8AhZZKtSlKRLe0X+mexbkX1/V2oPr6ZEZhVJX8mjk
+	Wg1JX6yQVcP9pNJ02Fg/aXHAWkcOumoB6TZhdabkWNGjnavbniu5fLe2XO9Xj0hSoT/jHg8jPuQ
+	wa6PNI69HbyXHpi1qufUDXdyH85KMCy/X1/4yda8giMp1XlhlRajBcHlaIfvsajLUkjTaSaFfC2
+	kY2GfGdALGg9WkGW9gBf5KzQujyESDCmtLuwjohDZn7NAnthaREYxRPYQYZFn3kA8MChUo+DjV2
+	scjG79h2ZYvxzMXoVsQtdSIcrrpVDCr8jJlVew5mSI/VCGqLNivSdF8r+NFakkhM4mH0KtUs+C7
+	OsUg5BkV4zoBzRqfhGjrD0MyYvCGe8OgMdkAaqzdJ5GeqPhmFvCr+dI20+lLY4A9Dr39q3ucftl
+	M/i398=
+X-Received: by 2002:a53:e217:0:b0:65e:4bcb:2b70 with SMTP id 956f58d0204a3-65ec98dcad8mr4489397d50.36.1779490473657;
+        Fri, 22 May 2026 15:54:33 -0700 (PDT)
+Received: from [192.168.2.129] ([2600:1700:220:59e0:619c:3b2f:1c06:e432])
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-65ecfb27ce2sm1316926d50.3.2026.05.22.15.54.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 May 2026 15:54:33 -0700 (PDT)
+From: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+Date: Fri, 22 May 2026 17:54:17 -0500
+Subject: [PATCH] lib: sbi: Drop fw_rw_offset alignment requirement for
+ single fw region
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS2PEPF000061C8:EE_|DS6PR22MB996741:EE_
-X-MS-Office365-Filtering-Correlation-Id: 78f7dc3c-2b6d-4b82-cbaf-08deb810de05
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|82310400026|36860700016|376014|1800799024|55112099003|6133799003|18002099003|56012099003;
-X-Microsoft-Antispam-Message-Info: AKVH55abAHi2r4JALEOCECMsiBplil3hjHhLGWML6P0az3zOzc5MEoJ/KLASR7MIpLoM5IY5PtM2OmiIyOWbj+2asHw/BO0wNtBUWne4IDPiRAoQT4vv6tZbjSTWHC2k5TA+suHzpga/Cs+0W+aE/lmM8EJgro4yN6XZwtg5wkwM0kUDWWgn4hvzBjwfzNEwM/Td4z2juBMCDBzKymSso6glB8Ssa+Fxu8V5Hc1ra1DO8wYY+ZWI9NSAcAW1u1OXcI3FU/BuL5y0gDnygUUcBR9cCWg8W8ikeB2edXKnec+TcKY0bgS51nfLv40ZqiOtdLqV0KBwworfsIeXWE7BEdvb3iFbPsWX4ErhKoyvVobLk2dd2Lghk0kcDzYBXWOu3hxHSQQq/KHaoFK8NM4jsRDlgHmYmT4EsIOK/9vraYYRte651UrVZnPWOmoErzks26Tfon66JXmpc5YRYKFF2jje3B1DHMROvios7nT0ehDi48700PIoQzgjFykOQUBaXd/Ctp0DnWkfLB5LkxkGeSlRgEnank8kNoYbKTI7T6EBBFaX06NvrhItJ/RUvQUSwVh6CbOpRo5zGWxHz4jDNgZyYEv8lOQOUdq7UhWgeYCi8/kAYoJ1lGgIAYZd8+6wIyfB+6+57wix3bb36op5CTUmMJa3ogmPiXESQnU8TqjhcyLwBxMxnPmJb8U6htsvPUtkn5H794ohQYU9UOGRxx93+fdCee2Hgfy4v9OlXns=
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(376014)(1800799024)(55112099003)(6133799003)(18002099003)(56012099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: gc+sIUyDVMpTqmRZMOomR2MxjpzwWBGILCmfWpgURKBP3mDnKTL824+WAxlx2TqQkt7RJqcQdrah4jJPknEV+2GYGVizxGUWoCuEp67xWOF3HGfzL5q31R6bCRf5TVdhby2sqHFS+KRK91QVMVNmjkiyIzdwgb5zIypLEuEztC+FCAvLHMpfN2fPXhiSYBXCgAdGAdMTEfguEXv7ST3w6bONqyFNA6Gnk6aS82JaHzZvOTDhYtTnTL4ib2/jXTyR48Vw4jZ09WrDKIb2Zv8B0KhqSNV59r1vkdzpCOTD7ok2DYc86yZ2Yoa3MNlvqoGf8JGR3cZGfr2QXMxLJm5PkdWDsmC2kYoyfP/LXAymUPo/lzxMdcOMhjkyhDeyAxGYoV1qlZzVmxY9j+YCo70mt2AvXGu4OZirHCs7IXV+auMNNKlDMQ+yT8vPVcRv5y8W
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 May 2026 14:46:11.5040
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 78f7dc3c-2b6d-4b82-cbaf-08deb810de05
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: DS2PEPF000061C8.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS6PR22MB996741
+Message-Id: <20260522-fw_rw_start_alignment-v1-1-362c17331541@oss.tenstorrent.com>
+X-B4-Tracking: v=1; b=H4sIAJneEGoC/yXM0QrCMAxA0V8ZebYwY5Xir4iUrGYzolWSzg3G/
+ t2qj+fh3gWMVdjg2Cyg/BaTZ67YbhpIV8oDO7lUA7Z4aPeIrp+iTtEKaYl0lyE/OBfnPROlEHz
+ AHdT2pdzL/Puezn/b2N04le8M1vUDpgYpBXkAAAA=
+X-Change-ID: 20260522-fw_rw_start_alignment-44eaac884823
+To: opensbi@lists.infradead.org
+Cc: Nicholas Piggin <npiggin@gmail.com>, 
+ Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+X-Mailer: b4 0.15.1
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260522_074619_917599_E7238050 
-X-CRM114-Status: GOOD (  10.08  )
+X-CRM114-CacheID: sfid-20260522_155435_286292_5BEDE7D0 
+X-CRM114-Status: GOOD (  10.80  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -116,46 +102,79 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_pmu_ctr_cfg_match() only acts on SBI_PMU_CFG_FLAG_CLEAR_VALUE and
-SBI_PMU_CFG_FLAG_AUTO_START when the event type is SBI_PMU_EVENT_TYPE_HW.
-However, pmu_ctr_find_hw() allocates a hardware counter from the same
-hw_event_map for SBI_PMU_EVENT_TYPE_HW_CACHE, SBI_PMU_EVENT_TYPE_HW_RAW,
-and SBI_PMU_EVENT_TYPE_HW_RAW_V2 as well, and the start/clear helpers
-(pmu_ctr_start_hw, pmu_ctr_write_hw) operate on the counter index alone
-and are agnostic to the event type. As a result, when a supervisor
-configures a HW_CACHE/HW_RAW/HW_RAW_V2 event with these flags, the
-counter is programmed and recorded in active_events[] but is never
-cleared or started, requiring an extra SBI call to make it count.
+From: Nicholas Piggin <npiggin@gmail.com>
 
-Extend the check to cover all hardware-counter event types so that the
-configuration flags take effect for HW_CACHE and raw events too.
+In a single fw region scheme, there is no separate PMP created for RW
+memory. The checks that opensbi does for the alignment between fw_start
+and fw_rw_start (using fw_rw_offset) and the power of 2 check for
+fw_rw_offset are no longer necessary.
 
-Deliberately avoiding using "not FW" logic to be explicit about HW-backed events only.
+Update sbi_domain_init so that these checks are only done in the non
+single fw region scheme.
 
-Fixes: 13d40f21 ("lib: sbi: Add PMU support")
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Co-developed-by: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
+Signed-off-by: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
 ---
- lib/sbi/sbi_pmu.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_domain.c | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 8a9021e2..480a9723 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -946,7 +946,10 @@ int sbi_pmu_ctr_cfg_match(unsigned long cidx_base, unsigned long cidx_mask,
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 4f458ac0..296ee81b 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -871,20 +871,23 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	struct sbi_hartmask *root_hmask;
+ 	struct sbi_domain_memregion *root_memregs;
+ 	int root_memregs_count = 0;
++	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
++	bool fw_single_region = sbi_platform_single_fw_region(plat);
  
- 	phs->active_events[ctr_idx] = event_idx;
- skip_match:
--	if (event_type == SBI_PMU_EVENT_TYPE_HW) {
-+	if (event_type == SBI_PMU_EVENT_TYPE_HW ||
-+	    event_type == SBI_PMU_EVENT_TYPE_HW_CACHE ||
-+	    event_type == SBI_PMU_EVENT_TYPE_HW_RAW ||
-+	    event_type == SBI_PMU_EVENT_TYPE_HW_RAW_V2) {
- 		if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
- 			pmu_ctr_write_hw(ctr_idx, 0);
- 		if (flags & SBI_PMU_CFG_FLAG_AUTO_START)
--- 
-2.43.0
+ 	SBI_INIT_LIST_HEAD(&domain_list);
+ 
+-	if (scratch->fw_rw_offset == 0 ||
+-	    (scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0) {
+-		sbi_printf("%s: fw_rw_offset is not a power of 2 (0x%lx)\n",
+-			   __func__, scratch->fw_rw_offset);
+-		return SBI_EINVAL;
+-	}
+-
+-	if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
+-		sbi_printf("%s: fw_start and fw_rw_offset not aligned\n",
+-			   __func__);
+-		return SBI_EINVAL;
++	if (!fw_single_region) {
++		if (scratch->fw_rw_offset == 0 ||
++		    (scratch->fw_rw_offset & (scratch->fw_rw_offset - 1)) != 0) {
++			sbi_printf("%s: fw_rw_offset is not a power of 2 (0x%lx)\n",
++				   __func__, scratch->fw_rw_offset);
++			return SBI_EINVAL;
++		}
++		if ((scratch->fw_start & (scratch->fw_rw_offset - 1)) != 0) {
++			sbi_printf("%s: fw_start and fw_rw_offset not aligned\n",
++				   __func__);
++			return SBI_EINVAL;
++		}
+ 	}
+ 
+ 	domain_hart_ptr_offset = sbi_scratch_alloc_type_offset(void *);
+@@ -913,7 +916,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
+ 	root.possible_harts = root_hmask;
+ 
+ 	/* Root domain firmware memory region */
+-	if (sbi_platform_single_fw_region(sbi_platform_ptr(scratch))) {
++	if (fw_single_region) {
+ 		sbi_domain_memregion_init(scratch->fw_start, scratch->fw_size,
+ 					  (SBI_DOMAIN_MEMREGION_M_READABLE |
+ 					   SBI_DOMAIN_MEMREGION_M_WRITABLE |
+
+---
+base-commit: e7fa66c2160ec139de1853a00f669c09320a9256
+change-id: 20260522-fw_rw_start_alignment-44eaac884823
+
+Best regards,
+--  
+Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
 
 
 -- 
