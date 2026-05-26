@@ -4,84 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A6236CD5BC9
-	for <opensbi@archiver.kernel.org>; Tue, 26 May 2026 03:36:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0D1A1CD5BB4
+	for <opensbi@archiver.kernel.org>; Tue, 26 May 2026 04:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
 	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=QXxo8VQS+F3HMqOGIz6UiR7c/q8OCPbxjXe+YOqpzuY=; b=2AjGSSWRM+A1Sd
-	DK5+6OMKuBsfCVPGRgmnzZy5UgyrJXAINk9/eNphwD3iKUx21Wkh+yt+BSCBAaRnSVWJdPMppObgX
-	ygc+4qJF6vVA/yeGBnEWd1xvms36BH18LjkOPx55x/gxuH/a/20vTEAojNHczOuBf/IcdbUYvTHSp
-	JjBU9AkIHjlFyePBiwtaDFolxUli+HzQ2Uzi/NyfzIxojFTRPs/YeSBsowF2Kdiot6cgAb56KJph6
-	a+B5j/z2WSoABxuj4Qc5480iFKJiL207EkI4WKj5ICh6McvMul8y+2LoAHN8I+CBj7qN+I5CsRw4Y
-	55ujYni0DKC7Ox2InFMQ==;
+	List-Owner; bh=d0Vn/F+W2tpeoCZVApAPmlDEm5DGYdMABh4QOLiC/7E=; b=hxwaeutgwqcl+d
+	9oeXcD5KHqRwUoBBsanhL7ylwPuaqPAT6xch2TKYXEleuRiN/icDaDcWz1d/lHRsLpRVatcaC93qv
+	umf0qXYM7mZbrbp306/UYaHdGK2sv7nTDJuj/XEgH4mceuj9ji1N2lndScutwx1QMan+7BcQJAcGx
+	gINJSZdy9On4FUG3NJoLW8gRC/WlTMELFzZ73iYIg34IPiGgu7wz3u5RGNd8ya9XIHamKslQgqET1
+	+NaI6ZOq+WqWLFe1zBGOH5iwc4FKvx4xFOohjGkbxBtledZHBnENLn6ZkVGpvFZI42uNMqrPewceQ
+	0ef2VQzDmDJ9stSvi3Lg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wRiam-00000000wgf-47z6;
-	Tue, 26 May 2026 03:36:32 +0000
-Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
+	id 1wRjVt-000000010vg-3CiZ;
+	Tue, 26 May 2026 04:35:33 +0000
+Received: from mail-pj1-x1032.google.com ([2607:f8b0:4864:20::1032])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wRiak-00000000wfy-2GUH
+	id 1wRjVo-000000010uu-12Lg
 	for opensbi@lists.infradead.org;
-	Tue, 26 May 2026 03:36:31 +0000
-Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-824c9da9928so4637222b3a.3
-        for <opensbi@lists.infradead.org>; Mon, 25 May 2026 20:36:30 -0700 (PDT)
+	Tue, 26 May 2026 04:35:32 +0000
+Received: by mail-pj1-x1032.google.com with SMTP id 98e67ed59e1d1-368f25ff4c4so5573691a91.2
+        for <opensbi@lists.infradead.org>; Mon, 25 May 2026 21:35:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779766589; x=1780371389; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1779770127; x=1780374927; darn=lists.infradead.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ooIpZRtnFyHPIY1sZcJ1+G7Cflluk3aB98Ch/K9ilaM=;
-        b=miyns0CUCqhE4XzRd3gmOuHxlya/lq/3rhcej0G12C3xHMBKBoj9ZkNgZvbWLj3nlH
-         hpZc7BDYBMLKX46MoMw0MrU+5fTTSrWJhyLU+HUufRpUCkY96l1mFVrXwM8thnnTDKwf
-         NsmkgGhaZRrsEdSGejFERtM7jX3qqQPNl/2+zfDmBVFQqGzQbFTwiaLdBK2Zf5VglTNs
-         R21j6uoSwkZyTjZhfNizTOUtprGlqmIQ3BJH9Y2Ud3FXVDCqGlHmRk8ak0ZJ5SRbWhYq
-         67UBkj6l16aFEpKNtswF2iUs2iWir4+YsJGQH/Pge/zNU6wRrzJhQ2KbPxfxxe1vYX4O
-         OGag==
+        bh=UhNakVW4WoEx0ABqEXMgSflrDK8Q/m29lMxY+cQTquc=;
+        b=llytA1B4sl/xXfJipxjVNkHKEz3ndj9H98U8IIE129uOTmP2W7FqqD3nnIGbKrf9I4
+         1vDEF7zESa1y6Z9Hy1qkOSiJ75O6+7d4cNqHNrsT3AavhNluszzzIOpENXpDCYDUG8MK
+         KPvI8KqmwHQdCI30jolkDWIADtgFukQaWEnv76I9ZmQtUA6eaNXr4Xl1QEn6TthGB6LM
+         cG69sZZNXweZS9pvrtPhlXZAmhOM7vSMWoZHRpdtBOmUZgk2DjvIsM5umfvmGmFQYRRn
+         76JLyf1yx0bPN2hd7EA00Ql6kUvtEYo3zL8aFx+znyPtw51w5JSyV328a/yLnE2Dr+0r
+         V9EA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779766589; x=1780371389;
+        d=1e100.net; s=20251104; t=1779770127; x=1780374927;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ooIpZRtnFyHPIY1sZcJ1+G7Cflluk3aB98Ch/K9ilaM=;
-        b=rneitD6FJz8WA4mzZAZzTJzHIdk5Pl5AWjYp2jEZ7PidK6GaimMGeaIAZKKQLknjFi
-         4Ohps/EX9hO3ohVQ5vnGVY49RYDXouErKh4DXfydqLkixUTebzFdayipzCoukycZ0J1X
-         gZ5hPDEKLmjcnhER7DaN2CvypuHtTRMKOC1a1xuxrA2ObONybMeQapX/kL/6ozNdZTjk
-         onB2Tb8WOjlbA+X3d8KyAughlR2qCw1dsq6oi9k6d52wOEXGkwBQF8HGvzZGiQwRL+vO
-         S32HqcBTpQh993qGo/Uborn0uLSJtI1rR8ABhxZk83q18cJx9bDTLMbJSA0df7L+qn3u
-         qkhg==
-X-Gm-Message-State: AOJu0Yxs/UX0VhIgQOXHvav0oByUd9N8vAy/zYz7Yu+5ranrHzL1SJN2
-	WBNCozhApoJhUmEEVA2XZ/Ic1oK9HF2wceJbcJA33iXRMJWw/F7J4Xr0+urbsw==
-X-Gm-Gg: Acq92OGAnNmwSSJ3/r8sQsuAB7FaQtfzUekfsy0RkmUzWP5TirT1iKI6f05yKbGUOYU
-	FcMfcEyhsCJPv3SnhdA14wkyqjtUWMJ1Nt7dnUy12OgvAiZqCkYhfI/S7NiHk8Ma9P+PRfCnQw0
-	5KXvjLl8Bt3Pp0DS3Rh9QsTvvivUDhWNdpoaXv5wbhADskZzvHOeZCcbnZ77eSMovn4AA/5+90l
-	QrFvtgQEeTjy7UqhYmPT/E5CrcTavtBgdJfNlw7vxWWx0Ay7nZwQeN3DyzHEafmYzCYQt5sIuR0
-	ATt6i7pn0M1pWm2gkws5D8SBAG/hN2SUx6XBVTGGGgqIIOpj7w/J0Cs3kwilQJQcGeCnGT+lZO1
-	eCgbVX6q1VZ0tUwH4aaNTfpw9YDnrFOUsc5XksJa5hp/12jTXMWgtcLjFpYS8ylUyDiOyiVLVOM
-	HL8l3SXk34rUOu2dAp5mv+ODnoa0VN0kVhwhUYIINCoyIdIw6kuX2Pogo2ZaD73E56p2SAyoaSu
-	wnE+hCm
-X-Received: by 2002:a05:6a00:194f:b0:82a:f02:7355 with SMTP id d2e1a72fcca58-8415f307755mr15624641b3a.32.1779766589424;
-        Mon, 25 May 2026 20:36:29 -0700 (PDT)
+        bh=UhNakVW4WoEx0ABqEXMgSflrDK8Q/m29lMxY+cQTquc=;
+        b=tFVEa43DeeMltxwSlzFB0Uura1fxa29stVxyPu5WUht1P0wh3oBxBwCFKbafCJxH8C
+         3iFMooyrJrx0A3LY+DJty3EZRLwdBQ+dfM79e8G5DeR/xG4ygpGYLkE+LB9+bAPg8Hap
+         ASAe0RuTbC/wVycSUFjE26xs+7kyUG/BCvP38HLCQUMN5pLoOddTWhhaH0FrLKWQhWQa
+         qqJgydERny8aEDUWSWdIU41lzW5EZaHnAozN0YHY1BYaIdSWJXfs79cBt6I5rTlO0RJQ
+         LH2OgezXD5j0Z5kXTM5Pi8DgAELE5rBTlA1RX8jfiLPpqPByjmvIVEIfCfhACPEXJ6Nz
+         eH4w==
+X-Gm-Message-State: AOJu0YzzYGyT1DTrCkq1u485NNjsAAnsrE9HGgT2JqfyvqSAKX6px/lh
+	f1O3cRWu9ebsUK/NB+lGBrRLYnpvEuns+zK3kvrY2zey33JLb34oR5TVi4tWSQ==
+X-Gm-Gg: Acq92OEmFg5BXKP304TR9S87WY7jVYEvrj8DHbWM9V8Jhy4XH62JUuGfc+ZR+exMZS3
+	NhFHCVChzaQ4JeP0kXViJLXylZX87SsR3hfntgn+TTMqV8TCAFbB5RVeN59zjhXO1QmLXvy5NQk
+	fEzaw/VCMIA2zP635nRwfRrfflCAuHFB7vK8YcQ0RGSr8Y8XhGl4cmB144k3OtIpv8j3a3qhHW/
+	PkBatj74/v4HEI/u/rE+obhVfqBxebM+Xx8h9+8uogABeBBg6TrTySK7s5/c+Rer1zG4g2g2YWE
+	paYV+hPg2A2+ZHyfoqMEs5GNT5qWU/3gbt9+Eq3V+aCbwXtY2gLxIWludujAVydWV7VbdrK2bpF
+	bREf0BqSPA+grYoEkjy58m9oacsUXcmdMRbgXjLrt9tDotAdppWMGITOMqOCT5SNtq/IGK1CeMK
+	Q1kf8RCTYsdr4dQFYITR5xN258b+aSv8sEYp5foQx7WRxZ+WqluSijrxPg9t1rfzHyIqM0eg==
+X-Received: by 2002:a17:90b:56cd:b0:367:bc89:546e with SMTP id 98e67ed59e1d1-36a6778bc05mr14924377a91.12.1779770127245;
+        Mon, 25 May 2026 21:35:27 -0700 (PDT)
 Received: from localhost (124.158.97.178.qld.leaptel.network. [124.158.97.178])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84164fd8127sm10404083b3a.50.2026.05.25.20.36.27
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-36a71dc0f5csm11072861a91.7.2026.05.25.21.35.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 May 2026 20:36:28 -0700 (PDT)
-Date: Mon, 25 May 2026 20:36:25 -0700
+        Mon, 25 May 2026 21:35:26 -0700 (PDT)
+Date: Mon, 25 May 2026 21:35:23 -0700
 From: Nicholas Piggin <npiggin@gmail.com>
-To: Evgeny Voevodin <evvoevod@tenstorrent.com>
-Cc: opensbi@lists.infradead.org
-Subject: Re: [PATCH] lib: sbi: Apply budget restriction when polling Zkr CSR
- state transition
-Message-ID: <ahUPSS8uvDvH4fBs@lima-default>
-References: <20260519225014.244672-1-evvoevod@tenstorrent.com>
+To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+Cc: opensbi@lists.infradead.org, 
+	Himanshu Chauhan <hchauhan@ventanamicro.com>
+Subject: Re: [PATCH 05/18] dbtr: Do not support chain bit
+Message-ID: <ahUhMP55WbZfP_aC@lima-default>
+References: <20260313051948.4017134-1-npiggin@gmail.com>
+ <20260313051948.4017134-6-npiggin@gmail.com>
+ <afi4AiIcdJk7fEru@hu-himchau-blr.qualcomm.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20260519225014.244672-1-evvoevod@tenstorrent.com>
+In-Reply-To: <afi4AiIcdJk7fEru@hu-himchau-blr.qualcomm.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260525_203630_614537_DFCA5B3A 
-X-CRM114-Status: GOOD (  21.75  )
+X-CRM114-CacheID: sfid-20260525_213528_296414_2B129A32 
+X-CRM114-Status: GOOD (  26.57  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,52 +99,94 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On Tue, May 19, 2026 at 10:50:14PM +0000, Evgeny Voevodin wrote:
-> Zkr architecture doesn't define a time limit on state transitions
-> which results in hanging on unresponsive or event-driven platforms.
-> To prevent this, we need to limit polling iterations and fall back
-> in case the budget is over, and stack guard keeps its initial value.
-> The budget is configurable with CONFIG_SBI_INIT_ZKR_POLL_BUDGET,
-> defaulting to 1000 iterations.
-> Successful reads do not consume a try.
+On Mon, May 04, 2026 at 08:45:14PM +0530, Himanshu Chauhan wrote:
+> On Fri, Mar 13, 2026 at 03:19:34PM +1000, Nicholas Piggin wrote:
+> > There is no chain bit validation in in SBI, so do not support it.
+> > 
+> > Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+> > ---
+> >  lib/sbi/sbi_dbtr.c | 14 ++++++++++++--
+> >  1 file changed, 12 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+> > index 65c3b2df..224f2350 100644
+> > --- a/lib/sbi/sbi_dbtr.c
+> > +++ b/lib/sbi/sbi_dbtr.c
+> > @@ -466,11 +466,21 @@ static void dbtr_trigger_clear(struct sbi_dbtr_trigger *trig)
+> >  	csr_write(CSR_TDATA2, 0x0);
+> >  }
+> >  
+> > -static int dbtr_trigger_supported(unsigned long type)
+> > +static int dbtr_trigger_supported(unsigned long type, unsigned long tdata)
+> >  {
+> >  	switch (type) {
+> >  	case RISCV_DBTR_TRIG_MCONTROL:
+> > +		/*
+> > +		 * SBI currently does not validate chain bit in install/update
+> > +		 * so we do not support it.
+> > +		 */
+> > +		if (tdata & RV_DBTR_BIT_MASK(MC, CHAIN))
 > 
-> Signed-off-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
-> ---
->  lib/sbi/Kconfig    | 12 ++++++++++++
->  lib/sbi/sbi_init.c | 12 +++++++++---
->  2 files changed, 21 insertions(+), 3 deletions(-)
-> 
-> diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-> index c6cc04bc..a11f788c 100644
-> --- a/lib/sbi/Kconfig
-> +++ b/lib/sbi/Kconfig
-> @@ -6,6 +6,18 @@ config CONSOLE_EARLY_BUFFER_SIZE
->  	int "Early console buffer size (bytes)"
->  	default 256
->  
-> +config SBI_INIT_ZKR_POLL_BUDGET
-> +	int "Zkr seed polling budget (iterations)"
-> +	default 1000
-> +	help
-> +	  Maximum number of iterations to poll CSR_SEED when initializing
-> +	  the stack guard variable. The Zkr specification doesn't define
-> +	  a time limit on transitioning to ES16 between polls, which
-> +	  makes it impossible to tell whether entropy is being
-> +	  accumulated slowly or the entropy source is not functioning.
+> Just a minor suggestion. Since it may be supported in future, I would suggest that
+> we print a warning message that a trigger with chain support was asked for.
 
-If entropy source is not functioning it should return DEAD, surely.
-Specifications always require a "reasonable" performance, whether that
-is explicit or not. That's open to interpretation and application, but
-if a word of entropy at boot causes a responsiveness problem, I don't
-know if that's a reasonable expectation in the spec that needs to be
-accounted for.
+I'm not sure that is an appropriate way to report this.
 
-So I think a bit more information would be good. If if this is a
-workaround for a particular platform that might be okay but I think it
-should be framed as such.
+There are already, in theory, certain configurations that may be
+supported by the underlying hardware, but are today rejected due
+to opensbi not having support for it (e.g., the other trigger
+types).
+
+The idea of logging / warning is interesting, maybe under a "verbose"
+boot/build option? And the issue of missing hardware vs opensbi support
+for a feature is certainly something a user might be interested in. But
+I think it's for another patch series.
 
 Thanks,
 Nick
+
+> 
+> > +			return 0;
+> > +		return 1;
+> >  	case RISCV_DBTR_TRIG_MCONTROL6:
+> > +		if (tdata & RV_DBTR_BIT_MASK(MC6, CHAIN))
+> ditto
+> 
+> Otherwise looks good.
+> 
+> Reviewed-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+> 
+> Thanks
+> Regards
+> Himanshu
+> 
+> > +			return 0;
+> > +		return 1;
+> >  	case RISCV_DBTR_TRIG_ICOUNT:
+> >  		return 1;
+> >  	default:
+> > @@ -613,7 +623,7 @@ int sbi_dbtr_install_trig(unsigned long smode,
+> >  		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+> >  		tdata1 = lle_to_cpu(recv->tdata1);
+> >  
+> > -		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(tdata1))) {
+> > +		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(tdata1), tdata1)) {
+> >  			*out = _idx;
+> >  			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+> >  							trig_count * sizeof(*entry));
+> > -- 
+> > 2.51.0
+> > 
+> > 
+> > -- 
+> > opensbi mailing list
+> > opensbi@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/opensbi
+> 
+> -- 
+> opensbi mailing list
+> opensbi@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 -- 
 opensbi mailing list
