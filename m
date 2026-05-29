@@ -4,85 +4,63 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 80290CD4F54
-	for <opensbi@archiver.kernel.org>; Wed, 27 May 2026 17:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id D49DCCD5BD2
+	for <opensbi@archiver.kernel.org>; Fri, 29 May 2026 07:35:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=z5CpYrAGmu/FpVXgdjlE9to2wccc429eaTaY3fv8nwA=; b=ieAlsdNdc+HkhX
-	4uYMA0fYaaECvkPo/56CdRLmGxFKxL9XQpIi4coFP5FcHACGmm0trptGoNQ6HowGjRrlu5/4Zg8Lm
-	GWrkJ7/s2lLpJNBZ6vp3+88monznFhKYrS2lX5kVJ+TbcOOkiYm3sgnNIIh9oKnbd2Ba4aRGBjd6G
-	6Lf77I0BTtkZJOrsfbA3dDaaRkJxB3MlwH6ENiBwEc9LC0T+dJUNXWOQFBY7tbrptA6IBu95o2ufq
-	+ONU6TcEGP6IJ1GKsSUz/uAPGImjMMHs03MRq+vgffSUOP70XChYOpb38G25jKypmwXG7wT/LQb7K
-	cBoZeycwwXPs3DgkMIkw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=ItjNg8o9UNe4eGhPNdOOd+spqWFqvQulCDfLjet6lS8=; b=hJth0l7NBj8WuD
+	JZzVRxPv1WNorLtLEQgeLHpp2TTprByIWJYD/H2hATiFMlgf85EIUZmchrQobM5RndmHhj/Nj8es6
+	eCAoz2gQYkvQPs6szEcQdgGdeJ3KY0TAq8fwVLE5H94710giz6iiZB/xZQXqwzBCd8R/IVyael8AN
+	zYOWoTjb283hzuNlef7VS1/YOykPUCAPP1nVe7m0TTjZQODzeKneRBRhESd3W3PukFQlr2VonWPVn
+	1osqlGqRpTyfLIWbOS7cjSL9vSce3BoDlAtlsBG4ZewRjzPDcAom4mVeZRebkhetOLFJU1WWVLOf6
+	kB7wFipXQUS/xgHq/lCA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wSHuv-00000004ZbR-2Rq2;
-	Wed, 27 May 2026 17:19:41 +0000
-Received: from mail-dy1-x132b.google.com ([2607:f8b0:4864:20::132b])
+	id 1wSrk5-00000006stt-2OqU;
+	Fri, 29 May 2026 07:34:53 +0000
+Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wSHus-00000004Zae-3cbn
+	id 1wSrk2-00000006srY-1L1z
 	for opensbi@lists.infradead.org;
-	Wed, 27 May 2026 17:19:40 +0000
-Received: by mail-dy1-x132b.google.com with SMTP id 5a478bee46e88-3042a99f0ceso621251eec.0
-        for <opensbi@lists.infradead.org>; Wed, 27 May 2026 10:19:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tenstorrent.com; s=google; t=1779902377; x=1780507177; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ctYXMDbmpO0XWIrpRc00QEkilovG8ckNMAhtikfXotQ=;
-        b=d6lqWX2U3swdD2hIGIlrVED91wNuP9ee9cMloTfi1HrhDpmacer3xzIUOF8uZlJe1h
-         IpQ1aRuv9i1GNRaTg3a1G0lP7If6bw2aKJRHlBFNpEct6/rOtXiaSp042Pe9S9JO9sMV
-         BcfRqc8Z3ag+0UTRTCGCWUigiPoOTCaYmfyx2jFoWywWCx/S4gaI12CHfrs5Ih/ko1zE
-         p0ZAeNWFzp2kzmqfiSaZ25MGkTsF5jO5cAkS9dKA3TCojqfMboZjKDkmnLxxeI5/oJfY
-         SvIeOkDU9E8Yihi+EzBhTXo119tGdEGtJU5b5bZQE6pZ38Ab4K+EwPy46/WonBQkuJhs
-         NZxw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779902377; x=1780507177;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=ctYXMDbmpO0XWIrpRc00QEkilovG8ckNMAhtikfXotQ=;
-        b=OyaHCg4uxuw6S1RnSmhBKWajt+Mq6ezR6/sLyeb1Q7VzRsbwC+7ZH9zEjbka9fSsnR
-         QjjxOUB9hPtWgh2FOlil/I+K1D0P8j508mZ+o8sq97zEPxifD/9L5awUZmm9jxrmnGaT
-         3keVIjczOZIUVnnlk74h9S1vHabRqAoT3j/reT8o98t7aEm+uRytQcTm5gzDxopiftOm
-         hueHG5NCDLQYqCpui4bKlO+fl9nKO4/s6hw3miVkkTkVqKvD5+hb2FEuwVET+pjz8ECH
-         3fffoVZr7JwgJfhU5Vksqz7a73B1xISzjnUTbwJhjiI64EHbKugKkKJMhzZ9nYrpHz9g
-         pFsw==
-X-Gm-Message-State: AOJu0YzxFUat/q+HJhDOwKBWv+whvoILB7aKWvVUMMrzpk7T9Wket6AM
-	LncQbpZgMZJqNLzp2BV/RABFy5GDcd8svUke4kvbxwD6FPqOyWwQtEyMEjAUmuF0+q0=
-X-Gm-Gg: Acq92OGNyJ1+EVW7MgrVdgwmBPXi8aAITmBAiz83t+l+byoj2KoAt4C1lNdNGE9iWI6
-	Tq+tmtzJjU4JLSc6vkIYQYqb3hbrAUnmkdBkVhjajfen2Y8B77t0bcp6AKqkF1fYcD9qIJVeQWa
-	dR7Zqkw3Xt7CYP/UOX/VsbZX/dNc8kO+NKQr+g/Npg8rlX9XVWtEcSbAliFV9C79Dx6EuJT6fhm
-	qZHLzrjhqzcG9DucNKTFNp+oFODodHaEWqpWc8QlFu2mleEC+G6PICJ39DCC04X+S2rb+qjYPan
-	y1cvtjLvYuSYA17cR6zS26c3HbAZku5vJaDtJ3mPP6UmUrIYdFbw9mQISRu5nXlexrXuankxNqg
-	668CzZuE0G9qPItY/EwKCtz8B1vsMtl/kJGLUzZcPkF6JmvTMrtVrRdNUO74IyrmQ7nlhBZM1ZG
-	L3Uni1ZBz/YDsvktBkQPncRLGO2iehX4SXmpIx/nneQTnm1pNa9TKUG1pDqUMxmQ==
-X-Received: by 2002:a05:7300:8c88:b0:2ff:b29b:87b with SMTP id 5a478bee46e88-304490ec2a0mr4876370eec.5.1779902377511;
-        Wed, 27 May 2026 10:19:37 -0700 (PDT)
-Received: from ausc-rvsw-c-02.tail89d63.ts.net ([38.104.49.66])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30481ad4cd3sm10765644eec.27.2026.05.27.10.19.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 May 2026 10:19:36 -0700 (PDT)
-From: Evgeny Voevodin <evvoevod@tenstorrent.com>
-To: Nicholas Piggin <npiggin@gmail.com>
-Cc: opensbi@lists.infradead.org,
-	evvoevod@tenstorrent.com
-Subject: Re: [PATCH] lib: sbi: Apply budget restriction when polling Zkr CSR state transition
-Date: Wed, 27 May 2026 17:19:14 +0000
-Message-ID: <20260527171915.416189-1-evvoevod@tenstorrent.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <ahUPSS8uvDvH4fBs@lima-default>
-References: <20260519225014.244672-1-evvoevod@tenstorrent.com> <ahUPSS8uvDvH4fBs@lima-default>
+	Fri, 29 May 2026 07:34:52 +0000
+Received: from localhost (unknown [122.194.100.152])
+	by APP-03 (Coremail) with SMTP id rQCowABng9qVQRlqQBbWEg--.1354S2;
+	Fri, 29 May 2026 15:34:45 +0800 (CST)
+From: Xiang W <wangxiang@iscas.ac.cn>
+To: opensbi@lists.infradead.org
+Cc: anup@brainfault.org,
+	Xiang W <wangxiang@iscas.ac.cn>,
+	Han Gao <gaohan@iscas.ac.cn>
+Subject: [PATCH] platform: Allow platforms to customize TLB operations
+Date: Fri, 29 May 2026 15:35:10 +0800
+Message-ID: <20260529073510.97299-1-wangxiang@iscas.ac.cn>
+X-Mailer: git-send-email 2.47.3
 MIME-Version: 1.0
+X-CM-TRANSID: rQCowABng9qVQRlqQBbWEg--.1354S2
+X-Coremail-Antispam: 1UD129KBjvAXoW3KF1DAF15Cry7AryrtFykAFb_yoW8Jr1kZo
+	WIgF429w4vkr47Was5ArnrtFWFqFWku34rW3y5GFnI93ZYqrWjq3yqqw17W3WIvr909rWD
+	J348A3W8ZFWxXa4rn29KB7ZKAUJUUUU8529EdanIXcx71UUUUU7v73VFW2AGmfu7bjvjm3
+	AaLaJ3UjIYCTnIWjp_UUUYn7AC8VAFwI0_Jr0_Gr1l1xkIjI8I6I8E6xAIw20EY4v20xva
+	j40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2
+	x7M28EF7xvwVC0I7IYx2IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8
+	JVWxJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
+	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
+	I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
+	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCY02Avz4vE14v_GF4l
+	42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJV
+	WUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIYrxkI7VAK
+	I48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r
+	4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY
+	6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUekucDUUUU
+X-Originating-IP: [122.194.100.152]
+X-CM-SenderInfo: pzdqw5pldqwq5lvft2wodfhubq/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260527_101939_120843_8E2F3935 
-X-CRM114-Status: UNSURE (   7.18  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260529_003450_915954_8ED99E8B 
+X-CRM114-Status: GOOD (  16.57  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,24 +77,368 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Yes, DEAD is the architectural way to signal a non-functioning source,
-and the spec implicitly assumes reasonable timing. The actual scenario
-this patch fixes is more specific:
+Some T-Head based processors, for example the Sophgo SG2044, have a
+JTLB errata that requires special handling of certain TLB maintenance
+instructions (sfence.vma).
 
-This patch fixes a hang on platforms where either internal entropy
-source is event driven and requires corresponding interrupt line to be
-enabled or external entropy FIFO refill source is not wired up (as on
-SW and HW emulation of Tenstorrent platform).
+Enable the JTLB workaround for affected boards.
 
-Without the cap, init_coldboot() spins forever - no console output, no
-diagnostic, just a silent boot-time hang. With it, __stack_chk_guard
-keeps its compile-time default and the firmware boots.
+Signed-off-by: Xiang W <wangxiang@iscas.ac.cn>
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ include/sbi/sbi_platform.h                   | 162 +++++++++++++++++++
+ lib/sbi/sbi_tlb.c                            |  28 ++++
+ platform/generic/include/thead/c9xx_errata.h |   1 +
+ platform/generic/thead/thead-generic.c       |  26 ++-
+ 4 files changed, 216 insertions(+), 1 deletion(-)
 
-Given this explanation, is it OK to keep this patch as is or is it
-better to send v2 with updated commit message and Kconfig help text?
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index fe382b56..911b37bf 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -56,6 +56,7 @@ struct sbi_domain_memregion;
+ struct sbi_ecall_return;
+ struct sbi_trap_regs;
+ struct sbi_hart_features;
++struct sbi_tlb_info;
+ union sbi_ldst_data;
+ 
+ /** Possible feature flags of a platform */
+@@ -125,6 +126,27 @@ struct sbi_platform_operations {
+ 	/** Get tlb fifo num entries*/
+ 	u32 (*get_tlb_num_entries)(void);
+ 
++	/** Platform hook for custom fence.i */
++	void (*local_fence_i)(struct sbi_tlb_info *tinfo);
++
++	/** Platform hook for custom supervisor-mode TLB flush */
++	void (*local_sfence_vma)(struct sbi_tlb_info *tinfo);
++
++	/** Platform hook for custom supervisor-mode TLB flush with ASID */
++	void (*local_sfence_vma_asid)(struct sbi_tlb_info *tinfo);
++
++	/** Platform hook for custom G-stage TLB flush for a specific VMID */
++	void (*local_hfence_gvma_vmid)(struct sbi_tlb_info *tinfo);
++
++	/** Platform hook for custom G-stage TLB flush */
++	void (*local_hfence_gvma)(struct sbi_tlb_info *tinfo);
++
++	/** Platform hook for custom VS-stage TLB flush with ASID */
++	void (*local_hfence_vvma_asid)(struct sbi_tlb_info *tinfo);
++
++	/** Platform hook for custom VS-stage TLB flush */
++	void (*local_hfence_vvma)(struct sbi_tlb_info *tinfo);
++
+ 	/** Initialize platform timer during cold boot */
+ 	int (*timer_init)(void);
+ 
+@@ -313,6 +335,146 @@ static inline u32 sbi_platform_tlb_fifo_num_entries(const struct sbi_platform *p
+ 	return sbi_hart_count();
+ }
+ 
++/**
++ * Platform hook for custom fence.i
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_fence_i(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_fence_i) {
++		sbi_platform_ops(plat)->local_fence_i(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
++/**
++ * Platform hook for custom supervisor-mode TLB flush
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_sfence_vma(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_sfence_vma) {
++		sbi_platform_ops(plat)->local_sfence_vma(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
++/**
++ * Platform hook for custom supervisor-mode TLB flush with ASID
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_sfence_vma_asid(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_sfence_vma_asid) {
++		sbi_platform_ops(plat)->local_sfence_vma_asid(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
++/**
++ * Platform hook for custom G-stage TLB flush for a specific VMID
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_hfence_gvma_vmid(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_hfence_gvma_vmid) {
++		sbi_platform_ops(plat)->local_hfence_gvma_vmid(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
++/**
++ * Platform hook for custom G-stage TLB flush
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_hfence_gvma(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_hfence_gvma) {
++		sbi_platform_ops(plat)->local_hfence_gvma(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
++/**
++ * Platform hook for custom VS-stage TLB flush with ASID
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_hfence_vvma_asid(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_hfence_vvma_asid) {
++		sbi_platform_ops(plat)->local_hfence_vvma_asid(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
++/**
++ * Platform hook for custom VS-stage TLB flush
++ *
++ * @param plat pointer to struct sbi_platform
++ * @paeam tinfo pointer to struct sbi_tlb_info
++ *
++ * @return 0 indicates that the platform supports the operation and the
++ * operation was successful; otherwise, a normal operation needs to be performed.
++ */
++static inline u32 sbi_platform_local_hfence_vvma(
++					const struct sbi_platform *plat,
++					struct sbi_tlb_info *tinfo)
++{
++	if (plat && sbi_platform_ops(plat)->local_hfence_vvma) {
++		sbi_platform_ops(plat)->local_hfence_vvma(tinfo);
++		return 0;
++	}
++	return SBI_ENOTSUPP;
++}
++
+ /**
+  * Get total number of HARTs supported by the platform
+  *
+diff --git a/lib/sbi/sbi_tlb.c b/lib/sbi/sbi_tlb.c
+index ada60c32..69b8fb48 100644
+--- a/lib/sbi/sbi_tlb.c
++++ b/lib/sbi/sbi_tlb.c
+@@ -46,6 +46,10 @@ static void sbi_tlb_local_hfence_vvma(struct sbi_tlb_info *tinfo)
+ 	hgatp = csr_swap(CSR_HGATP,
+ 			 (vmid << HGATP_VMID_SHIFT) & HGATP_VMID_MASK);
+ 
++	if (sbi_platform_local_hfence_gvma(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		gito done;
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_vvma_all();
+ 		goto done;
+@@ -67,6 +71,10 @@ static void sbi_tlb_local_hfence_gvma(struct sbi_tlb_info *tinfo)
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_RCVD);
+ 
++	if (sbi_platform_local_hfence_gvma(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		return;
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_gvma_all();
+ 		return;
+@@ -85,6 +93,10 @@ static void sbi_tlb_local_sfence_vma(struct sbi_tlb_info *tinfo)
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_RCVD);
+ 
++	if (sbi_platform_local_sfence_vma(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		return;
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_sfence_vma_all();
+ 		return;
+@@ -111,6 +123,10 @@ static void sbi_tlb_local_hfence_vvma_asid(struct sbi_tlb_info *tinfo)
+ 	hgatp = csr_swap(CSR_HGATP,
+ 			 (vmid << HGATP_VMID_SHIFT) & HGATP_VMID_MASK);
+ 
++	if (sbi_platform_local_hfence_vvma_asid(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		goto done;
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_vvma_asid(asid);
+ 		goto done;
+@@ -133,6 +149,10 @@ static void sbi_tlb_local_hfence_gvma_vmid(struct sbi_tlb_info *tinfo)
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_HFENCE_GVMA_VMID_RCVD);
+ 
++	if (sbi_platform_local_hfence_gvma_vmid(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		return;
++
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__sbi_hfence_gvma_vmid(vmid);
+ 		return;
+@@ -152,6 +172,10 @@ static void sbi_tlb_local_sfence_vma_asid(struct sbi_tlb_info *tinfo)
+ 
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_SFENCE_VMA_ASID_RCVD);
+ 
++	if (sbi_platform_local_sfence_vma_asid(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		return;
++
+ 	/* Flush entire MM context for a given ASID */
+ 	if ((start == 0 && size == 0) || (size == SBI_TLB_FLUSH_ALL)) {
+ 		__asm__ __volatile__("sfence.vma x0, %0"
+@@ -173,6 +197,10 @@ static void sbi_tlb_local_fence_i(struct sbi_tlb_info *tinfo)
+ {
+ 	sbi_pmu_ctr_incr_fw(SBI_PMU_FW_FENCE_I_RECVD);
+ 
++	if (sbi_platform_local_fence_i(
++			sbi_platform_thishart_ptr(), tinfo) == SBI_OK)
++		return;
++
+ 	__asm__ __volatile("fence.i");
+ }
+ 
+diff --git a/platform/generic/include/thead/c9xx_errata.h b/platform/generic/include/thead/c9xx_errata.h
+index 40c1587b..7a419e41 100644
+--- a/platform/generic/include/thead/c9xx_errata.h
++++ b/platform/generic/include/thead/c9xx_errata.h
+@@ -8,6 +8,7 @@
+  */
+ #define THEAD_QUIRK_ERRATA_TLB_FLUSH		BIT(0)
+ #define THEAD_QUIRK_ERRATA_THEAD_PMU		BIT(1)
++#define THEAD_QUIRK_ERRATA_JTLB			BIT(2)
+ 
+ void thead_register_tlb_flush_trap_handler(void);
+ 
+diff --git a/platform/generic/thead/thead-generic.c b/platform/generic/thead/thead-generic.c
+index ddb4f0bf..86793ab1 100644
+--- a/platform/generic/thead/thead-generic.c
++++ b/platform/generic/thead/thead-generic.c
+@@ -13,6 +13,7 @@
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
++#include <sbi/sbi_tlb.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ 
+ struct thead_generic_quirks {
+@@ -39,6 +40,20 @@ static int thead_pmu_extensions_init(struct sbi_hart_features *hfeatures)
+ 	return 0;
+ }
+ 
++static void thead_jtlb_local_sfence_vma(struct sbi_tlb_info *tinfo)
++{
++	__asm__ __volatile__("sfence.vma");
++}
++
++static void thead_jtlb_local_sfence_vvma_asid(struct sbi_tlb_info *tinfo)
++{
++	/* Flush entire MM context for a given ASID */
++	__asm__ __volatile__("sfence.vma x0, %0"
++			     :
++			     : "r"(tinfo->asid)
++			     : "memory");
++}
++
+ static int thead_generic_platform_init(const void *fdt, int nodeoff,
+ 				       const struct fdt_match *match)
+ {
+@@ -49,6 +64,11 @@ static int thead_generic_platform_init(const void *fdt, int nodeoff,
+ 	if (quirks->errata & THEAD_QUIRK_ERRATA_THEAD_PMU)
+ 		generic_platform_ops.extensions_init = thead_pmu_extensions_init;
+ 
++	if (quirks->errata &THEAD_QUIRK_ERRATA_JTLB) {
++		generic_platform_ops.local_sfence_vma = thead_jtlb_local_sfence_vma;
++		generic_platform_ops.local_sfence_vma_asid = thead_jtlb_local_sfence_vvma_asid;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -60,13 +80,17 @@ static const struct thead_generic_quirks thead_pmu_quirks = {
+ 	.errata = THEAD_QUIRK_ERRATA_THEAD_PMU,
+ };
+ 
++static const struct thead_generic_quirks thead_pmu_jtlb_quirks = {
++	.errata = THEAD_QUIRK_ERRATA_THEAD_PMU | THEAD_QUIRK_ERRATA_JTLB,
++};
++
+ static const struct fdt_match thead_generic_match[] = {
+ 	{ .compatible = "canaan,kendryte-k230", .data = &thead_pmu_quirks },
+ 	{ .compatible = "sophgo,cv1800b", .data = &thead_pmu_quirks },
+ 	{ .compatible = "sophgo,cv1812h", .data = &thead_pmu_quirks },
+ 	{ .compatible = "sophgo,sg2000", .data = &thead_pmu_quirks },
+ 	{ .compatible = "sophgo,sg2002", .data = &thead_pmu_quirks },
+-	{ .compatible = "sophgo,sg2044", .data = &thead_pmu_quirks },
++	{ .compatible = "sophgo,sg2044", .data = &thead_pmu_jtlb_quirks },
+ 	{ .compatible = "thead,th1520", .data = &thead_th1520_quirks },
+ 	{ },
+ };
+-- 
+2.47.3
 
-Thanks,
-Evgeny
 
 -- 
 opensbi mailing list
