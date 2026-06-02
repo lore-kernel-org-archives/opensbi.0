@@ -4,55 +4,61 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id EEABACD6E57
-	for <opensbi@archiver.kernel.org>; Tue,  2 Jun 2026 11:24:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C8866CD6E5D
+	for <opensbi@archiver.kernel.org>; Tue,  2 Jun 2026 19:12:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
-	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=kxyEZo9yP6PRs4pv8s5Fc9LCQT3l9DdTyuw9bGQK3f8=; b=3f7bG8PHiDFoH5
-	DYZHwHDsNFwEAgAztA/bts7AZmF50mSpKEwEEyHQUse5cu7GCTJNcndKC43NeLh93ZliW8WiPVNeJ
-	LulCirnp6fDXEDqmXPePhoQ96hQjPpY+7lZUUS2xbdG4pIiTzIyHMYn2YtHtIJXc2fMBUEBfhk6kU
-	ccIp1Omf5eGNQWmGf4OqHIKHrXcCEj0XoiCMC9wcyCjdsNJRRk6FYO9CrVxiU4qrHMFX499yIYC2k
-	M/8DT+Ae/YPxruHiOTVOzMiiMRKJge/DVuOClvIUI6sfAKDLAqaEERj2ohSIH7avzT/CtI3yfFO1z
-	69+iZYi2lINXb+A0gYcw==;
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=pPycCRWc/FQRKNDwUy48cJLEHghlP6yDkR574d1W4Is=; b=IuitniJqJsbsZJ
+	//fkovQ8ccmx+eatuRaL7IqzSk6tQ08/kvudlbvDenHaSADHfi1ufNJbI65XeYa6AUV78rTLQyUP1
+	6mUE3gPq6T0qmqe4nfd9yoRgpKitvqsbCWxJEfhmaMoJf1j4Imwd8/Lvh4RLladR5zKZXrMgVNIeb
+	wJRFea/axNVoB2DGk3wypm1OANOuojGw8GMasoXz7EBWjXvOaPTLo07oofkw1ppywz3kLclhIUBn7
+	FAP+tbTgPve9eacVPM8KqazE2dCOeVQOk6moN9h2KE4lueM0jHEnBUhDRHCp7eyiVZFjB6NNOaTlW
+	CcF0ITsumHUk+Ky3/ZtA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wUNEk-0000000CrwG-3gY4;
-	Tue, 02 Jun 2026 11:24:46 +0000
-Received: from tor.source.kernel.org ([2600:3c04:e001:324:0:1991:8:25])
+	id 1wUUXI-0000000Dg7s-1i8C;
+	Tue, 02 Jun 2026 19:12:24 +0000
+Received: from hall.aurel32.net ([2001:bc8:30d7:100::1])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wUNEj-0000000Crw7-11ex
+	id 1wUUXF-0000000Dg7M-14qS
 	for opensbi@lists.infradead.org;
-	Tue, 02 Jun 2026 11:24:45 +0000
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	by tor.source.kernel.org (Postfix) with ESMTP id 4C06660126
-	for <opensbi@lists.infradead.org>; Tue,  2 Jun 2026 11:24:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AF611F00893;
-	Tue,  2 Jun 2026 11:24:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780399484;
-	bh=zModBmCiLqIrJPTaqDby/7AHdmsTNqqyCz6Ldlu2PsY=;
-	h=From:Date:Subject:To:Cc;
-	b=R1O5EREfXrFNaR+wJFIJpLLVRYLlRU4oGVme1TGrKxvex83jgUS/7nPGY+ue8Q384
-	 gdbJfx+x+IgCqL4/yshQPZaoSu48EGaD1M5pBQULqQRQMX0ux1SWJVN3rxIl2rLd5Y
-	 D0bXUlr/rHDdXE+A+CsGIuEp6O90A50L8awKitn+yna/OB+ua1yb/pWSxpF7MTGRFA
-	 ZZ3wpDcDRf7c+uCbME6hLPlQzcrh9qrpt5h7MouYcYHA3I2Cb8+p59ZPnFPTYcr+/m
-	 d0mFyyd9Xzp1TrqUnWshLBTCPSiQIUXyUzV8lg1LHuZVFuaZNllLU8x54l8Euw+Qad
-	 NaSxIdnJRWRBg==
-From: Michael Ellerman <mpe@kernel.org>
-Date: Tue, 02 Jun 2026 21:24:37 +1000
-Subject: [PATCH] gitignore: Ignore python cache directories
+	Tue, 02 Jun 2026 19:12:22 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=aurel32.net
+	; s=202004.hall; h=In-Reply-To:Content-Type:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Content-Transfer-Encoding:From:Reply-To:
+	Subject:Content-ID:Content-Description:X-Debbugs-Cc;
+	bh=hx0V5RYSG+PBxqF++uZjBioWU/KdZnKP5PC1Wvtp7sw=; b=A+vdj5ZnV8rvfMjuwKvVmV0kO8
+	iEr7BB+b1pdLtduI2Endd1wIT2P6eHTplrqmswcSzQJ3ojuuXmS0XGBM3jWETJmI0eNHk1514tI77
+	WM9/sFK/qvuLTdYoBGZnNynCY1fquZcyez8OyfT94N7OBCpe93XG5RHl/SyKRnvHgIQh/bMvMacU9
+	JCvX33HaB+voPnpaWj6zyWTC0rB++7TDn3h3yb7CEsOb4yStd2ZNkD7FCAT7e/z9dqWSJVgMHsJdC
+	AOvijwoPIPfh8IO/48beFTmTTMilGWFVMm5gwnTXsPnQKL6sCCbFyHAl4JcYL+DgsIddYtwADXwAW
+	/xh/78VA==;
+Received: from authenticated user
+	by hall.aurel32.net with esmtpsa  (TLS1.3)  tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <aurelien@aurel32.net>)
+	id 1wUUX4-0000000CRrD-2wak;
+	Tue, 02 Jun 2026 21:12:10 +0200
+Date: Tue, 2 Jun 2026 21:12:10 +0200
+From: Aurelien Jarno <aurelien@aurel32.net>
+To: Vivian Wang <wangruikang@iscas.ac.cn>
+Cc: opensbi@lists.infradead.org, Michael Ellerman <mpe@kernel.org>,
+	Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>,
+	Bo Gan <ganboing@gmail.com>
+Subject: Re: [PATCH] include: sbi_platform: Increase default stack size
+Message-ID: <ah8rCkntd95JPfti@aurel32.net>
+References: <edbce78c-71a7-41d7-aa81-3fa57241644a@iscas.ac.cn>
 MIME-Version: 1.0
-Message-Id: <20260602-fix-gitignore-v1-1-4299e2e40ee4@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAHS9HmoC/x2MQQqAIBAAvyJ7bkFFhPpKdDDdbC8aGhGIf086D
- sxMg0qFqcIiGhR6uHJOA9QkwJ8uRUIOg0FLbaWVGg9+MfLNMeVCSMY74+adgpIwmqvQEP7fuvX
- +AVe2I7JfAAAA
-To: opensbi@lists.infradead.org
-Cc: Michael Ellerman <mpe@kernel.org>
-X-Mailer: b4 0.13.0
+Content-Disposition: inline
+In-Reply-To: <edbce78c-71a7-41d7-aa81-3fa57241644a@iscas.ac.cn>
+User-Agent: Mutt/2.2.13 (2024-03-09)
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20260602_121221_430933_F45FD8A1 
+X-CRM114-Status: GOOD (  11.95  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -69,39 +75,34 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Running ./scripts/Kconfiglib/setconfig.py leaves the tree with untracked
-files:
+On 2026-05-24 13:53, Vivian Wang wrote:
+> sbi_misaligned_v_ld_emulator() has a local buffer (namely mask) which is
+> 8192 bytes in size, so the default stack size is not enough. Double it
+> to 16384.
+> 
+> This stack overflow can be observed by any S-mode software and leads to
+> M-mode crash or unexpected behavior, as long as the S-mode software does
+> not enable FWFT misaligned delegation [1]. This may be considered a
+> temporary fix until further fixes are made to misaligned handling [2].
+> 
+> Link: https://lore.kernel.org/linux-riscv/nrvt74qnojaubiwjo37ums4lnclu466hovwrhmtbag6f5uhrql@q6msoe2oto4b # [1]
+> Link: https://lore.kernel.org/opensbi/20260210094044.72591-1-ganboing@gmail.com # [2]
+> Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
+> ---
+>  include/sbi/sbi_platform.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-    Untracked files:
-      (use "git add <file>..." to include in what will be committed)
-            scripts/Kconfiglib/__pycache__/
+Tested-by: Aurelien Jarno <aurelien@aurel32.net>
 
-Add __pycache__ to .gitignore to fix it.
+I can confirm that this fix is required to boot a 7.1-rc6 kernel on a 
+CPU with vector instructions (in my case SpacemiT K1).
 
-Signed-off-by: Michael Ellerman <mpe@kernel.org>
----
- .gitignore | 3 +++
- 1 file changed, 3 insertions(+)
+Regards
+Aurelien
 
-diff --git a/.gitignore b/.gitignore
-index 94caeb90..fc27e747 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -16,6 +16,9 @@
- build/
- install/
- 
-+# Python bytecode (e.g. from scripts/Kconfiglib)
-+__pycache__
-+
- # Development friendly files
- tags
- cscope*
-
----
-base-commit: 547a5bbda7c3ec0096a6c87809851f8c2df047d1
-change-id: 20260602-fix-gitignore-e4ca4a9bed10
-
+-- 
+Aurelien Jarno                          GPG: 4096R/1DDD8C9B
+aurelien@aurel32.net                     http://aurel32.net
 
 -- 
 opensbi mailing list
