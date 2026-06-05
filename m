@@ -4,70 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8FE36CD6E7E
-	for <opensbi@archiver.kernel.org>; Fri,  5 Jun 2026 11:34:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 159FBCD6E7C
+	for <opensbi@archiver.kernel.org>; Fri,  5 Jun 2026 11:34:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=nEW1wXsJQuKX4UyLJgg37JbIn5KsMTAyT+ZTFIoj4/o=; b=TsVslflN43IssS
-	9lulR/wlSZhhJcNDUlzIBYgMFlxS/b09UvTkRO4aLLVnj4u/p27rH5xQmKEYC85m1gLi+q/Cd73p/
-	VKIpaHG+dZVKIZk9+80rPJDKG29A7BFF53xUlVsSk9nMQpwKx0XtQ+nmt7uNx0T+7gYNy/iZ+Us46
-	mvnmcMD9f4rKDVAJKUV65Ut0NNPrI3BKmab8YRZJpgM96h02ZO7p1Op8KbVr4h8mzEa29+55MTrGX
-	uY4snMi3J4kME/D/1A4k3hK6HoIdc97DbQ1+WqoYxsX0EGIdL2porbP6Ci6oPEnM+C6fYwYW0HDJk
-	Q9GbZ8tg8efLJywmxvBA==;
+	List-Owner; bh=h7RU0064q6BoetA/RjzpcaZTrONk/ACKx+idR2IPUEw=; b=yR/kOeR9jSvOQW
+	YeQ7MApu7lxULdDJoZ8Cg/OiCUMwCVEkpy2Y24vlrR65xoMffxWfIci1Yd0axgNOvAWb6isnRD8rp
+	9ydha2MklZroviWAHj8VCaB34NqDzj4WNP7Ma8gPJPM++uNpLCetpW6JLRqD4acj8Uxk90tKICmKC
+	O+QvnEMME1CHAu8WzCgMnFluJ47qb7rJ2BDyYTc0SuuGCClVGOX7EP36RvSZPUhcKpU0YSazQTjjo
+	/HdYu4t173kUQWu5Kbitz+QP1eLCmt4r0V7XUIdsqJIZHn9e8XAAtvMKr1SR7rCFOkEO8LXlwS+w3
+	Vf4ad5vWuRlE7Kvc5TYw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wVSou-00000000Xsx-3YK8;
-	Fri, 05 Jun 2026 11:34:36 +0000
-Received: from mail-pf1-x434.google.com ([2607:f8b0:4864:20::434])
-	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wVSop-00000000Xo3-16Cw
-	for opensbi@lists.infradead.org;
+	id 1wVSot-00000000XrT-39ml;
 	Fri, 05 Jun 2026 11:34:35 +0000
-Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-8422524cb38so590246b3a.0
-        for <opensbi@lists.infradead.org>; Fri, 05 Jun 2026 04:34:31 -0700 (PDT)
+Received: from mail-pj1-x1030.google.com ([2607:f8b0:4864:20::1030])
+	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wVSop-00000000Xna-0ETw
+	for opensbi@lists.infradead.org;
+	Fri, 05 Jun 2026 11:34:34 +0000
+Received: by mail-pj1-x1030.google.com with SMTP id 98e67ed59e1d1-36dac5d5d05so924333a91.2
+        for <opensbi@lists.infradead.org>; Fri, 05 Jun 2026 04:34:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780659271; x=1781264071; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1780659270; x=1781264070; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Xe0AH6ICsihCfssC3unzvZJu8+fiKYK5mJIRBuB6FQ4=;
-        b=ocCoPlmJVyhVBsoDFIgmDU4/xgNMQyT6IULtYO2j+3ABXnvDkxniL4WfUJPqzwSa6V
-         +dqA9knl2hi/fwMY43/wzIWe1mUczhEMq8I3Cn0HANeG/hRH8B/XhE4BjDtYo+DrddpM
-         UOUnzOImeLrKA13YFfuTbbW3IN1CGOIbPe81Q3US68GcNbdHfLc7RLQDV1MPBXyMQVrX
-         eMFdpStd+AQuvDXucBAFWC+ieS5snR2zKgD3iNML5PcKLSxEkXWS+kCkkYJtixWldP4h
-         ptVQ1kkkfJpTHlqc6qdU17+LeNgvYxI+68S2Y7wNPWRLWQDtD1m1BRXS6Y+3fv3/ixQr
-         GPrw==
+        bh=OO1khYE3NNgsrO9wMpPw9EvnUAHgta/8jauRsZZVwKA=;
+        b=IMcC8652eQdt3lDh6RxsjO8JvdTybEMWunCNUHRuWl/Mil1EwkKjRZUCT5DDEmFbdw
+         AOlFe61aaDUA0xw+ehkg3FSRJCRAQ3uL9kysh4fnScVlzs5veSw0tvCfUKpBS57JzNSI
+         gPSqrSBt1usoZLEbcCypgK0UWeiq+gIiR7GydvEBFFY+wU63ElfC3nOMO4DYvcKtEDlk
+         TVrPwUU1zvexY1QqSuAK9RnmMdPQ/T4vQ/mROBGVsBN/Ha5tP5Gd/JqP4ZcOk/wWpVTF
+         A3ha12KB/aAXJiPZvCyLCeKbJYc0Pcaqp0Bfr0HN99bvJxWUJGe7qsdZ/DE/fnAxy/Oe
+         X4uw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780659271; x=1781264071;
+        d=1e100.net; s=20251104; t=1780659270; x=1781264070;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Xe0AH6ICsihCfssC3unzvZJu8+fiKYK5mJIRBuB6FQ4=;
-        b=bXswQ8CwYYEIOAmH6ik2dXySgYXjM39k/b/VRi0mbCmIEDWwA+Yuv6jvNi+y5ovAkA
-         IYLILz8U6d6WiAoUa/QOLveTcZlmSUVqdsqpfx8cvbl01AWQYBvbKMywOB69Fu3xa0cJ
-         tDRK4eCoRAiTd2NZzroNkf5imXKyWCDK0sTC7teHBUjGyiTefxLBHlJI0ScoXdM8rBTU
-         mKSwX8fwvCZJ99uYaGS1SG8kNVLGPseairB+d9KmXL1ImNxVqPgMvN61VtWHZujKiKIi
-         aelpqbdKH09CbXr0lWbHkxIc8BtarWio4G5aJQAq8doqalqbe/AiE8aR9YbVM1eFuCBN
-         ++JA==
-X-Gm-Message-State: AOJu0Yzke1tMkgB3QuZ6WjnPjNGGP6ZSkL5tyYrQKvZYQhTxgGqEp7rN
-	bhlUORSmU13wb/cSHJAmS4q+8T7JACb6c04NDEBt+Qrpi8uAHI35KzzTfwR8qw==
-X-Gm-Gg: Acq92OGXHRMM6D7Alp09hnlLbKSpmfx8OHUNGpYjNHg9aAm3CWclRbzeeKw8OpGTQsk
-	E1bjtBZkcyL7zcfzNPm7ImoFGXCutBxaihSjqZZSazRgtMhHFHnQ3WhtMot5BIX2Iz2WCQcbC71
-	WXfE9xEOQbPIqq2OOky/VejiHiFjrZAdeEEGm7RI1yUwkNvK/Ok/89EAk7l7eGajX3KWEOUxc3t
-	xY+fHz1xcLBQ9MTqE6leJtGBZN95wMFXjYBMgukAm8Ha0mtBvNanoyxbOXvHAQPwZCGccK5V3pr
-	Re9/dfAOy8KXWz8Bzvf5cnAlw0nrNzB2JyVs4LqwYGYHFY19C+fhs1gdqtaizES0Jxb8jb9fo/A
-	eHfV7qWC2G7NJ2KPHM4Oy0a6EcuKB7TklzB7vgCwUMQCCJTuAsxTppSUlrc6WNMcoopJw48XS86
-	TwSwslX62T1Mst7oIbJfsF4ILXnKYWa1duwcrpg3kw0KhkIg==
-X-Received: by 2002:a05:6a00:4fcc:b0:842:5a18:9af8 with SMTP id d2e1a72fcca58-842b0e627e6mr3143650b3a.12.1780659270562;
-        Fri, 05 Jun 2026 04:34:30 -0700 (PDT)
+        bh=OO1khYE3NNgsrO9wMpPw9EvnUAHgta/8jauRsZZVwKA=;
+        b=IttB0PTG2z9+cQVZnVmz4fIiFzC6Yz8SWHwRnJW8NjIuKLwmAyY6DjXA7yrIo+0KQ9
+         AmzFY3IPGsxF3HInvBJUmcnmX7leNQAHZnGvpUyvzIidg0AToUE9uBnonw4gfxrSDuhC
+         vpvworfIVI2ZTiA4OuRjtOMorBYuiBYmd80ZZaw5H3T/QtBx2GnCYsXaEfjwbOcWxd6E
+         6/+xPQtTLMrlg2BMRaZfibeG+tQx8TBAB1EVKILExPi5VeRMha3FvC7jCF0+yLymKSl/
+         zpwX9+bQM41Ja6vR6nJMxQF3AU0lUIVebfmnQFC2f279ibqrY2STcYDgEeGHIOqVLEyb
+         YwAQ==
+X-Gm-Message-State: AOJu0YwrpeOWZRR5uJpudNGnu486YSC1X4/Axj3tqnrPegDl8fxIlP/N
+	VOcVD76MKWKL0OXfCH2Lftqhu4rEYjtroY/6MWHmt0P1HRg4KKFULXNUKtWwxw==
+X-Gm-Gg: Acq92OH0WWC8a9f4SpIBAgoR5sNKNgbEBzHaQfzMLPwQFjvyClZUSJye2MPo1xwEjVr
+	93pqAfjfzmtj8SGbDsaZ4nv+VUPH0DnNuqk1rVNG4FRPwrVn1VTrZQs5srFWfqb7OgQskrMKmve
+	nqT1P6djG4B/ELDoa5hsnkA2/B/Kf/za6BCU/e5wVjD+N1Tn9dqPN+ItAdeqnimWu2POay7+T/l
+	w1PSx4ivsqMBmIiQYy5DA+kOF6gtcF8xUtiHu5FZS0J45YgrGG42z1LvcO5bQs9G2u+l1L1LMnf
+	yrQrTwnXYpYB+OL2HzCcsIcCOBFY6KU9ltBhrJebe+uf/hhiKx0SPnlFDR5bmPpxjIZ8vsuqGAy
+	c6LO9Sgg0RCPODNM5GEVkilQ22ZoNqU4n9Ifx26YJlpC9pTv2EGCnUQbBz1eW3q7AI01iwMfDZX
+	tWaijpW4AIV2sSq49m/vcGFvqaV+g8prk+02k=
+X-Received: by 2002:a17:90b:5787:b0:368:147f:bd27 with SMTP id 98e67ed59e1d1-370f0d52f5cmr3610881a91.23.1780659269915;
+        Fri, 05 Jun 2026 04:34:29 -0700 (PDT)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8428222263dsm10141414b3a.2.2026.06.05.04.34.30
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8428222263dsm10141414b3a.2.2026.06.05.04.34.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 Jun 2026 04:34:30 -0700 (PDT)
+        Fri, 05 Jun 2026 04:34:29 -0700 (PDT)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org,
 	wangruikang@iscas.ac.cn,
@@ -76,16 +76,16 @@ To: opensbi@lists.infradead.org,
 Cc: cleger@rivosinc.com,
 	pjw@kernel.org,
 	asrinivasan@oss.tenstorrent.com
-Subject: [PATCH v2 8/8] [NOT-FOR-UPSTREAM] Test program for misaligned load/store
-Date: Fri,  5 Jun 2026 04:32:14 -0700
-Message-Id: <20260605113214.242-9-ganboing@gmail.com>
+Subject: [PATCH v2 7/8] lib: sbi: Rework load/store emulator instruction decoding
+Date: Fri,  5 Jun 2026 04:32:13 -0700
+Message-Id: <20260605113214.242-8-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260605113214.242-1-ganboing@gmail.com>
 References: <20260605113214.242-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260605_043431_400617_12CB9D32 
-X-CRM114-Status: GOOD (  15.17  )
+X-CRM114-CacheID: sfid-20260605_043431_164180_0EDAD5D5 
+X-CRM114-Status: GOOD (  29.63  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,536 +102,587 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Build: gcc -o test-misaligned-ldst test-misaligned-ldst.c ldst.S
+Rehaul instruction decoding to fix the following issues:
 
-Failure observed before the fix on QEMU with 64-bit Linux and 32-bit test
+- We assume the XLEN of previous mode is the same as MXLEN. However,
+  RVC instructions decodes differently in RV32 and RV64, so shouldn't
+  have assumed that.
+- We assume it's a misaligned fault and the load/store offset is 0,
+  i.e., base address == fault address, but access faults can have
+  non-0 offset (on HW supporting misaligned accesses), so platform
+  specific load/store fault handler gets the wrong base address.
+- No checking of [63:32] of tinst in RV64, which is explicitly
+  required by Privileged ISA 19.6.3. Must reject tinst with non-0
+  high 32 bits.
 
-...
-loadfp 64, insn cfldsp, n=64, off=1, cmp=788796a5b4c3d2e1
-loadfp 64, insn cfldsp, n=64, off=2, cmp=69788796a5b4c3d2
-loadfp 64, insn cfldsp, n=64, off=3, cmp=5a69788796a5b4c3
-loadfp 64, insn cfldsp, n=64, off=4, cmp=4b5a69788796a5b4
-loadfp 64, insn cfldsp, n=64, off=5, cmp=3c4b5a69788796a5
-loadfp 64, insn cfldsp, n=64, off=6, cmp=2d3c4b5a69788796
-loadfp 64, insn cfldsp, n=64, off=7, cmp=1e2d3c4b5a697887
-loadfp 32, insn cflw, n=32, off=1, cmp=ffffffffb4c3d2e1
-./test32: failed at load_f 1 4 0: 0
+Thus, fix all the above. For misaligned load/store fault, the address
+offset should be 0, but we'll validate that on a DEBUG build. On an
+optmized build, we kill the use of base address, and use trap address
+instead (same as before), which lets the compiler optimize out imm
+parsing and other calculations.
 
-With the patch series:
+I also analyzed the behavior of misaligned fault handler before fix.
+With the following conditions met, it can trigger data corruption:
 
-...
-loadfp 64, insn cfldsp, n=64, off=1, cmp=788796a5b4c3d2e1
-loadfp 64, insn cfldsp, n=64, off=2, cmp=69788796a5b4c3d2
-loadfp 64, insn cfldsp, n=64, off=3, cmp=5a69788796a5b4c3
-loadfp 64, insn cfldsp, n=64, off=4, cmp=4b5a69788796a5b4
-loadfp 64, insn cfldsp, n=64, off=5, cmp=3c4b5a69788796a5
-loadfp 64, insn cfldsp, n=64, off=6, cmp=2d3c4b5a69788796
-loadfp 64, insn cfldsp, n=64, off=7, cmp=1e2d3c4b5a697887
-loadfp 32, insn cflw, n=32, off=1, cmp=ffffffffb4c3d2e1
-loadfp 32, insn cflw, n=32, off=2, cmp=ffffffffa5b4c3d2
-loadfp 32, insn cflw, n=32, off=3, cmp=ffffffff96a5b4c3
-loadfp 32, insn cflw, n=32, off=5, cmp=ffffffff788796a5
-loadfp 32, insn cflw, n=32, off=6, cmp=ffffffff69788796
-loadfp 32, insn cflw, n=32, off=7, cmp=ffffffff5a697887
-loadfp 32, insn cflw, n=32, off=9, cmp=ffffffff3c4b5a69
-loadfp 32, insn cflw, n=32, off=10, cmp=ffffffff2d3c4b5a
-loadfp 32, insn cflw, n=32, off=11, cmp=ffffffff1e2d3c4b
-loadfp 32, insn cflwsp, n=64, off=1, cmp=ffffffffb4c3d2e1
-loadfp 32, insn cflwsp, n=64, off=2, cmp=ffffffffa5b4c3d2
-loadfp 32, insn cflwsp, n=64, off=3, cmp=ffffffff96a5b4c3
-loadfp 32, insn cflwsp, n=64, off=5, cmp=ffffffff788796a5
-loadfp 32, insn cflwsp, n=64, off=6, cmp=ffffffff69788796
-loadfp 32, insn cflwsp, n=64, off=7, cmp=ffffffff5a697887
-loadfp 32, insn cflwsp, n=64, off=9, cmp=ffffffff3c4b5a69
-loadfp 32, insn cflwsp, n=64, off=10, cmp=ffffffff2d3c4b5a
-loadfp 32, insn cflwsp, n=64, off=11, cmp=ffffffff1e2d3c4b
+- HW doesn't transform instruction into tinst.
+- HW doesn't support misaligned load/store, and OS doesn't enable
+  misaligned delegation, thus OpenSBI handler is in effect
+- HW supports mixed XLEN, and M mode is running RV64, and the trapping
+  mode (U/VS/VU) is running RV32.
+- The trapping instruction is c.f{l|s}w(sp).
 
-<no failure>
+Due to the incorrect insn decoding, the trapping instruction would
+mistakenly be decoded as c.{l|s}d(sp). With this fix, c.f{l|s}w(sp)
+in RV32 is now emulated correctly.
+
+Validation:
+The patch is validated to have fixed the issue with test cases running
+on a modified version of QEMU that exposes misaligned faults [1], and
+a further modified version that removes tinst transformation [2]. The
+S-mode OS is a local build of Debian Trixie 6.12 kernel that enables
+COMPAT (RV32), and the U-mode test application exercises all integer
+and floating-point load/store (RVIFD64/32+RVC64/32) instructions with
+all possible imm values. The patch is also tested on real HW (Sifive
+P550/ESWIN EIC7700), which only supports RV64. On P550, the same test
+was validated both in U mode and VU mode, where the host runs a 6.12
+ESWIN vendor kernel that has some ESWIN SoC device driver patches [3]
+applied, and the guest runs the exact same Debian Trixie 6.12 kernel
+mentioned above.
+
+[1] https://github.com/ganboing/qemu/tree/ganboing-misalign
+[2] https://github.com/ganboing/qemu/tree/ganboing-misalign-no-tinst
+[3] https://github.com/sifiveinc/riscv-linux/tree/rel/kernel-6.12/hifive-premier-p550
+
+Fixes: 7219477f7b40 ("lib: Use MTINST CSR in misaligned load/store emulation")
+Fixes: b5ae8e8a650d ("lib: Add misaligned load/store trap handling")
+Fixes: 4c112650bbb0 ("lib: sbi: abstract out insn decoding to unify mem fault handlers")
+Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- tests/ldst.S                 | 134 +++++++++++++++++++++++++++
- tests/ldst.h                 | 170 +++++++++++++++++++++++++++++++++++
- tests/test-misaligned-ldst.c | 154 +++++++++++++++++++++++++++++++
- 3 files changed, 458 insertions(+)
- create mode 100644 tests/ldst.S
- create mode 100644 tests/ldst.h
- create mode 100644 tests/test-misaligned-ldst.c
+ lib/sbi/sbi_trap_ldst.c | 436 ++++++++++++++++++++++++++++------------
+ 1 file changed, 308 insertions(+), 128 deletions(-)
 
-diff --git a/tests/ldst.S b/tests/ldst.S
-new file mode 100644
-index 00000000..66f88e42
---- /dev/null
-+++ b/tests/ldst.S
-@@ -0,0 +1,134 @@
-+.altmacro
-+
-+.macro mem_repeat name:req, ldst:req, op:req, rx:req, ry:req, len:req, signext=0, step=1, n=4096, max=2048
-+.globl mem_\name
-+.type mem_\name, @function
-+mem_\name\():
-+.set i, 0
-+.rept \n
-+.set j, \max - \n * \step + i * \step
-+1:
-+	mem_\ldst \op \rx \ry j
-+	ret
-+.ifne . - mem_\name - (. - 1b) * (i + 1)
-+.error "mem_\name is not aligned"
-+.endif
-+.set i, i + 1
-+.endr
-+.size mem_\name, . - mem_\name
-+
-+.align 3
-+.globl mem_\name\()_desc
-+.type mem_\name\()_desc @object
-+mem_\name\()_desc:
-+	.byte \len, \signext, \step, (. - mem_\name) / \n
-+	.half \max - \n * \step, \n
-+#if __riscv_xlen == 32
-+	.word mem_\name
-+#elif __riscv_xlen == 64
-+	.dword mem_\name
-+#endif
-+.size mem_\name\()_desc, . - mem_\name\()_desc
-+.endm
-+
-+.macro mem_load op rs rd imm
-+	mv \rs, a0
-+	\op \rd, \imm(\rs)
-+	mv a0, \rd
-+.endm
-+
-+.macro mem_fpld op rs rd imm
-+	mv \rs, a0
-+	\op \rd, \imm(\rs)
-+	fmv.d fa0, \rd
-+.endm
-+
-+.macro mem_store op rs1 rs2 imm
-+	mv \rs2, a1
-+	mv \rs1, a0
-+	\op \rs2, \imm(\rs1)
-+.endm
-+
-+.macro mem_fpst op rs1 rs2 imm
-+	fmv.d \rs2, fa0
-+	mv \rs1, a0
-+	\op \rs2, \imm(\rs1)
-+.endm
-+
-+.macro mem_ldsp op tmp rd imm
-+	mv \tmp, sp
-+	mv sp, a0
-+	\op \rd, \imm(sp)
-+	mv sp, \tmp
-+	mv a0, \rd
-+.endm
-+
-+.macro mem_fpldsp op tmp rd imm
-+	mv \tmp, sp
-+	mv sp, a0
-+	\op \rd, \imm(sp)
-+	mv sp, \tmp
-+	fmv.d fa0, \rd
-+.endm
-+
-+.macro mem_stsp op tmp rs2 imm
-+	mv \tmp, sp
-+	mv sp, a0
-+	mv \rs2, a1
-+	\op \rs2, \imm(sp)
-+	mv sp, \tmp
-+.endm
-+
-+.macro mem_fpstsp op tmp rs2 imm
-+	mv \tmp, sp
-+	mv sp, a0
-+	fmv.d \rs2, fa0
-+	\op \rs2, \imm(sp)
-+	mv sp, \tmp
-+.endm
-+
-+mem_repeat lb     load   lb    t0 a1   1 1
-+mem_repeat lbu    load   lbu   t1 a2   1
-+mem_repeat sb     store  sb    t2 a3   1
-+mem_repeat lh     load   lh    t4 a5   2 1
-+mem_repeat lhu    load   lhu   t5 a6   2
-+mem_repeat sh     store  sh    t6 a7   2
-+mem_repeat lw     load   lw    a7 t6   4 1
-+#if __riscv_xlen == 64
-+mem_repeat lwu    load   lwu   a6 t5   4
-+#endif
-+mem_repeat sw     store  sw    a5 t4   4
-+#if __riscv_xlen == 64
-+mem_repeat ld     load   ld    a4 t3   8 1
-+mem_repeat sd     store  sd    a3 t2   8
-+#endif
-+mem_repeat flw    fpld   flw   t3 ft8  4
-+mem_repeat fsw    fpst   fsw   t4 ft9  4
-+mem_repeat fld    fpld   fld   t5 ft10 8
-+mem_repeat fsd    fpst   fsd   t6 ft11 8
-+#ifdef __riscv_zcb
-+mem_repeat clbu   load   c.lbu a5 a1   1 0 1 4  4
-+mem_repeat csb    store  c.sb  a4 a2   1 0 1 4  4
-+mem_repeat clh    load   c.lh  a3 a3   2 1 2 2  4
-+mem_repeat clhu   load   c.lhu a2 a4   2 0 2 2  4
-+mem_repeat csh    store  c.sh  a1 a5   2 0 2 2  4
-+#endif
-+mem_repeat clw    load   c.lw  a5 a1   4 1 4 32 128
-+mem_repeat csw    store  c.sw  a4 a2   4 0 4 32 128
-+mem_repeat clwsp  ldsp   lw    t0 t6   4 1 4 64 256
-+mem_repeat cswsp  stsp   sw    t1 t5   4 0 4 64 256
-+mem_repeat cfld   fpld   c.fld a3 fa2  8 0 8 32 256
-+mem_repeat cfsd   fpst   c.fsd a2 fa3  8 0 8 32 256
-+mem_repeat cfldsp fpldsp fld   t2 ft10 8 0 8 64 512
-+mem_repeat cfsdsp fpstsp fsd   t3 ft11 8 0 8 64 512
-+#if __riscv_xlen == 32
-+mem_repeat cflw   fpld   c.flw a5 fa4  4 0 4 32 128
-+mem_repeat cfsw   fpst   c.fsw a4 fa5  4 0 4 32 128
-+mem_repeat cflwsp fpldsp flw   t3 ft11 4 0 4 64 256
-+mem_repeat cfswsp fpstsp fsw   t4 ft10 4 0 4 64 256
-+#elif __riscv_xlen == 64
-+mem_repeat cld    load   c.ld  a5 a4   8 1 8 32 256
-+mem_repeat csd    store  c.sd  a4 a5   8 0 8 32 256
-+mem_repeat cldsp  ldsp   ld    t3 t6   8 1 8 64 512
-+mem_repeat csdsp  stsp   sd    t4 t5   8 0 8 64 512
-+#endif
-diff --git a/tests/ldst.h b/tests/ldst.h
-new file mode 100644
-index 00000000..3d4b6062
---- /dev/null
-+++ b/tests/ldst.h
-@@ -0,0 +1,170 @@
-+#include <inttypes.h>
-+
-+typedef struct {
-+	uint8_t len;
-+	uint8_t signext;
-+	uint8_t imm_step;
-+	uint8_t isize;
-+	int16_t imm_base;
-+	uint16_t n;
-+	void *fp;
-+} mem_op_desc;
-+
-+typedef union {
-+	unsigned long u_long;
-+	long i_long;
-+	uint32_t u32[2];
-+	int32_t i32[2];
-+	uint64_t u64;
-+	int64_t i64;
-+	float f32[2];
-+	double f64;
-+	uint8_t bytes[8];
-+} ldst_val;
-+
-+extern mem_op_desc mem_lb_desc;
-+extern mem_op_desc mem_lbu_desc;
-+extern mem_op_desc mem_sb_desc;
-+extern mem_op_desc mem_lh_desc;
-+extern mem_op_desc mem_lhu_desc;
-+extern mem_op_desc mem_sh_desc;
-+extern mem_op_desc mem_lw_desc;
-+extern mem_op_desc mem_lwu_desc;
-+extern mem_op_desc mem_sw_desc;
-+extern mem_op_desc mem_ld_desc;
-+extern mem_op_desc mem_sd_desc;
-+extern mem_op_desc mem_flw_desc;
-+extern mem_op_desc mem_fsw_desc;
-+extern mem_op_desc mem_fld_desc;
-+extern mem_op_desc mem_fsd_desc;
-+extern mem_op_desc mem_clbu_desc;
-+extern mem_op_desc mem_csb_desc;
-+extern mem_op_desc mem_clh_desc;
-+extern mem_op_desc mem_clhu_desc;
-+extern mem_op_desc mem_csh_desc;
-+extern mem_op_desc mem_clw_desc;
-+extern mem_op_desc mem_csw_desc;
-+extern mem_op_desc mem_clwsp_desc;
-+extern mem_op_desc mem_cswsp_desc;
-+extern mem_op_desc mem_cfld_desc;
-+extern mem_op_desc mem_cfsd_desc;
-+extern mem_op_desc mem_cfldsp_desc;
-+extern mem_op_desc mem_cfsdsp_desc;
-+extern mem_op_desc mem_cflw_desc;
-+extern mem_op_desc mem_cfsw_desc;
-+extern mem_op_desc mem_cflwsp_desc;
-+extern mem_op_desc mem_cfswsp_desc;
-+extern mem_op_desc mem_cld_desc;
-+extern mem_op_desc mem_csd_desc;
-+extern mem_op_desc mem_cldsp_desc;
-+extern mem_op_desc mem_csdsp_desc;
-+
-+typedef struct ldst_func {
-+	const char *name;
-+	const mem_op_desc *desc;
-+} ldst_func;
-+
-+#define DEF_LDST_FUNC(x) { #x, &mem_ ## x ## _desc }
-+
-+static const ldst_func load_funcs[] = {
-+	DEF_LDST_FUNC(lb),
-+	DEF_LDST_FUNC(lbu),
-+	DEF_LDST_FUNC(lh),
-+	DEF_LDST_FUNC(lhu),
-+	DEF_LDST_FUNC(lw),
-+#ifdef __riscv_zcb
-+	DEF_LDST_FUNC(clbu),
-+	DEF_LDST_FUNC(clh),
-+	DEF_LDST_FUNC(clhu),
-+#endif
-+	DEF_LDST_FUNC(clw),
-+	DEF_LDST_FUNC(clwsp),
-+#if __riscv_xlen == 64
-+	DEF_LDST_FUNC(lwu),
-+	DEF_LDST_FUNC(ld),
-+	DEF_LDST_FUNC(cld),
-+	DEF_LDST_FUNC(cldsp),
-+#endif
-+};
-+
-+static const ldst_func store_funcs[] = {
-+	DEF_LDST_FUNC(sb),
-+	DEF_LDST_FUNC(sh),
-+	DEF_LDST_FUNC(sw),
-+#ifdef __riscv_zcb
-+	DEF_LDST_FUNC(csb),
-+	DEF_LDST_FUNC(csh),
-+#endif
-+	DEF_LDST_FUNC(csw),
-+	DEF_LDST_FUNC(cswsp),
-+#if __riscv_xlen == 64
-+	DEF_LDST_FUNC(sd),
-+	DEF_LDST_FUNC(csd),
-+	DEF_LDST_FUNC(csdsp),
-+#endif
-+};
-+
-+static const ldst_func loadfp_funcs[] = {
-+#if __riscv_xlen == 32
-+	DEF_LDST_FUNC(cflw),
-+	DEF_LDST_FUNC(cflwsp),
-+#endif
-+	DEF_LDST_FUNC(flw),
-+	DEF_LDST_FUNC(fld),
-+	DEF_LDST_FUNC(cfld),
-+	DEF_LDST_FUNC(cfldsp),
-+};
-+
-+static const ldst_func storefp_funcs[] = {
-+#if __riscv_xlen == 32
-+	DEF_LDST_FUNC(cfsw),
-+	DEF_LDST_FUNC(cfswsp),
-+#endif
-+	DEF_LDST_FUNC(fsw),
-+	DEF_LDST_FUNC(fsd),
-+	DEF_LDST_FUNC(cfsd),
-+	DEF_LDST_FUNC(cfsdsp),
-+};
-+
-+static inline unsigned long load_i(const void *p, unsigned func, unsigned sel)
+diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+index ad19926a..c1392251 100644
+--- a/lib/sbi/sbi_trap_ldst.c
++++ b/lib/sbi/sbi_trap_ldst.c
+@@ -44,28 +44,34 @@ ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+ 		return orig_tinst | (addr_offset << SH_RS1);
+ }
+ 
++static inline bool sbi_trap_tinst_valid(ulong tinst)
 +{
-+	typedef unsigned long (*func_i)(const void *p);
-+	const mem_op_desc *desc = load_funcs[func].desc;
-+
-+	long imm = (long)desc->imm_base + desc->imm_step * sel;
-+	func_i f = desc->fp + desc->isize * sel;
-+
-+	return f(p - imm);
++	/*
++	 * Bit[0] == 1 implies trapped instruction value is
++	 * transformed instruction or custom instruction.
++	 * Also do proper checking per Privileged ISA 19.6.3,
++	 * and make sure high 32 bits of tinst is 0
++	 */
++	return tinst == (uint32_t)tinst && (tinst & 0x1);
 +}
 +
-+static inline void store_i(void *p, unsigned long val, unsigned func, unsigned sel)
-+{
-+	typedef void (*func_i)(void *p, unsigned long val);
-+	const mem_op_desc *desc = store_funcs[func].desc;
-+
-+	long imm = (long)desc->imm_base + desc->imm_step * sel;
-+	func_i f = desc->fp + desc->isize * sel;
-+	f(p - imm, val);
-+}
-+
-+static inline double load_f(const void *p, unsigned func, unsigned sel)
-+{
-+	typedef double (*func_f)(const void *p);
-+	const mem_op_desc *desc = loadfp_funcs[func].desc;
-+
-+	long imm = (long)desc->imm_base + desc->imm_step * sel;
-+	func_f f = desc->fp + desc->isize * sel;
-+
-+	return f(p - imm);
-+}
-+
-+static inline void store_f(void *p, double val, unsigned func, unsigned sel)
-+{
-+	typedef void (*func_f)(void *p, double val);
-+	const mem_op_desc *desc = storefp_funcs[func].desc;
-+
-+	long imm = (long)desc->imm_base + desc->imm_step * sel;
-+	func_f f = desc->fp + desc->isize * sel;
-+
-+	f(p - imm, val);
-+}
-diff --git a/tests/test-misaligned-ldst.c b/tests/test-misaligned-ldst.c
-new file mode 100644
-index 00000000..ccbd0d36
---- /dev/null
-+++ b/tests/test-misaligned-ldst.c
-@@ -0,0 +1,154 @@
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdint.h>
-+#include <error.h>
-+#include "ldst.h"
-+
-+#define ARR_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
-+
-+static const uint8_t patt[16] = {
-+	0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87,
-+	0x78, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f,
-+};
-+
-+static const uint64_t load_val[16] = {
-+	0x8796a5b4c3d2e1f0ULL,
-+	0x788796a5b4c3d2e1ULL,
-+	0x69788796a5b4c3d2ULL,
-+	0x5a69788796a5b4c3ULL,
-+	0x4b5a69788796a5b4ULL,
-+	0x3c4b5a69788796a5ULL,
-+	0x2d3c4b5a69788796ULL,
-+	0x1e2d3c4b5a697887ULL,
-+	0x0f1e2d3c4b5a6978ULL,
-+	  0x0f1e2d3c4b5a69ULL,
-+	    0x0f1e2d3c4b5aULL,
-+	      0x0f1e2d3c4bULL,
-+	        0x0f1e2d3cULL,
-+	          0x0f1e2dULL,
-+	            0x0f1eULL,
-+	              0x0fULL,
-+};
-+
-+int main()
-+{
-+	unsigned i, j, k;
-+	//ldst_val val;
-+
-+	// Test int read
-+	for (j = 0; j < ARR_SIZE(load_funcs); ++j) {
-+		const mem_op_desc *desc = load_funcs[j].desc;
-+		unsigned shift = 8 * (sizeof(long) - desc->len);
-+
-+		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
-+			unsigned long expected;
-+			if (desc->len != 1 && i % desc->len == 0)
-+				continue;
-+
-+			expected = load_val[i];
-+			if (desc->signext)
-+				expected = (long)(expected << shift) >> shift;
-+			else
-+				expected = (expected << shift) >> shift;
-+
-+			printf("load %c%u, insn %s, n=%u, off=%u, cmp=%lx\n",
-+				desc->signext ? 'i' : 'u',
-+				desc->len * 8, load_funcs[j].name, desc->n, i, expected);
-+			fflush(stdout);
-+			for (k = 0; k < desc->n; ++k) {
-+				unsigned long read = load_i(&patt[i], j, k);
-+				if (read != expected)
-+					error(1, 0, "failed at load_i %u %u %u: %lx",
-+						i, j, k, read);
-+			}
-+		}
+ static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
+ 				 sbi_trap_ld_emulator emu)
+ {
+ 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
+ 	struct sbi_trap_regs *regs = &tcntx->regs;
+-	ulong insn, insn_len;
++	ulong insn, insn_len, imm = 0, shift = 0, off = 0;
+ 	union sbi_ldst_data val = { 0 };
+ 	struct sbi_trap_info uptrap;
+-	int rc, fp = 0, shift = 0, len = 0;
++	bool xform = false, fp = false, c_load = false, c_ldsp = false;
++	int rc, len = 0, prev_xlen = 0;
+ 
+-	if (orig_trap->tinst & 0x1) {
+-		/*
+-		 * Bit[0] == 1 implies trapped instruction value is
+-		 * transformed instruction or custom instruction.
+-		 */
++	if (sbi_trap_tinst_valid(orig_trap->tinst)) {
++		xform	 = true;
+ 		insn	 = orig_trap->tinst | INSN_16BIT_MASK;
+ 		insn_len = (orig_trap->tinst & 0x2) ? INSN_LEN(insn) : 2;
+ 	} else {
+-		/*
+-		 * Bit[0] == 0 implies trapped instruction value is
+-		 * zero or special value.
+-		 */
++		/* trapped instruction value is zero or special value */
+ 		insn = sbi_get_insn(regs->mepc, &uptrap);
+ 		if (uptrap.cause) {
+ 			return sbi_trap_redirect(regs, &uptrap);
+@@ -73,93 +79,176 @@ static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
+ 		insn_len = INSN_LEN(insn);
+ 	}
+ 
++	/**
++	 * Common for RV32/RV64:
++	 *    lb, lbu, lh, lhu, lw, flw, flw
++	 *    c.lbu, c.lh, c.lhu, c.lw, c.lwsp, c.fld, c.fldsp
++	 */
+ 	if ((insn & INSN_MASK_LB) == INSN_MATCH_LB) {
+-		len   = 1;
+-		shift = 8 * (sizeof(ulong) - len);
++		len = -1;
+ 	} else if ((insn & INSN_MASK_LBU) == INSN_MATCH_LBU) {
+ 		len = 1;
+-	} else if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
+-		len   = 4;
+-		shift = 8 * (sizeof(ulong) - len);
+-#if __riscv_xlen == 64
+-	} else if ((insn & INSN_MASK_LD) == INSN_MATCH_LD) {
+-		len   = 8;
+-		shift = 8 * (sizeof(ulong) - len);
+-	} else if ((insn & INSN_MASK_LWU) == INSN_MATCH_LWU) {
+-		len = 4;
+-#endif
+-#ifdef __riscv_flen
+-	} else if ((insn & INSN_MASK_FLD) == INSN_MATCH_FLD) {
+-		fp  = 1;
+-		len = 8;
+-	} else if ((insn & INSN_MASK_FLW) == INSN_MATCH_FLW) {
+-		fp  = 1;
+-		len = 4;
+-#endif
++	} else if ((insn & INSN_MASK_C_LBU) == INSN_MATCH_C_LBU) {
++		/* Zcb */
++		len = 1;
++		imm = RVC_LB_IMM(insn);
++		c_load = true;
+ 	} else if ((insn & INSN_MASK_LH) == INSN_MATCH_LH) {
+-		len   = 2;
+-		shift = 8 * (sizeof(ulong) - len);
++		len = -2;
++	} else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
++		/* Zcb */
++		len = -2;
++		imm = RVC_LH_IMM(insn);
++		c_load = true;
+ 	} else if ((insn & INSN_MASK_LHU) == INSN_MATCH_LHU) {
+ 		len = 2;
+-#if __riscv_xlen >= 64
+-	} else if ((insn & INSN_MASK_C_LD) == INSN_MATCH_C_LD) {
+-		len   = 8;
+-		shift = 8 * (sizeof(ulong) - len);
+-		insn  = RVC_RS2S(insn) << SH_RD;
+-	} else if ((insn & INSN_MASK_C_LDSP) == INSN_MATCH_C_LDSP &&
+-		   ((insn >> SH_RD) & 0x1f)) {
+-		len   = 8;
+-		shift = 8 * (sizeof(ulong) - len);
+-#endif
++	} else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
++		/* Zcb */
++		len = 2;
++		imm = RVC_LH_IMM(insn);
++		c_load = true;
++	} else if ((insn & INSN_MASK_LW) == INSN_MATCH_LW) {
++		len = -4;
+ 	} else if ((insn & INSN_MASK_C_LW) == INSN_MATCH_C_LW) {
+-		len   = 4;
+-		shift = 8 * (sizeof(ulong) - len);
+-		insn  = RVC_RS2S(insn) << SH_RD;
++		/* Zca */
++		len = -4;
++		imm = RVC_LW_IMM(insn);
++		c_load = true;
+ 	} else if ((insn & INSN_MASK_C_LWSP) == INSN_MATCH_C_LWSP &&
+-		   ((insn >> SH_RD) & 0x1f)) {
+-		len   = 4;
+-		shift = 8 * (sizeof(ulong) - len);
++		GET_RD_NUM(insn)) {
++		/* Zca */
++		len = -4;
++		imm = RVC_LWSP_IMM(insn);
++		c_ldsp = true;
+ #ifdef __riscv_flen
++	} else if ((insn & INSN_MASK_FLW) == INSN_MATCH_FLW) {
++		len = 4;
++		fp = true;
++	} else if ((insn & INSN_MASK_FLD) == INSN_MATCH_FLD) {
++		len = 8;
++		fp = true;
+ 	} else if ((insn & INSN_MASK_C_FLD) == INSN_MATCH_C_FLD) {
+-		fp   = 1;
+-		len  = 8;
+-		insn = RVC_RS2S(insn) << SH_RD;
++		/* Zcd */
++		len = 8;
++		imm = RVC_LD_IMM(insn);
++		c_load = true;
++		fp = true;
+ 	} else if ((insn & INSN_MASK_C_FLDSP) == INSN_MATCH_C_FLDSP) {
+-		fp  = 1;
++		/* Zcd */
+ 		len = 8;
+-#if __riscv_xlen == 32
+-	} else if ((insn & INSN_MASK_C_FLW) == INSN_MATCH_C_FLW) {
+-		fp   = 1;
+-		len  = 4;
+-		insn = RVC_RS2S(insn) << SH_RD;
+-	} else if ((insn & INSN_MASK_C_FLWSP) == INSN_MATCH_C_FLWSP) {
+-		fp  = 1;
+-		len = 4;
++		imm = RVC_LDSP_IMM(insn);
++		c_ldsp = true;
++		fp = true;
+ #endif
++	} else {
++		prev_xlen = sbi_regs_prev_xlen(regs);
 +	}
-+	// Test fp load
-+	for (j = 0; j < ARR_SIZE(loadfp_funcs); ++j) {
-+		const mem_op_desc *desc = loadfp_funcs[j].desc;
 +
-+		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
-+			ldst_val expected, read;
-+
-+			expected.u64 = load_val[i];
-+			if (desc->len == 4) // float
-+				expected.i32[1] = -1;
-+
-+			if (i % desc->len == 0)
-+				continue;
-+
-+			printf("loadfp %u, insn %s, n=%u, off=%u, cmp=%" PRIx64 "\n",
-+				desc->len * 8, loadfp_funcs[j].name, desc->n, i, expected.u64);
-+			fflush(stdout);
-+			for (k = 0; k < desc->n; ++k) {
-+				read.f64 = load_f(&patt[i], j, k);
-+				if (read.u64 != expected.u64)
-+					error(1, 0, "failed at load_f %u %u %u: %" PRIx64,
-+						i, j, k, read.u64);
-+			}
++	/**
++	 * Must distinguish between rv64 and rv32, RVC instructions have
++	 * overlapping encoding:
++	 *     c.ld in rv64 == c.flw in rv32
++	 *     c.ldsp in rv64 == c.flwsp in rv32
++	 */
++	if (prev_xlen == 64) {
++		/* RV64 Only: lwu, ld, c.ld, c.ldsp  */
++		if ((insn & INSN_MASK_LWU) == INSN_MATCH_LWU) {
++			len = 4;
++		} else if ((insn & INSN_MASK_LD) == INSN_MATCH_LD) {
++			len = 8;
++		} else if ((insn & INSN_MASK_C_LD) == INSN_MATCH_C_LD) {
++			/* Zca */
++			len = 8;
++			imm = RVC_LD_IMM(insn);
++			c_load = true;
++		} else if ((insn & INSN_MASK_C_LDSP) == INSN_MATCH_C_LDSP &&
++			GET_RD_NUM(insn)) {
++			/* Zca */
++			len = 8;
++			imm = RVC_LDSP_IMM(insn);
++			c_ldsp = true;
 +		}
-+	}
-+	// Test int store
-+	for (j = 0; j < ARR_SIZE(store_funcs); ++j) {
-+		const mem_op_desc *desc = store_funcs[j].desc;
-+
-+		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
-+#pragma GCC diagnostic push
-+#pragma GCC diagnostic ignored "-Woverflow"
-+			ldst_val val = { 0x8899aabbccddeeffULL };
-+#pragma GCC diagnostic pop
-+			unsigned end = i + desc->len;
-+
-+			if (desc->len != 1 && i % desc->len == 0)
-+				continue;
-+
-+			memcpy(val.bytes, &patt[i], desc->len);
-+			printf("store %u, insn %s, n=%u, off=%u, src=%lx\n",
-+				desc->len * 8, store_funcs[j].name, desc->n, i, val.u_long);
-+			fflush(stdout);
-+
-+			for (k = 0; k < desc->n; ++k) {
-+				uint8_t buff[ARR_SIZE(patt)] = {};
-+
-+				memcpy(buff, patt, i);
-+				memcpy(&buff[end], &patt[end], ARR_SIZE(patt) - end);
-+				store_i(&buff[i], val.u_long, j, k);
-+				if (memcmp(buff, patt, sizeof(buff)))
-+					error(1, 0, "faild at store_i %u %u %u", i, j, k);
-+			}
-+
++#ifdef __riscv_flen
++	} else if (prev_xlen == 32) {
++		/* RV32 Only: c.flw, c.flwsp */
++		if ((insn & INSN_MASK_C_FLW) == INSN_MATCH_C_FLW) {
++			/* Zcf */
++			len = 4;
++			imm = RVC_LW_IMM(insn);
++			c_load = true;
++			fp = true;
++		} else if ((insn & INSN_MASK_C_FLWSP) == INSN_MATCH_C_FLWSP) {
++			/* Zcf */
++			len = 4;
++			imm = RVC_LWSP_IMM(insn);
++			c_ldsp = true;
++			fp = true;
 +		}
+ #endif
+-	} else if ((insn & INSN_MASK_C_LHU) == INSN_MATCH_C_LHU) {
+-		len = 2;
+-		insn = RVC_RS2S(insn) << SH_RD;
+-	} else if ((insn & INSN_MASK_C_LH) == INSN_MATCH_C_LH) {
+-		len = 2;
 +	}
-+	// Test fp store
-+	for (j = 0; j < ARR_SIZE(storefp_funcs); ++j) {
-+		const mem_op_desc *desc = storefp_funcs[j].desc;
 +
-+		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
-+			ldst_val val;
-+			unsigned end = i + desc->len;
++	if (len < 0) {
++		len = -len;
+ 		shift = 8 * (sizeof(ulong) - len);
+-		insn = RVC_RS2S(insn) << SH_RD;
+ 	}
+ 
+-	rc = emu(insn, len, orig_trap->tval, &val, tcntx);
++	if (!len) // Unknown instruction
++		goto do_emu;
 +
-+			val.u32[0] = 0xccddeeffUL;
-+			val.u32[1] = 0x8899aabbUL;
++#if !defined(OPENSBI_DEBUG)
++	/**
++	 * For misaligned faults. Skip offset calculation unless DEBUG
++	 * builds. It helps validating OpenSBI and HW.
++	 */
++	if (orig_trap->cause == CAUSE_MISALIGNED_LOAD)
++		goto do_emu;
++#endif
 +
-+			if (i % desc->len == 0)
-+				continue;
++	if (xform)
++		/* Transformed insn */
++		off = GET_RS1_NUM(insn);
++	else if (c_load)
++		/* non SP-based compressed load */
++		off = orig_trap->tval - GET_RS1S(insn, regs) - imm;
++	else if (c_ldsp)
++		/* SP-based compressed load */
++		off = orig_trap->tval - REG_VAL(2, regs) - imm;
++	else
++		/* I-type non-compressed load */
++		off = orig_trap->tval - GET_RS1(insn, regs) - (ulong)IMM_I(insn);
++	/**
++	 * Normalize offset, in case the XLEN of unpriv mode is smaller,
++	 * and/or pointer masking is in effect
++	 */
++	off &= (len - 1);
 +
-+			memcpy(val.bytes, &patt[i], desc->len);
-+			printf("storefp %u, insn %s, n=%u, off=%u, src=%" PRIx64 "\n",
-+				desc->len * 8, storefp_funcs[j].name, desc->n, i, val.u64);
-+			fflush(stdout);
++do_emu:
++	rc = emu(insn, len, orig_trap->tval - off, &val, tcntx);
+ 	if (rc <= 0)
+ 		return rc;
+ 	if (!len)
+ 		goto epc_fixup;
+ 
+-	if (!fp)
+-		SET_RD(insn, regs, ((long)(val.data_ulong << shift)) >> shift);
++	if (!fp) {
++		ulong v = ((long)(val.data_ulong << shift)) >> shift;
 +
-+			for (k = 0; k < desc->n; ++k) {
-+				uint8_t buff[ARR_SIZE(patt)] = {};
++		if (c_load)
++			SET_RDS(insn, regs, v);
++		else
++			SET_RD(insn, regs, v);
+ #ifdef __riscv_flen
+-	else if (len == 8)
+-		SET_F64_RD(insn, regs, val.data_u64);
+-	else
+-		SET_F32_RD(insn, regs, val.data_ulong);
++	} else if (len == 8) {
++		if (c_load)
++			SET_F64_RDS(insn, regs, val.data_u64);
++		else
++			SET_F64_RD(insn, regs, val.data_u64);
++	} else {
++		if (c_load)
++			SET_F32_RDS(insn, regs, val.data_ulong);
++		else
++			SET_F32_RD(insn, regs, val.data_ulong);
+ #endif
++	}
+ 
+ epc_fixup:
+ 	regs->mepc += insn_len;
+@@ -172,23 +261,18 @@ static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
+ {
+ 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
+ 	struct sbi_trap_regs *regs = &tcntx->regs;
+-	ulong insn, insn_len;
++	ulong insn, insn_len, imm = 0, off = 0;
+ 	union sbi_ldst_data val;
+ 	struct sbi_trap_info uptrap;
+-	int rc, len = 0;
++	bool xform = false, fp = false, c_store = false, c_stsp = false;
++	int rc, len = 0, prev_xlen = 0;
+ 
+-	if (orig_trap->tinst & 0x1) {
+-		/*
+-		 * Bit[0] == 1 implies trapped instruction value is
+-		 * transformed instruction or custom instruction.
+-		 */
++	if (sbi_trap_tinst_valid(orig_trap->tinst)) {
++		xform	 = true;
+ 		insn	 = orig_trap->tinst | INSN_16BIT_MASK;
+ 		insn_len = (orig_trap->tinst & 0x2) ? INSN_LEN(insn) : 2;
+ 	} else {
+-		/*
+-		 * Bit[0] == 0 implies trapped instruction value is
+-		 * zero or special value.
+-		 */
++		/* trapped instruction value is zero or special value */
+ 		insn = sbi_get_insn(regs->mepc, &uptrap);
+ 		if (uptrap.cause) {
+ 			return sbi_trap_redirect(regs, &uptrap);
+@@ -196,62 +280,158 @@ static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
+ 		insn_len = INSN_LEN(insn);
+ 	}
+ 
+-	val.data_ulong = GET_RS2(insn, regs);
+-
++	/**
++	 * Common for RV32/RV64:
++	 *    sb, sh, sw, fsw, fsd
++	 *    c.sb, c.sh, c.sw, c.swsp, c.fsd, c.fsdsp
++	 */
+ 	if ((insn & INSN_MASK_SB) == INSN_MATCH_SB) {
+ 		len = 1;
+-	} else if ((insn & INSN_MASK_SW) == INSN_MATCH_SW) {
+-		len = 4;
+-#if __riscv_xlen == 64
+-	} else if ((insn & INSN_MASK_SD) == INSN_MATCH_SD) {
+-		len = 8;
+-#endif
+-#ifdef __riscv_flen
+-	} else if ((insn & INSN_MASK_FSD) == INSN_MATCH_FSD) {
+-		len	     = 8;
+-		val.data_u64 = GET_F64_RS2(insn, regs);
+-	} else if ((insn & INSN_MASK_FSW) == INSN_MATCH_FSW) {
+-		len	       = 4;
+-		val.data_ulong = GET_F32_RS2(insn, regs);
+-#endif
++	} else if ((insn & INSN_MASK_C_SB) == INSN_MATCH_C_SB) {
++		/* Zcb */
++		len = 1;
++		imm = RVC_SB_IMM(insn);
++		c_store = true;
+ 	} else if ((insn & INSN_MASK_SH) == INSN_MATCH_SH) {
+ 		len = 2;
+-#if __riscv_xlen >= 64
+-	} else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD) {
+-		len	       = 8;
+-		val.data_ulong = GET_RS2S(insn, regs);
+-	} else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP) {
+-		len	       = 8;
+-		val.data_ulong = GET_RS2C(insn, regs);
+-#endif
++	} else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
++		/* Zcb */
++		len = 2;
++		imm = RVC_SH_IMM(insn);
++		c_store = true;
++	} else if ((insn & INSN_MASK_SW) == INSN_MATCH_SW) {
++		len = 4;
+ 	} else if ((insn & INSN_MASK_C_SW) == INSN_MATCH_C_SW) {
+-		len	       = 4;
+-		val.data_ulong = GET_RS2S(insn, regs);
++		/* Zca */
++		len = 4;
++		imm = RVC_SW_IMM(insn);
++		c_store = true;
+ 	} else if ((insn & INSN_MASK_C_SWSP) == INSN_MATCH_C_SWSP) {
+-		len	       = 4;
+-		val.data_ulong = GET_RS2C(insn, regs);
++		/* Zca */
++		len = 4;
++		imm = RVC_SWSP_IMM(insn);
++		c_stsp = true;
+ #ifdef __riscv_flen
++	} else if ((insn & INSN_MASK_FSW) == INSN_MATCH_FSW) {
++		len = 4;
++		fp = true;
++	} else if ((insn & INSN_MASK_FSD) == INSN_MATCH_FSD) {
++		len = 8;
++		fp = true;
+ 	} else if ((insn & INSN_MASK_C_FSD) == INSN_MATCH_C_FSD) {
+-		len	     = 8;
+-		val.data_u64 = GET_F64_RS2S(insn, regs);
++		/* Zcd */
++		len = 8;
++		imm = RVC_SD_IMM(insn);
++		c_store = true;
++		fp = true;
+ 	} else if ((insn & INSN_MASK_C_FSDSP) == INSN_MATCH_C_FSDSP) {
+-		len	     = 8;
+-		val.data_u64 = GET_F64_RS2C(insn, regs);
+-#if __riscv_xlen == 32
+-	} else if ((insn & INSN_MASK_C_FSW) == INSN_MATCH_C_FSW) {
+-		len	       = 4;
+-		val.data_ulong = GET_F32_RS2S(insn, regs);
+-	} else if ((insn & INSN_MASK_C_FSWSP) == INSN_MATCH_C_FSWSP) {
+-		len	       = 4;
+-		val.data_ulong = GET_F32_RS2C(insn, regs);
++		/* Zcd */
++		len = 8;
++		imm = RVC_SDSP_IMM(insn);
++		c_stsp = true;
++		fp = true;
+ #endif
++	} else {
++		prev_xlen = sbi_regs_prev_xlen(regs);
++	}
 +
-+				memcpy(buff, patt, i);
-+				memcpy(&buff[end], &patt[end], ARR_SIZE(patt) - end);
-+				store_f(&buff[i], val.f64, j, k);
-+				if (memcmp(buff, patt, sizeof(buff)))
-+					error(1, 0, "faild at store_f %u %u %u", i, j, k);
-+			}
++	/**
++	 * Must distinguish between rv64 and rv32, RVC instructions have
++	 * overlapping encoding:
++	 *     c.sd in rv64 == c.fsw in rv32
++	 *     c.sdsp in rv64 == c.fswsp in rv32
++	 */
++	if (prev_xlen == 64) {
++		/* RV64 Only: sd, c.sd, c.sdsp */
++		if ((insn & INSN_MASK_SD) == INSN_MATCH_SD) {
++			len = 8;
++		} else if ((insn & INSN_MASK_C_SD) == INSN_MATCH_C_SD) {
++			/* Zca */
++			len = 8;
++			imm = RVC_SD_IMM(insn);
++			c_store = true;
++		} else if ((insn & INSN_MASK_C_SDSP) == INSN_MATCH_C_SDSP) {
++			/* Zca */
++			len = 8;
++			imm = RVC_SDSP_IMM(insn);
++			c_stsp = true;
 +		}
++#ifdef __riscv_flen
++	} else if (prev_xlen == 32) {
++		/* RV32 Only: c.fsw, c.fswsp */
++		if ((insn & INSN_MASK_C_FSW) == INSN_MATCH_C_FSW) {
++			/* Zcf */
++			len = 4;
++			imm = RVC_SW_IMM(insn);
++			c_store = true;
++			fp = true;
++		} else if ((insn & INSN_MASK_C_FSWSP) == INSN_MATCH_C_FSWSP) {
++			/* Zcf */
++			len = 4;
++			imm = RVC_SWSP_IMM(insn);
++			c_stsp = true;
++			fp = true;
++		}
++#endif
 +	}
-+	return 0;
-+}
++
++	if (!fp) {
++		if (c_store)
++			val.data_ulong = GET_RS2S(insn, regs);
++		else if (c_stsp)
++			val.data_ulong = GET_RS2C(insn, regs);
++		else
++			val.data_ulong = GET_RS2(insn, regs);
++#ifdef __riscv_flen
++	} else if (len == 8) {
++		if (c_store)
++			val.data_u64 = GET_F64_RS2S(insn, regs);
++		else if (c_stsp)
++			val.data_u64 = GET_F64_RS2C(insn, regs);
++		else
++			val.data_u64 = GET_F64_RS2(insn, regs);
++	} else {
++		if (c_store)
++			val.data_ulong = GET_F32_RS2S(insn, regs);
++		else if (c_stsp)
++			val.data_ulong = GET_F32_RS2C(insn, regs);
++		else
++			val.data_ulong = GET_F32_RS2(insn, regs);
+ #endif
+-	} else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
+-		len		= 2;
+-		val.data_ulong = GET_RS2S(insn, regs);
+ 	}
+ 
+-	rc = emu(insn, len, orig_trap->tval, val, tcntx);
++	if (!len) // Unknown instruction
++		goto do_emu;
++
++#if !defined(OPENSBI_DEBUG)
++	/**
++	 * For misaligned faults. Skip offset calculation unless DEBUG
++	 * builds. It helps validating OpenSBI and HW.
++	 */
++	if (orig_trap->cause == CAUSE_MISALIGNED_STORE)
++		goto do_emu;
++#endif
++
++	if (xform)
++		/* Transformed insn */
++		off = GET_RS1_NUM(insn);
++	else if (c_store)
++		/* non SP-based compressed store */
++		off = orig_trap->tval - GET_RS1S(insn, regs) - imm;
++	else if (c_stsp)
++		/* SP-based compressed store */
++		off = orig_trap->tval - REG_VAL(2, regs) - imm;
++	else
++		/* S-type non-compressed store */
++		off = orig_trap->tval - GET_RS1(insn, regs) - (ulong)IMM_S(insn);
++	/**
++	 * Normalize offset, in case the XLEN of unpriv mode is smaller,
++	 * and/or pointer masking is in effect
++	 */
++	off &= (len - 1);
++
++do_emu:
++	rc = emu(insn, len, orig_trap->tval - off, val, tcntx);
+ 	if (rc <= 0)
+ 		return rc;
+ 
 -- 
 2.34.1
 
