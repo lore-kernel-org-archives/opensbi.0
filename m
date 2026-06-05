@@ -4,70 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3A8B8CD6E7D
-	for <opensbi@archiver.kernel.org>; Fri,  5 Jun 2026 11:34:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8FE36CD6E7E
+	for <opensbi@archiver.kernel.org>; Fri,  5 Jun 2026 11:34:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=4P4kLSu6gCznvEPbDz1ynzvdyzA/0IOYOLSE5jIWzGo=; b=fVAylyhf8u85U/
-	/oPhD3jEGEQAMSsoCnPFIfmnZPFClfNKhPhPD21JGCnC6oomBi/oKtJECmCGF+Kswi2MlpDKNnmsi
-	HyvFlEO2mfO93zSkV+1x2954I38hP7LPTLDM5D0fypH5fE4B2d5rEAqdDgCcJb9euIlfnvc1pcdha
-	VXbm/VAsr3RU74FNWJHt7yLHGbXepvYiBRxw1sXD/QF54j0Xu1s8lKGgyCoHaq0OhFvFa1kBTmo/P
-	F+Ccrlydh0inKJt6T0wtLRM/K7LU+fTFqFXAUrsuPUq3H4IZhbAxEznv2WbE0ce71Dj19hVbENeRs
-	K8m4aEjHR2qeALKBiVrw==;
+	List-Owner; bh=nEW1wXsJQuKX4UyLJgg37JbIn5KsMTAyT+ZTFIoj4/o=; b=TsVslflN43IssS
+	9lulR/wlSZhhJcNDUlzIBYgMFlxS/b09UvTkRO4aLLVnj4u/p27rH5xQmKEYC85m1gLi+q/Cd73p/
+	VKIpaHG+dZVKIZk9+80rPJDKG29A7BFF53xUlVsSk9nMQpwKx0XtQ+nmt7uNx0T+7gYNy/iZ+Us46
+	mvnmcMD9f4rKDVAJKUV65Ut0NNPrI3BKmab8YRZJpgM96h02ZO7p1Op8KbVr4h8mzEa29+55MTrGX
+	uY4snMi3J4kME/D/1A4k3hK6HoIdc97DbQ1+WqoYxsX0EGIdL2porbP6Ci6oPEnM+C6fYwYW0HDJk
+	Q9GbZ8tg8efLJywmxvBA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wVSos-00000000Xou-2EbS;
-	Fri, 05 Jun 2026 11:34:34 +0000
-Received: from mail-pf1-x42c.google.com ([2607:f8b0:4864:20::42c])
+	id 1wVSou-00000000Xsx-3YK8;
+	Fri, 05 Jun 2026 11:34:36 +0000
+Received: from mail-pf1-x434.google.com ([2607:f8b0:4864:20::434])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wVSol-00000000Xlt-3xxz
+	id 1wVSop-00000000Xo3-16Cw
 	for opensbi@lists.infradead.org;
-	Fri, 05 Jun 2026 11:34:29 +0000
-Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-8422c327755so994264b3a.2
-        for <opensbi@lists.infradead.org>; Fri, 05 Jun 2026 04:34:27 -0700 (PDT)
+	Fri, 05 Jun 2026 11:34:35 +0000
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-8422524cb38so590246b3a.0
+        for <opensbi@lists.infradead.org>; Fri, 05 Jun 2026 04:34:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780659267; x=1781264067; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1780659271; x=1781264071; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=hp0mpe7gXdjg41asH+dwmm7Y6o2zI8PVHz5fo7rrV8w=;
-        b=qAMrJPaBXpIkuVfJjEFGkUTUJspUCSchVIKC0uNMUKVXQ19Hg85xwG2uvCYM9J06Y/
-         TPI04vgJ4fV3hZC2unSFfQ0o9W6UcY09uPW3BWA4fIQ2L5azs6CbtJZwkxIxplm3uDd9
-         FFG7C6+E5fTz/2O9DwOBIblU6h4SkoNjmUx71l3S5e4+3Ja00QyI5cdfLGpi6W2jxxlO
-         sBxhjNv5CDcyp8znUFTMzUt4m+6fViPy0QQhOWAXxddaoEAcj1ZhRbpMYxN2nDIWMNUF
-         fel71FA7G0ne0bL/1IOKzXeq3tPYZ/CcyexqiRqyb1Lz2HEaGhalhmBq03UnFi1m2MkA
-         hCNg==
+        bh=Xe0AH6ICsihCfssC3unzvZJu8+fiKYK5mJIRBuB6FQ4=;
+        b=ocCoPlmJVyhVBsoDFIgmDU4/xgNMQyT6IULtYO2j+3ABXnvDkxniL4WfUJPqzwSa6V
+         +dqA9knl2hi/fwMY43/wzIWe1mUczhEMq8I3Cn0HANeG/hRH8B/XhE4BjDtYo+DrddpM
+         UOUnzOImeLrKA13YFfuTbbW3IN1CGOIbPe81Q3US68GcNbdHfLc7RLQDV1MPBXyMQVrX
+         eMFdpStd+AQuvDXucBAFWC+ieS5snR2zKgD3iNML5PcKLSxEkXWS+kCkkYJtixWldP4h
+         ptVQ1kkkfJpTHlqc6qdU17+LeNgvYxI+68S2Y7wNPWRLWQDtD1m1BRXS6Y+3fv3/ixQr
+         GPrw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780659267; x=1781264067;
+        d=1e100.net; s=20251104; t=1780659271; x=1781264071;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=hp0mpe7gXdjg41asH+dwmm7Y6o2zI8PVHz5fo7rrV8w=;
-        b=b5xijQmyj4oAAf7CeDOR+HpPXHELM4IspBk773tpbDjvND4uPjfPGE1LSQnnpjwidw
-         J57Euddknl5FxOEcebKuxTHmtk241zYEqEetkJlVm25Lpa0kg0l6t+6A07gvfle1dHzG
-         4d8D8EL3/v2FoU/W4hU/haEBqtzQIZeIdTTtLGKnNCdVerUix9/tX6ZAtyNXR7iPljIQ
-         iD6xomYpk7zbowWgju3rL6m+ouSyNFQM28Wa+Td5QpZBmj38dNXDzs1nTJpAxstKll89
-         4HKzoKZgktg3YOk6/M0bvb+10BEfWJ/sCLmRZPrShjgWJ3QMHbkfyoyM0ivRvYEJItAp
-         6emw==
-X-Gm-Message-State: AOJu0YxiSHvp1dnNc+oO9MptqCPvdnzh+fmlj/MUhodcfTD5HT1NYIbL
-	gzXqM+Rsp9LoJjqQl6Kl6RFCVcXryYH2WxSee3P/+LJ/GXgX5509KI5VOOlHSQ==
-X-Gm-Gg: Acq92OGdW5Hk5fA2NeiMxquiQxBy21tob1SbN2nnek4JaspfCevkgA8qDVCFkTn3Nzr
-	RRRr0tQIJkKzZiEFIkd6MJMJGfecUfJQlIb9NW58h77ojFRgOVoJr+R/MwAht/YzylB7xht7tdC
-	br7pmkElxIo2hFhRNCFDaojkjbFrdPb/SE1lebYUlZL3wTG9vH5MSz5wqA+7QvVA0RZtFi+uCYk
-	7oHWSPqIfVFDs913mBGTUFsmqIhv58a9/e9TNYa0p59WXHOHlcp+x4jJnF+ID3wXZsNaX5+sVHh
-	1JLgKs3mZPZrItIj+hMhVLI/J9lb/9x5ino+j/nj/mN4yo8uwvkobQ7F0wZpCV4bB87VOR6EVhW
-	dRBL78O/BvYHBA2beOt+Xu6W6V4VjiWYEoFqs/iL4ann6503X+V4Ix9c0yL8vzRrX9idGBpExjp
-	Yx+1e7FpNaAZqkHd4eGxHw/dytCTLyVtdMP0g=
-X-Received: by 2002:a05:6a00:1804:b0:842:7992:bdd3 with SMTP id d2e1a72fcca58-842b0ead88bmr3315027b3a.4.1780659266949;
-        Fri, 05 Jun 2026 04:34:26 -0700 (PDT)
+        bh=Xe0AH6ICsihCfssC3unzvZJu8+fiKYK5mJIRBuB6FQ4=;
+        b=bXswQ8CwYYEIOAmH6ik2dXySgYXjM39k/b/VRi0mbCmIEDWwA+Yuv6jvNi+y5ovAkA
+         IYLILz8U6d6WiAoUa/QOLveTcZlmSUVqdsqpfx8cvbl01AWQYBvbKMywOB69Fu3xa0cJ
+         tDRK4eCoRAiTd2NZzroNkf5imXKyWCDK0sTC7teHBUjGyiTefxLBHlJI0ScoXdM8rBTU
+         mKSwX8fwvCZJ99uYaGS1SG8kNVLGPseairB+d9KmXL1ImNxVqPgMvN61VtWHZujKiKIi
+         aelpqbdKH09CbXr0lWbHkxIc8BtarWio4G5aJQAq8doqalqbe/AiE8aR9YbVM1eFuCBN
+         ++JA==
+X-Gm-Message-State: AOJu0Yzke1tMkgB3QuZ6WjnPjNGGP6ZSkL5tyYrQKvZYQhTxgGqEp7rN
+	bhlUORSmU13wb/cSHJAmS4q+8T7JACb6c04NDEBt+Qrpi8uAHI35KzzTfwR8qw==
+X-Gm-Gg: Acq92OGXHRMM6D7Alp09hnlLbKSpmfx8OHUNGpYjNHg9aAm3CWclRbzeeKw8OpGTQsk
+	E1bjtBZkcyL7zcfzNPm7ImoFGXCutBxaihSjqZZSazRgtMhHFHnQ3WhtMot5BIX2Iz2WCQcbC71
+	WXfE9xEOQbPIqq2OOky/VejiHiFjrZAdeEEGm7RI1yUwkNvK/Ok/89EAk7l7eGajX3KWEOUxc3t
+	xY+fHz1xcLBQ9MTqE6leJtGBZN95wMFXjYBMgukAm8Ha0mtBvNanoyxbOXvHAQPwZCGccK5V3pr
+	Re9/dfAOy8KXWz8Bzvf5cnAlw0nrNzB2JyVs4LqwYGYHFY19C+fhs1gdqtaizES0Jxb8jb9fo/A
+	eHfV7qWC2G7NJ2KPHM4Oy0a6EcuKB7TklzB7vgCwUMQCCJTuAsxTppSUlrc6WNMcoopJw48XS86
+	TwSwslX62T1Mst7oIbJfsF4ILXnKYWa1duwcrpg3kw0KhkIg==
+X-Received: by 2002:a05:6a00:4fcc:b0:842:5a18:9af8 with SMTP id d2e1a72fcca58-842b0e627e6mr3143650b3a.12.1780659270562;
+        Fri, 05 Jun 2026 04:34:30 -0700 (PDT)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8428222263dsm10141414b3a.2.2026.06.05.04.34.26
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8428222263dsm10141414b3a.2.2026.06.05.04.34.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 Jun 2026 04:34:26 -0700 (PDT)
+        Fri, 05 Jun 2026 04:34:30 -0700 (PDT)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org,
 	wangruikang@iscas.ac.cn,
@@ -76,16 +76,16 @@ To: opensbi@lists.infradead.org,
 Cc: cleger@rivosinc.com,
 	pjw@kernel.org,
 	asrinivasan@oss.tenstorrent.com
-Subject: [PATCH v2 5/8] lib: sbi: Do not override emulator callback for vector load/store
-Date: Fri,  5 Jun 2026 04:32:11 -0700
-Message-Id: <20260605113214.242-6-ganboing@gmail.com>
+Subject: [PATCH v2 8/8] [NOT-FOR-UPSTREAM] Test program for misaligned load/store
+Date: Fri,  5 Jun 2026 04:32:14 -0700
+Message-Id: <20260605113214.242-9-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260605113214.242-1-ganboing@gmail.com>
 References: <20260605113214.242-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260605_043428_607376_D717051D 
-X-CRM114-Status: GOOD (  29.00  )
+X-CRM114-CacheID: sfid-20260605_043431_400617_12CB9D32 
+X-CRM114-Status: GOOD (  15.17  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,462 +102,536 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-It's wrong to override the emulator callback in sbi_trap_emulate_load/
-store. The function must respect the callback function passed in the
-parameter. Hence, let the misaligned emulator callback decide when to
-use sbi_misaligned_v_ld/st_emulator. To clean up things, also make the
-following changes:
+Build: gcc -o test-misaligned-ldst test-misaligned-ldst.c ldst.S
 
-- Add the `insn` parameter to the callback. The trapping insn has been
-  fetched by the caller already, whether transformed or directly loaded,
-  thus saving the trouble in the callback. Note that you must not rely
-  on the length of the `insn`, as it can be a transformed one from tinst
+Failure observed before the fix on QEMU with 64-bit Linux and 32-bit test
 
-- Also the `tcntx` is added, providing the callback with register values
-  to handle vector insn or other customized insns.
+...
+loadfp 64, insn cfldsp, n=64, off=1, cmp=788796a5b4c3d2e1
+loadfp 64, insn cfldsp, n=64, off=2, cmp=69788796a5b4c3d2
+loadfp 64, insn cfldsp, n=64, off=3, cmp=5a69788796a5b4c3
+loadfp 64, insn cfldsp, n=64, off=4, cmp=4b5a69788796a5b4
+loadfp 64, insn cfldsp, n=64, off=5, cmp=3c4b5a69788796a5
+loadfp 64, insn cfldsp, n=64, off=6, cmp=2d3c4b5a69788796
+loadfp 64, insn cfldsp, n=64, off=7, cmp=1e2d3c4b5a697887
+loadfp 32, insn cflw, n=32, off=1, cmp=ffffffffb4c3d2e1
+./test32: failed at load_f 1 4 0: 0
 
-- Clarify that the read/write length (rlen/wlen) can be 0, in which
-  case it could be a vector load/store or some customized instruction.
-  The callback is responsible to handle it accordingly.
+With the patch series:
 
-Also fixed issues in the sbi_misaligned_v_ld/st_emulator:
-a. Redirect the trap when OPENSBI_CC_SUPPORT_VECTOR is not available.
-b. Ensure the return code is >0 when no faults are redirected.
+...
+loadfp 64, insn cfldsp, n=64, off=1, cmp=788796a5b4c3d2e1
+loadfp 64, insn cfldsp, n=64, off=2, cmp=69788796a5b4c3d2
+loadfp 64, insn cfldsp, n=64, off=3, cmp=5a69788796a5b4c3
+loadfp 64, insn cfldsp, n=64, off=4, cmp=4b5a69788796a5b4
+loadfp 64, insn cfldsp, n=64, off=5, cmp=3c4b5a69788796a5
+loadfp 64, insn cfldsp, n=64, off=6, cmp=2d3c4b5a69788796
+loadfp 64, insn cfldsp, n=64, off=7, cmp=1e2d3c4b5a697887
+loadfp 32, insn cflw, n=32, off=1, cmp=ffffffffb4c3d2e1
+loadfp 32, insn cflw, n=32, off=2, cmp=ffffffffa5b4c3d2
+loadfp 32, insn cflw, n=32, off=3, cmp=ffffffff96a5b4c3
+loadfp 32, insn cflw, n=32, off=5, cmp=ffffffff788796a5
+loadfp 32, insn cflw, n=32, off=6, cmp=ffffffff69788796
+loadfp 32, insn cflw, n=32, off=7, cmp=ffffffff5a697887
+loadfp 32, insn cflw, n=32, off=9, cmp=ffffffff3c4b5a69
+loadfp 32, insn cflw, n=32, off=10, cmp=ffffffff2d3c4b5a
+loadfp 32, insn cflw, n=32, off=11, cmp=ffffffff1e2d3c4b
+loadfp 32, insn cflwsp, n=64, off=1, cmp=ffffffffb4c3d2e1
+loadfp 32, insn cflwsp, n=64, off=2, cmp=ffffffffa5b4c3d2
+loadfp 32, insn cflwsp, n=64, off=3, cmp=ffffffff96a5b4c3
+loadfp 32, insn cflwsp, n=64, off=5, cmp=ffffffff788796a5
+loadfp 32, insn cflwsp, n=64, off=6, cmp=ffffffff69788796
+loadfp 32, insn cflwsp, n=64, off=7, cmp=ffffffff5a697887
+loadfp 32, insn cflwsp, n=64, off=9, cmp=ffffffff3c4b5a69
+loadfp 32, insn cflwsp, n=64, off=10, cmp=ffffffff2d3c4b5a
+loadfp 32, insn cflwsp, n=64, off=11, cmp=ffffffff1e2d3c4b
 
-Fixes: c2acc5e5b0d8 ("lib: sbi_misaligned_ldst: Add handling of vector load/store")
-Signed-off-by: Bo Gan <ganboing@gmail.com>
+<no failure>
 ---
- include/sbi/sbi_platform.h  |  92 +++++++++++++++++++++++----------
- include/sbi/sbi_trap_ldst.h |   4 +-
- lib/sbi/sbi_trap_ldst.c     | 100 ++++++++++++++++++++++--------------
- lib/sbi/sbi_trap_v_ldst.c   |  25 ++++-----
- 4 files changed, 139 insertions(+), 82 deletions(-)
+ tests/ldst.S                 | 134 +++++++++++++++++++++++++++
+ tests/ldst.h                 | 170 +++++++++++++++++++++++++++++++++++
+ tests/test-misaligned-ldst.c | 154 +++++++++++++++++++++++++++++++
+ 3 files changed, 458 insertions(+)
+ create mode 100644 tests/ldst.S
+ create mode 100644 tests/ldst.h
+ create mode 100644 tests/test-misaligned-ldst.c
 
-diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
-index fe382b56..525cde51 100644
---- a/include/sbi/sbi_platform.h
-+++ b/include/sbi/sbi_platform.h
-@@ -136,12 +136,17 @@ struct sbi_platform_operations {
- 				   struct sbi_trap_regs *regs,
- 				   struct sbi_ecall_return *out);
- 
--	/** platform specific handler to fixup load fault */
--	int (*emulate_load)(int rlen, unsigned long addr,
--			    union sbi_ldst_data *out_val);
--	/** platform specific handler to fixup store fault */
--	int (*emulate_store)(int wlen, unsigned long addr,
--			     union sbi_ldst_data in_val);
-+	/** platform specific handler to fixup load fault
-+	 *  Refer to comments below at sbi_platform_emulate_load */
-+	int (*emulate_load)(ulong insn, int rlen, ulong addr,
-+			    union sbi_ldst_data *out_val,
-+			    struct sbi_trap_context *tcntx);
+diff --git a/tests/ldst.S b/tests/ldst.S
+new file mode 100644
+index 00000000..66f88e42
+--- /dev/null
++++ b/tests/ldst.S
+@@ -0,0 +1,134 @@
++.altmacro
 +
-+	/** platform specific handler to fixup store fault
-+	 *  Refer to comments below at sbi_platform_emulate_store */
-+	int (*emulate_store)(ulong insn, int wlen, ulong addr,
-+			     union sbi_ldst_data in_val,
-+			     struct sbi_trap_context *tcntx);
- 
- 	/** platform specific pmp setup on current HART */
- 	void (*pmp_set)(unsigned int n, unsigned long flags,
-@@ -620,45 +625,76 @@ static inline int sbi_platform_vendor_ext_provider(
- }
- 
- /**
-- * Ask platform to emulate the trapped load
-+ * Ask platform to emulate the trapped load:
-  *
-- * @param plat pointer to struct sbi_platform
-- * @param rlen length of the load: 1/2/4/8...
-- * @param addr virtual address of the load. Platform needs to page-walk and
-- *        find the physical address if necessary
-- * @param out_val value loaded
-+ * @param insn the instruction that caused the load fault.
-+ *             It could be a transformed instruction from tinst, thus do
-+ *             not rely on the length of insn, and use appropriate return
-+ *             code, so the caller can advance mepc properly.
-+ * @param rlen read length in [0, 1, 2, 4, 8]. If 0, it's a special load.
-+ *             In that case, it could be a vector load or customized insn,
-+ *             which may read/gather a block of memory. The emulator should
-+ *             further parse the @insn (fetch if 0), and act accordingly.
-+ * @param raddr read address. If @rlen is not 0, it's the base address of
-+ *              the load. It doesn't necessarily match tcntx->trap->tval,
-+ *              in case of unaligned load triggering access fault.
-+ *              If @rlen is 0, @raddr should be ignored.
-+ * @param out_val the buffer to hold data loaded by the emulator.
-+ *                If @rlen == 0, @out_val is ignored by caller.
-+ * @param tcntx trap context saved on load fault entry.
-  *
-- * @return 0 on success and negative error code on failure
-+ * @return >0 success: register will be updated by caller if @rlen != 0,
-+ *            and mepc will be advanced by caller.
-+ *         0  success: no register modification; no mepc advancement.
-+ *         <0 failure
-+ *
-+ * It's expected that if @rlen != 0, and the emulator returns >0, the
-+ * caller will set the corresponding registers with @out_val to simplify
-+ * things. Otherwise, no register manipulation is done by the caller.
-  */
- static inline int sbi_platform_emulate_load(const struct sbi_platform *plat,
--					    int rlen, unsigned long addr,
--					    union sbi_ldst_data *out_val)
-+					    ulong insn, int rlen, ulong raddr,
-+					    union sbi_ldst_data *out_val,
-+					    struct sbi_trap_context *tcntx)
- {
- 	if (plat && sbi_platform_ops(plat)->emulate_load) {
--		return sbi_platform_ops(plat)->emulate_load(rlen, addr,
--							    out_val);
-+		return sbi_platform_ops(plat)->emulate_load(insn, rlen, raddr,
-+							    out_val, tcntx);
- 	}
- 	return SBI_ENOTSUPP;
- }
- 
- /**
-- * Ask platform to emulate the trapped store
-+ * Ask platform to emulate the trapped store:
-  *
-- * @param plat pointer to struct sbi_platform
-- * @param wlen length of the store: 1/2/4/8...
-- * @param addr virtual address of the store. Platform needs to page-walk and
-- *        find the physical address if necessary
-- * @param in_val value to store
-+ * @param insn the instruction that caused the store fault.
-+ *             It could be a transformed instruction from tinst, thus do
-+ *             not rely on the length of insn, and use appropriate return
-+ *             code, so the caller can advance mepc properly.
-+ * @param wlen write length in [0, 1, 2, 4, 8]. If 0, it's a special store.
-+ *             In that case, it could be a vector store or customized insn,
-+ *             which may write/scatter a block of memory. The emulator should
-+ *             further parse the @insn (fetch if 0), and act accordingly.
-+ * @param waddr write address. If @wlen is not 0, it's the base address of
-+ *              the store. It doesn't necessarily match tcntx->trap->tval,
-+ *              in case of unaligned store triggering access fault.
-+ *              If @wlen is 0, @waddr should be ignored.
-+ * @param in_val the buffer to hold data about to be stored by the emulator.
-+ *               If @wlen == 0, @in_val should be ignored.
-+ * @param tcntx trap context saved on store fault entry.
-  *
-- * @return 0 on success and negative error code on failure
-+ * @return >0 success: mepc will be advanced by caller.
-+ *         0  success: no mepc advancement.
-+ *         <0 failure
-  */
- static inline int sbi_platform_emulate_store(const struct sbi_platform *plat,
--					     int wlen, unsigned long addr,
--					     union sbi_ldst_data in_val)
-+					     ulong insn, int wlen, ulong waddr,
-+					     union sbi_ldst_data in_val,
-+					     struct sbi_trap_context *tcntx)
- {
- 	if (plat && sbi_platform_ops(plat)->emulate_store) {
--		return sbi_platform_ops(plat)->emulate_store(wlen, addr,
--							     in_val);
-+		return sbi_platform_ops(plat)->emulate_store(insn, wlen, waddr,
-+							     in_val, tcntx);
- 	}
- 	return SBI_ENOTSUPP;
- }
-diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
-index a6a6c75b..33c348c5 100644
---- a/include/sbi/sbi_trap_ldst.h
-+++ b/include/sbi/sbi_trap_ldst.h
-@@ -31,10 +31,10 @@ int sbi_store_access_handler(struct sbi_trap_context *tcntx);
- ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
- 				 ulong addr_offset);
- 
--int sbi_misaligned_v_ld_emulator(int rlen, union sbi_ldst_data *out_val,
-+int sbi_misaligned_v_ld_emulator(ulong insn,
- 				 struct sbi_trap_context *tcntx);
- 
--int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
-+int sbi_misaligned_v_st_emulator(ulong insn,
- 				 struct sbi_trap_context *tcntx);
- 
- #endif
-diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
-index 448406b1..ad19926a 100644
---- a/lib/sbi/sbi_trap_ldst.c
-+++ b/lib/sbi/sbi_trap_ldst.c
-@@ -18,18 +18,18 @@
- 
- /**
-  * Load emulator callback:
-- *
-- * @return rlen=success, 0=success w/o regs modification, or negative error
-+ *   Refer to comments of `sbi_platform_emulate_load`.
-  */
--typedef int (*sbi_trap_ld_emulator)(int rlen, union sbi_ldst_data *out_val,
-+typedef int (*sbi_trap_ld_emulator)(ulong insn, int rlen, ulong raddr,
-+				    union sbi_ldst_data *out_val,
- 				    struct sbi_trap_context *tcntx);
- 
- /**
-  * Store emulator callback:
-- *
-- * @return wlen=success, 0=success w/o regs modification, or negative error
-+ *   Refer to comments of `sbi_platform_emulate_store`.
-  */
--typedef int (*sbi_trap_st_emulator)(int wlen, union sbi_ldst_data in_val,
-+typedef int (*sbi_trap_st_emulator)(ulong insn, int wlen, ulong waddr,
-+				    union sbi_ldst_data in_val,
- 				    struct sbi_trap_context *tcntx);
- 
- ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
-@@ -52,7 +52,7 @@ static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
- 	ulong insn, insn_len;
- 	union sbi_ldst_data val = { 0 };
- 	struct sbi_trap_info uptrap;
--	int rc, fp = 0, shift = 0, len = 0, vector = 0;
-+	int rc, fp = 0, shift = 0, len = 0;
- 
- 	if (orig_trap->tinst & 0x1) {
- 		/*
-@@ -144,28 +144,24 @@ static int sbi_trap_emulate_load(struct sbi_trap_context *tcntx,
- 		len = 2;
- 		shift = 8 * (sizeof(ulong) - len);
- 		insn = RVC_RS2S(insn) << SH_RD;
--	} else if (IS_VECTOR_LOAD_STORE(insn)) {
--		vector = 1;
--		emu = sbi_misaligned_v_ld_emulator;
--	} else {
--		return sbi_trap_redirect(regs, orig_trap);
- 	}
- 
--	rc = emu(len, &val, tcntx);
-+	rc = emu(insn, len, orig_trap->tval, &val, tcntx);
- 	if (rc <= 0)
- 		return rc;
-+	if (!len)
-+		goto epc_fixup;
- 
--	if (!vector) {
--		if (!fp)
--			SET_RD(insn, regs, ((long)(val.data_ulong << shift)) >> shift);
-+	if (!fp)
-+		SET_RD(insn, regs, ((long)(val.data_ulong << shift)) >> shift);
- #ifdef __riscv_flen
--		else if (len == 8)
--			SET_F64_RD(insn, regs, val.data_u64);
--		else
--			SET_F32_RD(insn, regs, val.data_ulong);
-+	else if (len == 8)
-+		SET_F64_RD(insn, regs, val.data_u64);
-+	else
-+		SET_F32_RD(insn, regs, val.data_ulong);
- #endif
--	}
- 
-+epc_fixup:
- 	regs->mepc += insn_len;
- 
- 	return 0;
-@@ -253,13 +249,9 @@ static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
- 	} else if ((insn & INSN_MASK_C_SH) == INSN_MATCH_C_SH) {
- 		len		= 2;
- 		val.data_ulong = GET_RS2S(insn, regs);
--	} else if (IS_VECTOR_LOAD_STORE(insn)) {
--		emu = sbi_misaligned_v_st_emulator;
--	} else {
--		return sbi_trap_redirect(regs, orig_trap);
- 	}
- 
--	rc = emu(len, val, tcntx);
-+	rc = emu(insn, len, orig_trap->tval, val, tcntx);
- 	if (rc <= 0)
- 		return rc;
- 
-@@ -268,7 +260,8 @@ static int sbi_trap_emulate_store(struct sbi_trap_context *tcntx,
- 	return 0;
- }
- 
--static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
-+static int sbi_misaligned_ld_emulator(ulong insn, int rlen, ulong addr,
-+				      union sbi_ldst_data *out_val,
- 				      struct sbi_trap_context *tcntx)
- {
- 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
-@@ -276,9 +269,20 @@ static int sbi_misaligned_ld_emulator(int rlen, union sbi_ldst_data *out_val,
- 	struct sbi_trap_info uptrap;
- 	int i;
- 
-+	if (!rlen) {
-+		if (IS_VECTOR_LOAD_STORE(insn))
-+			return sbi_misaligned_v_ld_emulator(insn, tcntx);
-+		else
-+			/* Unrecognized instruction. Can't emulate it. */
-+			return sbi_trap_redirect(regs, orig_trap);
++.macro mem_repeat name:req, ldst:req, op:req, rx:req, ry:req, len:req, signext=0, step=1, n=4096, max=2048
++.globl mem_\name
++.type mem_\name, @function
++mem_\name\():
++.set i, 0
++.rept \n
++.set j, \max - \n * \step + i * \step
++1:
++	mem_\ldst \op \rx \ry j
++	ret
++.ifne . - mem_\name - (. - 1b) * (i + 1)
++.error "mem_\name is not aligned"
++.endif
++.set i, i + 1
++.endr
++.size mem_\name, . - mem_\name
++
++.align 3
++.globl mem_\name\()_desc
++.type mem_\name\()_desc @object
++mem_\name\()_desc:
++	.byte \len, \signext, \step, (. - mem_\name) / \n
++	.half \max - \n * \step, \n
++#if __riscv_xlen == 32
++	.word mem_\name
++#elif __riscv_xlen == 64
++	.dword mem_\name
++#endif
++.size mem_\name\()_desc, . - mem_\name\()_desc
++.endm
++
++.macro mem_load op rs rd imm
++	mv \rs, a0
++	\op \rd, \imm(\rs)
++	mv a0, \rd
++.endm
++
++.macro mem_fpld op rs rd imm
++	mv \rs, a0
++	\op \rd, \imm(\rs)
++	fmv.d fa0, \rd
++.endm
++
++.macro mem_store op rs1 rs2 imm
++	mv \rs2, a1
++	mv \rs1, a0
++	\op \rs2, \imm(\rs1)
++.endm
++
++.macro mem_fpst op rs1 rs2 imm
++	fmv.d \rs2, fa0
++	mv \rs1, a0
++	\op \rs2, \imm(\rs1)
++.endm
++
++.macro mem_ldsp op tmp rd imm
++	mv \tmp, sp
++	mv sp, a0
++	\op \rd, \imm(sp)
++	mv sp, \tmp
++	mv a0, \rd
++.endm
++
++.macro mem_fpldsp op tmp rd imm
++	mv \tmp, sp
++	mv sp, a0
++	\op \rd, \imm(sp)
++	mv sp, \tmp
++	fmv.d fa0, \rd
++.endm
++
++.macro mem_stsp op tmp rs2 imm
++	mv \tmp, sp
++	mv sp, a0
++	mv \rs2, a1
++	\op \rs2, \imm(sp)
++	mv sp, \tmp
++.endm
++
++.macro mem_fpstsp op tmp rs2 imm
++	mv \tmp, sp
++	mv sp, a0
++	fmv.d \rs2, fa0
++	\op \rs2, \imm(sp)
++	mv sp, \tmp
++.endm
++
++mem_repeat lb     load   lb    t0 a1   1 1
++mem_repeat lbu    load   lbu   t1 a2   1
++mem_repeat sb     store  sb    t2 a3   1
++mem_repeat lh     load   lh    t4 a5   2 1
++mem_repeat lhu    load   lhu   t5 a6   2
++mem_repeat sh     store  sh    t6 a7   2
++mem_repeat lw     load   lw    a7 t6   4 1
++#if __riscv_xlen == 64
++mem_repeat lwu    load   lwu   a6 t5   4
++#endif
++mem_repeat sw     store  sw    a5 t4   4
++#if __riscv_xlen == 64
++mem_repeat ld     load   ld    a4 t3   8 1
++mem_repeat sd     store  sd    a3 t2   8
++#endif
++mem_repeat flw    fpld   flw   t3 ft8  4
++mem_repeat fsw    fpst   fsw   t4 ft9  4
++mem_repeat fld    fpld   fld   t5 ft10 8
++mem_repeat fsd    fpst   fsd   t6 ft11 8
++#ifdef __riscv_zcb
++mem_repeat clbu   load   c.lbu a5 a1   1 0 1 4  4
++mem_repeat csb    store  c.sb  a4 a2   1 0 1 4  4
++mem_repeat clh    load   c.lh  a3 a3   2 1 2 2  4
++mem_repeat clhu   load   c.lhu a2 a4   2 0 2 2  4
++mem_repeat csh    store  c.sh  a1 a5   2 0 2 2  4
++#endif
++mem_repeat clw    load   c.lw  a5 a1   4 1 4 32 128
++mem_repeat csw    store  c.sw  a4 a2   4 0 4 32 128
++mem_repeat clwsp  ldsp   lw    t0 t6   4 1 4 64 256
++mem_repeat cswsp  stsp   sw    t1 t5   4 0 4 64 256
++mem_repeat cfld   fpld   c.fld a3 fa2  8 0 8 32 256
++mem_repeat cfsd   fpst   c.fsd a2 fa3  8 0 8 32 256
++mem_repeat cfldsp fpldsp fld   t2 ft10 8 0 8 64 512
++mem_repeat cfsdsp fpstsp fsd   t3 ft11 8 0 8 64 512
++#if __riscv_xlen == 32
++mem_repeat cflw   fpld   c.flw a5 fa4  4 0 4 32 128
++mem_repeat cfsw   fpst   c.fsw a4 fa5  4 0 4 32 128
++mem_repeat cflwsp fpldsp flw   t3 ft11 4 0 4 64 256
++mem_repeat cfswsp fpstsp fsw   t4 ft10 4 0 4 64 256
++#elif __riscv_xlen == 64
++mem_repeat cld    load   c.ld  a5 a4   8 1 8 32 256
++mem_repeat csd    store  c.sd  a4 a5   8 0 8 32 256
++mem_repeat cldsp  ldsp   ld    t3 t6   8 1 8 64 512
++mem_repeat csdsp  stsp   sd    t4 t5   8 0 8 64 512
++#endif
+diff --git a/tests/ldst.h b/tests/ldst.h
+new file mode 100644
+index 00000000..3d4b6062
+--- /dev/null
++++ b/tests/ldst.h
+@@ -0,0 +1,170 @@
++#include <inttypes.h>
++
++typedef struct {
++	uint8_t len;
++	uint8_t signext;
++	uint8_t imm_step;
++	uint8_t isize;
++	int16_t imm_base;
++	uint16_t n;
++	void *fp;
++} mem_op_desc;
++
++typedef union {
++	unsigned long u_long;
++	long i_long;
++	uint32_t u32[2];
++	int32_t i32[2];
++	uint64_t u64;
++	int64_t i64;
++	float f32[2];
++	double f64;
++	uint8_t bytes[8];
++} ldst_val;
++
++extern mem_op_desc mem_lb_desc;
++extern mem_op_desc mem_lbu_desc;
++extern mem_op_desc mem_sb_desc;
++extern mem_op_desc mem_lh_desc;
++extern mem_op_desc mem_lhu_desc;
++extern mem_op_desc mem_sh_desc;
++extern mem_op_desc mem_lw_desc;
++extern mem_op_desc mem_lwu_desc;
++extern mem_op_desc mem_sw_desc;
++extern mem_op_desc mem_ld_desc;
++extern mem_op_desc mem_sd_desc;
++extern mem_op_desc mem_flw_desc;
++extern mem_op_desc mem_fsw_desc;
++extern mem_op_desc mem_fld_desc;
++extern mem_op_desc mem_fsd_desc;
++extern mem_op_desc mem_clbu_desc;
++extern mem_op_desc mem_csb_desc;
++extern mem_op_desc mem_clh_desc;
++extern mem_op_desc mem_clhu_desc;
++extern mem_op_desc mem_csh_desc;
++extern mem_op_desc mem_clw_desc;
++extern mem_op_desc mem_csw_desc;
++extern mem_op_desc mem_clwsp_desc;
++extern mem_op_desc mem_cswsp_desc;
++extern mem_op_desc mem_cfld_desc;
++extern mem_op_desc mem_cfsd_desc;
++extern mem_op_desc mem_cfldsp_desc;
++extern mem_op_desc mem_cfsdsp_desc;
++extern mem_op_desc mem_cflw_desc;
++extern mem_op_desc mem_cfsw_desc;
++extern mem_op_desc mem_cflwsp_desc;
++extern mem_op_desc mem_cfswsp_desc;
++extern mem_op_desc mem_cld_desc;
++extern mem_op_desc mem_csd_desc;
++extern mem_op_desc mem_cldsp_desc;
++extern mem_op_desc mem_csdsp_desc;
++
++typedef struct ldst_func {
++	const char *name;
++	const mem_op_desc *desc;
++} ldst_func;
++
++#define DEF_LDST_FUNC(x) { #x, &mem_ ## x ## _desc }
++
++static const ldst_func load_funcs[] = {
++	DEF_LDST_FUNC(lb),
++	DEF_LDST_FUNC(lbu),
++	DEF_LDST_FUNC(lh),
++	DEF_LDST_FUNC(lhu),
++	DEF_LDST_FUNC(lw),
++#ifdef __riscv_zcb
++	DEF_LDST_FUNC(clbu),
++	DEF_LDST_FUNC(clh),
++	DEF_LDST_FUNC(clhu),
++#endif
++	DEF_LDST_FUNC(clw),
++	DEF_LDST_FUNC(clwsp),
++#if __riscv_xlen == 64
++	DEF_LDST_FUNC(lwu),
++	DEF_LDST_FUNC(ld),
++	DEF_LDST_FUNC(cld),
++	DEF_LDST_FUNC(cldsp),
++#endif
++};
++
++static const ldst_func store_funcs[] = {
++	DEF_LDST_FUNC(sb),
++	DEF_LDST_FUNC(sh),
++	DEF_LDST_FUNC(sw),
++#ifdef __riscv_zcb
++	DEF_LDST_FUNC(csb),
++	DEF_LDST_FUNC(csh),
++#endif
++	DEF_LDST_FUNC(csw),
++	DEF_LDST_FUNC(cswsp),
++#if __riscv_xlen == 64
++	DEF_LDST_FUNC(sd),
++	DEF_LDST_FUNC(csd),
++	DEF_LDST_FUNC(csdsp),
++#endif
++};
++
++static const ldst_func loadfp_funcs[] = {
++#if __riscv_xlen == 32
++	DEF_LDST_FUNC(cflw),
++	DEF_LDST_FUNC(cflwsp),
++#endif
++	DEF_LDST_FUNC(flw),
++	DEF_LDST_FUNC(fld),
++	DEF_LDST_FUNC(cfld),
++	DEF_LDST_FUNC(cfldsp),
++};
++
++static const ldst_func storefp_funcs[] = {
++#if __riscv_xlen == 32
++	DEF_LDST_FUNC(cfsw),
++	DEF_LDST_FUNC(cfswsp),
++#endif
++	DEF_LDST_FUNC(fsw),
++	DEF_LDST_FUNC(fsd),
++	DEF_LDST_FUNC(cfsd),
++	DEF_LDST_FUNC(cfsdsp),
++};
++
++static inline unsigned long load_i(const void *p, unsigned func, unsigned sel)
++{
++	typedef unsigned long (*func_i)(const void *p);
++	const mem_op_desc *desc = load_funcs[func].desc;
++
++	long imm = (long)desc->imm_base + desc->imm_step * sel;
++	func_i f = desc->fp + desc->isize * sel;
++
++	return f(p - imm);
++}
++
++static inline void store_i(void *p, unsigned long val, unsigned func, unsigned sel)
++{
++	typedef void (*func_i)(void *p, unsigned long val);
++	const mem_op_desc *desc = store_funcs[func].desc;
++
++	long imm = (long)desc->imm_base + desc->imm_step * sel;
++	func_i f = desc->fp + desc->isize * sel;
++	f(p - imm, val);
++}
++
++static inline double load_f(const void *p, unsigned func, unsigned sel)
++{
++	typedef double (*func_f)(const void *p);
++	const mem_op_desc *desc = loadfp_funcs[func].desc;
++
++	long imm = (long)desc->imm_base + desc->imm_step * sel;
++	func_f f = desc->fp + desc->isize * sel;
++
++	return f(p - imm);
++}
++
++static inline void store_f(void *p, double val, unsigned func, unsigned sel)
++{
++	typedef void (*func_f)(void *p, double val);
++	const mem_op_desc *desc = storefp_funcs[func].desc;
++
++	long imm = (long)desc->imm_base + desc->imm_step * sel;
++	func_f f = desc->fp + desc->isize * sel;
++
++	f(p - imm, val);
++}
+diff --git a/tests/test-misaligned-ldst.c b/tests/test-misaligned-ldst.c
+new file mode 100644
+index 00000000..ccbd0d36
+--- /dev/null
++++ b/tests/test-misaligned-ldst.c
+@@ -0,0 +1,154 @@
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdint.h>
++#include <error.h>
++#include "ldst.h"
++
++#define ARR_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
++
++static const uint8_t patt[16] = {
++	0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87,
++	0x78, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f,
++};
++
++static const uint64_t load_val[16] = {
++	0x8796a5b4c3d2e1f0ULL,
++	0x788796a5b4c3d2e1ULL,
++	0x69788796a5b4c3d2ULL,
++	0x5a69788796a5b4c3ULL,
++	0x4b5a69788796a5b4ULL,
++	0x3c4b5a69788796a5ULL,
++	0x2d3c4b5a69788796ULL,
++	0x1e2d3c4b5a697887ULL,
++	0x0f1e2d3c4b5a6978ULL,
++	  0x0f1e2d3c4b5a69ULL,
++	    0x0f1e2d3c4b5aULL,
++	      0x0f1e2d3c4bULL,
++	        0x0f1e2d3cULL,
++	          0x0f1e2dULL,
++	            0x0f1eULL,
++	              0x0fULL,
++};
++
++int main()
++{
++	unsigned i, j, k;
++	//ldst_val val;
++
++	// Test int read
++	for (j = 0; j < ARR_SIZE(load_funcs); ++j) {
++		const mem_op_desc *desc = load_funcs[j].desc;
++		unsigned shift = 8 * (sizeof(long) - desc->len);
++
++		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
++			unsigned long expected;
++			if (desc->len != 1 && i % desc->len == 0)
++				continue;
++
++			expected = load_val[i];
++			if (desc->signext)
++				expected = (long)(expected << shift) >> shift;
++			else
++				expected = (expected << shift) >> shift;
++
++			printf("load %c%u, insn %s, n=%u, off=%u, cmp=%lx\n",
++				desc->signext ? 'i' : 'u',
++				desc->len * 8, load_funcs[j].name, desc->n, i, expected);
++			fflush(stdout);
++			for (k = 0; k < desc->n; ++k) {
++				unsigned long read = load_i(&patt[i], j, k);
++				if (read != expected)
++					error(1, 0, "failed at load_i %u %u %u: %lx",
++						i, j, k, read);
++			}
++		}
 +	}
-+	/* For misaligned fault, addr must be the same as orig_trap->tval */
-+	if (addr != orig_trap->tval)
-+		return SBI_EFAIL;
++	// Test fp load
++	for (j = 0; j < ARR_SIZE(loadfp_funcs); ++j) {
++		const mem_op_desc *desc = loadfp_funcs[j].desc;
 +
- 	for (i = 0; i < rlen; i++) {
- 		out_val->data_bytes[i] =
--			sbi_load_u8((void *)(orig_trap->tval + i), &uptrap);
-+			sbi_load_u8((void *)(addr + i), &uptrap);
- 		if (uptrap.cause) {
- 			uptrap.tinst = sbi_misaligned_tinst_fixup(
- 				orig_trap->tinst, uptrap.tinst, i);
-@@ -293,7 +297,8 @@ int sbi_misaligned_load_handler(struct sbi_trap_context *tcntx)
- 	return sbi_trap_emulate_load(tcntx, sbi_misaligned_ld_emulator);
- }
- 
--static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
-+static int sbi_misaligned_st_emulator(ulong insn, int wlen, ulong addr,
-+				      union sbi_ldst_data in_val,
- 				      struct sbi_trap_context *tcntx)
- {
- 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
-@@ -301,8 +306,19 @@ static int sbi_misaligned_st_emulator(int wlen, union sbi_ldst_data in_val,
- 	struct sbi_trap_info uptrap;
- 	int i;
- 
-+	if (!wlen) {
-+		if (IS_VECTOR_LOAD_STORE(insn))
-+			return sbi_misaligned_v_st_emulator(insn, tcntx);
-+		else
-+			/* Unrecognized instruction. Can't emulate it. */
-+			return sbi_trap_redirect(regs, orig_trap);
++		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
++			ldst_val expected, read;
++
++			expected.u64 = load_val[i];
++			if (desc->len == 4) // float
++				expected.i32[1] = -1;
++
++			if (i % desc->len == 0)
++				continue;
++
++			printf("loadfp %u, insn %s, n=%u, off=%u, cmp=%" PRIx64 "\n",
++				desc->len * 8, loadfp_funcs[j].name, desc->n, i, expected.u64);
++			fflush(stdout);
++			for (k = 0; k < desc->n; ++k) {
++				read.f64 = load_f(&patt[i], j, k);
++				if (read.u64 != expected.u64)
++					error(1, 0, "failed at load_f %u %u %u: %" PRIx64,
++						i, j, k, read.u64);
++			}
++		}
 +	}
-+	/* For misaligned fault, addr must be the same as orig_trap->tval */
-+	if (addr != orig_trap->tval)
-+		return SBI_EFAIL;
++	// Test int store
++	for (j = 0; j < ARR_SIZE(store_funcs); ++j) {
++		const mem_op_desc *desc = store_funcs[j].desc;
 +
- 	for (i = 0; i < wlen; i++) {
--		sbi_store_u8((void *)(orig_trap->tval + i),
-+		sbi_store_u8((void *)(addr + i),
- 			     in_val.data_bytes[i], &uptrap);
- 		if (uptrap.cause) {
- 			uptrap.tinst = sbi_misaligned_tinst_fixup(
-@@ -318,22 +334,26 @@ int sbi_misaligned_store_handler(struct sbi_trap_context *tcntx)
- 	return sbi_trap_emulate_store(tcntx, sbi_misaligned_st_emulator);
- }
- 
--static int sbi_ld_access_emulator(int rlen, union sbi_ldst_data *out_val,
-+static int sbi_ld_access_emulator(ulong insn, int rlen, ulong addr,
-+				  union sbi_ldst_data *out_val,
- 				  struct sbi_trap_context *tcntx)
- {
- 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
- 	struct sbi_trap_regs *regs = &tcntx->regs;
-+	int rc;
- 
- 	/* If fault came from M mode, just fail */
- 	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
- 		return SBI_EINVAL;
- 
-+	rc = sbi_platform_emulate_load(sbi_platform_thishart_ptr(),
-+				       insn, rlen, addr, out_val, tcntx);
++		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Woverflow"
++			ldst_val val = { 0x8899aabbccddeeffULL };
++#pragma GCC diagnostic pop
++			unsigned end = i + desc->len;
 +
- 	/* If platform emulator failed, we redirect instead of fail */
--	if (sbi_platform_emulate_load(sbi_platform_thishart_ptr(), rlen,
--				      orig_trap->tval, out_val))
-+	if (rc < 0)
- 		return sbi_trap_redirect(regs, orig_trap);
- 
--	return rlen;
-+	return rc;
- }
- 
- int sbi_load_access_handler(struct sbi_trap_context *tcntx)
-@@ -341,22 +361,26 @@ int sbi_load_access_handler(struct sbi_trap_context *tcntx)
- 	return sbi_trap_emulate_load(tcntx, sbi_ld_access_emulator);
- }
- 
--static int sbi_st_access_emulator(int wlen, union sbi_ldst_data in_val,
-+static int sbi_st_access_emulator(ulong insn, int wlen, ulong addr,
-+				  union sbi_ldst_data in_val,
- 				  struct sbi_trap_context *tcntx)
- {
- 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
- 	struct sbi_trap_regs *regs = &tcntx->regs;
-+	int rc;
- 
- 	/* If fault came from M mode, just fail */
- 	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
- 		return SBI_EINVAL;
- 
-+	rc = sbi_platform_emulate_store(sbi_platform_thishart_ptr(),
-+					insn, wlen, addr, in_val, tcntx);
++			if (desc->len != 1 && i % desc->len == 0)
++				continue;
 +
- 	/* If platform emulator failed, we redirect instead of fail */
--	if (sbi_platform_emulate_store(sbi_platform_thishart_ptr(), wlen,
--				       orig_trap->tval, in_val))
-+	if (rc < 0)
- 		return sbi_trap_redirect(regs, orig_trap);
- 
--	return wlen;
-+	return rc;
- }
- 
- int sbi_store_access_handler(struct sbi_trap_context *tcntx)
-diff --git a/lib/sbi/sbi_trap_v_ldst.c b/lib/sbi/sbi_trap_v_ldst.c
-index f4d469dc..57f12b83 100644
---- a/lib/sbi/sbi_trap_v_ldst.c
-+++ b/lib/sbi/sbi_trap_v_ldst.c
-@@ -137,13 +137,11 @@ static inline void vsetvl(ulong vl, ulong vtype)
- 			:: "r" (vl), "r" (vtype));
- }
- 
--int sbi_misaligned_v_ld_emulator(int rlen, union sbi_ldst_data *out_val,
--				 struct sbi_trap_context *tcntx)
-+int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- {
- 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
- 	struct sbi_trap_regs *regs = &tcntx->regs;
- 	struct sbi_trap_info uptrap;
--	ulong insn = sbi_get_insn(regs->mepc, &uptrap);
- 	ulong vl = csr_read(CSR_VL);
- 	ulong vtype = csr_read(CSR_VTYPE);
- 	ulong vlenb = csr_read(CSR_VLENB);
-@@ -234,16 +232,15 @@ int sbi_misaligned_v_ld_emulator(int rlen, union sbi_ldst_data *out_val,
- 	/* restore clobbered vl/vtype */
- 	vsetvl(vl, vtype);
- 
--	return vl;
-+	/* Return a >0 value for the caller to advance mepc */
-+	return 1;
- }
- 
--int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
--				 struct sbi_trap_context *tcntx)
-+int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
- {
- 	const struct sbi_trap_info *orig_trap = &tcntx->trap;
- 	struct sbi_trap_regs *regs = &tcntx->regs;
- 	struct sbi_trap_info uptrap;
--	ulong insn = sbi_get_insn(regs->mepc, &uptrap);
- 	ulong vl = csr_read(CSR_VL);
- 	ulong vtype = csr_read(CSR_VTYPE);
- 	ulong vlenb = csr_read(CSR_VLENB);
-@@ -328,17 +325,17 @@ int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
- 	/* restore clobbered vl/vtype */
- 	vsetvl(vl, vtype);
- 
--	return vl;
-+	/* Return a >0 value for the caller to advance mepc */
-+	return 1;
- }
- #else
--int sbi_misaligned_v_ld_emulator(int rlen, union sbi_ldst_data *out_val,
--				 struct sbi_trap_context *tcntx)
-+int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- {
--	return 0;
-+	return sbi_trap_redirect(&tcntx->regs, &tcntx->trap);
- }
--int sbi_misaligned_v_st_emulator(int wlen, union sbi_ldst_data in_val,
--				 struct sbi_trap_context *tcntx)
++			memcpy(val.bytes, &patt[i], desc->len);
++			printf("store %u, insn %s, n=%u, off=%u, src=%lx\n",
++				desc->len * 8, store_funcs[j].name, desc->n, i, val.u_long);
++			fflush(stdout);
 +
-+int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
- {
--	return 0;
-+	return sbi_trap_redirect(&tcntx->regs, &tcntx->trap);
- }
- #endif /* OPENSBI_CC_SUPPORT_VECTOR */
++			for (k = 0; k < desc->n; ++k) {
++				uint8_t buff[ARR_SIZE(patt)] = {};
++
++				memcpy(buff, patt, i);
++				memcpy(&buff[end], &patt[end], ARR_SIZE(patt) - end);
++				store_i(&buff[i], val.u_long, j, k);
++				if (memcmp(buff, patt, sizeof(buff)))
++					error(1, 0, "faild at store_i %u %u %u", i, j, k);
++			}
++
++		}
++	}
++	// Test fp store
++	for (j = 0; j < ARR_SIZE(storefp_funcs); ++j) {
++		const mem_op_desc *desc = storefp_funcs[j].desc;
++
++		for (i = 0; i < ARR_SIZE(patt) - desc->len; ++i) {
++			ldst_val val;
++			unsigned end = i + desc->len;
++
++			val.u32[0] = 0xccddeeffUL;
++			val.u32[1] = 0x8899aabbUL;
++
++			if (i % desc->len == 0)
++				continue;
++
++			memcpy(val.bytes, &patt[i], desc->len);
++			printf("storefp %u, insn %s, n=%u, off=%u, src=%" PRIx64 "\n",
++				desc->len * 8, storefp_funcs[j].name, desc->n, i, val.u64);
++			fflush(stdout);
++
++			for (k = 0; k < desc->n; ++k) {
++				uint8_t buff[ARR_SIZE(patt)] = {};
++
++				memcpy(buff, patt, i);
++				memcpy(&buff[end], &patt[end], ARR_SIZE(patt) - end);
++				store_f(&buff[i], val.f64, j, k);
++				if (memcmp(buff, patt, sizeof(buff)))
++					error(1, 0, "faild at store_f %u %u %u", i, j, k);
++			}
++		}
++	}
++	return 0;
++}
 -- 
 2.34.1
 
