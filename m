@@ -4,102 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 336D5CD6E79
-	for <opensbi@archiver.kernel.org>; Mon,  8 Jun 2026 18:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7D141CD8CA7
+	for <opensbi@archiver.kernel.org>; Mon,  8 Jun 2026 21:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=l3Xpa74uZhD+2vA5dx/yydcy8ZNVykBKCrRDaRwSF50=; b=gf7a/pxnE9d+Wg
-	euktjvBjStbUfea+4NQ0E6LlFNVxc7/Zs/a9SJlUQUMHhYlqLafxOtbnALInDbKEaR6FpjN+GYQnm
-	zgsrHdmgM5kZULB0zolvhfHllXVLHe2AIHFp9ua8nxvQ9sAbMuMor9hTnGL2iJ5y8fDms0XTThlHu
-	UlwwKaRckMMQ60oqTvsTXae6d0SKdRcs8AO87rH6wEdmvEnq0GoDorqpw2/A0QkqKRwSLHihOtOY/
-	+4fsluwAU+Jb7VdAApFjtOO6FIpNkvvfiOKqeSyyqfpQdlnLb+7+eTPunjvF3KQivuJAfr6k28GJG
-	AWkv1Im0XdpoEgUOhMcg==;
+	List-Owner; bh=lcrCLaASEjwOjClYL95g7R0sCgeCYnomEC++K9SG9FA=; b=2HAzF26vGtyZdn
+	UTFTRv1yG9GOJ2S46P8j3UWYD7wIMf+dgXz4EErJxLp22JZcStNGSc62CsqOAVG574qlmczNAx0nj
+	pPQBa3QavwoDrNQtXiB92AvlCSKf4Uqt5fjHBFNC986PYfnQSr6z2Dp+HkslaCJ+v8Zsjsn4kLEEM
+	4yMs50oxeg5mXVb0okhc6QdK8QXLMXugw9DbErvom9qTycXx6eekVDfPRL9UogW+PrXqYO4jKzuet
+	1hHUPnyLTZylhOM9FAj3cvHfkXo8q5rSIWT7LdcHXYZueWQ39lkgqN30Jfwz12TEn7TWZSSy9lYUF
+	7LReREYjoH/sHI32/bSw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wWeZ3-00000004GTe-1I6E;
-	Mon, 08 Jun 2026 18:19:09 +0000
-Received: from mail-yx1-xb134.google.com ([2607:f8b0:4864:20::b134])
+	id 1wWhNd-00000004Q7L-1Wag;
+	Mon, 08 Jun 2026 21:19:33 +0000
+Received: from mail-pl1-x634.google.com ([2607:f8b0:4864:20::634])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wWeYu-00000004GSz-48fx
+	id 1wWhNa-00000004Q5S-2F89
 	for opensbi@lists.infradead.org;
-	Mon, 08 Jun 2026 18:19:08 +0000
-Received: by mail-yx1-xb134.google.com with SMTP id 956f58d0204a3-660390a8999so5034780d50.3
-        for <opensbi@lists.infradead.org>; Mon, 08 Jun 2026 11:19:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1780942740; cv=none;
-        d=google.com; s=arc-20240605;
-        b=UmNsra0nvDcxkMWTqe1sPXEhiKWakmSMliXHFdqqA2e2DTDfBZQETVQ9HtQafE0l5N
-         Z/g7wSSeVrW5t0TRcPuUIZnW0xP4XL2JC0EDvUIpDr9wA9Bhk28sGH7zsiRGNyQxYy1W
-         BKKj1S4ChN7qruAbIXH4HuPhz8lRFk0EsGcb5rpidkNWV4OHybczhNu63CNsmTeJQa15
-         p0j4fz7llQQDtllllbmVxizJQ/uFZ7G/mXqEoFqMRdvzwxDb8U2aE+BZ5PBO+0F5ih31
-         GuXkWQFYpgiwye8799ph4fkFa/0m6fZP4yBYcpVpOgeecszaCXxWTmo3SPQWerNC61jy
-         whNw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=RHFPmuu6BBAuSw7mRysdL2IxMVXQD+Km/rVZxZNmVBM=;
-        fh=7gRMOHyes4ScWkdL/mJIw2/b3fEQ/bBwQv0RHZqduZc=;
-        b=BKlPTeV3icux7f84XxSg3dzrj7AjiiuJOpPJb+DeHonqYKtgP5K7xFQFg360C5lj12
-         Qp8KG0f5hEBr25zRTkQICWPwXQKUfwLIxIX7rNLSziTXJDZIVgjZU1H+fBhsxvpsGNQT
-         i+4HeZk/pwCPkhatpnCKynm3ZILvE7u3QIsUCklTgSehVXtT6zRKZpis703iV1uEpmpW
-         8jj4hdUMcc8ywIFXPKwFRTV0UXx7P/r/MXyUia9dwEINw7HQNJScAczJ3WlInk+DVtmy
-         R/DfceR205glOgJtRcOW9G6+NtF95wcqq1k3Yd9OSr260rOT7Fdf9085UvI2SO8aG3da
-         3PKw==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Mon, 08 Jun 2026 21:19:31 +0000
+Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-2bf77d4a4e2so30552875ad.1
+        for <opensbi@lists.infradead.org>; Mon, 08 Jun 2026 14:19:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tenstorrent.com; s=google; t=1780942740; x=1781547540; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1780953570; x=1781558370; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RHFPmuu6BBAuSw7mRysdL2IxMVXQD+Km/rVZxZNmVBM=;
-        b=QvjsBKg5qHEvBjuP3jiSZdA0qQ2HZLRC9XHmxd7610KJfiGxc040/sovFLUOM0tgno
-         TCgqjDSvzbSXSBWOfvIdw/I3SW7DyFwh/REWoC5KNsJfi9umcWG5qAAnfQfx18rnHL20
-         bmZFOQFu8xH0s5Y2EoBldHxUhPynv1y5fDN6GUtl6oBxzhaIXf5ODt4WPe//oVYF247Q
-         gXQ7YtB6cwEtkmWIGWrQz2q8r9PwXRsV4GYuCA1TfOBDhOQheBipLODABJ8sOTAssXl0
-         RW/QaqhJCg507PSjtGEYN1x66E+cOwniaZU4bTqtSKQuVtH2MuaW2vx+e/PYiLVbntm5
-         Dxtg==
+        bh=UfNRnD9x2Yh/qeYUcpw6Nh+xVau8XH0blG8OMUAwD1Y=;
+        b=RvgGFftXk2bp6HAyXEdbZXhwhCM6c8rSWT9G/6M+bOes1utmJvZlx9qwqMF1mNy9UP
+         Tm4Un3R3AVVM5Iv2xW8BGCLN81ZpdSLv9sy5YYK2vHYLusPZ9h/zJKSl6EEBP9IGkI7E
+         on54eMc1DwaRBfEmsyys9G47MRMpJD7COGF3f4Y+ipjxOrA/mAVR3ENXqTmn/1bDXjVT
+         jokpy4KJWogAP2flLe8KUnk02sD5BGQmsh3weEdOgxZ/nr0TBnpDBK0WS6N6BtGN/2rZ
+         t8SbjBEfab3D4Ibc0bPffIj7ASqQDi1+niTwbwDs8ZJZ5yGFyatqSyXRp7sHDd+9/lAu
+         q2Rw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780942740; x=1781547540;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20251104; t=1780953570; x=1781558370;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=RHFPmuu6BBAuSw7mRysdL2IxMVXQD+Km/rVZxZNmVBM=;
-        b=gBGeZmrEkQpAnpXenZX8Bt6qcMrJKPoe7y/+4VKQd64J5u08ousGGqwdjSp2G0i2r7
-         2qW2ooxqPUYSFBnU+OQm9kuM1GeKvKVxscR8c+z/HFHkOj95jgM1XaaeTpKs9X4mbxK6
-         usYQWDnEgyuznPcCYi5tRP9+K6+t4Cg2cAKcnb4zn4tPx9PsgLll4kdJCyufTh+HT6/v
-         KKeWFWk7/vBQ/qpVATMiI8MgOUVZHrDR6ghTMS6+cg9h4/jUsT2yOo/kbCkjm5XtYFVU
-         5YSLizW0g22PHNjbtGNxVmsF2BqD3vZcI+8E/1KSga+CLEx81ltsIfqGA/vx+PZBCMnh
-         ijZA==
-X-Gm-Message-State: AOJu0Ywma1po2FB02wnW1RIAELeG6T3pL5OKoHoQRmxLz8m/SL9qlhAj
-	LG/pxy+/S7i7bfkMU1YO5MMBjFHus2JX0r3wR6JHiHeZP/fLFKcvLbgr8b0n5ZIQJ8UGn42d+jZ
-	Yk4JHThWpjeiOSOLqoih8GJ0io8bG7xC48Z1I4VK0Rg==
-X-Gm-Gg: Acq92OEJN6xWyWX1UXCeacjFJM8ef7HxC9+9zZ0qH5KbcnOUlNfvoavXdrhJ2HoIbO2
-	Udz3PPsRf6U+5OfbSFQQjIg/5UU9Zg9j/ccvgwD9Zksgfu1J98IlnI6JJ/+kFfC8JS7Z9sLp16A
-	3VN4VdNA7EKow5vobTTxI8bbSoSgGpTpFZ0eKlPxS2aQ7dF6QXCrAlo0NH8UgrCWp4KrOq+V43C
-	zmlh5cufT4srRu55oyOpIaLAVNEHHq1K3BXU1BLCJjyIouoo93DJ0Uq6P+ZrtGdGe+3gGKDsL5s
-	7805qiFFJs8mhXcXOEho728A0fnyEM9SBSLCCf26aoAUH+MuAMrDGPQ0FfY=
-X-Received: by 2002:a05:690e:43d3:b0:65c:409b:1cc with SMTP id
- 956f58d0204a3-66107025a2amr9234911d50.34.1780942739496; Mon, 08 Jun 2026
- 11:18:59 -0700 (PDT)
+        bh=UfNRnD9x2Yh/qeYUcpw6Nh+xVau8XH0blG8OMUAwD1Y=;
+        b=HYLg2hnV0cMM36TC3VXAIi8fTmkNHvvswwl2w38/y+h7tfLFmJqJPSydLoy4lQwfZm
+         gJIEctHlh4myoXG2xJTpXVT6wO5ACpHJit4jKPTLqoYFQuABPxuQVcCYMxlwyDz0fFdo
+         2doUprD9xBESI9vGRd60S13kITzFbQvRosMn5oBkqkJyF2l0h0bCOHDFKn5MxpXxvKVa
+         K6klOURyRLg0SwZmfCgm5hZKUNtJuP88g73MebN54vt5PnR02ij3b2khMda0KEe8xi7z
+         y8z2CfaF8bOYhnsluWgkp+tt0pT7x7sjUQW35VS0vpJJmdvmSaK9X2AQi+rChL1SErvP
+         iZoA==
+X-Gm-Message-State: AOJu0YzmKI32bS1JB4EbFBggx0/7WBUdY3Qox5bgbllb202AerXGuayJ
+	mJzH296Y0W4xruDedrj6/iObDOi1PgmRdrC7mCthZZlXerCJDesSgFjPLeGtTw==
+X-Gm-Gg: Acq92OEZZXWT60zjpZkRY6m75VtG5Z7ffRE7UpYTPHYvxEXLr2m3NhrY9hQt5c5p1Bs
+	z6QUth3/PX+PqKM0USxkTtapFkonC+MJvteZ1GjkWt7Qlh7Y4LYIIoCpwQ8GzkcNkgfqmXtnr7A
+	xc6Pwr2d7ZzVgtztRVAf1KbGbYi9xzHuH7/V7JmYgpyLiEAlsFP5z8hWV1zG10LT4I4gKHU0T0r
+	MOCUYVMZIWAiAOlXcyWlzPmqNU+srSAoY+zXAk7nbsjiaKMHePYHStcxLkl+o0xR9XgtMoRUQ9E
+	9EQSZD9qG5F6OcZYdkwt5uPpLKeqZGJ7e4s3VpKyKy3Tz9hWXk1Oobvhxd+m8zyviFtFIZJqt2M
+	zlz3xhkgO+vQhLlMRn6RXed4mzkAfhn4JLCGYkPARhpGjslSYhig15vkav13kxhDl1TnAAEO9Gt
+	eyEnPDeP0Z8WktIr+Z8fHPYrrZTrMcBltXnkQ=
+X-Received: by 2002:a17:903:990:b0:2bf:1845:baf5 with SMTP id d9443c01a7336-2c1ec918402mr140014615ad.12.1780953569658;
+        Mon, 08 Jun 2026 14:19:29 -0700 (PDT)
+Received: from m91p.airy.home ([172.92.174.155])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c164fa00b3sm182789005ad.32.2026.06.08.14.19.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 08 Jun 2026 14:19:29 -0700 (PDT)
+From: Bo Gan <ganboing@gmail.com>
+To: opensbi@lists.infradead.org,
+	wangruikang@iscas.ac.cn,
+	dramforever@live.com,
+	andrew.jones@oss.qualcomm.com
+Cc: cleger@rivosinc.com,
+	pjw@kernel.org,
+	asrinivasan@oss.tenstorrent.com
+Subject: [PATCH 4/4] lib: sbi: Rework misaligned vector load/store
+Date: Mon,  8 Jun 2026 14:17:03 -0700
+Message-Id: <20260608211703.571-5-ganboing@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20260608211703.571-1-ganboing@gmail.com>
+References: <20260608211703.571-1-ganboing@gmail.com>
 MIME-Version: 1.0
-References: <20260605113214.242-1-ganboing@gmail.com>
-In-Reply-To: <20260605113214.242-1-ganboing@gmail.com>
-From: Anirudh Srinivasan <asrinivasan@oss.tenstorrent.com>
-Date: Mon, 8 Jun 2026 13:18:47 -0500
-X-Gm-Features: AVVi8CdOxcesGz3BIbax4culzuVD4gdYCA-8SuQGMFZ55egIaf3g_BY5HnptsaY
-Message-ID: <CAEev2e_Vg1mMP4mOKanFX_EGeUzpczRcWW++vBBuN1CfyM0BJw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/8] Fixes for load/store misaligned and access faults
-To: Bo Gan <ganboing@gmail.com>
-Cc: opensbi@lists.infradead.org, wangruikang@iscas.ac.cn, dramforever@live.com, 
-	andrew.jones@oss.qualcomm.com, cleger@rivosinc.com, pjw@kernel.org, 
-	Michael Ellerman <mpe@kernel.org>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260608_111901_071225_A245334D 
-X-CRM114-Status: GOOD (  22.52  )
+X-CRM114-CacheID: sfid-20260608_141930_585150_7F8CC651 
+X-CRM114-Status: GOOD (  19.10  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -111,155 +97,263 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SGVsbG8gQm8sCgoKT24gRnJpLCBKdW4gNSwgMjAyNiBhdCA2OjM04oCvQU0gQm8gR2FuIDxnYW5i
-b2luZ0BnbWFpbC5jb20+IHdyb3RlOgo+Cj4gUmUtdmlzaXQgdGhlIGxvYWQvc3RvcmUgbWlzYWxp
-Z25lZCBhbmQgYWNjZXNzIGZhdWx0IGhhbmRsZXJzIHRvIGZpeAo+IGlzc3VlcyByZWxhdGVkIHRv
-IGNvZGluZyBwYXR0ZXJucywgZmxvYXRpbmctcG9pbnQgc3RhdGUsIGFuZCBpbnN0cnVjdGlvbgo+
-IGRlY29kaW5nOgoKSSBoYWQgcHJldmlvdXNseSByZXBvcnRlZCBoZXJlIFsxXSB0aGF0IHRoZXJl
-IHdlcmUgaXNzdWVzIGJvb3RpbmcgaW50bwpsaW51eCBhZnRlciBlbmFibGluZyBtaXNhbGlnbmVk
-IHRyYXAgZGVsZWdhdGlvbiB0byBsaW51eCBvbiBTaWZpdmUKWDI4MC4gSW4gdGhlIGRpc2N1c3Np
-b24gb3ZlciB0aGVyZSwgd2UgY29uY2x1ZGluZyB0aGF0IGJ1bXBpbmcgdXAgdGhlCnBlciBoYXJ0
-IHN0YWNrIHNpemUgaW4gb3BlbnNiaSBmaXhlZCB0aGUgaXNzdWUuCgpUaGlzIHNlcmllcyAod2l0
-aG91dCB0aGUgc3RhY2sgc2l6ZSBidW1wKSBhbHNvIHNlZW1zIHRvIGZpeCB0aGUgaXNzdWVzCnRo
-YXQgcHJldmVudGVkIGxpbnV4IGZyb20gYm9vdGluZy4gUGFydGljdWxhcmx5IGl0IHdhcyB0aGlz
-IHBhdGNoCiJsaWI6IHNiaTogRG8gbm90IG92ZXJyaWRlIGVtdWxhdG9yIGNhbGxiYWNrIGZvciB2
-ZWN0b3IgbG9hZC9zdG9yZSIuCgpCdXQgYXMgeW91IHNheSwgSSBzdGlsbCB0aGluayB0aGUgc3Rh
-Y2sgc2l6ZSBidW1wIGlzIG5lZWRlZCBhcyBJIHdhcwphYmxlIHRvIGJyZWFrIHRoZSBib290IGJ5
-IGFkZGluZyBzb21lIGRlYnVnIHByaW50cyBsaWtlIHRoaXMgYWxvbmcgdGhlCndheS4gSSBndWVz
-cyB0aGlzIG11c3QgaGF2ZSBzb21laG93IGNhdXNlZCB0aGUgc3RhY2sgdG8gb3ZlcmZsb3c/Cgpk
-aWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlfdHJhcF92X2xkc3QuYyBiL2xpYi9zYmkvc2JpX3RyYXBf
-dl9sZHN0LmMKaW5kZXggNTdmMTJiODMuLjVlNTk2NjY0IDEwMDY0NAotLS0gYS9saWIvc2JpL3Ni
-aV90cmFwX3ZfbGRzdC5jCisrKyBiL2xpYi9zYmkvc2JpX3RyYXBfdl9sZHN0LmMKQEAgLTE2LDYg
-KzE2LDcgQEAKICNpbmNsdWRlIDxzYmkvc2JpX3RyYXAuaD4KICNpbmNsdWRlIDxzYmkvc2JpX3Vu
-cHJpdi5oPgogI2luY2x1ZGUgPHNiaS9zYmlfdHJhcC5oPgorI2luY2x1ZGUgPHNiaS9zYmlfY29u
-c29sZS5oPgoKICNpZmRlZiBPUEVOU0JJX0NDX1NVUFBPUlRfVkVDVE9SCgpAQCAtMTM5LDYgKzE0
-MCw4IEBAIHN0YXRpYyBpbmxpbmUgdm9pZCB2c2V0dmwodWxvbmcgdmwsIHVsb25nIHZ0eXBlKQoK
-IGludCBzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxhdG9yKHVsb25nIGluc24sIHN0cnVjdCBzYmlf
-dHJhcF9jb250ZXh0ICp0Y250eCkKIHsKKyAgICAgICBzYmlfcHJpbnRmKCIlczogaW5zbj0weCVs
-eCBtZXBjPTB4JWx4IG10dmFsPTB4JWx4XG4iLAorICAgICAgICAgICAgICAgICAgX19mdW5jX18s
-IGluc24sIHRjbnR4LT5yZWdzLm1lcGMsIHRjbnR4LT50cmFwLnR2YWwpOwogICAgICAgIGNvbnN0
-IHN0cnVjdCBzYmlfdHJhcF9pbmZvICpvcmlnX3RyYXAgPSAmdGNudHgtPnRyYXA7CiAgICAgICAg
-c3RydWN0IHNiaV90cmFwX3JlZ3MgKnJlZ3MgPSAmdGNudHgtPnJlZ3M7CiAgICAgICAgc3RydWN0
-IHNiaV90cmFwX2luZm8gdXB0cmFwOwpAQCAtMjM4LDYgKzI0MSw4IEBAIGludCBzYmlfbWlzYWxp
-Z25lZF92X2xkX2VtdWxhdG9yKHVsb25nIGluc24sCnN0cnVjdCBzYmlfdHJhcF9jb250ZXh0ICp0
-Y250eCkKCiBpbnQgc2JpX21pc2FsaWduZWRfdl9zdF9lbXVsYXRvcih1bG9uZyBpbnNuLCBzdHJ1
-Y3Qgc2JpX3RyYXBfY29udGV4dCAqdGNudHgpCiB7CisgICAgICAgc2JpX3ByaW50ZigiJXM6IGlu
-c249MHglbHggbWVwYz0weCVseCBtdHZhbD0weCVseFxuIiwKKyAgICAgICAgICAgICAgICAgIF9f
-ZnVuY19fLCBpbnNuLCB0Y250eC0+cmVncy5tZXBjLCB0Y250eC0+dHJhcC50dmFsKTsKICAgICAg
-ICBjb25zdCBzdHJ1Y3Qgc2JpX3RyYXBfaW5mbyAqb3JpZ190cmFwID0gJnRjbnR4LT50cmFwOwog
-ICAgICAgIHN0cnVjdCBzYmlfdHJhcF9yZWdzICpyZWdzID0gJnRjbnR4LT5yZWdzOwogICAgICAg
-IHN0cnVjdCBzYmlfdHJhcF9pbmZvIHVwdHJhcDsKCgpbICAgIDAuMDc1NTc2XSBjbG9ja3NvdXJj
-ZTogamlmZmllczogbWFzazogMHhmZmZmZmZmZiBtYXhfY3ljbGVzOgoweGZmZmZmZmZmLCBtYXhf
-aWRsZV9uczogNzY0NTA0MTc4NTEwMDAwMCBAWjBAzqUwQDFdIHBvc2l4YFowQM6lMEBzOgoyMDQ4
-IFQtMFswQO+/vVswQEEwQCXvv71aMEDvv73vv70wQCXvv71aMEDOpTBAQiwKbGluZWFbMEDOpTBA
-77+9WjBA2qQwQFQtMFswQNqkMEBULTBAKFswQO+/vVswQTBAXl7vv71bMEDvv73vv70wQDIgS2lC
-CkdG77+9MEDvv71bMEBmQTBAOC5R77+977+977+977+977+977+9fjBAJ2BmUjBA77+9MEDvv71b
-MEAo77+9MEBgfTBA77+9WzBAZGl0X2VuYWLvv71+MEBwfTBA77+9bDBAY2Dvv73vv73vv73vv73v
-v70vMEAnYO+/vW/vv73vv73vv73vv73vv71hQO+/ve+/ve+/ve+/vQoKCgoKICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgQO+/vVwwQGDvv73vv73vv73vv71bICAgIDAuMTU1
-Njg5XSBjcHUxOgpSYXRpbyBvZiBieXRlIGFjY2VzcyB0aW1lIHRvIHVuYWxpZ25lZCB3b3JkIGFj
-Y2VzcyBpcyAwLjAxLCB1bmFsaWduZWQKYWNjZXNzZXMgYXJlIHNsb3cKWyAgICAwLjE1NTY4OV0g
-Y3B1MzogUmF0aW8gb2YgYnl0ZSBhY2Nlc3MgdGltZSB0byB1bmFsaWduZWQgd29yZAphY2Nlc3Mg
-aXMgMC4wMSwgdW5hbGlnbmVkIGFjY2Vzc2VzIGFyZSBzbG93ClsgICAgMC4xODM3MzNdIGNwdTA6
-IFJhdGlvIG9mIGJ5dGUgYWNjZXNzIHRpbWUgdG8gdW5hbGlnbmVkIHdvcmQKYWNjZXNzIGlzIDAu
-MDEsIHVuYWxpZ25lZCBhY2Nlc3NlcyBhcmUgc2xvdwpzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxh
-dG9yOiBpbnNuPTB4MjA3ZDAwNyBtZXBjPTB4ZmZmZmZmZmY4MDAxNWVmYwptdHZhbD0weGZmZmY4
-ZjgwMDAwNzNkNTEKc2JpX21pc2FsaWduZWRfdl9sZF9lbXVsYXRvcjogaW5zbj0weDIwN2QwMDcg
-bWVwYz0weGZmZmZmZmZmODAwMTVlZmMKbXR2YWw9MHhmZmZmOGY4MDAwMTNiZDUxCnNiaV9taXNh
-bGlnbmVkX3ZfbGRfZW11bGF0b3I6IGluc249MHgyMDdkMDA3IG1lcGM9MHhmZmZmZmZmZjgwMDE1
-ZWZjCm10dmFsPTB4ZmZmZjhmODAwMDBlYmQ1MQpzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxhdG9y
-OiBpbnNuPTB4MjA3ZDAwNyBtZXBjPTB4ZmZmZmZmZmY4MDAxNWVmYwptdHZhbD0weGZmZmY4Zjgw
-MDAxMTNkNTEKc2JpX21pc2FsaWduZWRfdl9sZF9lbXVsYXRvcjogaW5zbj0weDIwNWUwMDcgbWVw
-Yz0weGZmZmZmZmZmODAwMTZmZWUKbXR2YWw9MHhmZmZmYWY4MDAxYjcyMDAzCnNiaV9taXNhbGln
-bmVkX3ZfbGRfZW11bGF0b3I6IGluc249MHgyMDVlMDA3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmVl
-Cm10dmFsPTB4ZmZmZmFmODAwMjExMjAwMwpzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxhdG9yOiBp
-bnNuPTB4MjA1ZTAwNyBtZXBjPTB4ZmZmZmZmZmY4MDAxNmZlZQptdHZhbD0weGZmZmZhZjgwMDIx
-NGUwMDMKc2JpX21pc2FsaWduZWRfdl9sZF9lbXVsYXRvcjogaW5zbj0weDIwNWUwMDcgbWVwYz0w
-eGZmZmZmZmZmODAwMTZmZWUKbXR2YWw9MHhmZmZmYWY4MDAyMDI2MDAzCnNiaV9taXNhbGlnbmVk
-X3Zfc3RfZW11bGF0b3I6IGluc249MHgyMDU2MDI3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmYyCm10
-dmFsPTB4ZmZmZmFmODAwMWI3MDAwMQpzYmlfbWlzYWxpZ25lZF92X3N0X2VtdWxhdG9yOiBpbnNu
-PTB4MjA1NjAyNyBtZXBjPTB4ZmZmZmZmZmY4MDAxNmZmMgptdHZhbD0weGZmZmZhZjgwMDIxMTAw
-MDEKc2JpX21pc2FsaWduZWRfdl9zdF9lbXVsYXRvcjogaW5zbj0weDIwNTYwMjcgbWVwYz0weGZm
-ZmZmZmZmODAwMTZmZjIKbXR2YWw9MHhmZmZmYWY4MDAyMTRjMDAxCnNiaV9taXNhbGlnbmVkX3Zf
-c3RfZW11bGF0b3I6IGluc249MHgyMDU2MDI3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmYyCm10dmFs
-PTB4ZmZmZmFmODAwMjAyNDAwMQpzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxhdG9yOiBpbnNuPTB4
-MjA1ZTAwNyBtZXBjPTB4ZmZmZmZmZmY4MDAxNmZlZQptdHZhbD0weGZmZmZhZjgwMDFiNzIwMjMK
-c2JpX21pc2FsaWduZWRfdl9sZF9lbXVsYXRvcjogaW5zbj0weDIwNWUwMDcgbWVwYz0weGZmZmZm
-ZmZmODAwMTZmZWUKbXR2YWw9MHhmZmZmYWY4MDAyMTEyMDIzCnNiaV9taXNhbGlnbmVkX3ZfbGRf
-ZW11bGF0b3I6IGluc249MHgyMDVlMDA3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmVlCm10dmFsPTB4
-ZmZmZmFmODAwMjE0ZTAyMwpzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxhdG9yOiBpbnNuPTB4MjA1
-ZTAwNyBtZXBjPTB4ZmZmZmZmZmY4MDAxNmZlZQptdHZhbD0weGZmZmZhZjgwMDIwMjYwMjMKc2Jp
-X21pc2FsaWduZWRfdl9zdF9lbXVsYXRvcjogaW5zbj0weDIwNTYwMjcgbWVwYz0weGZmZmZmZmZm
-ODAwMTZmZjIKbXR2YWw9MHhmZmZmYWY4MDAxYjcwMDIxCnNiaV9taXNhbGlnbmVkX3Zfc3RfZW11
-bGF0b3I6IGluc249MHgyMDU2MDI3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmYyCm10dmFsPTB4ZmZm
-ZmFmODAwMjExMDAyMQpzYmlfbWlzYWxpZ25lZF92X3N0X2VtdWxhdG9yOiBpbnNuPTB4MjA1NjAy
-NyBtZXBjPTB4ZmZmZmZmZmY4MDAxNmZmMgptdHZhbD0weGZmZmZhZjgwMDIxNGMwMjEKc2JpX21p
-c2FsaWduZWRfdl9zdF9lbXVsYXRvcjogaW5zbj0weDIwNTYwMjcgbWVwYz0weGZmZmZmZmZmODAw
-MTZmZjIKbXR2YWw9MHhmZmZmYWY4MDAyMDI0MDIxCnNiaV9taXNhbGlnbmVkX3ZfbGRfZW11bGF0
-b3I6IGluc249MHgyMDVlMDA3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmVlCm10dmFsPTB4ZmZmZmFm
-ODAwMWI3MjA0MwpzYmlfbWlzYWxpZ25lZF92X2xkX2VtdWxhdG9yOiBpbnNuPTB4MjA1ZTAwNyBt
-ZXBjPTB4ZmZmZmZmZmY4MDAxNmZlZQptdHZhbD0weGZmZmZhZjgwMDIxMTIwNDMKc2JpX21pc2Fs
-aWduZWRfdl9sZF9lbXVsYXRvcjogaW5zbj0weDIwNWUwMDcgbWVwYz0weGZmZmZmZmZmODAwMTZm
-ZWUKbXR2YWw9MHhmZmZmYWY4MDAyMTRlMDQzCnNiaV9taXNhbGlnbmVkX3ZfbGRfZW11bGF0b3I6
-IGluc249MHgyMDVlMDA3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmVlCm10dmFsPTB4ZmZmZmFmODAw
-MjAyNjA0MwpzYmlfbWlzYWxpZ25lZF92X3N0X2VtdWxhdG9yOiBpbnNuPTB4MjA1NjAyNyBtZXBj
-PTB4ZmZmZmZmZmY4MDAxNmZmMgptdHZhbD0weGZmZmZhZjgwMDFiNzAwNDEKc2JpX21pc2FsaWdu
-ZWRfdl9zdF9lbXVsYXRvcjogaW5zbj0weDIwNTYwMjcgbWVwYz0weGZmZmZmZmZmODAwMTZmZjIK
-bXR2YWw9MHhmZmZmYWY4MDAyMTEwMDQxCnNiaV9taXNhbGlnbmVkX3Zfc3RfZW11bGF0b3I6IGlu
-c249MHgyMDU2MDI3IG1lcGM9MHhmZmZmZmZmZjgwMDE2ZmYyCm10dmFsPTB4ZmZmZmFmODAwMjE0
-YzA0MQpzYmlfbWlzYWxpZ25lZF92X3N0X2VtdWxhdG9yOiBpbnNuPTB4MjA1NjAyNyBtZXBjPTB4
-ZmZmZmZmZmY4MDAxNmZmMgptdHZhbD0weGZmZmZhZjgwMDIwMjQwNDEKc2JpX21pc2FsaWduZWRf
-dl9s77+9WDBAbFMwQO+/vVgwQO+/vTBAZjgwMDFiNzJZMEBZMEBNMEAKCu+/vTBA77+977+977+9
-77+977+977+977+977+9ODAwMjExMjDvv70wQO+/ve+/ve+/ve+/ve+/ve+/ve+/ve+/vWVtdWxh
-dG9CMEBeYu+/vVowQAoKICAgICAgICAgICAgICAgICAgICAgICAgIO+/vTBAYu+/vTBAYFowQGjv
-v71N77+977+977+977+977+977+9CgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICDvv73vv73vv73vv73vv73vv70wQO+/vTbvv71aMEBiYl4KCiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSEwwQEIw
-QAoKCu+/vShbMEDvv71aMEAgICAgYe+/ve+/vTBAIgoKCiAgICAgICAgICAgICAgICDvv71i77+9
-fjBA77+977+9MEBhdG9yOiBpbnNuPTB4MjA1WzBAZkEwQAoKCiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIEIwQF4KCgogICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQTBAWzBAc2IKCgoKQnVtcGluZyB0aGUgc3Rh
-Y2sgc2l6ZSBzZWVtcyB0byBmaXggdGhpcy4gSWYgeW91IHdhbnQgbWUgdG8gdGVzdAphbnl0aGlu
-ZyBlbHNlLCBsZXQgbWUga25vdy4gTm90IHN1cmUgaWYgdGhlIHRlc3RzIGluIFBBVENIIDggYXJl
-CmFwcHJvcHJpYXRlIHRvIHRlc3Qgb24gdGhpcyBodyAoSSB0aGluayB0aGV5IGFyZSBmb3IgS1ZN
-IGd1ZXN0cwpvbmx5PykuCgpbMV0gLSBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1yaXNj
-di9ucnZ0NzRxbm9qYXViaXdqbzM3dW1zNGxuY2x1NDY2aG92d3JobXRiYWc2ZjV1aHJxbEBxNm1z
-b2Uyb3RvNGIvCgoKCgoKPiAgLSB0aW5zdCBzaG91bGQgYmUgemVybydlZCBvdXQgdG8gbm90IGNv
-bmZ1c2UgcHJldmlvdXMgbW9kZSB3aGVuCj4gICAgcmVkaXJlY3RpbmcgZmF1bHRzLCBvdGhlcndp
-c2UgdGhlIHZlY3RvciBpbnNuIGNhbiBiZSBtaXN0YWtlbgo+ICAgIGFzIGEgcmVndWxhciBsb2Fk
-L3N0b3JlLgo+ICAtIFZTIGluIHByZXZpb3VzIG1vZGUgbXVzdCBiZSBzZXQgZGlydHkgZm9yIGxv
-YWRzLgo+Cj4gVGhlc2Ugd2lsbCBiZSBhZGRyZXNzZWQgaW4gZm9sbG93LXVwIHBhdGNoZXMuCj4K
-PiBbMV0gaHR0cHM6Ly9naXRodWIuY29tL2dhbmJvaW5nL3FlbXUvdHJlZS9nYW5ib2luZy1taXNh
-bGlnbgo+IFsyXSBodHRwczovL2dpdGh1Yi5jb20vZ2FuYm9pbmcvcWVtdS90cmVlL2dhbmJvaW5n
-LW1pc2FsaWduLW5vLXRpbnN0Cj4gWzNdIGh0dHBzOi8vZ2l0aHViLmNvbS9nYW5ib2luZy9vcGVu
-c2JpL3RyZWUvZml4LWxkc3QtdjIKPiAtLS0KPiBDaGFuZ2VzIGluIHYyOgo+ICAtIEFkZHJlc3Nl
-ZCBBbnVwJ3MgY29tbWVudCBmb3IgUEFUQ0ggNSBpbiB2MQo+ICAtIFZhbGlkYXRlIGxvYWQvc3Rv
-cmUgb2Zmc2V0IGlzIDAgaW4gbWlzYWxpZ25lZCBmYXVsdHMgdy8gREVCVUcgYnVpbGQKPgo+IC0t
-LQo+IEJvIEdhbiAoOCk6Cj4gICBpbmNsdWRlOiBzYmk6IEFkZCBtb3JlIG1zdGF0dXMgYW5kIGlu
-c3RydWN0aW9uIGVuY29kaW5nCj4gICBpbmNsdWRlOiBzYmk6IEFkZCBzYmlfcmVnc19wcmV2X3hs
-ZW4KPiAgIGluY2x1ZGU6IHNiaTogQWRkIEdFVF9SRFNfTlVNL1NFVChfRlAzMi9fRlA2NClfUkRT
-IG1hY3Jvcwo+ICAgaW5jbHVkZTogc2JpOiBzZXQgRlMgZGlydHkgaW4gdnNzdGF0dXMgd2hlbiBW
-PTEKPiAgIGxpYjogc2JpOiBEbyBub3Qgb3ZlcnJpZGUgZW11bGF0b3IgY2FsbGJhY2sgZm9yIHZl
-Y3RvciBsb2FkL3N0b3JlCj4gICBNYWtlZmlsZTogZGVmaW5lIE9QRU5TQklfREVCVUcgaWYgREVC
-VUcgYnVpbGRzCj4gICBsaWI6IHNiaTogUmV3b3JrIGxvYWQvc3RvcmUgZW11bGF0b3IgaW5zdHJ1
-Y3Rpb24gZGVjb2RpbmcKPiAgIFtOT1QtRk9SLVVQU1RSRUFNXSBUZXN0IHByb2dyYW0gZm9yIG1p
-c2FsaWduZWQgbG9hZC9zdG9yZQo+Cj4gIE1ha2VmaWxlICAgICAgICAgICAgICAgICAgICAgfCAg
-IDEgKwo+ICBpbmNsdWRlL3NiaS9yaXNjdl9lbmNvZGluZy5oIHwgIDIxICstCj4gIGluY2x1ZGUv
-c2JpL3Jpc2N2X2ZwLmggICAgICAgfCAgMzAgKystCj4gIGluY2x1ZGUvc2JpL3NiaV9wbGF0Zm9y
-bS5oICAgfCAgOTIgKysrKystLQo+ICBpbmNsdWRlL3NiaS9zYmlfdHJhcC5oICAgICAgIHwgIDU5
-ICsrKysKPiAgaW5jbHVkZS9zYmkvc2JpX3RyYXBfbGRzdC5oICB8ICAgNCArLQo+ICBsaWIvc2Jp
-L3NiaV90cmFwX2xkc3QuYyAgICAgIHwgNTEwICsrKysrKysrKysrKysrKysrKysrKysrKy0tLS0t
-LS0tLS0tCj4gIGxpYi9zYmkvc2JpX3RyYXBfdl9sZHN0LmMgICAgfCAgMjUgKy0KPiAgdGVzdHMv
-bGRzdC5TICAgICAgICAgICAgICAgICB8IDEzNCArKysrKysrKysKPiAgdGVzdHMvbGRzdC5oICAg
-ICAgICAgICAgICAgICB8IDE3MCArKysrKysrKysrKysKPiAgdGVzdHMvdGVzdC1taXNhbGlnbmVk
-LWxkc3QuYyB8IDE1NCArKysrKysrKysrKwo+ICAxMSBmaWxlcyBjaGFuZ2VkLCA5OTQgaW5zZXJ0
-aW9ucygrKSwgMjA2IGRlbGV0aW9ucygtKQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgdGVzdHMvbGRz
-dC5TCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCB0ZXN0cy9sZHN0LmgKPiAgY3JlYXRlIG1vZGUgMTAw
-NjQ0IHRlc3RzL3Rlc3QtbWlzYWxpZ25lZC1sZHN0LmMKPgo+IC0tCj4gMi4zNC4xCj4KCi0tIApv
-cGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xp
-c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+Fix the following issues with misaligned vector load/store:
+
+a. Stack overflow: the mask[VLEN_MAX / 8] variable consumes 8K stack
+space, given VLEN_MAX=65536, overflowing the default-sized stack.
+There's no need to fetch the whole mask in one go, instead, make it
+on-demand. Use a 128-byte mask as local buffer to hold the sliding
+window of mask. For rvv load, this is allowed -- from the spec:
+
+  "The destination vector register group for a masked vector
+   instruction cannot overlap the source mask register (v0),
+   unless the destination vector register is being written with
+   a mask value (e.g., compares) or the scalar result of a reduction"
+
+We don't need to worry about the mask getting overwritten.
+
+b. Maintain the value of vstart upon abort (uptrap) to avoid duplicate
+work. After fault resolution, the instruction can restart from the
+faulting vstart. For Fault-Only-First loads, reset vstart to 0, as
+previously done so, to conform to spec.
+
+c. Explicitly set VS dirty in VSSTATUS with SET_VS_DIRTY() if faulting
+from V=1, and if any vector register, including vstart/vl/vtype, gets
+changed in the handler. It can add 1 unnecessary op to set VS dirty
+in M/SSTATUS (not VSSTATUS), where the HW already did, but for code
+simplicity, do it anyway. The overhead should be negligible.
+
+Signed-off-by: Bo Gan <ganboing@gmail.com>
+---
+ include/sbi/sbi_vector.h  |   6 +++
+ lib/sbi/sbi_trap_v_ldst.c | 100 +++++++++++++++++++++++++-------------
+ 2 files changed, 73 insertions(+), 33 deletions(-)
+
+diff --git a/include/sbi/sbi_vector.h b/include/sbi/sbi_vector.h
+index f00184f0..c14f3174 100644
+--- a/include/sbi/sbi_vector.h
++++ b/include/sbi/sbi_vector.h
+@@ -20,6 +20,12 @@ struct sbi_vector_context {
+ 	uint8_t vregs[];
+ };
+ 
++#define SET_VS_DIRTY(regs) do {				\
++	if (sbi_regs_from_virt(regs))			\
++		csr_set(CSR_VSSTATUS, MSTATUS_VS);	\
++	regs->mstatus |= MSTATUS_VS;			\
++} while(0)
++
+ #ifdef OPENSBI_CC_SUPPORT_VECTOR
+ void sbi_vector_save(struct sbi_vector_context *dst);
+ void sbi_vector_restore(const struct sbi_vector_context *src);
+diff --git a/lib/sbi/sbi_trap_v_ldst.c b/lib/sbi/sbi_trap_v_ldst.c
+index 02f7d6cc..8138b0b2 100644
+--- a/lib/sbi/sbi_trap_v_ldst.c
++++ b/lib/sbi/sbi_trap_v_ldst.c
+@@ -20,7 +20,7 @@
+ 
+ #ifdef OPENSBI_CC_SUPPORT_VECTOR
+ 
+-#define VLEN_MAX 65536
++#define MASK_BUFFLEN 1024
+ 
+ static inline void set_vreg(ulong vlenb, ulong which,
+ 			    ulong pos, ulong size, const uint8_t *bytes)
+@@ -168,7 +168,7 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 	ulong vl = csr_read(CSR_VL);
+ 	ulong vtype = csr_read(CSR_VTYPE);
+ 	ulong vlenb = csr_read(CSR_VLENB);
+-	ulong vstart = csr_read(CSR_VSTART);
++	ulong orig_vstart = vstart = csr_read(CSR_VSTART);
+ 	ulong base = GET_RS1(insn, regs);
+ 	ulong stride = GET_RS2(insn, regs);
+ 	ulong vd = GET_VD(insn);
+@@ -178,8 +178,9 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 	ulong vlmul = GET_VLMUL(vtype);
+ 	bool illegal = GET_MEW(insn);
+ 	bool masked = IS_MASKED(insn);
+-	uint8_t mask[VLEN_MAX / 8];
++	uint8_t mask[MASK_BUFFLEN / 8];
+ 	uint8_t bytes[8 * sizeof(uint64_t)];
++	ulong mask_len = MASK_BUFFLEN < vlenb * 8 ? MASK_BUFFLEN : vlenb * 8;
+ 	ulong len = GET_LEN(view);
+ 	ulong nf = GET_NF(insn);
+ 	ulong vemul = GET_VEMUL(vlmul, view, vsew);
+@@ -200,7 +201,7 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 		stride = nf * len;
+ 	}
+ 
+-	if (illegal || vlenb > VLEN_MAX / 8) {
++	if (illegal) {
+ 		struct sbi_trap_info trap = {
+ 			uptrap.cause = CAUSE_ILLEGAL_INSTRUCTION,
+ 			uptrap.tval = insn,
+@@ -208,12 +209,16 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 		return sbi_trap_redirect(regs, &trap);
+ 	}
+ 
+-	if (masked)
+-		get_vreg(vlenb, 0, 0, vlenb, mask);
+-
+ 	do {
+-		if (masked && (~mask[vstart / 8] & BIT(vstart % 8)))
+-			continue;
++		if (masked) {
++			if (vstart == orig_vstart || vstart % mask_len == 0)
++				/* Fetch a mask_len chunk of mask */
++				get_vreg(vlenb, 0, vstart / mask_len * mask_len,
++					 mask_len, mask);
++
++			if (~mask[vstart % mask_len / 8] & BIT(vstart % 8))
++				continue;
++		}
+ 
+ 		/* compute element address */
+ 		ulong addr = base + vstart * stride;
+@@ -232,15 +237,21 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 			sbi_load_loop(bytes + seg * len,
+ 				       addr + seg * len, len, &uptrap);
+ 
+-			if (uptrap.cause) {
+-				if (IS_FAULT_ONLY_FIRST_LOAD(insn) && vstart != 0) {
+-					vl = vstart;
+-					break;
+-				}
+-				vsetvl(vl, vtype);
+-				sbi_misaligned_v_tinst_fixup(&uptrap);
+-				return sbi_trap_redirect(regs, &uptrap);
++			if (!uptrap.cause)
++				continue;
++
++			if (IS_FAULT_ONLY_FIRST_LOAD(insn) && vstart != 0) {
++				vl = vstart;
++				goto done;
+ 			}
++
++			vsetvl(vl, vtype);
++			csr_write(CSR_VSTART, vstart);
++			/* Don't forget to set dirty if vstart has changed */
++			if (vstart != orig_vstart)
++				SET_VS_DIRTY(regs);
++			sbi_misaligned_v_tinst_fixup(&uptrap);
++			return sbi_trap_redirect(regs, &uptrap);
+ 		}
+ 
+ 		/* write load data to regfile */
+@@ -249,8 +260,15 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 				 len, &bytes[seg * len]);
+ 	} while (++vstart < vl);
+ 
++done:
+ 	/* restore clobbered vl/vtype */
+-	vsetvl(vl, vtype);
++	vsetvl(vl, vtype); // VSTART resets to 0
++
++	/*
++	 * At least 1 element is processed, or vl is changed above in
++	 * the FAULT_ONLY_FIRST_LOAD path, thus set dirty.
++	 */
++	SET_VS_DIRTY(regs);
+ 
+ 	/* Return a >0 value for the caller to advance mepc */
+ 	return 1;
+@@ -271,10 +289,12 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 	ulong view = GET_VIEW(insn);
+ 	ulong vsew = GET_VSEW(vtype);
+ 	ulong vlmul = GET_VLMUL(vtype);
++	bool first = true;
+ 	bool illegal = GET_MEW(insn);
+ 	bool masked = IS_MASKED(insn);
+-	uint8_t mask[VLEN_MAX / 8];
++	uint8_t mask[MASK_BUFFLEN / 8];
+ 	uint8_t bytes[8 * sizeof(uint64_t)];
++	ulong mask_len = MASK_BUFFLEN < vlenb * 8 ? MASK_BUFFLEN : vlenb * 8;
+ 	ulong len = GET_LEN(view);
+ 	ulong nf = GET_NF(insn);
+ 	ulong vemul = GET_VEMUL(vlmul, view, vsew);
+@@ -295,7 +315,7 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 		stride = nf * len;
+ 	}
+ 
+-	if (illegal || vlenb > VLEN_MAX / 8) {
++	if (illegal) {
+ 		struct sbi_trap_info trap = {
+ 			uptrap.cause = CAUSE_ILLEGAL_INSTRUCTION,
+ 			uptrap.tval = insn,
+@@ -303,12 +323,16 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 		return sbi_trap_redirect(regs, &trap);
+ 	}
+ 
+-	if (masked)
+-		get_vreg(vlenb, 0, 0, vlenb, mask);
+-
+ 	do {
+-		if (masked && (~mask[vstart / 8] & BIT(vstart % 8)))
+-			continue;
++		if (masked) {
++			if (first || vstart % mask_len == 0)
++				/* Fetch a mask_len chunk of mask */
++				get_vreg(vlenb, 0, vstart / mask_len * mask_len,
++					 mask_len, mask);
++
++			if (~mask[vstart % mask_len / 8] & BIT(vstart % 8))
++				continue;
++		}
+ 
+ 		/* compute element address */
+ 		ulong addr = base + vstart * stride;
+@@ -325,23 +349,33 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 			get_vreg(vlenb, vd + seg * emul, vstart * len,
+ 				 len, &bytes[seg * len]);
+ 
+-		csr_write(CSR_VSTART, vstart);
+-
+ 		/* write store data to memory */
+ 		for (ulong seg = 0; seg < nf; seg++) {
+ 			sbi_store_loop(bytes + seg * len,
+ 					addr + seg * len, len, &uptrap);
+ 
+-			if (uptrap.cause) {
+-				vsetvl(vl, vtype);
+-				sbi_misaligned_v_tinst_fixup(&uptrap);
+-				return sbi_trap_redirect(regs, &uptrap);
+-			}
++			if (!uptrap.cause)
++				continue;
++
++			vsetvl(vl, vtype);
++			csr_write(CSR_VSTART, vstart);
++			/* Don't forget to set dirty if vstart has changed */
++			if (vstart != orig_vstart)
++				SET_VS_DIRTY(regs);
++			sbi_misaligned_v_tinst_fixup(&uptrap);
++			return sbi_trap_redirect(regs, &uptrap);
+ 		}
+ 	} while (++vstart < vl);
+ 
+ 	/* restore clobbered vl/vtype */
+-	vsetvl(vl, vtype);
++	vsetvl(vl, vtype); // VSTART resets to 0
++
++	/*
++	 * No need to set dirty for memory store, but as VSTART resets to
++	 * 0 above, need to set dirty if it's originally not 0.
++	 */
++	if (orig_vstart != 0)
++		SET_VS_DIRTY(regs);
+ 
+ 	/* Return a >0 value for the caller to advance mepc */
+ 	return 1;
+-- 
+2.34.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
