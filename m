@@ -4,85 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9D7EDCD8CB9
-	for <opensbi@archiver.kernel.org>; Tue,  9 Jun 2026 06:02:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B0A8DCD98C3
+	for <opensbi@archiver.kernel.org>; Tue,  9 Jun 2026 06:02:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=XdvaDcKZ5rZdt/HpQAe3aWeGyRbEIqWnGPyktoBD5mM=; b=q3NjHO7wWwaDNa
-	4v+D17bP5qJSz7pZgCRZ1ppDc0EBfSH8O/GWzHaKEVVps1rZK0dH7DzQZv1o/u3hz+j0yLolh0/t6
-	fAU3Ca4dA1ul2uTgh0UzqsonUsn2LD6/WULPpyiQOOKP1Sbfeveu7tHpOT0vkf0xYQ54BbELKQzMv
-	CVusgIAvmwcP0O6gfipbMoDFvULLQmg+r5BoRAGjF21MhVLwLmulqS95b+PD2d9yN2T8dGDAsKglR
-	09h2r+8oBVYE7Afm1ts0f01TTbV5ISlDRxDKOTteubNIeBG8uQY77QkPZw3bTOmiDCHvYWqZy0o5R
-	NFBtF49jKVv+zgAGckfw==;
+	List-Owner; bh=MS0A9rautxgsB6rUEcTb+CA5Zb4ee4ZQFrQHiiM44Zk=; b=IaLbXlsQKmPq4M
+	1RoztLEeNJDhbkI29EW7lL0YfNwRDpQo9jMmSHazn2aBpz5aqPDhsU9Rp9aLrg29CZDXJpPjougYg
+	aiCetiwXjA2jnjUqnq9PJEnoEVFj6Kq089TrWnSuqFUEk5K9EGs9EDEiZwf92RkwhgGuuq7CYqEtp
+	UKn/LQQLGC4VX3cvU+IBZQyWngMgwHVwWkKc70EfFT3bttQknr2ity79A8fm6k3tRtlk7D2u+FQ9L
+	et8ZFVTnqqJuDHOmZDEm/cRBpyPlyLeOSqlkfxptSgnitC7PvQ+cfEI6DAzo3yhpa6DX4C8XKVTE+
+	jt3FLOV15UnZOXVnsnOg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wWpXv-00000004nOZ-3bdc;
-	Tue, 09 Jun 2026 06:02:43 +0000
+	id 1wWpXx-00000004nRN-1cxH;
+	Tue, 09 Jun 2026 06:02:45 +0000
 Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wWpXt-00000004nJc-1Q8M
+	id 1wWpXt-00000004nKA-3BYB
 	for opensbi@bombadil.infradead.org;
 	Tue, 09 Jun 2026 06:02:42 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
 	:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=ArXdflsMbMAPz9wxUpor3EI3GcJx5CKRyDkJ23fIuYQ=; b=gVQuYE1cXEYeRZ0G89jpjBsbnt
-	llRyc/L4ce3u9G+zActnAuoj96bpZo6s6G3xAsFMMkw41dtN+RN5n1/qhAyrhEzzWIuQyzrzd7YMw
-	Cu5tXGiNMUnfrEZyiV40ae1E4iF2ElTcySS7GX/cOFZhdPiPoJL/xYB7U0WGAGHVsuwze/D86F1hq
-	nfaD3ni4IlZXFt7rENCQzsMzqXuRKOm5NghgNqXAiCYTE6nz5QIpW3Q22+iBLdvcm+Q5aopx4HGEV
-	wjgC7ltcnUt1E8zY+nteOv22OcvT82AyxrUB4eoKF5OyVl3/ryc0L6rptlVjJ6HxJ4AWMayWNOoei
-	kCNP040Q==;
-Received: from mail-pl1-x631.google.com ([2607:f8b0:4864:20::631])
+	bh=lV9Avn76RrOZmEgzOLlY219AbsDRjXBn/+SIpTsZc74=; b=U1b5oto1npRsrVOOvQuyzRqUIC
+	l8QfesnSczkK/MTUfuLXK42+YLEtJWM6Bkr/ySt4cm0/waHw7eNqyXDIaMdqxTbuRpvHDjXMuMLfj
+	Um1KaozDX8JKa8gyp7evh4VM7VA6sbgQn2ompABkH2AHGHCtUL0Nm9MfRlUAFDheI8VofoeVwR0jX
+	8uI9Y5D4SybTZKh602jetZFXbvhX0e4byDf2QVB7vW2U0qbkGei67Pv9OHcrsnJkwilItdeokaqwq
+	PWVK7rvk69DimF21+Csww7gXQeLdtReUB38XMscdCTpi5TAi0Utv+wEvw4D14/88uBKbUfxh2akpr
+	4brcGwBg==;
+Received: from mail-pl1-x629.google.com ([2607:f8b0:4864:20::629])
 	by desiato.infradead.org with esmtps (Exim 4.99.2 #2 (Red Hat Linux))
-	id 1wWpXp-0000000203C-3fMU
+	id 1wWpXn-0000000202V-0wYS
 	for opensbi@lists.infradead.org;
 	Tue, 09 Jun 2026 06:02:40 +0000
-Received: by mail-pl1-x631.google.com with SMTP id d9443c01a7336-2c0bd02d97eso57979205ad.2
-        for <opensbi@lists.infradead.org>; Mon, 08 Jun 2026 23:02:37 -0700 (PDT)
+Received: by mail-pl1-x629.google.com with SMTP id d9443c01a7336-2bf1f074a12so53149965ad.0
+        for <opensbi@lists.infradead.org>; Mon, 08 Jun 2026 23:02:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780984956; x=1781589756; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1780984953; x=1781589753; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ArXdflsMbMAPz9wxUpor3EI3GcJx5CKRyDkJ23fIuYQ=;
-        b=CcIW68YRPMs0Wq1iGF08H21XQuBtB2CKa7gc4ggRqlDQKBuucsWP8KXQLsuWJZkA/x
-         GHDFfoExGPTtp2w5GY50T9x0dF90WPy/OCadrvJ1yGTHELKF+/ie6vHP8Jn78/vvbCJC
-         A7bBl3fUcMT9wKcaLHH65LEuK+99uSu1xK4zljC43TIPTjRpXeak/ZZuHh6PSHIEI9QT
-         IscqJsloVMFZCwmo6V7ifDwC90gqHdlu/BbQzM9uf4/9rLkBvTfnsfEj8tnfqutcprPo
-         okHtM+fYpt+xv+m4hN9V6lGN7k1J9ErjtQzbQyVMFmYBPxYHsqD/Z0ZHLMJkXe7BLBcb
-         3img==
+        bh=lV9Avn76RrOZmEgzOLlY219AbsDRjXBn/+SIpTsZc74=;
+        b=Gs0YKicYGTVXZntPGoQ39kQz16+pICENWLJWvpxvNPzBwiKlbe2ud+hxPI/+nZVj8r
+         H1j7naRCHxHXA1oiGa8JClCqjgjFrtX38ag9NXp14UrtqUU93GN+6yqRWRf/awdEDGpZ
+         bo87nE9qIr6ZBBPdOrwWE1uRcbY8gZaI+zOwskfotof6uydD0sG2SUnvW0ShNYpCoHFx
+         W1lvs9tIU7dsWDlftkxvr9m4yQypZ27gdl75r8eMCurU16EbOdyw1Lkth8UkTN9LNXUi
+         s2NUEYlUgQVQYMFUQgTqVdiLYVJWtGqujDaxjGr05XzUZNnDBichGWN/gl7YAnVawmoo
+         voYQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780984956; x=1781589756;
+        d=1e100.net; s=20251104; t=1780984953; x=1781589753;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=ArXdflsMbMAPz9wxUpor3EI3GcJx5CKRyDkJ23fIuYQ=;
-        b=KWt6CxPMdJwwCyyNsaYc9yMtUT5P9TCV+u35fMjkemMULtwKydeGZ5jWAYQ1U7GzxU
-         rPuyLEszpO9OQ+FAhViGeca48MQNQ5q7IR44+hnapXSDYcYydingODsFIGEKE/Ce+kB0
-         4kojxTV7QAYEMUa1KDZSR2EjpH9zdII9q1tUcjn0s4LqKRAmRNUisGT/CnuPFoGF7jCM
-         ocra+zTPmScmQWe144tpS3k9QhH/i8ZLqDTiQY3AA/xZIy/O0a0ok9nE1Jp4x00Vb3GZ
-         GGFYq9Bv+yV69EiMbywXY9/8KjbLi6BcRH96OpN6XjcJDVhpyUalCx5LR6JZvmogymmZ
-         OUTg==
-X-Gm-Message-State: AOJu0YzvB/XOIitAPzC5Nf6HlrMN42UuFMUy6iED+hN8AZ/y4HI/WAOg
-	eWOvytanDqERqHZA2ZHV3B+9y8jYzKiqFsTtkyQIIOfFsjrnVji7R8Jz4UyFgA==
-X-Gm-Gg: Acq92OEsNaw9T/HaYl28Ijn2LJWllbP4jwp6D2UeuMXA2Yo24hjwl+GSRSzxmkt7KMP
-	E1+tnMUyRzC8e1hD4AanI3uwmHygFjUinvToEibHKOHhwre41NlB7/z6F+p9XTARPwUeOnXBLje
-	T7PJraCdop2iEPwWk/NV9ZLtw+hV2dj950zb/cgx/NOFp9KiWZELaj63wL+zxrK/hhjruy9o2pz
-	b3k5AMcAYgIO3mKA5OdqIfLQl3MccpV7wwS6CHZUfz8cUUaq6u/pqwTCAfHUgEOIegwSUWXLm4Z
-	Mlh1f+dg/99r2vTnOD3H/ZVMgkuUv4bj6g0D1fB66AoNk9eaDFaBiyPsd73LTYiQ9V8jvz4+Ni3
-	7kF4ftbGmETAkfF/+Jox0KkeqCaOUOz9aE5Y9bbX235wnijDf9Yv0t+oe3vQiUnLDxxEpeBf5VZ
-	duvThoe2OKHRMysdZarXb+CLXk8cno5+ZvFHA=
-X-Received: by 2002:a17:902:ef08:b0:2c1:5135:39f3 with SMTP id d9443c01a7336-2c1e810d9famr230521745ad.11.1780984955539;
-        Mon, 08 Jun 2026 23:02:35 -0700 (PDT)
+        bh=lV9Avn76RrOZmEgzOLlY219AbsDRjXBn/+SIpTsZc74=;
+        b=PcQ1xsfME2Rh2fn/BKN3j/4eXlpJaa7kcal9WsgmUixVLAfdFSL2nsRYfvi0RRKqsY
+         QdxYA02TnTNEjo485vymqz4nTIh0UvZtwYlLaw3eTI1I4LWhYIW1oiIbg+e10x897eTH
+         zqgwS9idqvW2xyP9WUdlQanPWO5/x+5NHw5PvoYBXhhWBXYWOpMnsfhdEzEFCBr8qHG9
+         navUo550GyCF8UCe9atN38iUd0+AfkWxKM1DV12csK1swQCECuLVA/rAtI47MJL9i9/p
+         WUiKDSHWAGVyIolqLdz9a+1ELB7TTITRvD282xN5IHPpAPqDtC7UNXDVQxxaxLyItreD
+         B4/w==
+X-Gm-Message-State: AOJu0YzOcDy72VE1bQzM/Z7PA79Nn9uQn+kKTtZPI7wMA7ktWM/fVTdz
+	wSWnEOSYuvbhSNJ1ZxDH9MeemyQN0NX1sAdortccwvClKrR2vxcojS4TMTNMQw==
+X-Gm-Gg: Acq92OFtrVHFInhABvuC5oUbNREv6WmPieLONJ+m7HkJNFF4xzC7Ve0TpI+gPKknoYa
+	tKyaULgHTnHvAUIukxDsGguANOqRmsWoUlnqEV9X+G2ce1iHeaodLW6s0bBH6StlxZCPnARoPly
+	tYu/B1GmDaekXJCa9NJx0+v6HBYcEVbZydnQgQizXoP9T72kVxoiutOQNd4sOXFhqRLP6wLFyVt
+	N7fqr8TgcyC71GBi2VTqf2gL/96DSj2fPlAIUBzkKxtGZIa+7dpv7mw1/0GEC7E0s1AiSxdq9mp
+	DicL76CwLGWllrXPo7t8C8uMAMVwQ/qsWesDNeP2XclAtcXTFE8tlX+p8S3Q05fFKqAfLTzepV1
+	HCTcP1IY/qxwrNgJlIgOOIHTMpo/fet7CnvdyI/0sHMbsJzkNPc3icbJXD10CrsFkiJYj01gTz/
+	O+9f5mhhhI8LJLBD3rV0UiC9FJobY/9wHWjaDyr4ld+UCYTA==
+X-Received: by 2002:a17:903:b84:b0:2bd:c2ec:eec9 with SMTP id d9443c01a7336-2c1e833a348mr216902885ad.18.1780984953051;
+        Mon, 08 Jun 2026 23:02:33 -0700 (PDT)
 Received: from m91p.airy.home ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c164f9ed6csm202721105ad.31.2026.06.08.23.02.34
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c164f9ed6csm202721105ad.31.2026.06.08.23.02.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Jun 2026 23:02:34 -0700 (PDT)
+        Mon, 08 Jun 2026 23:02:32 -0700 (PDT)
 From: Bo Gan <ganboing@gmail.com>
 To: opensbi@lists.infradead.org,
 	wangruikang@iscas.ac.cn,
@@ -91,16 +91,16 @@ To: opensbi@lists.infradead.org,
 Cc: cleger@rivosinc.com,
 	pjw@kernel.org,
 	asrinivasan@oss.tenstorrent.com
-Subject: [PATCH v2 4/4] lib: sbi: Rework misaligned vector load/store
-Date: Mon,  8 Jun 2026 23:00:24 -0700
-Message-Id: <20260609060024.706-5-ganboing@gmail.com>
+Subject: [PATCH v2 2/4] lib: sbi: Rework and split sbi_misaligned(_v)_tinst_fixup
+Date: Mon,  8 Jun 2026 23:00:22 -0700
+Message-Id: <20260609060024.706-3-ganboing@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260609060024.706-1-ganboing@gmail.com>
 References: <20260609060024.706-1-ganboing@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260609_070238_320411_7C75CF5E 
-X-CRM114-Status: GOOD (  19.91  )
+X-CRM114-CacheID: sfid-20260609_070235_437881_FDA5CAC1 
+X-CRM114-Status: GOOD (  20.14  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -117,264 +117,173 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Fix the following issues with misaligned vector load/store:
+The load/store address offset between the uptrap and the orig_trap
+can be derived by orig_trap->tval - uptrap->tval, thus refactor
+the function prototype for simplicity.
 
-a. Stack overflow: the mask[VLEN_MAX / 8] variable consumes 8K stack
-space, given VLEN_MAX=65536, overflowing the default-sized stack.
-There's no need to fetch the whole mask in one go, instead, make it
-on-demand. Use a 128-byte mask as local buffer to hold the sliding
-window of mask. For rvv load, this is allowed -- from the spec:
-
-  "The destination vector register group for a masked vector
-   instruction cannot overlap the source mask register (v0),
-   unless the destination vector register is being written with
-   a mask value (e.g., compares) or the scalar result of a reduction"
-
-We don't need to worry about the mask getting overwritten.
-
-b. Maintain the value of vstart upon abort (uptrap) to avoid duplicate
-work. After fault resolution, the instruction can restart from the
-faulting vstart. For Fault-Only-First loads, reset vstart to 0, as
-previously done so, to conform to spec.
-
-c. Explicitly set VS dirty in VSSTATUS with SET_VS_DIRTY() if faulting
-from V=1, and if any vector register, including vstart/vl/vtype, gets
-changed in the handler. It can add 1 unnecessary op to set VS dirty
-in M/SSTATUS (not VSSTATUS), where the HW already did, but for code
-simplicity, do it anyway. The overhead should be negligible.
+For vector load, sbi_misaligned_v_tinst_fixup is introduced. There's
+no transformed instruction for vector load/store, so null out tinst
+if the fault is not a guest-page fault.
 
 Signed-off-by: Bo Gan <ganboing@gmail.com>
 ---
- include/sbi/sbi_vector.h  |   6 +++
- lib/sbi/sbi_trap_v_ldst.c | 103 +++++++++++++++++++++++++-------------
- 2 files changed, 74 insertions(+), 35 deletions(-)
+ include/sbi/sbi_trap_ldst.h |  3 ---
+ lib/sbi/sbi_trap_ldst.c     | 46 +++++++++++++++++++++++++++----------
+ lib/sbi/sbi_trap_v_ldst.c   | 31 ++++++++++++++++++++-----
+ 3 files changed, 59 insertions(+), 21 deletions(-)
 
-diff --git a/include/sbi/sbi_vector.h b/include/sbi/sbi_vector.h
-index f00184f0..c14f3174 100644
---- a/include/sbi/sbi_vector.h
-+++ b/include/sbi/sbi_vector.h
-@@ -20,6 +20,12 @@ struct sbi_vector_context {
- 	uint8_t vregs[];
- };
+diff --git a/include/sbi/sbi_trap_ldst.h b/include/sbi/sbi_trap_ldst.h
+index 33c348c5..30228d24 100644
+--- a/include/sbi/sbi_trap_ldst.h
++++ b/include/sbi/sbi_trap_ldst.h
+@@ -28,9 +28,6 @@ int sbi_load_access_handler(struct sbi_trap_context *tcntx);
  
-+#define SET_VS_DIRTY(regs) do {				\
-+	if (sbi_regs_from_virt(regs))			\
-+		csr_set(CSR_VSSTATUS, MSTATUS_VS);	\
-+	regs->mstatus |= MSTATUS_VS;			\
-+} while(0)
+ int sbi_store_access_handler(struct sbi_trap_context *tcntx);
+ 
+-ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+-				 ulong addr_offset);
+-
+ int sbi_misaligned_v_ld_emulator(ulong insn,
+ 				 struct sbi_trap_context *tcntx);
+ 
+diff --git a/lib/sbi/sbi_trap_ldst.c b/lib/sbi/sbi_trap_ldst.c
+index c1392251..5f7de662 100644
+--- a/lib/sbi/sbi_trap_ldst.c
++++ b/lib/sbi/sbi_trap_ldst.c
+@@ -32,16 +32,40 @@ typedef int (*sbi_trap_st_emulator)(ulong insn, int wlen, ulong waddr,
+ 				    union sbi_ldst_data in_val,
+ 				    struct sbi_trap_context *tcntx);
+ 
+-ulong sbi_misaligned_tinst_fixup(ulong orig_tinst, ulong new_tinst,
+-					ulong addr_offset)
++/**
++ * Handling of misaligned fault is done by a collection of smaller, but
++ * aligned load/store(s). Another fault (load/store, page fault...) can
++ * arise from any of them, then the handling gets aborted. We must fixup
++ * the tinst to pretend the fault was rised from the original insn.
++ * Specifically, fixup the offset field using the tval diff between the
++ * new trap and the original one (if required).
++ */
++static inline void sbi_misaligned_tinst_fixup(
++			const struct sbi_trap_info *orig_trap,
++			      struct sbi_trap_info *uptrap)
+ {
+-	if (new_tinst == INSN_PSEUDO_VS_LOAD ||
+-	    new_tinst == INSN_PSEUDO_VS_STORE)
+-		return new_tinst;
+-	else if (orig_tinst == 0)
+-		return 0UL;
++	ulong offset = uptrap->tval - orig_trap->tval;
 +
- #ifdef OPENSBI_CC_SUPPORT_VECTOR
- void sbi_vector_save(struct sbi_vector_context *dst);
- void sbi_vector_restore(const struct sbi_vector_context *src);
++	/*
++	 * The function is called in code path for handling a scalar
++	 * load/store misaligned fault, thus the new uptrap can't have
++	 * custom value of tinst
++	 */
++	if (uptrap->tinst == INSN_PSEUDO_VS_LOAD ||
++	    uptrap->tinst == INSN_PSEUDO_VS_STORE)
++		/* Use uptrap as-is for guest-page faults */
++		return;
++	/*
++	 * Only fixup if orig tinst is valid. Otherwise, discard the
++	 * new tinst to be on the safe side. Never use new tinst as-is!
++	 * It's load/store width surely mismatches the original width.
++	 * For vector, discard it regardless. It doesn't make sense to
++	 * have a transformed tinst
++	 */
++	else if (orig_trap->tinst == 0)
++		uptrap->tinst = 0;
+ 	else
+-		return orig_tinst | (addr_offset << SH_RS1);
++		uptrap->tinst = orig_trap->tinst | (offset << SH_RS1);
+ }
+ 
+ static inline bool sbi_trap_tinst_valid(ulong tinst)
+@@ -464,8 +488,7 @@ static int sbi_misaligned_ld_emulator(ulong insn, int rlen, ulong addr,
+ 		out_val->data_bytes[i] =
+ 			sbi_load_u8((void *)(addr + i), &uptrap);
+ 		if (uptrap.cause) {
+-			uptrap.tinst = sbi_misaligned_tinst_fixup(
+-				orig_trap->tinst, uptrap.tinst, i);
++			sbi_misaligned_tinst_fixup(orig_trap, &uptrap);
+ 			return sbi_trap_redirect(regs, &uptrap);
+ 		}
+ 	}
+@@ -501,8 +524,7 @@ static int sbi_misaligned_st_emulator(ulong insn, int wlen, ulong addr,
+ 		sbi_store_u8((void *)(addr + i),
+ 			     in_val.data_bytes[i], &uptrap);
+ 		if (uptrap.cause) {
+-			uptrap.tinst = sbi_misaligned_tinst_fixup(
+-				orig_trap->tinst, uptrap.tinst, i);
++			sbi_misaligned_tinst_fixup(orig_trap, &uptrap);
+ 			return sbi_trap_redirect(regs, &uptrap);
+ 		}
+ 	}
 diff --git a/lib/sbi/sbi_trap_v_ldst.c b/lib/sbi/sbi_trap_v_ldst.c
-index 02f7d6cc..0f29dcf9 100644
+index 7d2e1409..e16e3def 100644
 --- a/lib/sbi/sbi_trap_v_ldst.c
 +++ b/lib/sbi/sbi_trap_v_ldst.c
-@@ -16,11 +16,11 @@
- #include <sbi/sbi_trap_ldst.h>
- #include <sbi/sbi_trap.h>
- #include <sbi/sbi_unpriv.h>
--#include <sbi/sbi_trap.h>
-+#include <sbi/sbi_vector.h>
+@@ -138,9 +138,31 @@ static inline void vsetvl(ulong vl, ulong vtype)
+ 			:: "r" (vl), "r" (vtype));
+ }
  
- #ifdef OPENSBI_CC_SUPPORT_VECTOR
- 
--#define VLEN_MAX 65536
-+#define MASK_BUFFLEN 1024
- 
- static inline void set_vreg(ulong vlenb, ulong which,
- 			    ulong pos, ulong size, const uint8_t *bytes)
-@@ -168,7 +168,7 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
++/**
++ * Handling of misaligned fault is done by a collection of smaller, but
++ * aligned load/store(s). Another fault (load/store, page fault...) can
++ * arise from any of them, then the handling gets aborted. We must fixup
++ * the tinst to pretend the fault was rised from the original insn. For
++ * vector insn, simply null out tinst if it's not a guest-page fault, as
++ * there's no transformed insn for vector load/store
++ */
++static inline void sbi_misaligned_v_tinst_fixup(struct sbi_trap_info *uptrap)
++{
++	/*
++	 * The function is called in code path for handling a vector
++	 * load/store misaligned fault, thus the new uptrap can't have
++	 * custom value of tinst
++	 */
++	if (uptrap->tinst == INSN_PSEUDO_VS_LOAD ||
++	    uptrap->tinst == INSN_PSEUDO_VS_STORE)
++		/* Use uptrap as-is for guest-page faults */
++		return;
++
++	uptrap->tinst = 0;
++}
++
+ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ {
+-	const struct sbi_trap_info *orig_trap = &tcntx->trap;
+ 	struct sbi_trap_regs *regs = &tcntx->regs;
+ 	struct sbi_trap_info uptrap;
  	ulong vl = csr_read(CSR_VL);
- 	ulong vtype = csr_read(CSR_VTYPE);
- 	ulong vlenb = csr_read(CSR_VLENB);
--	ulong vstart = csr_read(CSR_VSTART);
-+	ulong vstart = csr_read(CSR_VSTART), orig_vstart = vstart;
- 	ulong base = GET_RS1(insn, regs);
- 	ulong stride = GET_RS2(insn, regs);
- 	ulong vd = GET_VD(insn);
-@@ -178,8 +178,9 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 	ulong vlmul = GET_VLMUL(vtype);
- 	bool illegal = GET_MEW(insn);
- 	bool masked = IS_MASKED(insn);
--	uint8_t mask[VLEN_MAX / 8];
-+	uint8_t mask[MASK_BUFFLEN / 8];
- 	uint8_t bytes[8 * sizeof(uint64_t)];
-+	ulong mask_len = MASK_BUFFLEN < vlenb * 8 ? MASK_BUFFLEN : vlenb * 8;
- 	ulong len = GET_LEN(view);
- 	ulong nf = GET_NF(insn);
- 	ulong vemul = GET_VEMUL(vlmul, view, vsew);
-@@ -200,7 +201,7 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 		stride = nf * len;
- 	}
- 
--	if (illegal || vlenb > VLEN_MAX / 8) {
-+	if (illegal) {
- 		struct sbi_trap_info trap = {
- 			uptrap.cause = CAUSE_ILLEGAL_INSTRUCTION,
- 			uptrap.tval = insn,
-@@ -208,12 +209,16 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 		return sbi_trap_redirect(regs, &trap);
- 	}
- 
--	if (masked)
--		get_vreg(vlenb, 0, 0, vlenb, mask);
--
- 	do {
--		if (masked && (~mask[vstart / 8] & BIT(vstart % 8)))
--			continue;
-+		if (masked) {
-+			if (vstart == orig_vstart || vstart % mask_len == 0)
-+				/* Fetch a mask_len chunk of mask */
-+				get_vreg(vlenb, 0, vstart / mask_len * mask_len,
-+					 mask_len, mask);
-+
-+			if (~mask[vstart % mask_len / 8] & BIT(vstart % 8))
-+				continue;
-+		}
- 
- 		/* compute element address */
- 		ulong addr = base + vstart * stride;
-@@ -232,15 +237,21 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 			sbi_load_loop(bytes + seg * len,
- 				       addr + seg * len, len, &uptrap);
- 
--			if (uptrap.cause) {
--				if (IS_FAULT_ONLY_FIRST_LOAD(insn) && vstart != 0) {
--					vl = vstart;
--					break;
--				}
--				vsetvl(vl, vtype);
--				sbi_misaligned_v_tinst_fixup(&uptrap);
--				return sbi_trap_redirect(regs, &uptrap);
-+			if (!uptrap.cause)
-+				continue;
-+
-+			if (IS_FAULT_ONLY_FIRST_LOAD(insn) && vstart != 0) {
-+				vl = vstart;
-+				goto done;
+@@ -218,8 +240,7 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 						break;
+ 					}
+ 					vsetvl(vl, vtype);
+-					uptrap.tinst = sbi_misaligned_tinst_fixup(
+-						orig_trap->tinst, uptrap.tinst, i);
++					sbi_misaligned_v_tinst_fixup(&uptrap);
+ 					return sbi_trap_redirect(regs, &uptrap);
+ 				}
  			}
-+
-+			vsetvl(vl, vtype);
-+			csr_write(CSR_VSTART, vstart);
-+			/* Don't forget to set dirty if vstart has changed */
-+			if (vstart != orig_vstart)
-+				SET_VS_DIRTY(regs);
-+			sbi_misaligned_v_tinst_fixup(&uptrap);
-+			return sbi_trap_redirect(regs, &uptrap);
- 		}
+@@ -240,7 +261,6 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
  
- 		/* write load data to regfile */
-@@ -249,8 +260,15 @@ int sbi_misaligned_v_ld_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 				 len, &bytes[seg * len]);
- 	} while (++vstart < vl);
- 
-+done:
- 	/* restore clobbered vl/vtype */
--	vsetvl(vl, vtype);
-+	vsetvl(vl, vtype); // VSTART resets to 0
-+
-+	/*
-+	 * At least 1 element is processed, or vl is changed above in
-+	 * the FAULT_ONLY_FIRST_LOAD path, thus set dirty.
-+	 */
-+	SET_VS_DIRTY(regs);
- 
- 	/* Return a >0 value for the caller to advance mepc */
- 	return 1;
-@@ -263,7 +281,7 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ {
+-	const struct sbi_trap_info *orig_trap = &tcntx->trap;
+ 	struct sbi_trap_regs *regs = &tcntx->regs;
+ 	struct sbi_trap_info uptrap;
  	ulong vl = csr_read(CSR_VL);
- 	ulong vtype = csr_read(CSR_VTYPE);
- 	ulong vlenb = csr_read(CSR_VLENB);
--	ulong vstart = csr_read(CSR_VSTART);
-+	ulong vstart = csr_read(CSR_VSTART), orig_vstart = vstart;
- 	ulong base = GET_RS1(insn, regs);
- 	ulong stride = GET_RS2(insn, regs);
- 	ulong vd = GET_VD(insn);
-@@ -273,8 +291,9 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 	ulong vlmul = GET_VLMUL(vtype);
- 	bool illegal = GET_MEW(insn);
- 	bool masked = IS_MASKED(insn);
--	uint8_t mask[VLEN_MAX / 8];
-+	uint8_t mask[MASK_BUFFLEN / 8];
- 	uint8_t bytes[8 * sizeof(uint64_t)];
-+	ulong mask_len = MASK_BUFFLEN < vlenb * 8 ? MASK_BUFFLEN : vlenb * 8;
- 	ulong len = GET_LEN(view);
- 	ulong nf = GET_NF(insn);
- 	ulong vemul = GET_VEMUL(vlmul, view, vsew);
-@@ -295,7 +314,7 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 		stride = nf * len;
- 	}
- 
--	if (illegal || vlenb > VLEN_MAX / 8) {
-+	if (illegal) {
- 		struct sbi_trap_info trap = {
- 			uptrap.cause = CAUSE_ILLEGAL_INSTRUCTION,
- 			uptrap.tval = insn,
-@@ -303,12 +322,16 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 		return sbi_trap_redirect(regs, &trap);
- 	}
- 
--	if (masked)
--		get_vreg(vlenb, 0, 0, vlenb, mask);
--
- 	do {
--		if (masked && (~mask[vstart / 8] & BIT(vstart % 8)))
--			continue;
-+		if (masked) {
-+			if (vstart == orig_vstart || vstart % mask_len == 0)
-+				/* Fetch a mask_len chunk of mask */
-+				get_vreg(vlenb, 0, vstart / mask_len * mask_len,
-+					 mask_len, mask);
-+
-+			if (~mask[vstart % mask_len / 8] & BIT(vstart % 8))
-+				continue;
-+		}
- 
- 		/* compute element address */
- 		ulong addr = base + vstart * stride;
-@@ -325,23 +348,33 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
- 			get_vreg(vlenb, vd + seg * emul, vstart * len,
- 				 len, &bytes[seg * len]);
- 
--		csr_write(CSR_VSTART, vstart);
--
- 		/* write store data to memory */
- 		for (ulong seg = 0; seg < nf; seg++) {
- 			sbi_store_loop(bytes + seg * len,
- 					addr + seg * len, len, &uptrap);
- 
--			if (uptrap.cause) {
--				vsetvl(vl, vtype);
--				sbi_misaligned_v_tinst_fixup(&uptrap);
--				return sbi_trap_redirect(regs, &uptrap);
--			}
-+			if (!uptrap.cause)
-+				continue;
-+
-+			vsetvl(vl, vtype);
-+			csr_write(CSR_VSTART, vstart);
-+			/* Don't forget to set dirty if vstart has changed */
-+			if (vstart != orig_vstart)
-+				SET_VS_DIRTY(regs);
-+			sbi_misaligned_v_tinst_fixup(&uptrap);
-+			return sbi_trap_redirect(regs, &uptrap);
- 		}
- 	} while (++vstart < vl);
- 
- 	/* restore clobbered vl/vtype */
--	vsetvl(vl, vtype);
-+	vsetvl(vl, vtype); // VSTART resets to 0
-+
-+	/*
-+	 * No need to set dirty for memory store, but as VSTART resets to
-+	 * 0 above, need to set dirty if it's originally not 0.
-+	 */
-+	if (orig_vstart != 0)
-+		SET_VS_DIRTY(regs);
- 
- 	/* Return a >0 value for the caller to advance mepc */
- 	return 1;
+@@ -317,8 +337,7 @@ int sbi_misaligned_v_st_emulator(ulong insn, struct sbi_trap_context *tcntx)
+ 					     bytes[seg * len + i], &uptrap);
+ 				if (uptrap.cause) {
+ 					vsetvl(vl, vtype);
+-					uptrap.tinst = sbi_misaligned_tinst_fixup(
+-						orig_trap->tinst, uptrap.tinst, i);
++					sbi_misaligned_v_tinst_fixup(&uptrap);
+ 					return sbi_trap_redirect(regs, &uptrap);
+ 				}
+ 			}
 -- 
 2.34.1
 
