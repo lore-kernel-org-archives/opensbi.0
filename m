@@ -4,101 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C9A70CD8CA8
-	for <opensbi@archiver.kernel.org>; Fri, 12 Jun 2026 06:22:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 221F0CD4F2C
+	for <opensbi@archiver.kernel.org>; Fri, 12 Jun 2026 07:55:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=3eXGj9wfDMniGpNcsifzJcTyTZuIrjbc0SukiPEDnw8=; b=mkCTtbMHe5xtAI
-	LkQqQmpPxvCdfPBKmBSTEAAU59KozogfryaNuZq+HXe8tt2Z1H3ZC6GmE+nxTWGSCoFAHrKojUdnQ
-	XIK2hzUVAJVk+jZGKXnEsLRVHzar8+50Ka8lMg//l40BLS7D13Fus7VoL4PnW3LSfu5wA82Bm7dpR
-	bbqX4a3jX1WyH/XqKNz/EzIaV3GdCtByk/g7xSL4DLGzFXoYCeOufnseXPZU9D/pdUeyMPUFgPm8j
-	4ALXCxob650NNocfMpTqx34YwcgxNP+z3jr5vobvchUwjQS/Qdn4mgJv5H164oz37a8O//jLCUqGd
-	/ZQQreVBI5s2V3TIpLpQ==;
+	List-Owner; bh=/BxPMG7yAR0LKbnCwHpw3jEGOi9VGAt8YaaU4+sBltE=; b=v6qhK+7sujy6uN
+	9I776Or1DMe9s2xe6lOFuGKVmjU8n/FdLJIUjHn1fiRibx3yM5KhZoUrNapERdQrpGsEbX3TFsxOn
+	cblbZC/3imV8Ro3wCJ9nIbzr4PjUZz50G8piQ5x309V5KHtKTyAA59BxZTobdSznREM8+77TSj5TM
+	7sRrnP/EwWRNRyFZyJJZ8c+sU7cmwhUJVM+sm8su9+0NxdLCt+6OFoc+vuc1dJ9pX+99XyZiavP2G
+	kY8B7bIC6Apr+wal9gpSV2gi/5/WEsG/rLotRJFbYm9p3/FDT5QooeeVdBUwLQiIeRbXNtWXSiKkL
+	QH2oGu7ooQ1KdKCX+7Pw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wXvHj-0000000APOO-2zpd;
-	Fri, 12 Jun 2026 06:22:31 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1wXwjZ-0000000AWCv-1Trc;
+	Fri, 12 Jun 2026 07:55:21 +0000
+Received: from out30-113.freemail.mail.aliyun.com ([115.124.30.113])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wXvHg-0000000APO3-3WvZ
+	id 1wXwjU-0000000AWBn-36CN
 	for opensbi@lists.infradead.org;
-	Fri, 12 Jun 2026 06:22:30 +0000
-Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65C3A4vE2476935;
-	Fri, 12 Jun 2026 06:22:24 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=qcppdkim1; bh=EA9f4X/USNZzA7hdRSlAdSUSCiS62rKtBhz
-	6IhXpjYY=; b=p8eJj7A0dFZq3Arwdn0NOWyO7QSXfOmjG3NjGGIfz7HjU+iRflV
-	xiTZ+9S5fiDW/UCjLg/PCatZIcVsib7UFZXjZDIkSmrcmdqVpoGqzZsIAMeAe9RD
-	4teVbXs88/A25WhkeNgLXBIUEbrCANhCffmbI4gGFh0SlDbb9VyuW3GMn5xW59Lf
-	fHJL7f3h+u5DmKgt4ozVkvUJewUjMtHl2nSUgDAAhalfjZh1JXYAIJduQIfk/uOh
-	YgUN72M4A2EsVN7QxM/WIcuNfFGoCrhtD9J4/jCsNCv0HbwiHWsi7tUjHXOQ5ONP
-	XRMe1+LdCnSoB2dq5JP9rnArCiXx9N3zxxQ==
-Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4er2r5sv7u-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 12 Jun 2026 06:22:23 +0000 (GMT)
-Received: from pps.filterd (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 65C6MKRM001385;
-	Fri, 12 Jun 2026 06:22:20 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4emcmkpp06-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 12 Jun 2026 06:22:20 +0000 (GMT)
-Received: from APBLRPPMTA01.qualcomm.com (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 65C6MKEq001380;
-	Fri, 12 Jun 2026 06:22:20 GMT
-Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 65C6MKl3001379
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 12 Jun 2026 06:22:20 +0000 (GMT)
-Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id 2AE7121C53; Fri, 12 Jun 2026 11:52:19 +0530 (+0530)
-From: Anup Patel <anup.patel@oss.qualcomm.com>
-To: Atish Patra <atish.patra@linux.dev>
-Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
-        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
-        Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH] lib: sbi: Fix LLVM compile error observed in sbi_mpxy.c
-Date: Fri, 12 Jun 2026 11:52:18 +0530
-Message-ID: <20260612062218.172726-1-anup.patel@oss.qualcomm.com>
+	Fri, 12 Jun 2026 07:55:19 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1781250910; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=ikk4ugmHsNIeZZBwcNNhi1CgzVDupijh9bYor1sx//E=;
+	b=Wsqx5NShqAQ0MkV/Yw0s/3wKYJNu/7kvULEXh+NyAvNt/VIFwqossnEBlsJ0aH0W53sRZfPdFOJtgZqfiQ87TeOgHFSzzzZhAXFyqPfjdvWu67R44DE6ZbyM1oYX1l/DCDLdVmHPAZZXgKaQ6g317KCUFAtTJTFuvronwpOX9oA=
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0X4i.9Q-_1781250905;
+Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X4i.9Q-_1781250905 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 12 Jun 2026 15:55:08 +0800
+From: Chen Pei <cp0613@linux.alibaba.com>
+To: opensbi@lists.infradead.org
+Cc: anup@brainfault.org,
+	guoren@kernel.org,
+	Chen Pei <cp0613@linux.alibaba.com>
+Subject: [PATCH] lib/utils/fdt: Reserve enough FDT space for fdt_cpu_fixup
+Date: Fri, 12 Jun 2026 15:55:01 +0800
+Message-ID: <20260612075502.76324-1-cp0613@linux.alibaba.com>
 X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-X-QCInternal: smtphost
-X-QCInternal: smtphost
-X-Proofpoint-ORIG-GUID: XXDd2kQ4top2NMb6zD-UwtDSSgJ56rHq
-X-Proofpoint-GUID: XXDd2kQ4top2NMb6zD-UwtDSSgJ56rHq
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjEyMDA1NSBTYWx0ZWRfXwr1Jilb90QGa
- qk32Jz1jgOBWqmX4IvzcgerX4BIdkF/kTKRX7LPNL+e5WmGwUw6ZetmH3gK6agAKpwHdLGwXZrz
- bezpn3RCRJspwXjyUQk3zlB10v7Zbf0=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjEyMDA1NSBTYWx0ZWRfX2yTRw2q1Exu0
- IA4pww8f5D7nArJIq+u3RSwDw7ySDLKQhDoxokNEupehkbE7P+dfDmFmV/8rzl0Ky+cBua5oMAO
- t21iVVQQ5Z4PHwRqTUPsR8fKd1x+xKEsYIy1RgYD76+VQ7x+mWAlnzCFSjfQwKY6rTuKPw5sJW4
- 2sBWdb1fHV5fQmwlLjluc5+PsTfsVQt+hdYUnVRWOxQ9rbMHEJJiZNitmkMbOn+lZUz08JDmGLv
- D43S8C+UEOy1NP0BIa5rknVBcoM5ni8v2k7R11rMgdlUY9pxbmDsfh5/t9VF0GXsNON8w3PH+cv
- c+7yxjxIRO4//gr+uMnq6c/y6r5S1v7BLvt+W0zrpUE9p9zFd2i4wR12BdbLzv1HOCeaa2ETFg3
- 3jBQmMD9i9hTwnwdsePM1/JiaeL4yslFuGlD1wNSCENH85QQuBDoBWFlXzXBQpHGebMjEDc9op1
- r2a5mxIDdp2cchnwCQA==
-X-Authority-Analysis: v=2.4 cv=M6p97Sws c=1 sm=1 tr=0 ts=6a2ba5a0 cx=c_pps
- a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=eoimf2acIAo5FJnRuUoq:22 a=EUspDBNiAAAA:8 a=wTc3_UFGKCPP5Dp4k7AA:9
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-12_01,2026-06-11_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 lowpriorityscore=0 adultscore=0 suspectscore=0 bulkscore=0
- phishscore=0 clxscore=1015 malwarescore=0 impostorscore=0 spamscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606040000 definitions=main-2606120055
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260611_232228_891539_5F46DC7C 
-X-CRM114-Status: GOOD (  11.83  )
+X-CRM114-CacheID: sfid-20260612_005517_106503_61D7A208 
+X-CRM114-Status: UNSURE (   7.68  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -115,45 +66,65 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The following LLVM compile error is observed in sbi_mpxy.c:
+The fdt_cpu_fixup() function uses a hardcoded +32 bytes reservation
+when calling fdt_open_into() to make room for disabling HART DT nodes
+and appending the "zicntr" isa-extension. This is insufficient on
+systems where many HARTs are disabled: each disabled HART needs 4
+bytes ("okay" -> "disabled"), and each zicntr append needs ~16 bytes.
+With the current limit only ~8 HARTs can be disabled before
+FDT_ERR_NOSPACE (-3) is returned.
 
- CC        lib/sbi/sbi_mpxy.o
-lib/sbi/sbi_mpxy.c:535:36: error: result of comparison of constant 18446744073709551615 with
-      expression of type 'u32' (aka 'unsigned int') is always false [-Werror,-Wtautological-constant-out-of-range-compare]
-  535 |                     (attrs->msi_info.msi_addr_hi == INVALID_ADDR))
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~
-lib/sbi/sbi_mpxy.c:534:36: error: result of comparison of constant 18446744073709551615 with
-      expression of type 'u32' (aka 'unsigned int') is always false [-Werror,-Wtautological-constant-out-of-range-compare]
-  534 |                     (attrs->msi_info.msi_addr_lo == INVALID_ADDR) &&
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~
-2 errors generated.
+Replace the hardcoded reservation with a dynamic calculation based on
+SBI_HARTMASK_MAX_BITS, which defines the maximum number of HARTs
+OpenSBI supports. Each HART may need up to ~20 bytes in the worst
+case, so reserve SBI_HARTMASK_MAX_BITS * 20 bytes.
 
-To address the above issue, add u32 typecast to INVALID_ADDR.
+Also remove the now-redundant per-HART fdt_open_into() call inside
+the zicntr loop since the single upfront reservation is sufficient.
 
-Fixes: e92c8fd0836e ("sbi: mpxy: define INVALID_ADDR using unsigned long width")
-Fixes: 7939bf1329eb ("lib: sbi: Add SBI Message Proxy (MPXY) framework")
-Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
+Fixes: dd9439fbace2 ("lib: utils: Add a fdt_cpu_fixup() helper")
+Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
 ---
- lib/sbi/sbi_mpxy.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/utils/fdt/fdt_fixup.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
-index 3e0e0af6..ff5c6ab6 100644
---- a/lib/sbi/sbi_mpxy.c
-+++ b/lib/sbi/sbi_mpxy.c
-@@ -531,8 +531,8 @@ static int mpxy_check_write_std_attr(struct sbi_mpxy_channel *channel,
- 		if (attr_val > 1)
- 			ret = SBI_ERR_INVALID_PARAM;
- 		if (attr_val == 1 &&
--		    (attrs->msi_info.msi_addr_lo == INVALID_ADDR) &&
--		    (attrs->msi_info.msi_addr_hi == INVALID_ADDR))
-+		    (attrs->msi_info.msi_addr_lo == (u32)INVALID_ADDR) &&
-+		    (attrs->msi_info.msi_addr_hi == (u32)INVALID_ADDR))
- 			ret = SBI_ERR_DENIED;
- 		break;
- 	case SBI_MPXY_ATTR_MSI_ADDR_LO:
+diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+index b0ed20c8..bace2277 100644
+--- a/lib/utils/fdt/fdt_fixup.c
++++ b/lib/utils/fdt/fdt_fixup.c
+@@ -124,7 +124,13 @@ void fdt_cpu_fixup(void *fdt)
+ 			  sbi_hart_has_csr(scratch, SBI_HART_CSR_CYCLE) &&
+ 			  sbi_hart_has_csr(scratch, SBI_HART_CSR_INSTRET);
+ 
+-	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
++	/*
++	 * Reserve enough FDT space for the worst case:
++	 *  - Each disabled hart: 4 bytes ("okay" -> "disabled")
++	 *  - Each zicntr append: ~16 bytes (property + string)
++	 */
++	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) +
++			    SBI_HARTMASK_MAX_BITS * 20);
+ 	if (err < 0)
+ 		return;
+ 
+@@ -163,14 +169,9 @@ void fdt_cpu_fixup(void *fdt)
+ 		 * property if there hasn't been already one.
+ 		 */
+ 		if (extensions &&
+-		    !fdt_stringlist_contains(extensions, len, "zicntr")) {
+-			err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 16);
+-			if (err)
+-				continue;
+-
++		    !fdt_stringlist_contains(extensions, len, "zicntr"))
+ 			fdt_appendprop_string(fdt, cpu_offset,
+ 					      "riscv,isa-extensions", "zicntr");
+-		}
+ 	}
+ }
+ 
 -- 
-2.43.0
+2.50.1
 
 
 -- 
