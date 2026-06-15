@@ -4,102 +4,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 924FECD98DA
-	for <opensbi@archiver.kernel.org>; Mon, 15 Jun 2026 17:19:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DE960CD98E4
+	for <opensbi@archiver.kernel.org>; Mon, 15 Jun 2026 17:19:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=wf3k5oaoQSOYv4QT8ngugPAzsLqm0FAlFdkMAHWGLlY=; b=oJWcXksvZXfitg
-	qKPmWbUixwUHGfQEcUm+YMMj/fXFDJ8k1ToAeDRn4i/0IHmcdQusbVEUlmCbzckSJdbdVQCpG5TpF
-	7Fnd2xDUur+ZyZJjHldyJe9+OSoLNvxCIXvJXD2VGpD9NrC7dr5IKODhHrsQGiqw+S/96at0Rl4pS
-	9xEcUth6y5FfUYqbln+4yZqBxgaL0wzL1Z2Fd+qnfsQMTdA9eavWhm4vW79dCjbSLwg/eT8QmbFBW
-	pOOaZ0MIczsG8dMfOvuBTGMB4C1VeOzLMqZe88UhQpsTyxdySr43nujp2a/IQYMkaYOqAlS2O4dfW
-	nL+fjyF3MjsL+wCfnceQ==;
+	List-Owner; bh=IoSdiRxlIH6ce1HclvWcKzn/lEFh9fUmkp1o821G46c=; b=jTNTH/FsZmZKIV
+	DQAjt17zNpuzRB4OBxOoxGVuOJ80Iez7S1veR+T3Gb/YstBL2VPMxy1KXDCl/l6MtQybWC/rLADOU
+	/U1gFi6tdLwaWEfVgWfdAOrZnXbXoUf2OcIHL9jO6dY/SEV7fnCEe1DZQG1vzleBZ8FbvszfEN1lv
+	1ztphNm0D+SxUyT8CHiNnZFhqUxrUj7bzS5Qg2PFHCEbwWRXwQnKWqfe/d8r7mPcBpRp0XGw9l2wU
+	ykiU+30YfI3cYEjqyrbqnnNq9pExN2pdU6z50ozqCBcmqWmXqDB3gGwZluXJijuGdH3J5gJUEOlgK
+	MeRTGOeZDBQzsj67OkUw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZAxg-0000000EdXp-0TYk;
-	Mon, 15 Jun 2026 17:19:00 +0000
+	id 1wZAxh-0000000EdYN-1tmC;
+	Mon, 15 Jun 2026 17:19:01 +0000
 Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZAxc-0000000EdVE-2AvK
+	id 1wZAxd-0000000EdVC-03iD
 	for opensbi@lists.infradead.org;
-	Mon, 15 Jun 2026 17:18:58 +0000
-Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65FFhLHw3139322
+	Mon, 15 Jun 2026 17:18:59 +0000
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65FFhPt4414048
 	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:56 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=wtS4u037njY
-	Zn6kr3/OcZEAb7h2x/RcKsmAc3snDw2g=; b=k1WFV3wP39n20SeNFtrRc1n/h6H
-	QH2O9EzHnIb/Rr453w75HXIgkBlWUWrhwzZC8ZzeeexB01dm3RLXRzr270KLkg8v
-	VUX0nLApPmLfz1bcGQY12U1OM/fnl9sbX5OTYM/mKqnoumfEMx7+bVBm5p0hEjXY
-	Z9rkDzVWT1foEDDPOVfw1VvO6SZnPYOoZolOwft6i3CzVMYjUOkTjqVC9w/OeZNS
-	/r5uKW1a4Cvi3l6p0YELTbRxrq03cJD/6zgU4z9e9L9UkiU9XbV05qvdoXS4alQJ
-	awBzSIHgoZs3bSdRb34+FBzkfLNYWGFdX1JzzM85QhBey01a3KSY43hVVHA==
-Received: from nalasppmta04.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ete982580-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:56 +0000 (GMT)
-Received: from pps.filterd (NALASPPMTA04.qualcomm.com [127.0.0.1])
-	by NALASPPMTA04.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 65FHEZGQ004260
-	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:55 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by NALASPPMTA04.qualcomm.com (PPS) with ESMTPS id 4et5v70cye-1
+	:mime-version:references:subject:to; s=qcppdkim1; bh=9QxPJFQkaMJ
+	gAW/b3NaPF78mXvT68Fe6/+SB8jrQm6Q=; b=DB9bIt4aookh1+1KAfb0Y4rCyMQ
+	nNupH79S7bkqFG06Euh1l8zUCVYTn/mN7zrjZ8ZCl4+0C4I9lgGuym7MPYLLvcBU
+	NAxnMn+d+qbrhHPucRpusU/pIsfS6r38UtF7cXh+tlFVBBvdv6Ps+3olPe+/1uDa
+	W4lCKZlnVSAGaqtBTe0LXgoBI4oJVSC0dg7tV3YBYIN8qc+ZWkXJ1UTsDhyynXba
+	C1OqpTztmCSxx/rTTNZLa7gKlrhsMH4FnnuZ02ivQ/An7BVDGWbbCxTruiVb9eRW
+	UeIfBxokHdxtrUoXHcEelt4SBDGcplHxS/+J572XfcBaoXQSk+vEYJGoCuA==
+Received: from nalasppmta01.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4eter01yu7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
 	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:55 +0000 (GMT)
-Received: from NALASPPMTA04.qualcomm.com (NALASPPMTA04.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 65FHItdh010253
-	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:55 GMT
+Received: from pps.filterd (NALASPPMTA01.qualcomm.com [127.0.0.1])
+	by NALASPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 65FHItGi014672;
+	Mon, 15 Jun 2026 17:18:55 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by NALASPPMTA01.qualcomm.com (PPS) with ESMTPS id 4etk129hhw-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:55 +0000 (GMT)
+Received: from NALASPPMTA01.qualcomm.com (NALASPPMTA01.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 65FHIsNn014652
+	for <opensbi@lists.infradead.org>; Mon, 15 Jun 2026 17:18:54 GMT
 Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
-	by NALASPPMTA04.qualcomm.com (PPS) with ESMTPS id 65FHIsmh010252
+	by NALASPPMTA01.qualcomm.com (PPS) with ESMTPS id 65FHIs8U014649
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 15 Jun 2026 17:18:55 +0000 (GMT)
+	Mon, 15 Jun 2026 17:18:54 +0000 (GMT)
 Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
-	id BFE6724EF0; Mon, 15 Jun 2026 10:18:54 -0700 (PDT)
+	id B34CC24E58; Mon, 15 Jun 2026 10:18:54 -0700 (PDT)
 From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 To: opensbi@lists.infradead.org
-Cc: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>,
-        Pawandeep Oza <poza@qti.qualcomm.com>
-Subject: [PATCH 6/7] lib: sbi_irqchip: fix MSI EIID gap and tail allocation logic in register_msi
-Date: Mon, 15 Jun 2026 10:18:51 -0700
-Message-ID: <20260615171852.447545-7-pawandeep.oza@oss.qualcomm.com>
+Cc: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
+Subject: [PATCH 3/7] lib: utils/irqchip/imsic: embed sbi_irqchip_device in imsic data
+Date: Mon, 15 Jun 2026 10:18:48 -0700
+Message-ID: <20260615171852.447545-4-pawandeep.oza@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260615171852.447545-1-pawandeep.oza@oss.qualcomm.com>
 References: <20260615171852.447545-1-pawandeep.oza@oss.qualcomm.com>
 MIME-Version: 1.0
 X-QCInternal: smtphost
 X-QCInternal: smtphost
-X-Authority-Analysis: v=2.4 cv=V5tNF+ni c=1 sm=1 tr=0 ts=6a303400 cx=c_pps
+X-Proofpoint-ORIG-GUID: Q9duZeq7VVG2jpXcEJp5ZLlu_8pZ6aCF
+X-Proofpoint-GUID: Q9duZeq7VVG2jpXcEJp5ZLlu_8pZ6aCF
+X-Authority-Analysis: v=2.4 cv=UPzt2ify c=1 sm=1 tr=0 ts=6a3033ff cx=c_pps
  a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
  a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=Um2Pa8k9VHT-vaBCBUpS:22 a=EUspDBNiAAAA:8 a=GfAy4FA1evO29GI99tgA:9
-X-Proofpoint-GUID: O-TjzOS1ixn2jP_fVa34Km8WuW5fuFzS
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE1MDE4MyBTYWx0ZWRfXxTYhcEqO7seI
- w6wwP69TpWsaB9NuK51CqRqxbVqREUY7WQK4U0fQ+jR1KwScNjQ4Je4cm4SgJFADcxR6w1Wadpx
- PQHFc/2zyEEi+i3vn2nB6ZNAyWx89Ss=
-X-Proofpoint-ORIG-GUID: O-TjzOS1ixn2jP_fVa34Km8WuW5fuFzS
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE1MDE4MyBTYWx0ZWRfXxWe6ALmky9uE
- o8ywmnHAKcy4bxZc5bk2ttbaEHh/udu5bgqM6+4F85a+KYhXCSXE8jxi/mlHmRwbLxnhXiBlGIY
- XIRsOeBnD4axnRx2UqtJBntHyx2EfT6U+dcYlMTcXeWHvwsVepw1TgGRp24+D2Z2YV11GO4RWnS
- tzA6Ft93nD/viSOwyJWaL439/4c2x7yJSncKgl69HTHRaz86MIYHwK1DodjSBHyyPWFeveJ7xIL
- +vy9WbeHs8oY2FkyDIhKBsETSrk42VxYUcgrtueZyJ2MGMXsOgxdgvtn1YiHfkd0VCMBcoN9Xub
- TN3l4n2UcvXgg/OdOy844VCN8q7+At87qcQLzD1vuIshfEQV4WjpbxIecTbkcuneGestdGmSzhL
- 92/CkWsEvpUL92JCN3CqUjPK8px+f296RMsIHsvF/b+DlEY5fge3IZO8xKUYb2a2EtIa3mZMNou
- PcjTaWRZT2tLuGk2Gtw==
+ a=DJpcGTmdVt4CTyJn9g5Z:22 a=EUspDBNiAAAA:8 a=HHyHBDg7fDviSX9V8OAA:9
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE1MDE4MyBTYWx0ZWRfX43/bhq67NvfS
+ 7iKzJyJ0tpQxWbIgR23oV//FxdD0IxdvNDFHblv/X6Lz3T6ZiNa9zVArCjDHIjJxJTuRLCxSued
+ v6mdIIElSr587JT0u3l7O8B7iTGeC7b376idP4+u2dazakY+zHHSfD7yv2LyMJB8pt/dl6f6zOY
+ JS0YxKGTNZHev8D2FnDxpx+FgFITqyhV/5wk9pq4a35NkgdC1+5W8pODrzZMaQoGegy3qmxjEzC
+ p1/x2Lz0WYbwiiXGVfsNXBQ/UFfDbvH50TIidr7kAS1T48o9/ArGi4bAXiwRJLm37+mGWY7zHqM
+ 2SJwaNPoo0Yl6EipAQJX7XePbDPLzVkDeEKFdv73+bnu+vLFVucrJv8y+fRbPfW24lnSBLb2Esv
+ r2Zm1cYo9m4474BfdD0JhjtLyQ8BayKKJGGPkrJmg/PQVPsAJ5RIaYjAI8cu8DE9vFyYtUzzEYs
+ XsESv95TlFukG4Y5jog==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE1MDE4MyBTYWx0ZWRfX2aK4VRnMfV84
+ eEsEjyUG1com7fIewZLuzTEiUKfQpAeXDh9vz4WN5L0KAhL4NKYDsRE0VxFokHSt0AMs09woqh+
+ b5FmgVls3pHW0i/pZKq0ojM40hNEKlc=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
  definitions=2026-06-15_04,2026-06-15_04,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 impostorscore=0 phishscore=0 malwarescore=0 priorityscore=1501
- adultscore=0 lowpriorityscore=0 clxscore=1015 bulkscore=0 spamscore=0
+ clxscore=1011 spamscore=0 bulkscore=0 lowpriorityscore=0 adultscore=0
+ suspectscore=0 phishscore=0 priorityscore=1501 impostorscore=0 malwarescore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2606040000 definitions=main-2606150183
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260615_101856_565946_DF6D8AE2 
-X-CRM114-Status: GOOD (  15.98  )
+X-CRM114-CacheID: sfid-20260615_101857_057507_AA356012 
+X-CRM114-Status: GOOD (  16.52  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -116,48 +115,96 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Fix sbi_irqchip_register_msi() that prevented contiguous EIID allocation:
-
-- Gap check condition was inverted: the original `h->first_hwirq -
-  hwirq < num_hwirq` incorrectly set `found = true` when the gap was
-  too small to fit num_hwirq entries. Correct to `>= num_hwirq` so
-  allocation only proceeds when sufficient space exists between
-  registered handlers.
-
-- Tail-space check `!found && !hwirq` never triggered after iteration
-  Replace with `(chip->num_hwirq - hwirq) >= num_hwirq` to correctly
-  allocate if handler list is empty.
-
-Fixes: 79e63bc8348d ("irqchip: add sbi_irqchip_register_msi support")
-Signed-off-by: Pawandeep Oza <poza@qti.qualcomm.com>
+Embed sbi_irqchip_device in struct imsic_data to enable instance-based
+irqchip registration, replacing the previous global imsic_device
+singleton. Include sbi_irqchip.h from imsic.h to make the embedded
+struct visible to consumers.
 
 Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
 ---
- lib/sbi/sbi_irqchip.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/sbi_utils/irqchip/imsic.h |  2 ++
+ lib/utils/irqchip/imsic.c         | 25 ++++++++++++++++++-------
+ 2 files changed, 20 insertions(+), 7 deletions(-)
 
-diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
-index 49fa4806..a4480751 100644
---- a/lib/sbi/sbi_irqchip.c
-+++ b/lib/sbi/sbi_irqchip.c
-@@ -354,7 +354,7 @@ int sbi_irqchip_register_msi(struct sbi_irqchip_device *chip, u32 num_hwirq,
- 		if (h->first_hwirq <= hwirq && hwirq < (h->first_hwirq + h->num_hwirq)) {
- 			hwirq = h->first_hwirq + h->num_hwirq;
- 		} else if (hwirq < h->first_hwirq) {
--			if (h->first_hwirq - hwirq < num_hwirq) {
-+			if (h->first_hwirq - hwirq >= num_hwirq) {
- 				found = true;
- 				break;
- 			} else {
-@@ -362,7 +362,7 @@ int sbi_irqchip_register_msi(struct sbi_irqchip_device *chip, u32 num_hwirq,
- 			}
- 		}
+diff --git a/include/sbi_utils/irqchip/imsic.h b/include/sbi_utils/irqchip/imsic.h
+index 88dd3cfb..1910b62a 100644
+--- a/include/sbi_utils/irqchip/imsic.h
++++ b/include/sbi_utils/irqchip/imsic.h
+@@ -12,6 +12,7 @@
+ #define __IRQCHIP_IMSIC_H__
+ 
+ #include <sbi/sbi_types.h>
++#include <sbi/sbi_irqchip.h>
+ 
+ #define IMSIC_MMIO_PAGE_SHIFT		12
+ #define IMSIC_MMIO_PAGE_SZ		(1UL << IMSIC_MMIO_PAGE_SHIFT)
+@@ -25,6 +26,7 @@ struct imsic_regs {
+ 
+ struct imsic_data {
+ 	u32 unique_id;
++	struct sbi_irqchip_device irqchip;
+ 	bool targets_mmode;
+ 	u32 guest_index_bits;
+ 	u32 hart_index_bits;
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index 0e7f3e6b..2abdc8ef 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -149,8 +149,13 @@ int imsic_get_target_file(u32 hartindex)
+ 
+ static int imsic_process_hwirqs(struct sbi_irqchip_device *chip)
+ {
++	struct imsic_data *imsic;
+ 	ulong mirq;
+ 
++	imsic = container_of(chip, struct imsic_data, irqchip);
++	if (!imsic || !imsic->targets_mmode)
++		return SBI_EINVAL;
++
+ 	while ((mirq = csr_swap(CSR_MTOPEI, 0))) {
+ 		mirq = (mirq >> IMSIC_TOPEI_ID_SHIFT);
+ 
+@@ -258,10 +263,15 @@ void imsic_local_irqchip_init(void)
+ 
+ static int imsic_warm_irqchip_init(struct sbi_irqchip_device *dev)
+ {
+-	struct imsic_data *imsic = imsic_get_data(current_hartindex());
++	struct imsic_data *imsic;
++	struct imsic_data *hart_imsic;
++
++	imsic = container_of(dev, struct imsic_data, irqchip);
++	hart_imsic = imsic_get_data(current_hartindex());
+ 
+ 	/* Sanity checks */
+-	if (!imsic || !imsic->targets_mmode)
++	if (!hart_imsic || hart_imsic != imsic ||
++		!hart_imsic->targets_mmode)
+ 		return SBI_EINVAL;
+ 
+ 	/* Disable all interrupts */
+@@ -399,16 +409,17 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
  	}
--	if (!found && !hwirq)
-+	if (!found && (chip->num_hwirq - hwirq) >= num_hwirq)
- 		found = true;
- 	if (!found)
- 		return SBI_ENOSPC;
+ 
+ 	/* Register irqchip device */
+-	imsic_device.id = imsic->unique_id;
++	imsic->irqchip = imsic_device;
++	imsic->irqchip.id = imsic->unique_id;
+ 	imsic_device.caps = SBI_IRQCHIP_CAPS_MSI;
+-	imsic_device.num_hwirq = imsic->num_ids + 1;
+-	sbi_hartmask_set_all(&imsic_device.target_harts);
+-	rc = sbi_irqchip_add_device(&imsic_device);
++	imsic->irqchip.num_hwirq = imsic->num_ids + 1;
++	sbi_hartmask_set_all(&imsic->irqchip.target_harts);
++	rc = sbi_irqchip_add_device(&imsic->irqchip);
+ 	if (rc)
+ 		return rc;
+ 
+ 	/* Mark hwirq 0 and IPI hwirq as reserved */
+-	rc = sbi_irqchip_register_reserved(&imsic_device, 0, IMSIC_IPI_ID + 1);
++	rc = sbi_irqchip_register_reserved(&imsic->irqchip, 0, IMSIC_IPI_ID + 1);
+ 	if (rc)
+ 		return rc;
+ 
 -- 
 2.43.0
 
