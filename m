@@ -4,107 +4,104 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 26418CD98E4
-	for <opensbi@archiver.kernel.org>; Tue, 16 Jun 2026 17:01:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C006DCD98D2
+	for <opensbi@archiver.kernel.org>; Tue, 16 Jun 2026 20:31:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=CAGsS6SzpjgPKT4oVZiiZoHW1fco9TwXGti32p5TzyM=; b=CX5WY3FrShme7T
-	LaGke2BDLjj6R2Q1LoS6ByQxqR9p8aePUs82bsvAwOyPFCDEXlbQOxOOpxhsMcr/jTLSd0hYy2ARV
-	C7sL/Ejt7fIGEssqSyMPgmnF+539CV0efvAn9BBr3Ek60JMpS8YfPlzmLO0e+MtTFHHKQN9hGNgo3
-	8RgqwiH9EhKIwIBKVDo3bGQJo8nTmTR9uZqxayeCtOYXE3LcJb4AxQq3rv5pK7jIC0I4NUuuWUL7m
-	mYQFU7xr9tFkj9swj+Oc46RXchKogUIIVfIgKn0juvYVm5Gwi2rKmrYyYrtDc/xGBGLJa43mBTmYD
-	w1ZGf6tIT92YoJuQVVmg==;
+	List-Owner; bh=fjYCMNw+rJgNQPvSUs8NTnYXFh5GZWougHrnfkCn5rY=; b=wxmuIZ3bd2wcvC
+	MKsXHEH75i0arbSrOzc78+SukcLMTAixgYowruDS1yHmYqvZ9Hc93TKzJ65FDVWh89iGx+W8V34FB
+	e4UUemSJ6/PLLpxt9GOrvsFYwVIgLHUnZSiXMqGytVKoyAyQD2bIjPN5Vqn42y7uoDFb6G+ipZVnp
+	ugxafM6AOxHDDkQ7pvSv0XeipsQagJkv07gU8Yhvlwpf5VExFaXBX+71xMJKtkTjvzC483d25O0t3
+	n/XbfU8gVY2atnwK2mJ0ZfSiUnGNZRsUMMac0oFURf5yYwqnKx8JUI4kgcasVL3TQQDhmaBopCJ85
+	KWaGlcVlL/iCBa9KSPBg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZXAM-0000000G8gP-48mo;
-	Tue, 16 Jun 2026 17:01:35 +0000
-Received: from mail-westusazlp170100005.outbound.protection.outlook.com ([2a01:111:f403:c001::5] helo=BYAPR05CU005.outbound.protection.outlook.com)
+	id 1wZaRD-0000000GJ2F-19Ee;
+	Tue, 16 Jun 2026 20:31:11 +0000
+Received: from mail-vk1-xa2d.google.com ([2607:f8b0:4864:20::a2d])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZXAJ-0000000G8fK-3YFG
+	id 1wZaRA-0000000GJ1u-1D8w
 	for opensbi@lists.infradead.org;
-	Tue, 16 Jun 2026 17:01:33 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=HcxfkgPfjkiVSOaRzXcvCbWXKvJywQxNnsjlrG5NyNDhALhrGOB31W6fFzz7oPI9hid15RT8NcFL/yb6AjNflNCZC2kCvEhGFrYpoWM4XYcqQ658t6ZwSMk+BiIKyjJjXUhPtZOLseVcYLvosvTkcUpbQnMD2fzWnyT5hA2UnAL9zasErj3VbrxIWUih5AZfavddfySFk1EE8rZI8i4N8prQFhljs4uAfIsrSoQqZ9tF4cXrBnt8i3rEiRGK2CX2Ivb3VoeRBlfbSfnvnqYPCV4lIH1iHfwafr0wPrt2B7HImcPzaZw2XyfKbQl+8jKPnV4ql4RUHDbz4fjtneG9TQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=R2HyeMeIrTBsyCvFTwjIafWNqYwXS+K17DsgqiilbS8=;
- b=ECdrE6YlQvRKA60riSmzpi1QdtWiycQMmDIrRcc0EbXcpzim6D7CjLvcaIbkQpVFE2gjxZ3k+mc6agcD+zQFTISXcWMJD6Jabd9VUXjKlVpEbjLXau6AmlpZoMlKfmGlrhBJom6PHCVIWQq2otIvFBcT/oPIIs9a3cEC1bnLf/4mR1UfmjI0AvQplQviqJ0fYOJ2GxjUcetFoBpmCnQv5IXQ0CY6vKedAY0HOwigxwqAZfAK3pMyIU+5PI1CNAv81cqrE1jwLvdtpPrL2SalbUGBE5ncoq5QuvQjqMWoEV0n5F3hkkGk40AoJB586Mz5XhxZ0CxSJcp7/4nWLIs9NQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=R2HyeMeIrTBsyCvFTwjIafWNqYwXS+K17DsgqiilbS8=;
- b=OPVqXn0tDVdVrRMY+qoVWuTliikpg60STADugilOHISqBRR+Ue+bV9+sGmQGpySJPbosrO9XlBCHhvJJJdrwCSuKg9y+N/KOCBCV+e3BJep61GJBI5y67AYTfxG1qg6WHMi4JeaWffNaR8yDVLZmj57D2XoQAa68jCzT7kgA0HcFZQO9PN7KysY9/d30q6ey0jv2eMDed2JlBQVZ65uQjU33NlPAGCwXDdDpWJfFtmnKic7EqEN49QB4VA9oTMBE41sm74CEuzvq75P/AiJdY4nlKCVwAURh0g1Erlgu/R0Uqg2nR9BxUTR61XP68IzWNBsUPBhWq6CIqmaMjYqNlA==
-Received: from MN2PR16CA0041.namprd16.prod.outlook.com (2603:10b6:208:234::10)
- by IA2PR22MB5672.namprd22.prod.outlook.com (2603:10b6:208:4a8::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.113.18; Tue, 16 Jun
- 2026 17:01:23 +0000
-Received: from BN2PEPF000044A6.namprd04.prod.outlook.com
- (2603:10b6:208:234:cafe::11) by MN2PR16CA0041.outlook.office365.com
- (2603:10b6:208:234::10) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.113.18 via Frontend Transport; Tue,
- 16 Jun 2026 17:01:23 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- BN2PEPF000044A6.mail.protection.outlook.com (10.167.243.100) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.139.8
- via Frontend Transport; Tue, 16 Jun 2026 17:01:23 +0000
-Received: from davidAhead.lan (unknown [10.8.0.36])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id CF937805B8;
-	Tue, 16 Jun 2026 10:01:20 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-To: opensbi@lists.infradead.org
-Cc: Nicholas Piggin <npiggin@gmail.com>,
-	Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>,
-	"David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH v3] lib: sbi: dbtr: do not unconditionally access tdata2/tdata3 CSRs
-Date: Tue, 16 Jun 2026 11:01:18 -0600
-Message-ID: <20260616170118.3515676-1-david.garcia@aheadcomputing.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260525185033.4165210-1-david.garcia@aheadcomputing.com>
-References: <20260525185033.4165210-1-david.garcia@aheadcomputing.com>
+	Tue, 16 Jun 2026 20:31:09 +0000
+Received: by mail-vk1-xa2d.google.com with SMTP id 71dfb90a1353d-59d07df448bso3566367e0c.0
+        for <opensbi@lists.infradead.org>; Tue, 16 Jun 2026 13:31:07 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1781641866; cv=none;
+        d=google.com; s=arc-20240605;
+        b=TZxVdFQCDNEINnr+Aq5DyWFEaoeYK9mmi/yqfdFllY0766uQ/Yl9XVh+Kiz6g3kFG5
+         l9QMP2S1fSQDP92qBuVro4ZpfD3xyPRupkZAwAXJ/9U67C9CrpbJRJhwNkOFAy3FNC7e
+         x3+JLaUto8ZCP7YPV9w8l7CNbYL7/pmQwy/DE4UI8zPwCazW/8io6tGBqZ0YfFeFekQp
+         B+vYNgmbNt5UFCw2y8M9D9iRz4aPYuYUJwtDsGooKPKM2JIjUXcS9+GFchT4pkfCiSwm
+         OmzMUVVSCHwg+PgBmYiRHzEMUZZL2TkQB0YZ+8Di0vLp9WzK3cdPYvRkzU3x+OODgVEu
+         Cfjw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=H8VoiG2fd7QipCVG9ChIZKmyDxpQXiedFTeAQCEb86k=;
+        fh=CeyCQp+XPGqs+/QFfJPRWct+orJ+/ruIFXLmnlb/73E=;
+        b=SN2Lat8kBpRcYF4t1RaubxLxlVOYgC6xSxyM2cet61F1QJAAUN8v5WpnkGwKUs+4VZ
+         l57Gk+AmzSRdxvX32dfFdu/BMDT6KzWPRMu6K3FhbaCqeUA6aBj2ygZiGW0rwjGv4PqS
+         jiAVKNDMhxNzsOawzNacZK795nX5OHU2KEkoAYASfdc4Nz8ye9/OBWvIaOUGVtWQYdNt
+         LssY1qFDabWIkPy/KVi4u6De3m3oMqnRbUngy5tkavKE6dU48UhPCzPmtVdI8yh4QFrY
+         Eoe1smBDIDelUZakvDzLWETUrLadkeNITpRhJ1b5+qftLeVULHe9OsFzVMlAo3hIIv2r
+         Sy4A==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781641866; x=1782246666; darn=lists.infradead.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=H8VoiG2fd7QipCVG9ChIZKmyDxpQXiedFTeAQCEb86k=;
+        b=OYuUmlPSNXCZ1a6BxeSVWQzrNNThzo3jN3uOPEhSvLKZfoerCJJnXRly+f/krcgfGG
+         YtJ4UQE0DNErWvDdDLGgFWsVlnB+VqxoMkaSeugI6McmleFdX/ImE/4xt46ezMnsVTrK
+         gubXu4ddA6CHyElql0c8/LerPeviieUm+CANeldpJHLjw7q3KnhMSdoEyghFJapozUaH
+         j9TsKnlx/PAemGd9prRrXSXrgFxCZTXEEqMqSgDnF9NpHnxp5/vfH4XPHGy0ptX9rHMQ
+         n6aFU3vMeXvFG3QrTp0qjxYhXOd3MHl1SOrfaY+FkIi406FMeB+bhAsorKzvwl0tun+O
+         TT7Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781641866; x=1782246666;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=H8VoiG2fd7QipCVG9ChIZKmyDxpQXiedFTeAQCEb86k=;
+        b=hAbHyUlZdXJULrWJ2NomsrHoR8ca2nN54eSLnccOYyyMH9eUks8tqVxX0CBqapMgGV
+         Lj4G8Byvs8IZTPy72GokShNYilKEIBUQSUpd/CkAyGssQhRAIXoTclI/i34VRumi6etg
+         TwrdFV4ynAJOnCwQY/8PpDN3RfD4tUh6M82IpheNuJayiVzI+eWywhFVrl/WvPTIXyrv
+         VscuxIGOEV1TkOo4E+B0er/qRHYb5nPm/zJkNb/t9cYJzCl1vwMXx1ZIDAdaJQ4fwTDG
+         wk132TvXU2bMf9f4+1C9q9R/PXi9ZUa7i61Q1CeY4xsA4V0eElqI8spNmhL003FLV5d8
+         q4LA==
+X-Gm-Message-State: AOJu0Yzh4HDOKvST47LtML9TKDVLyP+UeWw3q86EH/uxlRI9iRhKl++B
+	aX/yyBJhJyHs3dsS4jEkIz5Cy89HLIGm/UMAKlvYjRKhS62keoNoSrDQwT1+J/UmxJsHmMWkXZT
+	uVwXiAEvs1sKflJf23mhiXnq0sr5S6dc=
+X-Gm-Gg: Acq92OHHmwQPN5AZeFtJIZUudpOjWzTUXb3x4I8/OCHrmvKH50S3LrIBDAwPinWoq6k
+	a0baJ6HpRKFlII/I0BN85WMegytoVfvrylIOuAEFxwWummzxOI6h1bAYd37U9p9XjE/pYFl8UeE
+	BSs9Ps6u0RiGBx/2G7KCukh1wImBEJ76Xq9r8ngnIOzdt4HtnbazwUsMGj3SGGGu4d+rui0aThw
+	/H9QEzZzUGJTlvMTwMueLqVlWsNz7ZSKvE9arJd8Ld9+3/fKdl0RzoXi6wJjBQIw7+QTg+3iTcM
+	dUh42Lw=
+X-Received: by 2002:a05:6102:1499:b0:633:7d88:c77d with SMTP id
+ ada2fe7eead31-7246d73583fmr597867137.29.1781641865951; Tue, 16 Jun 2026
+ 13:31:05 -0700 (PDT)
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF000044A6:EE_|IA2PR22MB5672:EE_
-X-MS-Office365-Filtering-Correlation-Id: b857fd90-2a78-47ae-2d1c-08decbc8e535
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|36860700016|23010399003|376014|82310400026|1800799024|56012099006|55112099003|10086099003|3023799007|6133799003|22082099003|18002099003|18092099006;
-X-Microsoft-Antispam-Message-Info: lvxv61SlNGbjWTdhlO8BQqeTWpNndVLpABA1QPU1Krpa3kLeGql7v8hc0+LBsbi88efnZmBztKR7DE1OO0jJRI/dRgpUBhlQusv2VPJ6t1rY0Hgl5XsIyEBibEARUHCf61s3BhJKYz0juYUlZtKgpNsy+8HFwrcmVByDPzH6S6GXbC52XzYkYFj8mmF5Wx+WOZd3xy8PeRBGNnXQTO8Eho5t3ZmHefDvHufNPIEZaIHzPTwBjdS/fAYecN+f0S6k4gfIp+ZlqjliNSsrHh6drw6sfhP0c+CURovZePD1CZI1xHQ4JO3ktzAS+2ukE5oJIZcURZe867uYiwvK7rKpYCF6WlwI0haealD/LvWKsNkwsFSMCv4akag57u+r1llWIeAj9PdzR1qSeFkjKPGNVP4jUa1sMY/7Bs9OSQW0YWtbm4Q03PubOTkTU9z4NokYf64HJngMt1fCPzzNYofI6wJqL6BvO8XcHXbHkY9jOcHMt2aX9x20T6NhHz9xin+9UgiWwXpJb3VbHCCMeT7XrYZ4aYG2EJrMbosOmL56H13PELriBbgY8C3xgl7t3JJbTi4b1Ia6bQhd7xvVZZpQwb990PgPFNlEcQSWmjGUsa8/Ml49h0Axd5cs8D/bNZvNETgm7qARLFJB2k3cy9pp10rO9QGyqJZOqf/4ZG6riIajpDlaqAcvf8t/gcPttzMdElTplKHO31t2dQDXKzv2N6IsNKEntWvlJimNm4AjKGo=
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(376014)(82310400026)(1800799024)(56012099006)(55112099003)(10086099003)(3023799007)(6133799003)(22082099003)(18002099003)(18092099006);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: Zg6pCcUb/GWI1DV/maH3u6SBrFBOXl5nSBNSpzpYS/5epoYOZi7JgZE9n0eRnTFvYGFAmKPMZrLupGxm7PZ8bouF98IwuZd5mmUEEVkQve5XaYda8OQGl0KOMzm3xr7MpD7kRkYHBar1AS8EHpxJQVgUrWOZucucsybxyAgG+yxcZgOTilVMzMW7ZfKePNnzXcBBlwpMXo7iiPtSHYzcmD5ZU5vlmhJabVQvZvIHMHRonIdosaTxrlz0g9swUzKUxB3m5VLkO7C7foXnC/u/vCGqbREd26/ofOp7YOL1opIX4UbTLdebr1HLk9w7R0HKgUq0JSYYwaLtqQTGGbfOJeAv7r1AJVCpxEwF9TT6ISx5odN6DWaO5W40n+N7CvVLHiNm/p4B3qZguclPcR2ZzN+e6HfZwj2QywG6nEZs0MiWH43XkLW7xNWHXi3xMvwg
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2026 17:01:23.1074
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b857fd90-2a78-47ae-2d1c-08decbc8e535
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN2PEPF000044A6.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA2PR22MB5672
+References: <20260504171342.1655882-1-raymondmaoca@gmail.com> <CAAhSdy0LpNv8U2a6PxKL27-RD+XuC9EHnbn19Vvbh41B=N3Ffw@mail.gmail.com>
+In-Reply-To: <CAAhSdy0LpNv8U2a6PxKL27-RD+XuC9EHnbn19Vvbh41B=N3Ffw@mail.gmail.com>
+From: Raymond Mao <raymondmaoca@gmail.com>
+Date: Tue, 16 Jun 2026 16:30:54 -0400
+X-Gm-Features: AVVi8CdM0Ua6zL9T9vv5cF7FMvBevGUpU35rEG4SMD2j1F4elBGOOhMIglPgeww
+Message-ID: <CAMDkj5yvfAGxY5vYvc9i8JEzT7zcJL0G9bz9Lcx=cn=Q_UFFRA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] lib: utils: irqchip: implement APLIC hwirq
+ operation hooks
+To: Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org, scott@riscstar.com, dave.patel@riscstar.com, 
+	raymond.mao@riscstar.com, robin.randhawa@sifive.com, 
+	samuel.holland@sifive.com, anup.patel@qti.qualcomm.com, 
+	anuppate@qti.qualcomm.com, dhaval@rivosinc.com, peter.lin@sifive.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260616_100132_113710_CA6F35E6 
-X-CRM114-Status: GOOD (  18.24  )
+X-CRM114-CacheID: sfid-20260616_133108_365912_78D25C79 
+X-CRM114-Status: GOOD (  31.85  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -116,263 +113,185 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The current SBI DBTR extension implementation accesses tdata2 and tdata3
-without first checking whether either register is implemented on the
-underlying hart. This produces an illegal instruction exception on
-otherwise spec-compliant cores that legitimately omit one or both
-registers.
-
-Per the RISC-V Debug Specification, Chapter 5 (Sdtrig ISA Extension)
-and Section 5.7 (Trigger Module Registers):
-
-  Section 5 (Sdtrig introduction):
-    "If Sdtrig is implemented, the Trigger Module must support at least
-     one trigger. Accessing trigger CSRs that are not used by any of the
-     implemented triggers must result in an illegal instruction
-     exception. M-Mode and Debug Mode accesses to trigger CSRs that are
-     used by any of the implemented triggers must succeed, regardless of
-     the current type of the currently selected trigger."
-
-  Section 5.7 (Trigger Module Registers):
-    "Attempts to access an unimplemented Trigger Module Register raise
-     an illegal instruction exception."
-
-Per-register optionality is also explicit:
-
-  Section 5.7.3 (Trigger Data 2, at 0x7a2):
-    "Trigger-specific data. It is optional if no implemented triggers
-     use it."
-
-  Section 5.7.4 (Trigger Data 3, at 0x7a3):
-    "Trigger-specific data. It is optional if no implemented triggers
-     use it."
-
-  Section 5.7.17 (Trigger Extra (RV32), at 0x7a3), which also applies
-  via textra64 on RV64:
-    "All functionality in this register is optional. Any number of
-     upper bits of mhvalue and svalue may be tied to 0. mhselect and
-     sselect may only support 0 (ignore)."
-
-Unconditionally accessing tdata2/tdata3 in the install/update/read/
-uninstall paths causes SBI calls to fail with an illegal instruction
-exception on hardware that does not implement one or both CSRs, even
-if the supervisor-supplied trigger configuration does not require the
-missing CSR(s).
-
-This patch:
-
-  1. Introduces tdata_read_safe() / tdata_write_safe() helpers that
-     wrap csr_read_allowed / csr_write_allowed so that an illegal-
-     instruction trap raised by an unimplemented CSR is caught locally
-     rather than propagated. On the read path, a trapped read yields
-     zero; on the write path, the trap is silently absorbed (writes to
-     an unimplemented CSR are no-ops by definition). Every tdata2/tdata3
-     read and write in the install/update/read/uninstall paths is
-     converted to these helpers.
-
-  2. On the install and update paths, rejects requests that program
-     a non-zero trig_tdata2 or trig_tdata3 into an unimplemented CSR
-     with SBI_ERR_NOT_SUPPORTED, matching the SBI spec
-     wording in sections 19.4 / 19.5:
-
-       "One of the trigger configuration can't be programmed due to
-        unimplemented optional bits in tdata1, tdata2, or tdata3
-        CSRs."
-
-     Implementation status is probed once per call via the
-     tdata_implemented() helper. This only catches the "whole CSR
-     unimplemented" case; tied-off WARL bits inside an otherwise-
-     implemented CSR are not caught here and would require programming
-     the trigger and reading the value back for comparison, which can
-     be addressed separately.
-
-  3. Enable tdata3 configuration in the debug trigger install path.
-
-References:
-  - RISC-V Debug Specification, Chapter 5 (Sdtrig), sections 5, 5.7,
-    5.7.3, 5.7.4, 5.7.17.
-  - RISC-V SBI Specification v3.0, Chapter 19 (Debug Triggers
-    Extension), sections 19.4, 19.5.
-
-Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
-Suggested-by: Nicholas Piggin <npiggin@gmail.com>
-Suggested-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
----
-Changes since v2:
- - Wrapped the repeated csr_read_allowed / csr_write_allowed +
-   sbi_trap_info boilerplate in tdata_read_safe() / tdata_write_safe()
-   statement-expression macros, and the per-call implementation probe
-   in a tdata_implemented() macro returning a boolean, per Himanshu
-   Chauhan's review. All open-coded tdata2/tdata3 reads, writes and
-   probes now go through these helpers.
- - The install / update SBI_ERR_NOT_SUPPORTED checks now call
-   tdata_implemented() and are collapsed into a single condition per
-   path.
-
-Changes since v1:
- - Replaced the boot-time probe and the cached per-hart
-   tdata2_supported / tdata3_supported flags with per-access
-   csr_read_allowed / csr_write_allowed at every tdata2/tdata3 site,
-   per Nicholas Piggin's review. This covers both spec-compliant
-   cores and implementations whose trap behavior depends on the
-   currently selected trigger type (e.g. QEMU's tdata_available()).
- - Dropped the additions to struct sbi_dbtr_hart_triggers_state.
- - Install / update SBI_ERR_NOT_SUPPORTED checks now probe via
-   csr_read_allowed once per call. Added a comment noting that this
-   only catches the "whole CSR unimplemented" case; tied-off WARL
-   bits inside an implemented CSR are not detected and can be
-   addressed in a follow-up.
-
- lib/sbi/sbi_dbtr.c | 63 ++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 59 insertions(+), 4 deletions(-)
-
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 8bcb4312..01047969 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -34,6 +34,25 @@ static unsigned long hart_state_ptr_offset;
- 	sbi_scratch_write_type((__scratch), void *, hart_state_ptr_offset, \
- 			       (__hart_state))
- 
-+#define tdata_read_safe(__csr)						\
-+	({								\
-+		struct sbi_trap_info __trap = {0};			\
-+		csr_read_allowed((__csr), &__trap);			\
-+	})
-+
-+#define tdata_write_safe(__csr, __value)				\
-+	({								\
-+		struct sbi_trap_info __trap = {0};			\
-+		csr_write_allowed((__csr), &__trap, (__value));		\
-+	})
-+
-+#define tdata_implemented(__csr)					\
-+	({								\
-+		struct sbi_trap_info __trap = {0};			\
-+		csr_read_allowed((__csr), &__trap);			\
-+		!__trap.cause;						\
-+	})
-+
- #define INDEX_TO_TRIGGER(_index)					\
- 	({								\
- 		struct sbi_dbtr_trigger *__trg = NULL;			\
-@@ -418,7 +437,8 @@ static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
- 	 */
- 	csr_write(CSR_TSELECT, trig->index);
- 	csr_write(CSR_TDATA1, 0x0);
--	csr_write(CSR_TDATA2, trig->tdata2);
-+	tdata_write_safe(CSR_TDATA2, trig->tdata2);
-+	tdata_write_safe(CSR_TDATA3, trig->tdata3);
- 	csr_write(CSR_TDATA1, trig->tdata1);
- }
- 
-@@ -463,7 +483,8 @@ static void dbtr_trigger_clear(struct sbi_dbtr_trigger *trig)
- 
- 	csr_write(CSR_TSELECT, trig->index);
- 	csr_write(CSR_TDATA1, 0x0);
--	csr_write(CSR_TDATA2, 0x0);
-+	tdata_write_safe(CSR_TDATA2, 0x0);
-+	tdata_write_safe(CSR_TDATA3, 0x0);
- }
- 
- static int dbtr_trigger_supported(unsigned long type)
-@@ -566,8 +587,8 @@ int sbi_dbtr_read_trig(unsigned long smode,
- 		trig = INDEX_TO_TRIGGER((_idx + trig_idx_base));
- 		csr_write(CSR_TSELECT, trig->index);
- 		trig->tdata1 = csr_read(CSR_TDATA1);
--		trig->tdata2 = csr_read(CSR_TDATA2);
--		trig->tdata3 = csr_read(CSR_TDATA3);
-+		trig->tdata2 = tdata_read_safe(CSR_TDATA2);
-+		trig->tdata3 = tdata_read_safe(CSR_TDATA3);
- 		xmit->tstate = cpu_to_lle(trig->state);
- 		xmit->tdata1 = cpu_to_lle(trig->tdata1);
- 		xmit->tdata2 = cpu_to_lle(trig->tdata2);
-@@ -589,6 +610,7 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 	unsigned long ctrl;
- 	struct sbi_dbtr_trigger *trig;
- 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
-+	bool tdata2_impl, tdata3_impl;
- 
- 	hs = dbtr_thishart_state_ptr();
- 	if (!hs)
-@@ -601,6 +623,15 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 	sbi_hart_protection_map_range((unsigned long)shmem_base,
- 				      trig_count * sizeof(*entry));
- 
-+	/*
-+	 * SBI v3.0 sec 19.4 requires SBI_ERR_NOT_SUPPORTED when a trigger
-+	 * programs a non-zero value into an unimplemented optional CSR. Only
-+	 * the "whole CSR unimplemented" case is caught; WARL bits tied off
-+	 * inside an otherwise-implemented CSR are not.
-+	 */
-+	tdata2_impl = tdata_implemented(CSR_TDATA2);
-+	tdata3_impl = tdata_implemented(CSR_TDATA3);
-+
- 	/* Check requested triggers configuration */
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
- 		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
-@@ -619,6 +650,14 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 							trig_count * sizeof(*entry));
- 			return SBI_ERR_FAILED;
- 		}
-+
-+		if ((recv->tdata2 && !tdata2_impl) ||
-+		    (recv->tdata3 && !tdata3_impl)) {
-+			*out = _idx;
-+			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+							trig_count * sizeof(*entry));
-+			return SBI_ERR_NOT_SUPPORTED;
-+		}
- 	}
- 
- 	if (hs->available_trigs < trig_count) {
-@@ -705,6 +744,7 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 	union sbi_dbtr_shmem_entry *entry;
- 	void *shmem_base = NULL;
- 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
-+	bool tdata2_impl, tdata3_impl;
- 
- 	hs = dbtr_thishart_state_ptr();
- 	if (!hs)
-@@ -718,6 +758,15 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 	if (trig_count >= hs->total_trigs)
- 		return SBI_ERR_BAD_RANGE;
- 
-+	/*
-+	 * SBI v3.0 sec 19.5 requires SBI_ERR_NOT_SUPPORTED when a trigger
-+	 * programs a non-zero value into an unimplemented optional CSR. Only
-+	 * the "whole CSR unimplemented" case is caught; WARL bits tied off
-+	 * inside an otherwise-implemented CSR are not.
-+	 */
-+	tdata2_impl = tdata_implemented(CSR_TDATA2);
-+	tdata3_impl = tdata_implemented(CSR_TDATA3);
-+
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
- 		sbi_hart_protection_map_range((unsigned long)entry, sizeof(*entry));
- 		trig_idx = entry->id.idx;
-@@ -734,6 +783,12 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 			return SBI_ERR_FAILED;
- 		}
- 
-+		if ((entry->data.tdata2 && !tdata2_impl) ||
-+		    (entry->data.tdata3 && !tdata3_impl)) {
-+			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
-+			return SBI_ERR_NOT_SUPPORTED;
-+		}
-+
- 		dbtr_trigger_setup(trig, &entry->data);
- 		sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
- 		dbtr_trigger_enable(trig);
--- 
-2.43.0
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+SGkgQW51cCwKCk9uIFRodSwgSnVuIDExLCAyMDI2IGF0IDE6MTXigK9BTSBBbnVwIFBhdGVsIDxh
+bnVwQGJyYWluZmF1bHQub3JnPiB3cm90ZToKPgo+IEhpIFJheSwKPgo+IE9uIE1vbiwgTWF5IDQs
+IDIwMjYgYXQgMTA6NDPigK9QTSBSYXltb25kIE1hbyA8cmF5bW9uZG1hb2NhQGdtYWlsLmNvbT4g
+d3JvdGU6Cj4gPgo+ID4gRnJvbTogUmF5bW9uZCBNYW8gPHJheW1vbmQubWFvQHJpc2NzdGFyLmNv
+bT4KPiA+Cj4gPiBJbXBsZW1lbnQgdGhlIEFQTElDIGhhcmR3YXJlIGludGVycnVwdCBob29rcyB1
+c2VkIGJ5IHRoZSBnZW5lcmljCj4gPiBpcnFjaGlwIGZyYW1ld29yayBmb3IgTS1tb2RlIGRpcmVj
+dC1tb2RlIHdpcmVkIGludGVycnVwdHMuCj4gPgo+ID4gUHJvZ3JhbSBhIG1pbmltYWwgQVBMSUMg
+ZGlyZWN0LW1vZGUgY29uZmlndXJhdGlvbiBkdXJpbmcgaHdpcnEgc2V0dXAKPiA+IGFuZCBjbGFp
+bSBleHRlcm5hbCBpbnRlcnJ1cHRzIHZpYSBJREMuQ0xBSU1JLiBBZGQgdGhlIGhlbHBlciBsb2dp
+Ywo+ID4gbmVlZGVkIHRvIGRlcml2ZSB0aGUgc291cmNlIElEIGZyb20gQ0xBSU1JLCBtYXAgaGFy
+dCBpbmRleCB0byBJREMKPiA+IGluZGV4LCBza2lwIGRlbGVnYXRlZCBpbnRlcnJ1cHRzLCBhbmQg
+cmVnaXN0ZXIgcHJvY2Vzc19od2lycXMoKQo+ID4gb25seSBmb3IgdGhlIE0tbW9kZSBkaXJlY3Qt
+bW9kZSBwcm92aWRlci4KPiA+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBSYXltb25kIE1hbyA8cmF5bW9u
+ZC5tYW9AcmlzY3N0YXIuY29tPgo+Cj4gUGF3YW5kZWVwIE96YSAoQ0MnZWQpIGhhcyBkZXZlbG9w
+ZWQgZnVuY3Rpb25hbGx5IGNvbXBsZXRlIElNU0lDCj4gYW5kIEFQTElDIGRyaXZlcnMgZm9yIE9w
+ZW5TQkkgd2hpY2ggc3VwcG9ydHMgYm90aCBNU0ktbW9kZSBhbmQKPiBEaXJlY3QtbW9kZSBvZiBB
+UExJQy4gSGUgZGlkIGluY2x1ZGUgc29tZSBvZiB5b3VyIGNoYW5nZXMgZnJvbQo+IHRoaXMgcGF0
+Y2guIEhlIHdpbGwgc2VuZC1vdXQgaGlzIHNlcmllcyBwcmV0dHkgc29vbiBzbyBzdGF5IHR1bmVk
+Lgo+CgpTb3JyeSBidXQgSSBkaWRuJ3QgZmluZCBQYXdhbmRlZXAgT3phIGZyb20gdGhlIENDIGxp
+c3QuCkJ1dCBhbnl3YXksIGNhbiBoZSByZWJhc2Ugb24gbXkgY29tbWl0IGluc3RlYWQgb2YganVz
+dCBwaWNraW5nIGNoYW5nZXMKZnJvbSBteSBwYXRjaD8KClRoYW5rcyBhbmQgcmVnYXJkcywKUmF5
+bW9uZAoKPiBSZWdhcmRzLAo+IEFudXAKPgo+ID4gLS0tCj4gPiAgbGliL3V0aWxzL2lycWNoaXAv
+YXBsaWMuYyB8IDIyNyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ID4g
+IDEgZmlsZSBjaGFuZ2VkLCAyMjcgaW5zZXJ0aW9ucygrKQo+ID4KPiA+IGRpZmYgLS1naXQgYS9s
+aWIvdXRpbHMvaXJxY2hpcC9hcGxpYy5jIGIvbGliL3V0aWxzL2lycWNoaXAvYXBsaWMuYwo+ID4g
+aW5kZXggZWM2OWM4MmIuLjNmNDk5MWI1IDEwMDY0NAo+ID4gLS0tIGEvbGliL3V0aWxzL2lycWNo
+aXAvYXBsaWMuYwo+ID4gKysrIGIvbGliL3V0aWxzL2lycWNoaXAvYXBsaWMuYwo+ID4gQEAgLTI0
+NSw2ICsyNDUsMjIwIEBAIHN0YXRpYyBpbnQgYXBsaWNfY2hlY2tfbXNpY2ZnKHN0cnVjdCBhcGxp
+Y19tc2ljZmdfZGF0YSAqbXNpY2ZnKQo+ID4gICAgICAgICByZXR1cm4gMDsKPiA+ICB9Cj4gPgo+
+ID4gK3N0YXRpYyBpbmxpbmUgdm9pZCAqYXBsaWNfaWRjX2Jhc2UodW5zaWduZWQgbG9uZyBhcGxp
+Y19hZGRyLCB1MzIgaWRjX2luZGV4KQo+ID4gK3sKPiA+ICsgICAgICAgcmV0dXJuICh2b2lkICop
+KGFwbGljX2FkZHIgKyBBUExJQ19JRENfQkFTRSArCj4gPiArICAgICAgICAgICAgICAgICAgICAg
+ICAodW5zaWduZWQgbG9uZylpZGNfaW5kZXggKiBBUExJQ19JRENfU0laRSk7Cj4gPiArfQo+ID4g
+Kwo+ID4gK3N0YXRpYyBpbmxpbmUgc3RydWN0IGFwbGljX2RhdGEgKmFwbGljX2lycWNoaXBfdG9f
+ZGF0YShzdHJ1Y3Qgc2JpX2lycWNoaXBfZGV2aWNlICpjaGlwKQo+ID4gK3sKPiA+ICsgICAgICAg
+cmV0dXJuIGNvbnRhaW5lcl9vZihjaGlwLCBzdHJ1Y3QgYXBsaWNfZGF0YSwgaXJxY2hpcCk7Cj4g
+PiArfQo+ID4gKwo+ID4gK3N0YXRpYyBib29sIGFwbGljX2h3aXJxX2RlbGVnYXRlZChjb25zdCBz
+dHJ1Y3QgYXBsaWNfZGF0YSAqYXBsaWMsIHUzMiBod2lycSkKPiA+ICt7Cj4gPiArICAgICAgIHUz
+MiBpOwo+ID4gKwo+ID4gKyAgICAgICBmb3IgKGkgPSAwOyBpIDwgQVBMSUNfTUFYX0RFTEVHQVRF
+OyBpKyspIHsKPiA+ICsgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3QgYXBsaWNfZGVsZWdhdGVf
+ZGF0YSAqZGVsZWcgPSAmYXBsaWMtPmRlbGVnYXRlW2ldOwo+ID4gKwo+ID4gKyAgICAgICAgICAg
+ICAgIGlmICghZGVsZWctPmZpcnN0X2lycSB8fCAhZGVsZWctPmxhc3RfaXJxKQo+ID4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgY29udGludWU7Cj4gPiArICAgICAgICAgICAgICAgaWYgKGRlbGVn
+LT5maXJzdF9pcnEgPD0gaHdpcnEgJiYgaHdpcnEgPD0gZGVsZWctPmxhc3RfaXJxKQo+ID4gKyAg
+ICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHRydWU7Cj4gPiArICAgICAgIH0KPiA+ICsKPiA+
+ICsgICAgICAgcmV0dXJuIGZhbHNlOwo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgYm9vbCBhcGxp
+Y19tbW9kZV9kaXJlY3QoY29uc3Qgc3RydWN0IGFwbGljX2RhdGEgKmFwbGljKQo+ID4gK3sKPiA+
+ICsgICAgICAgcmV0dXJuIGFwbGljLT50YXJnZXRzX21tb2RlICYmIGFwbGljLT5udW1faWRjOwo+
+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgaW50IGFwbGljX2hhcnRpbmRleF90b19pZGNfaW5kZXgo
+Y29uc3Qgc3RydWN0IGFwbGljX2RhdGEgKmFwbGljLAo+ID4gKyAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIHUzMiBoYXJ0aW5kZXgpCj4gPiArewo+ID4gKyAgICAgICB1MzIg
+aTsKPiA+ICsKPiA+ICsgICAgICAgaWYgKCFhcGxpYy0+bnVtX2lkYykKPiA+ICsgICAgICAgICAg
+ICAgICByZXR1cm4gU0JJX0VOT0RFVjsKPiA+ICsKPiA+ICsgICAgICAgaWYgKGFwbGljLT5pZGNf
+bWFwKSB7Cj4gPiArICAgICAgICAgICAgICAgZm9yIChpID0gMDsgaSA8IGFwbGljLT5udW1faWRj
+OyBpKyspIHsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGlmIChhcGxpYy0+aWRjX21hcFtp
+XSA9PSBoYXJ0aW5kZXgpCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVy
+biBpOwo+ID4gKyAgICAgICAgICAgICAgIH0KPiA+ICsKPiA+ICsgICAgICAgICAgICAgICByZXR1
+cm4gU0JJX0VOT0RFVjsKPiA+ICsgICAgICAgfQo+ID4gKwo+ID4gKyAgICAgICBpZiAoaGFydGlu
+ZGV4IDwgYXBsaWMtPm51bV9pZGMpCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIGhhcnRpbmRl
+eDsKPiA+ICsKPiA+ICsgICAgICAgcmV0dXJuIFNCSV9FTk9ERVY7Cj4gPiArfQo+ID4gKwo+ID4g
+K3N0YXRpYyBpbnQgYXBsaWNfaHdpcnFfdGFyZ2V0X2lkY19pbmRleChzdHJ1Y3Qgc2JpX2lycWNo
+aXBfZGV2aWNlICpjaGlwKQo+ID4gK3sKPiA+ICsgICAgICAgdTMyIGhhcnRpbmRleCA9IGN1cnJl
+bnRfaGFydGluZGV4KCk7Cj4gPiArCj4gPiArICAgICAgIGlmICghc2JpX2hhcnRtYXNrX3Rlc3Rf
+aGFydGluZGV4KGhhcnRpbmRleCwgJmNoaXAtPnRhcmdldF9oYXJ0cykpIHsKPiA+ICsgICAgICAg
+ICAgICAgICBzYmlfaGFydG1hc2tfZm9yX2VhY2hfaGFydGluZGV4KGhhcnRpbmRleCwgJmNoaXAt
+PnRhcmdldF9oYXJ0cykKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOwo+ID4gKyAg
+ICAgICAgICAgICAgIGlmIChoYXJ0aW5kZXggPj0gU0JJX0hBUlRNQVNLX01BWF9CSVRTKQo+ID4g
+KyAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIFNCSV9FTk9ERVY7Cj4gPiArICAgICAgIH0K
+PiA+ICsKPiA+ICsgICAgICAgcmV0dXJuIGFwbGljX2hhcnRpbmRleF90b19pZGNfaW5kZXgoYXBs
+aWNfaXJxY2hpcF90b19kYXRhKGNoaXApLAo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBoYXJ0aW5kZXgpOwo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgdTMy
+IGFwbGljX2RvbWFpbmNmZ192YWx1ZSh2b2lkKQo+ID4gK3sKPiA+ICsgICAgICAgdTMyIHZhbCA9
+IEFQTElDX0RPTUFJTkNGR19JRTsKPiA+ICsKPiA+ICsjaWYgX19CWVRFX09SREVSX18gPT0gX19P
+UkRFUl9CSUdfRU5ESUFOX18KPiA+ICsgICAgICAgdmFsIHw9IEFQTElDX0RPTUFJTkNGR19CRTsK
+PiA+ICsjZW5kaWYKPiA+ICsKPiA+ICsgICAgICAgcmV0dXJuIHZhbDsKPiA+ICt9Cj4gPiArCj4g
+PiArc3RhdGljIHZvaWQgYXBsaWNfaHdpcnFfbWFzayhzdHJ1Y3Qgc2JpX2lycWNoaXBfZGV2aWNl
+ICpjaGlwLCB1MzIgaHdpcnEpCj4gPiArewo+ID4gKyAgICAgICBzdHJ1Y3QgYXBsaWNfZGF0YSAq
+YXBsaWMgPSBhcGxpY19pcnFjaGlwX3RvX2RhdGEoY2hpcCk7Cj4gPiArCj4gPiArICAgICAgIGlm
+ICghaHdpcnEgfHwgYXBsaWNfaHdpcnFfZGVsZWdhdGVkKGFwbGljLCBod2lycSkpCj4gPiArICAg
+ICAgICAgICAgICAgcmV0dXJuOwo+ID4gKwo+ID4gKyAgICAgICBpZiAoIWFwbGljLT5hZGRyIHx8
+IGh3aXJxID4gYXBsaWMtPm51bV9zb3VyY2UpCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuOwo+
+ID4gKwo+ID4gKyAgICAgICAvKiBEaXNhYmxlIHNvdXJjZSAqLwo+ID4gKyAgICAgICB3cml0ZWwo
+aHdpcnEsICh2b2lkICopKGFwbGljLT5hZGRyICsgQVBMSUNfQ0xSSUVOVU0pKTsKPiA+ICt9Cj4g
+PiArCj4gPiArc3RhdGljIHZvaWQgYXBsaWNfaHdpcnFfdW5tYXNrKHN0cnVjdCBzYmlfaXJxY2hp
+cF9kZXZpY2UgKmNoaXAsIHUzMiBod2lycSkKPiA+ICt7Cj4gPiArICAgICAgIHN0cnVjdCBhcGxp
+Y19kYXRhICphcGxpYyA9IGFwbGljX2lycWNoaXBfdG9fZGF0YShjaGlwKTsKPiA+ICsKPiA+ICsg
+ICAgICAgaWYgKCFod2lycSB8fCBhcGxpY19od2lycV9kZWxlZ2F0ZWQoYXBsaWMsIGh3aXJxKSkK
+PiA+ICsgICAgICAgICAgICAgICByZXR1cm47Cj4gPiArCj4gPiArICAgICAgIGlmICghYXBsaWMt
+PmFkZHIgfHwgaHdpcnEgPiBhcGxpYy0+bnVtX3NvdXJjZSkKPiA+ICsgICAgICAgICAgICAgICBy
+ZXR1cm47Cj4gPiArCj4gPiArICAgICAgIC8qIEVuYWJsZSBzb3VyY2UgKi8KPiA+ICsgICAgICAg
+d3JpdGVsKGh3aXJxLCAodm9pZCAqKShhcGxpYy0+YWRkciArIEFQTElDX1NFVElFTlVNKSk7Cj4g
+PiArfQo+ID4gKwo+ID4gK3N0YXRpYyBpbnQgYXBsaWNfaHdpcnFfY2xhaW0oc3RydWN0IHNiaV9p
+cnFjaGlwX2RldmljZSAqY2hpcCwgdTMyICpod2lycSkKPiA+ICt7Cj4gPiArICAgICAgIHN0cnVj
+dCBhcGxpY19kYXRhICphcGxpYyA9IGFwbGljX2lycWNoaXBfdG9fZGF0YShjaGlwKTsKPiA+ICsg
+ICAgICAgaW50IGlkY19pbmRleDsKPiA+ICsgICAgICAgdm9pZCAqaWRjOwo+ID4gKyAgICAgICB1
+MzIgdiwgaWQ7Cj4gPiArCj4gPiArICAgICAgIGlmICghaHdpcnEpCj4gPiArICAgICAgICAgICAg
+ICAgcmV0dXJuIFNCSV9FSU5WQUw7Cj4gPiArCj4gPiArICAgICAgIGlkY19pbmRleCA9IGFwbGlj
+X2hhcnRpbmRleF90b19pZGNfaW5kZXgoYXBsaWMsIGN1cnJlbnRfaGFydGluZGV4KCkpOwo+ID4g
+KyAgICAgICBpZiAoIWFwbGljLT5hZGRyIHx8IGlkY19pbmRleCA8IDApCj4gPiArICAgICAgICAg
+ICAgICAgcmV0dXJuIFNCSV9FTk9ERVY7Cj4gPiArCj4gPiArICAgICAgIGlkYyA9IGFwbGljX2lk
+Y19iYXNlKGFwbGljLT5hZGRyLCBpZGNfaW5kZXgpOwo+ID4gKwo+ID4gKyAgICAgICAvKgo+ID4g
+KyAgICAgICAgKiBSZWFkIENMQUlNSTogcmV0dXJucyBUT1BJIHZhbHVlLgo+ID4gKyAgICAgICAg
+KiBJRD09MCBtZWFucyBzcHVyaW91cyBpbnRlcnJ1cHQgKHNwZWMtZGVmaW5lZCkuCj4gPiArICAg
+ICAgICAqLwo+ID4gKyAgICAgICB2ID0gcmVhZGwoaWRjICsgQVBMSUNfSURDX0NMQUlNSSk7IC8q
+IGRlcXVldWUgKi8KPiA+ICsKPiA+ICsgICAgICAgaWQgPSAodiA+PiBBUExJQ19JRENfVE9QSV9J
+RF9TSElGVCkgJiBBUExJQ19JRENfVE9QSV9JRF9NQVNLOwo+ID4gKwo+ID4gKyAgICAgICAvKiBJ
+RD09MCBtZWFucyBzcHVyaW91cyAvIG5vIHBlbmRpbmcgd2lyZWQgaW50ZXJydXB0ICovCj4gPiAr
+ICAgICAgIGlmICghaWQpCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIFNCSV9FTk9FTlQ7Cj4g
+PiArCj4gPiArICAgICAgIC8qIEJvdW5kIGNoZWNrIGFnYWluc3QgRFQtZGlzY292ZXJlZCBudW1f
+c3JjICovCj4gPiArICAgICAgIGlmIChpZCA+IGFwbGljLT5udW1fc291cmNlKQo+ID4gKyAgICAg
+ICAgICAgICAgIHJldHVybiBTQklfRUlOVkFMOwo+ID4gKwo+ID4gKyAgICAgICAqaHdpcnEgPSBp
+ZDsKPiA+ICsKPiA+ICsgICAgICAgcmV0dXJuIFNCSV9PSzsKPiA+ICt9Cj4gPiArCj4gPiArc3Rh
+dGljIGludCBhcGxpY19od2lycV9zZXR1cChzdHJ1Y3Qgc2JpX2lycWNoaXBfZGV2aWNlICpjaGlw
+LCB1MzIgaHdpcnEpCj4gPiArewo+ID4gKyAgICAgICBzdHJ1Y3QgYXBsaWNfZGF0YSAqYXBsaWMg
+PSBhcGxpY19pcnFjaGlwX3RvX2RhdGEoY2hpcCk7Cj4gPiArICAgICAgIHVuc2lnbmVkIGxvbmcg
+aWRjOwo+ID4gKyAgICAgICBpbnQgaWRjX2luZGV4Owo+ID4gKwo+ID4gKyAgICAgICBpZiAoIWh3
+aXJxIHx8IGh3aXJxID4gYXBsaWMtPm51bV9zb3VyY2UpCj4gPiArICAgICAgICAgICAgICAgcmV0
+dXJuIFNCSV9FSU5WQUw7Cj4gPiArICAgICAgIGlmICghYXBsaWNfbW1vZGVfZGlyZWN0KGFwbGlj
+KSkKPiA+ICsgICAgICAgICAgICAgICByZXR1cm4gU0JJX0VOT1RTVVBQOwo+ID4gKyAgICAgICBp
+ZiAoYXBsaWNfaHdpcnFfZGVsZWdhdGVkKGFwbGljLCBod2lycSkpCj4gPiArICAgICAgICAgICAg
+ICAgcmV0dXJuIFNCSV9FTk9UU1VQUDsKPiA+ICsKPiA+ICsgICAgICAgaWRjX2luZGV4ID0gYXBs
+aWNfaHdpcnFfdGFyZ2V0X2lkY19pbmRleChjaGlwKTsKPiA+ICsgICAgICAgaWYgKGlkY19pbmRl
+eCA8IDApCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIGlkY19pbmRleDsKPiA+ICsKPiA+ICsg
+ICAgICAgaWRjID0gYXBsaWMtPmFkZHIgKyBBUExJQ19JRENfQkFTRSArIGlkY19pbmRleCAqIEFQ
+TElDX0lEQ19TSVpFOwo+ID4gKwo+ID4gKyAgICAgICAvKiBBUExJQzogc291cmNlY2ZnL3Rhcmdl
+dC9lbmFibGUgKi8KPiA+ICsgICAgICAgd3JpdGVsKEFQTElDX1NPVVJDRUNGR19TTV9MRVZFTF9I
+SUdILAo+ID4gKyAgICAgICAgICAgICAgKHZvaWQgKikoYXBsaWMtPmFkZHIgKyBBUExJQ19TT1VS
+Q0VDRkdfQkFTRSArIChod2lycSAtIDEpICogNCkpOwo+ID4gKwo+ID4gKyAgICAgICB3cml0ZWwo
+KCh1MzIpaWRjX2luZGV4IDw8IEFQTElDX1RBUkdFVF9IQVJUX0lEWF9TSElGVCkgfAo+ID4gKyAg
+ICAgICAgICAgICAgQVBMSUNfREVGQVVMVF9QUklPUklUWSwKPiA+ICsgICAgICAgICAgICAgICh2
+b2lkICopKGFwbGljLT5hZGRyICsgQVBMSUNfVEFSR0VUX0JBU0UgKyAoaHdpcnEgLSAxKSAqIDQp
+KTsKPiA+ICsKPiA+ICsgICAgICAgd3JpdGVsKGh3aXJxLCAodm9pZCAqKShhcGxpYy0+YWRkciAr
+IEFQTElDX1NFVElFTlVNKSk7Cj4gPiArCj4gPiArICAgICAgIC8qIERpcmVjdCBtb2RlIGZvciBh
+aWE9YXBsaWM6IERNPTAgPT4gZG9uJ3Qgc2V0IERNIGJpdCAqLwo+ID4gKyAgICAgICB3cml0ZWwo
+YXBsaWNfZG9tYWluY2ZnX3ZhbHVlKCksICh2b2lkICopKGFwbGljLT5hZGRyICsgQVBMSUNfRE9N
+QUlOQ0ZHKSk7Cj4gPiArCj4gPiArICAgICAgIC8qIElEQyBkZWxpdmVyeSAqLwo+ID4gKyAgICAg
+ICB3cml0ZWwoQVBMSUNfRU5BQkxFX0lERUxJVkVSWSwgKHZvaWQgKikoaWRjICsgQVBMSUNfSURD
+X0lERUxJVkVSWSkpOwo+ID4gKyAgICAgICB3cml0ZWwoQVBMSUNfRU5BQkxFX0lUSFJFU0hPTEQs
+ICh2b2lkICopKGlkYyArIEFQTElDX0lEQ19JVEhSRVNIT0xEKSk7Cj4gPiArCj4gPiArICAgICAg
+IHJldHVybiBTQklfT0s7Cj4gPiArfQo+ID4gKwo+ID4gK3N0YXRpYyBpbnQgYXBsaWNfcHJvY2Vz
+c19od2lycXMoc3RydWN0IHNiaV9pcnFjaGlwX2RldmljZSAqY2hpcCkKPiA+ICt7Cj4gPiArICAg
+ICAgIGlmICghY2hpcCkKPiA+ICsgICAgICAgICAgICAgICByZXR1cm4gU0JJX0VOT0RFVjsKPiA+
+ICsKPiA+ICsgICAgICAgZm9yICg7Oykgewo+ID4gKyAgICAgICAgICAgICAgIHUzMiBod2lycSA9
+IDA7Cj4gPiArICAgICAgICAgICAgICAgaW50IHJjID0gYXBsaWNfaHdpcnFfY2xhaW0oY2hpcCwg
+Jmh3aXJxKTsKPiA+ICsKPiA+ICsgICAgICAgICAgICAgICBpZiAocmMgPT0gU0JJX0VOT0VOVCkK
+PiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOwo+ID4gKyAgICAgICAgICAgICAgIGlm
+IChyYykKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiByYzsKPiA+ICsKPiA+ICsg
+ICAgICAgICAgICAgICBpZiAoIWh3aXJxKQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgYnJl
+YWs7Cj4gPiArCj4gPiArICAgICAgICAgICAgICAgaWYgKGh3aXJxID4gY2hpcC0+bnVtX2h3aXJx
+KSB7Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gU0JJX0VJTlZBTDsKPiA+ICsg
+ICAgICAgICAgICAgICB9Cj4gPiArCj4gPiArICAgICAgICAgICAgICAgcmMgPSBzYmlfaXJxY2hp
+cF9wcm9jZXNzX2h3aXJxKGNoaXAsIGh3aXJxKTsKPiA+ICsgICAgICAgICAgICAgICBpZiAocmMp
+Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gcmM7Cj4gPiArICAgICAgIH0KPiA+
+ICsKPiA+ICsgICAgICAgcmV0dXJuIFNCSV9PSzsKPiA+ICt9Cj4gPiArCj4gPiAgaW50IGFwbGlj
+X2NvbGRfaXJxY2hpcF9pbml0KHN0cnVjdCBhcGxpY19kYXRhICphcGxpYykKPiA+ICB7Cj4gPiAg
+ICAgICAgIGludCByYzsKPiA+IEBAIC0zMDgsNiArNTIyLDE5IEBAIGludCBhcGxpY19jb2xkX2ly
+cWNoaXBfaW5pdChzdHJ1Y3QgYXBsaWNfZGF0YSAqYXBsaWMpCj4gPiAgICAgICAgIC8qIFJlZ2lz
+dGVyIGlycWNoaXAgZGV2aWNlICovCj4gPiAgICAgICAgIGFwbGljLT5pcnFjaGlwLmlkID0gYXBs
+aWMtPnVuaXF1ZV9pZDsKPiA+ICAgICAgICAgYXBsaWMtPmlycWNoaXAubnVtX2h3aXJxID0gYXBs
+aWMtPm51bV9zb3VyY2UgKyAxOwo+ID4gKyAgICAgICBhcGxpYy0+aXJxY2hpcC5od2lycV9tYXNr
+ID0gYXBsaWNfaHdpcnFfbWFzazsKPiA+ICsgICAgICAgYXBsaWMtPmlycWNoaXAuaHdpcnFfdW5t
+YXNrID0gYXBsaWNfaHdpcnFfdW5tYXNrOwo+ID4gKyAgICAgICAvKgo+ID4gKyAgICAgICAgKiBP
+bmx5IHRoZSBkb21haW4gdGhhdCBkaXJlY3RseSBpbmplY3RzIGludGVycnVwdHMgaW50byBNLW1v
+ZGUgZXh0ZXJuYWwKPiA+ICsgICAgICAgICogaW50ZXJydXB0IGxpbmUgc2hvdWxkIHByb3ZpZGUg
+cHJvY2Vzc19od2lycXMoKS4KPiA+ICsgICAgICAgICoKPiA+ICsgICAgICAgICogVGhlIG90aGVy
+IGRvbWFpbiAoZS5nLiBTLW1vZGUpIG1heSBzdGlsbCBiZSByZWdpc3RlcmVkIHNvIHRoYXQgaXRz
+Cj4gPiArICAgICAgICAqIG90aGVyIG9wcyAobWFzay91bm1hc2svY29uZmlnL2V0Yy4pIGNhbiBi
+ZSB1c2VkLCBidXQgaXQgbXVzdCBub3QKPiA+ICsgICAgICAgICogY2xhaW0gdG8gYmUgdGhlIGV4
+dGVybmFsIGludGVycnVwdCBsaW5lIHByb3ZpZGVyLgo+ID4gKyAgICAgICAgKi8KPiA+ICsgICAg
+ICAgaWYgKGFwbGljX21tb2RlX2RpcmVjdChhcGxpYykpCj4gPiArICAgICAgICAgICAgICAgYXBs
+aWMtPmlycWNoaXAucHJvY2Vzc19od2lycXMgPSBhcGxpY19wcm9jZXNzX2h3aXJxczsKPiA+ICsg
+ICAgICAgYXBsaWMtPmlycWNoaXAuaHdpcnFfc2V0dXAgPSBhcGxpY19od2lycV9zZXR1cDsKPiA+
+ICAgICAgICAgcmMgPSBzYmlfaXJxY2hpcF9hZGRfZGV2aWNlKCZhcGxpYy0+aXJxY2hpcCk7Cj4g
+PiAgICAgICAgIGlmIChyYykKPiA+ICAgICAgICAgICAgICAgICByZXR1cm4gcmM7Cj4gPiAtLQo+
+ID4gMi4yNS4xCj4gPgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29w
+ZW5zYmkK
