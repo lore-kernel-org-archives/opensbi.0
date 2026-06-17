@@ -4,102 +4,127 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id D0770CD98E2
-	for <opensbi@archiver.kernel.org>; Wed, 17 Jun 2026 06:17:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AE16BCD98ED
+	for <opensbi@archiver.kernel.org>; Wed, 17 Jun 2026 08:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=J6kFoKFxQt9vfJKdYr3mUqZZ/OyALe+IPvGEnSy2hk0=; b=wBz+Cg/TH1Oy3r
-	7nK4quRq5moWGLMZhKJdc0NEZy7QJpZhkdjKnN5Wje6yl1DINPiWcffq1qEa/lr4UsGXrrpn87YOY
-	a6/z6R6Cbm2mrC/g2V5Jwt1/nAhXeHCYRgZH+YTVjW9TlQRNfocFUZnrIyBC2yakvK73IMBSaHoNx
-	dpJYmvyhp+JLZ0EOSwx/HZmGnZIeqtiJJwCRR8TRbI6MiCefWt1Lv9E6sziMXtCmn7cZa4ut3zUI/
-	y2gUjwW74FSzo/lflzpmbOmULpCod5kzHjosdRpCOIr6x5ki8K2b7RJE9rYCSBu5QO20rA+CH346A
-	jiTpYEGJL+0IdpX5qCtA==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=XatRz+KMOqhli42j2ryIFNPCZaE2zupBfZUjkk80bPU=; b=Dp1r/6VniTWC6k
+	DmVwFB6EvRGxCiklteuvtFqDdRTUIr7t0fTySRACtgF7SNYj77iaxck2EWWJzj2PC2ehPI3bjAuNw
+	GrAjdRmajSXXrKoXJmsjSoePDPYm4KytJAWmHR7VoNCTVE97hZulNCWuOjlLjxce0mNqAPGp4OgW0
+	GJeJXcSFG4XUU5udYXGZ15K6hwcamj4J71NDAYw4DRGG0SP1NbkogtEzEmz0LJlz5tflhaTJO92D0
+	n2ZkRwXBlmzAXHOFqON9EXqUtXX0oSqMJv07WTWaeGqggveyfc/CP+rrVIk0VTs+hDKFYu/Lt6TTB
+	vJS/rxwgfOj6iRNaI3Kg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZja8-0000000Ghdg-2YkE;
-	Wed, 17 Jun 2026 06:17:00 +0000
-Received: from mail-lj1-x231.google.com ([2a00:1450:4864:20::231])
+	id 1wZlOl-0000000GrJ0-3qy7;
+	Wed, 17 Jun 2026 08:13:23 +0000
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZja6-0000000Ghcc-3pXk
+	id 1wZlOj-0000000GrIb-0VVQ
 	for opensbi@lists.infradead.org;
-	Wed, 17 Jun 2026 06:17:00 +0000
-Received: by mail-lj1-x231.google.com with SMTP id 38308e7fff4ca-3967738c801so46270341fa.2
-        for <opensbi@lists.infradead.org>; Tue, 16 Jun 2026 23:16:58 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1781677017; cv=none;
-        d=google.com; s=arc-20240605;
-        b=l2P9Gk62YzpyUCk3RRJhL2vJF7tuBXdKRpRcDxNFZeeosU7+13U7FaQXTvUj8h5s3B
-         xp3hvBZ/qp0buScnaT81D5dvWSHYYXkvnsOH+LY3TRspGdvEwwBbqTzdozt7R/nHyeUc
-         89X4jktP+lAUIkECWShuPdCdUfQPD88zDxCfL4xwk33DpgEpS9ZkLpTAsF/LebD3eS6H
-         4Rpm604+P8ITy1wubP98ytcR/xO6vgXV/MJrpUMIhdKXzrXqAtz6EgZJkCCuJdtqpnHr
-         GuVSinzzTDh3EL0athwDMy6ksL87q3KYH1xjqi+sJ+YR59LhvgiO37L/R4rHEgDSoXO8
-         36zw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=o6uI2Q+/aZotDRlFClbDJJSI5ADcOg31QWIYv1S5wfE=;
-        fh=0p86q/2ythAQMBPuGbnW44JppkNwhxCdadir6TIka8w=;
-        b=I+MQqnWnXZD1jrb960AP/4xDKIvzrhuoflRJ/wuh2dIU+49ZetRZp5Ygtexb+Swwba
-         rG3TN7PxnJeZktKzU7JPnhsJm6OGYsV2EnOk5NgqwQw4wEx7c4lJG8jSJF4O9Pqb8BxF
-         VzSL/EI95E8fNo6A5cxQ+SiqwAAtc0JEVpHOKLyThyHkjTPiC9v+IAL8GpWmuEu4MKtT
-         1MXsnBh6DmgfY7xtXaR3YShwJCkCbqCcscmCfvEAXBznqdXTpzqldya3GESVnhHeFK13
-         qcH2idEqCePJdDLCG4rqH0J75lyusSJeoqTZp2mEIpZ0XJJ3+VQ/fZmUTEDzo37s2q3y
-         SVpQ==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Wed, 17 Jun 2026 08:13:22 +0000
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65H6OEud149710
+	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 08:13:20 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=hq/Dc9Z78XEBtbA9t73pWVTYJQeLhQUgvzF
+	hWEv+3Iw=; b=etFE7PExj2Ferx6ramUgIIzT39K4ncrL82miGthkjPB/GM3mGIJ
+	CIZ98S9GlqLaOPhVxEh3Jf9Rg5CxoeFcWyGxiIvLMdS3nELXG/36KIF9midRU3Qr
+	PdDSehcKeCoCnuY6kz9kumTHOwdn3NOe5/u45+7EZqq9cHFs+kkafNbCgPqTIuz2
+	gfyjjshGuHbVhWbi1/YRgoIigrRXOIw4KzGMZ0BeMOcUMnAuWWWb8QtuCvvPGzAv
+	UyFzNDMJ2qCoQwMRxSU9qmb6S/v/SG/uGfMqW5xy2FN/2+EOpIhb5Bz9SSTuBuIe
+	Mf7vv7qlPkkFXoH9kLf0NHAaPuPEQCEj5XA==
+Received: from mail-pl1-f198.google.com (mail-pl1-f198.google.com [209.85.214.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4euef223st-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 08:13:20 +0000 (GMT)
+Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-2c0c318546dso6197205ad.1
+        for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 01:13:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ventanamicro.com; s=google; t=1781677017; x=1782281817; darn=lists.infradead.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=o6uI2Q+/aZotDRlFClbDJJSI5ADcOg31QWIYv1S5wfE=;
-        b=Qu5dxxdM1DrP68GiBhbgkEnDgCRG4D87fWkKW146yV+hS6YSA1ILHxY1hyI8IwToLX
-         4IQkHeRLKiRjgR1ocaP70U0PPvnt3+TCXm379d9tloS5vNdw07BFhmdAtPzdbNcb1LO4
-         L1kEEz3jBrZ/5RP0VbGdi5JBqBckBcAdkczwTRBVEaPURfyc/v+az1LcWRP+ZUuwYAZq
-         05HK87qGcqqug40usbV6brI3qZjIaRXwcPJwKPOK0aTIaZFnlsR8IqZjNbUgaRqaxbfn
-         fwT2virNLEJuTKn3Wx10JaYv6kfIS7hakEGjW+RgPYrDUGSMV1PXiD76pQMpq6o5Bm75
-         HpCw==
+        d=oss.qualcomm.com; s=google; t=1781684000; x=1782288800; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=hq/Dc9Z78XEBtbA9t73pWVTYJQeLhQUgvzFhWEv+3Iw=;
+        b=Fp2ja1OZBN/YXZJ56aU6QSPBtkv1P6xHmxFQtKYyn0OC2TJW0SpqUicMpqVTwe6n9v
+         GmHyXK914P6ZnbAsjMX9nTciF6bOQT04KZtOq2d+oS4zMohg+ufQMRDwFFuu5VZUPBf3
+         omoSMJMWCLGM1k7lXlK1koQDCR/l/gKaskzRIxMU1YDb3Sl0kEowruEv+tCo9FQXf5eT
+         amWe+9mz2nVBa5l99s35Csx3PQtLWpgogNJTO1DvBfdCkTg+iCmL4QCO2hg052QoSW1w
+         yTMXSBkDQ8P3yypv814fu4kLUmlMoGj/vbg/T/qF04nlpAd9I+5CdAh8no2YhRdZof9M
+         YCRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781677017; x=1782281817;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=o6uI2Q+/aZotDRlFClbDJJSI5ADcOg31QWIYv1S5wfE=;
-        b=QNMq11qzg2s2/N341QiiFLlhwKulElHAWHzAajDA97q+AsHY52JWbxAQYk/aGQQuXW
-         E/d/w1jhyfv+AzxIi05Yi/sckTzSiUb2xXbzog6jwaPOcL+Yari13cxv/0LnXevRSZhm
-         N0RxNEN6xbNCRysHDWBdZl2zz4sG3AhED7+bSOQ1+u4JUaYltGfLSgIdB/VUurkkk8Xf
-         ZwY72fXYs7YX4S3/K/WIEpfPIMPu5awaXESs/kUmGvTKvLeS7WBANg95fVW1ywZgTmpx
-         BazpQzphkNrp7ytS+pnvF+8LFHe67Yx09guK0yUBitIIvvbwgtw5XZxQzDw7Z6V+O+iw
-         Kamg==
-X-Gm-Message-State: AOJu0YwgDcX60hlg3pwbJ5ui8P0ctX+qWgmrZpUR6JmIOxfQaSuOB02s
-	EFXkgZ4Hx9W07jPKcb4O4hG1KSXEusUbBDvoCmd1FHozE7vtKI0JuBwR21nUQ2Tv/6MtHilyZbJ
-	1a3+dPSaBWhvzFuiAb+pr8JMDx06khRvMzHUjVzSOiQ==
-X-Gm-Gg: Acq92OFQ7ra5nlMqI/xGkvok+lfcvRZ4nzfwz6OFs2ZHQrlRYesQWiKrlDPJKf+n05Z
-	EO3msJFmpV50d+/JD3HIwJO/U+TGZt/0fiK10EEPMxy26jW8LsbbtmNaInAHNqMyQieYRQxS/uA
-	zjaxXRq1YuvdNr3CdP4sy/ksV9FjQ0LWw8YEyOROOVQjz/4GhBtbit+3RBFZGyU32owxBYV8GFN
-	NnR1gQ3C7x6w8QbNuap9jgGdy+8SWOwi3qTvEUiGvRKPlfhmzoZ+5qdd9vEEw9ruCAoN/Gc/gVd
-	JgE9rP7bvd9/kuoeXxCbYoaoZ8pq4A==
-X-Received: by 2002:a05:6512:1090:b0:5ad:a04:e62a with SMTP id
- 2adb3069b0e04-5ad46ff6205mr679537e87.33.1781677016641; Tue, 16 Jun 2026
- 23:16:56 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1781684000; x=1782288800;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hq/Dc9Z78XEBtbA9t73pWVTYJQeLhQUgvzFhWEv+3Iw=;
+        b=BYJXKEreD4U5A7cz5fphmK8BPFU/3ksbM5ot2FwETlZGbrU0N66kjFq5zmODGU0tds
+         E00GlF4qhWZVoBoq/Rfvgq7Abtvle6X9sq3KdJaH0vH5/CCFYRVBwWy80wt6t3UbtE3r
+         hUK/5DWGddEiIi5W14LSnaccKV2kj5/qcb3ZzZ64g5mgTYLjuG4nsF7t2Vx1NG83p30u
+         sqFvxtfrG1g0FoTJwMuPXXEK+vU5YY0Dq6PnuKlbdpJHUNbVzSW8e+xfpDskKXQSSmRf
+         ncZvVlcb0lS3pfFp+CpGfMqOjilIE7ZUAnJnf/NlxIZV86o4Se7nI6q+GDGSQhfpslWE
+         njmg==
+X-Gm-Message-State: AOJu0YxFpjvcUMPnK8KD54yQ7PUJp7i/FLH/Ww5bXyuUy4qELW3Bfwv7
+	6m3jPUFkn6pZXS94ZVu13lA18ahW/Gg7vFUwjI0XMEpiw0rZVFcD9HeUOEpu5PCmWOThPtSIEQm
+	US/LMP0JZKfp0zZuyvCQ1HnqLjXGn5UG1Z0TteOwZhAhRyj8TT18HikVt4+LoLR8yZDbITJyKcw
+	==
+X-Gm-Gg: AfdE7cny/1mz8HOMhLXGK/uskShderYp1iANovEoQsh3whX1FzMFyNGFct+rY4j7SUi
+	GDdaQjs1tH8g22bpApQeUt4rXct/IlQ9Gha7ZsuNO0KfZJ/9JoOgw6tEIRn1ISDQfdn40pFRqEk
+	ItcXl6/0EPyBKebjYlDSfcvoeHuzoFkN43OcwWEwb1/TRo/b1xEC+WQKdaTNaGEZVToEm2SEMvl
+	cj2iX0rhkAQ78Uifo21mZoO4GY6XOyPo7zggr2/NoijmS0JdoHGimB3Y+XF0KWXtNdi8yzqrXU8
+	rQWxWgcoOUu/UdKAd35Ci9kfjz5GWKjwiQuSZ6xaTUuLeSyxNPzJWitc9vCE+lgBoS3htc1MP4w
+	iBm/CkyBSqHcaKpQJnGYKJzikF023lHdSerj/BAfQqQ/fxT8gDJ/PpqHPd44a8PWgMXJmHS+Mkk
+	YCmAuxf2i0D2dEljVKSDlZenByHIhPUQfPFE8GulRoAg==
+X-Received: by 2002:a17:902:eccd:b0:2c0:c262:b928 with SMTP id d9443c01a7336-2c6bc0978d3mr11906685ad.2.1781683999801;
+        Wed, 17 Jun 2026 01:13:19 -0700 (PDT)
+X-Received: by 2002:a17:902:eccd:b0:2c0:c262:b928 with SMTP id d9443c01a7336-2c6bc0978d3mr11906575ad.2.1781683999298;
+        Wed, 17 Jun 2026 01:13:19 -0700 (PDT)
+Received: from hu-slingapp-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c4328a43c9sm158628285ad.41.2026.06.17.01.13.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 17 Jun 2026 01:13:19 -0700 (PDT)
+From: Subrahmanya Lingappa <subrahmanya.lingappa@oss.qualcomm.com>
+To: opensbi@lists.infradead.org
+Cc: Subrahmanya Lingappa <subrahmanya.lingappa@oss.qualcomm.com>,
+        Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+Subject: [PATCH v3] lib: utils: Add Logging service group handlers
+Date: Wed, 17 Jun 2026 13:43:07 +0530
+Message-ID: <20260617081307.429101-1-subrahmanya.lingappa@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-References: <20260609060024.706-1-ganboing@gmail.com>
-In-Reply-To: <20260609060024.706-1-ganboing@gmail.com>
-From: Anup Patel <apatel@ventanamicro.com>
-Date: Wed, 17 Jun 2026 11:46:44 +0530
-X-Gm-Features: AVVi8CffqJ-f246I1qurLlVIAEmh0MmHZTAmmY47sdJqRTa5E3RNeU6oOwNO77k
-Message-ID: <CAK9=C2W__DgLp1fBK04-kjvWrFvQ7Jp5j=uqVKqruzpQa7ioHA@mail.gmail.com>
-Subject: Re: [PATCH v2 0/4] Fixes for vector misaligned load/store handlers
-To: Bo Gan <ganboing@gmail.com>
-Cc: opensbi@lists.infradead.org, wangruikang@iscas.ac.cn, dramforever@live.com, 
-	andrew.jones@oss.qualcomm.com, cleger@rivosinc.com, pjw@kernel.org, 
-	asrinivasan@oss.tenstorrent.com
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE3MDA3NiBTYWx0ZWRfXzuY360K6NXq7
+ dpBAg4Y462cVZfYtQflunEcvthWy07ASFVPPE/RxtWBG71MCHAIzPpBHiiEBSXX8Kwzo11VlMKh
+ kgjYRaLL3gG4w1/0VZwxfGKtUHWF/xk=
+X-Proofpoint-ORIG-GUID: EzJBOKVdmO_kLwC2shZH0_E2ymuojyYI
+X-Proofpoint-GUID: EzJBOKVdmO_kLwC2shZH0_E2ymuojyYI
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE3MDA3NiBTYWx0ZWRfXxuRyyaAs/m54
+ CmjpkTNrrQV1djzjZyrPMf6jWkcRLCiHe6yLZ9V2wODIUVxMPt2k26kyDEKXkomn1C+ng0IIhCc
+ lgrz4uW6n2CkIAsaQvWGjKg9tHfFMUHOvsniAWOo0blYTpaaWwckrgqTxvZ/d8fN9LIC2Qx6pt0
+ KPYV6RbozwqmL20a7Fjru66JfBwFSLDHuM6m1lZHrQg1NzV1zhXK+S4CaGvc1uhv7/kKjtZk809
+ AYnQXf44gv4v8iWfyvrMKPaYUDlD5fJWdvt6zQTbNCutNFKgMAsfU/OIAvIxj22jk2e6MJIeCcR
+ AeDv6hApqQblCBmi6x47pFOF55ngWYTXm3F0w5Oi7tW+9T/0n6tH55P/Yq2OCeChvk3WANehoR3
+ ZnCAGXyLa6iwsZOwYv2iccwT+jdSlC9Rh1bZCh8e17lyYMz67vvJO4j+y11B+kVOTK7/gqb5iT9
+ QV6f3W2xfjKnySuHNhg==
+X-Authority-Analysis: v=2.4 cv=acpRWxot c=1 sm=1 tr=0 ts=6a325720 cx=c_pps
+ a=MTSHoo12Qbhz2p7MsH1ifg==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=FelO9ux0wxsA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22 a=EUspDBNiAAAA:8
+ a=Geju9WyY0_kS-ZpFwSoA:9 a=GvdueXVYPmCkWapjIL-Q:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
+ definitions=2026-06-16_05,2026-06-16_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 spamscore=0 suspectscore=0 lowpriorityscore=0 adultscore=0
+ clxscore=1015 bulkscore=0 malwarescore=0 priorityscore=1501 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2606170076
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260616_231658_989613_7C6B6D4C 
-X-CRM114-Status: GOOD (  15.30  )
+X-CRM114-CacheID: sfid-20260617_011321_164012_173FC8F7 
+X-CRM114-Status: GOOD (  16.35  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -111,41 +136,151 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVHVlLCBKdW4gOSwgMjAyNiBhdCAxMTozN+KAr0FNIEJvIEdhbiA8Z2FuYm9pbmdAZ21haWwu
-Y29tPiB3cm90ZToKPgo+IFJlLXZpc2l0IHRoZSB2ZWN0b3IgbWlzYWxpZ25lZCBsb2FkL3N0b3Jl
-IGhhbmRsZXJzIGFuZCBmaXg6Cj4KPiBhLiBBdm9pZCBzdGFjayBvdmVyZmxvdyBieSB1c2luZyBh
-IHNtYWxsIHNsaWRpbmcgbWFza1tdIGJ1ZmZlciwKPiAgICB0aHVzIG9wdGltaXplcyBzdGFjayB1
-c2FnZSAqSU1QT1JUQU5UKiAoY29ycmVjdG5lc3MpLiBUaGVyZSdzIG5vLQo+ICAgIGxvbmdlciBh
-IG5lZWQgdG8gaGF2ZSBhIHByZS1kZWZpbmVkIHZsZW4gbWF4aW11bSwgYW5kIHdvcnJ5IGFib3V0
-Cj4gICAgd2hldGhlciB0aGUgc3RhY2sgY2FuIGhvbGQgdGhlIG1hc2tbXSB2YXJpYWJsZS4KPgo+
-IGIuIE1haW50YWluIHRoZSB2YWx1ZSBvZiB2c3RhcnQgd2hlbiByZWRpcmVjdGluZyB1cHRyYXAu
-IChvcHRtaXphdGlvbikKPiAgICBBdm9pZHMgZG9pbmcgZHVwbGljYXRlIHdvcmsgd2hlbiB0aGUg
-aW5zdHJ1Y3Rpb24gZ2V0cyByZXN0YXJ0ZWQuCj4KPiBjLiBFeHBsaWNpdGx5IHNldCBWUyBkaXJ0
-eSBpbiAoVilTU1RBVFVTLiAoY29ycmVjdG5lc3MpLCBWUyBpbgo+ICAgIFZTU1RBVFVTIG11c3Qg
-YmUgc2V0IGRpcnR5IGlmIGNvbWluZyBmcm9tIFY9MS4KPgo+IGQuIFplcm8gb3V0IHRpbnN0IGlu
-IHVwdHJhcCBpZiBub3QgZ3Vlc3QtcGFnZSBmYXVsdCAoY29ycmVjdG5lc3MpLgo+Cj4gVGhpcyBp
-cyBhIGZvbGxvdyB1cCBwYXRjaCB0byBbMV0gYW5kIHNob3VsZCBiZSBhcHBsaWVkIG9uIHRvcC4K
-PiBbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvb3BlbnNiaS9DQUVldjJlX1ZnMW1NUDRtT0th
-bkZYX0VHZVV6cGN6UmNXVysrdkJCdU4xQ2Z5TTBCSndAbWFpbC5nbWFpbC5jb20vVC8jdAo+IC0t
-LQo+IHYyOiBGaXggdGhlIHdyb25nIFBBVENIIDQvNCBnZW5lcmF0ZWQgaW4gdjEuCj4KPiAtLS0K
-PiBCbyBHYW4gKDQpOgo+ICAgbGliOiBzYmk6IGNvc21ldGljIGNoYW5nZXMgdG8gcmVkdWNlIGlu
-ZGVudGF0aW9uCj4gICBsaWI6IHNiaTogUmV3b3JrIGFuZCBzcGxpdCBzYmlfbWlzYWxpZ25lZChf
-dilfdGluc3RfZml4dXAKPiAgIGxpYjogc2JpOiBBZGQgdmFyaWFibGUtbGVuZ3RoIHVucHJpdmls
-ZWdlIGFjY2VzcyBmdW5jdGlvbnMKPiAgIGxpYjogc2JpOiBSZXdvcmsgbWlzYWxpZ25lZCB2ZWN0
-b3IgbG9hZC9zdG9yZQoKQXBwbGllZCB0aGlzIHNlcmllcyB0byB0aGUgcmlzY3Yvb3BlbnNiaSBy
-ZXBvLgoKPgo+ICBpbmNsdWRlL3NiaS9zYmlfdHJhcF9sZHN0LmggfCAgIDMgLQo+ICBpbmNsdWRl
-L3NiaS9zYmlfdW5wcml2LmggICAgfCAgMTYgKysrCj4gIGluY2x1ZGUvc2JpL3NiaV92ZWN0b3Iu
-aCAgICB8ICAgNiArKwo+ICBsaWIvc2JpL3NiaV90cmFwX2xkc3QuYyAgICAgfCAgNjYgKysrKysr
-Ky0tLS0tCj4gIGxpYi9zYmkvc2JpX3RyYXBfdl9sZHN0LmMgICB8IDIwMSArKysrKysrKysrKysr
-KysrKysrKysrLS0tLS0tLS0tLS0tLS0KPiAgbGliL3NiaS9zYmlfdW5wcml2LmMgICAgICAgIHwg
-IDg4ICsrKysrKysrKysrKysrLS0KPiAgNiBmaWxlcyBjaGFuZ2VkLCAyNzAgaW5zZXJ0aW9ucygr
-KSwgMTEwIGRlbGV0aW9ucygtKQo+Cj4gLS0KPiAyLjM0LjEKPgo+Cj4gLS0KPiBvcGVuc2JpIG1h
-aWxpbmcgbGlzdAo+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5p
-bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQoKVGhhbmtzLApBbnVwCgotLSAK
-b3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+Add various services of LOGGING service group
+
+The service is exported on MPXY with RPMI as backend.
+
+Reviewed-by: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+Signed-off-by: Subrahmanya Lingappa <subrahmanya.lingappa@oss.qualcomm.com>
+---
+ include/sbi_utils/mailbox/rpmi_msgprot.h | 19 ++++++++++
+ lib/utils/mpxy/Kconfig                   |  4 +++
+ lib/utils/mpxy/fdt_mpxy_rpmi_logging.c   | 44 ++++++++++++++++++++++++
+ lib/utils/mpxy/objects.mk                |  3 ++
+ platform/generic/configs/defconfig       |  1 +
+ 5 files changed, 71 insertions(+)
+ create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_logging.c
+
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index 4fec6402..a51250bc 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -221,6 +221,7 @@ enum rpmi_servicegroup_id {
+ 	RPMI_SRVGRP_DEVICE_POWER = 0x0009,
+ 	RPMI_SRVGRP_PERFORMANCE = 0x0000A,
+ 	RPMI_SRVGRP_MANAGEMENT_MODE = 0x000B,
++	RPMI_SRVGRP_LOGGING = 0x000E,
+ 	RPMI_SRVGRP_ID_MAX_COUNT,
+ 
+ 	/* Reserved range for service groups */
+@@ -1032,4 +1033,22 @@ struct rpmi_ras_sync_err_resp {
+ 	u32 pending_vecs[MAX_PEND_VECS];
+ };
+ 
++/** RPMI LOGGING ServiceGroup Service IDs */
++enum rpmi_logging_service_id {
++	RPMI_LOGGING_SRV_ENABLE_NOTIFICATION = 0x01,
++	RPMI_LOGGING_SRV_LOG_DATA = 0x02,
++	RPMI_LOGGING_SRV_MAX_COUNT,
++};
++
++struct rpmi_logging_log_data_req {
++	u32 type;
++	u32 len;
++#define MAX_LOGGING_DLEN  ((RPMI_MSG_DATA_SIZE(RPMI_SLOT_SIZE_MIN) - (sizeof(u32) * 2)) / sizeof(u32))
++	u32 data[MAX_LOGGING_DLEN];
++};
++
++struct rpmi_logging_log_data_resp {
++	s32 status;
++};
++
+ #endif /* !__RPMI_MSGPROT_H__ */
+diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
+index 1a38b792..a3ed1c22 100644
+--- a/lib/utils/mpxy/Kconfig
++++ b/lib/utils/mpxy/Kconfig
+@@ -18,6 +18,10 @@ config FDT_MPXY_RPMI_CLOCK
+ 	bool "MPXY driver for RPMI clock service group"
+ 	default n
+ 
++config FDT_MPXY_RPMI_LOGGING
++	bool "MPXY driver for RPMI logging service group"
++	default n
++
+ config FDT_MPXY_RPMI_SYSMSI
+ 	bool "MPXY driver for RPMI system MSI service group"
+ 	default n
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c b/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c
+new file mode 100644
+index 00000000..dbbe33ae
+--- /dev/null
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c
+@@ -0,0 +1,44 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2026 Qualcomm, Inc
++ *
++ * Authors:
++ *   Subrahmanya Lingappa <subrahmanya.lingappa@oss.qualcomm.com>
++ */
++
++#include <sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h>
++
++static struct mpxy_rpmi_service_data logging_services[] = {
++	[0] = {
++		.id = RPMI_LOGGING_SRV_LOG_DATA,
++		.min_tx_len = sizeof(u32) * 2,
++		.max_tx_len = sizeof(struct rpmi_logging_log_data_req),
++		.min_rx_len = 4,
++		.max_rx_len = sizeof(struct rpmi_logging_log_data_resp),
++	},
++	/*
++	 * Keep a local terminator for safe lookup because only service ID 0x02
++	 * is intentionally exposed by this MPXY service group handler.
++	 */
++	[1] = {
++		.id = RPMI_LOGGING_SRV_MAX_COUNT,
++	},
++};
++
++static const struct mpxy_rpmi_mbox_data logging_data = {
++	.servicegrp_id = RPMI_SRVGRP_LOGGING,
++	.num_services = RPMI_LOGGING_SRV_MAX_COUNT,
++	.service_data = logging_services,
++};
++
++static const struct fdt_match logging_match[] = {
++	{ .compatible = "riscv,rpmi-mpxy-logging", .data = &logging_data },
++	{ },
++};
++
++const struct fdt_driver fdt_mpxy_rpmi_logging = {
++	.match_table = logging_match,
++	.init = mpxy_rpmi_mbox_init,
++	.experimental = true,
++};
+diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
+index 9cfd86bc..1f1bf0a0 100644
+--- a/lib/utils/mpxy/objects.mk
++++ b/lib/utils/mpxy/objects.mk
+@@ -29,3 +29,6 @@ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_DEVICE_POWER) += mpxy/fdt_mpxy_rpmi_devi
+ 
+ carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_MM) += fdt_mpxy_rpmi_mm
+ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MM) += mpxy/fdt_mpxy_rpmi_mm.o
++
++carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_LOGGING) += fdt_mpxy_rpmi_logging
++libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_LOGGING) += mpxy/fdt_mpxy_rpmi_logging.o
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 01d112c7..b0b6282e 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -83,3 +83,4 @@ CONFIG_FDT_MPXY_RPMI_DEVICE_POWER=y
+ CONFIG_FDT_MPXY_RPMI_PERFORMANCE=y
+ CONFIG_FDT_MPXY_RPMI_SYSMSI=y
+ CONFIG_FDT_MPXY_RPMI_MM=y
++CONFIG_FDT_MPXY_RPMI_LOGGING=y
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
