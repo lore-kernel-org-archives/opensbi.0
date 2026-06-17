@@ -4,102 +4,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3840CCD98F2
-	for <opensbi@archiver.kernel.org>; Wed, 17 Jun 2026 18:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A120ACD98F9
+	for <opensbi@archiver.kernel.org>; Wed, 17 Jun 2026 18:41:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=hy8hGhWWa74JafTBO8PEcKe2AJkHXl8KipwcxJuocXk=; b=3AgvYvCUvcDpGE
-	U3GwahaeMzCes3pT83glqJbFmQ+I1J96eh17HUw/pZUSL96mncEL6MSj5E1UEPABul4RbpHnngkSb
-	/tyluZbp3QgyziXh5nGrTHMIT3+pic4LTnHtJF8/JYx9TvIeek7CCUOJ4dr0DcGK0uaUdklMCVdjJ
-	ihuLsXkXzRu1lusmVdlM73CYnNRr1D+UypmWVOEOkwvvAbNpBUadZok4E8Ybq+Oa58t/cFAoAHuDD
-	bCe6lzekT2cGofhEfF+rwbvU07wsUAmrnQdwdww1sjOraJyzksym/JImAx7HlCvoMNHdLe5yv9yyy
-	5Zf2wY3OPPWv1omnWz3Q==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=fa72Rr7HI3pbSdE/RrbCEIFykBpncpDGS+IAotq5kvo=; b=SBgQoe/Vic0oaP
+	bM6a9u3ORYUPmp5EpV0ufB8xJANO0ZAOl2/1OoUeClC9K5+pEGtPTeDu6GzBf3PvfoxlDlkoQhK/o
+	oyywIiiQ46Vv2Y3fdrVoogxfKjJoOmEOf7pRsEtydyXBy/M9wta+pPwzZqrsujQF+dv1tIPbcrF0Y
+	IBO8vRo1gt2kG9k/ZQv9PXeE7DbAm47cepZ8rORpB5nPjrpqfP0fWkuuS+f4jOUzqpqGKokN8+whc
+	HHdTkuNtrB6+VHQvLjKpHiWCBXz2pdvZJxXxWFhLSF8uK2l/Cz+PQcs+k6YDRiB1c6fSjSmPsNN84
+	hwdll6edQ2Bp44ubG2lw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZvC7-00000000B7q-0poT;
-	Wed, 17 Jun 2026 18:40:59 +0000
+	id 1wZvC4-00000000B7Y-2pbQ;
+	Wed, 17 Jun 2026 18:40:56 +0000
 Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wZvBz-00000000B3M-3E5x
+	id 1wZvBz-00000000B3I-2ZvP
 	for opensbi@lists.infradead.org;
-	Wed, 17 Jun 2026 18:40:55 +0000
-Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65HHfLJg3295250
-	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 18:40:51 GMT
+	Wed, 17 Jun 2026 18:40:54 +0000
+Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65HI14Jc3577334
+	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 18:40:50 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=vP1wq/BGnsM
-	p4XuUXf10xptMGtWS+h6WRiSazZ+FkXw=; b=gtpsKWdNgYzRpBT5zhjgd+ImEZu
-	n8oceW6TQuttHe7BjQ+4St1ukun1wI2d6km8PtXaSZb+yDvA13maIj0FDSLq1YFI
-	g89N1FspzIkGO+n2rglntmN3n+r8DqTtisHXaiMDhe5W5P3gM3FAj7xm2i2dDADe
-	EPZVqRMkktQoSYZWTct6kXoYSkfw4lhLxpo/uQv5o88aLJr7LQ6Ui6loiE8wn1On
-	7dbcmthbBI9QMd9MyF8kpZplmcTO4vOo+jJvWHRzjhM+TmlZ8VowOJq9mdfu1AcH
-	Z8GfjZ7gJiVjgyg4ds3dMNqQH45j5Ji7c7TLy1JVcgcZw7SDk8Wo9k3PO3g==
-Received: from nalasppmta03.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4eueescxa3-1
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=n3pkbSj/UTVubfcRiaynZL
+	cut+ydS446jeYPRJfi8fw=; b=jmAxLjASNZY0tikKcWX92Xf5ySF7jJ6f9h3CgO
+	Un6eV4fCGtqtT6O/JBcSLgFdaIYzjqY8fSJpQrSQjZMWY6s8F99rZcpCwqbKDpOO
+	e8zTzfJmaOmGc3r4v4UihjATJTv/zO/ysJNmdN695bRbfyjB7SJl3OZ6JS2ykrqs
+	XcNno76lzEBvbgzydFLg73w5U1e9vcaSTpf+mFjneAOewhwm/b+HYm32ioDA4nTB
+	RdlaXkKgQh/RzAV8eN6++dkKFDRLdRnqEMTudWpbFWQByBwL1c+GPdY44xiSlLYS
+	PbsFlggPv3KeWhK8cAQTaLIHd/YHVInmGWqBnkG4bPWiSz9Q==
+Received: from nalasppmta04.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ev0g7g5dn-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
 	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 18:40:50 +0000 (GMT)
-Received: from pps.filterd (NALASPPMTA03.qualcomm.com [127.0.0.1])
-	by NALASPPMTA03.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 65HIaigC003538
+Received: from pps.filterd (NALASPPMTA04.qualcomm.com [127.0.0.1])
+	by NALASPPMTA04.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 65HIeexq002035
 	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 18:40:49 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by NALASPPMTA03.qualcomm.com (PPS) with ESMTPS id 4eu371rydd-1
+	by NALASPPMTA04.qualcomm.com (PPS) with ESMTPS id 4eux5j9nyt-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
 	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 18:40:49 +0000 (GMT)
-Received: from NALASPPMTA03.qualcomm.com (NALASPPMTA03.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 65HIenlk009957
+Received: from NALASPPMTA04.qualcomm.com (NALASPPMTA04.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 65HIenbP002170
 	for <opensbi@lists.infradead.org>; Wed, 17 Jun 2026 18:40:49 GMT
 Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
-	by NALASPPMTA03.qualcomm.com (PPS) with ESMTPS id 65HIemTT009952
+	by NALASPPMTA04.qualcomm.com (PPS) with ESMTPS id 65HIen0Q002167
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Wed, 17 Jun 2026 18:40:49 +0000 (GMT)
 Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
-	id 2931D24E58; Wed, 17 Jun 2026 11:40:49 -0700 (PDT)
+	id 1AD7F24E2F; Wed, 17 Jun 2026 11:40:49 -0700 (PDT)
 From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 To: opensbi@lists.infradead.org
-Cc: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Subject: [PATCH v2 4/6] lib: utils/irqchip/imsic:migrate to irqchip framework
-Date: Wed, 17 Jun 2026 11:40:36 -0700
-Message-ID: <20260617184047.70388-5-pawandeep.oza@oss.qualcomm.com>
+Cc: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+Subject: [PATCH v2 0/6] RISC-V AIA: APLIC and IMSIC irqchip framework integration
+Date: Wed, 17 Jun 2026 11:40:32 -0700
+Message-ID: <20260617184047.70388-1-pawandeep.oza@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260617184047.70388-1-pawandeep.oza@oss.qualcomm.com>
-References: <20260617184047.70388-1-pawandeep.oza@oss.qualcomm.com>
 MIME-Version: 1.0
 X-QCInternal: smtphost
 X-QCInternal: smtphost
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE3MDE4MCBTYWx0ZWRfXwb2D0fDizxS4
- atkXGDLNH1DjNv1tCwOGb3F0tpFKIKTo8sGMxukvOVVVXVU3o+bYp+hQXU7qIwtChvjdRC9GHC1
- t55D0NIWPluivUFFgHM2uwGlgI3rn8E=
-X-Proofpoint-ORIG-GUID: I6dy0lYi9jBnWN6FU9f3EszJOjTT_gfA
-X-Authority-Analysis: v=2.4 cv=R6oz39RX c=1 sm=1 tr=0 ts=6a32ea32 cx=c_pps
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE3MDE4MCBTYWx0ZWRfX1qTjp0IRVh82
+ S+tlathrlJvOY7yMnQERsmoSqZItFj3G2VDkkrvovuVAJR4/WacBQCZdCp1U5glKq2k4Nd9eFle
+ QN9ZiWZSF4ZInA6Xw27tNShyWRuHjreQ/Nu78ixFLQ7V7Lr3CRJ9oHASyV1RUOyFV6kO7tpFRdL
+ d1EYWgBsjG1rANQ6ww9Iuf3LZTsr6dUL095i4IHBQmb+zjiH1ZKYUasTxPPfU9QH1BLmasAsKAV
+ qbbbnU2SMNdPcx5qjQJOk9GSColP9gTvwc2v8lfDPfU1kaeGTbwrYUDMr8rke6JiG0FDm+WdOIe
+ 4fES5P5YbWKl1kPv78pWPoTbefax5h3Ppr3q0cDiKYTH3OxGTwadMMfKthalN8KFMqDWePTkXxY
+ QuGKa/3UFznj/cr/ZRIXOKN1PN6aCES7CYOEUJVzSDg+nCvUFGCudDzlHdKwBhtFDa2BdedkBeH
+ RZ7DTIhQFGMznMZVGGg==
+X-Proofpoint-GUID: yues1rHSw--gzgdhPVbYZtdE-w5xHqfn
+X-Proofpoint-ORIG-GUID: yues1rHSw--gzgdhPVbYZtdE-w5xHqfn
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNjE3MDE4MCBTYWx0ZWRfX+si97yfk74uL
+ m8kRHmnodP61zuHY/+AnyOlRMvjCGxE/TpByQslx4xokKu1gfRC6nc2Be9GCFI0d3+THdIDuIqY
+ YyzC2OIqOwA9fAt4VLoPBS/Po4IlAc8=
+X-Authority-Analysis: v=2.4 cv=YrI/gYYX c=1 sm=1 tr=0 ts=6a32ea32 cx=c_pps
  a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
- a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=ZpdpYltYx_vBUK5n70dp:22 a=EUspDBNiAAAA:8 a=xYZ_hGR2hrIPzfnWWYoA:9
-X-Proofpoint-GUID: I6dy0lYi9jBnWN6FU9f3EszJOjTT_gfA
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjE3MDE4MCBTYWx0ZWRfXzrrWyyd035Nm
- pybRm0uSsbgeNJ0b77Ghe4av48wsgWLKwv5gjm4cKnYirGZu2/AWx7tgW+OWNSIEFnoGBOt8m4T
- QsS1v4wqLzJI1RY4kjEsVrtofYEIr5WJW10yMW9DfQJYGDgyO92rL0+CejN3VD3gREEiRGoKSkB
- HrmPz3/0ozKhJ5wLo/lbhZchnsrmH7+ihAEJdlmIU83ZSqvHgssbg9jVC/PhSYYJn7UpvnezcN4
- ZBTCZUXgi/5VKbuKUth+4kxOwHO+nIkSaSRloefv0JdcLE+p0ZIMfRM7b75tm1HYliNl4zQghIH
- yKP/yAlCd6kqVgbcjDPZJbyUAgKtHjD6J17dNEqWgcIFlkUMWx1fBZei2vsp9YtNt/S68oMm5ml
- +/0dTruTxXoq9k2n5xAIBs0Af6iWRAKOHuIcmN5fLbdPpIHvV7V9hbofrgonWWX6h/FITUD+JWK
- iCWegyFbMJ/Wz7PEyZA==
+ a=IkcTkHD0fZMA:10 a=FelO9ux0wxsA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22 a=EUspDBNiAAAA:8
+ a=8MMNWIelmuzNlgHmPHMA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
  definitions=2026-06-17_02,2026-06-17_03,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 bulkscore=0 clxscore=1015 impostorscore=0 phishscore=0
- lowpriorityscore=0 suspectscore=0 priorityscore=1501 malwarescore=0
- adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ adultscore=0 clxscore=1015 malwarescore=0 bulkscore=0 suspectscore=0
+ priorityscore=1501 impostorscore=0 phishscore=0 spamscore=0
+ lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
  route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
  definitions=main-2606170180
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260617_114051_935022_B97F1EBB 
-X-CRM114-Status: GOOD (  23.32  )
+X-CRM114-CacheID: sfid-20260617_114051_773311_C5652189 
+X-CRM114-Status: GOOD (  11.34  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -111,360 +110,70 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Rewrite imsic_process_hwirqs() to use container_of() for instance
-lookup, validate ownership via imsic_current_hart_owner(), mask
-IMSIC_TOPEI_ID_MASK on the raw CSR value, and dispatch non-IPI EIIDs
-through sbi_irqchip_process_hwirq() instead of an open-coded switch.
-
-Rewrite imsic_warm_irqchip_init() to resolve the imsic_data instance
-via container_of() from the sbi_irqchip_device pointer, and skip
-initialization silently for harts not owned by this instance.
-
-Extend the sbi_irqchip callback set:
-- hwirq_setup: registers sbi_irqchip_raw_handler_default for the EIID
-- hwirq_cleanup: clears EIE and EIP bits for the EIID on the owner hart
-- hwirq_eoi: no-op as claim/ack is already performed by CSR_MTOPEI
-  read in imsic_process_hwirqs()
-- hwirq_set_affinity: reprograms the upstream MSI source via
-  imsic_program_msi() to retarget the interrupt to the new hart
-- hwirq_mask: clears the EIE bit for the EIID on the owner hart
-- hwirq_unmask: sets the EIE bit for the EIID on the owner hart,
-  skipping IPI (EIID 1) and non-owner harts
-
-Add imsic_compose_msi_msg() to compute the MMIO target address for a
-given hart and EIID by walking the imsic_regs array and applying file
-and guest index offsets.
-
-Add imsic_program_msi() that composes an MSI message
-and delivers it to the upstream interrupt source via
-sbi_irqchip_write_msi(), enabling APLIC TARGET register programming
-from the IMSIC driver.
-
-Migrate imsic_cold_irqchip_init() to the instance-based model:
-preserve any pre-configured target_harts mask set by platform or FDT
-code before applying the imsic_device template, falling back to
-sbi_hartmask_set_all() only when no mask was provided. Register the
-irqchip and reserved EIIDs on the embedded irqchip rather than the
-global singleton.
-
-Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
----
- lib/utils/irqchip/imsic.c | 252 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 232 insertions(+), 20 deletions(-)
-
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index 2abdc8ef..b26fd9ca 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -151,26 +151,41 @@ static int imsic_process_hwirqs(struct sbi_irqchip_device *chip)
- {
- 	struct imsic_data *imsic;
- 	ulong mirq;
-+	u32 hwirq;
-+	int rc, ret = 0;
- 
- 	imsic = container_of(chip, struct imsic_data, irqchip);
- 	if (!imsic || !imsic->targets_mmode)
- 		return SBI_EINVAL;
- 
-+	if (imsic_get_data(current_hartindex()) != imsic)
-+		return 0;
-+
- 	while ((mirq = csr_swap(CSR_MTOPEI, 0))) {
--		mirq = (mirq >> IMSIC_TOPEI_ID_SHIFT);
-+		hwirq = (mirq >> IMSIC_TOPEI_ID_SHIFT) &
-+			IMSIC_TOPEI_ID_MASK;
-+
-+		if (hwirq > imsic->num_ids) {
-+			sbi_printf("imsic_process_hwirqs: invalid hwirq=%lu num_ids=%lu\n",
-+				   (unsigned long)hwirq,
-+				   (unsigned long)imsic->num_ids);
-+			continue;
-+		}
- 
--		switch (mirq) {
--		case IMSIC_IPI_ID:
-+		if (hwirq == IMSIC_IPI_ID) {
- 			sbi_ipi_process();
--			break;
--		default:
--			sbi_printf("%s: unhandled IRQ%d\n",
--				   __func__, (u32)mirq);
--			break;
-+			continue;
-+		}
-+
-+		rc = sbi_irqchip_process_hwirq(chip, hwirq);
-+		if (rc && rc != SBI_ENOENT) {
-+			sbi_printf("imsic_process_hwirqs: hwirq=%lu failed rc=%d\n",
-+				   (unsigned long)hwirq, rc);
-+			ret = rc;
- 		}
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- static void imsic_ipi_send(u32 hart_index)
-@@ -360,18 +375,202 @@ static int imsic_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq, u32 hwi
- {
- 	if (hwirq_flags != SBI_HWIRQ_FLAGS_NONE)
- 		return SBI_ENOTSUPP;
-+
-+	sbi_irqchip_set_raw_handler(chip, hwirq,
-+				    sbi_irqchip_raw_handler_default);
-+
-+	return 0;
-+}
-+
-+static void imsic_hwirq_cleanup(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct imsic_data *imsic;
-+
-+	if (!chip)
-+		return;
-+
-+	imsic = container_of(chip, struct imsic_data, irqchip);
-+	if (!imsic || !imsic->targets_mmode)
-+		return;
-+
-+	imsic_local_eix_update(hwirq, 1, false, false);
-+	imsic_local_eix_update(hwirq, 1, true, false);
-+}
-+
-+static void imsic_hwirq_eoi(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	/*
-+	 * IMSIC interrupt claim/ack is already done by reading CSR_MTOPEI
-+	 * in imsic_process_hwirqs(). No extra EOI operation is required.
-+	 */
-+}
-+
-+static int imsic_compose_msi_msg(struct imsic_data *imsic,
-+				 u32 hart_index, u32 eiid,
-+				 struct sbi_irqchip_msi_msg *msg)
-+{
-+	struct imsic_regs *regs;
-+	unsigned long reloff;
-+	unsigned long msi_addr;
-+	int file;
-+
-+	if (!imsic || !msg)
-+		return SBI_EINVAL;
-+
-+	if (!eiid || eiid == IMSIC_IPI_ID)
-+		return 0;
-+
-+	file = imsic_get_target_file(hart_index);
-+	if (file < 0) {
-+		sbi_printf("imsic_compose_msi_msg: no file for hart=%lu rc=%d\n",
-+			   (unsigned long)hart_index, file);
-+		return file;
-+	}
-+
-+	regs   = &imsic->regs[0];
-+	reloff = file * (1UL << imsic->guest_index_bits) * IMSIC_MMIO_PAGE_SZ;
-+
-+	while (regs->size && regs->size <= reloff) {
-+		reloff -= regs->size;
-+		regs++;
-+	}
-+
-+	if (!regs->size || regs->size <= reloff) {
-+		sbi_printf("imsic_compose_msi_msg: no regset for hart=%lu "
-+			   "file=%d reloff=0x%lx\n",
-+			   (unsigned long)hart_index, file, reloff);
-+		return SBI_ENODEV;
-+	}
-+
-+	msi_addr = regs->addr + reloff + IMSIC_MMIO_PAGE_LE;	
-+	msg->address_lo = (u32)(msi_addr);
-+	msg->address_hi = (u32)(msi_addr >> 32);
-+	msg->data       = eiid;
-+
-+	sbi_printf("imsic_compose_msi_msg: hart=%lu file=%d eiid=%lu "
-+		   "addr=0x%lx data=%lu\n",
-+		   (unsigned long)hart_index, file,
-+		   (unsigned long)eiid, msi_addr,
-+		   (unsigned long)eiid);
-+
- 	return 0;
- }
- 
-+static int imsic_program_msi(struct sbi_irqchip_device *chip,
-+		      u32 eiid, u32 hart_index)
-+{
-+	struct imsic_data *imsic;
-+	struct sbi_irqchip_msi_msg msg;
-+	int rc;
-+
-+	if (!chip)
-+		return SBI_EINVAL;
-+
-+	imsic = imsic_get_data(hart_index);
-+	if (!imsic || !imsic->targets_mmode)
-+		return SBI_ENODEV;
-+
-+	rc = imsic_compose_msi_msg(imsic, hart_index, eiid, &msg);
-+	if (rc) {
-+		sbi_printf("imsic_program_msi: compose failed "
-+			   "eiid=%lu hart=%lu rc=%d\n",
-+			   (unsigned long)eiid,
-+			   (unsigned long)hart_index, rc);
-+		return rc;
-+	}
-+
-+	rc = sbi_irqchip_write_msi(chip, eiid, &msg);
-+	if (rc) {
-+		sbi_printf("imsic_program_msi: write_msi failed "
-+			   "eiid=%lu hart=%lu rc=%d\n",
-+			   (unsigned long)eiid,
-+			   (unsigned long)hart_index, rc);
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static int imsic_hwirq_set_affinity(struct sbi_irqchip_device *chip,
-+				    u32 hwirq, u32 hart_index)
-+{
-+	struct imsic_data *imsic;
-+	int rc;
-+
-+	if (!chip)
-+		return SBI_EINVAL;
-+
-+	imsic = container_of(chip, struct imsic_data, irqchip);
-+	if (!imsic || !imsic->targets_mmode)
-+		return SBI_EINVAL;
-+
-+	if (!hwirq || hwirq == IMSIC_IPI_ID)
-+		return 0;
-+
-+	if (!sbi_hartmask_test_hartindex(hart_index, &chip->target_harts))
-+		return SBI_EINVAL;
-+
-+	rc = imsic_program_msi(chip, hwirq, hart_index);
-+	if (rc) {
-+		sbi_printf("imsic_hwirq_set_affinity: failed hwirq=%lu "
-+			   "hart=%lu rc=%d\n",
-+			   (unsigned long)hwirq,
-+			   (unsigned long)hart_index, rc);
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static void imsic_hwirq_mask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct imsic_data *imsic;
-+
-+	if (!chip)
-+		return;
-+
-+	imsic = container_of(chip, struct imsic_data, irqchip);
-+	if (!imsic || !imsic->targets_mmode)
-+		return;
-+
-+	imsic_local_eix_update(hwirq, 1, false, false);
-+}
-+
-+static void imsic_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct imsic_data *imsic;
-+
-+	if (!chip)
-+		return;
-+
-+	imsic = container_of(chip, struct imsic_data, irqchip);
-+	if (!imsic || !imsic->targets_mmode)
-+		return;
-+
-+	if (!hwirq || hwirq == IMSIC_IPI_ID)
-+		return;
-+
-+	imsic_local_eix_update(hwirq, 1, false, true);
-+
-+	sbi_printf("imsic_hwirq_unmask: hart=%lu eiid=%u\n",
-+		   (unsigned long)current_hartindex(), hwirq);
-+}
-+
- static struct sbi_irqchip_device imsic_device = {
--	.warm_init	= imsic_warm_irqchip_init,
--	.process_hwirqs	= imsic_process_hwirqs,
--	.hwirq_setup	= imsic_hwirq_setup,
-+	.warm_init		= imsic_warm_irqchip_init,
-+	.process_hwirqs		= imsic_process_hwirqs,
-+	.hwirq_setup		= imsic_hwirq_setup,
-+	.hwirq_cleanup		= imsic_hwirq_cleanup,
-+	.hwirq_eoi		= imsic_hwirq_eoi,
-+	.hwirq_set_affinity	= imsic_hwirq_set_affinity,
-+	.hwirq_mask		= imsic_hwirq_mask,
-+	.hwirq_unmask		= imsic_hwirq_unmask,
- };
- 
- int imsic_cold_irqchip_init(struct imsic_data *imsic)
- {
- 	int i, rc;
-+	struct sbi_hartmask target_harts;
- 
- 	/* Sanity checks */
- 	rc = imsic_data_check(imsic);
-@@ -408,20 +607,33 @@ int imsic_cold_irqchip_init(struct imsic_data *imsic)
- 			return rc;
- 	}
- 
--	/* Register irqchip device */
--	imsic->irqchip = imsic_device;
--	imsic->irqchip.id = imsic->unique_id;
-+	target_harts = imsic->irqchip.target_harts;
-+
-+	imsic->irqchip          = imsic_device;
-+	imsic->irqchip.id       = imsic->unique_id;
- 	imsic_device.caps = SBI_IRQCHIP_CAPS_MSI;
- 	imsic->irqchip.num_hwirq = imsic->num_ids + 1;
--	sbi_hartmask_set_all(&imsic->irqchip.target_harts);
-+
-+	if (sbi_hartmask_weight(&target_harts))
-+		imsic->irqchip.target_harts = target_harts;
-+	else
-+		sbi_hartmask_set_all(&imsic->irqchip.target_harts);
-+
-+	/* Register irqchip device */
- 	rc = sbi_irqchip_add_device(&imsic->irqchip);
--	if (rc)
-+	if (rc) {
-+		sbi_printf("imsic_cold_irqchip_init: sbi_irqchip_add_device "
-+			   "failed rc=%d\n", rc);
- 		return rc;
-+	}
- 
--	/* Mark hwirq 0 and IPI hwirq as reserved */
--	rc = sbi_irqchip_register_reserved(&imsic->irqchip, 0, IMSIC_IPI_ID + 1);
--	if (rc)
-+	rc = sbi_irqchip_register_reserved(&imsic->irqchip, 0,
-+					   IMSIC_IPI_ID + 1);
-+	if (rc) {
-+		sbi_printf("imsic_cold_irqchip_init: register_reserved "
-+			   "failed rc=%d\n", rc);
- 		return rc;
-+	}
- 
- 	/* Register IPI device */
- 	sbi_ipi_add_device(&imsic_ipi_device);
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+RnJvbTogT3phIFBhd2FuZGVlcCA8cGF3YW5kZWVwLm96YUBvc3MucXVhbGNvbW0uY29tPgoKVGhp
+cyBzZXJpZXMgaW50ZWdyYXRlcyB0aGUgUklTQy1WIEFkdmFuY2VkIEludGVycnVwdCBBcmNoaXRl
+Y3R1cmUgKEFJQSkKQVBMSUMgYW5kIElNU0lDIE0tbW9kZSBkcml2ZXJzIGludG8gdGhlIE9wZW5T
+Qkkgc2JpX2lycWNoaXAgZnJhbWV3b3JrLApyZXBsYWNpbmcgdGhlIHByZXZpb3VzIHN0YW5kYWxv
+bmUgZXhwZXJpbWVudGFsIGRyaXZlciB3aXRoIGEgY29tcGxldGUKY2FsbGJhY2stYmFzZWQgaW1w
+bGVtZW50YXRpb24uCgpUaGUgc2VyaWVzIGFkZHMgZnVsbCBzdXBwb3J0IGZvcjoKCiAgLSBBUExJ
+QyBEaXJlY3QgTW9kZSAoSURDKSBpbnRlcnJ1cHQgZGVsaXZlcnkgd2l0aCBwZXItaGFydCBJREMK
+ICAgIHJlZ2lzdGVyIG1hbmFnZW1lbnQsIHByaW9yaXR5LWJhc2VkIHJvdXRpbmcsIGFuZCBzb3Vy
+Y2UgZGVsZWdhdGlvbgogICAgdG8gUy1tb2RlIGNoaWxkIGRvbWFpbnMuCgogIC0gQVBMSUMgTVNJ
+IE1vZGUgZmFsbGJhY2sgd2hlcmUgSURDIHN0cnVjdHVyZXMgYXJlIGFic2VudCwgcm91dGluZwog
+ICAgd2lyZWQgaW50ZXJydXB0cyB0aHJvdWdoIElNU0lDIGJ5IHByb2dyYW1taW5nIEFQTElDIFRB
+UkdFVCByZWdpc3RlcnMKICAgIHdpdGggaGFydCBpbmRleCwgZ3Vlc3QgaW5kZXgsIGFuZCBkeW5h
+bWljYWxseSBhbGxvY2F0ZWQgRUlJRHMuCgogIC0gSU1TSUMgaW5zdGFuY2UtYmFzZWQgaXJxY2hp
+cCByZWdpc3RyYXRpb24gd2l0aCBwZXItaGFydCBpbnRlcnJ1cHQKICAgIGZpbGUgbWFuYWdlbWVu
+dCwgRUlFIENTUiBzdGF0ZSB0cmFja2luZywgd2FybS1ib290IHN0YXRlIHJlc3RvcmF0aW9uLAog
+ICAgYW5kIE1TSSBjb21wb3NpdGlvbiBmb3IgdXBzdHJlYW0gQVBMSUMgYWZmaW5pdHkgcmVwcm9n
+cmFtbWluZy4KCiAgLSBBIGRlY291cGxlZCBhcmNoaXRlY3R1cmUgYmV0d2VlbiBBUExJQyBhbmQg
+SU1TSUMgZHJpdmVycyBtZWRpYXRlZAogICAgYnkgdGhlIHNiaV9pcnFjaGlwIGZyYW1ld29yay4g
+QVBMSUMgcmVnaXN0ZXJzIHdyaXRlX21zaSBhbmQKICAgIG1zaV9jYWxsYmFjayBob29rczsgSU1T
+SUMgcmVnaXN0ZXJzIHRoZSBpcnFjaGlwIE1TSSBzaW5rLiBOZWl0aGVyCiAgICBkcml2ZXIgZGly
+ZWN0bHkgcmVmZXJlbmNlcyB0aGUgb3RoZXIncyBkYXRhIHN0cnVjdHVyZXMuCgogIC0gSVJRIGVu
+YWJsZSBzdGF0ZSB0cmFja2luZyBpbiB0aGUgaXJxY2hpcCBmcmFtZXdvcmsgdmlhIGEgbmV3CiAg
+ICBpcnFfc3RhdGUgZmllbGQgYW5kIElSUV9FTkFCTEVEIGZsYWcsIGV4cG9zZWQgdGhyb3VnaAog
+ICAgc2JpX2lycWNoaXBfaXNfaXJxX2VuYWJsZWQoKSBmb3Igd2FybS1ib290IEVJRSBDU1IgcmVz
+dG9yYXRpb24uCgogIC0gQSBmaXggZm9yIHR3byBhbGxvY2F0aW9uIGJ1Z3MgaW4gc2JpX2lycWNo
+aXBfcmVnaXN0ZXJfbXNpKCkgdGhhdAogICAgcHJldmVudGVkIGNvbnRpZ3VvdXMgRUlJRCBhbGxv
+Y2F0aW9uIHdoZW4gcmVzZXJ2ZWQgaGFuZGxlcnMgd2VyZQogICAgYWxyZWFkeSByZWdpc3RlcmVk
+LgoKRHJpdmVyIGluaXRpYWxpemF0aW9uIGZvbGxvd3MgaGFyZHdhcmUgZGVwZW5kZW5jeSBvcmRl
+cmluZzoKCiAgSU1TSUMgY29sZCBpbml0IOKGkiBBUExJQyBjb2xkIGluaXQKClRoZSBJTVNJQyBp
+cnFjaGlwIG11c3QgYmUgcmVnaXN0ZXJlZCBiZWZvcmUgQVBMSUMgc28gdGhhdCBBUExJQyBNU0kK
+bW9kZSBjYW4gcmVzb2x2ZSB0aGUgcGFyZW50IGNoaXAgYnkgdW5pcXVlX2lkIHZpYQpzYmlfaXJx
+Y2hpcF9maW5kX2RldmljZSgpIGR1cmluZyBod2lycV9zZXR1cC4KCkFQTElDIERpcmVjdCBNb2Rl
+IGFuZCBNU0kgTW9kZSBhcmUgbXV0dWFsbHkgZXhjbHVzaXZlIGFuZCBzZWxlY3RlZAphdCBjb2xk
+IGluaXQgdGltZSBiYXNlZCBvbiB0aGUgcHJlc2VuY2Ugb2YgSURDIHN0cnVjdHVyZXMgKG51bV9p
+ZGMpCmFuZCB0aGUgSU1TSUMgZ2VvbWV0cnkgKGhhc19tc2ljZmdfbW1vZGUpIHBhcnNlZCBmcm9t
+IHRoZSBEZXZpY2UgVHJlZS4KClRlc3Rpbmcgd2FzIHBlcmZvcm1lZCBvbiBhIFFFTVUgUklTQy1W
+IHBsYXRmb3JtIHdpdGggMTI4IGhhcnRzLCB0d28KQVBMSUMgZG9tYWlucyAoTS1tb2RlIGF0IDB4
+MTAwMTAwMDAsIFMtbW9kZSBhdCAweDEwMDE4MDAwKSwgYW5kIHR3bwpJTVNJQyBpbnN0YW5jZXMg
+KEhhcnQgMC0xIGF0IDB4MTllMDAwMCwgSGFydCAyLTMgYXQgMHgxOWYwMDAwKSB3aXRoCjMxIHdp
+cmVkIGludGVycnVwdCBzb3VyY2VzLiBFbmQtdG8tZW5kIE0tbW9kZSBpbnRlcnJ1cHQgZGVsaXZl
+cnkgdmlhCkFQTElDIE1TSSBtb2RlIHdhcyB2ZXJpZmllZCB1c2luZyBhIHNvZnR3YXJlIGludGVy
+cnVwdCB0ZXN0IGNsaWVudApleGVyY2lzaW5nIHRoZSBHRU5NU0kgcGF0aC4KCkNoYW5nZXMgc2lu
+Y2UgdjE6CkFQTElDIE1TSSBEZWNvZGluZzoKUmVmYWN0b3JlZCB0aGUgaGFydF9pbmRleCBkZXJp
+dmF0aW9uIGxvZ2ljIGluIGRlcml2ZV9oYXJ0X2luZGV4KCkKdG8gdXNlIFBhZ2UgRnJhbWUgTnVt
+YmVyIChQUE4pIGJhc2VkIHNoaWZ0cyBhbmQgbWFza3MuCgpQYXdhbmRlZXAgT3phICg2KToKICBs
+aWI6IHV0aWxzL2lycWNoaXAvYXBsaWM6IGltcGxlbWVudCBkaXJlY3QgbW9kZSBpcnFjaGlwIGNh
+bGxiYWNrcwogIGxpYjogdXRpbHMvaXJxY2hpcC9hcGxpYzogYWRkIE1TSSBtb2RlIHN1cHBvcnQg
+d2l0aCBJTVNJQyBwYXJlbnQKICAgIGxpbmtpbmcKICBsaWI6IHV0aWxzL2lycWNoaXAvaW1zaWM6
+IGVtYmVkIHNiaV9pcnFjaGlwX2RldmljZSBpbiBpbXNpYyBkYXRhCiAgbGliOiB1dGlscy9pcnFj
+aGlwL2ltc2ljOm1pZ3JhdGUgdG8gaXJxY2hpcCBmcmFtZXdvcmsKICBsaWI6IHV0aWxzL2lycWNo
+aXAvaW1zaWM6IHRyYWNrIElSUSBlbmFibGUgc3RhdGUgYW5kIHJlc3RvcmUgRUlFIG9uCiAgICB3
+YXJtIGluaXQKICBsaWI6IHNiaV9pcnFjaGlwOiBmaXggTVNJIEVJSUQgZ2FwIGFuZCB0YWlsIGFs
+bG9jYXRpb24gbG9naWMgaW4KICAgIHJlZ2lzdGVyX21zaQoKIGluY2x1ZGUvc2JpL3NiaV9pcnFj
+aGlwLmggICAgICAgICB8ICAgNCArCiBpbmNsdWRlL3NiaV91dGlscy9pcnFjaGlwL2FwbGljLmgg
+fCAgIDIgKwogaW5jbHVkZS9zYmlfdXRpbHMvaXJxY2hpcC9pbXNpYy5oIHwgICAyICsKIGxpYi9z
+Ymkvc2JpX2lycWNoaXAuYyAgICAgICAgICAgICB8ICAyOSArLQogbGliL3V0aWxzL2ZkdC9mZHRf
+aGVscGVyLmMgICAgICAgIHwgICAxICsKIGxpYi91dGlscy9pcnFjaGlwL2FwbGljLmMgICAgICAg
+ICB8IDYwMyArKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0KIGxpYi91dGlscy9pcnFjaGlw
+L2ltc2ljLmMgICAgICAgICB8IDMxNiArKysrKysrKysrKysrLS0tCiA3IGZpbGVzIGNoYW5nZWQs
+IDg0MiBpbnNlcnRpb25zKCspLCAxMTUgZGVsZXRpb25zKC0pCgotLSAKMi40My4wCgoKLS0gCm9w
+ZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
+dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
