@@ -4,55 +4,76 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CCE43CD98F2
-	for <opensbi@archiver.kernel.org>; Mon, 22 Jun 2026 13:26:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A3A0ACDB46F
+	for <opensbi@archiver.kernel.org>; Tue, 23 Jun 2026 02:50:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
 	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=UAlKYB2DYH0IkaPhNYxKzhSJvvsBhs82Xw9eBMwyuhU=; b=C64e/JCFhKI7iQ
-	SnByLBwCTwsCkDTHYa6Kb/MPWZj2WgGsnm04S0ArUYD0e/8Bdh6bQeo3I7vChhTlz8DbWci7vN9hw
-	7P/2ln9RXCOc4OgQWU+uS6OdDHoYw+0U3dCCBDQRje+Epw/z2BxKGOSncBqx6TzRuqnRIGQyGZr3K
-	Nq1/N5mKvC4sWvhsT4R1hmQLJBGv826PSSA+c2t2d85DRWgU4Q3qR1TQrhTHWucuj98AC1Q2SiRnA
-	OaHWKLBIVKjsOp9LU3KLlIqRX+auW6arWi5tQbFi8U2fQKnzgUCOHZkrZKUu4SmZblC52nSvYO+IR
-	fPc3RaQCkLT2ppQGPEOA==;
+	List-Owner; bh=IXZNf1dZQVvrQy8pAYBRVtrGe7lv2JShrwLvbDYJoEc=; b=FHSeD9H5hIAL9g
+	VIazj3wtdRWZ15rtljeoSS42/+Vt+O7NMMxHuB7ZmtgAKp7l2ZNxJvCTyhwATA4AlD7DCYPIDHXKk
+	p8GcF8dFlX4q6voDwRR65tW8lM3A99Y9WkUwnZhN44UR/8Vp0A7Mhgtk+CnBfT5Y5NwplFICs8YZm
+	cfoo1czLSudLUeFuXdg61Lh75kJRn6lbwHnywfZGkV8/oy9i6gVo/sIljf5MXOe5S5rZyjyjyBj+O
+	gghBDC5hKmfYhMXjPzr2T+MH5zPocMXpmB75fkVLywZJ+9M/EO/jYOeZXtFtI4QHRDYaL+RB/yJj8
+	6FxtERpPKCSdyjWmJRZQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wbefJ-000000051Fx-3ueV;
-	Mon, 22 Jun 2026 13:26:17 +0000
-Received: from tor.source.kernel.org ([2600:3c04:e001:324:0:1991:8:25])
+	id 1wbrDF-00000005bp5-1UhX;
+	Tue, 23 Jun 2026 02:50:09 +0000
+Received: from sender4-op-o15.zoho.com ([136.143.188.15])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wbefH-000000051FV-346m
+	id 1wbrDC-00000005boi-04Ug
 	for opensbi@lists.infradead.org;
-	Mon, 22 Jun 2026 13:26:15 +0000
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	by tor.source.kernel.org (Postfix) with ESMTP id BB219601F0
-	for <opensbi@lists.infradead.org>; Mon, 22 Jun 2026 13:26:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCB261F000E9;
-	Mon, 22 Jun 2026 13:26:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782134773;
-	bh=tgFGH3KB3OfozDNBuMlAFFbiwBcN9PIGNidQ7wr8L+0=;
-	h=From:Date:Subject:To:Cc;
-	b=DVAwEqCFz8NohVNWstEUvLZIzAidpugmRPvTMVyFEW7KMT7WRA2d+23sB0klFIc1m
-	 4Se+Gk5JXbOcsghb34CqvKYg18fi/Np6lFDFQDLb4iEsHEfvvr57XHS+q7YXW0h3Ls
-	 xFiEelOkaAHezCr84F7Q65wTX6/FegHIHTyHBMKj64ZwBGH++Km2nrdMvD98UymfJL
-	 iCv2ytkn7EuoOfFUanZp4lxjnOI1j6uUXHnk0kIaQOqRSYe6ZaXtf+YBcbcfrr6cMp
-	 cG0FJeTPhdseIzS+nZwiANshbgkDsWvxXgkQFjTKUsphFlxf0YPDUPAdQRCBL0c1HA
-	 i0RFn32vSNHhw==
-From: Michael Ellerman <mpe@kernel.org>
-Date: Mon, 22 Jun 2026 23:26:00 +1000
-Subject: [PATCH] Makefile: Support make -s to silence the build
+	Tue, 23 Jun 2026 02:50:07 +0000
+ARC-Seal: i=1; a=rsa-sha256; t=1782182996; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=iQCWG4qycHcGoS0QF7L3jbrdvD4NZrB6dJ4fCwCMatUFsEwcP3CZ08vcD3r3OjmtIBXfVJmLqlLd6cotEQUzdtv0kfw9DjSInuPo+GfidRnQ4VZYAz27U3doAeWgYZsIeoEPqTIphnoRhp7cbaOm6NW1gGr5h/ZDuP7cN3756BY=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1782182996; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=6uwLUim5YbEQWxqk15fz80zmZ92ufANQDv/XH/rQ6m8=; 
+	b=f36ce6s5nJFgg7/8jAWPkrm5pPEUKDKcZckG8iuPLk0MixvRKs8pkRREPQbeI61vPsTNwpx6TaKNzO3pGSn4QlbLrUIHgb+fqePDh/przoK+6uUJocMFx5kYpQB1dRMr0GW+zYcfTNL5d/tzdroWRU/GkpTXW4ZzEXFRSQNI3gA=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=pigmoral.tech;
+	spf=pass  smtp.mailfrom=junhui.liu@pigmoral.tech;
+	dmarc=pass header.from=<junhui.liu@pigmoral.tech>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782182996;
+	s=zmail; d=pigmoral.tech; i=junhui.liu@pigmoral.tech;
+	h=From:From:Date:Date:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Message-Id:To:To:Cc:Cc:Reply-To;
+	bh=6uwLUim5YbEQWxqk15fz80zmZ92ufANQDv/XH/rQ6m8=;
+	b=h7AGDLF57TvTJAwNRAGfioZgEOyIOhoyraazOqOirxAMMBx4I0pilmb8pkxJHYRy
+	8a5OaWbDvXJpZrXNWQK3cJBNMlgzHQeRiBH22ocYkhONIP6WWD9pHzsiWYYzOz0cNu1
+	xVGAT4FB1hxRR8uY3IfKwGh80jVGudhGpaOPiHME=
+Received: by mx.zohomail.com with SMTPS id 1782182993856948.8207460762544;
+	Mon, 22 Jun 2026 19:49:53 -0700 (PDT)
+From: Junhui Liu <junhui.liu@pigmoral.tech>
+Date: Tue, 23 Jun 2026 10:49:25 +0800
+Subject: [PATCH] platform: generic: spacemit: k1: fix wrong address
+ definitions
 MIME-Version: 1.0
-Message-Id: <20260622-upstream-v1-1-792e1847e96e@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAOc3OWoC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIzMDMyMj3dKC4pKi1MRcXQsLC8tkc8OUJEOTVCWg8oKi1LTMCrBR0bG1tQA
- jKZ5jWgAAAA==
+Message-Id: <20260623-k1-fix-addr-v1-1-3dbde8c03bd6@pigmoral.tech>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMyw5AMBCF4VeRWZukrejCq4hFL1OGBGkRiXh3x
+ fLLyfkvSBSZEjTFBZEOTrzMGbIswA1m7gnZZ4MSSgstapwkBj7ReB+RVB20qqQLVkJ+rJHy9tX
+ a7nfa7UhuexNw3w+Hm4eJbwAAAA==
+X-Change-ID: 20260605-k1-fix-addr-e25f6231cfb1
 To: opensbi@lists.infradead.org
-Cc: Michael Ellerman <mpe@kernel.org>
-X-Mailer: b4 0.13.0
+Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
+ Troy Mitchell <troy.mitchell@linux.spacemit.com>, spacemit@lists.linux.dev, 
+ Junhui Liu <junhui.liu@pigmoral.tech>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1782182988; l=4361;
+ i=junhui.liu@pigmoral.tech; s=20251228; h=from:subject:message-id;
+ bh=0/n35Voh+5ojdPBR3qx+elkjhoB6WNleuxFAonpdkPk=;
+ b=i7+5K1n9qyIl8Kc2K/1kRRZTEJFawdoJqZImyjUsxFOVNi94JGFwBmu8ZE/CKN+2Mlo+m2JOa
+ wrghxvufhQWDoPkOH1M/NGb/4ZQRSNg3Zz5HeycHmS/TeyTaOKdR2Wk
+X-Developer-Key: i=junhui.liu@pigmoral.tech; a=ed25519;
+ pk=3vU0qIPJAH8blXmLyqBhKx+nLOjcLwwYhZXelEpw7h4=
+X-ZohoMailClient: External
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20260622_195006_448481_9EBB957E 
+X-CRM114-Status: UNSURE (   6.88  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -69,137 +90,97 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add support for silencing the build with make -s, which means nothing is
-printed unless there is an error. Similar to the way Linux does it.
+PMU_AP_CORE2_IDLE_CFG and PMU_AP_CORE3_IDLE_CFG are not continuous with
+PMU_AP_CORE0_IDLE_CFG and PMU_AP_CORE1_IDLE_CFG. They are at PMU AP
+base + 0x160 and + 0x164, matching the vendor OpenSBI definitions. After
+fixing these addresses, the intermediate cluster offset macros are
+redundant now, so define the wakeup and idle registers directly as
+PMU_AP_BASE offsets. This makes the actual register addresses easier to
+inspect and compare against the vendor code.
 
-Signed-off-by: Michael Ellerman <mpe@kernel.org>
----
-Tested with make v4.0 and v4.3.
----
- Makefile | 47 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+C1_RVBADDR_HI_ADDR is also corrected according to the vendor OpenSBI
+definition. This was tested by writing an invalid value to the corrected
+address, which prevents cluster1 CPUs from coming online, while doing
+the same with the old address does not affect SMP boot.
 
-diff --git a/Makefile b/Makefile
-index 54eb15bc..c57aa452 100644
---- a/Makefile
-+++ b/Makefile
-@@ -480,17 +480,26 @@ endif
- define dynamic_flags
- -I$(shell dirname $(2)) -D__OBJNAME__=$(subst -,_,$(shell basename $(1) .o))
- endef
-+
-+# If the user requested silent operation (make -s), hide the
-+# pretty command output by turning the echo into ":" (nop).
-+ifneq ($(findstring s,$(firstword $(MAKEFLAGS))),)
-+pretty_echo := :
-+else
-+pretty_echo := echo
-+endif
-+
- merge_objs = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " MERGE     $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " MERGE     $(subst $(build_dir)/,,$(1))"; \
- 	     $(LD) $(MERGEFLAGS) $(2) -o $(1)
- merge_deps = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " MERGE-DEP $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " MERGE-DEP $(subst $(build_dir)/,,$(1))"; \
- 	     cat $(2) > $(1)
- copy_file =  $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " COPY      $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " COPY      $(subst $(build_dir)/,,$(1))"; \
- 	     cp -L -f $(2) $(1)
- inst_file =  $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
-+	     $(pretty_echo) " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
- 	     cp -L -f $(2) $(1)
- inst_file_list = $(CMD_PREFIX)if [ ! -z "$(4)" ]; then \
- 	     mkdir -p $(1)/$(3); \
-@@ -498,62 +507,62 @@ inst_file_list = $(CMD_PREFIX)if [ ! -z "$(4)" ]; then \
- 	     rel_file=`echo $$file | sed -e 's@$(2)/$(subst $(install_firmware_path),platform,$(3))@@'`; \
- 	     dest_file=$(1)"/"$(3)"/"`echo $$rel_file`; \
- 	     dest_dir=`dirname $$dest_file`; \
--	     echo " INSTALL   "$(3)"/"`echo $$rel_file`; \
-+	     $(pretty_echo) " INSTALL   "$(3)"/"`echo $$rel_file`; \
- 	     mkdir -p $$dest_dir; \
- 	     cp -L -f $$file $$dest_file; \
- 	     done \
- 	     fi
- inst_header_dir =  $(CMD_PREFIX)mkdir -p $(1); \
--	     echo " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
-+	     $(pretty_echo) " INSTALL   $(subst $(install_root_dir)/,,$(1))"; \
- 	     cp -L -rf $(2) $(1)
- compile_cpp_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " CPP-DEP   $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " CPP-DEP   $(subst $(build_dir)/,,$(1))"; \
- 	     printf %s `dirname $(1)`/  > $(1) && \
- 	     $(CC) $(CPPFLAGS) -x c -MM $(3) \
- 	       -MT `basename $(1:.dep=$(2))` >> $(1) || rm -f $(1)
- compile_cpp = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " CPP       $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " CPP       $(subst $(build_dir)/,,$(1))"; \
- 	     $(CPP) $(CPPFLAGS) -x c $(2) | grep -v "\#" > $(1)
- compile_cc_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " CC-DEP    $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " CC-DEP    $(subst $(build_dir)/,,$(1))"; \
- 	     printf %s `dirname $(1)`/  > $(1) && \
- 	     $(CC) $(CFLAGS) $(call dynamic_flags,$(1),$(2))   \
- 	       -MM $(2) >> $(1) || rm -f $(1)
- compile_cc = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " CC        $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " CC        $(subst $(build_dir)/,,$(1))"; \
- 	     $(CC) $(CFLAGS) $(call dynamic_flags,$(1),$(2)) -c $(2) -o $(1)
- compile_as_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " AS-DEP    $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " AS-DEP    $(subst $(build_dir)/,,$(1))"; \
- 	     printf %s `dirname $(1)`/ > $(1) && \
- 	     $(AS) $(ASFLAGS) $(call dynamic_flags,$(1),$(2)) \
- 	       -MM $(2) >> $(1) || rm -f $(1)
- compile_as = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " AS        $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " AS        $(subst $(build_dir)/,,$(1))"; \
- 	     $(AS) $(ASFLAGS) $(call dynamic_flags,$(1),$(2)) -c $(2) -o $(1)
- compile_elf = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " ELF       $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " ELF       $(subst $(build_dir)/,,$(1))"; \
- 	     $(CC) $(CFLAGS) $(3) $(ELFFLAGS) -Wl,-T$(2) -o $(1)
- compile_ar = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " AR        $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " AR        $(subst $(build_dir)/,,$(1))"; \
- 	     $(AR) $(ARFLAGS) $(1) $(2)
- compile_objcopy = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " OBJCOPY   $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " OBJCOPY   $(subst $(build_dir)/,,$(1))"; \
- 	     $(OBJCOPY) -S -O binary $(2) $(1)
- compile_dts = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " DTC       $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " DTC       $(subst $(build_dir)/,,$(1))"; \
- 	     $(CPP) $(DTSCPPFLAGS) $(2) | $(DTC) -O dtb -i `dirname $(2)` -o $(1)
- compile_d2c = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " D2C       $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " D2C       $(subst $(build_dir)/,,$(1))"; \
- 	     $(if $($(2)-varalign-$(3)),$(eval D2C_ALIGN_BYTES := $($(2)-varalign-$(3))),$(eval D2C_ALIGN_BYTES := $(4))) \
- 	     $(if $($(2)-varprefix-$(3)),$(eval D2C_NAME_PREFIX := $($(2)-varprefix-$(3))),$(eval D2C_NAME_PREFIX := $(5))) \
- 	     $(if $($(2)-padding-$(3)),$(eval D2C_PADDING_BYTES := $($(2)-padding-$(3))),$(eval D2C_PADDING_BYTES := 0)) \
- 	     $(src_dir)/scripts/d2c.sh -i $(6) -a $(D2C_ALIGN_BYTES) -p $(D2C_NAME_PREFIX) -t $(D2C_PADDING_BYTES) > $(1)
- compile_carray = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " CARRAY    $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " CARRAY    $(subst $(build_dir)/,,$(1))"; \
- 	     $(eval CARRAY_VAR_LIST := $(carray-$(subst .carray.c,,$(shell basename $(1)))-y)) \
- 	     $(src_dir)/scripts/carray.sh -i $(2) -l "$(CARRAY_VAR_LIST)" > $(1) || rm $(1)
- compile_gen_dep = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
--	     echo " GEN-DEP   $(subst $(build_dir)/,,$(1))"; \
-+	     $(pretty_echo) " GEN-DEP   $(subst $(build_dir)/,,$(1))"; \
- 	     echo "$(1:.dep=$(2)): $(3)" >> $(1)
+Fixes: 1f84ec2a ("platform: generic: spacemit: add K1")
+Signed-off-by: Junhui Liu <junhui.liu@pigmoral.tech>
+---
+ platform/generic/include/spacemit/k1.h | 46 +++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 28 deletions(-)
+
+diff --git a/platform/generic/include/spacemit/k1.h b/platform/generic/include/spacemit/k1.h
+index bd666346..7095bc08 100644
+--- a/platform/generic/include/spacemit/k1.h
++++ b/platform/generic/include/spacemit/k1.h
+@@ -25,33 +25,23 @@
  
- targets-y  = $(build_dir)/lib/libsbi.a
+ #define PMU_AP_BASE				0xd4282800
+ 
+-#define PMU_AP_CORE0_WAKEUP_OFFSET		(PMU_AP_BASE + 0x12c)
+-#define PMU_AP_CORE4_WAKEUP_OFFSET		(PMU_AP_BASE + 0x324)
+-#define PMU_AP_CLUSTER0_WAKEUP_OFFSET(index)	(PMU_AP_CORE0_WAKEUP_OFFSET + index * 4)
+-#define PMU_AP_CLUSTER1_WAKEUP_OFFSET(index)	(PMU_AP_CORE4_WAKEUP_OFFSET + index * 4)
+-
+-#define PMU_AP_CORE0_IDLE_CFG_OFFSET		(PMU_AP_BASE + 0x124)
+-#define PMU_AP_CORE4_IDLE_CFG_OFFSET		(PMU_AP_BASE + 0x304)
+-#define PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(index)	(PMU_AP_CORE0_IDLE_CFG_OFFSET + index * 4)
+-#define PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(index)	(PMU_AP_CORE4_IDLE_CFG_OFFSET + index * 4)
+-
+-#define PMU_AP_CORE0_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(0)
+-#define PMU_AP_CORE1_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(1)
+-#define PMU_AP_CORE2_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(2)
+-#define PMU_AP_CORE3_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(3)
+-#define PMU_AP_CORE4_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(0)
+-#define PMU_AP_CORE5_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(1)
+-#define PMU_AP_CORE6_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(2)
+-#define PMU_AP_CORE7_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(3)
+-
+-#define PMU_AP_CORE0_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(0)
+-#define PMU_AP_CORE1_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(1)
+-#define PMU_AP_CORE2_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(2)
+-#define PMU_AP_CORE3_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(3)
+-#define PMU_AP_CORE4_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(0)
+-#define PMU_AP_CORE5_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(1)
+-#define PMU_AP_CORE6_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(2)
+-#define PMU_AP_CORE7_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(3)
++#define PMU_AP_CORE0_WAKEUP			(PMU_AP_BASE + 0x12c)
++#define PMU_AP_CORE1_WAKEUP			(PMU_AP_BASE + 0x130)
++#define PMU_AP_CORE2_WAKEUP			(PMU_AP_BASE + 0x134)
++#define PMU_AP_CORE3_WAKEUP			(PMU_AP_BASE + 0x138)
++#define PMU_AP_CORE4_WAKEUP			(PMU_AP_BASE + 0x324)
++#define PMU_AP_CORE5_WAKEUP			(PMU_AP_BASE + 0x328)
++#define PMU_AP_CORE6_WAKEUP			(PMU_AP_BASE + 0x32c)
++#define PMU_AP_CORE7_WAKEUP			(PMU_AP_BASE + 0x330)
++
++#define PMU_AP_CORE0_IDLE_CFG			(PMU_AP_BASE + 0x124)
++#define PMU_AP_CORE1_IDLE_CFG			(PMU_AP_BASE + 0x128)
++#define PMU_AP_CORE2_IDLE_CFG			(PMU_AP_BASE + 0x160)
++#define PMU_AP_CORE3_IDLE_CFG			(PMU_AP_BASE + 0x164)
++#define PMU_AP_CORE4_IDLE_CFG			(PMU_AP_BASE + 0x304)
++#define PMU_AP_CORE5_IDLE_CFG			(PMU_AP_BASE + 0x308)
++#define PMU_AP_CORE6_IDLE_CFG			(PMU_AP_BASE + 0x30c)
++#define PMU_AP_CORE7_IDLE_CFG			(PMU_AP_BASE + 0x310)
+ 
+ /* power down */
+ #define PMU_AP_IDLE_PWRDWN			BIT(0)
+@@ -68,7 +58,7 @@
+ #define C0_RVBADDR_LO_ADDR			0xd4282db0
+ #define C0_RVBADDR_HI_ADDR			0xd4282db4
+ #define C1_RVBADDR_LO_ADDR			0xd4282eb0
+-#define C1_RVBADDR_HI_ADDR			0xd4282c04
++#define C1_RVBADDR_HI_ADDR			0xd4282eb4
+ 
+ #define CCI_550_PLATFORM_CCI_ADDR		0xd8500000
+ 
 
 ---
-base-commit: e134d5210680cf24eea85dc287036e343f176642
-change-id: 20260622-upstream-8889c71db14e
+base-commit: a8be5e9478be08f09a720f7013ec30d6e2bd9fcc
+change-id: 20260605-k1-fix-addr-e25f6231cfb1
 
 Best regards,
--- 
-Michael Ellerman <mpe@kernel.org>
+--  
+Junhui Liu <junhui.liu@pigmoral.tech>
 
 
 -- 
