@@ -4,76 +4,61 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A3A0ACDB46F
-	for <opensbi@archiver.kernel.org>; Tue, 23 Jun 2026 02:50:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id CC14CCDB46F
+	for <opensbi@archiver.kernel.org>; Tue, 23 Jun 2026 10:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Message-Id:MIME-Version:Subject:
-	Date:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=IXZNf1dZQVvrQy8pAYBRVtrGe7lv2JShrwLvbDYJoEc=; b=FHSeD9H5hIAL9g
-	VIazj3wtdRWZ15rtljeoSS42/+Vt+O7NMMxHuB7ZmtgAKp7l2ZNxJvCTyhwATA4AlD7DCYPIDHXKk
-	p8GcF8dFlX4q6voDwRR65tW8lM3A99Y9WkUwnZhN44UR/8Vp0A7Mhgtk+CnBfT5Y5NwplFICs8YZm
-	cfoo1czLSudLUeFuXdg61Lh75kJRn6lbwHnywfZGkV8/oy9i6gVo/sIljf5MXOe5S5rZyjyjyBj+O
-	gghBDC5hKmfYhMXjPzr2T+MH5zPocMXpmB75fkVLywZJ+9M/EO/jYOeZXtFtI4QHRDYaL+RB/yJj8
-	6FxtERpPKCSdyjWmJRZQ==;
+	List-Owner; bh=CCh9b034irvaC/pHqY6HSDLZl1S0wSIhVZKi0Ku/fJU=; b=WFTp9MApUbbjnl
+	Sa3xcOiCvhZrTgXhSiBbf5P4Bj9xG8PpICDISG2wPJKFzNcORYVCIrkKoNfTsYwyx1EmK3z8lXW9d
+	QGq9c1HbzNA7vWhAoblireNqBqKDMuHKmI6ZncC8i0IMRqY/Cr3GpyfaFugD/Rj3F8qwDd8Zptpwi
+	L2VFCiMYYT7aMQtVfNnnjywikaB8BzK4o5TzCGV37/pQ/XPFc0NpReVomK4HnayQK/IE+wZfP3ylT
+	AkCTo3AmDWv7j9BLA5ZpaIQexz7fXdO/PMUeHyQNetjaPQ4phiyj43nPpn1PvnV8FRJgVY+rUmOWA
+	pGSmnSX+ZqPlTnC0f8BQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wbrDF-00000005bp5-1UhX;
-	Tue, 23 Jun 2026 02:50:09 +0000
-Received: from sender4-op-o15.zoho.com ([136.143.188.15])
+	id 1wbxxp-000000063Mq-3yFx;
+	Tue, 23 Jun 2026 10:02:41 +0000
+Received: from smtp21.cstnet.cn ([159.226.251.21] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wbrDC-00000005boi-04Ug
+	id 1wbxxm-000000063MM-1fPZ
 	for opensbi@lists.infradead.org;
-	Tue, 23 Jun 2026 02:50:07 +0000
-ARC-Seal: i=1; a=rsa-sha256; t=1782182996; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=iQCWG4qycHcGoS0QF7L3jbrdvD4NZrB6dJ4fCwCMatUFsEwcP3CZ08vcD3r3OjmtIBXfVJmLqlLd6cotEQUzdtv0kfw9DjSInuPo+GfidRnQ4VZYAz27U3doAeWgYZsIeoEPqTIphnoRhp7cbaOm6NW1gGr5h/ZDuP7cN3756BY=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1782182996; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=6uwLUim5YbEQWxqk15fz80zmZ92ufANQDv/XH/rQ6m8=; 
-	b=f36ce6s5nJFgg7/8jAWPkrm5pPEUKDKcZckG8iuPLk0MixvRKs8pkRREPQbeI61vPsTNwpx6TaKNzO3pGSn4QlbLrUIHgb+fqePDh/przoK+6uUJocMFx5kYpQB1dRMr0GW+zYcfTNL5d/tzdroWRU/GkpTXW4ZzEXFRSQNI3gA=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=pigmoral.tech;
-	spf=pass  smtp.mailfrom=junhui.liu@pigmoral.tech;
-	dmarc=pass header.from=<junhui.liu@pigmoral.tech>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782182996;
-	s=zmail; d=pigmoral.tech; i=junhui.liu@pigmoral.tech;
-	h=From:From:Date:Date:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Message-Id:To:To:Cc:Cc:Reply-To;
-	bh=6uwLUim5YbEQWxqk15fz80zmZ92ufANQDv/XH/rQ6m8=;
-	b=h7AGDLF57TvTJAwNRAGfioZgEOyIOhoyraazOqOirxAMMBx4I0pilmb8pkxJHYRy
-	8a5OaWbDvXJpZrXNWQK3cJBNMlgzHQeRiBH22ocYkhONIP6WWD9pHzsiWYYzOz0cNu1
-	xVGAT4FB1hxRR8uY3IfKwGh80jVGudhGpaOPiHME=
-Received: by mx.zohomail.com with SMTPS id 1782182993856948.8207460762544;
-	Mon, 22 Jun 2026 19:49:53 -0700 (PDT)
-From: Junhui Liu <junhui.liu@pigmoral.tech>
-Date: Tue, 23 Jun 2026 10:49:25 +0800
-Subject: [PATCH] platform: generic: spacemit: k1: fix wrong address
- definitions
-MIME-Version: 1.0
-Message-Id: <20260623-k1-fix-addr-v1-1-3dbde8c03bd6@pigmoral.tech>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMyw5AMBCF4VeRWZukrejCq4hFL1OGBGkRiXh3x
- fLLyfkvSBSZEjTFBZEOTrzMGbIswA1m7gnZZ4MSSgstapwkBj7ReB+RVB20qqQLVkJ+rJHy9tX
- a7nfa7UhuexNw3w+Hm4eJbwAAAA==
-X-Change-ID: 20260605-k1-fix-addr-e25f6231cfb1
+	Tue, 23 Jun 2026 10:02:40 +0000
+Received: from 3930813e24e9.home.arpa (unknown [36.110.52.2])
+	by APP-01 (Coremail) with SMTP id qwCowAAHpc2vWTpqvJTbAg--.18320S2;
+	Tue, 23 Jun 2026 18:02:31 +0800 (CST)
+From: liutong <liutong@iscas.ac.cn>
 To: opensbi@lists.infradead.org
-Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
- Troy Mitchell <troy.mitchell@linux.spacemit.com>, spacemit@lists.linux.dev, 
- Junhui Liu <junhui.liu@pigmoral.tech>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1782182988; l=4361;
- i=junhui.liu@pigmoral.tech; s=20251228; h=from:subject:message-id;
- bh=0/n35Voh+5ojdPBR3qx+elkjhoB6WNleuxFAonpdkPk=;
- b=i7+5K1n9qyIl8Kc2K/1kRRZTEJFawdoJqZImyjUsxFOVNi94JGFwBmu8ZE/CKN+2Mlo+m2JOa
- wrghxvufhQWDoPkOH1M/NGb/4ZQRSNg3Zz5HeycHmS/TeyTaOKdR2Wk
-X-Developer-Key: i=junhui.liu@pigmoral.tech; a=ed25519;
- pk=3vU0qIPJAH8blXmLyqBhKx+nLOjcLwwYhZXelEpw7h4=
-X-ZohoMailClient: External
+Cc: liutong <liutong@iscas.ac.cn>
+Subject: [PATCH] lib: sbi_dbtr: fix shared memory double-fetch in install_trig
+Date: Tue, 23 Jun 2026 18:02:25 +0800
+Message-Id: <20260623100225.1127250-1-liutong@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+X-CM-TRANSID: qwCowAAHpc2vWTpqvJTbAg--.18320S2
+X-Coremail-Antispam: 1UD129KBjvJXoW3Gw4rtrWDJFyrCF1DArW8WFg_yoW7GFWrpF
+	9akF9rGrs7XryjyrW7Aa18u343uw48A3W5trZakr92yas8Zw1Fqw13t3sYqa4fKFyDZ3W2
+	y3Wj9F1jkan0vF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyG14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
+	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
+	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_JF0_Jw1lYx0Ex4A2jsIE14v26r4UJVWxJr1lOx8S6xCaFVCjc4AY6r
+	1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCF04k20xvY0x0E
+	wIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E74
+	80Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jrv_JF1lIxkGc2Ij64vIr41lIxAIcVC0
+	I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04
+	k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7Cj
+	xVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUbhSdDUUUUU==
+X-Originating-IP: [36.110.52.2]
+X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260622_195006_448481_9EBB957E 
-X-CRM114-Status: UNSURE (   6.88  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260623_030238_802629_0054E3BC 
+X-CRM114-Status: GOOD (  16.72  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -90,97 +75,152 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-PMU_AP_CORE2_IDLE_CFG and PMU_AP_CORE3_IDLE_CFG are not continuous with
-PMU_AP_CORE0_IDLE_CFG and PMU_AP_CORE1_IDLE_CFG. They are at PMU AP
-base + 0x160 and + 0x164, matching the vendor OpenSBI definitions. After
-fixing these addresses, the intermediate cluster offset macros are
-redundant now, so define the wakeup and idle registers directly as
-PMU_AP_BASE offsets. This makes the actual register addresses easier to
-inspect and compare against the vendor code.
+sbi_dbtr_install_trig() reads trigger configuration from S-mode shared
+memory in two separate loops: first to validate, then to install. Since
+the shared memory remains writable by S-mode between the two reads, the
+data used for installation may differ from what was validated.
 
-C1_RVBADDR_HI_ADDR is also corrected according to the vendor OpenSBI
-definition. This was tested by writing an invalid value to the corrected
-address, which prevents cluster1 CPUs from coming online, while doing
-the same with the old address does not affect SMP boot.
+Fix this by taking a snapshot of the shared memory into a local buffer
+and performing both validation and installation against that snapshot.
+Also add a bounds check on trig_count against RV_MAX_TRIGGERS to prevent
+out-of-bounds access on the local buffer.
 
-Fixes: 1f84ec2a ("platform: generic: spacemit: add K1")
-Signed-off-by: Junhui Liu <junhui.liu@pigmoral.tech>
+Additionally, fix a redundant read in dbtr_trigger_setup() where tdata1
+was read from the message pointer a second time instead of using the
+value already saved in trig->tdata1, which could lead to inconsistency
+between the CSR write and the trigger state setup.
+
+Signed-off-by: liutong <liutong@iscas.ac.cn>
 ---
- platform/generic/include/spacemit/k1.h | 46 +++++++++++++---------------------
- 1 file changed, 18 insertions(+), 28 deletions(-)
+ lib/sbi/sbi_dbtr.c | 52 +++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
 
-diff --git a/platform/generic/include/spacemit/k1.h b/platform/generic/include/spacemit/k1.h
-index bd666346..7095bc08 100644
---- a/platform/generic/include/spacemit/k1.h
-+++ b/platform/generic/include/spacemit/k1.h
-@@ -25,33 +25,23 @@
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 01047969..8bad2d95 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -327,7 +327,7 @@ static void dbtr_trigger_setup(struct sbi_dbtr_trigger *trig,
+ 	trig->tdata2 = lle_to_cpu(recv->tdata2);
+ 	trig->tdata3 = lle_to_cpu(recv->tdata3);
  
- #define PMU_AP_BASE				0xd4282800
+-	tdata1 = lle_to_cpu(recv->tdata1);
++	tdata1 = trig->tdata1;
  
--#define PMU_AP_CORE0_WAKEUP_OFFSET		(PMU_AP_BASE + 0x12c)
--#define PMU_AP_CORE4_WAKEUP_OFFSET		(PMU_AP_BASE + 0x324)
--#define PMU_AP_CLUSTER0_WAKEUP_OFFSET(index)	(PMU_AP_CORE0_WAKEUP_OFFSET + index * 4)
--#define PMU_AP_CLUSTER1_WAKEUP_OFFSET(index)	(PMU_AP_CORE4_WAKEUP_OFFSET + index * 4)
--
--#define PMU_AP_CORE0_IDLE_CFG_OFFSET		(PMU_AP_BASE + 0x124)
--#define PMU_AP_CORE4_IDLE_CFG_OFFSET		(PMU_AP_BASE + 0x304)
--#define PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(index)	(PMU_AP_CORE0_IDLE_CFG_OFFSET + index * 4)
--#define PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(index)	(PMU_AP_CORE4_IDLE_CFG_OFFSET + index * 4)
--
--#define PMU_AP_CORE0_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(0)
--#define PMU_AP_CORE1_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(1)
--#define PMU_AP_CORE2_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(2)
--#define PMU_AP_CORE3_WAKEUP			PMU_AP_CLUSTER0_WAKEUP_OFFSET(3)
--#define PMU_AP_CORE4_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(0)
--#define PMU_AP_CORE5_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(1)
--#define PMU_AP_CORE6_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(2)
--#define PMU_AP_CORE7_WAKEUP			PMU_AP_CLUSTER1_WAKEUP_OFFSET(3)
--
--#define PMU_AP_CORE0_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(0)
--#define PMU_AP_CORE1_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(1)
--#define PMU_AP_CORE2_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(2)
--#define PMU_AP_CORE3_IDLE_CFG			PMU_AP_CLUSTER0_IDLE_CFG_OFFSET(3)
--#define PMU_AP_CORE4_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(0)
--#define PMU_AP_CORE5_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(1)
--#define PMU_AP_CORE6_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(2)
--#define PMU_AP_CORE7_IDLE_CFG			PMU_AP_CLUSTER1_IDLE_CFG_OFFSET(3)
-+#define PMU_AP_CORE0_WAKEUP			(PMU_AP_BASE + 0x12c)
-+#define PMU_AP_CORE1_WAKEUP			(PMU_AP_BASE + 0x130)
-+#define PMU_AP_CORE2_WAKEUP			(PMU_AP_BASE + 0x134)
-+#define PMU_AP_CORE3_WAKEUP			(PMU_AP_BASE + 0x138)
-+#define PMU_AP_CORE4_WAKEUP			(PMU_AP_BASE + 0x324)
-+#define PMU_AP_CORE5_WAKEUP			(PMU_AP_BASE + 0x328)
-+#define PMU_AP_CORE6_WAKEUP			(PMU_AP_BASE + 0x32c)
-+#define PMU_AP_CORE7_WAKEUP			(PMU_AP_BASE + 0x330)
+ 	trig->state = 0;
+ 
+@@ -603,14 +603,15 @@ int sbi_dbtr_read_trig(unsigned long smode,
+ int sbi_dbtr_install_trig(unsigned long smode,
+ 			  unsigned long trig_count, unsigned long *out)
+ {
++	struct sbi_dbtr_data_msg local_data[RV_MAX_TRIGGERS];
+ 	void *shmem_base = NULL;
+ 	union sbi_dbtr_shmem_entry *entry;
+-	struct sbi_dbtr_data_msg *recv;
+ 	struct sbi_dbtr_id_msg *xmit;
+ 	unsigned long ctrl;
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+ 	bool tdata2_impl, tdata3_impl;
++	int i;
+ 
+ 	hs = dbtr_thishart_state_ptr();
+ 	if (!hs)
+@@ -619,9 +620,22 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 	if (sbi_dbtr_shmem_disabled(hs))
+ 		return SBI_ERR_NO_SHMEM;
+ 
++	if (trig_count > RV_MAX_TRIGGERS)
++		return SBI_ERR_INVALID_PARAM;
 +
-+#define PMU_AP_CORE0_IDLE_CFG			(PMU_AP_BASE + 0x124)
-+#define PMU_AP_CORE1_IDLE_CFG			(PMU_AP_BASE + 0x128)
-+#define PMU_AP_CORE2_IDLE_CFG			(PMU_AP_BASE + 0x160)
-+#define PMU_AP_CORE3_IDLE_CFG			(PMU_AP_BASE + 0x164)
-+#define PMU_AP_CORE4_IDLE_CFG			(PMU_AP_BASE + 0x304)
-+#define PMU_AP_CORE5_IDLE_CFG			(PMU_AP_BASE + 0x308)
-+#define PMU_AP_CORE6_IDLE_CFG			(PMU_AP_BASE + 0x30c)
-+#define PMU_AP_CORE7_IDLE_CFG			(PMU_AP_BASE + 0x310)
+ 	shmem_base = hart_shmem_base(hs);
++
++	/*
++	 * Snapshot trigger data from shared memory into a local buffer so
++	 * that S-mode cannot modify the data between validation and use.
++	 */
+ 	sbi_hart_protection_map_range((unsigned long)shmem_base,
+ 				      trig_count * sizeof(*entry));
++	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
++		local_data[_idx] = entry->data;
++	}
++	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
++					trig_count * sizeof(*entry));
  
- /* power down */
- #define PMU_AP_IDLE_PWRDWN			BIT(0)
-@@ -68,7 +58,7 @@
- #define C0_RVBADDR_LO_ADDR			0xd4282db0
- #define C0_RVBADDR_HI_ADDR			0xd4282db4
- #define C1_RVBADDR_LO_ADDR			0xd4282eb0
--#define C1_RVBADDR_HI_ADDR			0xd4282c04
-+#define C1_RVBADDR_HI_ADDR			0xd4282eb4
+ 	/*
+ 	 * SBI v3.0 sec 19.4 requires SBI_ERR_NOT_SUPPORTED when a trigger
+@@ -632,42 +646,35 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 	tdata2_impl = tdata_implemented(CSR_TDATA2);
+ 	tdata3_impl = tdata_implemented(CSR_TDATA3);
  
- #define CCI_550_PLATFORM_CCI_ADDR		0xd8500000
+-	/* Check requested triggers configuration */
+-	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+-		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+-		ctrl = recv->tdata1;
++	/* Validate triggers from the local snapshot */
++	for (i = 0; i < (int)trig_count; i++) {
++		ctrl = local_data[i].tdata1;
  
-
----
-base-commit: a8be5e9478be08f09a720f7013ec30d6e2bd9fcc
-change-id: 20260605-k1-fix-addr-e25f6231cfb1
-
-Best regards,
---  
-Junhui Liu <junhui.liu@pigmoral.tech>
+ 		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl))) {
+-			*out = _idx;
+-			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+-							trig_count * sizeof(*entry));
++			*out = i;
+ 			return SBI_ERR_FAILED;
+ 		}
+ 
+ 		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
+-			*out = _idx;
+-			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+-							trig_count * sizeof(*entry));
++			*out = i;
+ 			return SBI_ERR_FAILED;
+ 		}
+ 
+-		if ((recv->tdata2 && !tdata2_impl) ||
+-		    (recv->tdata3 && !tdata3_impl)) {
+-			*out = _idx;
+-			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+-							trig_count * sizeof(*entry));
++		if ((local_data[i].tdata2 && !tdata2_impl) ||
++		    (local_data[i].tdata3 && !tdata3_impl)) {
++			*out = i;
+ 			return SBI_ERR_NOT_SUPPORTED;
+ 		}
+ 	}
+ 
+ 	if (hs->available_trigs < trig_count) {
+ 		*out = hs->available_trigs;
+-		sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+-					       trig_count * sizeof(*entry));
+ 		return SBI_ERR_FAILED;
+ 	}
+ 
+-	/* Install triggers */
++	/* Install triggers from the validated local snapshot */
++	sbi_hart_protection_map_range((unsigned long)shmem_base,
++				      trig_count * sizeof(*entry));
+ 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+ 		/*
+ 		 * Since we have already checked if enough triggers are
+@@ -675,15 +682,12 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 		 */
+ 		trig = sbi_alloc_trigger();
+ 
+-		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+ 		xmit = (struct sbi_dbtr_id_msg *)(&entry->id);
+ 
+-		dbtr_trigger_setup(trig,  recv);
++		dbtr_trigger_setup(trig, &local_data[_idx]);
+ 		dbtr_trigger_enable(trig);
+ 		xmit->idx = cpu_to_lle(trig->index);
+-
+ 	}
+-
+ 	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+ 					trig_count * sizeof(*entry));
+ 
+-- 
+2.34.1
 
 
 -- 
