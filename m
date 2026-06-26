@@ -4,72 +4,72 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3598ECDE013
-	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 56402CDE008
+	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=zl+VdKYKNbXQYkMurtgFiroB44jkxbPse9PfwbHjpYQ=; b=fbPOZ+dId6GNdQ
-	lbe6weQq9Aune1Yy4u9EDCe7HRTBUidNt88F4foVSRx/wsUuha+3TbhrimNT3zFHG4ugd81gr4pyS
-	14xuBZuXV48VZiRoHyR+k7lmM5d+KW+n01h3+W/RiF2CTXPcOe20W5354I1pjK3bX5PR1vt/73tLP
-	9S+Yhy8PkGRTvyFvE+s1y64JkOI1QgSBoF0XVM+xiuooMhX+X+11k7pabeIBamQzmI0XkaknyF2Ya
-	uv3+mp7AvfKBGWM7+3Ddq8caynhCkCmzrEYiqKAxFOlHiXF1IzL3o6OQdhMdbA4T9tDQjvxUS5jq/
-	B47BQGavqXFTz+dVSLuw==;
+	List-Owner; bh=bT1JDUuXxSVF1oQwPF9pPvk8pzwLB5bu9ksnKM0bjb8=; b=htrqARrfiTz07v
+	Br2NNJCpKfT308ZmlP8f6V4n6OmzXfVEsL9kk5lGYmG+i0aaxeGtabmLZnHseYIZRMO550WaTfIRp
+	cb/uqDapLkinSqshg/oXn4gPyhUq+sBJ4NwhN9zK/a51F4HsrtfejOcgzOO8lXgBEeYtW89hap8dE
+	aNfdhcs7kszKMhancwOfOljoNQFjg1W7yFqqJKXKOej9zg3q1MfP0c1KWGHEZ/lNTgwAGnOV2opMt
+	wurlSVVFK5wz0z+O+kDGqwxNv4ma+3JYnTNmjoK55G1Xg4ZgbVUR4sZUoGxhr14tKGgG4R67tQQ4K
+	FsLMiaLE9DWn6rk7otnw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cX-0000000B4jV-1iP9;
-	Fri, 26 Jun 2026 10:17:13 +0000
-Received: from mail-pg1-x52f.google.com ([2607:f8b0:4864:20::52f])
+	id 1wd3cb-0000000B4nf-2Kqn;
+	Fri, 26 Jun 2026 10:17:17 +0000
+Received: from mail-pg1-x52c.google.com ([2607:f8b0:4864:20::52c])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cR-0000000B4cH-22Uz
+	id 1wd3cU-0000000B4g1-0nQU
 	for opensbi@lists.infradead.org;
-	Fri, 26 Jun 2026 10:17:12 +0000
-Received: by mail-pg1-x52f.google.com with SMTP id 41be03b00d2f7-c858014845aso245110a12.1
-        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:07 -0700 (PDT)
+	Fri, 26 Jun 2026 10:17:16 +0000
+Received: by mail-pg1-x52c.google.com with SMTP id 41be03b00d2f7-c8d00e782d3so320117a12.0
+        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1782469026; x=1783073826; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1782469029; x=1783073829; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=8VSaC60MEnG+NzTzx6XTv9XHF+2KhqlJ57UhCbUWyi0=;
-        b=S8AcWc5SPyHGXYcYYe2r1eY0HuVzXnKMXwPt9KWoP8BY2q1gRPBNnH/mj5WubhBssc
-         ofOlqtDJjboTMxpkZZO6QsJAJFOz5fDikcC7Y91pGKjlw68cbI3o2iVW7jnLpQx5w8iE
-         hlDz6US9EO+RupsV6HQzIOQC1nV38aIwyDgFmrw7lHAF1pV5HPzp3VHyL8PlxSszBgkD
-         yzFYjIRWRN/YjMHS33fZSaV47Q1392RXOXLVVIEp9okKG7o+RwcEmLOnU1aKvCs48lA4
-         49VZ600N79YLPMc/Sk6z7xZpq/u+m4xz9b5s/KgcKlVIIYeVLyPEMEwA1Q5Z+Jdbw29e
-         DOUw==
+        bh=GBhHO4hmm7Y4BntAadWXHiyLCLAsgAHxQbqY0i0a9XQ=;
+        b=bsKLmeRzOs7rsiuGKg7SQciFrYZQDbKDpJ5qnWEbO2apQKoxpENq77NAjOwLJyPFnV
+         3wXhrzvHp2i2w+Op1+topkNUP7P1IezjVIUZFrgJP3NyT/S5mCQTOwW/BU62HibQksZn
+         FwtJQFRe+IPhkmWIew05LURyn1csOQ4cE4hQq3W3Z/k6wUB6hKsrhj4f/bleM88gJ+82
+         C2BA2cveAbEM4f95HWGdPBi8oF088N6Wjyuza8D5VOL+8QK+EbTzP10rFjIKaIK78NxK
+         sqNk71V8a+XQ6pigA038qMxs2495QcRX5oEHs4y+09ZvaTBVuytbIT4j5AaAm/CWXv0k
+         6NgQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782469026; x=1783073826;
+        d=1e100.net; s=20251104; t=1782469029; x=1783073829;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=8VSaC60MEnG+NzTzx6XTv9XHF+2KhqlJ57UhCbUWyi0=;
-        b=KOUltaHAVs5WBaWY0OMXXako843YQfwgrNu6jcxBzpj1ScPhNTzf5CgtfZ5lKwH1ev
-         OhA+GFNIvh6HcZqsYrX1BbMk8xLlT8VppCUwwn8q7LjYsS45D7RBbbaRV1gwpcAn/2a/
-         FbeEvX2joTqbgvuuhl/WMqZJuBSv/TDDHhn9O8FADba7EHbf59gj9oFuw8/PxXlzfdOs
-         Gr7ejtiaf0wZa9ckBHjW7/Kxq8nval8IeC1kOPR5EpFBhKy2qM0w9AVw6C5LEEGgtV2J
-         Q1DkiKvDyPlH0Vj1Ri7CxfbH+oIMlzqMxkFnwNvxv03t7Acfca2zUmAJIzgCbgAvghJl
-         RHwA==
-X-Gm-Message-State: AOJu0YxEUVuq4pILBMaW1RJCE9PIHI/WeFJlwOK5p6vtMU5/h6vqgfy/
-	4Wn/CsCDsc1uOURoeV+b5pWSM8upQ2TlOclQudFedWl5FvT+W+z0twPP3EUmVZhizENwrrcBB/h
-	95A9rsUA1tAjr+c2v2UPBkw2q5MS+sPWaSpVDjYJTTAyg1pg5vGgvccE43KFyxbFJhPQ+owb1en
-	QH0WVbU1tj7Qk9exAy0/rfvFfW+jP9EMR4CZCLdsA7Tg16oeRQ88c=
-X-Gm-Gg: AfdE7cnEOUljxjIfHGz7lWO5SI3Osxhbw2h3PDv4kpVxOitPKwAn9g7bdDCRO0JdM40
-	e8x3QQDO18bbNwagZ246CWpxHDpcd3nAaDUqaqjDaXJo9I7GUubDWtuSOy7T/JZia2UN65HxR+1
-	1JG38vZwxrwiCvN7vp33lfXtkJo10U7FX/x33dDygdt0kwhEVHEFJoyb6kUGvh1Y3buHLhSdpOE
-	Uwr9cpYod5Bnz+1c8DU2O+6ni0hDJn0gD7P33y8aif1VYTYGZ5TwS3pDLth0POlTE78RX80MNjS
-	COwnHX/IadeBo7KAQr1SZZfb64h1IlCzReIq7MEfnCn+g8JuyDMWJS3HB67d91T6cHQsemjnEsy
-	2KJkiaZYX6JtVln+DmYZnwa3IY9Uu4m1SSXrSqLNmVQMfJh5/tGBCQOu98OK9X6klCF/UWGGbIr
-	dWu3qrWce4EntSu+b+TqsZsXLTe8+FEkb/aMKQ
-X-Received: by 2002:a05:6a00:1ca3:b0:842:994:939e with SMTP id d2e1a72fcca58-84591d20e8emr14726019b3a.35.1782469026075;
-        Fri, 26 Jun 2026 03:17:06 -0700 (PDT)
+        bh=GBhHO4hmm7Y4BntAadWXHiyLCLAsgAHxQbqY0i0a9XQ=;
+        b=QNG3fg334hwOlxNyZ7ApfKKPsIqOqaUL+8PlJQj0RMFMJwNS+ZziJ1HXg8aFXF9YPF
+         pWJfyNHl+l2dIBVRB/KOWD4wJVhQvinpn5TYtnWT7wmsHjgCxf1ERm9rDMtnjKNKYyjo
+         VQODqI8wj7vcGeAJMjkrAzduyHtDdLIGFUgBSsD19xWQx9v/gZl06g11voPiW9FgbGlr
+         kgkaAF6oi0ou62c0PCpRXo9/BKr+mn0Hkd5Gh7mwp/QqLX70oS1gPVqhxGYgwf5dYEGD
+         Eig6v3S8WcI9rDhd7PBFpZERRdJ9+MbvhxgYQ02t1ZjGwy+lYvIvEOVFr80/MIK6H5b5
+         vRyQ==
+X-Gm-Message-State: AOJu0Yz3htwuIwJ8LxgtvYwb1C3P7FUoEUNUEg2Tmjat6mH/kZwzYV5D
+	ulBHDrHzkugYBGRi3d5tFUKAdjnWtOIJyTeVwNSV7e4/uZsAsPUb3e8gtM1PyjfNuRIl7uARCF8
+	xvElRSZ2NSqAIK+dTJQZl99ahrDHaYlwHwAs6ZZzxsXov41u+NIittiv3vF3cuX2ij2qE1M0ko0
+	bdulXV4VsydRLtRQ0eman17z46fZMe1jJqJU5I0T4Zxz6WlhJMwV4=
+X-Gm-Gg: AfdE7cmalGs87J4fY85aJx72SU6IXgqBlScu9whiWD6vQStORX+iNIsTSDJ+JIhIk+H
+	binAxb5yrOAtzp0BH7MZ/Qo5FqWAqPFecMUfsp613GCKVvM84Q6laIUGeW5k6WEDqguVVvaozP/
+	g8A8/PJYalinHsGunGZRkkWxAD4Asc0xMxqVo0dTh/1oY66x3/sJMossNXnAjYdiihJ2Q2gBDzD
+	loVEWStrIRWTJJ2gwJMGFv9ELPOk76E3Xg9K/tt1KtMJaBbgOCQRav6FDAD+rtOVyWAjHwxjScD
+	bJhmGKtB7lVPvR8adkVXFyrk9xYHaewoWvLEXLS/tbnnTRWde0XduczXZACGXZ/J4z7FJBLy4RS
+	eJjXgcZOwSbd6iImBsaZjZecfWu39IQ9J/YBxIFwKV81ZzM/V1KyawwnJE3TOvaRH4xzppVRKLg
+	Nh+d8yUeCHR30cT387rd5BU3qWY4tqJYQ5DdrD
+X-Received: by 2002:a05:6a00:2396:b0:845:cf73:c1d8 with SMTP id d2e1a72fcca58-845cf73e86amr488433b3a.14.1782469029127;
+        Fri, 26 Jun 2026 03:17:09 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.17.03
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.17.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jun 2026 03:17:05 -0700 (PDT)
+        Fri, 26 Jun 2026 03:17:08 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
@@ -82,17 +82,16 @@ Cc: zong.li@sifive.com,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [RFC PATCH 10/12] lib: utils: fdt_domain: parse per-domain WID properties
-Date: Fri, 26 Jun 2026 18:14:31 +0800
-Message-ID: <20260626101433.3133466-11-peter.lin@sifive.com>
+Subject: [RFC PATCH 11/12] lib: sbi_domain: add Worlds CSR config on domain entry
+Date: Fri, 26 Jun 2026 18:14:32 +0800
+Message-ID: <20260626101433.3133466-12-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20260626101433.3133466-1-peter.lin@sifive.com>
 References: <20260626101433.3133466-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260626_031707_557307_1C55FF4E 
-X-CRM114-Status: UNSURE (   7.55  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260626_031710_241765_86171DB3 
+X-CRM114-Status: GOOD (  10.32  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,42 +108,104 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Extends __fdt_parse_domain() to parse next-wid (32-bit WID) and
-next-widlist (64-bit delegation mask) from domain DT nodes. Enables
-per-domain World ID configuration. Stores in sbi_domain structure
-for mlwid/mwiddeleg CSR programming during domain context switches.
+Add sbi_domain_worlds_enter() to configure mlwid and mwiddeleg
+CSRs when entering a domain. Called during domain context switches,
+hart start, and hart resume. Ensures proper World ID isolation
+across domain boundaries.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- lib/utils/fdt/fdt_domain.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/sbi/sbi_domain.h     |  3 +++
+ lib/sbi/sbi_domain.c         | 24 ++++++++++++++++++++++++
+ lib/sbi/sbi_domain_context.c |  3 +++
+ lib/sbi/sbi_hsm.c            |  4 ++++
+ 4 files changed, 34 insertions(+)
 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 61627db3..0849c4d0 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -469,6 +469,21 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
- 	}
- 	dom->next_mode = val32;
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 7d523493..b54bd952 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -331,6 +331,9 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
+ /** Dump all domain details on the console */
+ void sbi_domain_dump_all(const char *suffix);
  
-+	/* Read "next-wid" DT property */
-+	val = fdt_getprop(fdt, domain_offset, "next-wid", &len);
-+	if (val && len == sizeof(fdt32_t)) {
-+		dom->next_wid = fdt32_to_cpu(val[0]);
-+		dom->has_next_wid = true;
++/** Apply Worlds CSR state */
++void sbi_domain_worlds_enter(const struct sbi_domain *dom);
++
+ /**
+  * Register a new domain
+  * @param dom pointer to domain
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 443aa60b..c0c9b315 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -93,6 +93,30 @@ int sbi_domain_get_assigned_hartmask(const struct sbi_domain *dom,
+ 	return ret;
+ }
+ 
++void sbi_domain_worlds_enter(const struct sbi_domain *dom)
++{
++	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
++	const struct sbi_hart_features *hf;
++	unsigned long mlwid_val;
++
++	if (!dom || !scratch)
++		return;
++
++	hf = sbi_hart_features_ptr(scratch);
++	if (!hf) {
++		sbi_panic("%s: hart%u features not initialized\n",
++			  __func__, current_hartid());
 +	}
 +
-+	/* Read "next-widlist" DT property */
-+	val = fdt_getprop(fdt, domain_offset, "next-widlist", &len);
-+	if (val && (len == (2 * sizeof(fdt32_t)))) {
-+		val64 = fdt32_to_cpu(val[0]);
-+		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
-+		dom->next_widlist = val64;
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWID)) {
++		mlwid_val = (dom->has_next_wid) ? dom->next_wid : hf->pmwid;
++		csr_write(CSR_MLWID, mlwid_val);
 +	}
 +
- 	/* Read "system-reset-allowed" DT property */
- 	if (fdt_get_property(fdt, domain_offset,
- 			     "system-reset-allowed", NULL))
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWIDDELEG))
++		csr_write(CSR_MWIDDELEG, dom->next_widlist);
++}
++
+ void sbi_domain_memregion_init(unsigned long addr,
+ 				unsigned long size,
+ 				unsigned long flags,
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index cc4cc04d..1fb05c07 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -174,6 +174,9 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	sbi_hart_protection_unconfigure(scratch);
+ 	sbi_hart_protection_configure(scratch);
+ 
++	/* Apply target domain's Worlds state */
++	sbi_domain_worlds_enter(dom_ctx->dom);
++
+ 	/* Mark current context structure initialized because context saved */
+ 	ctx->initialized = true;
+ 
+diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
+index 0a355f9c..82856da6 100644
+--- a/lib/sbi/sbi_hsm.c
++++ b/lib/sbi/sbi_hsm.c
+@@ -154,6 +154,8 @@ void __noreturn sbi_hsm_hart_start_finish(struct sbi_scratch *scratch,
+ 	next_mode = scratch->next_mode;
+ 	hsm_start_ticket_release(hdata);
+ 
++	sbi_domain_worlds_enter(sbi_domain_thishart_ptr());
++
+ 	sbi_hart_switch_mode(hartid, next_arg1, next_addr, next_mode, false);
+ }
+ 
+@@ -478,6 +480,8 @@ void __noreturn sbi_hsm_hart_resume_finish(struct sbi_scratch *scratch,
+ 	 */
+ 	__sbi_hsm_suspend_non_ret_restore(scratch);
+ 
++	sbi_domain_worlds_enter(sbi_domain_thishart_ptr());
++
+ 	sbi_hart_switch_mode(hartid, scratch->next_arg1,
+ 			     scratch->next_addr,
+ 			     scratch->next_mode, false);
 -- 
 2.43.7
 
