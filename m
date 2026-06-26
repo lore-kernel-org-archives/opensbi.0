@@ -4,94 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 674B9CD4F26
-	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id D1FE1CD4F26
+	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 11:12:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=/8JWXxBCbVLoz+Ed6GfTjbr02fHjVAhFWvjCpX6wQkY=; b=3eTjaY1CM5Pc6l
-	gygB4h7hBDEl/HCeVq0nmmD6h9fje0FZ1LyaqorQD2MTp3AA9AmymgKFZq/k2pNn8qxb5GqAKAeQm
-	OZCVBHZ3WVHD7bOPisnyiALpr+IAS7NCPm1yHmrXobHDJgKsL6+z5q/6cfzRFER8W51u+PuH8SvKx
-	jebO+EWfIc5gh81w+XD8XTzSSN6G7tTQhjOTeJ2CVuCqMAQnKFO0gF5/q6Tajx/v7eSFaiomvuoO4
-	uQPhTxHCfmhmKtSzzMs343iNLfyhjpDqRZIB0J375JEyqo0uYCjCVE3pub8tSJNS3LMawPcLPELQD
-	HxP4fbGwLCnxSMuM3GRg==;
+	List-Owner; bh=wGfa3LYCkBGBol2TtiG20k1V9nTJmDrJfs8vuukh7qI=; b=Cz2nVUFxF0+cv6
+	xAvKGfkNaL6xfa2R7M8PQsJ6qnZlTBTgNGSek217vV19VMe7GdLTciowgbKT1jQSwaaBtkENZ59C4
+	xXnhDqAAbNMSfnysrdBylxEpEntIoPzpTof0WnrRe624h5r/KyMhSX1QlmTd2aG7wCjaDAPfXT9cR
+	oKLfxU7+EgL9pSju62nFA0ii1p+93cdZFf9AMgtHaMLNG/uiRL7ZCSLM1An9epXXV/wRWrsuAaNmD
+	SNWiZUDabUA2UMYhvTEr6rWa1c9jPnzwZd1lkr9gcZNydKf+ZQJStYHc6JiP7rYeOxefcqlrQmrqJ
+	3jH6GKlXNCwNmddr4+Hg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cc-0000000B4pd-2ygR;
-	Fri, 26 Jun 2026 10:17:18 +0000
-Received: from mail-pf1-x430.google.com ([2607:f8b0:4864:20::430])
+	id 1wd4TU-0000000BBXH-2MJK;
+	Fri, 26 Jun 2026 11:11:56 +0000
+Received: from mail-wm1-x335.google.com ([2a00:1450:4864:20::335])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cW-0000000B4iN-3zpf
+	id 1wd4TS-0000000BBWa-2AE5
 	for opensbi@lists.infradead.org;
-	Fri, 26 Jun 2026 10:17:17 +0000
-Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-84540eb70b2so395980b3a.2
-        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:12 -0700 (PDT)
+	Fri, 26 Jun 2026 11:11:55 +0000
+Received: by mail-wm1-x335.google.com with SMTP id 5b1f17b1804b1-4922244f7c7so8031645e9.0
+        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 04:11:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1782469032; x=1783073832; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=obhctmPPYiLSNZXi1nCalzmlEG/UenqFInAxk2wx/mw=;
-        b=LSeXmrz48WNtlUnB3mxFMXFiuQ0T5nU82wKAC6PhB5yRenrTJyWmdCQdcFVXEZU3Pd
-         H4EbZUMfiAPqD55ejw0sPfqqqySvna/63j9zXPtpYzcYuqWUfvcWeFuG1kYFbPxean66
-         Ugb+jl79CjFu9V75TMVR4T9Ep+Y1kw7YAJtCPTlAAuSvKqy8z/H+6nGlCdagEcfcCmA2
-         fecJLwmtftKAfCwZXLk0GaUkGP/fUpcykZYULNDbLbdC2v7DRoz0dBZjTP6FiH2ZSOIe
-         B34fS7hVhJU0793IoDaQA4tWBFWa5uWHs7L0+A7n8NCnDCdzeTBBUnL7Fe38LlldhVZV
-         p8qw==
+        d=gmail.com; s=20251104; t=1782472312; x=1783077112; darn=lists.infradead.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=MWHbU49HY3UROsQMM3KH76n4TBHTzQfPtJBJ60Zw1OI=;
+        b=TQmZwoFKNXEXA4GFc713JsHEr44d/yWhFU77WaxG4SkAHDcp1wzERn/k7AUeSCrRjy
+         7PllOCwV4UFibN9y/E+g2FJRQ7DSd/pTdogyKDwSOm0rU3z0vZCqrMlvtki8zOzkAEEO
+         7Gv/VqaTh4ebvLcIUJWx8xpHhf7otZp8TZcOgpzvIipo+LFjYltdp7pK3MLombS0qlgI
+         s6T2utkFne6yyZegcrWON2ZK74X3O6Em0882Sbo5An0R/f/02LuoBLXRCMuJeLXvlBof
+         awlARDUA3VHspIk8kRO8iX2R6vRO/4WujJprXBS2CAmfwQRIUaOR1+ta543q2xEwkJVL
+         Dn6w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782469032; x=1783073832;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=obhctmPPYiLSNZXi1nCalzmlEG/UenqFInAxk2wx/mw=;
-        b=OwJbvy7y+f9w1Lzo3jQArQ9E9pf4xRHT2TCtXKDGqfJPVaUZDmLkEpBphmnMb13ZbN
-         K53WrH31ttujnIDiSTr0pUk+5QeqopsuR7neTKyEk0RFlfD5U0D59AVirwVhiP05VehJ
-         NijTfK8gMFWYZVwhVdDRQjkF1KkhXoDGTPzUwJwH5l57zxiKZnqVELzn7qaA77dYdA+m
-         RuonULQS/4nb2g5FXOueqE0s9DpsauDbuEPLKVFLwWVVs3qYhVNWIzfPgUw+KMS/KCtj
-         /9djpRYcoP45dZ36OLcagBlEBDvi2vahRZEdZucFfLA3U02hCygcx3VQPlLecyjrN0SI
-         +zeQ==
-X-Gm-Message-State: AOJu0YxsUdmnydlgOgiR8FiWniQ8c5WDHdYHZ1bumZMUmP4jysA67mvJ
-	gy51wJycnyV+oh0Zn9dsEvenGdC5emQtAbzSvnAAkXqoQAA9TRmie6XHYKLQ18n5jc6I4jBtWtA
-	dK8THF6puf4qI4Y6zfQvUPiUNVSq4KHZmJxa3EqaMY/hWWM595OUtnf3NLHdAT2o4fdDcA7Tiq3
-	6ZXtNhoUS4H+CbCcCreEGxH6a71JWQTdv+bXwsFaDbTcVmgMUhDvI=
-X-Gm-Gg: AfdE7clI+XSOUHQIUa0FhCjZu5HWdjeREpm8kyUr6V1wl5LeRqpwvuC8/niIwQ28Sqz
-	kxvL5MkSlNMqWwg+sBF8MRDhj8spGHCElWqIUmfMGdz3WjZNTUPFl3SydiguAhbAadJDckSgFb0
-	HDgz6Go/TCNNOvoqlIuchFmLMDP+sdQmBAHT4vS7Law+NE9JeaX2u0Cw47WUho6TByWP7S/kQaq
-	wcu+TaqNT6o9IrMsCoCuuuyq2B5PMCOGDaaGT5Q1rB913qtwZi6KwP2JFRIwMIsN2Ql/nyCnlHy
-	ibCIYbnMRmvQ9Yj5YsL8acZy1/fkpWHjf2pIBgn67Ls/v1odAZ36x8vT9J14WjgxstdMXf5K/2C
-	z5ehy0+EZSH4YHWhNulXuyNo54U4Iix6uqOCgjpwXmhoAknGJMXfoMC9Vp0FoPlay7k4Z477Mn1
-	77n85wo+qBdPFq+DgN1PCR5C1GAEPeMut9oHdveQWHfIBsHxw=
-X-Received: by 2002:a05:6a00:2301:b0:842:6004:3fd4 with SMTP id d2e1a72fcca58-845b3aaf053mr7435735b3a.24.1782469032181;
-        Fri, 26 Jun 2026 03:17:12 -0700 (PDT)
-Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.17.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jun 2026 03:17:11 -0700 (PDT)
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-To: opensbi@lists.infradead.org
-Cc: zong.li@sifive.com,
-	greentime.hu@sifive.com,
-	anup@brainfault.org,
-	scott@riscstar.com,
-	conor@kernel.org,
-	dave.patel@riscstar.com,
-	raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com,
-	samuel.holland@sifive.com,
-	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [RFC PATCH 12/12] docs: add RISC-V Worlds next-wid/next-widlist DT properties
-Date: Fri, 26 Jun 2026 18:14:33 +0800
-Message-ID: <20260626101433.3133466-13-peter.lin@sifive.com>
-X-Mailer: git-send-email 2.48.0
-In-Reply-To: <20260626101433.3133466-1-peter.lin@sifive.com>
-References: <20260626101433.3133466-1-peter.lin@sifive.com>
+        d=1e100.net; s=20251104; t=1782472313; x=1783077113;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=MWHbU49HY3UROsQMM3KH76n4TBHTzQfPtJBJ60Zw1OI=;
+        b=rtDy8gGcnZUbWuC0Zg0eU9ZfulQppq01SVo5GZsM1A1rRrZBy6kFs3dnCKr6AAqNm4
+         jNgENclkPJjQBM6KffseQ+bSHoCTAQ1SRwu4EuewPNZfdTzgeXfEC7YwaitXMJvKQhcT
+         ansNtapMDPO86emS0NZemF4SKDA2HL5KMPsPgNZ7YojRQwkEIuWuiLygw1sm47UZf2Ig
+         oOZWTO/DUD+416uIa/9usnd8FcYnT4H7Jg7+dociAc9limp1fIOwzzymMODxOmZIWBfu
+         uaQ6M/YNkLKgjGXPvOKMxvlk4gOfhq0G+Bg6nUd+9ZPlJ131HdGTzSjsxlcNsURWQiJX
+         PUAA==
+X-Forwarded-Encrypted: i=1; AFNElJ9B/CBkAIeCsRMhImhlfblMInFOd6ua8WiMOPF9iIZwiI+PpfRThWaiR3uKo8qPiqncewV+6lfv@lists.infradead.org
+X-Gm-Message-State: AOJu0YzK8tkn0JBVpsEkPU7QBsWxGnkGdZhoUnBl7KHs/QbOlj5gqcPZ
+	icLYHdlryrikC4GkOZIO09NTjnElHHGHJMx/I869wOT3HOVKnvY2+qkfM9zOkZ1D
+X-Gm-Gg: AfdE7ckmi1A5qPSSDVNgzCemB3gL+oz1IURLWJBxl4xQcOOFqADs1iCTv+trba20anq
+	woygPg25+1Q7j1gQxESYB7hP4S8TDr3TOINzp3BLAu5hxYI/20vgxDQQChNqzUuzyd7m/E5C4yO
+	AUhpgE+kIo4F6VxQGYBeh78LGnn8i5EuqJMK27o2GuEgK57y3gy7lL0ujA47/cbCtQNgforaZrd
+	/q4+PbjvuMaYjWVpF0X6cSSqathG78k03X9zZuApmO5DpZfEPon42KqkhiLrTdpzPJy7grAsXuO
+	FWiwFqzo1gSHHbhAbf15+aFPCiUJyRrSWha3FK3taCQTEdjFckfMMbR0TM5HYBVnxJaWMm7TvEd
+	GT7td5yQKNzRS/fUn7+yxft1HHSlPEOFlkZSLaJ5VHwypB7Vfy9IkFzJxnyDwI9JWdA0o7YfDfv
+	Ul7R2TnHZVT3IHsjGMrCwZENuxMsdHQE2UvCX0O+cCxm11MEJLB5DtWog=
+X-Received: by 2002:a05:600d:8445:10b0:492:649d:9b96 with SMTP id 5b1f17b1804b1-4926683fb58mr74692455e9.9.1782472312542;
+        Fri, 26 Jun 2026 04:11:52 -0700 (PDT)
+Received: from [192.168.0.40] (a89-182-137-217.net-htp.de. [89.182.137.217])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49269009163sm78914615e9.11.2026.06.26.04.11.51
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 26 Jun 2026 04:11:52 -0700 (PDT)
+Message-ID: <ba4686c2-02a4-494a-8d5d-09dc113e5b77@gmail.com>
+Date: Fri, 26 Jun 2026 13:11:51 +0200
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: Upcoming OpenSBI v1.9 release
+To: Anup Patel <anup@brainfault.org>, OpenSBI <opensbi@lists.infradead.org>
+Cc: Atish Patra <atish.patra@linux.dev>
+References: <CAAhSdy3gbrLYmRPhD-ABXZUW0SjXk5xpQbZ_vrb1hsaJ0N3qTQ@mail.gmail.com>
+From: Andre Heider <a.heider@gmail.com>
+Content-Language: de-DE, en-US
+In-Reply-To: <CAAhSdy3gbrLYmRPhD-ABXZUW0SjXk5xpQbZ_vrb1hsaJ0N3qTQ@mail.gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260626_031713_022181_B7F735E5 
-X-CRM114-Status: GOOD (  13.70  )
+X-CRM114-CacheID: sfid-20260626_041154_569294_147C93E9 
+X-CRM114-Status: UNSURE (   7.84  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -103,85 +96,32 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add device tree bindings for RISC-V Worlds support in OpenSBI
-domains. These properties enable per-domain world isolation.
+On 17.06.26 6:48 PM, Anup Patel wrote:
+> Hi All,
+> 
+> We are close to the OpenSBI v1.9 release. I plan to complete this
+> release by the end of June (29th or 30th June 2026).
+> 
+> This week and next week, I will be mostly merging fixes and
+> few of the in-flight patches.
+> 
+> I request everyone to test the latest OpenSBI on their RISC-V platforms.
 
-Per-domain properties:
-  * next-wid - Sets mlwid CSR (requires Smlwid extension)
-  * next-widlist - Sets mwiddeleg CSR (requires Smwiddeleg extension)
+Tested on a SpacemiT K1 MusePi Pro board.
+No issues so far, but my daily driver is linux 6.18+backports, so I can't confirm the 7.1 kernel fix.
 
-ROOT domain properties (in /chosen/opensbi-config):
-  * root-domain-next-wid - mlwid for ROOT domain
-  * root-domain-next-widlist - mwiddeleg for ROOT domain
+Thanks,
+Andre
 
-Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
----
- docs/domain_support.md | 13 +++++++++++++
- docs/opensbi_config.md | 13 +++++++++++++
- 2 files changed, 26 insertions(+)
-
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index e267a9f7..164d87e6 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -91,6 +91,8 @@ following manner:
-   is the next arg1 for the ROOT domain
- * **next_mode** - Next booting stage mode in coldboot HART scratch space
-   is the next mode for the ROOT domain
-+* **next_wid** - Next booting stage World ID
-+* **next_widlist** - Next booting stage World ID delegation bitmask
- * **system_reset_allowed** - The ROOT domain is allowed to reset the system
- * **system_suspend_allowed** - The ROOT domain is allowed to suspend the system
- 
-@@ -200,6 +202,17 @@ The DT properties of a domain instance DT node are as follows:
-   is used as default value. If this DT property is not available and
-   coldboot HART is assigned to the domain instance then **next booting
-   stage mode of coldboot HART** is used as default value.
-+* **next-wid** (Optional) - The 32 bit World ID for lower-privilege modes
-+  (S/U-mode) for the domain instance. If present, OpenSBI writes this value
-+  to **mlwid** on context switch into this domain (requires Smlwid extension).
-+  If absent, OpenSBI uses the platform M-mode WID from the **riscv,pmwid** DT
-+  property as fallback, in which case the value must be identical across all
-+  HARTs assigned to the domain. In either case, the value written to **mlwid**
-+  must be permitted by **pmlwidlist** on every HART assigned to the domain.
-+* **next-widlist** (Optional) - The 64 bit World ID delegation bitmask for
-+  the domain instance. If present, OpenSBI writes this value to **mwiddeleg**
-+  on context switch into this domain (requires Smwiddeleg extension). If absent,
-+  clears **mwiddeleg** to disable S-mode WID delegation.
- * **system-reset-allowed** (Optional) - A boolean flag representing
-   whether the domain instance is allowed to do system reset.
- * **system-suspend-allowed** (Optional) - A boolean flag representing
-diff --git a/docs/opensbi_config.md b/docs/opensbi_config.md
-index 104d82c9..b7210dfc 100644
---- a/docs/opensbi_config.md
-+++ b/docs/opensbi_config.md
-@@ -29,6 +29,19 @@ The DT properties of a domain configuration DT node are as follows:
- * **system-suspend-test** (Optional) - When present, enable a system
-   suspend test implementation which simply waits five seconds and issues a WFI.
- 
-+* **root-domain-next-wid** (Optional) - The 32 bit World ID for lower-privilege
-+  modes (S/U-mode) for the ROOT domain. If present, OpenSBI writes this value
-+  to **mlwid** when entering the ROOT domain (requires Smlwid extension). If not
-+  set, OpenSBI uses the platform M-mode WID from the **riscv,pmwid** DT property
-+  as fallback, in which case the value must be identical across all HARTs assigned
-+  to the ROOT domain. In either case, the value written to **mlwid** must be
-+  permitted by **pmlwidlist** on every HART assigned to the ROOT domain.
-+
-+* **root-domain-next-widlist** (Optional) - The 64 bit World ID delegation bitmask
-+  for the ROOT domain. If present, OpenSBI writes this value to **mwiddeleg** when
-+  entering the ROOT domain (requires Smwiddeleg extension). If not set, clears
-+  **mwiddeleg** to disable S-mode WID delegation.
-+
- The OpenSBI Configuration Node will be deleted at the end of cold boot
- (replace the node (subtree) with nop tags).
- 
--- 
-2.43.7
+> 
+> Best Regards,
+> Anup
+> 
 
 
 -- 
