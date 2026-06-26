@@ -4,72 +4,72 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 86E63CD4F26
-	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 71E2ECDE00C
+	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=H9inFIaUKBU2y7B3wR3Ziz1HlrE3Xvfsh7Z22fjO54s=; b=ZnntQBa2fPmkjE
-	IJWtXr3/CI/17CmCLnrqy2rzPruV2v0SExg41UeKH65glCCvAGFqjW9qHPPc+gBkT4ZgxEGv0NcWb
-	9VGKUpyNGfPEpF6LKulKP70eH9CTF+0cS72SQCgrnNaFloUqJRH6G8yuZkLhcrTowD3nkhwgihYa6
-	ViQ2HiJOnVUaGoLZ3kqdIYCH+SAGB0yiwfRPygEJhfj3vVApwEWU7bdzLmqW/3Jr7GAEjO20UQ4l4
-	1C/XmCyiSFWg3+WTROK9WGdG/TR8vb2GBmzQn3o7Dh+HdQb/YR7vdqQTnAOgoTkuWr3Gzn+qYdIm5
-	IlsR5Ao4XstzmFwcnMng==;
+	List-Owner; bh=ZsqRuEJW8LwI+hZafxioS9fC8nfpdV9PdqgE3ceUKeE=; b=wiGyZt1IJB5/Oi
+	ODPn7qq5tEmIAkAa1Bq0jUNKcrklQjtAUCHCrWicwlJBrjxo8DGfNllS1jazd2k8YOsmZ+qhIDjaL
+	YnwhX0syYNMrLl3HhW5zQ3904ohhdLI156dSaVlSBwSl2JY+NeRG+XmklA/TuEAbHj3VZ3jKqqs7O
+	mi+4uo4NAmy+IkAs5QiHC30pMmnxtJqBGAt6udE4NIddikqYY3n9oCSoBZbbpL/KF8vcRmwXOnTgQ
+	J5m4xDMzYwVDo1xezhyGeQ0QoPFNNvQwicHbZihcPQYAfzaMwbdqRGVhzPA1+e+A7aWbn0Mfyr1m1
+	rO6jkfeEUU0rYebzX7jA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cR-0000000B4cI-0IBj;
-	Fri, 26 Jun 2026 10:17:07 +0000
-Received: from mail-pf1-x430.google.com ([2607:f8b0:4864:20::430])
+	id 1wd3cT-0000000B4fG-0x2s;
+	Fri, 26 Jun 2026 10:17:09 +0000
+Received: from mail-pg1-x52d.google.com ([2607:f8b0:4864:20::52d])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cK-0000000B4W5-3YiH
+	id 1wd3cN-0000000B4Zy-3lcm
 	for opensbi@lists.infradead.org;
-	Fri, 26 Jun 2026 10:17:03 +0000
-Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-845c38dee22so368305b3a.0
-        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:00 -0700 (PDT)
+	Fri, 26 Jun 2026 10:17:07 +0000
+Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-c88b7c92577so327822a12.3
+        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1782469020; x=1783073820; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1782469023; x=1783073823; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=jQHvuUP9lM3AN0ucB3gk0QvOhIoK62vOjGgsuPZHqtc=;
-        b=QPC5hTHy26AlFrL/SsD8gXMxSN168zxIVuc+a1Xdr+G/3pTS4izpXxz49AoxEjks6e
-         4sOQWT7YOn0gC8yeKMExvQeezw2Tk9nouJbbjcoFFncrANvbOwhahatiBRavXZEkam4C
-         9UXTKzrO0PZPxp60XuCeBJo6vOB2YMMumAfFkWVs7fPDty7Lb9VxWewMK6+YLrT/88Ib
-         2tsm2+pcC7yb88vZlTmyVxY2qP45yoh0zV0hCLD9yciGvUYYCGKLwe0Q7VxybX0zboFZ
-         NDCxpCB+uMofZMocd9UngnidkGUgoGnFi1pkyMrVpFqIIN7ZrXNNLocYiRQESqsrVamW
-         f8+A==
+        bh=Vs1nn18ErBdE2h3DfjBQkpLvcApCW3HphSSjxOFzRkk=;
+        b=Xh+q7idVQY3HvKt8687K/gELC0zxxPksHtXZTv9FZcRAstg2FhgQg3q3HC4xx8a8Z3
+         VaTGkrJtOccXa8B/kyi5Z1j7gCkoSJClT+mFaoq/8hrqxbXEfZlpeuSy0SxBUrqC2wP7
+         RsCphDUyYC+p3tu3U+gLccCCng2fr3YHxDTA/TFiOhnC+KmlIAbvEINvHh983IHhrhiW
+         XwZn3OCoXtV4yKJDnSA5NvtNECDhkqVI4iTzH+GeKXP7QXnDXbH0EbCf3652TBo3ckC+
+         3qWpqNzClK67Nu7ZzP8nT5ER5unW8TDWW1/wMjU+yr8a4K09YOJYTE4/4L2GmsyEXKHu
+         rvuw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782469020; x=1783073820;
+        d=1e100.net; s=20251104; t=1782469023; x=1783073823;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=jQHvuUP9lM3AN0ucB3gk0QvOhIoK62vOjGgsuPZHqtc=;
-        b=rD3mXXbrFOT87/y2X7xHiql6HpXnWyUBaSG2NuL9g3iF1SWV2YwSbMLxfvzQ66kBwJ
-         ITbXLuqb6JfyvjSryRPft5CABzdRn+bLFNBe2HUC4GCsaNAbsSK93CHdVN9+sIda29MP
-         4gEiBrkI4tnsVC3HctHuZiQmxma09Sec/OabNHkk/xMn5f1S6ICcVmHpjFw7YL0XEe1f
-         voRz9HAL+r1hy4NaZPsM0fkSEqjEJsHpQmgmwcJnKSedJAbreb+35yQonJSCacCm+0DH
-         Bc2gYTei1L+ukogMwNra2DBYpTM52ovqGEXTR1UCia9qbfiEtdvt86vCdIlFHa6yDIbi
-         6k5A==
-X-Gm-Message-State: AOJu0YzGpqA8UNW2yXUEk4HBHTn/7jHF6DFmD6sBoRyTrz4FZWF+Hqkd
-	58cRcP/BmImPVrJaGfHVQxcD2LIRyidtOvmpDNzdTbUFzO64jAm2KacEHO26aiTFgPgKtltrFZ/
-	BZ1zJDRd4WuM0ad8XpmwrjMKkihROio+Qd+7HsEEJpaI4DcPeqyWUZg6pG/Z4KpfM4Nj8g+BTjq
-	AF+2K/TvPAZvnkkuKSfu8MClMqnM25FL+H+1lNjc+/NspxPFyWguU=
-X-Gm-Gg: AfdE7cklqmBlURpOuRYTHIwTtP2Card5KBGvkElYcGbHlEXLZqPoB/Sp/hc9Fj5dldP
-	j/QMLJxQ1TGLa9imwT7gBd3LI7IaTI7Xoy+G20qIMgDqviFJa2oVexg61GglZ6w9CqICOrd1YTC
-	Mc6HyqdK/+cdMMkks5nrKnUKHP1s8wUl/mqkR+UXx9IpMNvaCZVeT3xU7knkhGJORKahlX+O/ls
-	OKVuAGyVazsnPd35pZo5qNa/zzffDVrusTOEFsqqPwawFUnZ/DINIc6lOMBneIMmNGwAal9IFuh
-	RpHdCYduWCt7MVkAPY6PTJh1hfrR060snQHWypZHcrF15k4kt5Ja4XxPpadJo12P0F06zcOwiCa
-	aNpua9OF67kyoO6AjLi7zaSEOtz1SZLO7lrQcoXoRceJfBqiAqiHLs0I6CxITg5HhncalGYCMxI
-	ioQBIOsDqmvTG74EJPthzsiPyV6dA7v6dmJ85e
-X-Received: by 2002:a05:6a00:e8f:b0:843:472b:dba9 with SMTP id d2e1a72fcca58-845b3b0c2femr7288011b3a.45.1782469019823;
-        Fri, 26 Jun 2026 03:16:59 -0700 (PDT)
+        bh=Vs1nn18ErBdE2h3DfjBQkpLvcApCW3HphSSjxOFzRkk=;
+        b=Ei1s1nvjxgTFbY3MYlDuzwss2qYDFTExUkqcoS28WATNaxJb9aYq1DN3ebiY/ijdIM
+         UCqyg+w+9qP/dEVSdwUyk6ZlLAfz8VR3B8HuKYdsWVKM3VOUW2rq3FfXV8MfLoVyBfpM
+         Q2GpzdYrQ5b6QxEY7nuweOV4F5H0ttOY8MNGG+N8Kj2VU3CIzFaLnqTDZERw5v/9P8Rl
+         cUP7veAU3fQ6K4AJq9lfe9tSSj1MZV6amprVLVNDsSfoJeVBhTVyGhlVVAs3epDxReUj
+         l+5GtnaaiMYCJrVXDOUAS/dZzn2OekQTvz6GYpoxI0pxerbxGbIdElyxCEywRQGy2YV7
+         Q27A==
+X-Gm-Message-State: AOJu0Yz/T1nvX9yp/liB6sry/4Al530otQHSz4QtgXwIA9+fEeZBLbu8
+	AKT2ApKgWEuqb1qQNv7tEHFFqrVeUrmpoaPQDx943PWoCXqbSkq5qtzDerOGeqeFRfopDvraSz5
+	xhK7GPG2d0lv0SCYbmOP8Qel7Nu0ihFCd7+cRT2Bv0QY8CQBow0j+Vb4An9ZBgQISJdsjPxgEt9
+	4A3DBZyzVmupUN06zod7uMJc/IqRo6u/1hDFt4CV9/AFHKqfBRX1s=
+X-Gm-Gg: AfdE7cmvYyD5RBdFiww4JTWfpZ2v5qZDqHaC0Qd8qHQOapPJaaihcoiFl5OEUj3hA1u
+	cHgujr1H/ykMPzSI7l5TMV4tFj3yOBRNFjZ1e6F7yus00lfUMaH2ZsJS1kcKN/aGpROkjDqshTZ
+	zYt9vVvCKDBdGK0pltH6AjYyD+ytcR9e1SFW9t68ZwEPMBktVbZ86jiUCihVZjOKZN+/r5EenQy
+	UkMrez336XR6j0dxVLd0DnYYVl3+0ovoUR2NibOVj9i41qwFO8mEadXqRK5prUMEYEIQkzK/vXT
+	idSQXEyIyB7RBxM9jNSsuNlhS9RaeQ2oeAcjpZdmnpWhLgHkgf3sc2bkdGr7jqxFKzGl9P8i2a3
+	p2DGdVmQJhLb6GhHnMinqyL55qFNb35XT0Ye17N3Z634KInNTUChb6SgDkNhpQahAfsYik/5C4+
+	dYwyGIGJh7iyKYJLm5LnxljpiDv3KwwLX5DXpt
+X-Received: by 2002:a05:6a00:a210:b0:845:2ff5:b66d with SMTP id d2e1a72fcca58-845b3b8e27bmr7324402b3a.35.1782469022877;
+        Fri, 26 Jun 2026 03:17:02 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.16.56
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.17.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jun 2026 03:16:58 -0700 (PDT)
+        Fri, 26 Jun 2026 03:17:02 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
@@ -82,17 +82,16 @@ Cc: zong.li@sifive.com,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [RFC PATCH 08/12] lib: sbi_init: print M-mode World ID at boot
-Date: Fri, 26 Jun 2026 18:14:29 +0800
-Message-ID: <20260626101433.3133466-9-peter.lin@sifive.com>
+Subject: [RFC PATCH 09/12] platform: generic: parse root domain WID config from DT
+Date: Fri, 26 Jun 2026 18:14:30 +0800
+Message-ID: <20260626101433.3133466-10-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20260626101433.3133466-1-peter.lin@sifive.com>
 References: <20260626101433.3133466-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260626_031700_945742_6ABCF67D 
-X-CRM114-Status: UNSURE (   9.15  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260626_031705_678989_7FB1BD9D 
+X-CRM114-Status: GOOD (  10.59  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,48 +108,61 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This extends sbi_boot_print_hart() to display M-mode World ID
-configuration during initialization. Shows mwid value from CSR_MWID
-and lock status for Smwid extension, pmwid value from DT when
-available, or "unsupported" message. Provides visibility into Worlds
-configuration at boot for verification.
+Parse root-domain-next-wid (32-bit) and root-domain-next-widlist
+(64-bit) properties from /chosen/opensbi,config node during
+generic_domains_init(). Sets root.next_wid/has_next_wid and
+root.next_widlist.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- lib/sbi/sbi_init.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ platform/generic/platform.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 658fe37f..1fb79eae 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -169,6 +169,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	int xlen;
- 	char str[256];
- 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	struct sbi_hart_features *hf = sbi_hart_features_ptr(scratch);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 51e9f342..de12deb5 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -11,6 +11,7 @@
+ #include <platform_override.h>
+ #include <sbi/riscv_asm.h>
+ #include <sbi/sbi_bitops.h>
++#include <sbi/sbi_domain.h>
+ #include <sbi/sbi_hartmask.h>
+ #include <sbi/sbi_heap.h>
+ #include <sbi/sbi_platform.h>
+@@ -276,7 +277,9 @@ int generic_extensions_init(bool cold_boot)
+ int generic_domains_init(void)
+ {
+ 	const void *fdt = fdt_get_address();
+-	int offset, ret;
++	const fdt32_t *val;
++	int len, offset, ret;
++	u64 val64;
  
- 	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
- 		return;
-@@ -201,6 +202,18 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_printf("Boot HART Debug Triggers    : %d triggers\n",
- 		   sbi_dbtr_get_total_triggers());
- 	sbi_hart_delegation_dump(scratch, "Boot HART ", "           ");
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWID)) {
-+		ulong mwid = csr_read(CSR_MWID);
+ 	ret = fdt_domains_populate(fdt);
+ 	if (ret < 0)
+@@ -290,6 +293,21 @@ int generic_domains_init(void)
+ 		if (offset >= 0 &&
+ 		    fdt_get_property(fdt, offset, "system-suspend-test", NULL))
+ 			sbi_system_suspend_test_enable();
 +
-+		sbi_printf("Boot HART M-mode World ID   : %lu (%s)\n",
-+			   mwid & ~MWID_LOCK,
-+			   (mwid & MWID_LOCK) ? "locked" : "unlocked");
-+	} else if (hf->has_pmwid) {
-+		sbi_printf("Boot HART M-mode World ID   : %u (pmwid)\n",
-+			   hf->pmwid);
-+	} else {
-+		sbi_printf("Boot HART M-mode World ID   : unsupported\n");
-+	}
- }
++		if (offset >= 0) {
++			val = fdt_getprop(fdt, offset, "root-domain-next-wid", &len);
++			if (val && len == sizeof(fdt32_t)) {
++				root.next_wid = fdt32_to_cpu(val[0]);
++				root.has_next_wid = true;
++			}
++
++			val = fdt_getprop(fdt, offset, "root-domain-next-widlist", &len);
++			if (val && (len == (2 * sizeof(fdt32_t)))) {
++				val64 = fdt32_to_cpu(val[0]);
++				val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
++				root.next_widlist = val64;
++			}
++		}
+ 	}
  
- static unsigned long coldboot_done;
+ 	return 0;
 -- 
 2.43.7
 
