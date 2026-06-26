@@ -4,72 +4,72 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 97418CDE008
-	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id C010DCD4F26
+	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:16:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=wvNpXt3jZZ/I4TU66gFoFqDAwKnn5L1HuGceMu3NMYs=; b=MS4qCEIsm6t5Xy
-	zn+mwA0CQalNiEWnAWuQBAGVeGFsfqgbmpy/s4J1YcbSEXXsFmPrFsXj8q6dNz5FI4Jo7ow+uI4Eq
-	OygugiWel4HdJVc9TOkkm7EBGjWWY6R1qEuodCM0fTLiBVTPP6OO9MtnS1euBOv5oHCFG3hCepnSf
-	qtsdOA29IKEigrUPAkqZAIXF9VoZ9lTlklenLWeT9uKPw8UpX+/zKDWtkZ4TA8k7z525xu/IKsswJ
-	rjF8Uy15XZf2bWXzhNP2cMM+YlD9gNxm0RXgY2TFTgBqOpGPv43cy+c0z0Rndu1w7lyO7DlwPRTvM
-	YylkxB91DiemlxpvNdXQ==;
+	List-Owner; bh=9qHfWQ5A3uDYqpsYtFEf/plp6WmxyvvQX+TY/l9Y0qQ=; b=py8e9mD8WwvIOE
+	7eIqsZIxlYLPUwc1DdkS4DBbWZE4BLLfsMDMh6Mnd1rQfpudlJEMECTrypkPleiC4Ln9GhOEMR2/d
+	tf65O+dzy3x9iYv0Fq0b+9IKsq/PPwnFasLG8Jzo9iLq4CwmY2UogqBrJ/l8/RKOK9YcPHAjJi+gG
+	sZUXHiarfi0NLhQ9uIbqeVFdbO+dCNBtpIQdyJ6/OYgCJ7ZT9mPc42z67dgcjEaHVJvVWAa8W1spR
+	YzEh6b4O9dqBGD6rcJT+Gh0gcNZUB/cYwY4FR07HNebJnRHU1YaEzrO2RFeRri4x48f/29d8djogj
+	P2M8XdJk1FqDe8sWW/ng==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cA-0000000B4Mr-14Tm;
-	Fri, 26 Jun 2026 10:16:50 +0000
-Received: from mail-pf1-x42f.google.com ([2607:f8b0:4864:20::42f])
+	id 1wd3cF-0000000B4Qc-1SNR;
+	Fri, 26 Jun 2026 10:16:55 +0000
+Received: from mail-pf1-x42a.google.com ([2607:f8b0:4864:20::42a])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3c7-0000000B4LX-0Xd4
+	id 1wd3cA-0000000B4NK-2Mno
 	for opensbi@lists.infradead.org;
-	Fri, 26 Jun 2026 10:16:48 +0000
-Received: by mail-pf1-x42f.google.com with SMTP id d2e1a72fcca58-84347ad88edso645186b3a.1
-        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:16:46 -0700 (PDT)
+	Fri, 26 Jun 2026 10:16:54 +0000
+Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-84540eb70b2so395797b3a.2
+        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:16:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1782469006; x=1783073806; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1782469010; x=1783073810; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=koI9jZGOcZpRkZis+gsUqXx94XFG6SCe/HgrGd9Zxos=;
-        b=A98sXzY0Tujatgoz/qzku7om9fkg8EAtTnuNGK0ZO0R6wW9u+ePbA5T4Nw6mNubJfh
-         aypmBWq/2hX7vnDEPVuGpGAH3rtLS0BpG8ojcu07W8KDSfH6l2EKsFYlQoXqmUl9ohAp
-         0NWX941vhrb4q8N807mAzGtTqlelXBJqhKJfJEwCoFNIs+LanRj++Y4XibVkWvL9gNob
-         J86cke5bWLWDVQngzvZH+VRklFRRv1MUnq89Or8je8ndRMziQ8pf3JhYTBpBlqR3wHcf
-         8IZvZQHwMhbtOyamtuUj9sAP3/IVijaH2sNq1VBJSGNNsHAeEoaR+H+/OX9pZ9fTTu/i
-         /I4A==
+        bh=EVIbVEbYCfSxUaYIPC50od8924dJ7F43Lr/a7np1tHw=;
+        b=A5TV2d/9YpXW1eXWhNXoILWHQS5UPYgQRCnaS9jRSYnUHYRQhiWC9r/jHn/0XzdsYx
+         gBFmd+f94H5nqfuoPzRf75ZLU0fPKxaN+ADRSoNr7UzRJARb91AdFHFSpg+6MTta38Of
+         bI5p8N3DjI93kKPCq08X7jXZR5scVczpabP0E7dEq7c2jrusEIKdBjgUherEcCm/qgCe
+         jZgW+kK7fQSwLoJXISTINCpXh9cYXNn3XB9nul+1nFtnJ5lXbBd5OnTyl/I1Fuklh5aH
+         XlonXtIfMe8qtcYF9H0oT6n6VACsSCjmHLl3k/yytVDomt6abqprHs+U3CYue8Y+9QBs
+         YZvg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782469006; x=1783073806;
+        d=1e100.net; s=20251104; t=1782469010; x=1783073810;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=koI9jZGOcZpRkZis+gsUqXx94XFG6SCe/HgrGd9Zxos=;
-        b=pDoJo/9aGqmQpdH4jv6w+0O1g4/L4L3a6ogZk2d8oKEUK8Qsnn31dIfXI5CriK9wLC
-         EcJm+ftlIKlVUN6A3FWLPpjm7oDgzdVo+eyyk8XP0fyDrN9mtQXCDQfsuXQW/K8ZBTbV
-         kkgK3uxtr3WIVjynEErdIIO8wnkfh8fXNSRGjD3U6mJZWBlX0+ZucN2szLeYzHlHYOSH
-         9GQSY8aOwee8p0ybXOK7s50MkM82K067N/XvPstzlbLedk4oKNCniduglc/+iv0mRtV5
-         1TJMshMiJ1u1ANm50T98dry3EhBgop7FbEQtQBA6HFJ7hYkVZwWtd7arBRjSwAEfHUbA
-         GxLg==
-X-Gm-Message-State: AOJu0Yy651dNc8bCFbExBGWW097hAuQDfJAFCTR9vVpLUNrELT2YoLuz
-	0q99w0BIewVNiHHQ+dH2Y8csUYIrqgA8BnZXNUQA4L4AXcGEaWEkb5GuZ/Fp6tg8R1E6DMc4d+P
-	zpghQIFBseDq0SsYpglDNzwLpFp3N+S7Ea8sMUZnBDhstfKiv1AWe2J3ymDZ2yLFFaFsp49Uwom
-	dDprzoV4taMtnWSRDEM9K8QT5PE7bcMud4tBLDN8jXOhK4SecAUMo=
-X-Gm-Gg: AfdE7cn5EamyTbBY5HcKQyaLa9Yw4/DUmMr98uwBATGmdGUdSGttezbfJuljyoJjI03
-	JiAE/h1TdFkt8WMocoY8Z6ISHZCZywXQn7jbMSECDo8pJXqHlAEdYxIRAm0031gS6S+XDwimoU7
-	6lfgu10tXFsU3oqrHTGVlrdjRDLTr18Twg3cAVQsS2uL4a2dEPHOvaNncl/ULnHk09HUgZdozy/
-	OMj+MOI3E27YAv15ldjTCrzlNnu0hMfovcBaiqxWLRz27VPAcXh0K4GtMurbzodwpg+t57rCgLn
-	K3pcHy1qxPn59XCrViHEGrhL3WHNVaSsgASUkuWFaW+P2zTmI8oTXSiJNRPq3ebwXlGVtSn89Wy
-	J8nmXPSDkpyoYRvDpi2BK7EeKi+6n6wclypBLK8WBNwWjY+iKtPasUXvQVQkPFTDlVUbEVrsWST
-	B+m7tfKOBoWG2/jVDLpwqI39TtFsw3mV8Kpi/N
-X-Received: by 2002:a05:6a00:4195:b0:842:7e71:ba2 with SMTP id d2e1a72fcca58-845b3b6752cmr7637550b3a.27.1782469006105;
-        Fri, 26 Jun 2026 03:16:46 -0700 (PDT)
+        bh=EVIbVEbYCfSxUaYIPC50od8924dJ7F43Lr/a7np1tHw=;
+        b=Io3Cq/du2HGmkkCWgjJfGdngpESYXWcrizcB+jcImUgnYXaQUp48oYJGqKPFWV79r2
+         w0PHNhpB8ZYYxA1GCM0TMSMsr7eV9ydFW9a7qXokrzm+c99DdE1AoZc2wvC8q3LAZnff
+         yu34lAdOp7PsiFCDhNCziw45yMefp8yhNuE6ZtqMlQkOrauhfquogZNHCpIotA+aMrK2
+         0/FoPllrUQFncSFSaPYhIOVkD2iZ0GlRTPmKyz0w2nVeBsmCBnOkCnxMWMxlgr8qdKYE
+         iJ1/yzJ+w4BY4gAPqX2M07adrbSwLAiWUtnJTWleRkswHRTlxTbuxUSaE0V65M3PWyDe
+         Dtqg==
+X-Gm-Message-State: AOJu0YxZOxoo18QRls0iF5QYTD7DdpQMX5PUe0atWECpJrVky8e+znn5
+	MiR0cLYjNn5d0VEbHTkeBP9pss361CORytZBouLmF5MGHbSGKMEmd1NrgAACj3DMwv5XsZOzuuy
+	cWrq7O9v/z+wISJpYVkc4nSyWuJpOruCuteRJCsDI719qn2RnYUUuHGH7s1U1N7mGGT3L1mVFhy
+	fIpFHD4LS3gB9xtnA/nW2QtS7R1nA65LYw/ALkmPWQrog1kXqgBaY=
+X-Gm-Gg: AfdE7cmGVtIPAcw32fHf3dAnXOPS5dLCwnhtdPzP3HCwzErVUrxy8w9cY9kJtJVOaC8
+	Z3PbpfhqqfQ2pmwpyNeLa6qKpVCsJj0U8Y5mPWIdZnkXUm3OFvOqxBYxTojzZftqNdevpnj9slC
+	Y9YoyJtVwSpOyk1Vqz48EecKi/pZpheoulSKqigkitj3ziDNRxe2frJFNkYRR4yyAQSKdItc3l7
+	z7p6wyRXVvqdXl1VVtxv9xBaVY9gkaAXtYnPH7hHRS78p6EHs46IK/XQSljN+KJ/3CIi41SSJG7
+	rhSzXu/FM/iTYgQ/eRecCnvdUFr7D0rU/LHDZ98KeRVwFLHxcbCmEY905VDBlNxEwbAfQCUUSbk
+	M/6I8efeJmlxUIMCkrK/ewj9TTjB53CMohNMJoSkaFFslXq1Hcb05ZQ9zVCnp+r/nDlx9MI6Mfv
+	E4n7zTjOKb6UFxCqwwTEz0b0cZjNqeR+EJcybe
+X-Received: by 2002:a05:6a00:1c8e:b0:842:708f:39be with SMTP id d2e1a72fcca58-845b39b0668mr7114498b3a.5.1782469009773;
+        Fri, 26 Jun 2026 03:16:49 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.16.42
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.16.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jun 2026 03:16:45 -0700 (PDT)
+        Fri, 26 Jun 2026 03:16:48 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
@@ -82,16 +82,16 @@ Cc: zong.li@sifive.com,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [RFC PATCH 04/12] lib: sbi_hart: lock mwid CSR for RoT immutability
-Date: Fri, 26 Jun 2026 18:14:25 +0800
-Message-ID: <20260626101433.3133466-5-peter.lin@sifive.com>
+Subject: [RFC PATCH 05/12] include: sbi_domain: add Worlds WID fields
+Date: Fri, 26 Jun 2026 18:14:26 +0800
+Message-ID: <20260626101433.3133466-6-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20260626101433.3133466-1-peter.lin@sifive.com>
 References: <20260626101433.3133466-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260626_031647_189917_CFA460C0 
-X-CRM114-Status: UNSURE (   9.15  )
+X-CRM114-CacheID: sfid-20260626_031650_601915_93B83521 
+X-CRM114-Status: UNSURE (   8.17  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -109,37 +109,33 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Lock the M-mode World ID (mwid) CSR during hart re-initialization to
-enforce immutability of the WID established by the root-of-trust.
-
-OpenSBI does not assign the WID value itself; it only sets MWID_LOCK
-to freeze the value established by prior RoT stage. The MWID_LOCK bit
-at XLEN-1 is sticky and makes the CSR read-only until reset, enforcing
-a temporal security boundary per the RISC-V Worlds specification.
+Adds next_wid (u32 WID for next boot stage), has_next_wid (distinguishes
+explicit zero from unset for pmwid fallback), and next_widlist (u64 bitmask
+specifying which WIDs can be delegated to this domain) to sbi_domain
+structure. Enables per-domain World ID configuration.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- lib/sbi/sbi_hart.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ include/sbi/sbi_domain.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index cb0c66ea..4fbe46d7 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -804,6 +804,13 @@ int sbi_hart_reinit(struct sbi_scratch *scratch)
- 	if (rc)
- 		return rc;
- 
-+	/*
-+	 * Assume MWID is restored by root-of-trust M-mode in previous
-+	 * stage. Lock mwid so RoT-defined WID remains immutable.
-+	 */
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWID))
-+		csr_set(CSR_MWID, MWID_LOCK);
-+
- 	return 0;
- }
- 
+diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
+index 16edd4ce..7d523493 100644
+--- a/include/sbi/sbi_domain.h
++++ b/include/sbi/sbi_domain.h
+@@ -211,6 +211,12 @@ struct sbi_domain {
+ 	unsigned long next_addr;
+ 	/** Privilege mode of next booting stage for this domain */
+ 	unsigned long next_mode;
++	/** Next booting stage World ID for this domain */
++	u32 next_wid;
++	/** Whether next_wid was explicitly set */
++	bool has_next_wid;
++	/** Next booting stage World ID delegation bitmask for this domain */
++	u64 next_widlist;
+ 	/** Is domain allowed to reset the system */
+ 	bool system_reset_allowed;
+ 	/** Is domain allowed to suspend the system */
 -- 
 2.43.7
 
