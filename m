@@ -4,72 +4,72 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 71E2ECDE00C
-	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3598ECDE013
+	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 10:17:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=ZsqRuEJW8LwI+hZafxioS9fC8nfpdV9PdqgE3ceUKeE=; b=wiGyZt1IJB5/Oi
-	ODPn7qq5tEmIAkAa1Bq0jUNKcrklQjtAUCHCrWicwlJBrjxo8DGfNllS1jazd2k8YOsmZ+qhIDjaL
-	YnwhX0syYNMrLl3HhW5zQ3904ohhdLI156dSaVlSBwSl2JY+NeRG+XmklA/TuEAbHj3VZ3jKqqs7O
-	mi+4uo4NAmy+IkAs5QiHC30pMmnxtJqBGAt6udE4NIddikqYY3n9oCSoBZbbpL/KF8vcRmwXOnTgQ
-	J5m4xDMzYwVDo1xezhyGeQ0QoPFNNvQwicHbZihcPQYAfzaMwbdqRGVhzPA1+e+A7aWbn0Mfyr1m1
-	rO6jkfeEUU0rYebzX7jA==;
+	List-Owner; bh=zl+VdKYKNbXQYkMurtgFiroB44jkxbPse9PfwbHjpYQ=; b=fbPOZ+dId6GNdQ
+	lbe6weQq9Aune1Yy4u9EDCe7HRTBUidNt88F4foVSRx/wsUuha+3TbhrimNT3zFHG4ugd81gr4pyS
+	14xuBZuXV48VZiRoHyR+k7lmM5d+KW+n01h3+W/RiF2CTXPcOe20W5354I1pjK3bX5PR1vt/73tLP
+	9S+Yhy8PkGRTvyFvE+s1y64JkOI1QgSBoF0XVM+xiuooMhX+X+11k7pabeIBamQzmI0XkaknyF2Ya
+	uv3+mp7AvfKBGWM7+3Ddq8caynhCkCmzrEYiqKAxFOlHiXF1IzL3o6OQdhMdbA4T9tDQjvxUS5jq/
+	B47BQGavqXFTz+dVSLuw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cT-0000000B4fG-0x2s;
-	Fri, 26 Jun 2026 10:17:09 +0000
-Received: from mail-pg1-x52d.google.com ([2607:f8b0:4864:20::52d])
+	id 1wd3cX-0000000B4jV-1iP9;
+	Fri, 26 Jun 2026 10:17:13 +0000
+Received: from mail-pg1-x52f.google.com ([2607:f8b0:4864:20::52f])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wd3cN-0000000B4Zy-3lcm
+	id 1wd3cR-0000000B4cH-22Uz
 	for opensbi@lists.infradead.org;
-	Fri, 26 Jun 2026 10:17:07 +0000
-Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-c88b7c92577so327822a12.3
-        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:03 -0700 (PDT)
+	Fri, 26 Jun 2026 10:17:12 +0000
+Received: by mail-pg1-x52f.google.com with SMTP id 41be03b00d2f7-c858014845aso245110a12.1
+        for <opensbi@lists.infradead.org>; Fri, 26 Jun 2026 03:17:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1782469023; x=1783073823; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1782469026; x=1783073826; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Vs1nn18ErBdE2h3DfjBQkpLvcApCW3HphSSjxOFzRkk=;
-        b=Xh+q7idVQY3HvKt8687K/gELC0zxxPksHtXZTv9FZcRAstg2FhgQg3q3HC4xx8a8Z3
-         VaTGkrJtOccXa8B/kyi5Z1j7gCkoSJClT+mFaoq/8hrqxbXEfZlpeuSy0SxBUrqC2wP7
-         RsCphDUyYC+p3tu3U+gLccCCng2fr3YHxDTA/TFiOhnC+KmlIAbvEINvHh983IHhrhiW
-         XwZn3OCoXtV4yKJDnSA5NvtNECDhkqVI4iTzH+GeKXP7QXnDXbH0EbCf3652TBo3ckC+
-         3qWpqNzClK67Nu7ZzP8nT5ER5unW8TDWW1/wMjU+yr8a4K09YOJYTE4/4L2GmsyEXKHu
-         rvuw==
+        bh=8VSaC60MEnG+NzTzx6XTv9XHF+2KhqlJ57UhCbUWyi0=;
+        b=S8AcWc5SPyHGXYcYYe2r1eY0HuVzXnKMXwPt9KWoP8BY2q1gRPBNnH/mj5WubhBssc
+         ofOlqtDJjboTMxpkZZO6QsJAJFOz5fDikcC7Y91pGKjlw68cbI3o2iVW7jnLpQx5w8iE
+         hlDz6US9EO+RupsV6HQzIOQC1nV38aIwyDgFmrw7lHAF1pV5HPzp3VHyL8PlxSszBgkD
+         yzFYjIRWRN/YjMHS33fZSaV47Q1392RXOXLVVIEp9okKG7o+RwcEmLOnU1aKvCs48lA4
+         49VZ600N79YLPMc/Sk6z7xZpq/u+m4xz9b5s/KgcKlVIIYeVLyPEMEwA1Q5Z+Jdbw29e
+         DOUw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782469023; x=1783073823;
+        d=1e100.net; s=20251104; t=1782469026; x=1783073826;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Vs1nn18ErBdE2h3DfjBQkpLvcApCW3HphSSjxOFzRkk=;
-        b=Ei1s1nvjxgTFbY3MYlDuzwss2qYDFTExUkqcoS28WATNaxJb9aYq1DN3ebiY/ijdIM
-         UCqyg+w+9qP/dEVSdwUyk6ZlLAfz8VR3B8HuKYdsWVKM3VOUW2rq3FfXV8MfLoVyBfpM
-         Q2GpzdYrQ5b6QxEY7nuweOV4F5H0ttOY8MNGG+N8Kj2VU3CIzFaLnqTDZERw5v/9P8Rl
-         cUP7veAU3fQ6K4AJq9lfe9tSSj1MZV6amprVLVNDsSfoJeVBhTVyGhlVVAs3epDxReUj
-         l+5GtnaaiMYCJrVXDOUAS/dZzn2OekQTvz6GYpoxI0pxerbxGbIdElyxCEywRQGy2YV7
-         Q27A==
-X-Gm-Message-State: AOJu0Yz/T1nvX9yp/liB6sry/4Al530otQHSz4QtgXwIA9+fEeZBLbu8
-	AKT2ApKgWEuqb1qQNv7tEHFFqrVeUrmpoaPQDx943PWoCXqbSkq5qtzDerOGeqeFRfopDvraSz5
-	xhK7GPG2d0lv0SCYbmOP8Qel7Nu0ihFCd7+cRT2Bv0QY8CQBow0j+Vb4An9ZBgQISJdsjPxgEt9
-	4A3DBZyzVmupUN06zod7uMJc/IqRo6u/1hDFt4CV9/AFHKqfBRX1s=
-X-Gm-Gg: AfdE7cmvYyD5RBdFiww4JTWfpZ2v5qZDqHaC0Qd8qHQOapPJaaihcoiFl5OEUj3hA1u
-	cHgujr1H/ykMPzSI7l5TMV4tFj3yOBRNFjZ1e6F7yus00lfUMaH2ZsJS1kcKN/aGpROkjDqshTZ
-	zYt9vVvCKDBdGK0pltH6AjYyD+ytcR9e1SFW9t68ZwEPMBktVbZ86jiUCihVZjOKZN+/r5EenQy
-	UkMrez336XR6j0dxVLd0DnYYVl3+0ovoUR2NibOVj9i41qwFO8mEadXqRK5prUMEYEIQkzK/vXT
-	idSQXEyIyB7RBxM9jNSsuNlhS9RaeQ2oeAcjpZdmnpWhLgHkgf3sc2bkdGr7jqxFKzGl9P8i2a3
-	p2DGdVmQJhLb6GhHnMinqyL55qFNb35XT0Ye17N3Z634KInNTUChb6SgDkNhpQahAfsYik/5C4+
-	dYwyGIGJh7iyKYJLm5LnxljpiDv3KwwLX5DXpt
-X-Received: by 2002:a05:6a00:a210:b0:845:2ff5:b66d with SMTP id d2e1a72fcca58-845b3b8e27bmr7324402b3a.35.1782469022877;
-        Fri, 26 Jun 2026 03:17:02 -0700 (PDT)
+        bh=8VSaC60MEnG+NzTzx6XTv9XHF+2KhqlJ57UhCbUWyi0=;
+        b=KOUltaHAVs5WBaWY0OMXXako843YQfwgrNu6jcxBzpj1ScPhNTzf5CgtfZ5lKwH1ev
+         OhA+GFNIvh6HcZqsYrX1BbMk8xLlT8VppCUwwn8q7LjYsS45D7RBbbaRV1gwpcAn/2a/
+         FbeEvX2joTqbgvuuhl/WMqZJuBSv/TDDHhn9O8FADba7EHbf59gj9oFuw8/PxXlzfdOs
+         Gr7ejtiaf0wZa9ckBHjW7/Kxq8nval8IeC1kOPR5EpFBhKy2qM0w9AVw6C5LEEGgtV2J
+         Q1DkiKvDyPlH0Vj1Ri7CxfbH+oIMlzqMxkFnwNvxv03t7Acfca2zUmAJIzgCbgAvghJl
+         RHwA==
+X-Gm-Message-State: AOJu0YxEUVuq4pILBMaW1RJCE9PIHI/WeFJlwOK5p6vtMU5/h6vqgfy/
+	4Wn/CsCDsc1uOURoeV+b5pWSM8upQ2TlOclQudFedWl5FvT+W+z0twPP3EUmVZhizENwrrcBB/h
+	95A9rsUA1tAjr+c2v2UPBkw2q5MS+sPWaSpVDjYJTTAyg1pg5vGgvccE43KFyxbFJhPQ+owb1en
+	QH0WVbU1tj7Qk9exAy0/rfvFfW+jP9EMR4CZCLdsA7Tg16oeRQ88c=
+X-Gm-Gg: AfdE7cnEOUljxjIfHGz7lWO5SI3Osxhbw2h3PDv4kpVxOitPKwAn9g7bdDCRO0JdM40
+	e8x3QQDO18bbNwagZ246CWpxHDpcd3nAaDUqaqjDaXJo9I7GUubDWtuSOy7T/JZia2UN65HxR+1
+	1JG38vZwxrwiCvN7vp33lfXtkJo10U7FX/x33dDygdt0kwhEVHEFJoyb6kUGvh1Y3buHLhSdpOE
+	Uwr9cpYod5Bnz+1c8DU2O+6ni0hDJn0gD7P33y8aif1VYTYGZ5TwS3pDLth0POlTE78RX80MNjS
+	COwnHX/IadeBo7KAQr1SZZfb64h1IlCzReIq7MEfnCn+g8JuyDMWJS3HB67d91T6cHQsemjnEsy
+	2KJkiaZYX6JtVln+DmYZnwa3IY9Uu4m1SSXrSqLNmVQMfJh5/tGBCQOu98OK9X6klCF/UWGGbIr
+	dWu3qrWce4EntSu+b+TqsZsXLTe8+FEkb/aMKQ
+X-Received: by 2002:a05:6a00:1ca3:b0:842:994:939e with SMTP id d2e1a72fcca58-84591d20e8emr14726019b3a.35.1782469026075;
+        Fri, 26 Jun 2026 03:17:06 -0700 (PDT)
 Received: from hsinchu16.internal.sifive.com ([210.176.154.34])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.17.00
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a3ec0ec9sm6414226b3a.0.2026.06.26.03.17.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jun 2026 03:17:02 -0700 (PDT)
+        Fri, 26 Jun 2026 03:17:05 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
@@ -82,16 +82,17 @@ Cc: zong.li@sifive.com,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [RFC PATCH 09/12] platform: generic: parse root domain WID config from DT
-Date: Fri, 26 Jun 2026 18:14:30 +0800
-Message-ID: <20260626101433.3133466-10-peter.lin@sifive.com>
+Subject: [RFC PATCH 10/12] lib: utils: fdt_domain: parse per-domain WID properties
+Date: Fri, 26 Jun 2026 18:14:31 +0800
+Message-ID: <20260626101433.3133466-11-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.48.0
 In-Reply-To: <20260626101433.3133466-1-peter.lin@sifive.com>
 References: <20260626101433.3133466-1-peter.lin@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260626_031705_678989_7FB1BD9D 
-X-CRM114-Status: GOOD (  10.59  )
+X-CRM114-CacheID: sfid-20260626_031707_557307_1C55FF4E 
+X-CRM114-Status: UNSURE (   7.55  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -108,61 +109,42 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Parse root-domain-next-wid (32-bit) and root-domain-next-widlist
-(64-bit) properties from /chosen/opensbi,config node during
-generic_domains_init(). Sets root.next_wid/has_next_wid and
-root.next_widlist.
+Extends __fdt_parse_domain() to parse next-wid (32-bit WID) and
+next-widlist (64-bit delegation mask) from domain DT nodes. Enables
+per-domain World ID configuration. Stores in sbi_domain structure
+for mlwid/mwiddeleg CSR programming during domain context switches.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
- platform/generic/platform.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ lib/utils/fdt/fdt_domain.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/platform/generic/platform.c b/platform/generic/platform.c
-index 51e9f342..de12deb5 100644
---- a/platform/generic/platform.c
-+++ b/platform/generic/platform.c
-@@ -11,6 +11,7 @@
- #include <platform_override.h>
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_bitops.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_platform.h>
-@@ -276,7 +277,9 @@ int generic_extensions_init(bool cold_boot)
- int generic_domains_init(void)
- {
- 	const void *fdt = fdt_get_address();
--	int offset, ret;
-+	const fdt32_t *val;
-+	int len, offset, ret;
-+	u64 val64;
- 
- 	ret = fdt_domains_populate(fdt);
- 	if (ret < 0)
-@@ -290,6 +293,21 @@ int generic_domains_init(void)
- 		if (offset >= 0 &&
- 		    fdt_get_property(fdt, offset, "system-suspend-test", NULL))
- 			sbi_system_suspend_test_enable();
-+
-+		if (offset >= 0) {
-+			val = fdt_getprop(fdt, offset, "root-domain-next-wid", &len);
-+			if (val && len == sizeof(fdt32_t)) {
-+				root.next_wid = fdt32_to_cpu(val[0]);
-+				root.has_next_wid = true;
-+			}
-+
-+			val = fdt_getprop(fdt, offset, "root-domain-next-widlist", &len);
-+			if (val && (len == (2 * sizeof(fdt32_t)))) {
-+				val64 = fdt32_to_cpu(val[0]);
-+				val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
-+				root.next_widlist = val64;
-+			}
-+		}
+diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
+index 61627db3..0849c4d0 100644
+--- a/lib/utils/fdt/fdt_domain.c
++++ b/lib/utils/fdt/fdt_domain.c
+@@ -469,6 +469,21 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
  	}
+ 	dom->next_mode = val32;
  
- 	return 0;
++	/* Read "next-wid" DT property */
++	val = fdt_getprop(fdt, domain_offset, "next-wid", &len);
++	if (val && len == sizeof(fdt32_t)) {
++		dom->next_wid = fdt32_to_cpu(val[0]);
++		dom->has_next_wid = true;
++	}
++
++	/* Read "next-widlist" DT property */
++	val = fdt_getprop(fdt, domain_offset, "next-widlist", &len);
++	if (val && (len == (2 * sizeof(fdt32_t)))) {
++		val64 = fdt32_to_cpu(val[0]);
++		val64 = (val64 << 32) | fdt32_to_cpu(val[1]);
++		dom->next_widlist = val64;
++	}
++
+ 	/* Read "system-reset-allowed" DT property */
+ 	if (fdt_get_property(fdt, domain_offset,
+ 			     "system-reset-allowed", NULL))
 -- 
 2.43.7
 
