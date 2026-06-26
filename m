@@ -4,82 +4,65 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 73B00CDE00B
-	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 02:21:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1D29CCDE008
+	for <opensbi@archiver.kernel.org>; Fri, 26 Jun 2026 03:17:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=ye2qeWRZy/HZsj6Lrls4keftnqO44wgrR/+oaVnaFno=; b=PGW/lUOlkJqfON
-	GYnFi7f4jYFdscEjWyzRKEOHzWWEqawsDBGFSIlh5AjwjTPeWPIWuxnP3/l4PKz8Mve/d8dRolZ0b
-	2EGRLMxcB4VQyDL7HcEwlhbl3Ds1RG+16PagJlDQ7iSKROxX/JJUeLRK3ZQpJ9tlu1OCMIsCvbqQY
-	eOzqLvQTS0o4Yvy1V4AU/LqDhHMdw8pdyCrQkHZsvNE7HHhbDCfhTGI7wZKyUAjccpmxd+56EF/SU
-	mItv8frenfTGV60Il6VoeTvNzXiC1+tplKdT6MTZilbHAI6xXdUhaLSMyNzZVz5R6lYzAUG0ay5SA
-	+NoY5/ZIsepG9DjCw4dg==;
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Cc:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=vaXUzzxwQio3HWJ8GYdcE2JQ1UWU+WNG4yGzihGI9d8=; b=trr3q+eecWH5/W
+	Mc1ej4r87/axo5mFgxTkEBE9nxQkEg1pGwTQupUnnDmp05a6ifgySu/nMfNzc1XrKXgE3j5xMOEvx
+	g6XqCaFHRUp5ckRWxuinAGEAuxJtE4yY5gkTNcu0JXUxPVVr7kkSkYAmyfZzzy9COsRRecteZrDxG
+	CW72qkNa5i3SsW18ljPhWNwZAXnv2HZkhkNtcPAq6nCws9BZ9oPcFZXLwQDf5VSEbMC4mwHt9/iQK
+	JEoYDtaWgFJ0M1yNLVWXAvkFtk+TTRjGHUkh/bF88swR9ZGd8kv7VaDx95kHRgAuyaiRNOyHryw/j
+	JTJzgJed0ZdJm3UC+Faw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wcwC8-0000000AGYv-2stv;
-	Fri, 26 Jun 2026 02:21:28 +0000
-Received: from mail-dy1-x1329.google.com ([2607:f8b0:4864:20::1329])
+	id 1wcx4Q-0000000AMlo-2K5g;
+	Fri, 26 Jun 2026 03:17:34 +0000
+Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wcwC5-0000000AGY0-2ROu
+	id 1wcx4M-0000000AMkl-2vQp
 	for opensbi@lists.infradead.org;
-	Fri, 26 Jun 2026 02:21:27 +0000
-Received: by mail-dy1-x1329.google.com with SMTP id 5a478bee46e88-30c9d648a3bso125779eec.1
-        for <opensbi@lists.infradead.org>; Thu, 25 Jun 2026 19:21:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1782440485; x=1783045285; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=8lYi4gN+CHeThTUqmpDgPBOitDWCP89qf8dQGjUz9Zo=;
-        b=GoBOflseEUgDD7q2gSV6y3I0V5qwfaybAc+1KYZwmNhpkXkuc6nfpeBzZAlw+qwmk8
-         cZiRMLDYO1kvjTjNTHUrsLVLmFYKTkeNlR5ZNcyh4RHEotcqo1NHnwGP60W2zxn6mMT1
-         fyA9JiZfn30tA9nmCVcTEsHmkD8CiajJ3Gt3BqOPnFh72UrwWppG63r6oeXpbSHtK7KP
-         pFEkhlINzFnfjP2Y+VeieuNgQYKln0liwksMholO9+Yz+eqp1EOmjF567cFCCSwVvmwc
-         RugNMuZII5hWPoOzzMerD4ftM5D5777V7ANQjkAYlSLUmPGkkizhP16CTMjeZhv4Rgds
-         T9/w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782440485; x=1783045285;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8lYi4gN+CHeThTUqmpDgPBOitDWCP89qf8dQGjUz9Zo=;
-        b=btQWyYpYbaQHW5ruku5HFfB9f3DzaBhhgcbpk7p1CQZg9TfPuXfntSJPkpZ59cPgNk
-         bYktY91Ag66ugaqvqAg+JqFciVPLsCQFS0BYJHWSEfaqeBD8ALz9jX7dtURVkspW5y+X
-         d6IDXFlTeS3Fr8PCCpPDVZwJaxrCIr8Oh2ysufLfUH75MVouaj+VzBDJtWujvIUNIGuI
-         PD4whBccje/7eiHyUiREUDLFaDC3OaqhCLZHPjH+lR3Fnh2V0KFI+IRU37UyTq3Q/iLB
-         zBUnTiwPxdmGEY7Tp/3woB8Vh6P+UgYcghRAQgn5nsaNOgS0e6z4saMDyn6cPjky5ZEA
-         raPQ==
-X-Gm-Message-State: AOJu0YyDORYTIIXGFEGv36/+E+b7qTf9HYDbVv4MdRcLBgvsLG6rNhFK
-	/mpQEMYjycMaHRm5Xq3/LF3/fJ/9gESNVUEvpxIOdNmgcNzkkZLBbJQgKBe5QfSd0l9jjhQQGai
-	7FcINxXxvMVV0c5kgXaFjbdAhLJg3vt0ERmp1agY29uCPz/D5j5ocgJkB9lBq2UGvNL31CWEG9h
-	TaXk/J1i7LTJFF62tBmW9kXBDoslhyghJVbQBvCKFRSPtX3Q==
-X-Gm-Gg: AfdE7ckKARTw6UEOM9cHwaqSh88PlXOQmLzK9vGhoHRpL7qoR3t+awvxTiPxWSz7El3
-	JurvOAeb+d449Qn27zQficptmIS1nHS5SwKK+zTZx0d8in1SyxnIjzdxaKhZG+9jllxaMetPlbn
-	SgznKifkKVUuNvBhPRNIR3UDf6cMQ8a5UuXoezXw6y8gJYHrAdd+sN1d0QiQ+iym4OZi6OanZkn
-	GoV4iGFdBqGlSYf4j7yXYDyKALoQtqP0jsQNA4728Q9mWzzZBLuTRIWTtPLSL1jr69zrpQcmA5j
-	PwpblkSXALEMMgZcwdRmmOwQ6KhsiT+3cpkAzNWY/vjc/4JyxoGmQR8XK9liXBxpoCUT7MYzm2w
-	/dCzC1PurYCJhD6LMytpjytm1elOkekkV8dJ8RgT0QQN8dH5f9OH1EPcznVOV2g8i6NsuTUQfeJ
-	IsAPLjFNnGpB4Tt7bAPtYasHAp
-X-Received: by 2002:a05:7301:5f89:b0:302:b44b:b64a with SMTP id 5a478bee46e88-30c85467c98mr4688738eec.1.1782440484329;
-        Thu, 25 Jun 2026 19:21:24 -0700 (PDT)
-Received: from sw04.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c7c8afca8sm12594718eec.17.2026.06.25.19.21.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Jun 2026 19:21:23 -0700 (PDT)
-From: Zong Li <zong.li@sifive.com>
-To: opensbi@lists.infradead.org
-Cc: Zong Li <zong.li@sifive.com>
-Subject: [PATCH] firmware: Fix comment after relocation completion
-Date: Thu, 25 Jun 2026 19:21:21 -0700
-Message-ID: <20260626022121.1885209-1-zong.li@sifive.com>
-X-Mailer: git-send-email @GIT_VERSION@
+	Fri, 26 Jun 2026 03:17:33 +0000
+Received: from [10.213.6.93] (unknown [36.110.52.2])
+	by APP-03 (Coremail) with SMTP id rQCowAC3k5pF7z1qtMDiFQ--.15390S2;
+	Fri, 26 Jun 2026 11:17:25 +0800 (CST)
+Message-ID: <48d12280-5260-4f05-87d0-324ccde0f8d0@iscas.ac.cn>
+Date: Fri, 26 Jun 2026 11:17:25 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 3/3] lib: sbi: ISA extension emulation (Zvbb).
+To: Benedikt Freisen <b.freisen@gmx.net>, opensbi@lists.infradead.org
+References: <20251227121802.15703-1-b.freisen@gmx.net>
+ <20251227121802.15703-4-b.freisen@gmx.net>
+Content-Language: en-US
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+In-Reply-To: <20251227121802.15703-4-b.freisen@gmx.net>
+X-CM-TRANSID: rQCowAC3k5pF7z1qtMDiFQ--.15390S2
+X-Coremail-Antispam: 1UD129KBjvJXoWrtF4rJw4DAw4xXw4xuFW5GFg_yoW8JF18pF
+	ZrA3WrKFZ2qFyUKas8ta15tayIkw48Wr1Uuw1DJw1Fyrs8Ca4FgF4jgrWjvrs3ury0kr4U
+	tw4qvay8urW5u3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkvb7Iv0xC_KF4lb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I2
+	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xII
+	jxv20xvEc7CjxVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I
+	8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
+	64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVW8Jr0_Cr
+	1UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwIxGrwACjcxG6xCI17CEII8vrVW3JVW8
+	Jr1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxV
+	WUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1Y6r17MIIYrxkI
+	7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r
+	1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI
+	42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x07bbBT5UUUUU=
+X-Originating-IP: [36.110.52.2]
+X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260625_192125_630574_8213AB2F 
-X-CRM114-Status: GOOD (  10.24  )
+X-CRM114-CacheID: sfid-20260625_201731_140895_422A118C 
+X-CRM114-Status: UNSURE (   9.19  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -96,29 +79,58 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-After relocation is done, the code is running from the load address,
-not the link address. Fix the comment to correctly reflect this.
+Hi Benedikt,
 
-Signed-off-by: Zong Li <zong.li@sifive.com>
----
- firmware/fw_base.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We discovered another subtle problem while testing Zvbb emulation:
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 5d6540d7..0c5c65c1 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -93,7 +93,7 @@ _sc_fail:
- 	addi	t0, t0, (__SIZEOF_LONG__ * 3)
- 	blt	t0, t1, 2b
- _relocate_done:
--	/* At this point we are running from link address */
-+	/* At this point we are running from load address */
- 
- 	/* Reset all registers except ra, a0, a1, a2, a3 and a4 for boot HART */
- 	li	ra, 0
--- 
-2.43.7
+On 12/27/25 20:18, Benedikt Freisen wrote:
+> Add trap-based emulation code for the ISA extension Zvbb based on RVV 1.0 and Zbb.
+>
+> Signed-off-by: Benedikt Freisen <b.freisen@gmx.net>
+> ---
+>
+> [...]
+>
+> diff --git a/lib/sbi/sbi_insn_emu_v.c b/lib/sbi/sbi_insn_emu_v.c
+> new file mode 100644
+> index 00000000..483b0ee6
+> --- /dev/null
+> +++ b/lib/sbi/sbi_insn_emu_v.c
+>
+> [...]
+>
+> +
+> +int sbi_insn_emu_op_v(ulong insn, struct sbi_trap_regs *regs)
+> +{
+>
+>
+> [...]
+>
+> +
+> +	regs->mepc += 4;
+> +
+> +	return 0;
+> +}
+> +
+
+sbi_insn_emu_op_v does not set xstatus.VS to dirty, which has a chance
+to break context switching and cause vector register state to be broken.
+Something like SET_VS_DIRTY from [1] is needed before returning:
+
+#define SET_VS_DIRTY(regs) do {				\
+	if (sbi_regs_from_virt(regs))			\
+		csr_set(CSR_VSSTATUS, MSTATUS_VS);	\
+	regs->mstatus |= MSTATUS_VS;			\
+} while(0)
+
+It seems unlikely that upstream OpenSBI would accept these emulation
+patches, but I'm reporting this for the sake of anyone potentially
+running into this.
+
+Thanks,
+Vivian "dramforever" Wang
+
+[1]: https://lore.kernel.org/opensbi/20260609060024.706-5-ganboing@gmail.com/
 
 
 -- 
