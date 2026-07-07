@@ -4,82 +4,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 23A9EC44500
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B489EC43602
 	for <opensbi@archiver.kernel.org>; Tue,  7 Jul 2026 03:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=+P3fZ+m0G/Sb0sCU0V9LtyNZhF0DITTjHu6+tDLNajw=; b=r76Kolrk8QALA5
-	Rzm9OXBk5YW1OxpdZRGdVkWRLs9uKyloS9C2rHt5m7k6j8G0RCukjMZMy6RAG8RUq4vf6cj0WLnEo
-	0wz/jxii5EXDMWRA3UKoNeQAoUwnDPRggJGkjFhbDs+aFGsYXBSlbkQTFyaUdx14imBrD+DOdGPOW
-	GcGYQuBvK5WeOnbs5ioI424VnAQ0pCJknPIqGz60Fp9KXJ5ZdSmp85OaoLxCmSie1xfTHudytrzB4
-	ZEbArAbJm9L79/ktX56UXvfqSyRSpdazuU0E5taOfXELx78rAC7rSRVGHTIzqQcoTG6c4DMRh1acN
-	XE2WBUE1G3gY0iK+gcsg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=Ij9nW40iviv972cgfRqicftOcUOopVc3RHsBPxmoTOc=; b=KJpp9ORY30lU5R
+	bp59ARiLidGclRckhU3maUdy6NrYx4rgFVbZ2C4L15uXBMyLzOgvDr2YLkp6Se2pDp+bv6CoQvZ+w
+	AUeJb5Txe/eTzMkGkWnWFhA7X81G/TZW4csW3ld0GPJqnV2tk5zxLso+CNS4lok+6XzApDFU07OMy
+	luE/EiB3MyZkzBAOInl5phTabB+e+Xa0SQUuL8MryDvtWCIjWjZSFqpjWaDRfWMgOsiHkkXTqhUGY
+	+gcO7wM7K+5uxfDMIKdNphtC89p6EnNXe/4VanTYG/uoGjfzM3Zevf8tj0SlsYtYNXETCrqEjnz3+
+	/83/l9JHLjdP37vzCZGw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wgwfE-0000000E17Q-2oVI;
+	id 1wgwfE-0000000E16g-2DJX;
 	Tue, 07 Jul 2026 03:40:04 +0000
-Received: from mail-pg1-x52d.google.com ([2607:f8b0:4864:20::52d])
+Received: from mail-pj1-x102f.google.com ([2607:f8b0:4864:20::102f])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wgwf8-0000000E14l-2R7m
+	id 1wgwf9-0000000E14v-0uMY
 	for opensbi@lists.infradead.org;
-	Tue, 07 Jul 2026 03:40:01 +0000
-Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-c9ef3e1337fso2637363a12.2
+	Tue, 07 Jul 2026 03:40:00 +0000
+Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-37ff8e0ad0fso3823695a91.2
         for <opensbi@lists.infradead.org>; Mon, 06 Jul 2026 20:39:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1783395597; x=1784000397; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=au/j54oO3A7KJPDGsUdK2UwQk1HqkqMU2sQD1xi8e6Y=;
-        b=RMje5mJntathNA3UOuiW6xXMQB4baeQ8bembOF9HLQqJ3/AlEPClpzWIH32qcSOMq+
-         WymBA8BDd0IDAby0oK6iFnM3uZn8JyIu74g8mLWfQwlGGPDF5wXbjAihx1NUf7sb/KJe
-         fulp8wm36VqOCvqOvalXxRLcLrhIsaUQIXr+guwhRGjQGRZYm4gMhWqduSSGsr8j5gne
-         wJMw3g+AA6JpLpsU/t2zqVwpif4CCKx7tRyuFVA+QkT/HQMZ3IMHpEfrmqirR6oLwkMH
-         j6A2J3NvYTkIpqVt5e6tRGBWsElQ+ujHj4cvp5QjUJFkRoLMSGB4TYKLchibPJ1XaHr+
-         fd7A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783395597; x=1784000397;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=sifive.com; s=google; t=1783395598; x=1784000398; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=au/j54oO3A7KJPDGsUdK2UwQk1HqkqMU2sQD1xi8e6Y=;
-        b=DrDHB3sIIdu6XYnDdbqcQBADJhPTiuCvH0oxHmr0enIVgr3lBFuWJOc7BlblNHTjy3
-         mn87FxXQ2WuiX8aQ8VdA2IVaQyzmQs8e7AXQWyZRrTVlqDD7bvMN8PcQLTTKKFghKRQU
-         RakJQcMr5UggvDcvgPtPEycajdBQgz67jbjNNgFOJ7ShvKlumNj42MaXjZ/clUfaUZwP
-         LPmxLS6NeMXk6Mw0m+DjsKHhdE9IHhNZ0vkXv/pRLH6vnT4Io5BikizbNIdW46hv4rVI
-         CN+EwuY3rGYq8kMQ2RnA3OeDuFXATAbrHgpnpfObWJTWH7j8McGjHTVXDb7zlep3nvDn
-         LC1g==
-X-Gm-Message-State: AOJu0YyVZtrPoAJhUlWagvng+WaMwy6SYqnwkv5zeaBIoUSj/JRinyLB
-	HZHZfTJNGNeWjnfVPwTvkjPN2La0fClSw5c0+4YzK469xQA55tRWmpfOPzLKg0rLjq5ky76deE9
-	+zvI1bojWVE4V+ebDgqoSlADb45fBisMRmrN85Qzg+5+vpkW2e9xsiQG6lhG9uYGL66Qwwg/4s9
-	hiMPVKL1WB3rGF2jlfWMWjd1S3xJ2IvWIP1E5ngVsHwPThPQ==
-X-Gm-Gg: AfdE7cnShWn1MiKyx7fvVOu8T9hRvB4JM3GIwN/oWdYXNYNoLYmnioGgb2dcZ4t1KNV
-	jCSdCUf5NlEGiZz6tuIT1MJkMcwSYZM6Le3gqD8zItS3/RS6nj4hRGhTJgzTx30iJlmgwIGGlUT
-	2lnITI5Chnm9p3EED1outXXYG22SPIRsUAJ7Gjyijzr2aTVx3aX8u+UZoXmYqhrzHJd73vWBhyb
-	bB2clwh9aOFF1QK58h3Ji0R3sun8ZptQc0/P3JHQSR5oQRD4qxsvc8/KFHpbYhG0NWacu85fpdr
-	7aAIJG5sulkGoPymoSjisvs4lzp/Zp7OfXdHOzBhgWp/2LXAfJ92DPfOM3dofD2lKc9GzfLHKo1
-	lf33QgqaThEpA4LPpxQ9dWk7K++KFZX74vv+e2e63/22sbpysh766viK0ceMPU6T0+cqTUrQSPW
-	5mVCvvQPsp65o7guM9K2RykxkL
-X-Received: by 2002:a05:6a21:689:b0:3b3:fdb0:2288 with SMTP id adf61e73a8af0-3c08eabffc0mr4072357637.0.1783395597056;
+        bh=CTIzuy8nA2uwCOpglOueO0WAPfJmnfSiF7f+nq/XxT0=;
+        b=P1AsDo90Q3lTIPBUfurbk3k6OayRlvLyYBvVll72/YVOCzH74DJhVDaIfeTlxQWXlq
+         apvooOn4IuTkJwfu+wtNvzCy77CFyCfjjJ2lnVsIz2I67sog981F77KCcuGcx96r39ji
+         onOMnAkglFPiXdCZ6vzkTCjz00dZk26K0uqevMygMF6ML1/uTxSpVdT0ehgdd1wBW9ib
+         nff0xKhkLb0pzj0rZWVMDyDu55SuiLXHv+hEQZ2poDY9MR13SFSHi9sLhTxv3LFjWJN4
+         LmKfy5GpNqBuoH9uTlOKyE1jUY3apbpRqt/UD8mWB2zEQ4dT1i8v13/Zxtxb/y57C1nz
+         F7Ig==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783395598; x=1784000398;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=CTIzuy8nA2uwCOpglOueO0WAPfJmnfSiF7f+nq/XxT0=;
+        b=HpWNQLVJmnwqSzf3c9jcvWS38RdYIPmisYpZR3B9ZdqbJOaTzXvGAitvy7crhleukj
+         KKvBZtgrJlOBkvn2QyulsOichB4bBonPuaXt7mdQPIcQy0fQsDnp4ZoE6a0LLC5Rps9t
+         nej08lh95sLjPwFPy58n+EqIyJWUxZPWH9x5ZhZSHouKD/DYfubk04QAPEIt019TOaU1
+         u2uB/XA7/KlRir6LqQqYhK6+4Wdc3peG923ng38NPiCsJFQZ8SQUX+OaUDaFNl0dKELf
+         j+N7xTdt5oggeJvJBwuS66fWn6nEfGcGDsnrWak0i6sBfpbuWzp8FQ4XflPRZp6nIIcm
+         gMaA==
+X-Gm-Message-State: AOJu0YzwN85BMMaB6qdFMy92mu8b7yIWL8UQD4SohHHrzWzHNOYQt3r1
+	dEp+3qqfWgriL6OG4OkZBNxafu1jf3Q1zrT0Gg2Zm6Qatz5eCLcqZWEhMe9sPAXsw7hP/Gq5Qh3
+	+UzZx88fdhMRJMZ4nurHl8xSNe/gNref3SRdLoza27TySPGs/RzEZ5osSIGp1hLx8VUUofdmSVn
+	Mk6Yb82I532upPmqFVaIfE9kFsuHltZZUWYvZhB5Q0GB9ALw==
+X-Gm-Gg: AfdE7cmvEnxq3zoY2pIpbQoTw5hbQQBHTluUYe2z2iC+kiIZF3yD7hwXZl9qQaHJA4w
+	hH9jPx3CYD0UD44kUxY7cqhkiMtvKGwV97ZZK+QS/iVbpYihume3HrWltsQOGqNtmycvSzXxtii
+	fg3BuN+51L6xdLxTuXLi1d2nK//z9ZcT/KJmfBZ35YP25D8eJ/BVUBxlZ31i21oqCUL6h4WlQ1Y
+	AAXvhEkfWhC+gWbxkJoku65kzJIbprQ46QpCSP0fDerb1PhG8kw9DTnWqJm/b+6vbs4bGfGpjGt
+	Ee1j8kF1IJwzu5lwiIVz+MCnP9h91fQc5InNJk7B2zJXmv8+cl63yOYCIbR6xeAuxkA965dNSvu
+	F8jnDIcKRDNDqcsUuGgX7dlGYNyM4EnwMFV0BtZx5/7kU4EC21NFd0nGHd93Celo83RLwQoejoi
+	2EY/El0tMV4CmB0RlwLW68ggJW
+X-Received: by 2002:a17:90b:4a87:b0:37f:9ce2:348c with SMTP id 98e67ed59e1d1-38758064e54mr3596015a91.29.1783395597907;
         Mon, 06 Jul 2026 20:39:57 -0700 (PDT)
 Received: from sw04.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-311747f596asm2904096eec.2.2026.07.06.20.39.56
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-311747f596asm2904096eec.2.2026.07.06.20.39.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jul 2026 20:39:56 -0700 (PDT)
+        Mon, 06 Jul 2026 20:39:57 -0700 (PDT)
 From: Zong Li <zong.li@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: Zong Li <zong.li@sifive.com>
-Subject: [PATCH 0/7] firmware: add FW_DYNAMIC_APPEND firmware type
-Date: Mon,  6 Jul 2026 20:39:47 -0700
-Message-ID: <20260707033954.2054859-1-zong.li@sifive.com>
+Subject: [PATCH 1/7] firmware: fw_dynamic: add boot_dtb field to struct fw_dynamic_info
+Date: Mon,  6 Jul 2026 20:39:48 -0700
+Message-ID: <20260707033954.2054859-2-zong.li@sifive.com>
 X-Mailer: git-send-email @GIT_VERSION@
+In-Reply-To: <20260707033954.2054859-1-zong.li@sifive.com>
+References: <20260707033954.2054859-1-zong.li@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260706_203958_655842_4953F0A4 
-X-CRM114-Status: GOOD (  16.70  )
+X-CRM114-CacheID: sfid-20260706_203959_257224_673CC781 
+X-CRM114-Status: GOOD (  13.05  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -96,91 +99,65 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This series adds a fourth OpenSBI firmware type, FW_DYNAMIC_APPEND, next to
-the existing FW_DYNAMIC, FW_JUMP and FW_PAYLOAD.
+Introduce a new info version (FW_DYNAMIC_INFO_VERSION_3) and add an
+unsigned long 'boot_dtb' member at the end of struct fw_dynamic_info to
+carry the device tree blob (DTB) address.
 
-Motivation
-==========
+This field will be consumed by the new FW_DYNAMIC_APPEND firmware type.
 
-FW_DYNAMIC requires the previous booting stage to build a struct
-fw_dynamic_info in memory and pass its address in a2. Some booting stages
-cannot easily allocate and pass such a structure, but they can load the
-OpenSBI image and patch a few words at a known location before jumping to
-it. FW_DYNAMIC_APPEND targets exactly that case: the struct fw_dynamic_info
-is appended into the OpenSBI binary and patched in place by the previous
-stage. For example, the previous boot stage runs on a dedicated hart.
-Therefore, it cannot set up CSRs of another hart that runs OpenSBI.
-This scenario will occurs in server systems with secure boot.
+Signed-off-by: Zong Li <zong.li@sifive.com>
+---
+ include/sbi/fw_dynamic.h | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-Key design points
-=================
-
-  - The appended struct fw_dynamic_info is placed immediately before .bss.
-    .bss is NOBITS and is dropped by 'objcopy -O binary', so a structure
-    after it would not be part of the flat .bin. Placing it before .bss
-    makes it the last PROGBITS content, i.e. it sits at the tail of the
-    .bin and can be located from the image size. The previous booting
-    tage can therefore find the structure at:
-
-        load_address + binary_file_size - sizeof(struct fw_dynamic_info)
-
-  - struct fw_dynamic_info gains a new 'boot_dtb' field (info version 3)
-    to carry the DTB address. Existing offsets are unchanged.
-
-  - The previous booting stage patches every field at runtime. The
-    reservation is a KEEP() PROGBITS section, so the zero-initialised
-    bytes still land at the tail of the .bin.
-
-  - On the cold-boot path (guarded by FW_DYNAMIC_APPEND), fw_base.S calls
-    fw_dynamic_append_boot_args() in fw_dynamic_append.S. The helper sets
-    a0 = mhartid, a2 = &appended struct, and a1 = boot_dtb, and clears the
-    reserved a3/a4 that fw_platform_init consumes. Only a0-a4 are handled
-    here, the remaining GPRs are already cleared by the existing _reset_regs
-    later on the cold path. The boot_dtb load is gated on info version 3, so
-    an older layout leaves a1 = 0 instead of reading past the struct.
-
-Backward compatibility
-======================
-
-All changes for the existing three firmware types are compiled out: the
-fw_base.S fixup and the .fw_dynamic_info output section are under
-#ifdef FW_DYNAMIC_APPEND, which is defined only by fw_dynamic_append.S and
-fw_dynamic_append.elf.ldS. FW_DYNAMIC, FW_JUMP and FW_PAYLOAD binaries are
-byte-for-byte unchanged.
-
-Build
-=====
-
-  make PLATFORM=<platform_subdir> FW_DYNAMIC_APPEND=y
-
-On the generic platform FW_DYNAMIC_APPEND=y is set in
-platform/generic/objects.mk, so it is built by default.
-
-Zong Li (7):
-  firmware: fw_dynamic: add boot_dtb field to struct fw_dynamic_info
-  firmware: fw_base.ldS: add .fw_dynamic_info output section before .bss
-  firmware: add fw_dynamic_append firmware type
-  firmware: fw_base.S: call fw_dynamic_append_boot_args on cold boot
-  firmware: build and enable the FW_DYNAMIC_APPEND firmware type
-  docs: firmware: document the FW_DYNAMIC_APPEND firmware type
-  docs: firmware: list FW_DYNAMIC_APPEND in fw.md
-
- docs/firmware/fw.md                |  19 ++++-
- docs/firmware/fw_dynamic_append.md | 110 +++++++++++++++++++++++++++++
- firmware/external_deps.mk          |   1 +
- firmware/fw_base.S                 |  11 +++
- firmware/fw_base.ldS               |  24 +++++++
- firmware/fw_dynamic_append.S       | 106 +++++++++++++++++++++++++++
- firmware/fw_dynamic_append.elf.ldS |  24 +++++++
- firmware/objects.mk                |   2 +
- include/sbi/fw_dynamic.h           |  17 ++++-
- platform/generic/objects.mk        |   1 +
- platform/template/objects.mk       |   9 +++
- 11 files changed, 322 insertions(+), 2 deletions(-)
- create mode 100644 docs/firmware/fw_dynamic_append.md
- create mode 100644 firmware/fw_dynamic_append.S
- create mode 100644 firmware/fw_dynamic_append.elf.ldS
-
+diff --git a/include/sbi/fw_dynamic.h b/include/sbi/fw_dynamic.h
+index 2ab4dbab..5fcf5dab 100644
+--- a/include/sbi/fw_dynamic.h
++++ b/include/sbi/fw_dynamic.h
+@@ -26,13 +26,16 @@
+ #define FW_DYNAMIC_INFO_OPTIONS_OFFSET		(4 * __SIZEOF_LONG__)
+ /** Offset of boot_hart member in fw_dynamic_info  (version >= 2) */
+ #define FW_DYNAMIC_INFO_BOOT_HART_OFFSET	(5 * __SIZEOF_LONG__)
++/** Offset of boot_dtb member in fw_dynamic_info  (version >= 3) */
++#define FW_DYNAMIC_INFO_BOOT_DTB_OFFSET		(6 * __SIZEOF_LONG__)
+ 
+ /** Expected value of info magic ('OSBI' ascii string in hex) */
+ #define FW_DYNAMIC_INFO_MAGIC_VALUE		0x4942534f
+ 
+ /** Maximum supported info version */
+ #define FW_DYNAMIC_INFO_VERSION_2		0x2
+-#define FW_DYNAMIC_INFO_VERSION_MAX		FW_DYNAMIC_INFO_VERSION_2
++#define FW_DYNAMIC_INFO_VERSION_3		0x3
++#define FW_DYNAMIC_INFO_VERSION_MAX		FW_DYNAMIC_INFO_VERSION_3
+ 
+ /** Possible next mode values */
+ #define FW_DYNAMIC_INFO_NEXT_MODE_U		0x0
+@@ -73,6 +76,17 @@ struct fw_dynamic_info {
+ 	 * to use the relocation lottery mechanism.
+ 	 */
+ 	unsigned long boot_hart;
++	/**
++	 * Address of the device tree blob (DTB) to be passed to the next
++	 * booting stage.
++	 *
++	 * This field is only meaningful for the FW_DYNAMIC_APPEND firmware
++	 * type (version >= 3), where the previous booting stage patches the
++	 * appended fw_dynamic_info structure at the tail of the OpenSBI
++	 * binary instead of passing a pointer in a2. fw_base.S loads this
++	 * value into a1 before the normal boot flow.
++	 */
++	unsigned long boot_dtb;
+ } __packed;
+ 
+ /**
+@@ -85,6 +99,7 @@ assert_member_offset(struct fw_dynamic_info, next_addr, FW_DYNAMIC_INFO_NEXT_ADD
+ assert_member_offset(struct fw_dynamic_info, next_mode, FW_DYNAMIC_INFO_NEXT_MODE_OFFSET);
+ assert_member_offset(struct fw_dynamic_info, options, FW_DYNAMIC_INFO_OPTIONS_OFFSET);
+ assert_member_offset(struct fw_dynamic_info, boot_hart, FW_DYNAMIC_INFO_BOOT_HART_OFFSET);
++assert_member_offset(struct fw_dynamic_info, boot_dtb, FW_DYNAMIC_INFO_BOOT_DTB_OFFSET);
+ 
+ #endif
+ 
 -- 
 2.43.7
 
