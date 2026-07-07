@@ -4,54 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9671EC43458
-	for <opensbi@archiver.kernel.org>; Tue,  7 Jul 2026 13:01:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 701C8C43458
+	for <opensbi@archiver.kernel.org>; Tue,  7 Jul 2026 13:10:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=wEsYwbvLCfL3U64U+P5wa6e7L35ldv0z7Agfp2jiGkM=; b=pJLWZHwZWMjpRu
-	z+yrm250Kcnu4yVu8Yf36CifRzzlEGX+9x5q15stl3HNf9RB++ZCxCa/1mftgP+6PrRdZNfn/xCqw
-	dAMhA2SKslqnjfAkri1BQXPUusNegGcUOUdLbHQGOzplru+tZohcClmqQWiuKvZnDFn96Pzq0q5yS
-	DR3fax7lbwk4Afh4e/LmdTn/+QIVbqwnLxZiiKl/nnrXR9hqezHkGbBtN6rCmMhdg0rphjJ/D8fgt
-	X/Rdx1jn0hWWnElO75ZI1i1d4tPg58tWxkR4ZoTW6xLjag7DXWfGdovx516PgJ0QauYtTl4dAbEke
-	cHWJ3kkNjLBNff2A4DEA==;
+	List-Owner; bh=QnzVlqEjItmAOL1/0yIi14P+/a9kaaH1zbWN2lS2ZUM=; b=V/pdty3yD6oEDc
+	Z6EVybg4uBrEvbYNaquqEo+piQeXp/DVrn0pubSJEN3VQzY0r3f2t419ylMMyf9lZyT4ql28Qsh+t
+	icfCJhK8kw6UjLJv0j5jvvzyu/hDZtPIkPYBGz5h8YIfAa085vh3bbd6Mbe8O6kaWxy8N2OWpNGYn
+	TIAY6bfOvqVJEIPdwsqs0cYCpN4agnitoFuN3uDE2+LhPmGNi3gu9PMK83I7R5xn5fR5I8RfS158Z
+	9OQT1TeicOO+PhYTvjAcH5njem9Y4tw0oyps7F42oygnkkSaXh04XpQEoyRoJs5Ve3n5ZFv+jAE3t
+	w06h3OV3F0VS5r32+pyQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wh5Qn-0000000F0ul-0Ap1;
-	Tue, 07 Jul 2026 13:01:45 +0000
-Received: from out30-113.freemail.mail.aliyun.com ([115.124.30.113])
+	id 1wh5Yn-0000000F1YH-0KjU;
+	Tue, 07 Jul 2026 13:10:01 +0000
+Received: from out30-118.freemail.mail.aliyun.com ([115.124.30.118])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wh5Qk-0000000F0u9-44kf
+	id 1wh5Yk-0000000F1Xg-1Bv1
 	for opensbi@lists.infradead.org;
-	Tue, 07 Jul 2026 13:01:44 +0000
+	Tue, 07 Jul 2026 13:09:59 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1783429300; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=cpaKV2Sx1fRof82hfoFa0TrdNx5lkwZIlZslUu3zPzg=;
-	b=Jfxu5iNzPoUBittxqiTimYIUsFD3w4+QwdHYei5zq/3meADeLnZLDkAqayyjoljjKjdVdzaDSZRlrqPf68lx2heKnyH8o+FdecQOdcg7XpRTKpldFGuv9sZ4S/nJRzJ50lFAt2WKUGX5mVYnb8BL8RpNuoBbEPzK47CIfTTarO0=
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X6da6Pi_1783429296;
-Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X6da6Pi_1783429296 cluster:ay36)
+	t=1783429795; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=a0Ah7CpPauecKIME3T65b40lgiUn+sGzLDn7oO5P5TY=;
+	b=voDX5hCv7mvLNPl8SDtBMTlns3a2G+QeeRo27Uwvpf61teOS6TO+gh7OlPn+XOzmUKd9r+8VAkV2LneFmvt/gNCaVD4N08SzJk0FAbvYBiKn9CljIjqk4cPzwd9ZucNJ37BE3J6iQiU2PArpNIkDV3jERrmXWENTKs86Z/rmTCM=
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0X6dbGIZ_1783429779;
+Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X6dbGIZ_1783429779 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Tue, 07 Jul 2026 21:01:39 +0800
+          Tue, 07 Jul 2026 21:09:54 +0800
 From: Chen Pei <cp0613@linux.alibaba.com>
 To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	atishp@rivosinc.com,
-	wxjstz@126.com,
-	guoren@kernel.org
-Subject: Re: [PATCH] lib/utils/fdt: Reserve enough FDT space for fdt_cpu_fixup
-Date: Tue,  7 Jul 2026 21:01:35 +0800
-Message-ID: <20260707130135.35276-1-cp0613@linux.alibaba.com>
+Cc: Anup Patel <anup@brainfault.org>,
+	Andrew Jones <andrew.jones@oss.qualcomm.com>,
+	Guo Ren <guoren@kernel.org>
+Subject: Re: [PATCH] lib: sbi_ipi: Validate hartids against domain, not HSM state
+Date: Tue,  7 Jul 2026 21:09:32 +0800
+Message-ID: <20260707130938.40197-1-cp0613@linux.alibaba.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260612075502.76324-1-cp0613@linux.alibaba.com>
-References: <20260612075502.76324-1-cp0613@linux.alibaba.com>
+In-Reply-To: <20260612115208.118132-1-cp0613@linux.alibaba.com>
+References: <20260612115208.118132-1-cp0613@linux.alibaba.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260707_060143_179594_37EE82F1 
-X-CRM114-Status: UNSURE (   5.24  )
+X-CRM114-CacheID: sfid-20260707_060958_481640_6BE5807D 
+X-CRM114-Status: UNSURE (   5.17  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -73,16 +72,18 @@ Hello everyone,
 
 Friendly ping on this patch. Is there any comment on this fix? Thanks.
 
-To summarize, this patch fixes a real issue where fdt_cpu_fixup()
-reserves only a hardcoded +32 bytes when disabling HART DT nodes and
-appending the "zicntr" isa-extension. On systems with many disabled
-HARTs, fdt_setprop_string() silently returns -FDT_ERR_NOSPACE after
-roughly 8 HARTs, leaving the remaining CPU nodes unexpectedly enabled
-in the DTB passed to the OS.
+To summarize, commit 37eaca4ab33d ("lib: sbi_ipi: Return error for
+invalid hartids") added a weight check against the HSM-interruptible
+mask. This causes sbi_ipi_send_many() to return SBI_EINVAL when the
+kernel sends a remote fence whose hmask includes a hart that was
+stopped by CPU hotplug, because STOPPED harts are excluded from the
+HSM-interruptible mask:
 
-The fix replaces the hardcoded reservation with a dynamic calculation
-based on SBI_HARTMASK_MAX_BITS and removes the now-redundant per-HART
-fdt_open_into() call in the zicntr loop.
+  __sbi_rfence_v02_call: hbase = [0] hmask = [0x3] failed (error [-22])
+
+This patch changes the validation to use the domain's assigned hartmask
+instead, which still rejects truly invalid or cross-domain hartids
+while allowing HSM-STOPPED harts to be silently skipped.
 
 Thanks,
 Pei
