@@ -4,85 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3A743C43458
-	for <opensbi@archiver.kernel.org>; Tue,  7 Jul 2026 03:40:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 609ADC43458
+	for <opensbi@archiver.kernel.org>; Tue,  7 Jul 2026 12:58:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=WT+fwtvEasNaBD4EPvjoWubgwyEKzxE564zJaiXB+8c=; b=fm7pTDpFrP6LAw
-	kF/KmCj42go1VGY+jf4xsRB/zJoRcNhA/4bU5rg6rddjWEFnLObZa6IitWIlRP3ukjDvMuvQmXuKQ
-	BJqRMARntlYFKQXVhmFCgm92JfJ60vZCkoqZNMK4R6V5GKUYRYst/2MZh8w6uxswlnfKw2o6SMHJE
-	A3BOXEPnr92++5ybv7U1vCBaQWrABN6yG4zojOBOd7ce9XwpdoD7jh9UgcviVE7lURbusf6a2HRB/
-	VAFzimNyeygruZdod2L3znI1DwYw5eUrz8JxYeMYVYxFh0YUEl6UItDf/lJxHmTO7tVP0NQgUgSZL
-	M/Zds9NEGMRR4sZ+S8Sw==;
+	List-Owner; bh=/BxPMG7yAR0LKbnCwHpw3jEGOi9VGAt8YaaU4+sBltE=; b=DV9pKLPy1Nq8nM
+	WfzvL0QJHn8IPCw4tH5w3kNrEggzxFoRbLYAbNl3roevw27tsacpbjI5CYAscC5UE/tWqvAuvuoCe
+	pdR/yjmuqTo3U7WThkQyoc1u7LHRTrYExs1fyfFoSU4F1AXm2KU6KVswd+uWKBCDL5xNesxIBoy6H
+	HoqRigPqVoEUyHX5qmBMf6ZIydyXjBGTfwhkDRt36e+k8MJljXB9UJEVlr1BprCsTVCghyT9WgVMC
+	RCyf2p/I6Z2ucG0KJqStTc2qz4ZFOcbn++pEqozPlnBiRXfrl1YhMkNDk0dKn/ZwHjcnvN6jR1Wsy
+	2PqhWJyHyKtSRAI5UW0A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wgwfJ-0000000E199-0CEp;
-	Tue, 07 Jul 2026 03:40:09 +0000
-Received: from mail-pj1-x1036.google.com ([2607:f8b0:4864:20::1036])
+	id 1wh5Nx-0000000F0hR-2sfW;
+	Tue, 07 Jul 2026 12:58:49 +0000
+Received: from out30-130.freemail.mail.aliyun.com ([115.124.30.130])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wgwfB-0000000E161-37HP
+	id 1wh5Nt-0000000F0gh-3qRn
 	for opensbi@lists.infradead.org;
-	Tue, 07 Jul 2026 03:40:04 +0000
-Received: by mail-pj1-x1036.google.com with SMTP id 98e67ed59e1d1-38426d04bb4so146715a91.1
-        for <opensbi@lists.infradead.org>; Mon, 06 Jul 2026 20:40:01 -0700 (PDT)
+	Tue, 07 Jul 2026 12:58:48 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1783395601; x=1784000401; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=GgEnca6giCUnjFWl7xonIatFbSK3T7fVAd/t3WtZA2w=;
-        b=ZbgqSvZH8OV2vNaNudMVYncGOTYtDSnpRGuT49ESNbOBSciwNQUwwoFgXjRSLou5bR
-         YhqTchJjThNl57KAibVrgH8dPxYS4NEgbfhDpbKQ4qQNXp3foIeERG3M5Vd8kMq4Ck9A
-         ZxeDUABEnupKez1b3fr9AQCBNS9H0Bvt4Vgq1+/sRuEYyNxRbpaKVmvGI3NO21P+ZjNq
-         Psj0N6fp1leystK7PpBVyq4BYPzBW8oq9Dz7UF6RslySRv5gKBJ7lPSX4XQkgacNAXWH
-         EZrHdQ4UtIzD2fXw7e22nyiNPUFT5pqLXOHPR5Lk1yoglKh7JVItvUp6a1l4WLcMKRtS
-         z5Tg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783395601; x=1784000401;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=GgEnca6giCUnjFWl7xonIatFbSK3T7fVAd/t3WtZA2w=;
-        b=CyXeYwccusPYhMvEuIoIyTEQWHqsm4eKy3gPA0fK/zuLD/57qbOTTATdXlhnbPAz1u
-         DpqH14e8SiY7Onr1d9anJAKdmNAGx6LppYC/ydX7MePuTQHaEURslCdTodVwQQnsRsyu
-         aCQguLu0Yy9VE9TFohQnyN4DnNIHuhbnYoB7/Ba1N7IFa1gKSzy+LuzMnh7BiOGtxLdH
-         Kl9A1gGvtiUIOHg9kbDCAGQIpyZFZUEkuSi02BoQBFtCZicJwLLecwOFpEtsKDigMFjP
-         57V3s9FSyuRmrj6veYxRknFgJbmiL344razetjTgMe7DgOByQrN0yI+eGkEDmEVTLRs/
-         aYaQ==
-X-Gm-Message-State: AOJu0Yx2AZEd1gRytHGKar3mw42pJ51TPWF8cEh/8MnJSXwNEC8HFo/Z
-	tqagZOSW8CzRMdZJJmpla1bIgatHuQs/nyNvFNLHyQcgxkXKRbo+rjFp20SBQ/O0dWfwuKhr0v0
-	a68AxzRqcQCedeLnTX4HvxfDz17jPKztMFOXSnyABtPI4YXCsjgxlXmFLX2fCAzZ6i8i8f08gwz
-	VwnfXq7ufNOCGDU4pNDjsAqMdDxWZ/lxnmOeWK0TmxY5iMoWpX
-X-Gm-Gg: AfdE7clbG4akrBbIMBh4rNsXwyDc16EZl7LB2nZLEafRjdvMaW6RfvBZK28wK5enluk
-	jKDy11qnkB3BV3AbABf4r9BBRRv7WBGmX/PvgsYF7/2y+LWcIyOt2ZG8d+OZ5A6JnetCHQL5J4I
-	EfPyf5JEO8JN0m9OQXAk/mNlERDffUnQ4BheoZZssu8Le58ExEGFyYEvIt5IHcsuucD+Cbr8VGR
-	7w8TDtDMtLAaUity6MKDkifOyMJSEHhNboImAf0r6Z2X4/0RwNSTDyxmFA4Z9OuSu7hT+J1yZwr
-	Q/RGaLDE7hf2qOTgIj03T33JvP/7qbj53HuBIB8OBcxyIrjVrGQU/3UczmGV5dDR2YVgmB3RA3v
-	sar4yOhRXdEuXa9X0x9FzdtDWMIJEcnxf8VOhLHGeKodl6zOA0jpRf0Qb99j51eKRunzEEpf6Eo
-	t8urkgjvFe5iUFLADhu4U97HL+
-X-Received: by 2002:a17:90b:3a48:b0:37f:ee3a:12a with SMTP id 98e67ed59e1d1-387d6b978a7mr1250039a91.2.1783395600484;
-        Mon, 06 Jul 2026 20:40:00 -0700 (PDT)
-Received: from sw04.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-311747f596asm2904096eec.2.2026.07.06.20.39.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jul 2026 20:40:00 -0700 (PDT)
-From: Zong Li <zong.li@sifive.com>
+	d=linux.alibaba.com; s=default;
+	t=1783429118; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=ikk4ugmHsNIeZZBwcNNhi1CgzVDupijh9bYor1sx//E=;
+	b=Fau4OfoHAPhQWRujUoOg9Zx6LlAnBdoQwwSiahEk/C8EJ2LrTqeZdojjLTUIwdjOyrRxJ83E5reEDKwO2HlVnB9oWJAUDWi43GIMny9fVncCi/V87kDiwBz6WD0OULAW6nY+nuP2Ej260b9EUSnMTIUM6vhrrexZByb/hPs/8Tw=
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R731e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0X6dnsRJ_1783429113;
+Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X6dnsRJ_1783429113 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Tue, 07 Jul 2026 20:58:37 +0800
+From: Chen Pei <cp0613@linux.alibaba.com>
 To: opensbi@lists.infradead.org
-Cc: Zong Li <zong.li@sifive.com>
-Subject: [PATCH 4/7] firmware: fw_base.S: call fw_dynamic_append_boot_args on cold boot
-Date: Mon,  6 Jul 2026 20:39:51 -0700
-Message-ID: <20260707033954.2054859-5-zong.li@sifive.com>
-X-Mailer: git-send-email @GIT_VERSION@
-In-Reply-To: <20260707033954.2054859-1-zong.li@sifive.com>
-References: <20260707033954.2054859-1-zong.li@sifive.com>
+Cc: anup@brainfault.org,
+	atishp@rivosinc.com,
+	wxjstz@126.com,
+	guoren@kernel.org
+Subject: [PATCH] lib/utils/fdt: Reserve enough FDT space for fdt_cpu_fixup
+Date: Tue,  7 Jul 2026 20:58:32 +0800
+Message-ID: <20260707125832.33578-1-cp0613@linux.alibaba.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260612075502.76324-1-cp0613@linux.alibaba.com>
+References: <20260612075502.76324-1-cp0613@linux.alibaba.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260706_204001_791553_7B8680B0 
-X-CRM114-Status: UNSURE (   9.16  )
+X-CRM114-CacheID: sfid-20260707_055846_601529_7CA7FEED 
+X-CRM114-Status: UNSURE (   8.72  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -100,46 +69,65 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-When building the FW_DYNAMIC_APPEND firmware type, the previous booting
-stage jumps directly to _start without setting up a0/a1/a2. Add a single
-guarded call at the very top of the cold _start path to
-fw_dynamic_append_boot_args(), whose implementation lives in
-fw_dynamic_append.S.
+The fdt_cpu_fixup() function uses a hardcoded +32 bytes reservation
+when calling fdt_open_into() to make room for disabling HART DT nodes
+and appending the "zicntr" isa-extension. This is insufficient on
+systems where many HARTs are disabled: each disabled HART needs 4
+bytes ("okay" -> "disabled"), and each zicntr append needs ~16 bytes.
+With the current limit only ~8 HARTs can be disabled before
+FDT_ERR_NOSPACE (-3) is returned.
 
-The call is wrapped in #ifdef FW_DYNAMIC_APPEND, which is only defined by
-fw_dynamic_append.S, so FW_DYNAMIC, FW_JUMP and FW_PAYLOAD compile and
-behave exactly as before. Only the cold boot path is touched, secondary
-HARTs continue to enter through _start_warm.
+Replace the hardcoded reservation with a dynamic calculation based on
+SBI_HARTMASK_MAX_BITS, which defines the maximum number of HARTs
+OpenSBI supports. Each HART may need up to ~20 bytes in the worst
+case, so reserve SBI_HARTMASK_MAX_BITS * 20 bytes.
 
-Signed-off-by: Zong Li <zong.li@sifive.com>
+Also remove the now-redundant per-HART fdt_open_into() call inside
+the zicntr loop since the single upfront reservation is sufficient.
+
+Fixes: dd9439fbace2 ("lib: utils: Add a fdt_cpu_fixup() helper")
+Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
 ---
- firmware/fw_base.S | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ lib/utils/fdt/fdt_fixup.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index 0c5c65c1..91a17efb 100644
---- a/firmware/fw_base.S
-+++ b/firmware/fw_base.S
-@@ -46,6 +46,17 @@
- 	.globl _start
- 	.globl _start_warm
- _start:
-+#ifdef FW_DYNAMIC_APPEND
+diff --git a/lib/utils/fdt/fdt_fixup.c b/lib/utils/fdt/fdt_fixup.c
+index b0ed20c8..bace2277 100644
+--- a/lib/utils/fdt/fdt_fixup.c
++++ b/lib/utils/fdt/fdt_fixup.c
+@@ -124,7 +124,13 @@ void fdt_cpu_fixup(void *fdt)
+ 			  sbi_hart_has_csr(scratch, SBI_HART_CSR_CYCLE) &&
+ 			  sbi_hart_has_csr(scratch, SBI_HART_CSR_INSTRET);
+ 
+-	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 32);
 +	/*
-+	 * FW_DYNAMIC_APPEND entry fixup (cold boot path only).
-+	 *
-+	 * For this firmware type the previous booting stage does NOT pass the
-+	 * usual a0=hartid, a1=dtb, a2=fw_dynamic_info arguments. It merely
-+	 * patches the fw_dynamic_info structure appended at the tail of this
-+	 * binary (right before .bss, see fw_base.ldS) and jumps here.
++	 * Reserve enough FDT space for the worst case:
++	 *  - Each disabled hart: 4 bytes ("okay" -> "disabled")
++	 *  - Each zicntr append: ~16 bytes (property + string)
 +	 */
-+	call	fw_dynamic_append_boot_args
-+#endif
- 	/* Find preferred boot HART id */
- 	MOV_3R	s0, a0, s1, a1, s2, a2
- 	call	fw_boot_hart
++	err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) +
++			    SBI_HARTMASK_MAX_BITS * 20);
+ 	if (err < 0)
+ 		return;
+ 
+@@ -163,14 +169,9 @@ void fdt_cpu_fixup(void *fdt)
+ 		 * property if there hasn't been already one.
+ 		 */
+ 		if (extensions &&
+-		    !fdt_stringlist_contains(extensions, len, "zicntr")) {
+-			err = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + 16);
+-			if (err)
+-				continue;
+-
++		    !fdt_stringlist_contains(extensions, len, "zicntr"))
+ 			fdt_appendprop_string(fdt, cpu_offset,
+ 					      "riscv,isa-extensions", "zicntr");
+-		}
+ 	}
+ }
+ 
 -- 
-2.43.7
+2.50.1
 
 
 -- 
