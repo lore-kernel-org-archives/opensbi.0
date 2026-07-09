@@ -4,150 +4,100 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 323E6C43458
-	for <opensbi@archiver.kernel.org>; Thu,  9 Jul 2026 00:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 22AA2C43458
+	for <opensbi@archiver.kernel.org>; Thu,  9 Jul 2026 00:58:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=pt833r3s4XNW110BYvfkA7yTMtQvRSf0fp/WYc0llFo=; b=S8a1eVQMVbOvV6
-	KCAI6AWSGCu9DgDah5wqsCchnJe/W0gz01eFnIdFxLDBWpyA7UaWkX2DE7SYgW+QLulBzSNDwJCo2
-	ONh7oCiKLzPtfWG7A4OF4U0nR4CJBBmM/9tvZABwMt9qWDfKv/Aad9L52aHqpMGEIAgNBlIRfCVbU
-	WHeliJPIXddwFKBwHnQnh6AjYJ0Qq6Uo0D8DS7O6kWiXuYeGuBjrHE2CYI95ztGlNBigt3iUd/MlL
-	t6jwHc0qjY4G3elScob0C7GAIAhvnGOr+Rs54EhblPGOwjjffIyWn7oe0iHY766awKpgtP+n5xNeb
-	/590bz/OIQ+3vk40mEHg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=WFqrjzqBPphpxwD2v1cDKUpSolIlgF5Z2vLvzhV/gWQ=; b=c1avxeiYttJHtN
+	wlrvNLzvI3myRilYe1ooqvyLVcfRC50b7xOvGnrr0KlqS0Jrl6XQ6fHkjm0HShctjxAzCX3vy6zu6
+	ACjUYRuCnXWywHaCw67uC1gEGI7vE+KGmJnf49/aoUUpLKcM7Aus5+rjJ+NOp6JN/uEmk1lrVBGkx
+	WRKoF48GzYu3Nbdz+LC7CfyYWsCaxkJoO6bKtW0Hl66MY2b24h5BoPNxi6GfeqWEn94cwJmJV1UPb
+	48Kqubyk3e+Ji54s8df3rjYhkPk4d7GO3rugo1TzKKoSpTfG6Ng427tWI6TWF0V0gKrjme9WQ5zdD
+	5bzkFKUz+n3p4U1X4Qrw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1whct8-00000000faE-45cs;
-	Thu, 09 Jul 2026 00:45:14 +0000
+	id 1whd5v-00000000j5A-1C7C;
+	Thu, 09 Jul 2026 00:58:27 +0000
 Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1whct5-00000000fZr-2879
+	id 1whd5s-00000000j4p-0ByW
 	for opensbi@lists.infradead.org;
-	Thu, 09 Jul 2026 00:45:12 +0000
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 668N8csd040287
-	for <opensbi@lists.infradead.org>; Thu, 9 Jul 2026 00:45:11 GMT
+	Thu, 09 Jul 2026 00:58:25 +0000
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 668N8UlQ4015129
+	for <opensbi@lists.infradead.org>; Thu, 9 Jul 2026 00:58:23 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	Nmb6D7Rx035OIB9kEy0ijStntBzuWFM2Yb2V6q4XXZ4=; b=QH0BYwY1WsAVplPp
-	1qC0PID1IBRNIPbchXXQirSDMAwTnLB0T+mUsyoVOpFqCNGCmfsKYkwm73urNIMO
-	Wj5EAvQ72JjuSXYxq+TLZyFBk2sVvh5i64zHsxtRzV9j4hUL9l0wNKU8IExRRl+M
-	L9FPf0b3ZAzLUcfVSDGZmI7fE0e0bv2Girv6EFwC2o37mkh7AlqwhS0wTR6BDTmC
-	1LQjzOnhlqFHHL+iUYl5bCECwwU7/8qJVSfobuQp5Ta6qU+q53zFuABwStbRF3f6
-	ZY9BQ9cauRD7yBu41bHKyIug1eTVFQds86VD3dgSVsLoIN8YKmItWWeRbdeQMciv
-	WyizVA==
-Received: from mail-oo1-f72.google.com (mail-oo1-f72.google.com [209.85.161.72])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4f9g7hmd85-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Thu, 09 Jul 2026 00:45:10 +0000 (GMT)
-Received: by mail-oo1-f72.google.com with SMTP id 006d021491bc7-6a17dafd042so1476049eaf.2
-        for <opensbi@lists.infradead.org>; Wed, 08 Jul 2026 17:45:10 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1783557910; cv=none;
-        d=google.com; s=arc-20260327;
-        b=MqC+Kryq0qZ0ER9EiFc0di45sVDM56A/4vgOwwgovn+ifyb4gkul8Vd4lP7Zj0h8F9
-         LHc5Q5Ds2/gX14cbWmD9UTyUTBGxC3vqMF0aW2yK0t8S2CgcOmVAmsQRq8bGLuYaD2LA
-         0qtZ2dXfujNhY2tenAOFwfzmhP4UYXK0gHuMD28xyb7SCTyKV9OGN4473UyKLdyWxODS
-         TTK2xzjT+JROlUHRuITRDOufOlt8RK1qoRHS6Mf5UXux7elOde3QSlMWabp948KMJ/NJ
-         gUl9HMTZwyyMVQVBoY03+tzHjvrNzeYgc/EaP/zr9pim102+o+/z+6G1Ufz0OZ+cW+kE
-         xu3w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Nmb6D7Rx035OIB9kEy0ijStntBzuWFM2Yb2V6q4XXZ4=;
-        fh=cyWYA3kXN4M7205T7O+U3EeZKBOqXRScKUv8W0MgTLc=;
-        b=kpHQi4QNIr2qNrgv23unoVWWHpKvijZXAsdllbgffquMcu4zhotevvCw2jnyIsXytI
-         KoYJQJsJuKsgTzD5r1Fh/4r7NOYIyP+Afbb/6Dj+HVnS9qoCeWXkm37ru5LE/aCLV+jz
-         ggVwMP8wOaS1LDKq/+dTOOGQQqu+SLOWvDUWi8EVT5shpCNrOi0BJAk9wJ7pUCQFU6IO
-         v+HS4/2v+DL8s63iBRvwPO9dUYnrAw3g6bjHbEE744zq3eE76jWKB9qZg8A7pSY2TyTS
-         v6ujS6AVHK7dx9rFH+Gmd9/hVENsTupuQrFCZ6imjjxwhhOLXw/ALakt9WY3Sek/HrTt
-         gY5w==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1783557910; x=1784162710; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Nmb6D7Rx035OIB9kEy0ijStntBzuWFM2Yb2V6q4XXZ4=;
-        b=gIuJvDSszJi7laAoSZCwXXUjZgIHwvT/+ykUrEZGsDj+9CxdDYHaix9cwJCS4vteUs
-         B1JLSdDEiK8Bxs1+PDtbtn9M1BXoACeDUCNE3Asb6Qhhc5o3bynvk/R93iDJv9kmkhb+
-         XrgPubwtPr2He5g9cbVKFkOru9oCfkD/AF++MgWdk8E2GQF+JLzQDhvj1LZ1zZ8/AM3F
-         N31/pJDnkKt6j5Xf/NrCBQ+IdCBL93TtMlWvq1AfEYkrCIPsXs8GYh/rEj7PwKxH8gUA
-         sxe1xX2zdcPL9BDSg6gIPOyOCkfjClbjqCMMAX5cQn1CVaSg1sTjXb8McmjzuJBP3JZ8
-         2LdA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783557910; x=1784162710;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Nmb6D7Rx035OIB9kEy0ijStntBzuWFM2Yb2V6q4XXZ4=;
-        b=oaUkRYwNWEBp6k33SPaZFuIgbyRXqeIG9Z5nO1akpgAy9FA0fVyhw1+PzMaUt4GBZI
-         B/Nph1Eil/9m9+5gLi5uvu+5tC4ANgJx8APwFO1AwGJc6KU3Egb2iR299Bx+L7gm45Xc
-         BmsU74ISOrTB+96FNRtZ8ObCnYo6SXbHJCEJua6/Z1WaxvHcMt0TSKg2yHpKWSPju9M3
-         ilqVI7n2bB2X5T/XIu2vjqDnZFkM/6RoQLKdfDVVvLwUkd0fUVwUF/G6vIk3xQPR4BTa
-         sSpJ+YbVj2mTbdWMiBGgWxPY6lo+E0iES1erpboDWO37hYsYiwoJv2/FHrZEBuODygFy
-         hrkw==
-X-Gm-Message-State: AOJu0Yx6AUo4yJ/8aEMc5jOMZ5ArLaeiwwocZDhNLDsEtCHGueLd6L66
-	bh7PLfQHpeEJVOWbGwZ0YVaPXfPPVyH/QuRifEIapOHDnn8ViyAZIMViByM66EfSN0twL/8KNz+
-	ZKE5c3FaB2qNuQ02E5F1DmnKaPsIIw0eRMbSlAq9rjhyFsnGLT33A/X3LwTmK1Bbl3Hoe967lL1
-	5YPP3e/pdJOFxWdMZ8FrkpACCbI+7Qamk7NmLGZ5pf
-X-Gm-Gg: AfdE7cl4rOpRWbvHmShx7al5jlaFOtGE9d7+7SSI8w7naSfYqQ8X4ZMz5hD/5hx7v5R
-	K2uOb9AGiP1CuzZ+i8dBiT41ppWYRsynGfHps5mq+3fnYsp/8Cn+/yD3QfEI/4uxy2xo1W4y3u7
-	et++sLynW+XLAEkpTBL3N3UoJPAIR1HxRB54QxgKfP6Q7rHMZMAj76QFphu2P4aaQdf0+f
-X-Received: by 2002:a05:6820:2007:b0:6a1:189a:daf1 with SMTP id 006d021491bc7-6a36d85f68amr3838178eaf.4.1783557909975;
-        Wed, 08 Jul 2026 17:45:09 -0700 (PDT)
-X-Received: by 2002:a05:6820:2007:b0:6a1:189a:daf1 with SMTP id
- 006d021491bc7-6a36d85f68amr3838148eaf.4.1783557909586; Wed, 08 Jul 2026
- 17:45:09 -0700 (PDT)
-MIME-Version: 1.0
-References: <20260626101433.3133466-1-peter.lin@sifive.com>
-In-Reply-To: <20260626101433.3133466-1-peter.lin@sifive.com>
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=fsDKiHdjbg2auWFj7sEM7b1bbNZY1I8l+Nh
+	y1vSAlL0=; b=NmmcJ38PfhYQBY1MgP6uuXY/vC1cP6emx9+zb92IYycoH2DfJOF
+	u0+VoruTWZq6jfMuJWZi2/H0jIhhkP9WAO7YsGIvGCr7VquqRZ00E9Y21zYbw0bA
+	617+J5mxf0PD7cUv8OC82dc8k42brWqmq9GndrRrkq7lrkxLImYk7tLMrUeAXaXG
+	GU0QCrMJr+Ung6MHlGkrdGP4QMA/3gCM3p3JhVZXbbDEGF4xuPU28OL5vEiD3DWt
+	6+h6zPa/kx/J8Cc0+TWnXCDangRO6p1IQcqXpXsGRMUciO5ytPDE2OXv2RSs8NOc
+	0YJB0m9Z1UsFh6VyPW8ds+qHdu4ITiLsXpA==
+Received: from nalasppmta02.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4f9q5sap9h-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <opensbi@lists.infradead.org>; Thu, 09 Jul 2026 00:58:22 +0000 (GMT)
+Received: from pps.filterd (NALASPPMTA02.qualcomm.com [127.0.0.1])
+	by NALASPPMTA02.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 6690wKTL017430;
+	Thu, 9 Jul 2026 00:58:20 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by NALASPPMTA02.qualcomm.com (PPS) with ESMTPS id 4fa05brnns-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <opensbi@lists.infradead.org>; Thu, 09 Jul 2026 00:58:20 +0000 (GMT)
+Received: from NALASPPMTA02.qualcomm.com (NALASPPMTA02.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 6690wKSK017424
+	for <opensbi@lists.infradead.org>; Thu, 9 Jul 2026 00:58:20 GMT
+Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
+	by NALASPPMTA02.qualcomm.com (PPS) with ESMTPS id 6690wKLo017420
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 09 Jul 2026 00:58:20 +0000 (GMT)
+Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
+	id 6F14E22180; Wed,  8 Jul 2026 17:58:20 -0700 (PDT)
 From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Date: Wed, 8 Jul 2026 17:44:58 -0700
-X-Gm-Features: AUfX_mxgWkuSIHVHOiAENyjcjHr06L916gdFIYi9b8wJ3HcXyY6VpKnouKSLoM0
-Message-ID: <CAAVgOkKk=KXy4MqNMYM3FA+vsdWN8cDdrZUXnDY9KgqNqhwV=Q@mail.gmail.com>
-Subject: Re: [RFC PATCH 00/12] Add RISC-V Worlds ISA support to OpenSBI
-To: Yu-Chien Peter Lin <peter.lin@sifive.com>
-Cc: opensbi@lists.infradead.org, zong.li@sifive.com, greentime.hu@sifive.com,
-        anup@brainfault.org, scott@riscstar.com, conor@kernel.org,
-        dave.patel@riscstar.com, raymond.mao@riscstar.com,
-        robin.randhawa@sifive.com, samuel.holland@sifive.com
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzA5MDAwNSBTYWx0ZWRfX+lWKx5gRIDBC
- 9eXeoGBstXW6Zz3ZH6DNZIEcTIKhQZIEMRS1Lyce+galZmJJL23BI3AC/RBeJvGpnyUmgjxTRDy
- 9Nnn+qd3uLBcas4sufhyDHOEU1//vVpnNwMpTEbB7BSX9ZUA64kVtGtnRdn8Ex7vbuGefT5pQsu
- mwo5ITzPmbhe2YUKcjNraZ/83TBXK88yIy+APhtNMIIoZiIKFSIZiIv5IAxi6iMeb+a0wJCq3yA
- av6Zi/DAdF7KT0jUdP3AeV/wS8w1JTP7LcuDIW4QVHnmCebKTfvzB9bTCK1+l4KP3B3aQKhtv48
- idr8dSW3uvHqd0v/UcitpZQVUk7h1YvXgxLUHdRcxj2bO8JZPQGgkSo4dA/J0zWtyTSLt6cPxVN
- wvTEVQxJz7wa8Ktz5dklNokdUOm3414nunkOn73gvg+5shGEzNKQGBBiJuReFb3qM3aBujh/kuR
- 5wVnKzKukXvl2L3CIcg==
-X-Proofpoint-GUID: PrKO2lpAnBdFwdcAVSLloDddpUu-N6PD
-X-Authority-Analysis: v=2.4 cv=TMp1jVla c=1 sm=1 tr=0 ts=6a4eef16 cx=c_pps
- a=wURt19dY5n+H4uQbQt9s7g==:117 a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=yOCtJkima9RkubShWh1s:22 a=NEAV23lmAAAA:8 a=VwQbUJbxAAAA:8 a=pFyQfRViAAAA:8
- a=JfrnYn6hAAAA:8 a=uejS2CynQSNwmat9Js8A:9 a=QEXdDO2ut3YA:10
- a=-UhsvdU3ccFDOXFxFb4l:22 a=oJz5jJLG1JtSoe7EL652:22 a=1CNFftbPRP8L7MoqJWF3:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzA5MDAwNSBTYWx0ZWRfX7+QOQlCNBuXL
- vu0u9EsVt2WUykAIPbj7MNeE2qnzcD7F3YeB8M7LmRvlhOjWWu3rYPRO+kacAHnNX/g45oCC+Zq
- nYQc1W0XVKSh62L2KCqbLkPLC5jXe3g=
-X-Proofpoint-ORIG-GUID: PrKO2lpAnBdFwdcAVSLloDddpUu-N6PD
+To: opensbi@lists.infradead.org
+Cc: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+Subject: [PATCH v2] lib: utils/mpxy: bind channel access to owning domain
+Date: Wed,  8 Jul 2026 17:58:19 -0700
+Message-ID: <20260709005819.1783002-1-pawandeep.oza@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
+MIME-Version: 1.0
+X-QCInternal: smtphost
+X-QCInternal: smtphost
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzA5MDAwNyBTYWx0ZWRfXwfOk9YCzW/DZ
+ veWgGZMw9/B7I9rg/pD2nGfNpujLJR7s+hrW3yFf5Dy35EbaDZRtoqjFdAG4sTa6Vv5Vl8Q1yle
+ 7FZ3GyKOr+pmQNHJXMkiLURy/CoU4bFegfx/7fO/cRZkyS+ZCytW8qsM4UASmJBCgiL7GldoN/z
+ aUof5PtdNVFClV7wtdczOaXID14AO2SSI9/si0NjF99i7UT1xNjFGUZweOunp1HIgvipPr9iq1H
+ H6PsJ+TVLXGiJbdTHqvh2ZIJeNk5/fkagJREBCuBRlktpQo7SwMWg5c0DmJCFsA8vOI7rK/BapX
+ w/tHXaUcYmOiEx5sn21MLn8JyWHwtwGQLEYKeFEg0w9wxruNDccDcoFV/OmJZrsH6inuJcC8p5y
+ ldwjNUdSto+EZx/YbRXzhMhBV8180u843BoESp7a+H0TudYg5Yvg0qF7pXFtcd4vvgsnqNAJ9go
+ Kf7ZQQLPYvM5DI2Lu4w==
+X-Proofpoint-ORIG-GUID: nU-jSrIiXIobHj1u8qk9gVCUD9XXW6EO
+X-Authority-Analysis: v=2.4 cv=NfTWEWD4 c=1 sm=1 tr=0 ts=6a4ef22e cx=c_pps
+ a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
+ a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=DJpcGTmdVt4CTyJn9g5Z:22 a=EUspDBNiAAAA:8 a=soZFZoyfFO9URlR6oEIA:9
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzA5MDAwNyBTYWx0ZWRfX/qKDDhYndWUa
+ 8QTsWIHOmokHTYDdVSAsyLSF+26F3MPIJ7OA1//NKHzS8DiLtf3/DK2kZmvpU0GCnm5geWFCRzv
+ AvW3yBwSZs0iMHvdeQG3kcRLkHemGxE=
+X-Proofpoint-GUID: nU-jSrIiXIobHj1u8qk9gVCUD9XXW6EO
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-08_05,2026-07-08_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 priorityscore=1501 suspectscore=0 adultscore=0
- lowpriorityscore=0 bulkscore=0 malwarescore=0 phishscore=0 spamscore=0
- clxscore=1015 classifier=typeunknown authscore=0 authtc= authcc=
+ spamscore=0 suspectscore=0 phishscore=0 bulkscore=0 clxscore=1015
+ priorityscore=1501 impostorscore=0 malwarescore=0 adultscore=0
+ lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
  route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2607090005
+ definitions=main-2607090007
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260708_174511_559882_768C3536 
-X-CRM114-Status: GOOD (  21.80  )
+X-CRM114-CacheID: sfid-20260708_175824_094525_A8FFCD92 
+X-CRM114-Status: GOOD (  22.23  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -159,94 +109,228 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gRnJpLCBKdW4gMjYsIDIwMjYgYXQgMzoxNuKAr0FNIFl1LUNoaWVuIFBldGVyIExpbiA8cGV0
-ZXIubGluQHNpZml2ZS5jb20+IHdyb3RlOgoKT3phOiBJIGhhdmUgc3RhcnRlZCByZXZpZXdpbmcg
-dGhpcyBzZXJpZXMsIGFuZCB3aWxsIHByb3ZpZGUgY29tbWVudHMKaW4gY29taW5nIGRheXMuCj4K
-PiBUaGlzIFJGQyBwYXRjaCBzZXJpZXMgYWRkcyBzdXBwb3J0IGZvciBSSVNDLVYgV29ybGRzIElT
-QSBleHRlbnNpb25zLAo+IGVuYWJsaW5nIGhhcmR3YXJlLWVuZm9yY2VkIGlzb2xhdGlvbiBib3Vu
-ZGFyaWVzIGJhc2VkIG9uIFdvcmxkIElEcyAoV0lEcykKPiBieSBleHRlbmRpbmcgdGhlIE9wZW5T
-QkkgZG9tYWluIGZyYW1ld29yay4KPgo+IFRydXN0IE1vZGVsIGFuZCBCb290LXRpbWUgUm9sZXMK
-PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Cj4gVGhlIGltcGxlbWVudGF0aW9u
-IGZvbGxvd3MgdGhlIHR3by1waGFzZSBNLW1vZGUgdHJ1c3QgbW9kZWw6Cj4KPiAtIFJvVCBNLW1v
-ZGUgcGhhc2U6IFByaW9yIGJvb3Qgc3RhZ2UgKFJPTS9TUEwpIHRoYXQgbWF5IHByb2dyYW0gbXdp
-ZC8KPiAgIG1sd2lkbGlzdCBhbmQgbG9jayBtd2lkIGJlZm9yZSBoYW5kaW5nIG9mZiB0byBPcGVu
-U0JJLgo+Cj4gLSBSZWd1bGFyIE0tbW9kZSBwaGFzZSAoT3BlblNCSSk6IFRyZWF0cyBwbXdpZC9w
-bXdpZGxpc3QvcG1sd2lkbGlzdCBhcwo+ICAgcmVhZC1vbmx5IGlucHV0IHBvbGljeSBmcm9tIGhh
-cmR3YXJlL1JvVC4gTG9ja3MgbXdpZCBkdXJpbmcgZmVhdHVyZQo+ICAgZGV0ZWN0aW9uIHRvIHBy
-ZXZlbnQgbGF0ZXIgTS1tb2RlIGNvZGUgZnJvbSBjaGFuZ2luZyBpdHMgb3duIFdJRC4KPiAgIFBy
-b2dyYW1zIHBlci1kb21haW4gbWx3aWQvbXdpZGRlbGVnIGJhc2VkIG9uIERUIGNvbmZpZ3VyYXRp
-b24uCj4KPiBEZXZpY2UgVHJlZSBCaW5kaW5ncwo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Cj4g
-TmV3IENQVSBwcm9wZXJ0aWVzIChwZXItaGFydCk6Cj4gLSByaXNjdixwbXdpZDogUGxhdGZvcm0t
-ZGVmaW5lZCBNLW1vZGUgV29ybGQgSUQKPiAtIHJpc2N2LHBtd2lkbGlzdDogTS1tb2RlIHBlcm1p
-dHRlZCBXSUQgYml0bWFwICh1NjQsIDIgY2VsbHMpCj4gLSByaXNjdixwbWx3aWRsaXN0OiBTL1Ut
-bW9kZSBwZXJtaXR0ZWQgV0lEIGJpdG1hcCAodTY0LCAyIGNlbGxzKQo+Cj4gTmV3IGRvbWFpbiBw
-cm9wZXJ0aWVzIChwZXItZG9tYWluKToKPiAtIG5leHQtd2lkOiBPdmVycmlkZSBTLW1vZGUgV0lE
-IGZvciB0aGlzIGRvbWFpbiAodTMyLCAxIGNlbGwpCj4gLSBuZXh0LXdpZGxpc3Q6IFdJRCBkZWxl
-Z2F0aW9uIGJpdG1hcCBmb3IgdGhpcyBkb21haW4gKHU2NCwgMiBjZWxscykKPgo+IElmIGEgZG9t
-YWluIGxhY2tzIG5leHQtd2lkLCBPcGVuU0JJIGZhbGxzIGJhY2sgdG8gcG13aWQgKE0tbW9kZSBh
-bmQKPiBTLW1vZGUgcnVuIGluIHRoZSBzYW1lIFdvcmxkKS4KPgo+IEV4YW1wbGUgRFQgc25pcHBl
-dDoKPgo+ICAgICBjcHVzIHsKPiAgICAgICAgIHJpc2N2LG53b3JsZHMgPSA8ND47Cj4gICAgICAg
-ICBjcHVAMCB7Cj4gICAgICAgICAgICAgcmlzY3YscG13aWQgPSA8Mz47Cj4gICAgICAgICAgICAg
-cmlzY3YscG13aWRsaXN0ID0gPDB4MCAweGY+Owo+ICAgICAgICAgICAgIHJpc2N2LHBtbHdpZGxp
-c3QgPSA8MHgwIDB4Zj47Cj4gICAgICAgICB9Owo+ICAgICB9Owo+Cj4gICAgIGNob3NlbiB7Cj4g
-ICAgICAgICBvcGVuc2JpLWRvbWFpbnMgewo+ICAgICAgICAgICAgIHRydXN0ZWQtZG9tYWluIHsK
-PiAgICAgICAgICAgICAgICAgbmV4dC13aWQgPSA8MT47Cj4gICAgICAgICAgICAgICAgIG5leHQt
-d2lkbGlzdCA9IDwweDAgMHgyPjsKPiAgICAgICAgICAgICB9Owo+ICAgICAgICAgICAgIHVudHJ1
-c3RlZC1kb21haW4gewo+ICAgICAgICAgICAgICAgICBuZXh0LXdpZCA9IDwwPjsKPiAgICAgICAg
-ICAgICAgICAgbmV4dC13aWRsaXN0ID0gPDB4MCAweDE+Owo+ICAgICAgICAgICAgIH07Cj4gICAg
-ICAgICB9Owo+ICAgICB9Owo+Cj4gS25vd24gTGltaXRhdGlvbnMgYW5kIEZ1dHVyZSBXb3JrCj4g
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Cj4gVGhpcyBSRkMgaW1wbGVtZW50
-cyBjb3JlIGZ1bmN0aW9uYWxpdHkgYnV0IGhhcyBzZXZlcmFsIGFyZWFzIHJlcXVpcmluZwo+IHJl
-ZmluZW1lbnQgaW4gdGhlIGZ1dHVyZSByZXZpc2lvbnM6Cj4KPiAxLiBXSUQgVmFsaWRhdGlvbjoK
-PiAgICAtIERvbWFpbiBuZXh0LXdpZCBpcyBOT1QgdmFsaWRhdGVkIGFnYWluc3QgcG1sd2lkbGlz
-dAo+ICAgIC0gRG9tYWluIG5leHQtd2lkbGlzdCBpcyBOT1QgdmFsaWRhdGVkIGFzIHN1YnNldCBv
-ZiBwbWx3aWRsaXN0Cj4gICAgLSBJbnZhbGlkIFdJRCBjb25maWd1cmF0aW9uIGZhaWxzIGF0IHJ1
-bnRpbWUgd2l0aCBzb2Z0d2FyZS1jaGVjawo+ICAgICAgZXhjZXB0aW9ucyByYXRoZXIgdGhhbiBh
-dCBkb21haW4gcmVnaXN0cmF0aW9uIHRpbWUKPiAgICAtIFBsYW5uZWQ6IEFkZCB2YWxpZGF0aW9u
-IGluIHNhbml0aXplX2RvbWFpbigpIHRvIGNhdGNoIGVycm9ycyBlYXJseQo+Cj4gMi4gUmVzdW1l
-IFBhdGggbXdpZCBSZXN0b3JhdGlvbjoKPiAgICAtIEN1cnJlbnQgaW1wbGVtZW50YXRpb24gb25s
-eSByZS1sb2NrcyBtd2lkIG9uIHJlc3VtZSwgYXNzdW1pbmcgUm9UCj4gICAgICBoYXMgYWxyZWFk
-eSByZXN0b3JlZCB0aGUgY29ycmVjdCBXSUQgdmFsdWUKPiAgICAtIE5vIG1lY2hhbmlzbSB0byB2
-ZXJpZnkgb3IgYWN0aXZlbHkgcmVzdG9yZSBtd2lkIHRvIFJvVC1kZWZpbmVkIHZhbHVlCj4KPiBT
-cGVjaWZpY2F0aW9uIFJlZmVyZW5jZXMKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4KPiAt
-IFJJU0MtViBXb3JsZHMgSVNBIFNwZWM6IGh0dHBzOi8vZ2l0aHViLmNvbS9yaXNjdi9yaXNjdi13
-b3JsZHMKPiAgIChSZWxlYXNlOiByaXNjdi1pc2EtcmVsZWFzZS00YzgxYTNmLTIwMjYtMDQtMTQp
-Cj4gLSBEZXZpY2UgVHJlZSBQcm9wb3NhbDogaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsLzIw
-MjYwNjE5MTA1ODM0LjEyNzczMDItMS1wZXRlci5saW5Ac2lmaXZlLmNvbS8KPgo+IFl1LUNoaWVu
-IFBldGVyIExpbiAoMTIpOgo+ICAgbGliOiBzYmlfaGFydDogZGV0ZWN0IFJJU0MtViBXb3JsZHMg
-SVNBIGV4dGVuc2lvbnMKPiAgIGxpYjogdXRpbHM6IGZkdF9oZWxwZXI6IHBhcnNlIFJJU0MtViBX
-b3JsZHMgRFQgcHJvcGVydGllcwo+ICAgbGliOiBzYmlfaGFydDogZW5mb3JjZSByaXNjdixwbXdp
-ZCBmb3IgV29ybGRzIElTQQo+ICAgbGliOiBzYmlfaGFydDogbG9jayBtd2lkIENTUiBmb3IgUm9U
-IGltbXV0YWJpbGl0eQo+ICAgaW5jbHVkZTogc2JpX2RvbWFpbjogYWRkIFdvcmxkcyBXSUQgZmll
-bGRzCj4gICBpbmNsdWRlOiBzYmlfdHlwZXM6IGFkZCBQUkl4NjQgZm9ybWF0IG1hY3JvCj4gICBs
-aWI6IHNiaV9kb21haW46IHByaW50IFdvcmxkIElEIGNvbmZpZyBhdCBib290Cj4gICBsaWI6IHNi
-aV9pbml0OiBwcmludCBNLW1vZGUgV29ybGQgSUQgYXQgYm9vdAo+ICAgcGxhdGZvcm06IGdlbmVy
-aWM6IHBhcnNlIHJvb3QgZG9tYWluIFdJRCBjb25maWcgZnJvbSBEVAo+ICAgbGliOiB1dGlsczog
-ZmR0X2RvbWFpbjogcGFyc2UgcGVyLWRvbWFpbiBXSUQgcHJvcGVydGllcwo+ICAgbGliOiBzYmlf
-ZG9tYWluOiBhZGQgV29ybGRzIENTUiBjb25maWcgb24gZG9tYWluIGVudHJ5Cj4gICBkb2NzOiBh
-ZGQgUklTQy1WIFdvcmxkcyBuZXh0LXdpZC9uZXh0LXdpZGxpc3QgRFQgcHJvcGVydGllcwo+Cj4g
-IGRvY3MvZG9tYWluX3N1cHBvcnQubWQgICAgICAgICAgICAgfCAxMyArKysrKysKPiAgZG9jcy9v
-cGVuc2JpX2NvbmZpZy5tZCAgICAgICAgICAgICB8IDEzICsrKysrKwo+ICBpbmNsdWRlL3NiaS9y
-aXNjdl9lbmNvZGluZy5oICAgICAgIHwgMTIgKysrKysKPiAgaW5jbHVkZS9zYmkvc2JpX2RvbWFp
-bi5oICAgICAgICAgICB8ICA5ICsrKysKPiAgaW5jbHVkZS9zYmkvc2JpX2hhcnQuaCAgICAgICAg
-ICAgICB8IDI1ICsrKysrKysrKysrCj4gIGluY2x1ZGUvc2JpL3NiaV90eXBlcy5oICAgICAgICAg
-ICAgfCAgMiArCj4gIGluY2x1ZGUvc2JpX3V0aWxzL2ZkdC9mZHRfaGVscGVyLmggfCAgMiArCj4g
-IGxpYi9zYmkvc2JpX2RvbWFpbi5jICAgICAgICAgICAgICAgfCA1MCArKysrKysrKysrKysrKysr
-KysrKysKPiAgbGliL3NiaS9zYmlfZG9tYWluX2NvbnRleHQuYyAgICAgICB8ICAzICsrCj4gIGxp
-Yi9zYmkvc2JpX2hhcnQuYyAgICAgICAgICAgICAgICAgfCA3MSArKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysKPiAgbGliL3NiaS9zYmlfaHNtLmMgICAgICAgICAgICAgICAgICB8ICA0ICsr
-Cj4gIGxpYi9zYmkvc2JpX2luaXQuYyAgICAgICAgICAgICAgICAgfCAxMyArKysrKysKPiAgbGli
-L3V0aWxzL2ZkdC9mZHRfZG9tYWluLmMgICAgICAgICB8IDE1ICsrKysrKysKPiAgbGliL3V0aWxz
-L2ZkdC9mZHRfaGVscGVyLmMgICAgICAgICB8IDYxICsrKysrKysrKysrKysrKysrKysrKysrKysK
-PiAgcGxhdGZvcm0vZ2VuZXJpYy9wbGF0Zm9ybS5jICAgICAgICB8IDMzICsrKysrKysrKysrKyst
-Cj4gIDE1IGZpbGVzIGNoYW5nZWQsIDMyNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQo+
-Cj4gLS0KPiAyLjQzLjcKPgo+Cj4gLS0KPiBvcGVuc2JpIG1haWxpbmcgbGlzdAo+IG9wZW5zYmlA
-bGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
-bGlzdGluZm8vb3BlbnNiaQoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMu
-aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L29wZW5zYmkK
+From: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+
+The MPXY framework currently stores registered channels in a global
+list and exposes them to all callers. However, the intended model is
+that each channel is assigned to a single supervisor domain at boot and
+remains owned by that domain for its lifetime.
+
+Introduce fixed owner-domain tracking in struct sbi_mpxy_channel and
+make channel lookup and enumeration domain-aware. A channel is now
+visible only when accessed from its owning domain. Also require the
+owner to be set before channel registration.
+
+This allows MPXY to support systems where the same hart may be reused by
+multiple domains while keeping channel ownership and visibility fixed to
+the domain that owns the service.
+
+Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+---
+ include/sbi/sbi_mpxy.h              |  5 +--
+ lib/sbi/sbi_mpxy.c                  | 53 ++++++++++++++++++++++++-----
+ lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c |  2 ++
+ 3 files changed, 49 insertions(+), 11 deletions(-)
+
+diff --git a/include/sbi/sbi_mpxy.h b/include/sbi/sbi_mpxy.h
+index 9da2791e..e7b28527 100644
+--- a/include/sbi/sbi_mpxy.h
++++ b/include/sbi/sbi_mpxy.h
+@@ -13,6 +13,7 @@
+ #include <sbi/sbi_list.h>
+ 
+ struct sbi_scratch;
++struct sbi_domain;
+ 
+ #define SBI_MPXY_MSGPROTO_VERSION(Major, Minor) ((Major << 16) | Minor)
+ 
+@@ -91,12 +92,13 @@ struct sbi_mpxy_channel_attrs {
+ 	/* Events State Control */
+ 	u32 eventsstate_ctrl;
+ };
+-
+ /** A Message proxy channel accessible through SBI interface */
+ struct sbi_mpxy_channel {
+ 	/** List head to a set of channels */
+ 	struct sbi_dlist head;
+ 	u32 channel_id;
++	
++	struct sbi_domain *owner_domain;
+ 	struct sbi_mpxy_channel_attrs attrs;
+ 
+ 	/**
+@@ -181,5 +183,4 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
+ /** Get Message proxy notification events */
+ int sbi_mpxy_get_notification_events(u32 channel_id,
+ 					unsigned long *events_len);
+-
+ #endif
+diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
+index ff5c6ab6..1007f556 100644
+--- a/lib/sbi/sbi_mpxy.c
++++ b/lib/sbi/sbi_mpxy.c
+@@ -145,14 +145,36 @@ static inline bool mpxy_is_std_attr(u32 attr_id)
+ 	return (attr_id >> 31) ? false : true;
+ }
+ 
++static inline bool mpxy_channel_visible(struct sbi_mpxy_channel *channel,
++					struct sbi_domain *dom)
++{
++	return channel->owner_domain == dom;
++}
++
++/** Find channel_id in registered channels list for this domain */
++static struct sbi_mpxy_channel *mpxy_find_channel(u32 channel_id,
++					struct sbi_domain *dom)
++{
++	struct sbi_mpxy_channel *channel;
++
++	sbi_list_for_each_entry(channel, &mpxy_channel_list, head) {
++		if (channel->channel_id == channel_id &&
++		    mpxy_channel_visible(channel, dom))
++			return channel;
++	}
++
++	return NULL;
++}
++
+ /** Find channel_id in registered channels list */
+-static struct sbi_mpxy_channel *mpxy_find_channel(u32 channel_id)
++struct sbi_mpxy_channel *sbi_mpxy_find_channel_any(u32 channel_id)
+ {
+ 	struct sbi_mpxy_channel *channel;
+ 
+-	sbi_list_for_each_entry(channel, &mpxy_channel_list, head)
++	sbi_list_for_each_entry(channel, &mpxy_channel_list, head) {
+ 		if (channel->channel_id == channel_id)
+ 			return channel;
++	}
+ 
+ 	return NULL;
+ }
+@@ -222,9 +244,12 @@ static void mpxy_std_attrs_init(struct sbi_mpxy_channel *channel)
+ int sbi_mpxy_register_channel(struct sbi_mpxy_channel *channel)
+ {
+ 	if (!channel)
++		return SBI_EINVAL;	
++
++	if (!channel->owner_domain)
+ 		return SBI_EINVAL;
+ 
+-	if (mpxy_find_channel(channel->channel_id))
++	if (sbi_mpxy_find_channel_any(channel->channel_id))
+ 		return SBI_EALREADY;
+ 
+ 	/* Initialize channel specific attributes */
+@@ -397,12 +422,15 @@ int sbi_mpxy_get_channel_ids(u32 start_index)
+ 	struct sbi_mpxy_channel *channel;
+ 	u32 channels_count = 0;
+ 	u32 *shmem_base;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 
+ 	if (!mpxy_shmem_enabled(ms))
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	sbi_list_for_each_entry(channel, &mpxy_channel_list, head)
+-		channels_count += 1;
++	sbi_list_for_each_entry(channel, &mpxy_channel_list, head) {
++		if (mpxy_channel_visible(channel, dom))
++			channels_count += 1;
++	}
+ 
+ 	if (start_index > channels_count)
+ 		return SBI_ERR_INVALID_PARAM;
+@@ -420,6 +448,9 @@ int sbi_mpxy_get_channel_ids(u32 start_index)
+ 
+ 	// Iterate over the list of channels to get the channel ids.
+ 	sbi_list_for_each_entry(channel, &mpxy_channel_list, head) {
++		if (!mpxy_channel_visible(channel, sbi_domain_thishart_ptr()))
++			continue;
++
+ 		if (node_index >= start_index &&
+ 			node_index < (start_index + returned)) {
+ 			shmem_base[2 + node_ret] = cpu_to_le32(channel->channel_id);
+@@ -446,11 +477,12 @@ int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
+ 	int ret = SBI_SUCCESS;
+ 	u32 *attr_ptr, end_id;
+ 	void *shmem_base;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 
+ 	if (!mpxy_shmem_enabled(ms))
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	struct sbi_mpxy_channel *channel = mpxy_find_channel(channel_id);
++	struct sbi_mpxy_channel *channel = mpxy_find_channel(channel_id, dom);
+ 	if (!channel)
+ 		return SBI_ERR_NOT_SUPPORTED;
+ 
+@@ -597,11 +629,12 @@ int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
+ 	struct sbi_mpxy_channel *channel;
+ 	int ret, mem_idx;
+ 	void *shmem_base;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 
+ 	if (!mpxy_shmem_enabled(ms))
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	channel = mpxy_find_channel(channel_id);
++	channel = mpxy_find_channel(channel_id, dom);
+ 	if (!channel)
+ 		return SBI_ERR_NOT_SUPPORTED;
+ 
+@@ -686,12 +719,13 @@ int sbi_mpxy_send_message(u32 channel_id, u8 msg_id,
+ 	struct sbi_mpxy_channel *channel;
+ 	void *shmem_base, *resp_buf;
+ 	u32 resp_bufsize;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	int ret;
+ 
+ 	if (!mpxy_shmem_enabled(ms))
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	channel = mpxy_find_channel(channel_id);
++	channel = mpxy_find_channel(channel_id, dom);
+ 	if (!channel)
+ 		return SBI_ERR_NOT_SUPPORTED;
+ 
+@@ -743,12 +777,13 @@ int sbi_mpxy_get_notification_events(u32 channel_id, unsigned long *events_len)
+ 	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	struct sbi_mpxy_channel *channel;
+ 	void *eventsbuf, *shmem_base;
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 	int ret;
+ 
+ 	if (!mpxy_shmem_enabled(ms))
+ 		return SBI_ERR_NO_SHMEM;
+ 
+-	channel = mpxy_find_channel(channel_id);
++	channel = mpxy_find_channel(channel_id, dom);
+ 	if (!channel || !channel->get_notification_events)
+ 		return SBI_ERR_NOT_SUPPORTED;
+ 
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
+index 84b7a67d..d2d420de 100644
+--- a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
+@@ -299,6 +299,8 @@ int mpxy_rpmi_mbox_init(const void *fdt, int nodeoff, const struct fdt_match *ma
+ 	/* Setup MPXY mbox client */
+ 	/* Channel ID*/
+ 	rmb->channel.channel_id = channel_id;
++	/* Set the onwer domain */
++	rmb->channel.owner_domain = &root;
+ 	/* Callback for read RPMI attributes */
+ 	rmb->channel.read_attributes = mpxy_mbox_read_attributes;
+ 	/* Callback for write RPMI attributes */
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
