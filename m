@@ -4,102 +4,149 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id BB7BEC4450A
-	for <opensbi@archiver.kernel.org>; Sat, 11 Jul 2026 20:14:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8F24FC43458
+	for <opensbi@archiver.kernel.org>; Mon, 13 Jul 2026 20:59:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=iOSjuvsqDr5JyFqnXKzWik6RjktzWe9QnCeV7+LznuM=; b=PaY/1W66cTXBKO
-	1S9RIZU/kMKABAy6o5UMgGcQKtAXtuQBWcTFhZjSi8LMcsDCQeEJ9leTs9MfebE0WZVSB4Qu5/Fhy
-	MJknCGddYb6t4nkolwTXdhxe3c+669LjUdYVI/47KnHpFtINDq+Sqb3y+QVh4podxGG4Ki6wHAW2v
-	6uHpUZyOaYrUH5PrE2xIb9/ydfIiZaaOGW5JDUwWxm4rSrMn6zeXPqlDHSJPiaqU9ZrydltiEay+J
-	2R/lma8lTDTsQl51mjmEIpgP6F831rR6+7g1ftzG3ZrKiPHn7z/QcWgkS3MhYmT6RGFOOQfdMUxwF
-	rtJ5mFDnPbi/YZFpBfOg==;
+	List-Owner; bh=Pi/62fDtk5Wc3u6a5FzhKaMjTvkeXBASf2vrbERkzEw=; b=mRt+Bt+C/Sdgfz
+	wz6G1+lQFe7Qow2eLukC6iHh07jqwH3DoQUwLwyK/LPtCYFF4yZDX5aczEeaWvHqxCDKrTj2f5Kt7
+	59ydQI+QRocbANharSTPoMZJPGcJzhYeZqpitKT50EaUES+/4tGUI+9gMvC0hHunRCXifA6yTdi6H
+	0b89SU8O02ePl8kdtgiwgwmvB56bEfRhGCQhzL/f4wX5j/QK8PNAxbPMQCKjfzs+mNs45BAM9Q5Tj
+	RgBnkb6WlkCfmCWv0wWgqGJNLOJ0wgsMDxBVzNTC8ENM4wdmYDFx3gDsjtaOC+gmXGYGpwTbOtlVl
+	4Hw+gCSKItbryO6Z++Sg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wie5e-00000006qlc-0yRo;
-	Sat, 11 Jul 2026 20:14:22 +0000
+	id 1wjNju-0000000APt3-1Nou;
+	Mon, 13 Jul 2026 20:58:58 +0000
 Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wie5Z-00000006qho-0ThX
+	id 1wjNjr-0000000APsg-33Pj
 	for opensbi@lists.infradead.org;
-	Sat, 11 Jul 2026 20:14:20 +0000
-Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66BHo5xk334888
-	for <opensbi@lists.infradead.org>; Sat, 11 Jul 2026 20:14:16 GMT
+	Mon, 13 Jul 2026 20:58:57 +0000
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66DJ9YlO2356009
+	for <opensbi@lists.infradead.org>; Mon, 13 Jul 2026 20:58:54 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=vhir+WlFh1h
-	XyXc9b+X+wJ8BS59oW7hGPt/h1vMtMes=; b=peAUVzCauSg89rQYNuJvvq3GtvE
-	AGbMqzIg3P/+6kJoeaVC8KMa8mXM9BgULAK6RMmrbrLpNZbmEzW9Y/8xzdUfGS0h
-	nTWlKB/8Cne6fhZji/im2u7CY7ouu36stQ50Tn7Afw2CgGLcbBnUbWTuFcDvNolg
-	rWq5z8wgOwiFkcjrKnN2LvHDzyi1cgvjdlxynhJWwHcanySN1KvOJQBioINYITSA
-	6EayMrkobZHIQemsKyHRmnRNPjBSvATbaPhtdJRwEH1MPlVZRTzDpML4ygdRM7cf
-	YumxU6jbwTii1dXownl6B081wsE+0g/ZbI4UiRMRBK2vOqwYrEBVOtDFSwA==
-Received: from nalasppmta01.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fbecghhud-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <opensbi@lists.infradead.org>; Sat, 11 Jul 2026 20:14:15 +0000 (GMT)
-Received: from pps.filterd (NALASPPMTA01.qualcomm.com [127.0.0.1])
-	by NALASPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 66BKEFgM000909;
-	Sat, 11 Jul 2026 20:14:15 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by NALASPPMTA01.qualcomm.com (PPS) with ESMTPS id 4fbewhvvt3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <opensbi@lists.infradead.org>; Sat, 11 Jul 2026 20:14:15 +0000 (GMT)
-Received: from NALASPPMTA01.qualcomm.com (NALASPPMTA01.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 66BKEEab000901
-	for <opensbi@lists.infradead.org>; Sat, 11 Jul 2026 20:14:14 GMT
-Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
-	by NALASPPMTA01.qualcomm.com (PPS) with ESMTPS id 66BKEEqv000900
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sat, 11 Jul 2026 20:14:14 +0000 (GMT)
-Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
-	id 8F5E32086F; Sat, 11 Jul 2026 13:14:14 -0700 (PDT)
-From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-To: opensbi@lists.infradead.org
-Cc: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Subject: [PATCH v3 1/6] lib: utils/irqchip/aplic: implement direct mode irqchip callbacks
-Date: Sat, 11 Jul 2026 13:14:01 -0700
-Message-ID: <20260711201413.2931099-2-pawandeep.oza@oss.qualcomm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260711201413.2931099-1-pawandeep.oza@oss.qualcomm.com>
-References: <20260711201413.2931099-1-pawandeep.oza@oss.qualcomm.com>
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	hRNhFhk3SYmC8roQdurP6qpmsi0kO9fvHyMukB9ZBwI=; b=iDJP1tBjto9NJGSG
+	xBDQfQT0Nee+u7TdGlYfNT8iejVuMpMIh5vxvuhiRIWNSbl22OKbv4b+7UiEH3lz
+	a9tL5yBH3wYNj2rM358NdwwJwvNi02McBnBn6O8b1/Plx66p/D9+v9X57K5feCiU
+	b8YqjH1RxjFP4gKIx/vD0Jd8g4fytV3waHDv/PEjuqwkePnUJWmf+lCQOVe6gOWI
+	JM14ld+mVeBgVINgDqUStkB87/Nmfx5cnQEt3fC7IbZeN7bg4qlcfP3I4hd0TwLQ
+	Nk2fMJqnG1KHgysywlRx2P2ok5MPtikh/HqIO2XUhaVVxw+VUrLjFPwXBhupA/rP
+	U81MlA==
+Received: from mail-oo1-f71.google.com (mail-oo1-f71.google.com [209.85.161.71])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fcwu4thb6-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Mon, 13 Jul 2026 20:58:54 +0000 (GMT)
+Received: by mail-oo1-f71.google.com with SMTP id 006d021491bc7-6a13b72112dso4870714eaf.2
+        for <opensbi@lists.infradead.org>; Mon, 13 Jul 2026 13:58:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783976333; cv=none;
+        d=google.com; s=arc-20260327;
+        b=AsMjl+AdHe6gJizxuxKbkxBJQLDR8z/S2VpA5+suiLBnEXiRDNYT8nKFFFO8coRwXw
+         KRr33ga1Ctl0EXnoLCBn4NNRg3ZnxoVxiXfu6GEr9ImM5/jX/1MYW5ONg62Xcz+fsDHi
+         JHRA3gkp8Ef65BvLo+WwSpKvmOn5JJacOItFSgCvxTOeYDqDwXDiT96V+d2P2M6hnBkq
+         HJoIvtVhiT+HOubnSJp0TnlOLzjgRujZ+Fu1HIIYzi9b4nEhVtFmu+rHo09XH2+AswgS
+         CDSVt0e6WH7g41EotU1ajns5MejyjN3AGe4UDaZVUD7IjK0omOfgv8Nqt8XlT6yjvS0Z
+         mX0Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=hRNhFhk3SYmC8roQdurP6qpmsi0kO9fvHyMukB9ZBwI=;
+        fh=cyWYA3kXN4M7205T7O+U3EeZKBOqXRScKUv8W0MgTLc=;
+        b=Pu2AYeqak13opdAp67IGB79/MqCgUeYp69Z6E1vAeGN2+87ytB0KRNzDpeuVNoPA2N
+         SRZLgC5XD7zdsEVEKxUBqbFu/bbnreas1tcWva6ifYjKS2MGaywAK3NGkln+W7N9sLvg
+         Bk2fZVA/xcAJaOuQlTNKrJeyNoPHAMxMd9ZS349S5hdZXM2doxtSSsHKQYsANWe5sJqb
+         l+YfZzdbvGe9B1QS0M1BySTIbLL7hW6fucuAvspEuibzDCYK3rWSzzGvyRoFWvjogeK0
+         N7iupVd9MIhcFEcMPjhdcSzEpMuf0HanA9h1FX0ARisK0ZnkOszSVlU7xc8b55tkY6hT
+         Bcaw==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1783976333; x=1784581133; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=hRNhFhk3SYmC8roQdurP6qpmsi0kO9fvHyMukB9ZBwI=;
+        b=GxTBdAT2g6E6Oep/rV14LjVuEBZe2jVqv8tEgJgrFpckJLJLzxK0HpItOZzvDxoRp4
+         8tY0AsL9hKDQMVx+ZGXUrYbdIXDE1B9bTlw9y6NiWF3hzfGlJPky7iT0gO6fsnJcCuOG
+         +iG60jARg3IwVhoUW5osSELNMwAdreNMQT4kIZOLtnWl9HkC7D/3YgBTQcI11EIL9QJu
+         W4qO0ooGJTO5pEHhtMj3IVubNUlMCOWdzVQ/G+wrknnGD42/H9vd6NI6j2KNR5DNanct
+         +ic+r7UwjMntgD+jzceFscnNyJSynkqJ16YElSfj9dgAnoNSIrg3X/zyYK+arreIpWIS
+         VfXw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783976333; x=1784581133;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=hRNhFhk3SYmC8roQdurP6qpmsi0kO9fvHyMukB9ZBwI=;
+        b=ghvicIsne3rpPBLIxZn1DQ85q3NTsRKc3eh+h466RfC2yjvRus/26GqC3yt71VpZ3+
+         5PhthFfWj9ixfuZb26q2MUVlmZj1Bd6W6jNUvmJdkUNtyi2kYxpx+HqX3bzAI3Ulld0U
+         Fo+KnUa1OVkedG+g8sR6lycHhNZXB1nmFHO3LIFaz2qJVe41WJrr1cgRux/LiC7ObSOV
+         9GhLyNrbjTyEE0qE9ivBEEybC+a8aFyZCaiCPCX/uRBfuxBdiqCRQf9tftugsQY69DJx
+         b5TtZy264PjlHXCdeVzH2DcS6yVb7++xuYiFqkhcuBCLaYL/IkZ1E0tMGeAjrpcAbaXa
+         v2qg==
+X-Gm-Message-State: AOJu0YzvtoX4g3Y+db3UWsIY1q3DNRQDQg/DDo7HujNfGBzq3D9UMVf2
+	zYOo/5+4Six855gEgFCDZFfk/kSgjbAXOSlEKa26kNkn/BVW2iVyt8JJkaAuiujh3+l/9okk/UL
+	3YqYgU6QNe6C07xcGZ3Cow7foqO4dDl9RSmhjK3Z1MW/vGcIUF1gSrzhdcmANmugG2EBcLXe4DK
+	u94eJJnNffuJzzB39J86iFtHgHnpc8tA2puFd3wo54
+X-Gm-Gg: AfdE7ckI58mrshE+HpTMX0p1UgKpitkjbO+98ZGKF//RXNxKtdAzmkEIwqqRmikoEHH
+	hqwfnmZW761JizwrhyDUr4/CIfOyAP6lNFnD+fNa+aeRe9EtpexcXU1Dqz286We8a+xDDqdO2lv
+	D1riWwfNjS6HZzD/Y/38k5Z/zmZiI4gegwHJlJVKg958aIY0gqT15c+sxGZE647B96h3gR
+X-Received: by 2002:a05:6820:1997:b0:6a3:75fe:7b3f with SMTP id 006d021491bc7-6a39a850f4emr6386776eaf.60.1783976333418;
+        Mon, 13 Jul 2026 13:58:53 -0700 (PDT)
+X-Received: by 2002:a05:6820:1997:b0:6a3:75fe:7b3f with SMTP id
+ 006d021491bc7-6a39a850f4emr6386756eaf.60.1783976332988; Mon, 13 Jul 2026
+ 13:58:52 -0700 (PDT)
 MIME-Version: 1.0
-X-QCInternal: smtphost
-X-QCInternal: smtphost
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzExMDIwNiBTYWx0ZWRfX0jK9Pv062oAG
- P4hzV5qPAIfGrh9pazEKyHZmsH5f5UlkXyGBnaSbrAzpuCF4EqFXEt3u6WSPnYHVs8ah2BcZT6q
- 2WYKW7rIUtv0iuasp7qtNvE9Jj3Txa8=
-X-Proofpoint-ORIG-GUID: xvOtrek6p3IAZZyZ1SUQY8-wfn0qhji6
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzExMDIwNiBTYWx0ZWRfX4v1qMNFkm3Cx
- 73j4XkmjzUWvybIyZ20ouvRQRlgws8H89erg5ZZk4n9+MmWLRH8EbCx/OYjGt90A1BBjmirmbce
- PaqOPVqI7ymK1X7pEXrDz/zHYAk+43+t185MdgCPWxcF+BWhwssJcjPM3Ba3VvEAwjgpvkSas5L
- s4aZnR3dveb4M0Bf0qjqnrPcxilBVmjsF2HjVQpff5idXgu7B+a2B3PgoGh61oVrCwKof4W7tCU
- vIVa/SOMQxqrLVjfNUVozuA0WD2QtkZlzM1xWMaDpVH+sjJbPfa+Lu3A69NpdVLt26gUIcza38y
- havEcjTlA9fWHChA8Q2M796KnWYXDMrwpABULx6WPXQOpftMRuD8nkJnENqZ1gXCnRIh6l1OI1h
- VjZVIAN1GWWe4afhfR4fz+2zj9kPkuRHdZlJkvAIhRlJ6dRs9YIr8Ihl+tThh0rA6FhmkClClXc
- DN/ZXxxtaZgLYC3tbmA==
-X-Proofpoint-GUID: xvOtrek6p3IAZZyZ1SUQY8-wfn0qhji6
-X-Authority-Analysis: v=2.4 cv=KM9qylFo c=1 sm=1 tr=0 ts=6a52a418 cx=c_pps
- a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
- a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=3WHJM1ZQz_JShphwDgj5:22 a=EUspDBNiAAAA:8 a=ee_2aqc6AAAA:8
- a=zzyRTQmNerI19oTOJbUA:9 a=VOpmJXOdbJOWo2YY3GeN:22
+References: <20260626101433.3133466-1-peter.lin@sifive.com> <20260626101433.3133466-2-peter.lin@sifive.com>
+In-Reply-To: <20260626101433.3133466-2-peter.lin@sifive.com>
+From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
+Date: Mon, 13 Jul 2026 13:58:42 -0700
+X-Gm-Features: AVVi8CcY2f2J0dICKqaJ74rtYmeE5TMl-8C2yzSjfA3z57WmOGGZV_y0zXOMqeo
+Message-ID: <CAAVgOkKCxOJU1jfc3q-y5JgvXXmkpGKo3HnmmmZOmSKSq3cZmA@mail.gmail.com>
+Subject: Re: [RFC PATCH 01/12] lib: sbi_hart: detect RISC-V Worlds ISA extensions
+To: Yu-Chien Peter Lin <peter.lin@sifive.com>
+Cc: opensbi@lists.infradead.org, zong.li@sifive.com, greentime.hu@sifive.com,
+        anup@brainfault.org, scott@riscstar.com, conor@kernel.org,
+        dave.patel@riscstar.com, raymond.mao@riscstar.com,
+        robin.randhawa@sifive.com, samuel.holland@sifive.com
+X-Authority-Analysis: v=2.4 cv=FMErAeos c=1 sm=1 tr=0 ts=6a55518e cx=c_pps
+ a=V4L7fE8DliODT/OoDI2WOg==:117 a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=rJkE3RaqiGZ5pbrm-msn:22 a=JfrnYn6hAAAA:8 a=pFyQfRViAAAA:8
+ a=M3Nk2cr6U4MXetpcIBgA:9 a=QEXdDO2ut3YA:10 a=WZGXeFmKUf7gPmL3hEjn:22
+ a=1CNFftbPRP8L7MoqJWF3:22 a=oJz5jJLG1JtSoe7EL652:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEzMDIxNyBTYWx0ZWRfXznZqE7qjmbIb
+ 0HJWKIs5zjH3Yr+RxsjcmOKEvSg3I2eTRc1K+wuZWyz0FlpXSYTGkvlXwosEfvOe4dBn6nHtem0
+ ww0Sld5ZsjiPlr1vGTvoqsLytVjB4HM=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEzMDIxNyBTYWx0ZWRfX//JHW6EyH2ln
+ 9pHYvtu15FYvpslmlh2L3IhvlOrzcwdLcAMJwLVIYlryeN2nlsVYy7jbLsOLEihzqGCcdWaPJz5
+ rUMAamYb2bRdL4yf+EJihd+DWd/elRaIqpTQCOiPvOCzT89yl5PBTdDlZTLLS5BfU5IgTaVmykJ
+ ow7CYS2F5DdqQXyJ59FkE9gg8X9U5WcrE3rmT3p3dcA9CwRH4IeUJUhjAEeEoI1TIv+/ndpMNb+
+ XmlPPYzR3m+ZIolpbOuTwKcRV1cJPWeAuKQnhfzyDjQoqcGR9PkRmOuAXmlNRI/QsT9SkGZ/QVp
+ FG43Lt5XfBRBSBTb6Iybo6Ax6kzQLUfzRnQZjigAl8rBwcoZwLw8mXPbbadRkKvH+er6+1CkvVg
+ H5swV2Pxv00D7o2UKlsdnXHpVccZoGNJw7Q1FAukqBdB7X5ouXz9v9m1acYOBL3NVMctj9PxLD0
+ oQMJtpQUKhCUcki/5ag==
+X-Proofpoint-ORIG-GUID: geUo20FI-StHADcLzrcCYaHEYJy0eW3t
+X-Proofpoint-GUID: geUo20FI-StHADcLzrcCYaHEYJy0eW3t
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-11_05,2026-07-10_01,2025-10-01_01
+ definitions=2026-07-13_05,2026-07-10_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 phishscore=0 malwarescore=0 bulkscore=0 lowpriorityscore=0
- clxscore=1015 impostorscore=0 adultscore=0 priorityscore=1501 suspectscore=0
+ clxscore=1015 adultscore=0 bulkscore=0 malwarescore=0 impostorscore=0
+ suspectscore=0 priorityscore=1501 phishscore=0 spamscore=0 lowpriorityscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607110206
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607130217
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260711_131417_275688_7AC05B0A 
-X-CRM114-Status: GOOD (  23.36  )
+X-CRM114-CacheID: sfid-20260713_135855_896077_C7E211D8 
+X-CRM114-Status: GOOD (  21.50  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -111,441 +158,112 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add inline register accessors (aplic_sourcecfg_write/read,
-aplic_target_write, aplic_irq_setie/clrie/clrip, aplic_idc_base/
-read/write) to consolidate all MMIO access behind typed helpers
-and eliminate open-coded address arithmetic throughout the driver.
-
-Add field-packing macros APLIC_TARGET_HART_IDX, APLIC_TARGET_IPRIO,
-and APLIC_TARGET_GUEST_IDX for constructing
-APLIC_TARGET register values.
-
-Add aplic_is_direct_mode() mode helper, aplic_hwirq_flags_to_sourcecfg()
-to map generic hwirq flags to APLIC source modes, aplic_hwirq_is_delegated()
-to detect S-mode delegated sources, aplic_find_idc_index() to map a
-hart index to its IDC slot, and aplic_first_target_hart() to select
-the first available IDC hart for initial interrupt targeting.
-
-Implement the full sbi_irqchip callback set for direct (IDC) mode:
-- warm_init: enables IDC interrupt delivery and threshold per hart
-- process_hwirqs: reads TOPI and dispatches via sbi_irqchip_process_hwirq,
-  skipping delegated sources
-- hwirq_setup: programs sourcecfg from hwirq_flags and sets the TARGET
-  register to the first available IDC hart
-- hwirq_cleanup: clears IE, IP, sourcecfg, and TARGET on teardown
-- hwirq_eoi: reads CLAIMI to acknowledge the interrupt on the IDC
-- hwirq_set_affinity: reprograms TARGET to the specified hart index
-- hwirq_mask/unmask: clears/sets IE via CLRIENUM/SETIENUM
-
-Register the irqchip device and populate target_harts from idc_map
-only when targets_mmode is set in aplic_cold_irqchip_init().
-
-Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
-Co-developed-by and Signed-off-by "Raymond Mao <raymond.mao@riscstar.com>"
----
- lib/utils/irqchip/aplic.c | 332 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 295 insertions(+), 37 deletions(-)
-
-diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
-index 6c63620e..efc25555 100644
---- a/lib/utils/irqchip/aplic.c
-+++ b/lib/utils/irqchip/aplic.c
-@@ -70,6 +70,10 @@
- 	(APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) << \
- 	 APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs))
- 
-+#define APLIC_TARGET_GUEST_IDX(__gidx) \
-+	((((u32)(__gidx)) & APLIC_TARGET_GUEST_IDX_MASK) << \
-+	 APLIC_TARGET_GUEST_IDX_SHIFT)
-+
- #define APLIC_SETIP_BASE		0x1c00
- #define APLIC_SETIPNUM			0x1cdc
- 
-@@ -93,6 +97,12 @@
- #define APLIC_TARGET_IPRIO_MASK	0xff
- #define APLIC_TARGET_EIID_MASK	0x7ff
- 
-+#define APLIC_TARGET_HART_IDX(__hidx) \
-+	((((u32)(__hidx)) & APLIC_TARGET_HART_IDX_MASK) << \
-+	 APLIC_TARGET_HART_IDX_SHIFT)
-+#define APLIC_TARGET_IPRIO(__prio) \
-+	(((u32)(__prio)) & APLIC_TARGET_IPRIO_MASK)
-+
- #define APLIC_IDC_BASE			0x4000
- #define APLIC_IDC_SIZE			32
- 
-@@ -119,10 +129,104 @@ static SBI_LIST_HEAD(aplic_list);
- static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
- 				void *msicfgaddr, void *msicfgaddrH);
- 
-+static inline bool aplic_is_direct_mode(struct aplic_data *aplic)
-+{
-+	return aplic && aplic->num_idc;
-+}
-+
-+static inline void aplic_sourcecfg_write(struct aplic_data *aplic,
-+					 u32 hwirq, u32 val)
-+{
-+	writel(val, (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
-+			     (hwirq - 1) * sizeof(u32)));
-+}
-+
-+static inline u32 aplic_sourcecfg_read(struct aplic_data *aplic, u32 hwirq)
-+{
-+	return readl((void *)(aplic->addr + APLIC_SOURCECFG_BASE +
-+			      (hwirq - 1) * sizeof(u32)));
-+}
-+
-+static inline void aplic_target_write(struct aplic_data *aplic,
-+				      u32 hwirq, u32 val)
-+{
-+	writel(val, (void *)(aplic->addr + APLIC_TARGET_BASE +
-+			     (hwirq - 1) * sizeof(u32)));
-+}
-+
-+static inline void aplic_irq_setie(struct aplic_data *aplic, u32 hwirq)
-+{
-+	writel(hwirq, (void *)(aplic->addr + APLIC_SETIENUM));
-+}
-+
-+static inline void aplic_irq_clrie(struct aplic_data *aplic, u32 hwirq)
-+{
-+	writel(hwirq, (void *)(aplic->addr + APLIC_CLRIENUM));
-+}
-+
-+static inline void aplic_irq_clrip(struct aplic_data *aplic, u32 hwirq)
-+{
-+	writel(hwirq, (void *)(aplic->addr + APLIC_CLRIPNUM));
-+}
-+
-+static inline void *aplic_idc_base(struct aplic_data *aplic, u32 idc_index)
-+{
-+	return (void *)(aplic->addr + APLIC_IDC_BASE +
-+			idc_index * APLIC_IDC_SIZE);
-+}
-+
-+static inline u32 aplic_idc_read(struct aplic_data *aplic, u32 idc_index,
-+				 u32 reg)
-+{
-+	return readl(aplic_idc_base(aplic, idc_index) + reg);
-+}
-+
-+static inline void aplic_idc_write(struct aplic_data *aplic, u32 idc_index,
-+				   u32 reg, u32 val)
-+{
-+	writel(val, aplic_idc_base(aplic, idc_index) + reg);
-+}
-+
-+static u32 aplic_hwirq_flags_to_sourcecfg(u32 hwirq_flags)
-+{
-+	switch (hwirq_flags & SBI_HWIRQ_FLAGS_LEVEL_SENSE_MASK) {
-+	case SBI_HWIRQ_FLAGS_EDGE_RISING:
-+		return APLIC_SOURCECFG_SM_EDGE_RISE;
-+	case SBI_HWIRQ_FLAGS_EDGE_FALLING:
-+		return APLIC_SOURCECFG_SM_EDGE_FALL;
-+	case SBI_HWIRQ_FLAGS_LEVEL_HIGH:
-+		return APLIC_SOURCECFG_SM_LEVEL_HIGH;
-+	case SBI_HWIRQ_FLAGS_LEVEL_LOW:
-+		return APLIC_SOURCECFG_SM_LEVEL_LOW;
-+	default:
-+		return APLIC_SOURCECFG_SM_INACTIVE;
-+	}
-+}
-+
-+static bool aplic_hwirq_is_delegated(struct aplic_data *aplic, u32 hwirq)
-+{
-+	u32 sourcecfg;
-+
-+	sourcecfg = aplic_sourcecfg_read(aplic, hwirq);
-+	return !!(sourcecfg & APLIC_SOURCECFG_D);
-+}
-+
-+static int aplic_find_idc_index(struct aplic_data *aplic, u32 hart_index)
-+{
-+	u32 i;
-+
-+	for (i = 0; i < aplic->num_idc; i++) {
-+		if (aplic->idc_map[i] == hart_index)
-+			return i;
-+	}
-+
-+	return SBI_ENOENT;
-+}
-+
- static void aplic_init(struct aplic_data *aplic)
- {
- 	struct aplic_delegate_data *deleg;
--	u32 i, j, tmp;
-+	u32 i, j, tmp, domaincfg;
- 	int locked;
- 
- 	/* Set domain configuration to 0 */
-@@ -160,35 +264,36 @@ static void aplic_init(struct aplic_data *aplic)
- 			deleg->last_irq = tmp;
- 		}
- 		for (j = deleg->first_irq; j <= deleg->last_irq; j++)
--			writel(APLIC_SOURCECFG_D | deleg->child_index,
--			       (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
--			       (j - 1) * sizeof(u32)));
-+			aplic_sourcecfg_write(aplic, j, APLIC_SOURCECFG_D | deleg->child_index);
- 	}
- 
- 	/* Default initialization of IDC structures */
--	for (i = 0; i < aplic->num_idc; i++) {
--		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
--				   i * APLIC_IDC_SIZE + APLIC_IDC_IDELIVERY));
--		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
--				   i * APLIC_IDC_SIZE + APLIC_IDC_IFORCE));
--		writel(APLIC_DISABLE_ITHRESHOLD, (void *)(aplic->addr +
--						  APLIC_IDC_BASE +
--						  (i * APLIC_IDC_SIZE) +
--						  APLIC_IDC_ITHRESHOLD));
-+	if (aplic_is_direct_mode(aplic)) {
-+		for (i = 0; i < aplic->num_idc; i++) {
-+			aplic_idc_write(aplic, i, APLIC_IDC_IDELIVERY,
-+					APLIC_DISABLE_IDELIVERY);
-+			aplic_idc_write(aplic, i, APLIC_IDC_IFORCE, 0);
-+			aplic_idc_write(aplic, i, APLIC_IDC_ITHRESHOLD,
-+					APLIC_DISABLE_ITHRESHOLD);
-+		}
-+	} else {
-+		/* MSI configuration */
-+		locked = readl((void *)(aplic->addr + APLIC_MMSICFGADDRH)) & APLIC_xMSICFGADDRH_L;
-+		if (aplic->targets_mmode && aplic->has_msicfg_mmode && !locked) {
-+			aplic_writel_msicfg(&aplic->msicfg_mmode,
-+						(void *)(aplic->addr + APLIC_MMSICFGADDR),
-+						(void *)(aplic->addr + APLIC_MMSICFGADDRH));
-+		}
-+		if (aplic->targets_mmode && aplic->has_msicfg_smode && !locked) {
-+			aplic_writel_msicfg(&aplic->msicfg_smode,
-+						(void *)(aplic->addr + APLIC_SMSICFGADDR),
-+						(void *)(aplic->addr + APLIC_SMSICFGADDRH));
-+		}
- 	}
- 
--	/* MSI configuration */
--	locked = readl((void *)(aplic->addr + APLIC_MMSICFGADDRH)) & APLIC_xMSICFGADDRH_L;
--	if (aplic->targets_mmode && aplic->has_msicfg_mmode && !locked) {
--		aplic_writel_msicfg(&aplic->msicfg_mmode,
--				    (void *)(aplic->addr + APLIC_MMSICFGADDR),
--				    (void *)(aplic->addr + APLIC_MMSICFGADDRH));
--	}
--	if (aplic->targets_mmode && aplic->has_msicfg_smode && !locked) {
--		aplic_writel_msicfg(&aplic->msicfg_smode,
--				    (void *)(aplic->addr + APLIC_SMSICFGADDR),
--				    (void *)(aplic->addr + APLIC_SMSICFGADDRH));
--	}
-+	domaincfg = APLIC_DOMAINCFG_IE;
-+
-+	writel(domaincfg, (void *)(aplic->addr + APLIC_DOMAINCFG));
- }
- 
- void aplic_reinit_all(void)
-@@ -245,6 +350,154 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
- 	return 0;
- }
- 
-+static int aplic_warm_init(struct sbi_irqchip_device *chip)
-+{
-+	struct aplic_data *aplic;
-+	u32 hart_index;
-+	int idc_index;
-+
-+	aplic = container_of(chip, struct aplic_data, irqchip);
-+
-+	hart_index = current_hartindex();
-+	idc_index  = aplic_find_idc_index(aplic, hart_index);
-+	if (idc_index < 0)
-+		return 0;
-+
-+	aplic_idc_write(aplic, idc_index, APLIC_IDC_ITHRESHOLD,
-+			APLIC_ENABLE_ITHRESHOLD);
-+	aplic_idc_write(aplic, idc_index, APLIC_IDC_IDELIVERY,
-+			APLIC_ENABLE_IDELIVERY);
-+
-+	return 0;
-+}
-+
-+static int aplic_process_hwirqs(struct sbi_irqchip_device *chip)
-+{
-+    struct aplic_data *aplic;
-+    u32 hart_index, claimi, hwirq;
-+    int idc_index, rc = 0, tmp;
-+
-+    aplic = container_of(chip, struct aplic_data, irqchip);
-+
-+    hart_index = current_hartindex();
-+    idc_index  = aplic_find_idc_index(aplic, hart_index);
-+    if (idc_index < 0)
-+        return 0;
-+
-+    while ((claimi = aplic_idc_read(aplic, idc_index, APLIC_IDC_CLAIMI))) {
-+        hwirq = (claimi >> APLIC_IDC_TOPI_ID_SHIFT) &
-+                 APLIC_IDC_TOPI_ID_MASK;
-+
-+        if (!hwirq)
-+            break;
-+
-+        if (aplic_hwirq_is_delegated(aplic, hwirq))
-+            continue;
-+
-+        tmp = sbi_irqchip_process_hwirq(chip, hwirq);
-+        if (tmp)
-+            rc = tmp;
-+    }
-+
-+    return rc;
-+}
-+
-+static int aplic_hwirq_setup(struct sbi_irqchip_device *chip,
-+			     u32 hwirq, u32 hwirq_flags)
-+{
-+	struct aplic_data *aplic;
-+	u32 sourcecfg;	
-+
-+	aplic = container_of(chip, struct aplic_data, irqchip);
-+
-+	sourcecfg = aplic_hwirq_flags_to_sourcecfg(hwirq_flags);
-+	if (sourcecfg == APLIC_SOURCECFG_SM_INACTIVE) {
-+		sbi_printf("aplic_hwirq_setup: unsupported flags=0x%lx hwirq=%lu\n",
-+			   (unsigned long)hwirq_flags,
-+			   (unsigned long)hwirq);
-+		return SBI_EINVAL;
-+	}
-+	aplic_sourcecfg_write(aplic, hwirq, sourcecfg);
-+
-+	if (aplic_hwirq_is_delegated(aplic, hwirq)) {
-+		sbi_printf("aplic_hwirq_setup: hwirq=%lu is delegated\n",
-+			   (unsigned long)hwirq);
-+		return SBI_ENOTSUPP;
-+	}
-+
-+	aplic_irq_clrie(aplic, hwirq);
-+	aplic_irq_clrip(aplic, hwirq);
-+
-+	return 0;
-+}
-+
-+static void aplic_hwirq_cleanup(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct aplic_data *aplic;
-+
-+	aplic = container_of(chip, struct aplic_data, irqchip);
-+	if (aplic_hwirq_is_delegated(aplic, hwirq))
-+		return;
-+
-+	aplic_irq_clrie(aplic, hwirq);
-+	aplic_irq_clrip(aplic, hwirq);
-+	aplic_sourcecfg_write(aplic, hwirq, APLIC_SOURCECFG_SM_INACTIVE);
-+	aplic_target_write(aplic, hwirq, APLIC_DEFAULT_PRIORITY);
-+}
-+
-+static int aplic_hwirq_set_affinity(struct sbi_irqchip_device *chip,
-+				    u32 hwirq, u32 hart_index)
-+{
-+	struct aplic_data *aplic;
-+	int idc_index;
-+
-+	aplic = container_of(chip, struct aplic_data, irqchip);
-+	if (aplic_hwirq_is_delegated(aplic, hwirq))
-+		return SBI_ENOTSUPP;
-+
-+	idc_index = aplic_find_idc_index(aplic, hart_index);
-+	if (idc_index < 0)
-+		return SBI_EINVAL;
-+
-+	aplic_target_write(aplic, hwirq,
-+			   APLIC_TARGET_HART_IDX(hart_index) |
-+			   APLIC_TARGET_IPRIO(APLIC_DEFAULT_PRIORITY));
-+
-+	return 0;
-+}
-+
-+static void aplic_hwirq_mask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct aplic_data *aplic;
-+
-+	aplic = container_of(chip, struct aplic_data, irqchip);
-+	if (aplic_hwirq_is_delegated(aplic, hwirq))
-+		return;
-+
-+	aplic_irq_clrie(aplic, hwirq);
-+}
-+
-+static void aplic_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct aplic_data *aplic;
-+
-+	aplic = container_of(chip, struct aplic_data, irqchip);
-+	if (aplic_hwirq_is_delegated(aplic, hwirq))
-+		return;
-+
-+	aplic_irq_setie(aplic, hwirq);
-+}
-+
-+static struct sbi_irqchip_device aplic_irqchip_template = {
-+	.warm_init		= aplic_warm_init,
-+	.process_hwirqs		= aplic_process_hwirqs,
-+	.hwirq_setup		= aplic_hwirq_setup,
-+	.hwirq_cleanup		= aplic_hwirq_cleanup,
-+	.hwirq_set_affinity	= aplic_hwirq_set_affinity,
-+	.hwirq_mask		= aplic_hwirq_mask,
-+	.hwirq_unmask		= aplic_hwirq_unmask,
-+};
-+
- int aplic_cold_irqchip_init(struct aplic_data *aplic)
- {
- 	int rc;
-@@ -297,22 +550,27 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
- 			return rc;
- 	}
- 
--	if (aplic->num_idc) {
-+	if ((aplic->targets_mmode) && aplic_is_direct_mode(aplic)) {
-+		aplic->irqchip		 = aplic_irqchip_template;
-+		aplic->irqchip.id	 = aplic->unique_id;
-+		aplic->irqchip.caps = SBI_IRQCHIP_CAPS_WIRED;
-+		aplic->irqchip.num_hwirq = aplic->num_source + 1;
-+
- 		for (i = 0; i < aplic->num_idc; i++)
- 			sbi_hartmask_set_hartindex(aplic->idc_map[i],
- 						   &aplic->irqchip.target_harts);
--	} else {
--		sbi_hartmask_set_all(&aplic->irqchip.target_harts);
--	}
--
--	/* Register irqchip device */
--	aplic->irqchip.id = aplic->unique_id;
--	aplic->irqchip.caps = SBI_IRQCHIP_CAPS_WIRED;
--	aplic->irqchip.num_hwirq = aplic->num_source + 1;
--	rc = sbi_irqchip_add_device(&aplic->irqchip);
--	if (rc)
--		return rc;
- 
-+		rc = sbi_irqchip_add_device(&aplic->irqchip);
-+		if (rc) {
-+			sbi_printf("aplic_cold_irqchip_init: sbi_irqchip_add_device failed rc=%d id=%lu mode=%s target_weight=%lu\n",
-+				rc,
-+				(unsigned long)aplic->irqchip.id,
-+				"direct",
-+				(unsigned long)sbi_hartmask_weight(
-+					&aplic->irqchip.target_harts));
-+			return rc;
-+		}
-+	}
- 	/* Attach to the aplic list */
- 	sbi_list_add_tail(&aplic->node, &aplic_list);
- 
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gRnJpLCBKdW4gMjYsIDIwMjYgYXQgMzoxNuKAr0FNIFl1LUNoaWVuIFBldGVyIExpbiA8cGV0
+ZXIubGluQHNpZml2ZS5jb20+IHdyb3RlOgo+Cj4gQWRkIGRldGVjdGlvbiBmb3IgUklTQy1WIFdv
+cmxkcyBJU0EgZXh0ZW5zaW9ucyAoU213aWQsIFNtbHdpZCwKPiBTbWx3aWRsaXN0LCBTbXdpZGRl
+bGVnLCBTc3dpZCkgdmlhIElTQSBzdHJpbmcgZGV0ZWN0aW9uIGFuZAo+IENTUiBwcm9iZXMuCj4K
+PiBUaGVzZSBmZWF0dXJlIGZsYWdzIGVuYWJsZSBzdWJzZXF1ZW50IHBhdGNoZXMgdG8gY29uZGl0
+aW9uYWxseQo+IGNvbmZpZ3VyZSBXb3JsZCBJRCBDU1JzIGFuZCBwcmludCBib290LXRpbWUgV29y
+bGRzIHN0YXR1cy4KPgo+IFNpZ25lZC1vZmYtYnk6IFl1LUNoaWVuIFBldGVyIExpbiA8cGV0ZXIu
+bGluQHNpZml2ZS5jb20+Cj4gLS0tCj4gIGluY2x1ZGUvc2JpL3Jpc2N2X2VuY29kaW5nLmggfCAx
+MiArKysrKysrKysKPiAgaW5jbHVkZS9zYmkvc2JpX2hhcnQuaCAgICAgICB8IDEwICsrKysrKysK
+PiAgbGliL3NiaS9zYmlfaGFydC5jICAgICAgICAgICB8IDUxICsrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKwo+ICAzIGZpbGVzIGNoYW5nZWQsIDczIGluc2VydGlvbnMoKykKPgo+
+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3NiaS9yaXNjdl9lbmNvZGluZy5oIGIvaW5jbHVkZS9zYmkv
+cmlzY3ZfZW5jb2RpbmcuaAo+IGluZGV4IGZmZTc2NjZjLi4yNzE4MjBmZCAxMDA2NDQKPiAtLS0g
+YS9pbmNsdWRlL3NiaS9yaXNjdl9lbmNvZGluZy5oCj4gKysrIGIvaW5jbHVkZS9zYmkvcmlzY3Zf
+ZW5jb2RpbmcuaAo+IEBAIC00MDAsNiArNDAwLDkgQEAKPiAgLyogU3VwZXJ2aXNvciBSZXNvdXJj
+ZSBNYW5hZ2VtZW50IENvbmZpZ3VyYXRpb24gQ1NScyAqLwo+ICAjZGVmaW5lIENTUl9TUk1DRkcg
+ICAgICAgICAgICAgICAgICAgICAweDE4MQo+Cj4gKy8qIFN1cGVydmlzb3IgV29ybGQtSUQgQ1NS
+IChTc3dpZCkgKi8KPiArI2RlZmluZSBDU1JfU0xXSUQgICAgICAgICAgICAgICAgICAgICAgMHgx
+OTAKT3phOiBNaXNsZWFkaW5nIGNvbW1lbnQgLQpzaG91bGQgYmUKU3VwZXJ2aXNvciBXSUQgdmFs
+dWUgZm9yIGxvd2VyIHByaXZpbGVnZSBtb2RlcyBSZWdpc3Rlcgo+ICsKPiAgLyogTWFjaGluZS1M
+ZXZlbCBDb250cm9sIHRyYW5zZmVyIHJlY29yZHMgQ1NScyAqLwo+ICAjZGVmaW5lIENTUl9NQ1RS
+Q1RMICAgICAgICAgICAgICAgICAgICAgMHgzNGUKPgo+IEBAIC01MjAsNiArNTIzLDE1IEBACj4g
+ICNkZWZpbmUgQ1NSX01USU5TVCAgICAgICAgICAgICAgICAgICAgIDB4MzRhCj4gICNkZWZpbmUg
+Q1NSX01UVkFMMiAgICAgICAgICAgICAgICAgICAgIDB4MzRiCj4KPiArLyogTWFjaGluZSBXb3Js
+ZC1JRCBDU1JzIChTbXdpZCwgU21sd2lkLCBTbWx3aWRsaXN0LCBTbXdpZGRlbGVnKSAqLwo+ICsj
+ZGVmaW5lIENTUl9NTFdJRCAgICAgICAgICAgICAgICAgICAgICAweDM5MAo+ICsjZGVmaW5lIENT
+Ul9NV0lEICAgICAgICAgICAgICAgICAgICAgICAweDM5MQo+ICsjZGVmaW5lIENTUl9NV0lEREVM
+RUcgICAgICAgICAgICAgICAgICAweDc0OAo+ICsjZGVmaW5lIENTUl9NTFdJRExJU1QgICAgICAg
+ICAgICAgICAgICAweDc0OQo+ICsKPiArLyogbXdpZCBsb2NrIGJpdCAqLwo+ICsjZGVmaW5lIE1X
+SURfTE9DSyAgICAgICAgICAgICAgICAgICAgICAoX1VMKDEpIDw8IChfX3Jpc2N2X3hsZW4gLSAx
+KSkKPiArCj4gIC8qIE1hY2hpbmUgTWVtb3J5IFByb3RlY3Rpb24gKi8KPiAgI2RlZmluZSBDU1Jf
+UE1QQ0ZHMCAgICAgICAgICAgICAgICAgICAgMHgzYTAKPiAgI2RlZmluZSBDU1JfUE1QQ0ZHMSAg
+ICAgICAgICAgICAgICAgICAgMHgzYTEKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9zYmkvc2JpX2hh
+cnQuaCBiL2luY2x1ZGUvc2JpL3NiaV9oYXJ0LmgKPiBpbmRleCA1NDMzOTNiYi4uMjk0MTgwOWUg
+MTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9zYmkvc2JpX2hhcnQuaAo+ICsrKyBiL2luY2x1ZGUvc2Jp
+L3NiaV9oYXJ0LmgKPiBAQCAtOTUsNiArOTUsMTYgQEAgZW51bSBzYmlfaGFydF9leHRlbnNpb25z
+IHsKPiAgICAgICAgIFNCSV9IQVJUX0VYVF9GLAo+ICAgICAgICAgLyoqIEhhcnQgaGFzIEQgZXh0
+ZW5zaW9uICovCj4gICAgICAgICBTQklfSEFSVF9FWFRfRCwKPiArICAgICAgIC8qKiBIYXJ0IGhh
+cyBTbXdpZCBleHRlbnNpb24gKi8KPiArICAgICAgIFNCSV9IQVJUX0VYVF9TTVdJRCwKPiArICAg
+ICAgIC8qKiBIYXJ0IGhhcyBTbWx3aWQgZXh0ZW5zaW9uICovCj4gKyAgICAgICBTQklfSEFSVF9F
+WFRfU01MV0lELAo+ICsgICAgICAgLyoqIEhhcnQgaGFzIFNtbHdpZGxpc3QgZXh0ZW5zaW9uICov
+Cj4gKyAgICAgICBTQklfSEFSVF9FWFRfU01MV0lETElTVCwKPiArICAgICAgIC8qKiBIYXJ0IGhh
+cyBTbXdpZGRlbGVnIGV4dGVuc2lvbiAqLwo+ICsgICAgICAgU0JJX0hBUlRfRVhUX1NNV0lEREVM
+RUcsCj4gKyAgICAgICAvKiogSGFydCBoYXMgU3N3aWQgZXh0ZW5zaW9uICovCj4gKyAgICAgICBT
+QklfSEFSVF9FWFRfU1NXSUQsCj4KPiAgICAgICAgIC8qKiBNYXhpbXVtIGluZGV4IG9mIEhhcnQg
+ZXh0ZW5zaW9uICovCj4gICAgICAgICBTQklfSEFSVF9FWFRfTUFYLAo+IGRpZmYgLS1naXQgYS9s
+aWIvc2JpL3NiaV9oYXJ0LmMgYi9saWIvc2JpL3NiaV9oYXJ0LmMKPiBpbmRleCAyMTcxMzgxNi4u
+MGM1ODRiZmMgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9zYmlfaGFydC5jCj4gKysrIGIvbGliL3Ni
+aS9zYmlfaGFydC5jCj4gQEAgLTQwMiw2ICs0MDIsMTEgQEAgY29uc3Qgc3RydWN0IHNiaV9oYXJ0
+X2V4dF9kYXRhIHNiaV9oYXJ0X2V4dFtdID0gewo+ICAgICAgICAgX19TQklfSEFSVF9FWFRfREFU
+QSh2LCBTQklfSEFSVF9FWFRfViksCj4gICAgICAgICBfX1NCSV9IQVJUX0VYVF9EQVRBKGYsIFNC
+SV9IQVJUX0VYVF9GKSwKPiAgICAgICAgIF9fU0JJX0hBUlRfRVhUX0RBVEEoZCwgU0JJX0hBUlRf
+RVhUX0QpLAo+ICsgICAgICAgX19TQklfSEFSVF9FWFRfREFUQShzbXdpZCwgU0JJX0hBUlRfRVhU
+X1NNV0lEKSwKPiArICAgICAgIF9fU0JJX0hBUlRfRVhUX0RBVEEoc21sd2lkLCBTQklfSEFSVF9F
+WFRfU01MV0lEKSwKPiArICAgICAgIF9fU0JJX0hBUlRfRVhUX0RBVEEoc21sd2lkbGlzdCwgU0JJ
+X0hBUlRfRVhUX1NNTFdJRExJU1QpLAo+ICsgICAgICAgX19TQklfSEFSVF9FWFRfREFUQShzbXdp
+ZGRlbGVnLCBTQklfSEFSVF9FWFRfU01XSURERUxFRyksCj4gKyAgICAgICBfX1NCSV9IQVJUX0VY
+VF9EQVRBKHNzd2lkLCBTQklfSEFSVF9FWFRfU1NXSUQpLAo+ICB9Owo+Cj4gIF9TdGF0aWNfYXNz
+ZXJ0KFNCSV9IQVJUX0VYVF9NQVggPT0gYXJyYXlfc2l6ZShzYmlfaGFydF9leHQpLAo+IEBAIC02
+ODksNiArNjk0LDUyIEBAIF9fcG1wX3NraXA6Cj4gICAgICAgICAvKiBEZXRlY3QgaWYgaGFydCBz
+dXBwb3J0IHNkdHJpZyAoZGVidWcgdHJpZ2dlcnMpICovCj4gICAgICAgICBfX2NoZWNrX2V4dF9j
+c3IoU0JJX0hBUlRfUFJJVl9WRVJfVU5LTk9XTiwKPiAgICAgICAgICAgICAgICAgICAgICAgICBD
+U1JfVFNFTEVDVCwgU0JJX0hBUlRfRVhUX1NEVFJJRyk7Cj4gKyAgICAgICAvKiBEZXRlY3QgaWYg
+aGFydCBzdXBwb3J0cyBTbXdpZCAobXdpZCBDU1IpICovCj4gKyAgICAgICBfX2NoZWNrX2V4dF9j
+c3IoU0JJX0hBUlRfUFJJVl9WRVJfVU5LTk9XTiwKPiArICAgICAgICAgICAgICAgICAgICAgICBD
+U1JfTVdJRCwgU0JJX0hBUlRfRVhUX1NNV0lEKTsKPiArICAgICAgIC8qIERldGVjdCBpZiBoYXJ0
+IHN1cHBvcnRzIFNtbHdpZCAobWx3aWQgQ1NSKSAqLwo+ICsgICAgICAgX19jaGVja19leHRfY3Ny
+KFNCSV9IQVJUX1BSSVZfVkVSX1VOS05PV04sCj4gKyAgICAgICAgICAgICAgICAgICAgICAgQ1NS
+X01MV0lELCBTQklfSEFSVF9FWFRfU01MV0lEKTsKPiArICAgICAgIC8qIERldGVjdCBpZiBoYXJ0
+IHN1cHBvcnRzIFNtbHdpZGxpc3QgKG1sd2lkbGlzdCBDU1IpLiAqLwo+ICsgICAgICAgX19jaGVj
+a19leHRfY3NyKFNCSV9IQVJUX1BSSVZfVkVSX1VOS05PV04sCj4gKyAgICAgICAgICAgICAgICAg
+ICAgICAgQ1NSX01MV0lETElTVCwgU0JJX0hBUlRfRVhUX1NNTFdJRExJU1QpOwo+ICsgICAgICAg
+LyoKPiArICAgICAgICAqIERldGVjdCBpZiBoYXJ0IHN1cHBvcnRzIFNtd2lkZGVsZWcgJiBTc3dp
+ZC4KPiArICAgICAgICAqIFNtd2lkZGVsZWcgcmVxdWlyZXMgU21sd2lkLiBTc3dpZCByZXF1aXJl
+cyBTbXdpZGRlbGVnLgo+ICsgICAgICAgICovCj4gKyAgICAgICBpZiAoc2JpX2hhcnRfaGFzX2V4
+dGVuc2lvbihzY3JhdGNoLCBTQklfSEFSVF9FWFRfU01MV0lEKSkgewo+ICsgICAgICAgICAgICAg
+ICB1bnNpZ25lZCBsb25nIG9sZF9td2lkZGVsZWcsIG5ld19td2lkZGVsZWc7Cj4gKwo+ICsgICAg
+ICAgICAgICAgICBvbGRfbXdpZGRlbGVnID0gY3NyX3JlYWRfYWxsb3dlZChDU1JfTVdJRERFTEVH
+LCAmdHJhcCk7Ck96YTogd2h5IG5vdCB1c2UgX19jaGVja19leHRfY3NyIGF0IGFsbCB0aGUgZm9s
+bG93aW5nID8KPiArICAgICAgICAgICAgICAgaWYgKHRyYXAuY2F1c2UpCj4gKyAgICAgICAgICAg
+ICAgICAgICAgICAgZ290byBza2lwX3Ntd2lkZGVsZWc7Cj4gKwo+ICsgICAgICAgICAgICAgICBj
+c3Jfd3JpdGVfYWxsb3dlZChDU1JfTVdJRERFTEVHLCAmdHJhcCwgfjBVTCk7Cj4gKyAgICAgICAg
+ICAgICAgIGlmICh0cmFwLmNhdXNlKQo+ICsgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gc2tp
+cF9zbXdpZGRlbGVnOwo+ICsKPiArICAgICAgICAgICAgICAgbmV3X213aWRkZWxlZyA9IGNzcl9y
+ZWFkX2FsbG93ZWQoQ1NSX01XSURERUxFRywgJnRyYXApOwo+ICsgICAgICAgICAgICAgICBpZiAo
+dHJhcC5jYXVzZSkgewo+ICsgICAgICAgICAgICAgICAgICAgICAgIGNzcl93cml0ZShDU1JfTVdJ
+RERFTEVHLCBvbGRfbXdpZGRlbGVnKTsKPiArICAgICAgICAgICAgICAgICAgICAgICBnb3RvIHNr
+aXBfc213aWRkZWxlZzsKPiArICAgICAgICAgICAgICAgfQo+ICsKPiArICAgICAgICAgICAgICAg
+aWYgKG5ld19td2lkZGVsZWcpIHsKPiArICAgICAgICAgICAgICAgICAgICAgICBfX3NiaV9oYXJ0
+X3VwZGF0ZV9leHRlbnNpb24oaGZlYXR1cmVzLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICBTQklfSEFSVF9FWFRfU01XSURERUxFRywgdHJ1ZSk7
+Cj4gKwo+ICsgICAgICAgICAgICAgICAgICAgICAgIGNzcl9yZWFkX2FsbG93ZWQoQ1NSX1NMV0lE
+LCAmdHJhcCk7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgaWYgKCF0cmFwLmNhdXNlKSB7Cj4g
+KyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBfX3NiaV9oYXJ0X3VwZGF0ZV9leHRlbnNp
+b24oaGZlYXR1cmVzLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIFNCSV9IQVJUX0VYVF9TU1dJRCwgdHJ1ZSk7Cj4gKyAgICAgICAg
+ICAgICAgICAgICAgICAgfQo+ICsgICAgICAgICAgICAgICB9Cj4gKwo+ICsgICAgICAgICAgICAg
+ICBjc3Jfd3JpdGUoQ1NSX01XSURERUxFRywgb2xkX213aWRkZWxlZyk7Cj4gKwo+ICtza2lwX3Nt
+d2lkZGVsZWc6Cj4gKyAgICAgICAgICAgICAgIDsKPiArICAgICAgIH0KPgo+ICAjdW5kZWYgX19j
+aGVja19leHRfY3NyCj4KPiAtLQo+IDIuNDMuNwo+Cj4KPiAtLQo+IG9wZW5zYmkgbWFpbGluZyBs
+aXN0Cj4gb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCj4gaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QK
+b3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
+aWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
