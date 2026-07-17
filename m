@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 82E04C44515
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 970D9C44514
 	for <opensbi@archiver.kernel.org>; Fri, 17 Jul 2026 07:44:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,97 +12,97 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=uPStx55c5sbGhpT0VmyE3tSnOeriqG0QCTCCj0mthAw=; b=ddVyq3j7iqCNVO
-	aq0s4BFACcDO1iMhRnVR/H2/Zu7qqQOtGXFR/7ORTayPoOitmGGyuyb/sjeE2PSJFs/p5YQAeDkel
-	uQ80/nj8o6FNShhepvtt/08Z/Y0lecpmN5l12Mn1NHZeL+JwaayHIycKjDSIGUrzyArSTeKjK3300
-	acyDqMN24GwdZeBEiTpkGs6ed+kZCvNnlHLt18nsixINRgny2C9+SKQWcQcsBETjDj5HD7Cmmvv/v
-	kmh2mohsjHDIkx6aQfTGO1KpriGV+x4WNOo3KquwmOpYiiBlxPetjCP6OyRRvOQ4DUE29vol0IuZC
-	xiyBxSWGPtY7m2J/rRsA==;
+	List-Owner; bh=17qKsCoPdktesgG5xMpyfKlhtK3kiuSVGgD2shD/Yds=; b=hIj9PHvtB5keaz
+	Rldh8u0rCw+a98wtqeEQLyZ2jBBmwoqwD/N5EJFxvj7jwXTSPWNAlQUb9vUaU7Wt0T+VZohQjl8Nq
+	gst90ZPcmwFGho7XE6aQ02ziMTs94w2x3FlJU3bU/8h7djGj4kEQzLjJcFD9XBryarqtOtNlLu+mj
+	S4c4WZpj5hylwmax/Ry7am0uWCyd17LUte/2TnJZ3DbZHMsbkWZhjz5urPoohD1qyV0Q2hR78BFI5
+	J02NHYGAz8xWq7ZwAczigAvWnLRawHxFFceLvxb9Ql1N4MwHREXEB28AqkCIEuhHeB+NjH35C8Sot
+	Z7bUxmavSNdXgKSrpexA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wkdFA-00000001Uem-2EAw;
-	Fri, 17 Jul 2026 07:44:24 +0000
+	id 1wkdFB-00000001UfB-2eh6;
+	Fri, 17 Jul 2026 07:44:25 +0000
 Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wkdF8-00000001Ud5-1oHq
+	id 1wkdF8-00000001Ud8-3IRY
 	for opensbi@lists.infradead.org;
-	Fri, 17 Jul 2026 07:44:23 +0000
-Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66H6cQa2951335;
-	Fri, 17 Jul 2026 07:44:18 GMT
+	Fri, 17 Jul 2026 07:44:24 +0000
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66H6cq5g1079303;
+	Fri, 17 Jul 2026 07:44:19 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=B1lzH1TWx0I
-	vdogr7nk+f7/U5uchfTdPNDBmcaoq0G8=; b=mW+TimeC+cZFUIkJkYktrIwqnfA
-	mwUd0+RytlW+Z7X71gEc3ak12Ll9bFfmb2QDJb/tYJbzR+BQWhPz7O0tB4TDL0Ki
-	IZSehLW1KCiXCFa79ufXoXoEAxfVi7SzaMb1YQM31V2/FD6GAuG1GJC3twpVzArk
-	GqOmqxRYyhZu8q9HDcG5I5cVSbz0tYtd6CVDQ+BQ6uf4LcjvhyZr6TbiQ2p2LjWL
-	Zjff1HELAHzCnIMMCyRCgOJhLYB/Ayjue/vj7qKh79BrnXBu+EgxK7k3wKahVWFG
-	y4vKMPimn04jlC34XxpVVmuVj/76knxeKnh6pVsbierMHONI62C6sUEY/wQ==
+	:mime-version:references:subject:to; s=qcppdkim1; bh=LHiJRjns4Di
+	uAe/FaUUocwfzMiSS0cMSNUw0DofZ52M=; b=A66Dpt4U6NybKFy0v8Erx0AKQEb
+	v61cw2XRHicxgQYpebdRoh7PbSn47GH5vrt4vhsrskBzbYl6eS62nTkKJxwDGlrn
+	04/hwXZXQeRSVPOOFgkCGLHbeDjeuiaDKHpjKSXpb1IIfMXj+vVz4c4fv4sAX3//
+	1ZLJrGEuh+YR86czWEriSr5V9wS67niTOLeszz/bWrSxCtv2IHzSkCjo4Ac55hvS
+	oPyPgmOSCRoWLOHS/BacRSEN+wi6i7jfuKgdswv1aolK/QCnnA+Z51ombVsmloGs
+	/7+Fx7AmG2aZHA1f3wnsXS774BleQQmzvzgO7/iHYTG+KfMzJH/htRb6WBw==
 Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ff2f2u563-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4feym1c11q-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Fri, 17 Jul 2026 07:44:18 +0000 (GMT)
 Received: from pps.filterd (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 66H7iEC2015891;
+	by APBLRPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 66H7iE04015893;
 	Fri, 17 Jul 2026 07:44:14 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4fbewm32q5-1
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4fbewm32q2-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Fri, 17 Jul 2026 07:44:14 +0000 (GMT)
 Received: from APBLRPPMTA01.qualcomm.com (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 66H7iE1e015863;
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 66H7iEdH015864;
 	Fri, 17 Jul 2026 07:44:14 GMT
 Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 66H7iEpG015858
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 66H7iEwa015862
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Fri, 17 Jul 2026 07:44:14 +0000 (GMT)
 Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id C6DE322C38; Fri, 17 Jul 2026 13:14:13 +0530 (+0530)
+	id BE89F22B8C; Fri, 17 Jul 2026 13:14:13 +0530 (+0530)
 From: Anup Patel <anup.patel@oss.qualcomm.com>
 To: Atish Patra <atish.patra@linux.dev>
 Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
         Samuel Holland <samuel.holland@sifive.com>,
         Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
         Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH 4/5] lib: sbi: Extend hart protection abstraction to allow ID configuration
-Date: Fri, 17 Jul 2026 13:14:12 +0530
-Message-ID: <20260717074413.2536416-5-anup.patel@oss.qualcomm.com>
+Subject: [PATCH 2/5] lib: sbi: Introduce sbi_hart_protection_reconfigure() function
+Date: Fri, 17 Jul 2026 13:14:10 +0530
+Message-ID: <20260717074413.2536416-3-anup.patel@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260717074413.2536416-1-anup.patel@oss.qualcomm.com>
 References: <20260717074413.2536416-1-anup.patel@oss.qualcomm.com>
 MIME-Version: 1.0
 X-QCInternal: smtphost
 X-QCInternal: smtphost
-X-Proofpoint-ORIG-GUID: HL3TMRl9bwGhJsueFUZF1dpe2QGcT4ne
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzE3MDA3NSBTYWx0ZWRfX5z7RWODvigzv
- igL3HI9SG6G8TizSzuQjwpmxNyf54s/+GRuHfLnwYg4b2UM5mLoBneZ614GtpXwkr5afwVA46jy
- Bkmkpiv/MoetJi17D1OUZvLLSAzDEMQ=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzE3MDA3NSBTYWx0ZWRfX4B5mkTjU3CRM
- KvZS6IGxrttbiZBrXxgmABxnH0XP/xNaDfAN8rouwMSWn3HmWLYGjbXGOiCaUg+xQjuc3wJ5I5O
- Q+GsBDwXETqVwO1jihuKAcDbmftHa1JfxciwoVHckTjC8KhAXZ2h/K88kOP7zXeS2hJtbzMTZvL
- vvgh9bYaBOvHHcYvrx+6MtREykKvKe9y0HsV/+nXLQxN/iBk4jltTK8qstnGWDP61+Q4bEsRfCf
- CceZfiLNT7gCm5P32SSjEjX4I3geIURjtds4ciK8F0rN8QyaTpNkYKeGEEdB7NALwHHaizBEsJl
- Y3T88vKTSf9PgHiGvfRoWEHrMfUuzaNto+GuemI3q43x6dAXJo1Dea3c0pqXGytcgbdlsC7gkP3
- etT/tCuCgwCv5XLYZhoPGwrMtc6e1kNWv7ZQxdlTJn7Xrws9r33cLxZzzEoKFGPtPLpLt5OwJig
- DZ8M7n1TCtku9EGNv0g==
-X-Authority-Analysis: v=2.4 cv=NcTWEWD4 c=1 sm=1 tr=0 ts=6a59dd52 cx=c_pps
+X-Authority-Analysis: v=2.4 cv=KPRqylFo c=1 sm=1 tr=0 ts=6a59dd52 cx=c_pps
  a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
  a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=rJkE3RaqiGZ5pbrm-msn:22 a=EUspDBNiAAAA:8 a=ZeB3pxtiXGfQFvdFbFsA:9
-X-Proofpoint-GUID: HL3TMRl9bwGhJsueFUZF1dpe2QGcT4ne
+ a=3WHJM1ZQz_JShphwDgj5:22 a=EUspDBNiAAAA:8 a=lEsuMq01qxSVSr6n3k4A:9
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzE3MDA3NSBTYWx0ZWRfXwquBdNy/cp2P
+ +oqCQfhv6xW5Q4Von6k2XU5NkJiYnFeCsCPBuYutvWCaDCpj1zJytthDwKA55WCL2tau8O5gQNr
+ RqsKeBsMjk98+Spbk04dGZun6MNRaLZNJBDxwUaZBnX9keR7mUuDjEyeGxKyqKdxxnS+IxxISdN
+ zJVq8Argfqd8hSfE2DmrbDgd8JmJmgzpJzxZnEJAxY4PwLebgRufywCTfHbaOKiHhs/1G+VyIAi
+ rXORiRn3npzLAvc35yToMiLkaANLgJMTZTdrBp389oc5o1TLzt+BqdD+28mF+knu2YYlHpWTH6E
+ /79UXY+aSHcA11fSwFuFdaQN2iXfZ5SymFfN7QiVgZ+KUOGe7+/BT6eTlJWZMJi/yeipA6BY+O1
+ CIe4IGIZ2xZ6g3ghEBtc53fgTxGayRniB5Or3NcSBdtRnRN54AvOeyKw4BM9BCOlO1aI5dp49iw
+ ecM4plnwxRyYnafzSqQ==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzE3MDA3NSBTYWx0ZWRfX55HGs4qct1YB
+ kq9BBZdpYGW+etN+aO/AGJ6SBxVo8Bl/uq3M7cArFigLPQOl0PAAyBBs9By1klGeIyI6QECdWpw
+ s+bLUq2dJTeqANNy8zoPkUj+XLFkISg=
+X-Proofpoint-GUID: d0QZKAaZlGGwHg2V5sxJcG5_-1iTQBO4
+X-Proofpoint-ORIG-GUID: d0QZKAaZlGGwHg2V5sxJcG5_-1iTQBO4
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-17_02,2026-07-15_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 malwarescore=0 priorityscore=1501 lowpriorityscore=0
- clxscore=1015 phishscore=0 bulkscore=0 spamscore=0 adultscore=0
- impostorscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ priorityscore=1501 lowpriorityscore=0 adultscore=0 impostorscore=0
+ clxscore=1015 malwarescore=0 bulkscore=0 spamscore=0 phishscore=0
+ suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
  route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
  definitions=main-2607170075
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260717_004422_590068_BACC82A1 
-X-CRM114-Status: GOOD (  20.16  )
+X-CRM114-CacheID: sfid-20260717_004422_940971_12A2D69C 
+X-CRM114-Status: GOOD (  14.77  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -119,248 +119,108 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-There are various ID configuration ISA extensions such as RISC-V Worlds,
-Supervisor domain ID, QoS ID, etc which need to be re-configured upon
-domain context switch on a hart. Extend hart protection abstraction to
-support both memory protection and ID configuration ISA extensions.
+Instead of assuming that hart protection reconfiguration is unconfigure
+followed by configure, introduce a separate sbi_hart_protection_reconfigure()
+function and use it in switch_to_next_domain_context().
 
 Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
 ---
- include/sbi/sbi_hart_protection.h | 16 +++++-
- lib/sbi/sbi_hart_pmp.c            |  2 +
- lib/sbi/sbi_hart_protection.c     | 94 ++++++++++++++++++++++++++-----
- lib/sbi/sbi_init.c                |  2 +-
- platform/generic/eswin/eic770x.c  |  1 +
- 5 files changed, 98 insertions(+), 17 deletions(-)
+ include/sbi/sbi_hart_protection.h |  7 +++++++
+ lib/sbi/sbi_domain_context.c      |  3 +--
+ lib/sbi/sbi_hart_protection.c     | 33 +++++++++++++++++++++++++------
+ 3 files changed, 35 insertions(+), 8 deletions(-)
 
 diff --git a/include/sbi/sbi_hart_protection.h b/include/sbi/sbi_hart_protection.h
-index 5e170f05..1358b5be 100644
+index d65f32ca..6698ceb0 100644
 --- a/include/sbi/sbi_hart_protection.h
 +++ b/include/sbi/sbi_hart_protection.h
-@@ -13,6 +13,13 @@
- struct sbi_scratch;
- struct sbi_domain;
- 
-+/** Different types of hart protection mechanisms */
-+enum sbi_hart_protection_type {
-+	SBI_HART_PROTECTION_TYPE_MEMORY = 0,
-+	SBI_HART_PROTECTION_TYPE_ID,
-+	SBI_HART_PROTECTIOn_TYPE_MAX
-+};
-+
- /** Representation of hart protection mechanism */
- struct sbi_hart_protection {
- 	/** List head */
-@@ -21,6 +28,9 @@ struct sbi_hart_protection {
- 	/** Name of the hart protection mechanism */
- 	char name[32];
- 
-+	/** Type of the hart protection mechanism */
-+	enum sbi_hart_protection_type type;
-+
- 	/** Ratings of the hart protection mechanism (higher is better) */
- 	unsigned long rating;
- 
-@@ -40,11 +50,11 @@ struct sbi_hart_protection {
- };
- 
- /**
-- * Get the best hart protection mechanism
-+ * Get the best hart memory protection mechanism
-  *
-- * @return pointer to best hart protection mechanism
-+ * @return pointer to best hart memory protection mechanism
+@@ -77,6 +77,13 @@ int sbi_hart_protection_configure(struct sbi_scratch *scratch);
   */
--struct sbi_hart_protection *sbi_hart_protection_best(void);
-+struct sbi_hart_protection *sbi_hart_memory_protection_best(void);
+ void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch);
  
++/**
++ * Re-configure protection for current HART
++ *
++ * @param scratch pointer to scratch space of current HART
++ */
++int sbi_hart_protection_reconfigure(struct sbi_scratch *scratch);
++
  /**
-  * Register a hart protection mechanism
-diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
-index 5ede3cc1..c0a4ce1b 100644
---- a/lib/sbi/sbi_hart_pmp.c
-+++ b/lib/sbi/sbi_hart_pmp.c
-@@ -425,6 +425,7 @@ static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch,
- static struct sbi_hart_protection pmp_protection = {
- 	.name = "pmp",
- 	.rating = 100,
-+	.type = SBI_HART_PROTECTION_TYPE_MEMORY,
- 	.configure = sbi_hart_oldpmp_configure,
- 	.unconfigure = sbi_hart_pmp_unconfigure,
- };
-@@ -432,6 +433,7 @@ static struct sbi_hart_protection pmp_protection = {
- static struct sbi_hart_protection epmp_protection = {
- 	.name = "epmp",
- 	.rating = 200,
-+	.type = SBI_HART_PROTECTION_TYPE_MEMORY,
- 	.configure = sbi_hart_smepmp_configure,
- 	.unconfigure = sbi_hart_pmp_unconfigure,
- 	.map_range = sbi_hart_smepmp_map_range,
+  * Create temporary mapping to access address range on current HART
+  *
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index cc4cc04d..7d9817d6 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -171,8 +171,7 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	 * is also required for some of the above CSR updates (such
+ 	 * as satp CSR).
+ 	 */
+-	sbi_hart_protection_unconfigure(scratch);
+-	sbi_hart_protection_configure(scratch);
++	sbi_hart_protection_reconfigure(scratch);
+ 
+ 	/* Mark current context structure initialized because context saved */
+ 	ctx->initialized = true;
 diff --git a/lib/sbi/sbi_hart_protection.c b/lib/sbi/sbi_hart_protection.c
-index fecefde8..d31e9938 100644
+index fbebfd1a..ed407ab7 100644
 --- a/lib/sbi/sbi_hart_protection.c
 +++ b/lib/sbi/sbi_hart_protection.c
-@@ -10,12 +10,16 @@
- 
- static SBI_LIST_HEAD(hart_protection_list);
- 
--struct sbi_hart_protection *sbi_hart_protection_best(void)
-+struct sbi_hart_protection *sbi_hart_memory_protection_best(void)
- {
--	if (sbi_list_empty(&hart_protection_list))
--		return NULL;
-+	struct sbi_hart_protection *pos;
- 
--	return sbi_list_first_entry(&hart_protection_list, struct sbi_hart_protection, head);
-+	sbi_list_for_each_entry(pos, &hart_protection_list, head) {
-+		if (pos->type == SBI_HART_PROTECTION_TYPE_MEMORY)
-+			return pos;
-+	}
-+
-+	return NULL;
+@@ -49,10 +49,9 @@ void sbi_hart_protection_unregister(struct sbi_hart_protection *hprot)
+ 	sbi_list_del(&hprot->head);
  }
  
- int sbi_hart_protection_register(struct sbi_hart_protection *hprot)
-@@ -74,33 +78,97 @@ static void __hart_protection_unconfigure(struct sbi_scratch *scratch,
- int sbi_hart_protection_configure(struct sbi_scratch *scratch,
- 				  struct sbi_domain *dom)
+-int sbi_hart_protection_configure(struct sbi_scratch *scratch)
++static int __hart_protection_configure(struct sbi_scratch *scratch,
++				       struct sbi_hart_protection *hprot)
  {
--	return __hart_protection_configure(scratch, sbi_hart_protection_best(), dom);
-+	bool do_configure, memory_protect_done = false;
-+	struct sbi_hart_protection *hprot;
+-	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
+-
+ 	if (!hprot)
+ 		return 0;
+ 	if (!hprot->configure)
+@@ -61,16 +60,38 @@ int sbi_hart_protection_configure(struct sbi_scratch *scratch)
+ 	return hprot->configure(scratch);
+ }
+ 
+-void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch)
++static void __hart_protection_unconfigure(struct sbi_scratch *scratch,
++					  struct sbi_hart_protection *hprot)
+ {
+-	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
+-
+ 	if (!hprot || !hprot->unconfigure)
+ 		return;
+ 
+ 	hprot->unconfigure(scratch);
+ }
+ 
++int sbi_hart_protection_configure(struct sbi_scratch *scratch)
++{
++	return __hart_protection_configure(scratch, sbi_hart_protection_best());
++}
++
++void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch)
++{
++	__hart_protection_unconfigure(scratch, sbi_hart_protection_best());
++}
++
++int sbi_hart_protection_reconfigure(struct sbi_scratch *scratch)
++{
++	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
 +	int ret;
 +
-+	sbi_list_for_each_entry(hprot, &hart_protection_list, head) {
-+		do_configure = false;
-+		switch (hprot->type) {
-+		case SBI_HART_PROTECTION_TYPE_MEMORY:
-+			do_configure = !memory_protect_done;
-+			memory_protect_done = true;
-+			break;
-+		case SBI_HART_PROTECTION_TYPE_ID:
-+			do_configure = true;
-+			break;
-+		default:
-+			break;
-+		}
-+		if (!do_configure)
-+			continue;
-+
-+		ret = __hart_protection_configure(scratch, hprot, dom);
-+		if (ret)
-+			return ret;
-+	}
++	__hart_protection_unconfigure(scratch, hprot);
++	ret = __hart_protection_configure(scratch, hprot);
++	if (ret)
++		return ret;
 +
 +	return 0;
- }
- 
- void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch,
- 				     struct sbi_domain *dom)
- {
--	__hart_protection_unconfigure(scratch, sbi_hart_protection_best(), dom);
++}
 +
-+	bool do_unconfigure, memory_protect_done = false;
-+	struct sbi_hart_protection *hprot;
-+
-+	sbi_list_for_each_entry(hprot, &hart_protection_list, head) {
-+		do_unconfigure = false;
-+		switch (hprot->type) {
-+		case SBI_HART_PROTECTION_TYPE_MEMORY:
-+			do_unconfigure = !memory_protect_done;
-+			memory_protect_done = true;
-+			break;
-+		case SBI_HART_PROTECTION_TYPE_ID:
-+			do_unconfigure = true;
-+			break;
-+		default:
-+			break;
-+		}
-+		if (!do_unconfigure)
-+			continue;
-+
-+		__hart_protection_unconfigure(scratch, hprot, dom);
-+	}
- }
- 
- int sbi_hart_protection_reconfigure(struct sbi_scratch *scratch,
- 				    struct sbi_domain *current_dom,
- 				    struct sbi_domain *next_dom)
- {
--	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+	bool do_reconfigure, memory_protect_done = false;
-+	struct sbi_hart_protection *hprot;
- 	int ret;
- 
--	__hart_protection_unconfigure(scratch, hprot, current_dom);
--	ret = __hart_protection_configure(scratch, hprot, next_dom);
--	if (ret)
--		return ret;
-+	sbi_list_for_each_entry(hprot, &hart_protection_list, head) {
-+		do_reconfigure = false;
-+		switch (hprot->type) {
-+		case SBI_HART_PROTECTION_TYPE_MEMORY:
-+			do_reconfigure = !memory_protect_done;
-+			memory_protect_done = true;
-+			break;
-+		case SBI_HART_PROTECTION_TYPE_ID:
-+			do_reconfigure = true;
-+			break;
-+		default:
-+			break;
-+		}
-+		if (!do_reconfigure)
-+			continue;
-+
-+		__hart_protection_unconfigure(scratch, hprot, current_dom);
-+		ret = __hart_protection_configure(scratch, hprot, next_dom);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	return 0;
- }
- 
  int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
  {
--	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+	struct sbi_hart_protection *hprot = sbi_hart_memory_protection_best();
- 
- 	if (!hprot || !hprot->map_range)
- 		return 0;
-@@ -110,7 +178,7 @@ int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
- 
- int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size)
- {
--	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
-+	struct sbi_hart_protection *hprot = sbi_hart_memory_protection_best();
- 
- 	if (!hprot || !hprot->unmap_range)
- 		return 0;
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index d74dc67c..3f1f136a 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -93,7 +93,7 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
- 	sbi_printf("Platform Features           : %s\n", str);
- 	sbi_printf("Platform HART Count         : %u\n",
- 		   sbi_platform_hart_count(plat));
--	hprot = sbi_hart_protection_best();
-+	hprot = sbi_hart_memory_protection_best();
- 	sbi_printf("Platform HART Protection    : %s\n",
- 		   (hprot) ? hprot->name : "---");
- 	idev = sbi_ipi_get_device();
-diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
-index da4d0e34..c71198a8 100644
---- a/platform/generic/eswin/eic770x.c
-+++ b/platform/generic/eswin/eic770x.c
-@@ -470,6 +470,7 @@ static void eswin_eic7700_pmp_unconfigure(struct sbi_scratch *scratch,
- static struct sbi_hart_protection eswin_eic7700_pmp_protection = {
- 	.name = "eic7700_pmp",
- 	.rating = -1UL,
-+	.type = SBI_HART_PROTECTION_TYPE_MEMORY,
- 	.configure = eswin_eic7700_pmp_configure,
- 	.unconfigure = eswin_eic7700_pmp_unconfigure,
- };
+ 	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
 -- 
 2.43.0
 
