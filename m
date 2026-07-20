@@ -4,101 +4,103 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 970B2C44531
-	for <opensbi@archiver.kernel.org>; Mon, 20 Jul 2026 21:08:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 50887C4452F
+	for <opensbi@archiver.kernel.org>; Mon, 20 Jul 2026 21:08:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=5/vF/H8rY1FiRDcY7bpDlDcZnocdJX5k9x02xJjrh+8=; b=wTJoHPpglqep7R
-	FQSUofInDIEw+9heORY6NKe/MjNru0l5f6LGzdmUNzcSikFg0wpBCe4KncDeIGedhrRMXOHI9nkS2
-	vZD0SoDAxFNVTf73aXichhgacFdzZgzZurnnKSL9PdVNWA0mAXBrOZjkjnZpN4xCpiyv49P1zXTUJ
-	qtQ5LolJtel1mSXv/nMB5S5X22qwMxpMtmDBfB/o6QjxFaZJw2bKgeadAoUpcL/NgO5AZ7q/SaXw6
-	H5mFg1q2Py3gkHeBN/3XuQu1NbgtU1oi3aTcR6cIZaxUAvYpWEfC72vo7q98KGtUEvoXpqSlyS2vD
-	2qnL2NhUc5X0VPDaw2YA==;
+	List-Owner; bh=RjjlWvt0GlQYRxUpyCYunyA5y3k/bAyKL/NkyVVW7BI=; b=QR4U7pE/1+EAbH
+	nCbr+pKuGcPULNBzcCM7NDjLD/8NXURub7D16uTvTRCAiFA5Cdbw8fyzlGDoCY9yfMpW8HboBAdtP
+	ktpRLOHIHzMRX/VA8Xb6Rpo6Q0OSyoICiwmI/SajDOhAqAziB7cSXgQH81Qe3nhmMRX4cuXoDJMq4
+	THcWqKScPBLebzapOxwV/ulGe2Ptl82TE16hSNsh0SC3zHVArd8+DpxbxetGXaCHsx1uX9dIb0kL6
+	mY11t0WDBI/B8+Ayf53/wxp15rvuAA27Zeb1GzR+ddsJBvrmfpSFYS1uNVfJkeN/bJqCpwQQhe/lU
+	Lnq7FXgfnPkRCrR9Bi/w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wlvDW-00000007uoE-3X7A;
-	Mon, 20 Jul 2026 21:08:02 +0000
-Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
+	id 1wlvDV-00000007unH-2Ofm;
+	Mon, 20 Jul 2026 21:08:01 +0000
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wlvDQ-00000007ukR-2qnD
+	id 1wlvDQ-00000007ukT-0a1n
 	for opensbi@lists.infradead.org;
-	Mon, 20 Jul 2026 21:08:02 +0000
-Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66KJTtU23638015
-	for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 21:07:55 GMT
+	Mon, 20 Jul 2026 21:07:59 +0000
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66KJTa2G3106556;
+	Mon, 20 Jul 2026 21:07:55 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=UtmLpn+XKxA
-	2D6svFtkiPCmbjS04r+J4psHcpY28lns=; b=FF6kNy5dZUh6ZMs7JCmyQosl49L
-	80s9SPpmms+C0xArJclDKEWQjlExREi8kXdhhQbH5htTZgriaAAlf6KxMw/Vr1SQ
-	Ypi+KhayhKAS1tSSJ4W0qfL60EKtW1lh07+7SHetJVwSfVcU7vAp/n8PnbJO4YJl
-	hydy8dwZSKzsdlojoxJ5tzzyE78qHC5jLMPONjaVraof0l+lFdj98o7PBc4mk2LO
-	ndAEAayjEl8yhTv/ODTdOgA+pdABAxpcWfrx9DhWwjsseDgEKHqdmRvzCAcP8uCe
-	uQRglWIk46zYEzZRgCYcRf1wbIMCd+K5ezhB2trRlzckJBzCW5mVXxf66Sg==
-Received: from nalasppmta03.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fhhgytvex-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 21:07:55 +0000 (GMT)
-Received: from pps.filterd (NALASPPMTA03.qualcomm.com [127.0.0.1])
-	by NALASPPMTA03.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 66KL6LlS028282
-	for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 21:07:53 GMT
+	:mime-version:references:subject:to; s=qcppdkim1; bh=6tsL7BeDWA0
+	PtAmn9JRJX7er0+yw7+6Ng+EWU7JBLAQ=; b=AAvFnw9VJIO6RlkbKljGAHvLCrE
+	lQnDrUAvej0FsGi95J+4Q3DqfRY8ChWL0qlurEuMwkX2NcRoC1Z0rB4paD+zdkGg
+	xxaPd2alPHS0PuPDnWY5iilcPNC/QkxPT/PKtnUq/O9oZohJYcvHvuAVdAIPvt6n
+	PjQ1o+XBWutuzmbRvIkAB/SiOlutF9VTsKCHlIvrsy/eHrOb3eVD9Wm6ZHhvvQ/C
+	aEeqYAXdmRqNzEU2bpW6sMrJ4GIHJQe66sXCgDnUIWixWGjEw0g3/Sy/V5bjedbq
+	RRXGUZiR1Z/hhdRLcnaLi/3gOsMADNasZbmtVHl1oiZYeWqg4pmaiI4TJ5g==
+Received: from nalasppmta02.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fhgs532ff-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 20 Jul 2026 21:07:54 +0000 (GMT)
+Received: from pps.filterd (NALASPPMTA02.qualcomm.com [127.0.0.1])
+	by NALASPPMTA02.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 66KL6MNl024987;
+	Mon, 20 Jul 2026 21:07:54 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by NALASPPMTA03.qualcomm.com (PPS) with ESMTPS id 4fgj4d817m-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 21:07:53 +0000 (GMT)
-Received: from NALASPPMTA03.qualcomm.com (NALASPPMTA03.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 66KL7rnB030359
-	for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 21:07:53 GMT
+	by NALASPPMTA02.qualcomm.com (PPS) with ESMTPS id 4fh85yrvy3-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 20 Jul 2026 21:07:53 +0000 (GMT)
+Received: from NALASPPMTA02.qualcomm.com (NALASPPMTA02.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 66KL7rRo027384;
+	Mon, 20 Jul 2026 21:07:53 GMT
 Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
-	by NALASPPMTA03.qualcomm.com (PPS) with ESMTPS id 66KL7rQw030358
+	by NALASPPMTA02.qualcomm.com (PPS) with ESMTPS id 66KL7rma027380
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Mon, 20 Jul 2026 21:07:53 +0000 (GMT)
 Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
-	id 32C3023E9D; Mon, 20 Jul 2026 14:07:53 -0700 (PDT)
+	id 20B8421BEF; Mon, 20 Jul 2026 14:07:53 -0700 (PDT)
 From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 To: opensbi@lists.infradead.org
-Cc: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Subject: [PATCH v4 5/6] lib: utils/irqchip/imsic: track IRQ enable state and restore EIE on warm init
-Date: Mon, 20 Jul 2026 14:07:45 -0700
-Message-ID: <20260720210748.2893688-6-pawandeep.oza@oss.qualcomm.com>
+Cc: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>,
+        Anup Patel <anup@brainfault.org>
+Subject: [PATCH v4 1/6] lib: utils/irqchip/aplic: implement direct mode irqchip callbacks
+Date: Mon, 20 Jul 2026 14:07:41 -0700
+Message-ID: <20260720210748.2893688-2-pawandeep.oza@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260720210748.2893688-1-pawandeep.oza@oss.qualcomm.com>
 References: <20260720210748.2893688-1-pawandeep.oza@oss.qualcomm.com>
 MIME-Version: 1.0
 X-QCInternal: smtphost
 X-QCInternal: smtphost
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzIwMDIyOSBTYWx0ZWRfX/jztpqbec1AW
- Ju1tI4K3RyPnMi5YGslfoPHCYap1xkqLhs7ZNR+Jakpn4ZrBzPafBEmhcBMNfp1AADyYRmHN9da
- um0osorvvLJsnV95wPSZU25RvZGQucU=
-X-Authority-Analysis: v=2.4 cv=LK9WhpW9 c=1 sm=1 tr=0 ts=6a5e8e2b cx=c_pps
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzIwMDIyOSBTYWx0ZWRfX2W0kMx6MHEiL
+ uD5Pt7nYuZgGpMIBvGudtoyr5Etfn5TAYDsQlmsPh4MpZJ+BMJriSTYx4cvyvY1xOFCCqhM8I6s
+ R40bqoOuWh7j6Pi6XkV2+HuimstT9lM=
+X-Proofpoint-GUID: uCWLi2Uqa1NK8fHiOuUrPzmxmT4Iy6B2
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzIwMDIyOSBTYWx0ZWRfXy8HVBgaW8SkY
+ vzEEZusJY7RTlRmSi5FYPgROlDVZIAYcERmNDhICEXoCJQNNqEN9zI/Q1AcmUL9PS+zxkBMPxUb
+ bOQJsKaS8O7ZOeFwIJz5syoogHx9vPsfWZVRClJ2C6e5bxX01ESjH1Ic8YYbcf3eX7NMwXD0EP9
+ n/FtT4bR7vYHIUSMEtczBFcW0heRva0OgjpCEzOqUEuEIX21NZlSaRREZX3ZlFZS+VSTiRDzs1+
+ +h4y94GD2Yx0J5XCoOtNZsbob6x6jFLJDRaQ2d64I54lHECau8uTfv8or63rwNxE5AEQu6eESOm
+ hlhnGu8ggFEt1ztotCBfz19eL9zysc4hv6qjrTH4+gWUKyLQd6X8w5z/EsVBId/Itzq3ZtB2SXk
+ heP/oVX/7gBLAxQ0mYkGr8Tqo/PKT2YuMu0ee9DCsGmhxFfLdKSHOGjlN2yT/63ZaQ5S4+7gewn
+ BCkBXJ7Ta8upLtgpnsQ==
+X-Authority-Analysis: v=2.4 cv=CpiPtH4D c=1 sm=1 tr=0 ts=6a5e8e2a cx=c_pps
  a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
  a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=3WHJM1ZQz_JShphwDgj5:22 a=EUspDBNiAAAA:8 a=BZdgoSmlrKO2RibLiLQA:9
-X-Proofpoint-ORIG-GUID: wrX499Er7grYgka6hFptptOJWeST3Rkd
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzIwMDIyOSBTYWx0ZWRfX/BSe04noiaY3
- Rf4ABpyVOGL85fCJok6VSvffoHBq2Gzuu5fIYOEfjOxn1VRxHGGxkhly85AvqNeIwWlTgBuzd6U
- J5YxC/Jb21HKDeK2IyhGGRxxnUxvgbICL4DAWiCgkb3lp9B0JVpmGKq/U2f7sRYE7iQm73lkTOy
- 8urWANZxrZRSt8vO+aku8uy0f+xHcoLuEVSaV94o9M5JG+L5upYnVvOImaAlz1J4dxLWEYna7/+
- iT4+i0Abcsazbfwu16e+H7FM6m8MHNwmTZSIfLc54TainaK4NxpzRKeJ1HLdaOVvaEu/jYU6C1s
- eVFv+OavYatgmT6O54JvCDGg33pXN3n60uFZl0NyWlIhYQhxGCuwbDyWkdSThcuqf1KuTF0Mx/+
- OneM1o1cHBj2jDGfUZ5LVA+9v0dSUBVsyaQv/Dis8qQ6D1WDBRgITz8BlS8N1m15dEQ940ANcqp
- pKVvWZkZ5KiFazkXIDQ==
-X-Proofpoint-GUID: wrX499Er7grYgka6hFptptOJWeST3Rkd
+ a=DJpcGTmdVt4CTyJn9g5Z:22 a=EUspDBNiAAAA:8 a=ee_2aqc6AAAA:8 a=W-_n0kkjAAAA:8
+ a=zzyRTQmNerI19oTOJbUA:9 a=VOpmJXOdbJOWo2YY3GeN:22 a=qeNa2pbTr82C0GpJEZFS:22
+X-Proofpoint-ORIG-GUID: uCWLi2Uqa1NK8fHiOuUrPzmxmT4Iy6B2
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-20_05,2026-07-20_03,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 bulkscore=0 phishscore=0 clxscore=1015 malwarescore=0
- suspectscore=0 impostorscore=0 lowpriorityscore=0 spamscore=0 adultscore=0
+ malwarescore=0 priorityscore=1501 phishscore=0 spamscore=0 clxscore=1015
+ suspectscore=0 lowpriorityscore=0 impostorscore=0 adultscore=0 bulkscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607200229
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260720_140757_474951_C060D786 
-X-CRM114-Status: GOOD (  21.85  )
+X-CRM114-CacheID: sfid-20260720_140757_451018_F0F5C8C6 
+X-CRM114-Status: GOOD (  22.17  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -115,226 +117,432 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Add an irq_state field to struct sbi_irqchip_hwirq_data with a single
-IRQ_ENABLED flag (bit 0) to track whether a hardware interrupt has been
-enabled via the irqchip framework. Set IRQ_ENABLED in
-sbi_irqchip_unmask_hwirq() when the unmask callback is invoked.
+Add inline register accessors (aplic_sourcecfg_write/read,
+aplic_target_write, aplic_irq_setie/clrie/clrip, aplic_idc_base/
+read/write) to consolidate all MMIO access behind typed helpers
+and eliminate open-coded address arithmetic throughout the driver.
 
-Add sbi_irqchip_get_irq_state() as a private inline accessor and expose
-sbi_irqchip_is_irq_enabled() as a public API for drivers to query the
-enabled state of a hardware interrupt by chip pointer and hwirq number.
+Add field-packing macros APLIC_TARGET_HART_IDX, APLIC_TARGET_IPRIO,
+and APLIC_TARGET_GUEST_IDX for constructing
+APLIC_TARGET register values.
 
-Refactor imsic_local_eix_update() to operate on a single interrupt ID
-instead of a base+count range, simplifying the CSR bit manipulation to
-a direct BIT(id) write without the inner loop. Update all call sites
-accordingly.
+Add aplic_is_direct_mode() mode helper, aplic_hwirq_flags_to_sourcecfg()
+to map generic hwirq flags to APLIC source modes, aplic_hwirq_is_delegated()
+to detect S-mode delegated sources, aplic_find_idc_index() to map a
+hart index to its IDC slot, and aplic_first_target_hart() to select
+the first available IDC hart for initial interrupt targeting.
 
-Use sbi_irqchip_is_irq_enabled() in imsic_warm_irqchip_init() to
-restore per-EIID EIE CSR state on warm boot and HSM resume based on
-the saved irq_state, replacing the previous blanket disable of all
-interrupts. This ensures that EIIDs enabled during hotplug/warminit
-cycle are correctly re-enabled on the resuming hart without requiring
-software to re-register or re-unmask each interrupt.
+Implement the full sbi_irqchip callback set for direct (IDC) mode:
+- warm_init: enables IDC interrupt delivery and threshold per hart
+- process_hwirqs: reads TOPI and dispatches via sbi_irqchip_process_hwirq,
+  skipping delegated sources
+- hwirq_setup: programs sourcecfg from hwirq_flags and sets the TARGET
+  register to the first available IDC hart
+- hwirq_cleanup: clears IE, IP, sourcecfg, and TARGET on teardown
+- hwirq_eoi: reads CLAIMI to acknowledge the interrupt on the IDC
+- hwirq_set_affinity: reprograms TARGET to the specified hart index
+- hwirq_mask/unmask: clears/sets IE via CLRIENUM/SETIENUM
+
+Register the irqchip device and populate target_harts from idc_map
+only when targets_mmode is set in aplic_cold_irqchip_init().
 
 Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+Co-developed-by and Signed-off-by "Raymond Mao <raymond.mao@riscstar.com>"
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- include/sbi/sbi_irqchip.h |  4 +++
- lib/sbi/sbi_irqchip.c     | 33 +++++++++++++++++++++++
- lib/utils/irqchip/imsic.c | 55 ++++++++++++++++++---------------------
- 3 files changed, 63 insertions(+), 29 deletions(-)
+ lib/utils/irqchip/aplic.c | 332 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 295 insertions(+), 37 deletions(-)
 
-diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
-index 7f6c763c..4fd5f780 100644
---- a/include/sbi/sbi_irqchip.h
-+++ b/include/sbi/sbi_irqchip.h
-@@ -165,4 +165,8 @@ int sbi_irqchip_init(struct sbi_scratch *scratch, bool cold_boot);
- /** Exit interrupt controllers */
- void sbi_irqchip_exit(struct sbi_scratch *scratch);
+diff --git a/lib/utils/irqchip/aplic.c b/lib/utils/irqchip/aplic.c
+index 6c63620e..efc25555 100644
+--- a/lib/utils/irqchip/aplic.c
++++ b/lib/utils/irqchip/aplic.c
+@@ -70,6 +70,10 @@
+ 	(APLIC_xMSICFGADDR_PPN_HHX_MASK(__hhxw) << \
+ 	 APLIC_xMSICFGADDR_PPN_HHX_SHIFT(__hhxs))
  
-+/** Check if the interrupt is enabled */
-+bool sbi_irqchip_is_hwirq_enabled(struct sbi_irqchip_device *chip,
-+					       u32 hwirq);
++#define APLIC_TARGET_GUEST_IDX(__gidx) \
++	((((u32)(__gidx)) & APLIC_TARGET_GUEST_IDX_MASK) << \
++	 APLIC_TARGET_GUEST_IDX_SHIFT)
 +
- #endif
-diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
-index 8923d2a2..9d14c39e 100644
---- a/lib/sbi/sbi_irqchip.c
-+++ b/lib/sbi/sbi_irqchip.c
-@@ -20,6 +20,11 @@ struct sbi_irqchip_hwirq_data {
- 	/** raw hardware interrupt handler */
- 	int (*raw_handler)(struct sbi_irqchip_device *chip, u32 hwirq);
+ #define APLIC_SETIP_BASE		0x1c00
+ #define APLIC_SETIPNUM			0x1cdc
  
-+#define IRQ_ENABLED	BIT(0)
-+	/** interrupt state
-+	 * bit 0 - 1: enabled, 0: disabled */
-+	u32 irq_state;
+@@ -93,6 +97,12 @@
+ #define APLIC_TARGET_IPRIO_MASK	0xff
+ #define APLIC_TARGET_EIID_MASK	0x7ff
+ 
++#define APLIC_TARGET_HART_IDX(__hidx) \
++	((((u32)(__hidx)) & APLIC_TARGET_HART_IDX_MASK) << \
++	 APLIC_TARGET_HART_IDX_SHIFT)
++#define APLIC_TARGET_IPRIO(__prio) \
++	(((u32)(__prio)) & APLIC_TARGET_IPRIO_MASK)
 +
- 	/** target hart index */
- 	u32 hart_index;
- };
-@@ -77,23 +82,51 @@ int sbi_irqchip_process_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
- 	return data->raw_handler(chip, hwirq);
+ #define APLIC_IDC_BASE			0x4000
+ #define APLIC_IDC_SIZE			32
+ 
+@@ -119,10 +129,104 @@ static SBI_LIST_HEAD(aplic_list);
+ static void aplic_writel_msicfg(struct aplic_msicfg_data *msicfg,
+ 				void *msicfgaddr, void *msicfgaddrH);
+ 
++static inline bool aplic_is_direct_mode(struct aplic_data *aplic)
++{
++	return aplic && aplic->num_idc;
++}
++
++static inline void aplic_sourcecfg_write(struct aplic_data *aplic,
++					 u32 hwirq, u32 val)
++{
++	writel(val, (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
++			     (hwirq - 1) * sizeof(u32)));
++}
++
++static inline u32 aplic_sourcecfg_read(struct aplic_data *aplic, u32 hwirq)
++{
++	return readl((void *)(aplic->addr + APLIC_SOURCECFG_BASE +
++			      (hwirq - 1) * sizeof(u32)));
++}
++
++static inline void aplic_target_write(struct aplic_data *aplic,
++				      u32 hwirq, u32 val)
++{
++	writel(val, (void *)(aplic->addr + APLIC_TARGET_BASE +
++			     (hwirq - 1) * sizeof(u32)));
++}
++
++static inline void aplic_irq_setie(struct aplic_data *aplic, u32 hwirq)
++{
++	writel(hwirq, (void *)(aplic->addr + APLIC_SETIENUM));
++}
++
++static inline void aplic_irq_clrie(struct aplic_data *aplic, u32 hwirq)
++{
++	writel(hwirq, (void *)(aplic->addr + APLIC_CLRIENUM));
++}
++
++static inline void aplic_irq_clrip(struct aplic_data *aplic, u32 hwirq)
++{
++	writel(hwirq, (void *)(aplic->addr + APLIC_CLRIPNUM));
++}
++
++static inline void *aplic_idc_base(struct aplic_data *aplic, u32 idc_index)
++{
++	return (void *)(aplic->addr + APLIC_IDC_BASE +
++			idc_index * APLIC_IDC_SIZE);
++}
++
++static inline u32 aplic_idc_read(struct aplic_data *aplic, u32 idc_index,
++				 u32 reg)
++{
++	return readl(aplic_idc_base(aplic, idc_index) + reg);
++}
++
++static inline void aplic_idc_write(struct aplic_data *aplic, u32 idc_index,
++				   u32 reg, u32 val)
++{
++	writel(val, aplic_idc_base(aplic, idc_index) + reg);
++}
++
++static u32 aplic_hwirq_flags_to_sourcecfg(u32 hwirq_flags)
++{
++	switch (hwirq_flags & SBI_HWIRQ_FLAGS_LEVEL_SENSE_MASK) {
++	case SBI_HWIRQ_FLAGS_EDGE_RISING:
++		return APLIC_SOURCECFG_SM_EDGE_RISE;
++	case SBI_HWIRQ_FLAGS_EDGE_FALLING:
++		return APLIC_SOURCECFG_SM_EDGE_FALL;
++	case SBI_HWIRQ_FLAGS_LEVEL_HIGH:
++		return APLIC_SOURCECFG_SM_LEVEL_HIGH;
++	case SBI_HWIRQ_FLAGS_LEVEL_LOW:
++		return APLIC_SOURCECFG_SM_LEVEL_LOW;
++	default:
++		return APLIC_SOURCECFG_SM_INACTIVE;
++	}
++}
++
++static bool aplic_hwirq_is_delegated(struct aplic_data *aplic, u32 hwirq)
++{
++	u32 sourcecfg;
++
++	sourcecfg = aplic_sourcecfg_read(aplic, hwirq);
++	return !!(sourcecfg & APLIC_SOURCECFG_D);
++}
++
++static int aplic_find_idc_index(struct aplic_data *aplic, u32 hart_index)
++{
++	u32 i;
++
++	for (i = 0; i < aplic->num_idc; i++) {
++		if (aplic->idc_map[i] == hart_index)
++			return i;
++	}
++
++	return SBI_ENOENT;
++}
++
+ static void aplic_init(struct aplic_data *aplic)
+ {
+ 	struct aplic_delegate_data *deleg;
+-	u32 i, j, tmp;
++	u32 i, j, tmp, domaincfg;
+ 	int locked;
+ 
+ 	/* Set domain configuration to 0 */
+@@ -160,35 +264,36 @@ static void aplic_init(struct aplic_data *aplic)
+ 			deleg->last_irq = tmp;
+ 		}
+ 		for (j = deleg->first_irq; j <= deleg->last_irq; j++)
+-			writel(APLIC_SOURCECFG_D | deleg->child_index,
+-			       (void *)(aplic->addr + APLIC_SOURCECFG_BASE +
+-			       (j - 1) * sizeof(u32)));
++			aplic_sourcecfg_write(aplic, j, APLIC_SOURCECFG_D | deleg->child_index);
+ 	}
+ 
+ 	/* Default initialization of IDC structures */
+-	for (i = 0; i < aplic->num_idc; i++) {
+-		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
+-				   i * APLIC_IDC_SIZE + APLIC_IDC_IDELIVERY));
+-		writel(0, (void *)(aplic->addr + APLIC_IDC_BASE +
+-				   i * APLIC_IDC_SIZE + APLIC_IDC_IFORCE));
+-		writel(APLIC_DISABLE_ITHRESHOLD, (void *)(aplic->addr +
+-						  APLIC_IDC_BASE +
+-						  (i * APLIC_IDC_SIZE) +
+-						  APLIC_IDC_ITHRESHOLD));
++	if (aplic_is_direct_mode(aplic)) {
++		for (i = 0; i < aplic->num_idc; i++) {
++			aplic_idc_write(aplic, i, APLIC_IDC_IDELIVERY,
++					APLIC_DISABLE_IDELIVERY);
++			aplic_idc_write(aplic, i, APLIC_IDC_IFORCE, 0);
++			aplic_idc_write(aplic, i, APLIC_IDC_ITHRESHOLD,
++					APLIC_DISABLE_ITHRESHOLD);
++		}
++	} else {
++		/* MSI configuration */
++		locked = readl((void *)(aplic->addr + APLIC_MMSICFGADDRH)) & APLIC_xMSICFGADDRH_L;
++		if (aplic->targets_mmode && aplic->has_msicfg_mmode && !locked) {
++			aplic_writel_msicfg(&aplic->msicfg_mmode,
++						(void *)(aplic->addr + APLIC_MMSICFGADDR),
++						(void *)(aplic->addr + APLIC_MMSICFGADDRH));
++		}
++		if (aplic->targets_mmode && aplic->has_msicfg_smode && !locked) {
++			aplic_writel_msicfg(&aplic->msicfg_smode,
++						(void *)(aplic->addr + APLIC_SMSICFGADDR),
++						(void *)(aplic->addr + APLIC_SMSICFGADDRH));
++		}
+ 	}
+ 
+-	/* MSI configuration */
+-	locked = readl((void *)(aplic->addr + APLIC_MMSICFGADDRH)) & APLIC_xMSICFGADDRH_L;
+-	if (aplic->targets_mmode && aplic->has_msicfg_mmode && !locked) {
+-		aplic_writel_msicfg(&aplic->msicfg_mmode,
+-				    (void *)(aplic->addr + APLIC_MMSICFGADDR),
+-				    (void *)(aplic->addr + APLIC_MMSICFGADDRH));
+-	}
+-	if (aplic->targets_mmode && aplic->has_msicfg_smode && !locked) {
+-		aplic_writel_msicfg(&aplic->msicfg_smode,
+-				    (void *)(aplic->addr + APLIC_SMSICFGADDR),
+-				    (void *)(aplic->addr + APLIC_SMSICFGADDRH));
+-	}
++	domaincfg = APLIC_DOMAINCFG_IE;
++
++	writel(domaincfg, (void *)(aplic->addr + APLIC_DOMAINCFG));
  }
  
-+static inline u32 sbi_irqchip_get_irq_state(struct sbi_irqchip_device *chip,
-+					     u32 hwirq)
+ void aplic_reinit_all(void)
+@@ -245,6 +350,154 @@ static int aplic_check_msicfg(struct aplic_msicfg_data *msicfg)
+ 	return 0;
+ }
+ 
++static int aplic_warm_init(struct sbi_irqchip_device *chip)
 +{
-+	if (!chip || !chip->hwirqs || hwirq >= chip->num_hwirq)
++	struct aplic_data *aplic;
++	u32 hart_index;
++	int idc_index;
++
++	aplic = container_of(chip, struct aplic_data, irqchip);
++
++	hart_index = current_hartindex();
++	idc_index  = aplic_find_idc_index(aplic, hart_index);
++	if (idc_index < 0)
 +		return 0;
 +
-+	return chip->hwirqs[hwirq].irq_state;
++	aplic_idc_write(aplic, idc_index, APLIC_IDC_ITHRESHOLD,
++			APLIC_ENABLE_ITHRESHOLD);
++	aplic_idc_write(aplic, idc_index, APLIC_IDC_IDELIVERY,
++			APLIC_ENABLE_IDELIVERY);
++
++	return 0;
 +}
 +
-+bool sbi_irqchip_is_hwirq_enabled(struct sbi_irqchip_device *chip,
-+					       u32 hwirq)
++static int aplic_process_hwirqs(struct sbi_irqchip_device *chip)
 +{
-+	return !!(sbi_irqchip_get_irq_state(chip, hwirq) & IRQ_ENABLED);
++    struct aplic_data *aplic;
++    u32 hart_index, claimi, hwirq;
++    int idc_index, rc = 0, tmp;
++
++    aplic = container_of(chip, struct aplic_data, irqchip);
++
++    hart_index = current_hartindex();
++    idc_index  = aplic_find_idc_index(aplic, hart_index);
++    if (idc_index < 0)
++        return 0;
++
++    while ((claimi = aplic_idc_read(aplic, idc_index, APLIC_IDC_CLAIMI))) {
++        hwirq = (claimi >> APLIC_IDC_TOPI_ID_SHIFT) &
++                 APLIC_IDC_TOPI_ID_MASK;
++
++        if (!hwirq)
++            break;
++
++        if (aplic_hwirq_is_delegated(aplic, hwirq))
++            continue;
++
++        tmp = sbi_irqchip_process_hwirq(chip, hwirq);
++        if (tmp)
++            rc = tmp;
++    }
++
++    return rc;
 +}
 +
- int sbi_irqchip_unmask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
- {
-+	struct sbi_irqchip_hwirq_data *data;
++static int aplic_hwirq_setup(struct sbi_irqchip_device *chip,
++			     u32 hwirq, u32 hwirq_flags)
++{
++	struct aplic_data *aplic;
++	u32 sourcecfg;	
 +
- 	if (!chip || chip->num_hwirq <= hwirq)
- 		return SBI_EINVAL;
- 
-+	data = &chip->hwirqs[hwirq];
-+	if (data->irq_state & IRQ_ENABLED)
-+		return SBI_EALREADY;
++	aplic = container_of(chip, struct aplic_data, irqchip);
 +
- 	if (chip->hwirq_unmask)
- 		chip->hwirq_unmask(chip, hwirq);
-+
-+	data->irq_state |= IRQ_ENABLED;
- 	return 0;
- }
- 
- int sbi_irqchip_mask_hwirq(struct sbi_irqchip_device *chip, u32 hwirq)
- {
-+	struct sbi_irqchip_hwirq_data *data;
-+
- 	if (!chip || chip->num_hwirq <= hwirq)
- 		return SBI_EINVAL;
- 
- 	if (chip->hwirq_mask)
- 		chip->hwirq_mask(chip, hwirq);
-+
-+	data = &chip->hwirqs[hwirq];
-+	data->irq_state &= ~IRQ_ENABLED;
- 	return 0;
- }
- 
-diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
-index 40bffcc0..82a74f43 100644
---- a/lib/utils/irqchip/imsic.c
-+++ b/lib/utils/irqchip/imsic.c
-@@ -225,29 +225,20 @@ static struct sbi_ipi_device imsic_ipi_device = {
- 	.ipi_send	= imsic_ipi_send
- };
- 
--static void imsic_local_eix_update(unsigned long base_id,
--				   unsigned long num_id, bool pend, bool val)
-+static void imsic_local_eix_update(unsigned long id,
-+				   bool pend, bool val)
- {
--	unsigned long i, isel, ireg;
--	unsigned long id = base_id, last_id = base_id + num_id;
--
--	while (id < last_id) {
--		isel = id / __riscv_xlen;
--		isel *= __riscv_xlen / IMSIC_EIPx_BITS;
--		isel += (pend) ? IMSIC_EIP0 : IMSIC_EIE0;
--
--		ireg = 0;
--		for (i = id & (__riscv_xlen - 1);
--		     (id < last_id) && (i < __riscv_xlen); i++) {
--			ireg |= BIT(i);
--			id++;
--		}
-+	unsigned long isel, ireg = 0;
- 
--		if (val)
--			imsic_csr_set(isel, ireg);
--		else
--			imsic_csr_clear(isel, ireg);
--	}
-+	isel = id / __riscv_xlen;
-+	isel *= __riscv_xlen / IMSIC_EIPx_BITS;
-+	isel += (pend) ? IMSIC_EIP0 : IMSIC_EIE0;
-+	ireg |= BIT(id);
-+
-+	if (val)
-+		imsic_csr_set(isel, ireg);
-+	else
-+		imsic_csr_clear(isel, ireg);
- }
- 
- void imsic_local_irqchip_init(void)
-@@ -275,13 +266,14 @@ void imsic_local_irqchip_init(void)
- 	imsic_csr_write(IMSIC_EIDELIVERY, IMSIC_ENABLE_EIDELIVERY);
- 
- 	/* Enable IPI */
--	imsic_local_eix_update(IMSIC_IPI_ID, 1, false, true);
-+	imsic_local_eix_update(IMSIC_IPI_ID, false, true);
- }
- 
- static int imsic_warm_irqchip_init(struct sbi_irqchip_device *dev)
- {
- 	struct imsic_data *imsic;
- 	struct imsic_data *hart_imsic;
-+	int i;
- 
- 	imsic = container_of(dev, struct imsic_data, irqchip);
- 	hart_imsic = imsic_get_data(current_hartindex());
-@@ -291,11 +283,16 @@ static int imsic_warm_irqchip_init(struct sbi_irqchip_device *dev)
- 		!hart_imsic->targets_mmode)
- 		return SBI_EINVAL;
- 
--	/* Disable all interrupts */
--	imsic_local_eix_update(1, imsic->num_ids, false, false);
-+	/* enable interrutps based on the irq state */
-+	for (i = 1; i < imsic->num_ids; i++) {
-+		if (sbi_irqchip_is_hwirq_enabled(&imsic->irqchip, i) == true)
-+			imsic_local_eix_update(i, true, true);
-+		else
-+			imsic_local_eix_update(i, false, false);
++	sourcecfg = aplic_hwirq_flags_to_sourcecfg(hwirq_flags);
++	if (sourcecfg == APLIC_SOURCECFG_SM_INACTIVE) {
++		sbi_printf("aplic_hwirq_setup: unsupported flags=0x%lx hwirq=%lu\n",
++			   (unsigned long)hwirq_flags,
++			   (unsigned long)hwirq);
++		return SBI_EINVAL;
 +	}
++	aplic_sourcecfg_write(aplic, hwirq, sourcecfg);
++
++	if (aplic_hwirq_is_delegated(aplic, hwirq)) {
++		sbi_printf("aplic_hwirq_setup: hwirq=%lu is delegated\n",
++			   (unsigned long)hwirq);
++		return SBI_ENOTSUPP;
++	}
++
++	aplic_irq_clrie(aplic, hwirq);
++	aplic_irq_clrip(aplic, hwirq);
++
++	return 0;
++}
++
++static void aplic_hwirq_cleanup(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct aplic_data *aplic;
++
++	aplic = container_of(chip, struct aplic_data, irqchip);
++	if (aplic_hwirq_is_delegated(aplic, hwirq))
++		return;
++
++	aplic_irq_clrie(aplic, hwirq);
++	aplic_irq_clrip(aplic, hwirq);
++	aplic_sourcecfg_write(aplic, hwirq, APLIC_SOURCECFG_SM_INACTIVE);
++	aplic_target_write(aplic, hwirq, APLIC_DEFAULT_PRIORITY);
++}
++
++static int aplic_hwirq_set_affinity(struct sbi_irqchip_device *chip,
++				    u32 hwirq, u32 hart_index)
++{
++	struct aplic_data *aplic;
++	int idc_index;
++
++	aplic = container_of(chip, struct aplic_data, irqchip);
++	if (aplic_hwirq_is_delegated(aplic, hwirq))
++		return SBI_ENOTSUPP;
++
++	idc_index = aplic_find_idc_index(aplic, hart_index);
++	if (idc_index < 0)
++		return SBI_EINVAL;
++
++	aplic_target_write(aplic, hwirq,
++			   APLIC_TARGET_HART_IDX(hart_index) |
++			   APLIC_TARGET_IPRIO(APLIC_DEFAULT_PRIORITY));
++
++	return 0;
++}
++
++static void aplic_hwirq_mask(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct aplic_data *aplic;
++
++	aplic = container_of(chip, struct aplic_data, irqchip);
++	if (aplic_hwirq_is_delegated(aplic, hwirq))
++		return;
++
++	aplic_irq_clrie(aplic, hwirq);
++}
++
++static void aplic_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
++{
++	struct aplic_data *aplic;
++
++	aplic = container_of(chip, struct aplic_data, irqchip);
++	if (aplic_hwirq_is_delegated(aplic, hwirq))
++		return;
++
++	aplic_irq_setie(aplic, hwirq);
++}
++
++static struct sbi_irqchip_device aplic_irqchip_template = {
++	.warm_init		= aplic_warm_init,
++	.process_hwirqs		= aplic_process_hwirqs,
++	.hwirq_setup		= aplic_hwirq_setup,
++	.hwirq_cleanup		= aplic_hwirq_cleanup,
++	.hwirq_set_affinity	= aplic_hwirq_set_affinity,
++	.hwirq_mask		= aplic_hwirq_mask,
++	.hwirq_unmask		= aplic_hwirq_unmask,
++};
++
+ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ {
+ 	int rc;
+@@ -297,22 +550,27 @@ int aplic_cold_irqchip_init(struct aplic_data *aplic)
+ 			return rc;
+ 	}
  
- 	/* Clear IPI pending */
--	imsic_local_eix_update(IMSIC_IPI_ID, 1, true, false);
-+	imsic_local_eix_update(IMSIC_IPI_ID, true, false);
+-	if (aplic->num_idc) {
++	if ((aplic->targets_mmode) && aplic_is_direct_mode(aplic)) {
++		aplic->irqchip		 = aplic_irqchip_template;
++		aplic->irqchip.id	 = aplic->unique_id;
++		aplic->irqchip.caps = SBI_IRQCHIP_CAPS_WIRED;
++		aplic->irqchip.num_hwirq = aplic->num_source + 1;
++
+ 		for (i = 0; i < aplic->num_idc; i++)
+ 			sbi_hartmask_set_hartindex(aplic->idc_map[i],
+ 						   &aplic->irqchip.target_harts);
+-	} else {
+-		sbi_hartmask_set_all(&aplic->irqchip.target_harts);
+-	}
+-
+-	/* Register irqchip device */
+-	aplic->irqchip.id = aplic->unique_id;
+-	aplic->irqchip.caps = SBI_IRQCHIP_CAPS_WIRED;
+-	aplic->irqchip.num_hwirq = aplic->num_source + 1;
+-	rc = sbi_irqchip_add_device(&aplic->irqchip);
+-	if (rc)
+-		return rc;
  
- 	/* Local IMSIC initialization */
- 	imsic_local_irqchip_init();
-@@ -395,8 +392,8 @@ static void imsic_hwirq_cleanup(struct sbi_irqchip_device *chip, u32 hwirq)
- 	if (!imsic || !imsic->targets_mmode)
- 		return;
++		rc = sbi_irqchip_add_device(&aplic->irqchip);
++		if (rc) {
++			sbi_printf("aplic_cold_irqchip_init: sbi_irqchip_add_device failed rc=%d id=%lu mode=%s target_weight=%lu\n",
++				rc,
++				(unsigned long)aplic->irqchip.id,
++				"direct",
++				(unsigned long)sbi_hartmask_weight(
++					&aplic->irqchip.target_harts));
++			return rc;
++		}
++	}
+ 	/* Attach to the aplic list */
+ 	sbi_list_add_tail(&aplic->node, &aplic_list);
  
--	imsic_local_eix_update(hwirq, 1, false, false);
--	imsic_local_eix_update(hwirq, 1, true, false);
-+	imsic_local_eix_update(hwirq, false, false);
-+	imsic_local_eix_update(hwirq, true, false);
- }
- 
- static void imsic_hwirq_eoi(struct sbi_irqchip_device *chip, u32 hwirq)
-@@ -535,7 +532,7 @@ static void imsic_hwirq_mask(struct sbi_irqchip_device *chip, u32 hwirq)
- 	if (!imsic || !imsic->targets_mmode)
- 		return;
- 
--	imsic_local_eix_update(hwirq, 1, false, false);
-+	imsic_local_eix_update(hwirq, false, false);
- }
- 
- static void imsic_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
-@@ -552,7 +549,7 @@ static void imsic_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
- 	if (!hwirq || hwirq == IMSIC_IPI_ID)
- 		return;
- 
--	imsic_local_eix_update(hwirq, 1, false, true);
-+	imsic_local_eix_update(hwirq, false, true);
- }
- 
- static struct sbi_irqchip_device imsic_device = {
 -- 
 2.43.0
 
