@@ -4,90 +4,92 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C013AC44515
-	for <opensbi@archiver.kernel.org>; Mon, 20 Jul 2026 08:55:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DC17CC44527
+	for <opensbi@archiver.kernel.org>; Mon, 20 Jul 2026 10:10:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
 	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=Jz2NclluPAoiMXTSY6juaTkqgHHwo9sK70aIou76GkM=; b=uw69DXU4wjwRmN
-	E7kUstQmF0B2suNhu3Mr1U/njpRu5t4KAGfGaKW7ZIRHXFTTS8hEo4T1QoWSme53/vIqYGGV/5X6A
-	1bGxFzYb63GAedtJAAZrawEhR1RTjQfTslB94IHsdb5ic+Q+e3Ty8Q6j5Zjw/V0WGACjCgJL/u9c8
-	geuu8TY7Zb4fm8ibWXUcX9aBtZCvy64c5P3OELkxCFAIWsioOV76Po3eXqwhoBoWOFUpJ9y1MI2sf
-	ir7ZnIPx6UqN4SlqVNCx4bGnMoZoVtAbh7bw+uZFShgGD8wj4LIsuRq2VafeT5UTVYP0SK+S5YkjJ
-	JkDJITWp1fHqgMMDYPmQ==;
+	List-Owner; bh=cGOczpeGMkzLsD+dPrARi9sQlWCY/BLtNaiIv4bjxTk=; b=gUVFjghrcsPkts
+	f62FE33ZIqPmbApIQgTfI/WOGbfndJcCQg19qXKK+pMCD59wadDHtxxZub/l+YnSYwPrzKJupkFZl
+	veVsnuxYOkqXGpeND0kUinoBF6wLVm9ZmjzNCak9F4Rlb7TsnbHrkqCMloo+x6L9BqVI7BfVf6XIj
+	NGsjyffYsggHpSTNo6KUBsjiqQvas6E17BCTOTQz0cuhjtImg8oK7sIaHFjpOIqOoZsmt4mj0aSrJ
+	PHgmRzdpV39GMSWdYKfW//SSALm1lx18O+MK426ItMlJaMv/LwihvpjoGkShJbzstXCKr3GZX/355
+	rGbJOsblpmDDwbZ0TOgQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wljm9-00000006FYd-3Dz4;
-	Mon, 20 Jul 2026 08:55:01 +0000
-Received: from mail-pl1-x629.google.com ([2607:f8b0:4864:20::629])
+	id 1wlkxK-00000006SDC-018M;
+	Mon, 20 Jul 2026 10:10:38 +0000
+Received: from mail-pf1-x434.google.com ([2607:f8b0:4864:20::434])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wljm7-00000006FXH-2IVN
+	id 1wlkxH-00000006SCg-3PqV
 	for opensbi@lists.infradead.org;
-	Mon, 20 Jul 2026 08:55:00 +0000
-Received: by mail-pl1-x629.google.com with SMTP id d9443c01a7336-2ceae1ed204so75901215ad.0
-        for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 01:54:59 -0700 (PDT)
+	Mon, 20 Jul 2026 10:10:37 +0000
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-8423f236418so4974457b3a.1
+        for <opensbi@lists.infradead.org>; Mon, 20 Jul 2026 03:10:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1784537699; x=1785142499; darn=lists.infradead.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=lWk+3JUF440aPxO5fxU5ALhAnRx6CRMFdcKrFmi02yw=;
-        b=lEVuNUNKKF7wCVrwSlsaG1zlscwjEirVZfjlBkGI6ErJxSX7dOoisPtOiQRSMSxiS9
-         9Ace99e6UXZ0bjATKeqV7pOt15ooEc64/563EaLAa4xHjExBcWcl6KmbSmAjr08Y8QBz
-         gxq3cfOzjXKHeoyaIsLLqRpIEcN0WyLhzs7/sa4Ho5fed5sK+YtvVPwXBBhm0ykIPPd6
-         wGYE6k3waTi3ysd93HGxGJBIeWRie9oI4vLc3xCMHmSU/BwrtCVE5OsIh+p80oudSRbN
-         xtJJYamAzT3/otf8yptSCSQNIRQ8MftbfAzU8WI4HGVLd0HcOni3HgsGZeyCh+k4FTa/
-         Gyig==
+        d=sifive.com; s=google; t=1784542235; x=1785147035; darn=lists.infradead.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=nt+pRmGJTq3skth4jgbmUMouQ7267GgQgQPIpXIge6w=;
+        b=YDEzqdlcvxisPAzHAU3LH6ZpITYEOK3XB92KkLMKsH/0BML0IyOpnuzcArPU2WzU55
+         q2rlN/3OvokvhyecfNltAEdHz9RdboQXQcZs2rpfVV/N7Y5DWr5rMVpsczP6SBtCyWOX
+         Lfw7CQg7/OAVUTyqwVWv60VRle7OB6LlTG6evkFevxUpizwXVCmtZGns3HyujdJkE8cY
+         G56RCk+zSSZX5znZmSHHeAY2r0lRpSvKJyGmkp213pISGtB3RFc/b4KK/acTSqhz4dJe
+         ZFGYN6OpBLQ8/xQrwBuEn3sjJSrTHQrif7PxSHixc2zcJeWR0fDhorGM3rE82ISzGR0L
+         nY/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784537699; x=1785142499;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=lWk+3JUF440aPxO5fxU5ALhAnRx6CRMFdcKrFmi02yw=;
-        b=YvHecHIwdt3ZZZtoyb2uv8EV6Lw7JGH64Vk0ko8ZxHzdq5DNvEO2qfvrjYur1mCb9d
-         Rx/jFjV8G/g4N94WUC7M/MU60rZnzM55G6hWaeTT/C6focDOiXKqLf3FCfpGhRtBtiHd
-         6JYEQvbrdkBUDAt1ATAzU2dv/SRXJp2pdsT3U+HhlMnTsOCTfMdihv5tfbc57Roo3+nA
-         xoYDYmAcqcBH1gh3NZ5E45TBoeJ3pp3QGk5h4CTfAAF0QpSfA/PqNhY868BkmsfZcEiP
-         gljoJ2pGQdM7081Lmv+16OryqV70OJp//J8zXTcEKblxvdXE3OvwMIc886Rm7wCAe44i
-         5g8A==
-X-Gm-Message-State: AOJu0YyJa5vFf/SKPQtsKqenVZeKfiDlCyWj43FoBsiU2E9Qcz5ZnJV7
-	e4rEafGpgCFyp/vsDGchZqRqmiKda5ZZKeIjY9IcRPJUAhn0uK2hOhn+rWpN2+ks2xU=
-X-Gm-Gg: AfdE7cmCXgrRZawd4xDNzKFD8SAIrllIiaZY40AvefOfsoqynM0nNxjYIMGXKKA7PT1
-	C5l8LC3UCFoFeSNLTOoxgAElucveDE1k20N8zlSXc+o7826miLdFimAIUqQKAkVrg2+MzRqqmCm
-	BQsNO0eErmeZ+rCzhp6D9aq3SFcIdQMn0IN8p2+Y4LO8WRs+P9iP1TunZXIUKma29C3LnVwo4Zv
-	wyx73xTm0mm0uz+UDA4OPnXYBvL56bY9DzlViKlPUKvhiHxNqApHpM1lO7+0JWiPPLNeLdYyfzi
-	fmiKHO8GTJ7GoDwUCgs6fSaYDBU8uWZ4/kOMWq7eUQyD1BMtbGGdOOdXuFKjrkfzQoUCdWq3dIP
-	wMFQqDiLQNfPatrIv6tXygC4EGrzOOJsPUxm+tw0DNZjapglTWlBC2UmRhRfTuX+bZ5jl6X69B/
-	nb
-X-Received: by 2002:a17:902:ce89:b0:2c9:c083:cd50 with SMTP id d9443c01a7336-2cf3489232amr141924135ad.17.1784537698592;
-        Mon, 20 Jul 2026 01:54:58 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1784542235; x=1785147035;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=nt+pRmGJTq3skth4jgbmUMouQ7267GgQgQPIpXIge6w=;
+        b=Y6CIHUGrRnGZw7/01wLrO9lQGHX9Jz34KDCkT1g1V0DQt3RgqywCmWQI+h4Hl9PoQl
+         vNKdBevvGkyvKXO5KLekL2WNQvDP4MmY3Lmja9sTyWZwpqsaWG4j+K4lnPr7sK/ni4+1
+         CO3QHiRg5YJVj6SGilJW+OzpNPmrqHoaLR1/vM5U9FJ53rUxJj4pIqINhv+vonGTamGf
+         7tJMM+Q6eUqqCm7BmGOiRPN4v8bHJuW7b/0hkPzSpMdIGvBvEcb6rfUN5kISxE8FgLj4
+         F0UyaVsVT2mlEZUx1M3DFvS+NOWmMBluBcUQ3UaRiKU5NHuw+DLSM2QVz2uG/n07xas4
+         wMDQ==
+X-Forwarded-Encrypted: i=1; AHgh+Rrb8MLqD+tV63V9ESHTLvnr8lH5slghDYMD79a7JvHLzZTHKHVkmPTFWshAIcAnxj0bHtIb76IY@lists.infradead.org
+X-Gm-Message-State: AOJu0YyqSog3a7WQh2qTazZXKb41OUj7wDbomA4AxkhcemEul531b9KA
+	uzGrjcPTXlf6qy6qkWDG0Je7jO1AIzOyVc96JY5+6V1iZ70pOTT0lYj/JIFMOUa03pQ=
+X-Gm-Gg: AfdE7ck46QI09XAV4oG601oryd96hROEjK9lnQds7V97tTZRJqYqI+MGxCzwu4iqXHO
+	jZfXgg2H7D36qVB46PRgULCMufFjtd8MH8yzMqxGmWvaCQqANfN7O/USNbqjFFVNq+jdg0e217v
+	9pMKbZoW0ssFLiSyvCtlOCzq411h5vvR862iA2vrFKTDgMvHbOwJa3T1kTKDnH8aJzkha+tSX2V
+	KPcm9v0DVxjPRx+ZXMQCIPcKMeENC7XRdXIMAeINej5ZJv1mjHzWCmTDikZw34fREXUKCXrpMm2
+	gthOMpqTV2VZdJqYcrWnKUOcnkVf69AgUsz92GBLstfFtEkm0z6RlDBLPBd3JtQ9GEqDsnPU7Xp
+	AdHkk1E1nbu8/z9Uy74fsETEAvwsdnZlMfkdVAwU2/avYf6caPmWJtO381/5N5JtIqyThMkY484
+	b2
+X-Received: by 2002:a05:6a00:887:b0:847:8d2d:713c with SMTP id d2e1a72fcca58-84c295016f5mr12681268b3a.50.1784542234823;
+        Mon, 20 Jul 2026 03:10:34 -0700 (PDT)
 Received: from plin-1878 ([136.226.240.191])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cf346db041sm52768475ad.51.2026.07.20.01.54.56
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84c2adcaa0bsm5414530b3a.20.2026.07.20.03.10.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jul 2026 01:54:58 -0700 (PDT)
-Date: Mon, 20 Jul 2026 16:54:53 +0800
+        Mon, 20 Jul 2026 03:10:34 -0700 (PDT)
+Date: Mon, 20 Jul 2026 18:10:29 +0800
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-To: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Cc: opensbi@lists.infradead.org, zong.li@sifive.com,
-	greentime.hu@sifive.com, anup@brainfault.org, scott@riscstar.com,
-	conor@kernel.org, dave.patel@riscstar.com, raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com, samuel.holland@sifive.com
-Subject: Re: [RFC PATCH 09/12] platform: generic: parse root domain WID
- config from DT
-Message-ID: <al3iXVFNChVjXsHa@plin-1878>
-References: <20260626101433.3133466-1-peter.lin@sifive.com>
- <20260626101433.3133466-10-peter.lin@sifive.com>
- <CAAVgOk+==we31kXGJxG0XQeRY4B0e9rR3e_4PLT22WwVy-e-dQ@mail.gmail.com>
+To: Anup Patel <anup.patel@oss.qualcomm.com>
+Cc: Atish Patra <atish.patra@linux.dev>,
+	Andrew Jones <andrew.jones@oss.qualcomm.com>,
+	Samuel Holland <samuel.holland@sifive.com>,
+	Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
+	raymondmaoca@gmail.com, zong.li@sifive.com, jim.shu@sifive.com,
+	pawandeep.oza@oss.qualcomm.com
+Subject: Re: [PATCH 4/5] lib: sbi: Extend hart protection abstraction to
+ allow ID configuration
+Message-ID: <al30Fax18B3Ev/qS@plin-1878>
+References: <20260717074413.2536416-1-anup.patel@oss.qualcomm.com>
+ <20260717074413.2536416-5-anup.patel@oss.qualcomm.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <CAAVgOk+==we31kXGJxG0XQeRY4B0e9rR3e_4PLT22WwVy-e-dQ@mail.gmail.com>
+In-Reply-To: <20260717074413.2536416-5-anup.patel@oss.qualcomm.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260720_015459_602863_26564743 
-X-CRM114-Status: GOOD (  19.83  )
+X-CRM114-CacheID: sfid-20260720_031035_879217_4A9A4CED 
+X-CRM114-Status: GOOD (  23.76  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,63 +101,265 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gV2VkLCBKdWwgMDgsIDIwMjYgYXQgMDU6Mzk6MzRQTSAtMDcwMCwgUGF3YW5kZWVwIE96YSB3
-cm90ZToKPiBPbiBGcmksIEp1biAyNiwgMjAyNiBhdCAzOjE34oCvQU0gWXUtQ2hpZW4gUGV0ZXIg
-TGluIDxwZXRlci5saW5Ac2lmaXZlLmNvbT4gd3JvdGU6Cj4gPgo+ID4gUGFyc2Ugcm9vdC1kb21h
-aW4tbmV4dC13aWQgKDMyLWJpdCkgYW5kIHJvb3QtZG9tYWluLW5leHQtd2lkbGlzdAo+ID4gKDY0
-LWJpdCkgcHJvcGVydGllcyBmcm9tIC9jaG9zZW4vb3BlbnNiaSxjb25maWcgbm9kZSBkdXJpbmcK
-PiA+IGdlbmVyaWNfZG9tYWluc19pbml0KCkuIFNldHMgcm9vdC5uZXh0X3dpZC9oYXNfbmV4dF93
-aWQgYW5kCj4gPiByb290Lm5leHRfd2lkbGlzdC4KPiA+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBZdS1D
-aGllbiBQZXRlciBMaW4gPHBldGVyLmxpbkBzaWZpdmUuY29tPgo+ID4gLS0tCj4gPiAgcGxhdGZv
-cm0vZ2VuZXJpYy9wbGF0Zm9ybS5jIHwgMjAgKysrKysrKysrKysrKysrKysrKy0KPiA+ICAxIGZp
-bGUgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+ID4KPiA+IGRpZmYg
-LS1naXQgYS9wbGF0Zm9ybS9nZW5lcmljL3BsYXRmb3JtLmMgYi9wbGF0Zm9ybS9nZW5lcmljL3Bs
-YXRmb3JtLmMKPiA+IGluZGV4IDUxZTlmMzQyLi5kZTEyZGViNSAxMDA2NDQKPiA+IC0tLSBhL3Bs
-YXRmb3JtL2dlbmVyaWMvcGxhdGZvcm0uYwo+ID4gKysrIGIvcGxhdGZvcm0vZ2VuZXJpYy9wbGF0
-Zm9ybS5jCj4gPiBAQCAtMTEsNiArMTEsNyBAQAo+ID4gICNpbmNsdWRlIDxwbGF0Zm9ybV9vdmVy
-cmlkZS5oPgo+ID4gICNpbmNsdWRlIDxzYmkvcmlzY3ZfYXNtLmg+Cj4gPiAgI2luY2x1ZGUgPHNi
-aS9zYmlfYml0b3BzLmg+Cj4gPiArI2luY2x1ZGUgPHNiaS9zYmlfZG9tYWluLmg+Cj4gPiAgI2lu
-Y2x1ZGUgPHNiaS9zYmlfaGFydG1hc2suaD4KPiA+ICAjaW5jbHVkZSA8c2JpL3NiaV9oZWFwLmg+
-Cj4gPiAgI2luY2x1ZGUgPHNiaS9zYmlfcGxhdGZvcm0uaD4KPiA+IEBAIC0yNzYsNyArMjc3LDkg
-QEAgaW50IGdlbmVyaWNfZXh0ZW5zaW9uc19pbml0KGJvb2wgY29sZF9ib290KQo+ID4gIGludCBn
-ZW5lcmljX2RvbWFpbnNfaW5pdCh2b2lkKQo+ID4gIHsKPiA+ICAgICAgICAgY29uc3Qgdm9pZCAq
-ZmR0ID0gZmR0X2dldF9hZGRyZXNzKCk7Cj4gPiAtICAgICAgIGludCBvZmZzZXQsIHJldDsKPiA+
-ICsgICAgICAgY29uc3QgZmR0MzJfdCAqdmFsOwo+ID4gKyAgICAgICBpbnQgbGVuLCBvZmZzZXQs
-IHJldDsKPiA+ICsgICAgICAgdTY0IHZhbDY0Owo+ID4KPiA+ICAgICAgICAgcmV0ID0gZmR0X2Rv
-bWFpbnNfcG9wdWxhdGUoZmR0KTsKPiA+ICAgICAgICAgaWYgKHJldCA8IDApCj4gPiBAQCAtMjkw
-LDYgKzI5MywyMSBAQCBpbnQgZ2VuZXJpY19kb21haW5zX2luaXQodm9pZCkKPiA+ICAgICAgICAg
-ICAgICAgICBpZiAob2Zmc2V0ID49IDAgJiYKPiA+ICAgICAgICAgICAgICAgICAgICAgZmR0X2dl
-dF9wcm9wZXJ0eShmZHQsIG9mZnNldCwgInN5c3RlbS1zdXNwZW5kLXRlc3QiLCBOVUxMKSkKPiA+
-ICAgICAgICAgICAgICAgICAgICAgICAgIHNiaV9zeXN0ZW1fc3VzcGVuZF90ZXN0X2VuYWJsZSgp
-Owo+ID4gKwo+ID4gKyAgICAgICAgICAgICAgIGlmIChvZmZzZXQgPj0gMCkgewo+ID4gKyAgICAg
-ICAgICAgICAgICAgICAgICAgdmFsID0gZmR0X2dldHByb3AoZmR0LCBvZmZzZXQsICJyb290LWRv
-bWFpbi1uZXh0LXdpZCIsICZsZW4pOwo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgaWYgKHZh
-bCAmJiBsZW4gPT0gc2l6ZW9mKGZkdDMyX3QpKSB7Cj4gPiArICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHJvb3QubmV4dF93aWQgPSBmZHQzMl90b19jcHUodmFsWzBdKTsKPiA+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgcm9vdC5oYXNfbmV4dF93aWQgPSB0cnVlOwo+ID4g
-KyAgICAgICAgICAgICAgICAgICAgICAgfQo+ID4gKwo+ID4gKyAgICAgICAgICAgICAgICAgICAg
-ICAgdmFsID0gZmR0X2dldHByb3AoZmR0LCBvZmZzZXQsICJyb290LWRvbWFpbi1uZXh0LXdpZGxp
-c3QiLCAmbGVuKTsKPiBPemE6IFJvb3QgZG9tYWluIFdJRCBjb25maWcgaXMgc2VtYW50aWNhbGx5
-IGlkZW50aWNhbCB0byBwZXItZG9tYWluCj4gV0lEIGNvbmZpZyBidXQgbGl2ZXMgaW4gYSBjb21w
-bGV0ZWx5IGRpZmZlcmVudCBEVCBsb2NhdGlvbgo+IHJvb3QgY2FuIGJlIGFub3RoZXIgZGVmYXVs
-dCBkb21haW4gdW5kZXIgY2hvc2VuIHsgb3BlbnNiaS1kb21haW5zIHsKClN1cmUsIGl0IHdvdWxk
-IGJlIGJldHRlciB0byBoYXZlIHJvb3QgZG9tYWluIHdpZCBjb25maWd1cmF0aW9uCnNwZWNpZmll
-ZCB1bmRlciB0aGUgb3BlbnNiaS1kb21haW4gcGFyZW50IG5vZGUgYWxvbmdzaWRlIG90aGVyCmRv
-bWFpbnMuIEkgYWxzbyBhbSBwbGFubmluZyB0byBpbnRyb2R1Y2UgIm9wZW5zYmksZG9tYWluLGlu
-c3RhbmNlLHJvb3QiCmNvbXBhdGlibGUgc3RyaW5nLgoKVGhhbmtzLApQZXRlciBMaW4KCj4gPiAr
-ICAgICAgICAgICAgICAgICAgICAgICBpZiAodmFsICYmIChsZW4gPT0gKDIgKiBzaXplb2YoZmR0
-MzJfdCkpKSkgewo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2YWw2NCA9IGZk
-dDMyX3RvX2NwdSh2YWxbMF0pOwo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2
-YWw2NCA9ICh2YWw2NCA8PCAzMikgfCBmZHQzMl90b19jcHUodmFsWzFdKTsKPiA+ICsgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgcm9vdC5uZXh0X3dpZGxpc3QgPSB2YWw2NDsKPiA+ICsg
-ICAgICAgICAgICAgICAgICAgICAgIH0KPiA+ICsgICAgICAgICAgICAgICB9Cj4gPiAgICAgICAg
-IH0KPiA+Cj4gPiAgICAgICAgIHJldHVybiAwOwo+ID4gLS0KPiA+IDIuNDMuNwo+ID4KPiA+Cj4g
-PiAtLQo+ID4gb3BlbnNiaSBtYWlsaW5nIGxpc3QKPiA+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFk
-Lm9yZwo+ID4gaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVu
-c2JpCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+Hi Anup and Raymond,
+
+On Fri, Jul 17, 2026 at 01:14:12PM +0530, Anup Patel wrote:
+> There are various ID configuration ISA extensions such as RISC-V Worlds,
+> Supervisor domain ID, QoS ID, etc which need to be re-configured upon
+> domain context switch on a hart. Extend hart protection abstraction to
+> support both memory protection and ID configuration ISA extensions.
+
+I will rework my "[RFC,00/12] Add RISC-V Worlds ISA support to OpenSBI"
+series based on this series.
+
+Thanks,
+Peter Lin
+
+> 
+> Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
+> ---
+>  include/sbi/sbi_hart_protection.h | 16 +++++-
+>  lib/sbi/sbi_hart_pmp.c            |  2 +
+>  lib/sbi/sbi_hart_protection.c     | 94 ++++++++++++++++++++++++++-----
+>  lib/sbi/sbi_init.c                |  2 +-
+>  platform/generic/eswin/eic770x.c  |  1 +
+>  5 files changed, 98 insertions(+), 17 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_hart_protection.h b/include/sbi/sbi_hart_protection.h
+> index 5e170f05..1358b5be 100644
+> --- a/include/sbi/sbi_hart_protection.h
+> +++ b/include/sbi/sbi_hart_protection.h
+> @@ -13,6 +13,13 @@
+>  struct sbi_scratch;
+>  struct sbi_domain;
+>  
+> +/** Different types of hart protection mechanisms */
+> +enum sbi_hart_protection_type {
+> +	SBI_HART_PROTECTION_TYPE_MEMORY = 0,
+> +	SBI_HART_PROTECTION_TYPE_ID,
+> +	SBI_HART_PROTECTIOn_TYPE_MAX
+> +};
+> +
+>  /** Representation of hart protection mechanism */
+>  struct sbi_hart_protection {
+>  	/** List head */
+> @@ -21,6 +28,9 @@ struct sbi_hart_protection {
+>  	/** Name of the hart protection mechanism */
+>  	char name[32];
+>  
+> +	/** Type of the hart protection mechanism */
+> +	enum sbi_hart_protection_type type;
+> +
+>  	/** Ratings of the hart protection mechanism (higher is better) */
+>  	unsigned long rating;
+>  
+> @@ -40,11 +50,11 @@ struct sbi_hart_protection {
+>  };
+>  
+>  /**
+> - * Get the best hart protection mechanism
+> + * Get the best hart memory protection mechanism
+>   *
+> - * @return pointer to best hart protection mechanism
+> + * @return pointer to best hart memory protection mechanism
+>   */
+> -struct sbi_hart_protection *sbi_hart_protection_best(void);
+> +struct sbi_hart_protection *sbi_hart_memory_protection_best(void);
+>  
+>  /**
+>   * Register a hart protection mechanism
+> diff --git a/lib/sbi/sbi_hart_pmp.c b/lib/sbi/sbi_hart_pmp.c
+> index 5ede3cc1..c0a4ce1b 100644
+> --- a/lib/sbi/sbi_hart_pmp.c
+> +++ b/lib/sbi/sbi_hart_pmp.c
+> @@ -425,6 +425,7 @@ static void sbi_hart_pmp_unconfigure(struct sbi_scratch *scratch,
+>  static struct sbi_hart_protection pmp_protection = {
+>  	.name = "pmp",
+>  	.rating = 100,
+> +	.type = SBI_HART_PROTECTION_TYPE_MEMORY,
+>  	.configure = sbi_hart_oldpmp_configure,
+>  	.unconfigure = sbi_hart_pmp_unconfigure,
+>  };
+> @@ -432,6 +433,7 @@ static struct sbi_hart_protection pmp_protection = {
+>  static struct sbi_hart_protection epmp_protection = {
+>  	.name = "epmp",
+>  	.rating = 200,
+> +	.type = SBI_HART_PROTECTION_TYPE_MEMORY,
+>  	.configure = sbi_hart_smepmp_configure,
+>  	.unconfigure = sbi_hart_pmp_unconfigure,
+>  	.map_range = sbi_hart_smepmp_map_range,
+> diff --git a/lib/sbi/sbi_hart_protection.c b/lib/sbi/sbi_hart_protection.c
+> index fecefde8..d31e9938 100644
+> --- a/lib/sbi/sbi_hart_protection.c
+> +++ b/lib/sbi/sbi_hart_protection.c
+> @@ -10,12 +10,16 @@
+>  
+>  static SBI_LIST_HEAD(hart_protection_list);
+>  
+> -struct sbi_hart_protection *sbi_hart_protection_best(void)
+> +struct sbi_hart_protection *sbi_hart_memory_protection_best(void)
+>  {
+> -	if (sbi_list_empty(&hart_protection_list))
+> -		return NULL;
+> +	struct sbi_hart_protection *pos;
+>  
+> -	return sbi_list_first_entry(&hart_protection_list, struct sbi_hart_protection, head);
+> +	sbi_list_for_each_entry(pos, &hart_protection_list, head) {
+> +		if (pos->type == SBI_HART_PROTECTION_TYPE_MEMORY)
+> +			return pos;
+> +	}
+> +
+> +	return NULL;
+>  }
+>  
+>  int sbi_hart_protection_register(struct sbi_hart_protection *hprot)
+> @@ -74,33 +78,97 @@ static void __hart_protection_unconfigure(struct sbi_scratch *scratch,
+>  int sbi_hart_protection_configure(struct sbi_scratch *scratch,
+>  				  struct sbi_domain *dom)
+>  {
+> -	return __hart_protection_configure(scratch, sbi_hart_protection_best(), dom);
+> +	bool do_configure, memory_protect_done = false;
+> +	struct sbi_hart_protection *hprot;
+> +	int ret;
+> +
+> +	sbi_list_for_each_entry(hprot, &hart_protection_list, head) {
+> +		do_configure = false;
+> +		switch (hprot->type) {
+> +		case SBI_HART_PROTECTION_TYPE_MEMORY:
+> +			do_configure = !memory_protect_done;
+> +			memory_protect_done = true;
+> +			break;
+> +		case SBI_HART_PROTECTION_TYPE_ID:
+> +			do_configure = true;
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +		if (!do_configure)
+> +			continue;
+> +
+> +		ret = __hart_protection_configure(scratch, hprot, dom);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+>  }
+>  
+>  void sbi_hart_protection_unconfigure(struct sbi_scratch *scratch,
+>  				     struct sbi_domain *dom)
+>  {
+> -	__hart_protection_unconfigure(scratch, sbi_hart_protection_best(), dom);
+> +
+> +	bool do_unconfigure, memory_protect_done = false;
+> +	struct sbi_hart_protection *hprot;
+> +
+> +	sbi_list_for_each_entry(hprot, &hart_protection_list, head) {
+> +		do_unconfigure = false;
+> +		switch (hprot->type) {
+> +		case SBI_HART_PROTECTION_TYPE_MEMORY:
+> +			do_unconfigure = !memory_protect_done;
+> +			memory_protect_done = true;
+> +			break;
+> +		case SBI_HART_PROTECTION_TYPE_ID:
+> +			do_unconfigure = true;
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +		if (!do_unconfigure)
+> +			continue;
+> +
+> +		__hart_protection_unconfigure(scratch, hprot, dom);
+> +	}
+>  }
+>  
+>  int sbi_hart_protection_reconfigure(struct sbi_scratch *scratch,
+>  				    struct sbi_domain *current_dom,
+>  				    struct sbi_domain *next_dom)
+>  {
+> -	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
+> +	bool do_reconfigure, memory_protect_done = false;
+> +	struct sbi_hart_protection *hprot;
+>  	int ret;
+>  
+> -	__hart_protection_unconfigure(scratch, hprot, current_dom);
+> -	ret = __hart_protection_configure(scratch, hprot, next_dom);
+> -	if (ret)
+> -		return ret;
+> +	sbi_list_for_each_entry(hprot, &hart_protection_list, head) {
+> +		do_reconfigure = false;
+> +		switch (hprot->type) {
+> +		case SBI_HART_PROTECTION_TYPE_MEMORY:
+> +			do_reconfigure = !memory_protect_done;
+> +			memory_protect_done = true;
+> +			break;
+> +		case SBI_HART_PROTECTION_TYPE_ID:
+> +			do_reconfigure = true;
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +		if (!do_reconfigure)
+> +			continue;
+> +
+> +		__hart_protection_unconfigure(scratch, hprot, current_dom);
+> +		ret = __hart_protection_configure(scratch, hprot, next_dom);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	return 0;
+>  }
+>  
+>  int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
+>  {
+> -	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
+> +	struct sbi_hart_protection *hprot = sbi_hart_memory_protection_best();
+>  
+>  	if (!hprot || !hprot->map_range)
+>  		return 0;
+> @@ -110,7 +178,7 @@ int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
+>  
+>  int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size)
+>  {
+> -	struct sbi_hart_protection *hprot = sbi_hart_protection_best();
+> +	struct sbi_hart_protection *hprot = sbi_hart_memory_protection_best();
+>  
+>  	if (!hprot || !hprot->unmap_range)
+>  		return 0;
+> diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+> index d74dc67c..3f1f136a 100644
+> --- a/lib/sbi/sbi_init.c
+> +++ b/lib/sbi/sbi_init.c
+> @@ -93,7 +93,7 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
+>  	sbi_printf("Platform Features           : %s\n", str);
+>  	sbi_printf("Platform HART Count         : %u\n",
+>  		   sbi_platform_hart_count(plat));
+> -	hprot = sbi_hart_protection_best();
+> +	hprot = sbi_hart_memory_protection_best();
+>  	sbi_printf("Platform HART Protection    : %s\n",
+>  		   (hprot) ? hprot->name : "---");
+>  	idev = sbi_ipi_get_device();
+> diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
+> index da4d0e34..c71198a8 100644
+> --- a/platform/generic/eswin/eic770x.c
+> +++ b/platform/generic/eswin/eic770x.c
+> @@ -470,6 +470,7 @@ static void eswin_eic7700_pmp_unconfigure(struct sbi_scratch *scratch,
+>  static struct sbi_hart_protection eswin_eic7700_pmp_protection = {
+>  	.name = "eic7700_pmp",
+>  	.rating = -1UL,
+> +	.type = SBI_HART_PROTECTION_TYPE_MEMORY,
+>  	.configure = eswin_eic7700_pmp_configure,
+>  	.unconfigure = eswin_eic7700_pmp_unconfigure,
+>  };
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
