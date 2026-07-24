@@ -4,129 +4,92 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id DBB88C531FA
-	for <opensbi@archiver.kernel.org>; Fri, 24 Jul 2026 08:09:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id EAC25C531F9
+	for <opensbi@archiver.kernel.org>; Fri, 24 Jul 2026 09:27:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=fFu+UP6Ou7oxYeJaDB433VnFWniwAn+EQNEWsa8EvE8=; b=CS2G6MoIY83tuS
-	uW1KfuNKV2P0b4eczj0B68WW3Q9+NMPowo1eonJAp8fGuoyBLX0GXH7F61RVDZKV9Yz6Twu2nhxgI
-	uXnnnTwmEBHgDi3mkmc/Bfk5Y7QtTgiG+aRuzyJfH3r2h+dABXUbNHZxEYGwAO///Wb4kNcUXe2q2
-	qML4a9InD6KSDFXyf013s9iWUiwDcoGGp+U/JLwDhTw+/+q/9ZRFj5M4Bn9cXbeyS1Bt0wHpQAcgQ
-	/JOYF8GK6hArRChx9O0fiFUFlanuFrOdJxuu1ZvXTsz/2iHTATU7T0DTL8xdR8b+1KTpNpfJUJzDj
-	KUDpq3jOx1sjg7xT+CdQ==;
+	List-Owner; bh=uclPAWhZ8hoUCvKbBh9E25O4bCgdhiQ1RxGrH2FytA0=; b=RM78IIwiAC70zR
+	oo4EnHEWueTn1wj37Y+igVceu4J89uZoz/lp/u79PvUZJ8yxDNqNtkxZ8PqO6zp2p3wjF/xgalUjC
+	1yIAHYbPF6xjZR/IxRdqYB7edpS3y0yWl267QIEoRNuShNyJ9gJGLInfVaZKltZxi3vbKxaXQj3yW
+	YPA+cxWXl09F6xM9uBu2WQqY0AEKQc/s+uoRrVhV3nFYBhUo/565CMBrryxQ49QPzCxoWluURUE2/
+	AaFVzN3YZUIx+RLmiOnYeLF8cU2L2wFX7iM0tRcBf6q4uBCQ3Qtec83Ky8QIHjEqHqdnr7SqT8ZkZ
+	XlSXiRzespMphKORGeCg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wnAyL-0000000Fll3-2pNf;
-	Fri, 24 Jul 2026 08:09:33 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1wnCBy-0000000FxjG-2kUv;
+	Fri, 24 Jul 2026 09:27:42 +0000
+Received: from smtpbg151.qq.com ([18.169.211.239])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wnAyJ-0000000FliQ-1H5O
+	id 1wnCBu-0000000FxgW-3l9u
 	for opensbi@lists.infradead.org;
-	Fri, 24 Jul 2026 08:09:32 +0000
-Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66O4llxA1510888
-	for <opensbi@lists.infradead.org>; Fri, 24 Jul 2026 08:09:31 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=nQRe4A13sg6
-	w7oMfP9l7bKke+uKIB+RcP8BpA4dLCtg=; b=YoGaYQiATRvmxa0H7HCpJNJy4Ly
-	646VgMf37aZjJsUlxxTYy/veBbU35qzpbvB2nW52jK6JhJdcS/bDr0zNyVE5nUXO
-	brlDF34UYb2bEX2VjW7T8zQqtS2fTcT8cFDkc2/+KorYTPI10ibH6mguzrZCSevg
-	qsGKH6cT8pXWjc4GlIUBDtlVMxJJY8QJWpGoXTLuch7UPydbf7I6NiIGcKCxNyBx
-	5q/IR2ovS3I6A8oZJEWNv4njeicGIF/csGZB4S6zx+ZJ9xKte4tL0GXTNOR/kZJN
-	WUsHh7GOTSecpqURG9r0GEgUOl4NHLKTrCwjZthvqsV3L9qpkviBV4Lo/SQ==
-Received: from mail-pg1-f199.google.com (mail-pg1-f199.google.com [209.85.215.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fkusrsp4f-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Fri, 24 Jul 2026 08:09:30 +0000 (GMT)
-Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-cb7049fa552so145777a12.2
-        for <opensbi@lists.infradead.org>; Fri, 24 Jul 2026 01:09:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1784880570; x=1785485370; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=nQRe4A13sg6w7oMfP9l7bKke+uKIB+RcP8BpA4dLCtg=;
-        b=IC/P8JbWIfRrsEdekwxcVGTY9jOgzRDB6AkN6MV02mxDuC13wlf4bGqK0pIw5EYV56
-         xkSS/jLs+u3chJKdqEnKXJ5XUg11aFp6xrphWs95O/Tp+tW6tV81hAiF/zeJgPx6OkPY
-         DxNouX2w1xxMKHrIZOBX6jZYJFrm2a7WY49or5iWPfWG85qHc9qghLSrfou3/Fc9QFYA
-         hEdnG1QKFpFTIUp48Ekyha1M0XBm9d9jOk9c2A2K4Sg8N1Rq9va9wLwdOrdXnaHxvTx0
-         wBEw6X06mz8w+l+0th50fnlF6gYIwvQvY+XZFuv1xlirtlErHTeRPKZqB6e7Y8Ambnxq
-         vNwQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784880570; x=1785485370;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=nQRe4A13sg6w7oMfP9l7bKke+uKIB+RcP8BpA4dLCtg=;
-        b=k0zzZM6K3c7GddxijsMsTY3Eziq/fm6eEcH5coy0WPcguQXhUysGekIGnX+D0AFPdK
-         NcppypIeV01RSjYOfU2owqLr3A0tfXWUsvgWaT0gJx/FC1csc1/Sr6aEvBtDVYWfY5Ry
-         TGvOeVs5EGckXjx3vYbrHiJOhMIQuZSwiRpbHhORhJl0g3ngIUdc75KjRoitwd6hGkp0
-         HgazKurTPOpvwXtLZGh4GEcc3Lss0nfoMTb8AioNQ1LRE495pu7I1sES8XwDc7bv7zJL
-         z0tR8s9vPcLFFqnfkO6W0Gjkfpb6vEu1z99vZcqVKFWHNmm0rM2qg0ZfIkfWw8MTAXYr
-         RwlA==
-X-Gm-Message-State: AOJu0Yzh5xE2T2MkYcTwP23DXoF0qsMDYtPZ7If+Zw8MPs+Nu3oBUX6L
-	dO5/uxpPyyKGA6HkHW+zMbFy4J23Zr6udcY/eFnJ8DNLQomp2WtX7F4s93t9XOQVVB23U7WB7Xm
-	lQAz9PDeNbcbTHE/LhgkH4v4pYTzM/xxwovVJF12idy7aMGGHUaMowRn187mDXm4m9YxlDBc9sg
-	==
-X-Gm-Gg: AR+sD10kiExd8/e6gsyqO6OdKBiq0eMkGJIeFSCMl49HQ1DoiybiTPj9sQuMO8E9n+c
-	HKS/30IKu268TtAWl1mTTe9KCmVga1gXK9gDPeRTlzCQA6gtaEFwhJT+CdJ5KTFkHk2f1Xyj482
-	WbsBE1MKGKWq/MyNCmne3RcxcSs6bUPX+dDLz3Up9dDam1t+g1vH7tQ6l7CGHwLAYT/a9eRRdAz
-	Nur0Jt9xN84YBPLcaYGDzf6ke0Pv6W2+mSgk4UPyethWOUL+Y7TJlC9+VIHBZWYGBWCYpRaURu5
-	4K5L2K+u2NAfjFfTga0HecVEYrutS2cmCBZfyrWMEZjEETyLMDL72Q0pL08n2BKHNvDvRsX/HoW
-	LoVBdvMzKbGuEDVtrja0F0ze8IDiaFkqutY3weFL6BiMXgOUDE4o8YKYIRtrL8/KDTFiUdhGHCB
-	jUJq7nIV3CzfSZFQrG9wY=
-X-Received: by 2002:a05:6a21:7111:b0:3c3:87df:fc7 with SMTP id adf61e73a8af0-3c44b28f8f2mr7207927637.64.1784880570115;
-        Fri, 24 Jul 2026 01:09:30 -0700 (PDT)
-X-Received: by 2002:a05:6a21:7111:b0:3c3:87df:fc7 with SMTP id adf61e73a8af0-3c44b28f8f2mr7207897637.64.1784880569679;
-        Fri, 24 Jul 2026 01:09:29 -0700 (PDT)
-Received: from hu-ranbirs-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3147dc193f8sm45810741eec.1.2026.07.24.01.09.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2026 01:09:29 -0700 (PDT)
-From: Ranbir Singh <ranbir.singh@oss.qualcomm.com>
-To: opensbi@lists.infradead.org
-Cc: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
-Subject: [PATCH v2 2/2] lib: utils/mpxy: logging: Use correct enum for enable notification
-Date: Fri, 24 Jul 2026 13:39:20 +0530
-Message-ID: <20260724080920.1629065-3-ranbir.singh@oss.qualcomm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260724080920.1629065-1-ranbir.singh@oss.qualcomm.com>
-References: <20260724080920.1629065-1-ranbir.singh@oss.qualcomm.com>
+	Fri, 24 Jul 2026 09:27:41 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
+	s=mxsw2412; t=1784885241;
+	bh=NQ8ZpCQCkawJpw387kJiozla274KmChfA8c0DFepuzc=;
+	h=From:Date:Subject:MIME-Version:Message-Id:To;
+	b=pCYm1pAPvRgH84XByGiQycNe1uYFPZ7wRlYgJxj2ismBIJdcb1E163i8ZOGIBqLpa
+	 5B/69xX5V1Mib1ZPN84m73zUSgcQVDA/9i/sjaHJlF0Bpzs/RpR4kWIkt6YK6IZPlv
+	 7J1QIlWLx/2ue/0Yi3Mc+IcUY5Bqy6KoaNpqwj48=
+X-QQ-mid: esmtpgz11t1784885236t5fc4c1e9
+X-QQ-Originating-IP: 6LXlwmvKwVO14EYVGyDyLeoGfX37dklHOQKvTMdqTdw=
+Received: from = ( [120.237.158.181])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Fri, 24 Jul 2026 17:27:15 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 3947165837024207464
+EX-QQ-RecipientCnt: 4
+From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+Date: Fri, 24 Jul 2026 02:27:01 -0700
+Subject: [PATCH 1/3] platform: generic: spacemit: k1: rename cache flush
+ operation
 MIME-Version: 1.0
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI0MDA3MyBTYWx0ZWRfX67z5EC0s6CE5
- DJsfvQ0WHLVIKhgD6KsWEuxFR1IiFRC4kRB7qguxwFIQpDIlD0jESudabbMMXCjzagb+ovT8Kh4
- 5GSYy6jQhrfHuDUuOp1gbnbpXB97VoU=
-X-Proofpoint-ORIG-GUID: Qe1BBTOEKKYOEZe2KjXmcDA0vFI210km
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI0MDA3MyBTYWx0ZWRfX1wClfX3Ttpex
- z58LG2fkReVfK1JbRWRt4d3yRWvl5JBRg/eGXubww3y5XP/kDNW3YPKlhY7wnhMCu5urpjnfxba
- vCl+zc1k+CrFzYF7vvyllybYKXWk7Ta12WjOOjwSVqhlde/cybjd+LxIvwwiWf91/u9ALj7u2ST
- itxAKkTgAZjn+qCZRLIW7tWF4XUMS7Y2Nt3NC7N4+N5QLmysfARJHH/iczLB3HjDhJ9ckXx1ice
- TglEtwbqJac3AEK/RrSoZ22WncLQER6dOz1uVoVUhQarW5csTalkWpvNWOJv4F8I7fUelFsS3Ky
- 6mgYIBvVjacabYqJjbwr4OxY0BOge5WhUqsRehFIpCwpNhBHWf+euG5fOsEtCaEIsVS3xU/F5J8
- tbZGxYz72jXswU3DGymS2XJOWt7mGQnqVvRuUOWdsTda3dyi5u3Gs3GAVK0HZw8VeefWqy6axn2
- bwISdyKXBKC5iXMnWFA==
-X-Authority-Analysis: v=2.4 cv=PtejqQM3 c=1 sm=1 tr=0 ts=6a631dba cx=c_pps
- a=Oh5Dbbf/trHjhBongsHeRQ==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22 a=EUspDBNiAAAA:8
- a=TUwXktB768aEqdBAUQwA:9 a=_Vgx9l1VpLgwpw_dHYaR:22
-X-Proofpoint-GUID: Qe1BBTOEKKYOEZe2KjXmcDA0vFI210km
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-24_01,2026-07-22_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 clxscore=1015 suspectscore=0 malwarescore=0 phishscore=0
- lowpriorityscore=0 adultscore=0 priorityscore=1501 spamscore=0 bulkscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607240073
+Message-Id: <20260724-spacemit-k3-v1-1-f0e49329feb8@linux.spacemit.com>
+References: <20260724-spacemit-k3-v1-0-f0e49329feb8@linux.spacemit.com>
+In-Reply-To: <20260724-spacemit-k3-v1-0-f0e49329feb8@linux.spacemit.com>
+To: opensbi@lists.infradead.org
+Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
+ Anup Patel <anup@brainfault.org>, 
+ Troy Mitchell <troy.mitchell@linux.spacemit.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1518;
+ i=troy.mitchell@linux.spacemit.com; h=from:subject:message-id;
+ bh=KKnxI5IvZqgL1LXOJO7MwhdWO7ZF545ykdO4TY3wRTk=;
+ b=kA0DAAoWmAnvgPkzNC8ByyZiAGpjL+qi2NfNw46E4I4Zy1ZpMHErc9uPhvQ6rqfuIlbaUyaVH
+ Yh1BAAWCgAdFiEEi+AMtnBMWj1wEHFNmAnvgPkzNC8FAmpjL+oACgkQmAnvgPkzNC80GwEAlEJf
+ n3GoEA3wt4uxm8CJNDM3GuvHK9xfeCPonqCJuuQA/01yxjYZZ5Q/K89WgpZLVydcFY/6VofRvr6
+ xx2PBFEAD
+X-Developer-Key: i=troy.mitchell@linux.spacemit.com; a=openpgp;
+ fpr=3FE5535CF1B0E658E57DB59BAE1C2FBEA7DB42E1
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
+X-QQ-XMAILINFO: MMnP0fEUKo/hF0lVVy9iS96NsHKGTq01b9Ma/C14GpYc8d3GIQvCK5Fx
+	rHBzMLSvHzoKJXiosDS8YewfnZiSlE4giBYM0yPdph8HmJrboPla4HPTrciAlPwzuyOFTmH
+	PaPECT+f3xsSoWmQX0kYBGHgdZaGdqSaXSnFTxwr4MHjvBs7L/hGd/Z7yj3ipztOq8DRWPZ
+	mhWbgCPUJyTepb+vj0vGj0Abq08vaXop/nPH2AFRdjOwMadE2rOQSGGAmKoZLrPIsh93RZt
+	+KR/OQezlL8ZmD56onJsJXesarQvi6gLJG6lQcWcFQlaB0sLmSWt5EcCnUltf3wO10TQInH
+	gEjLE2lq65oMlM0MSxoIxaujIVRYu0j5veQyDVkc+8GsCenTUcFWZdAbvnfd4tuFBiAsIXF
+	aDVlovO96O88q1eIhaMEydnMexz2aS3DLssBU0z7ngqXX6hQeyzKhF7iB9wZu1QJND5sVqD
+	IoKnV09BWr69me7lRbpFVuvLAgvNq1PyjVrlkdmlEI/Pj1f10j3rL0DaxnnXsW+vosYbceR
+	qf95YZlAr1wu1c85c5mnYU8gLGuLBuSLBgXf0ADZyR8W6v20cH0rDGd7oVgh+ATw0AqqBZv
+	6ugUoquVM0bIzIAuRVFsRWtMmL2pxyepERAP+84fq/xNNAgRfl0+KL/1a8anqfJidNreiGb
+	WEJ192K+axF9e1hkrrLULmLzUnmiSHK2dGBf9IPWTjUiJmSXmAIt46cXVmnXF0US0BZGYN6
+	apL5VLzY6eFBgS1nR4z85+iPfmE+LAXz+MpzutYCkmUlriXhhoDlSOPKHOwezWaCN9MwD7l
+	Nzus+CCBnrfoLmmNPelUII9wEFLeNcixf+oAhpvQJW9E4Ncc6Vd53zyaW9HKbQ1u265Vygz
+	M7GqZeQHDnIv5HUs5mmbwa+pC+exaFrNrT+LyRdukjKZKI9F4HJygK5vj0X3Qic8MdhK42I
+	ZAoxfb3/IlJDu7YyP525+gE+obzUa33nexetpOSWUkESXpBjeJUivyLr2epNZHchrcpinHP
+	rmtSMSNYqkqMNqwLyO0h6Hx8I7XbgSDwQZxEbs+EvchasVzZg4ijpCOkb2y3hm/LvvWb77F
+	Q==
+X-QQ-XMRINFO: NI4Ajvh11aEjEMj13RCX7UuhPEoou2bs1g==
+X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260724_010931_352855_7B6CB79D 
-X-CRM114-Status: GOOD (  13.59  )
+X-CRM114-CacheID: sfid-20260724_022739_909090_BC5421C2 
+X-CRM114-Status: UNSURE (   8.60  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -143,32 +106,51 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Logging file should be using its own enum and not others.
+From: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
 
-Fixes: 262571217c75 ("lib: utils/mpxy: Add RPMI MPXY driver for logging
-service group")
+MRAOP_ICACHE_INVALID is used to flush the local D-cache before a hart
+stops, so the name incorrectly describes I-cache invalidation. Rename
+it to MRAOP_CACHE_FLUSH without changing its encoded value.
 
-Signed-off-by: Ranbir Singh <ranbir.singh@oss.qualcomm.com>
-Reviewed-by: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+Signed-off-by: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
+Co-developed-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 ---
- lib/utils/mpxy/fdt_mpxy_rpmi_logging.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/utils/hsm/fdt_hsm_spacemit.c       | 2 +-
+ platform/generic/include/spacemit/k1.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c b/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c
-index e8f085eb..1e92053d 100644
---- a/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_logging.c
-@@ -11,7 +11,7 @@
+diff --git a/lib/utils/hsm/fdt_hsm_spacemit.c b/lib/utils/hsm/fdt_hsm_spacemit.c
+index 868e49bf..99c52335 100644
+--- a/lib/utils/hsm/fdt_hsm_spacemit.c
++++ b/lib/utils/hsm/fdt_hsm_spacemit.c
+@@ -92,7 +92,7 @@ static int spacemit_hart_stop(void)
+ 	asm volatile ("fence iorw, iorw");
  
- static struct mpxy_rpmi_service_data logging_services[] = {
- 	[0] = {
--		.id = RPMI_MM_SRV_ENABLE_NOTIFICATION,
-+		.id = RPMI_LOGGING_SRV_ENABLE_NOTIFICATION,
- 		.min_tx_len = sizeof(struct rpmi_enable_notification_req),
- 		.max_tx_len = sizeof(struct rpmi_enable_notification_req),
- 		.min_rx_len = sizeof(struct rpmi_enable_notification_resp),
+ 	/* flush local dcache */
+-	csr_write(CSR_MRAOP, MRAOP_ICACHE_INVALID);
++	csr_write(CSR_MRAOP, MRAOP_CACHE_FLUSH);
+ 	asm volatile ("fence iorw, iorw");
+ 
+ 	/* disable dcache */
+diff --git a/platform/generic/include/spacemit/k1.h b/platform/generic/include/spacemit/k1.h
+index 7095bc08..ac727b04 100644
+--- a/platform/generic/include/spacemit/k1.h
++++ b/platform/generic/include/spacemit/k1.h
+@@ -20,8 +20,8 @@
+ /* ECC enable */
+ #define MSETUP_ECCE				BIT(16)
+ 
+-/* icache invalidation */
+-#define MRAOP_ICACHE_INVALID			GENMASK(1, 0)
++/* cache flush */
++#define MRAOP_CACHE_FLUSH			GENMASK(1, 0)
+ 
+ #define PMU_AP_BASE				0xd4282800
+ 
+
 -- 
-2.43.0
+2.55.0
 
 
 -- 
