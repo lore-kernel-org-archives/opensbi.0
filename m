@@ -4,70 +4,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B4AD8C531FC
-	for <opensbi@archiver.kernel.org>; Sat, 25 Jul 2026 02:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id BE233C53209
+	for <opensbi@archiver.kernel.org>; Sat, 25 Jul 2026 02:39:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=eWB0zv0wyI0ri3Z+Sx363yJ93Sz+sBJOI5stItTr+h4=; b=GOCn0ZTk3/TQeI
-	YLgbNjG1PYB6I6Wa6F5KCMjhCEB9I89w13CO8OwId02NtA0kxV13sK16mM69jBDg+abHZ1JFzbnzM
-	e55QpVMzuA1s7vqx/Ol8PhD49ZxcmTi1sL3/G+UGJSFgf9J8ETftsvidDZLrEUPI0UG7yuO3hYJHV
-	fYnnp/oraH2hZFq6dFt2gKWcxum9qTDAFrP7EDwlre9eLqXF3hpSGKcAuQMe/xyT+F3Ptvu9U87jG
-	+Inma5ZJFMTlVCJj32cr4SX2f0HBFJ9IQ0VUa+VucgG9xy6Si+oFdy/tCQLD5sZZocJW8QsgFz4lf
-	0q3cb2uPr/BCnhm80Lhg==;
+	List-Owner; bh=SzoUPQ2OseBl8zB1B7xivBQiZP8aSq3SRZ/TsyLA8XA=; b=kOUhewyiy+8mCx
+	g2JLL2YsOe0QzBf7fkbtG/vwqkB28nkC8DI68saM65fIjwbHX1veWwOGtKuIDwEb/UVPYF2sCQQ6L
+	IpjPzcTYkMx+DTjnVawL9mnFvVwAyQ2j2QHjpKdIpyncpFyvTQCHW03NNbagSvRwmLAn2q2FDBvsF
+	ydmY5hGQoeUI0EES6OBT6w/gsFOro2QHO7rF30mSLmZUHthUDobz8ldF0ZggcX6T9Bkg8Tz8FEiRu
+	BRzhrCDFtz3d/hdz32srKhJXmQ8pTCBE4ezHJ+lQZQktR0QsEZUKThutITUZVyRXZFFB5wDWNiUrb
+	79msZb2OKjMj/LvjuzcQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wnSI6-0000000HUXR-11In;
-	Sat, 25 Jul 2026 02:39:06 +0000
-Received: from mail-vk1-xa2d.google.com ([2607:f8b0:4864:20::a2d])
+	id 1wnSI7-0000000HUXp-1KLX;
+	Sat, 25 Jul 2026 02:39:07 +0000
+Received: from mail-vk1-xa30.google.com ([2607:f8b0:4864:20::a30])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wnSHk-0000000HUVv-1D64
+	id 1wnSHm-0000000HUW7-1JGQ
 	for opensbi@lists.infradead.org;
 	Sat, 25 Jul 2026 02:39:05 +0000
-Received: by mail-vk1-xa2d.google.com with SMTP id 71dfb90a1353d-5bfa99f8ef8so1381087e0c.0
-        for <opensbi@lists.infradead.org>; Fri, 24 Jul 2026 19:38:44 -0700 (PDT)
+Received: by mail-vk1-xa30.google.com with SMTP id 71dfb90a1353d-5bfa99f8ef8so1381097e0c.0
+        for <opensbi@lists.infradead.org>; Fri, 24 Jul 2026 19:38:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784947123; x=1785551923; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1784947125; x=1785551925; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=LXxXAUd1PTpTbsAHKUPepDx8yENE7z5PY0rrBBugT+I=;
-        b=FwPG6VJmNAo5ohtTVyUovrYRUs3PojaO6cNb7u/oURKxg9pNVTtddyIHyYADW6kLEt
-         o4GHnHzKwz+nt6Ops4racWL+r2+NGH/KA9S51DoYmbh4LihqZdGEjNUDbIg0QaYA3lBD
-         wymeO9hoJDcy5y/C+Qkg1gI43rLh7WmpIZtV5ccSGanmQQpaeKfUCdqSkZnqGX2Ukygd
-         BCCGo2el0rS3ko8YtNtj+BRyXvQJ/hawqdR4AMj6UJvjT1KTcCtM3Zjxr14GMTa6XCzt
-         B+VbnrdDgvn9qdlx1zyyxK61tD3frNVEgDW6Jof1pO13D4BqOMpYBOTMxmEJDLy94art
-         8MKg==
+        bh=ViNXAqwjL7XvtjjwK45TEWn7DWccrgFNltUeEp2QmjM=;
+        b=iOLfVhB/aZZQ41rtW4H2k20pa2j2pQwD+u0CeevHbFe/Q7eBWkVI0Fs4OjluwT7BBl
+         rHZ2pgr+0GRBKflyCCVRxkA5BCtxHoAbWpIlFWzx482Hs30DVUlck8wItCyyxaSoWY78
+         eYMeeMo1SZrlmgAxcgFqQLjBa8PcBLTYY/zS4cXbDQ0BW/COmXr5heRUYM5H5vXWDua+
+         BFbnYKx4eQJeYdc7dGPjpzkXi+RhIegBsVlmkrqEgO97Xcn3JVzudjBWMYWg2ypWOLC6
+         41+EIFHV1QFQ55NW7duMzf5S1Q8QYZ0o9zn1x4O2kfXYmx71zMyQZB8UjglbYhNFLtR7
+         kNbA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784947123; x=1785551923;
+        d=1e100.net; s=20251104; t=1784947125; x=1785551925;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=LXxXAUd1PTpTbsAHKUPepDx8yENE7z5PY0rrBBugT+I=;
-        b=TKJrXV3ggLs59s42yGtepT3neyiNQ7RQcKcZpoQTmdJpDUqKbCLYWRqBcyL0tCCv6y
-         SbZrCREBopzVS8oJW2ngm6ntpIbbDnoV6Uht9XfpgxwnNj4j94c/EcexY0ovrjlXCeuk
-         LaGI+oLjoEp2pzI3bNd6Pu/ZWLqabCFVjV+jdDC9JCnp9cLBPv5WZpok1k0U6bVk0W9D
-         Yl3EbzsMCsOC1TISqZvvtLaiiyC6669Thb1jDDLcEFKjE92uGkehRDtvMjcVzQMS3grd
-         2wA2c9SmyubyBxkrtpXw7+5AUIU6+qVS1obLZyhJ2KEgEgMq36aXprODH0ebBCYRL/tL
-         herA==
-X-Gm-Message-State: AOJu0YxhS9Z5v+igj2PctkNqxxE4/7IN9CIKuHA+mXu/CSh68YcCgWWD
-	flxgaiAmeQiMTEoq1yEZXfpMUkSuM7gAqe41M1c9MLmmSsAIemczypmlLGL9tQ==
-X-Gm-Gg: AR+sD13p15z+H9PFa9cs4R54mYzt3xHxOr/kg+HTY7W0HsoOx0qvaKztV4tqpTR5Ffn
-	3X9tmqqnlEra/sNwusHUydWQdCMe6cTQU81b63wAaD6XjbFM8SFzjZCkYaUoTJytDclG89CGNXM
-	tLT7dppRVAa2DvhWdPVseHK8ymctqGN821Bsbi3CbY0QQ/ZBF2MxMvv4ila/LcgA0zGy2KYx+as
-	vKj2DpIBA2O6Uy6wtgFlGTVKRGGaDHK5NaKAHCV2Vh7nrVI5qsXO0XuAeb+3r0sqEXMbsWmaLzW
-	aIjcqMVR5LzBYauKZOZKSWJ02hsHDflU6FCn5KCVVTr9JAeN5EzIyXkiNWMxTF05qMnO3ep77JF
-	s9HFDTcNHe/HpD9uVQxvqS4n17/4n9zoKpR6vpK1AEdv3C+Z7W5i+DjFZH45qVAee0rm/gL0CMg
-	buxqXNBdx7zt2ZwKDYU0BrltYZS2sQbATCSFg2X0vk/3dKyvuGBC7fi019lKCWmEy9DzQUww==
-X-Received: by 2002:a05:6122:3a12:b0:5bf:889f:e7da with SMTP id 71dfb90a1353d-5c30637cc7dmr594697e0c.2.1784947123046;
-        Fri, 24 Jul 2026 19:38:43 -0700 (PDT)
+        bh=ViNXAqwjL7XvtjjwK45TEWn7DWccrgFNltUeEp2QmjM=;
+        b=LppB+4D5hfzpVJPoLHnGq9/LzAoMFyyKZ8v+aAe986Kag7+i9h7uXWalRFcYbW5WQQ
+         VA6Pt6p2oAGCPysBPWmLsk8dyhfCTmNXQ+vXqipUHTVmXZcFSeuD7aBzRl1h3L6DT4BP
+         V6XyADh2sqGS8t9EgIjQIBcOGz43azh0qJuQ2XcGN3JUU5fWI704NCMFqe3nOAZ95D69
+         Pxgukw4cqS36blrtVrZMPAI389v8ZXMplJ9gIzY8X6YdIbKHtCc2iNqvpxGr00aTC6lZ
+         A+/2PZ4S3H6Zf380KKfJHJtcfiMeXOrzXxKE5kea8XpX+gFBl2MHWSJdvT/qr2ubZ6bh
+         ay6A==
+X-Gm-Message-State: AOJu0YwSvfOt4TRTYxXsomaApQdGSHV+U9NEm3TsYj5KzccmzSZAxNNZ
+	RqbT9kh8/E8POO6QXvFJbrL3mdKI4TFl/aG14zFsskmBdr3l0mVOngKNS+xOEg==
+X-Gm-Gg: AR+sD130bEhFlISEP+JwFrZbyeSoP4rojyFm5yvoS5HMV0gkika5f87nIczXxHDWL8D
+	eFF0J9NGL5CrOJGoYSwzDQGifGWF/nqBJoKwF3QmQ1XuVuMAG1TTKvzM79QBhxOLhfwQWT6O5U0
+	I3dUiG2bq0lNstD7gPim6gw2r0aPnB852HA9XeobDDNXAIpVw7ihXe2yQw7QvZZlrjBulRKk6Je
+	1br174gu179bmnMiM2Y35A824MDaw7Fij2Fd0lbMNfsb3PHm0R3kjYZIjzPQAkVGnoutLF4K2jR
+	hWLQ/TIEl6ejSWrFZyatJfb2UngN5Qf3OAkIyQvsssmIRC3phQAK/LcjTSmfIGZVF61W1c5y+Zc
+	kzBf025q4vAYYmPeMcNtk9XUOlq55x9WWnUCNP8QRH2C2Wd0FxAXNhINe3yBvTLY/oN56oXypIq
+	Vy/gOPZaNlT0kFonMRM0aF668RDf8P6WREjYN7WAUQCWGHpfje/cwx4WK2EVG5pw7VIc9FPA==
+X-Received: by 2002:a05:6122:3111:b0:575:f155:8cd4 with SMTP id 71dfb90a1353d-5c30613d5ebmr602889e0c.0.1784947124938;
+        Fri, 24 Jul 2026 19:38:44 -0700 (PDT)
 Received: from ubuntu.localdomain (23-91-246-209.cpe.distributel.net. [23.91.246.209])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c305734410sm602529e0c.16.2026.07.24.19.38.42
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c305734410sm602529e0c.16.2026.07.24.19.38.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2026 19:38:42 -0700 (PDT)
+        Fri, 24 Jul 2026 19:38:44 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: scott@riscstar.com,
@@ -80,17 +80,16 @@ Cc: scott@riscstar.com,
 	anup@brainfault.org,
 	dhaval@rivosinc.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 2/4] hart: add WorldGuard CSR IDs and hart extension flags
-Date: Fri, 24 Jul 2026 22:38:19 -0400
-Message-Id: <20260725023821.3795618-3-raymondmaoca@gmail.com>
+Subject: [PATCH v2 3/4] docs: document WorldGuard DT bindings
+Date: Fri, 24 Jul 2026 22:38:20 -0400
+Message-Id: <20260725023821.3795618-4-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260725023821.3795618-1-raymondmaoca@gmail.com>
 References: <20260725023821.3795618-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260724_193844_357532_82E9B117 
-X-CRM114-Status: UNSURE (   8.68  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260724_193846_371824_F3437210 
+X-CRM114-Status: GOOD (  14.44  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,73 +108,211 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Define the WorldGuard-related CSR numbers and claim smwg / sswg hart
-extensions so platform code can probe support before programming
-MLWID, MWIDDELEG and SLWID.
+Document the WorldGuard device-tree metadata used by the current
+hart protection runtime flow on WorldGuard-enabled platforms.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi/riscv_encoding.h | 3 +++
- include/sbi/sbi_hart.h       | 4 ++++
- lib/sbi/sbi_hart.c           | 2 ++
- 3 files changed, 9 insertions(+)
+ docs/domain_support.md | 186 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 186 insertions(+)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index ffe7666c..4d8b2fba 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -373,6 +373,7 @@
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index e267a9f7..596d4dae 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -204,6 +204,192 @@ The DT properties of a domain instance DT node are as follows:
+   whether the domain instance is allowed to do system reset.
+ * **system-suspend-allowed** (Optional) - A boolean flag representing
+   whether the domain instance is allowed to do system suspend.
++* **hw-isolation** (Optional) - A child node used by platform-specific
++  isolation mechanisms. The current OpenSBI WorldGuard implementation uses
++  this node only as a container for per-domain WorldGuard execution metadata.
++
++WorldGuard Device Tree Binding
++------------------------------
++
++The current OpenSBI WorldGuard support is built from:
++
++* **sbi_hart_protection** for hart-local runtime reconfiguration during
++  domain transitions
++* **sbi_domain_data** for per-domain WorldGuard state
++* platform-specific setup code that parses and programs WorldGuard checkers
++  before domains are populated
++
++The WorldGuard-specific DT state is split across two places:
++
++* under a domain instance node, for per-domain execution metadata
++* in the normal system DT topology, for CPU defaults and checker policy
++
++### Domain-local WorldGuard Metadata
++
++The optional **hw-isolation** child node under a domain instance may contain
++one WorldGuard child node:
++
++* **compatible = "sifive,wgchecker2"**
++* **worldguard,wid** - Machine world ID selected when entering the domain
++* **worldguard,widlist** - List of world IDs delegated to the domain
++
++The current implementation looks up the domain node in the FDT, finds its
++**hw-isolation** child, and parses the first child node compatible with
++**sifive,wgchecker2**.
++
++### System-level WorldGuard Metadata
++
++The current implementation also parses the following system-level DT state:
++
++* **/cpus**
++  * **riscv,nworlds** - Total number of supported worlds
++  * **sifive,trustedwid** (Optional) - Default trusted machine world ID.
++    If omitted, the highest valid world ID is used.
++* **/cpus/cpu@X**
++  * **riscv,pmwid** - Default machine world ID for the hart
++  * **riscv,pmwidlist** - Machine-visible world IDs allowed for the hart
++  * **riscv,pmlwidlist** - World IDs that may be delegated by the hart
++* **sifive,wgchecker2** nodes
++  * **reg** - Checker MMIO base/size
++  * **#access-controller-cells** - Must match the expected checker cell count
++* protected resource nodes with **access-controllers** properties that point
++  to a checker and encode protected address range, permission bitmap, and slot
++  configuration data
++
++For the current implementation, checker policy is parsed from
++**access-controllers** references on protected resources and applied during
++platform-specific WorldGuard setup.
++
++### Runtime Behavior
++
++At boot:
++
++* platform setup detects whether checker programming and/or runtime WID
++  switching are present in the DT
++* if runtime WID support is present, OpenSBI registers a WorldGuard
++  **sbi_hart_protection** mechanism and a **sbi_domain_data** provider
++* per-hart default WID state is parsed from **/cpus**
++* checker instances are parsed, validated, and programmed before domain
++  population completes
++
++During a domain transition:
++
++* the WorldGuard **sbi_domain_data** provider supplies per-domain
++  **worldguard,wid** and **worldguard,widlist** state
++* the WorldGuard **sbi_hart_protection** implementation reprograms
++  **MLWID**
++* when **sswg** is present, it also reprograms **MWIDDELEG** and **SLWID**
++* when a domain is quiesced, the hart is returned to its per-hart fallback
++  machine world state
++
++Runtime WID switching is enabled only when the CPU runtime properties are
++present. A DT that only describes checker hardware does not, by itself,
++enable hart-local WorldGuard reconfiguration.
++
++WorldGuard Examples
++-------------------
++
++Domain instance with WorldGuard execution metadata:
++
++```text
++    chosen {
++        opensbi-domains {
++            compatible = "opensbi,domain,config";
++
++            example_domain: domain@1 {
++                compatible = "opensbi,domain,instance";
++                possible-harts = <&cpu2>;
++                regions = <&mem0 0x3f>;
++                boot-hart = <&cpu2>;
++                next-addr = <0x00000000 0x80200000>;
++                next-mode = <0x1>;
++
++                hw-isolation {
++                    worldguard {
++                        compatible = "sifive,wgchecker2";
++                        worldguard,wid = <0x0 0x1>;
++                        worldguard,widlist = <1 3>;
++                    };
++                };
++            };
++        };
++    };
++```
++
++CPU default state, checker, and protected resource example:
++
++```text
++    cpus {
++        riscv,nworlds = <4>;
++        sifive,trustedwid = <3>;
++
++        cpu0: cpu@0 {
++            reg = <0>;
++            riscv,pmwid = <0x0 0x3>;
++            riscv,pmwidlist = <0x0 0xb>;
++            riscv,pmlwidlist = <0x0 0xb>;
++        };
++    };
++
++    memory0: memory@80000000 {
++        reg = <0x0 0x80000000 0x0 0x80000000>;
++        access-controllers =
++            <0x100
++             0x00000000 0x80000000 0x00000000 0x40000000
++             0x00000000 0x000000cf 0x0f>,
++            <0x100
++             0x00000000 0xc0000000 0x00000000 0x01000000
++             0x00000000 0x000000cc 0x0f>,
++            <0x100
++             0x00000000 0xc1000000 0x00000000 0x3f000000
++             0x00000000 0x000000cf 0x0f>;
++    };
++
++    flash0: flash@20000000 {
++        reg = <0x0 0x20000000 0x0 0x04000000>;
++        access-controllers =
++            <0x101
++             0x00000000 0x20000000 0x00000000 0x04000000
++             0x00000000 0x000000c3 0x0f>;
++    };
++
++    uart0: serial@10000000 {
++        reg = <0x0 0x10000000 0x0 0x00001000>;
++        access-controllers =
++            <0x102
++             0x00000000 0x10000000 0x00000000 0x00001000
++             0x00000000 0x000000c0 0x0f>;
++    };
++
++    wgchecker0: wgchecker@6000000 {
++        compatible = "sifive,wgchecker2";
++        reg = <0x0 0x06000000 0x0 0x1000>;
++        #access-controller-cells = <7>;
++        phandle = <0x100>;
++    };
++
++    wgchecker1: wgchecker@6001000 {
++        compatible = "sifive,wgchecker2";
++        reg = <0x0 0x06001000 0x0 0x1000>;
++        #access-controller-cells = <7>;
++        phandle = <0x101>;
++    };
++
++    wgchecker2: wgchecker@6002000 {
++        compatible = "sifive,wgchecker2";
++        reg = <0x0 0x06002000 0x0 0x1000>;
++        #access-controller-cells = <7>;
++        phandle = <0x102>;
++    };
++```
++
++The test overlay used in this tree is at:
++
++* **platform/generic/virt/qemu-virt-wg-overlay.dts**
++
++That overlay supplies the current QEMU virt test metadata for OpenSBI
++domains and protected resources. The base DTB must still provide the checker
++nodes and the CPU-level WorldGuard properties consumed by the runtime code.
  
- /* Supervisor Protection and Translation */
- #define CSR_SATP			0x180
-+#define CSR_SLWID			0x190
+ ### Assigning HART To Domain Instance
  
- /* Supervisor Indirect Register Alias */
- #define CSR_SISELECT			0x150
-@@ -510,6 +511,7 @@
- /* Machine Configuration */
- #define CSR_MENVCFG			0x30a
- #define CSR_MENVCFGH			0x31a
-+#define CSR_MLWID			0x390
- 
- /* Machine Trap Handling */
- #define CSR_MSCRATCH			0x340
-@@ -736,6 +738,7 @@
- /* Machine Security Configuration CSR (mseccfg) */
- #define CSR_MSECCFG			0x747
- #define CSR_MSECCFGH			0x757
-+#define CSR_MWIDDELEG			0x748
- 
- #define MSECCFG_MML_SHIFT		(0)
- #define MSECCFG_MML			(_UL(1) << MSECCFG_MML_SHIFT)
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 543393bb..0fe8d439 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -63,6 +63,10 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_SSCSRIND,
- 	/** Hart has Ssccfg extension */
- 	SBI_HART_EXT_SSCCFG,
-+	/** Hart has Smwg extension */
-+	SBI_HART_EXT_SMWG,
-+	/** Hart has Sswg extension */
-+	SBI_HART_EXT_SSWG,
- 	/** Hart has Svade extension */
- 	SBI_HART_EXT_SVADE,
- 	/** Hart has Svadu extension */
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 21713816..2b7b9cdd 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -386,6 +386,8 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
- 	__SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
- 	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
-+	__SBI_HART_EXT_DATA(smwg, SBI_HART_EXT_SMWG),
-+	__SBI_HART_EXT_DATA(sswg, SBI_HART_EXT_SSWG),
- 	__SBI_HART_EXT_DATA(svade, SBI_HART_EXT_SVADE),
- 	__SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
- 	__SBI_HART_EXT_DATA(smnpm, SBI_HART_EXT_SMNPM),
 -- 
 2.25.1
 
