@@ -4,104 +4,165 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 57F1EC531D0
-	for <opensbi@archiver.kernel.org>; Mon, 27 Jul 2026 04:25:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id D79E4C531D0
+	for <opensbi@archiver.kernel.org>; Mon, 27 Jul 2026 12:59:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=0xiTpP+4tfN+jGe75hKpfo0AGIKwda+btqsbgxomew0=; b=MhC9oBMDRNzUzN
-	s/hsO6QKTqRKmqDnnQLXvR/RkjxB3X+OxIkpKPxhBi/7+W+pmy7Alzahe84nKkirZZDzI3HQCiVsk
-	OPaBaCR3KUcHCpJgEAuRj5ojc6vW3YIh+c9mhD39VZeNB6THW18d0ri/KFIJXMSZd+akjstD494Lu
-	mra2V+s3CKz4klsJ7vynd6wCApB3tY7FpfgqfS9E/B7dRyyFxwtgtcYe923KzFz1Mr7PGHCq9Klk+
-	G7Sjjah7AebuPficKeU6YvNcwCN4rHfKnRWfEXsYvpT1vgJ+ZbUMkJwnkwX7h9Hl2VCqOkTXhNyXb
-	DWoIboxG0Jvs5gMibx3g==;
+	List-Owner; bh=f0+H7I3lBgzs1xELBFoF3+u5Xr45ipc8KlLEU3sdyGU=; b=OSWVljyWnJTxEu
+	yqi7bdne+VUyFQeAHy/vKfAoLVb+mo38DlarmCnouACeD/rO09fkx70i01+7odaYOrzFKs/uSyvbw
+	pL7Y89umP0wo4X6OD/1n7yK2CJZAQcJf/T37iceRArX1wR8p/luGI+woB/F0n3cyqFYKDaSXs4i6h
+	M2m+We6rP51l7RBkESrM0OBAIFd0Gf6XZFEkuQzfE/+K/XehDXr9YmYXu83CozMvw7dcsBLGnm5YG
+	SPeQTvQqO9qp7H+zf/Ejp5ZbKG7OlbB6dbTgGsjKs53lOrmnH/bzYIBep/xxpdlRqt7XY3t47aosr
+	VJR8pBoB8CU+qpycmJpg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1woCty-00000001vbh-26jl;
-	Mon, 27 Jul 2026 04:25:18 +0000
-Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
+	id 1woKv2-00000002lHU-2YRP;
+	Mon, 27 Jul 2026 12:58:56 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1woCtu-00000001vZF-2HaH
+	id 1woKv1-00000002lHO-2bZE
+	for opensbi@bombadil.infradead.org;
+	Mon, 27 Jul 2026 12:58:55 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
+	:Cc:To:Subject:Message-ID:Date:From:In-Reply-To:References:MIME-Version:
+	Sender:Reply-To:Content-ID:Content-Description;
+	bh=fHH4MResJh5bEMuEASbY1Um6CeD5xpppBWayhy46Ugw=; b=ngKRCIvz6Uh0MMMEo2fKvQ+0if
+	q4E7ybrW0B+PPsCIxT1XjJ79hZlpmD2MNDRMev1hkVBhp1ZzxZjFtTLuIDnROfhOK1wyYMRnEHrzU
+	YT/2PgZZB19qTSE1KpLfNaEpj6nzDYLdX9j3uIc3VJrb/uvYfzHJFQcYDkQtarxDPJRa2z8ke4I+x
+	E8ile33EDq5TblFQe+pXfVb2sAUgu+uzIAQ0lZ1BcbpxFihVwTEIyLJo9HxqUWjRhCs61p1OzeYwC
+	vhxSJZv+R7f9ty8PF7Gqo6Os8yuRFntjhPuNvm8XtInfkxNVK9cVnZIjfd9AYgO5nG6EuOGRyTkCk
+	zsvgRhmg==;
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
+	by desiato.infradead.org with esmtps (Exim 4.99.2 #2 (Red Hat Linux))
+	id 1woKuy-0000000465c-1c5A
 	for opensbi@lists.infradead.org;
-	Mon, 27 Jul 2026 04:25:16 +0000
-Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66R1hUIK2140671;
-	Mon, 27 Jul 2026 04:25:11 GMT
+	Mon, 27 Jul 2026 12:58:54 +0000
+Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66RAMCLx3439173
+	for <opensbi@lists.infradead.org>; Mon, 27 Jul 2026 12:58:46 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=KXL/ugs0HbY
-	WH9z7B5mvY/w4CKaOXqTfuGvBXKTmDdo=; b=CAxPkyTSvBYcWOxqe3BgpUlfAqR
-	BZC8IhXq9CS6dVl9+h1wVJdyK8kAMTnxeG8GEOJJFX6yIBghRjOvPwoYNrq7oPds
-	Lton063GybJknpc6PJhj27709FHzXSFOLDa1bDmEDwyhYfaH0f7+gxJ/D7M8YiL/
-	68ioo1WDnsGAaLQkUA+F7rj2cqpDCcY71w2cgfNUljF9nCs58OAbsJrBBzuAwIoH
-	YgXU5gyztSk5e7Ox/hwlGR31/HNfmxoGuOdUVHtyCbelWddVwHzzhrRTCOBsNvr/
-	fnksvswWTg6vPtEM8EK9oysM5Da3zRq8NF/yxxJRsPYe6AowYYKWzF51p6A==
-Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fmnh7veam-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 27 Jul 2026 04:25:10 +0000 (GMT)
-Received: from pps.filterd (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 66R4P6vv020037;
-	Mon, 27 Jul 2026 04:25:07 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 4fmp7hjd96-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 27 Jul 2026 04:25:07 +0000 (GMT)
-Received: from APBLRPPMTA01.qualcomm.com (APBLRPPMTA01.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 66R4P7lR020068;
-	Mon, 27 Jul 2026 04:25:07 GMT
-Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 66R4P78b020067
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 27 Jul 2026 04:25:07 +0000 (GMT)
-Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id B429224A76; Mon, 27 Jul 2026 09:55:05 +0530 (+0530)
-From: Anup Patel <anup.patel@oss.qualcomm.com>
-To: Atish Patra <atish.patra@linux.dev>
-Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
-        Samuel Holland <samuel.holland@sifive.com>,
-        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
-        Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH v2 5/5] lib: sbi: Print list of all hart protection mechanisms at boot time
-Date: Mon, 27 Jul 2026 09:55:04 +0530
-Message-ID: <20260727042504.1743250-6-anup.patel@oss.qualcomm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260727042504.1743250-1-anup.patel@oss.qualcomm.com>
-References: <20260727042504.1743250-1-anup.patel@oss.qualcomm.com>
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	fHH4MResJh5bEMuEASbY1Um6CeD5xpppBWayhy46Ugw=; b=RHJ77HWZ7JHS6NVX
+	NojBZQ9J8dkqZRrqTYXj+UBcSu8UqzfJegsw4n5nPV1YhYai3XLLs20cxVDHDnSB
+	zFAnnOwwmctAQnWZ0coJuf/a2BQI6MM+I8wSryoxTLPVyQcNB6B6HO3yU84gm9pI
+	Y3XGnGFEZmSNRzwOL3DInW8u+zU8Tt8aa1M/IQ0b9PJgx2wqB8R6Mno+9klcRJJN
+	ZpDDuXinHwEsBwRGm6+z+Kcnq1jNZWNrUEk5zyjkZXCucemP5CVo/rvWol+symsQ
+	t0joTqLIlrloxyZ+8V96t7+gbuspIY9hZ0s6R8YA0oKNm3qzTe84i7gl6sE26udj
+	6w/fuw==
+Received: from mail-yw1-f200.google.com (mail-yw1-f200.google.com [209.85.128.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fp4ukrq4q-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Mon, 27 Jul 2026 12:58:46 +0000 (GMT)
+Received: by mail-yw1-f200.google.com with SMTP id 00721157ae682-81e8a76a273so69167307b3.1
+        for <opensbi@lists.infradead.org>; Mon, 27 Jul 2026 05:58:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785157126; cv=none;
+        d=google.com; s=arc-20260327;
+        b=PjOzHPGUycqhrghU+dP59rtNOaG3+tsLicv7w6RE2COvGa/U+1kQpXC4FMpCeyZSBa
+         TnkjNluq6oxTHWEkImy/WOlS0kReNL7ri9+zxObp+OCVsN6e4K5MnUZhnC1OI72kVQ7A
+         c0bJ0/gfvikAzVMxl18rxo5SMUr3xdvH1XeSqKtKB+eu7Ff/+QpMyYxZ5mulrBIYZIEd
+         u87BtFKJbiwrVKdtta7IZGO1FahW/R1RcQicYHX1vb+VEd1C4Tz3VGfupzGKooURHiRe
+         eq2THDQMTN6Nd1TSjXuBzQg80+bJkXvP7lzrk2tHtCe+QQchUH3yMlKR34bjfk9ws2O1
+         XioA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=fHH4MResJh5bEMuEASbY1Um6CeD5xpppBWayhy46Ugw=;
+        fh=GyVyD2T6XBDGnnZeezVBHcGjko+v52SlcQCT2RN5Gfc=;
+        b=LuUGQHzLXuJ3En+q8DhITFcoaPQh4Pv2myhGa8ZitP1SQv9iqkrGidgkj4d/DeYcRs
+         F/WD/oU8aObjrHA5Eiydv4xBJiywnPbM4ZEwZk7nlTXe8jej0mEc+eVaE8tGpCuAed5a
+         NAhtCvMP2FMJuO22VjpDdMMsv4IQRHrY6YQi+6cLWtZdb4QQ5Ekbuh4Uysi9F+pAYlHq
+         4yvkBwEKteAlsPyMMRjTVqIAILeiOhdrRgzRJHlrGjwqnam6SZrrg+ymT0drzUSppzAM
+         EARWlV1eRwn+FIIDlg0Zi8090MpneY1FJDsYGgmErsrKl2ywRHA5Njn+mph+BVSTXpkx
+         67EQ==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1785157126; x=1785761926; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=fHH4MResJh5bEMuEASbY1Um6CeD5xpppBWayhy46Ugw=;
+        b=O266dK7i8fbDMiCsDFYzRSOf3EhNnILAIpJ0ob3X3QO3/KtNPB4Q441yCydCLoMdtv
+         oZnj3ZOxjDR95lMuJjiqC0uXTRQTZavhDAj+ctXpWRe4SQ2DutjIroREM8v5jvM902lp
+         g6RxC2MdchZz3yX8oXRX4RpngwFKJK6JCK7vqUjufNuNL+Y9PnTaDiKtWoNUVAHh+ADo
+         1L+ZmKpFakMswDLhnW6i1rhT/7xd5su8Mc7WGFW/RiiL+Ur/PWGO17ZR2t5z7k3FQccU
+         mjd4VlG4fB77okqETUmDvUFlQ4vfrv9KJz0jz6+yluN9kiKmwsnlRqJKWi0yheP5dh+6
+         90ZQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785157126; x=1785761926;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=fHH4MResJh5bEMuEASbY1Um6CeD5xpppBWayhy46Ugw=;
+        b=m/xOEtcMaHIx3smLxzfraWKXmuJKF4e8HASx8EoseoSuoEP/FI+KIVjVx6ey8vcsnD
+         7YrO7ZdAbUVSsFLgPZBi5xrhImC9+K3ORrM7rXU9FGkvlK6bHLFP1fhqXhKX1TihiHxC
+         wbVovyk/NkodplXgXs28uOccuJerujFkrUBGPar2j0QM76vQcACMOXIXuS/97aa44Hjv
+         0qOR5oHUD2+uw/FHnppEMnuL+o8zcBJRD9Ge5m7cYnlZGG5+1S4Z4Xwz6aqnagOvupqm
+         x7zD052QlBe91mrZbI9m9mxWI5YjHOZV7J6c4UZK4+Z+EN77kVd+t8s0yPJWDu8SIp8T
+         030A==
+X-Forwarded-Encrypted: i=1; AHgh+RpmlFFwnMof9UBoHT3TGO9Lv0/niCobRZPCAR/hVpyjzgX9M2VJSm4kRFzZQQgZ5zBNECj6ascs@lists.infradead.org
+X-Gm-Message-State: AOJu0Yzyejfb+ahGke2fzhO1LjAOW27gQJLKYP+geUYy4IlREnIZM40h
+	cwV0oDIyiBDV0RKRcOVAZuFYnp8y0Z04/7siDu314uLI8AirAwZ7CNTlxSX+Ot8iy1vpSw+HOPq
+	nNsBEmdEfRrs1F+hO21Gi/8WlNDp7Y3D0shNg1NH6fCzGqvWx1oc7p9F0dzcT3i8J46V9xsBvbR
+	pw570V4n4K9I27vn4lStBX6r5wiQJoR0rLnZ7TeXw3
+X-Gm-Gg: AR+sD12sXQCmKNb3pl/RaT8sOM6p4p2I5JnoqrNGmaRZNVQAI/lTJziHAAxZ+QBMsZc
+	eA3tjdKIID/cuAR+piIKfbKyyKiLxSVODtTtDOxQRF1b3yjteXgnU+tJ8s4K6Dq3jeIc5JIhFIJ
+	dfNKgkxC8qzYDQkze3mK0XEAeHUQdvGqlCuFw07Ldv4lTnLYHm26JAi2fJ+4M=
+X-Received: by 2002:a05:690c:6e89:b0:7fd:4ef9:e5a4 with SMTP id 00721157ae682-81f69d516bamr27943677b3.29.1785157126231;
+        Mon, 27 Jul 2026 05:58:46 -0700 (PDT)
+X-Received: by 2002:a05:690c:6e89:b0:7fd:4ef9:e5a4 with SMTP id
+ 00721157ae682-81f69d516bamr27943627b3.29.1785157125889; Mon, 27 Jul 2026
+ 05:58:45 -0700 (PDT)
 MIME-Version: 1.0
-X-QCInternal: smtphost
-X-QCInternal: smtphost
-X-Proofpoint-ORIG-GUID: LG8MCwIyTAUntUEU8amacSaAplYP-Vk7
-X-Proofpoint-GUID: LG8MCwIyTAUntUEU8amacSaAplYP-Vk7
-X-Authority-Analysis: v=2.4 cv=f/54wuyM c=1 sm=1 tr=0 ts=6a66dda6 cx=c_pps
- a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=RAioF0-LDSMA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=yx91gb_oNiZeI1HMLzn7:22 a=EUspDBNiAAAA:8 a=a6pi3eVxuCcDFANDvycA:9
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI3MDA0MCBTYWx0ZWRfX8MNJinYI340B
- cscSMLOUtEhoZ+bt3se4WbKcr/LXCCffEBoLAf8vUrE/XO626/sBhj1c+akzbjKHxaNDdCKpLhl
- ILgDZU41Ag5rbS8QRWNDo1lLd3yPU3Juz4p9fIlI6V1I0Pom1Uc++bcXtzwQORtxsizUydNeohM
- Ypwkc+Mv4CGfCjWOjx8Pj4/l/m2++DsYOF+Azjbo1rpNMk6Ythd7BRGcaT6Cc7FeFJfkWjeZsjb
- pg08Gg+jHhiXWjizsMaJK1Jk8Oxclg+L+ELdDY7WJocvI5iLCpBVgIJHUAr35aeYbN9f3VuIz7n
- JhpHEiORCYUAGXq/zgksi59W3Aty3FKONcy68l4oiXo3b/cB50G/zmHOUNV/uz9bkq01b3qrqry
- tRZG7qXBkIBXw742+jZzkNkTLyrmAUcFaekNgrREvpwGyl6vkkbv/cnju7o3XckDQSArKATFWnG
- ifYnds3xqsW4Pqzs+XA==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI3MDA0MCBTYWx0ZWRfX9Jsw/U6oGaRi
- Kjgpwo0fSDtDHiZOhvlsEdT8ba6b4P0TmYhNyOyOtkWhd8wtePOn5T51lAzMIOyct/FgfpgcbjA
- HdEek7QdTeeaYZvDLiHgLCycJHs+IpA=
+References: <20260727042504.1743250-1-anup.patel@oss.qualcomm.com> <20260727042504.1743250-3-anup.patel@oss.qualcomm.com>
+In-Reply-To: <20260727042504.1743250-3-anup.patel@oss.qualcomm.com>
+From: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+Date: Mon, 27 Jul 2026 18:28:34 +0530
+X-Gm-Features: AUfX_mx1q019Xs9f9CKnmZztaHuxTl1SOmyXn7GM05Hfrw4UVenLUpMmPF_DmBk
+Message-ID: <CAFR3w373JqfcNrsNx4JYSBkez-V3ucXu7UACeGnCfhq8006npA@mail.gmail.com>
+Subject: Re: [PATCH v2 2/5] lib: sbi: Introduce sbi_hart_protection_reconfigure()
+ function
+To: Anup Patel <anup.patel@oss.qualcomm.com>
+Cc: Atish Patra <atish.patra@linux.dev>,
+        Andrew Jones <andrew.jones@oss.qualcomm.com>,
+        Samuel Holland <samuel.holland@sifive.com>,
+        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org
+X-Proofpoint-GUID: s7CEOJ7iyhJJxU6HtM7eq7MfNvfhceS1
+X-Proofpoint-ORIG-GUID: s7CEOJ7iyhJJxU6HtM7eq7MfNvfhceS1
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI3MDEyNiBTYWx0ZWRfXzDSKkkPg4j4g
+ MpGnUGkCZWn69Ca++1YMa2wYr387vJ6vJAOZ+UIoTdC3W3Zd6NHk+HuiQ2R1Gy00QtH6i9pexU5
+ OTGBXjAFnjwHRnfPH8s+sBjW0N6acno=
+X-Authority-Analysis: v=2.4 cv=PeHPQChd c=1 sm=1 tr=0 ts=6a675606 cx=c_pps
+ a=NMvoxGxYzVyQPkMeJjVPKg==:117 a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=ZpdpYltYx_vBUK5n70dp:22 a=EUspDBNiAAAA:8 a=RHNhL5g0lvWtOJ5sFeoA:9
+ a=QEXdDO2ut3YA:10 a=kLokIza1BN8a-hAJ3hfR:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI3MDEyNiBTYWx0ZWRfXzo/g6KlPfHDi
+ 50gHXQKmzMYcnIAohqrUzdqPKD9DUtYkR37BwebvzL7j9+EWsug6YLVwcl2EN+bnX6svmGysDvo
+ zBU4nrLLobnk7GmxZHzPAvp5bgrHIt49wzLdRU6CbPj7U952u7Zdw7+VOAnq1GLdJnA3CqDncDf
+ ukD+oIOBljxCUBUECBt6xk0pE1R9S5fmXryvXr8s2uA5qIsRC8gakZj7o3wlyz1U5WT1uwo7o4U
+ YcxBM8KNxkI99JmPDoDH8pCZvM+eqIxUuD5NdWeL/EV37z8aDQNM+N+ltWOWPGdVQarQ/kZn3Cu
+ ACtmjsD5THHCNQQ7JYcmhRbkPLqLfAa5Tamc7A+4naodcJnc9kDOgnHZrUNKh535pZj1Qt2vTrt
+ eIdfEsJZ6aBfd7d+qLUfY2TuO8CcPgVkMgP5k+zsbsZ9iRWVkrffSoxAuGvxvB/SZDt0Q3bA8lh
+ QmAE61Ppa+qyoBZ4nOw==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-27_01,2026-07-24_02,2025-10-01_01
+ definitions=2026-07-27_03,2026-07-24_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- adultscore=0 spamscore=0 impostorscore=0 priorityscore=1501 suspectscore=0
- lowpriorityscore=0 bulkscore=0 clxscore=1015 malwarescore=0 phishscore=0
+ impostorscore=0 malwarescore=0 clxscore=1015 adultscore=0 spamscore=0
+ phishscore=0 lowpriorityscore=0 bulkscore=0 priorityscore=1501 suspectscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607270040
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607270126
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260726_212514_702610_691FCF7F 
-X-CRM114-Status: GOOD (  16.72  )
+X-CRM114-CacheID: sfid-20260727_135852_774579_D293640A 
+X-CRM114-Status: GOOD (  12.73  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,143 +174,22 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Instead of printing only the best hart memory protection name at
-boot time let's print a list of all hart projection mechanisms.
-
-Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
----
- include/sbi/sbi_hart_protection.h |  7 +++++--
- lib/sbi/sbi_hart_protection.c     | 34 ++++++++++++++++++++++++++++---
- lib/sbi/sbi_init.c                |  6 ++----
- 3 files changed, 38 insertions(+), 9 deletions(-)
-
-diff --git a/include/sbi/sbi_hart_protection.h b/include/sbi/sbi_hart_protection.h
-index de5f2f89..cafe6ee7 100644
---- a/include/sbi/sbi_hart_protection.h
-+++ b/include/sbi/sbi_hart_protection.h
-@@ -50,11 +50,14 @@ struct sbi_hart_protection {
- };
- 
- /**
-- * Get the best hart memory protection mechanism
-+ * Get a string containing names of protection mechanisms
-+ *
-+ * @param out_str pointer to output string
-+ * @param out_str_size maximum size of output string
-  *
-  * @return pointer to best hart memory protection mechanism
-  */
--struct sbi_hart_protection *sbi_hart_memory_protection_best(void);
-+void sbi_hart_protection_get_str(char *out_str, int out_str_size);
- 
- /**
-  * Register a hart protection mechanism
-diff --git a/lib/sbi/sbi_hart_protection.c b/lib/sbi/sbi_hart_protection.c
-index d607ed74..c4c149c8 100644
---- a/lib/sbi/sbi_hart_protection.c
-+++ b/lib/sbi/sbi_hart_protection.c
-@@ -4,13 +4,15 @@
-  * Copyright (c) 2025 Ventana Micro Systems Inc.
-  */
- 
-+#include <sbi/sbi_console.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_string.h>
- 
- static SBI_LIST_HEAD(hart_protection_list);
- 
--struct sbi_hart_protection *sbi_hart_memory_protection_best(void)
-+static struct sbi_hart_protection *__hart_memory_protection_best(void)
- {
- 	struct sbi_hart_protection *pos;
- 
-@@ -22,6 +24,32 @@ struct sbi_hart_protection *sbi_hart_memory_protection_best(void)
- 	return NULL;
- }
- 
-+void sbi_hart_protection_get_str(char *out_str, int out_str_size)
-+{
-+	bool memory_protect_done = false;
-+	struct sbi_hart_protection *pos;
-+	int offset = 0;
-+
-+	if (!out_str || out_str_size <= 0)
-+		return;
-+	sbi_memset(out_str, 0, out_str_size);
-+
-+	sbi_list_for_each_entry(pos, &hart_protection_list, head) {
-+		if (pos->type == SBI_HART_PROTECTION_TYPE_MEMORY) {
-+			if (memory_protect_done)
-+				continue;
-+			memory_protect_done = true;
-+		}
-+		sbi_snprintf(out_str + offset, out_str_size - offset, "%s,", pos->name);
-+		offset = offset + sbi_strlen(pos->name) + 1;
-+	}
-+
-+	if (offset)
-+		out_str[offset - 1] = '\0';
-+	else
-+		sbi_strncpy(out_str, "none", out_str_size);
-+}
-+
- int sbi_hart_protection_register(struct sbi_hart_protection *hprot)
- {
- 	struct sbi_hart_protection *pos = NULL;
-@@ -170,7 +198,7 @@ int sbi_hart_protection_reconfigure(struct sbi_scratch *scratch,
- 
- int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
- {
--	struct sbi_hart_protection *hprot = sbi_hart_memory_protection_best();
-+	struct sbi_hart_protection *hprot = __hart_memory_protection_best();
- 
- 	if (!hprot || !hprot->map_range)
- 		return 0;
-@@ -180,7 +208,7 @@ int sbi_hart_protection_map_range(unsigned long base, unsigned long size)
- 
- int sbi_hart_protection_unmap_range(unsigned long base, unsigned long size)
- {
--	struct sbi_hart_protection *hprot = sbi_hart_memory_protection_best();
-+	struct sbi_hart_protection *hprot = __hart_memory_protection_best();
- 
- 	if (!hprot || !hprot->unmap_range)
- 		return 0;
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index 388f3ecb..acd2f8b6 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -76,7 +76,6 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
- 	const struct sbi_hsm_device *hdev;
- 	const struct sbi_ipi_device *idev;
- 	const struct sbi_timer_device *tdev;
--	const struct sbi_hart_protection *hprot;
- 	const struct sbi_console_device *cdev;
- 	const struct sbi_system_reset_device *srdev;
- 	const struct sbi_system_suspend_device *susp_dev;
-@@ -93,9 +92,8 @@ static void sbi_boot_print_general(struct sbi_scratch *scratch)
- 	sbi_printf("Platform Features           : %s\n", str);
- 	sbi_printf("Platform HART Count         : %u\n",
- 		   sbi_platform_hart_count(plat));
--	hprot = sbi_hart_memory_protection_best();
--	sbi_printf("Platform HART Protection    : %s\n",
--		   (hprot) ? hprot->name : "---");
-+	sbi_hart_protection_get_str(str, sizeof(str));
-+	sbi_printf("Platform HART Protection    : %s\n", str);
- 	idev = sbi_ipi_get_device();
- 	sbi_printf("Platform IPI Device         : %s\n",
- 		   (idev) ? idev->name : "---");
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gTW9uLCBKdWwgMjcsIDIwMjYgYXQgOTo1NuKAr0FNIEFudXAgUGF0ZWwgPGFudXAucGF0ZWxA
+b3NzLnF1YWxjb21tLmNvbT4gd3JvdGU6Cj4KPiBJbnN0ZWFkIG9mIGFzc3VtaW5nIHRoYXQgaGFy
+dCBwcm90ZWN0aW9uIHJlY29uZmlndXJhdGlvbiBpcyB1bmNvbmZpZ3VyZQo+IGZvbGxvd2VkIGJ5
+IGNvbmZpZ3VyZSwgaW50cm9kdWNlIGEgc2VwYXJhdGUgc2JpX2hhcnRfcHJvdGVjdGlvbl9yZWNv
+bmZpZ3VyZSgpCj4gZnVuY3Rpb24gYW5kIHVzZSBpdCBpbiBzd2l0Y2hfdG9fbmV4dF9kb21haW5f
+Y29udGV4dCgpLgo+Cj4gU2lnbmVkLW9mZi1ieTogQW51cCBQYXRlbCA8YW51cC5wYXRlbEBvc3Mu
+cXVhbGNvbW0uY29tPgo+IC0tLQo+ICBpbmNsdWRlL3NiaS9zYmlfaGFydF9wcm90ZWN0aW9uLmgg
+fCAgNyArKysrKysrCj4gIGxpYi9zYmkvc2JpX2RvbWFpbl9jb250ZXh0LmMgICAgICB8ICAzICst
+LQo+ICBsaWIvc2JpL3NiaV9oYXJ0X3Byb3RlY3Rpb24uYyAgICAgfCAyOCArKysrKysrKysrKysr
+KysrKysrKysrLS0tLS0tCj4gIDMgZmlsZXMgY2hhbmdlZCwgMzAgaW5zZXJ0aW9ucygrKSwgOCBk
+ZWxldGlvbnMoLSkKPgoKUmV2aWV3ZWQtYnk6IFJhaHVsIFBhdGhhayA8cmFodWwucGF0aGFrQG9z
+cy5xdWFsY29tbS5jb20+CgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5p
+bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
+b3BlbnNiaQo=
