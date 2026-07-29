@@ -4,104 +4,64 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A42BCC54F52
-	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 02:38:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 151A7C53219
+	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 06:43:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=5CtNNitsWZec9H+moI8M77kQ3Rvu9yvRsCo2HRqWiYA=; b=QzcEiG8mh/thcL
-	z/4VLB2EcUjh01H4zrEqBUFiEMg8RL0do9XUAPFpRuinWQqjQ21+AJQV8/iQaATNkyMBC4B/oqF77
-	rS6aSQ4AaM5TOjwZTQk9KHy/BtoCuBaduIqb9S7lF0SV1AMmcLuzEjObahxdsulRJ2h0/Sv6e3eOK
-	2A7TaqyS3ZSm+9WXuIGGXewE06l+ixo0R1RglgRD+nyVShqPEmiZbsCbJYpYDM+/ysvrMhJ57WK1b
-	n4b3ymO2AapMeW+VVVg8tn7JWWBj34svb4EVvUOKUiji9o0H0gV+Uli1hKrkA7YkeVXUCTr6SGdRN
-	CwpNfIyes14xL+wCmCuw==;
+	List-Owner; bh=Sy7ZmmKqmGEXYF+2A5ucWcm0epq7/VusXiQcVLDknEo=; b=fjdME65wJhysVr
+	P3pdhUCJTbRRfSU5qttBllNZw1jb0j68ww+wwstBCvghBI/m2GkHzEQrHOkXU+NPXUghubFpZlbVR
+	dPCXXlU4LWqFnlcp1n665Q504k/jvwnmE2rqSU7zNYcfSTF/DADixZ3S684q2o1vBqWa/yQ4XXqJV
+	oq91SA3qnbHPClG1zO/ZWL4glzgECEkw2Hh+NC7L+9mJbld9+XrfHo4wbmRL3cRKdCWAfLneboWYE
+	/pb7vfv8GjqtFhSVrra4InLjKjjLQg2b+ccBoiQON1ZoY6f0IkX0Ra/AWI/kNGtzuK07iqzB/f9Cz
+	xnzHGptImvDQMvm7rF/A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wouBE-00000006iWl-1HmX;
-	Wed, 29 Jul 2026 02:38:00 +0000
-Received: from mail-yw1-x112b.google.com ([2607:f8b0:4864:20::112b])
+	id 1woy0J-000000073NB-1tLM;
+	Wed, 29 Jul 2026 06:42:59 +0000
+Received: from smtp21.cstnet.cn ([159.226.251.21] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wouB9-00000006iWM-41xx
+	id 1woy0F-000000073Mq-1s7n
 	for opensbi@lists.infradead.org;
-	Wed, 29 Jul 2026 02:37:57 +0000
-Received: by mail-yw1-x112b.google.com with SMTP id 00721157ae682-80cebd41372so7649057b3.3
-        for <opensbi@lists.infradead.org>; Tue, 28 Jul 2026 19:37:54 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785292674; cv=none;
-        d=google.com; s=arc-20260327;
-        b=hbXYlEvV97X5EC5am24joqpmFacD+/9L5DcIz6kGO3CcPyHC2BeeSnYfbg08MQl6t/
-         PV5nNzLQN8gmVL2AZTjNpbNCPGCXDs8BzNfjBMV1Qa9UkshynJhELBTkwMt6rtOQPLpi
-         A01ymRI89nHELyiZ+bfKhJ5zoU/z1+xwonRev9ZrVAEJh+jSNTmhXruf51tA2CT1udwP
-         4u/L87Bh39WdY1QHkv/CjScfXDhxkbmsTWDbrCfBaJPMHnrtzyUpa/b9w1Vpv9HKgkdf
-         /w+3FIBqlbw37SdUaLOW6hpXMYn3wFj+OtDLS/kfWo2ARhVy8WHHirF4vttARJJZPA87
-         4t0g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=ldDR1GlYqYpkOYbhLp4L6/s6FSjMIXBhq+7V6bdUGyQ=;
-        fh=h4QzidvVbSzQid2HmKaNkPk78WtLj7A6fXWqi/uRbVU=;
-        b=YxKfE3OmHK8kZmuysWPvd8CDHCRznyPgHlS/rIMlQ6cIrM0M96DQ2LkCzRE3W6qjZj
-         jr604gcvLnKWAzNNnsrLOl4PqmZAt+oF6sCkm3SwmeR+XoTG+GEzWxLKJLqlv5k+O8aJ
-         fEcUAOkiEaefngwIJ5qRMkhe/ei0zC0TtUHTkXyp3RXUfaC27DmUSkInqtj+NhukcnSv
-         WiTOUYYhwEEo5YTvHVV8ePj6qs63IPvGqL2JggSTehyCV0y0F/Id3H8It9Z8kSf6mEmn
-         DcB+L4v9XgijyEbZxn2SjNeJfow0OJpx7uuKXU6rT/mXgTLAkdsEDK2xkMwgZvWaIyAq
-         d3oA==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=summations-net.20251104.gappssmtp.com; s=20251104; t=1785292674; x=1785897474; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=ldDR1GlYqYpkOYbhLp4L6/s6FSjMIXBhq+7V6bdUGyQ=;
-        b=fHxjmgUXXXvWQdkwB1cUuX5OcJWRExgp17v+wMWHzQccqDqMD93q2j22fO95A/8iNT
-         eoNw3QWD8ifTjBVPZpYEEaWsNG20P9pPxgnO9Q5fjjLmTbNMi+tidNEkJli3wFUp5n3Z
-         voq/Dv1cM9LpZBGv3RtxNzH6ABkL8KIVs37s3Juz8HmwfIHCNa+44tcP30fm1EZd8AQb
-         JaZvQYQxJ2jYc4ynrYgeHgzmX2jjNQMOHLBI6+MO/BOwOagUKzmeEpOiwtG5HDIG9Lgw
-         AEVzIgiB88lcC1viTD3+r4/M9tmxKjkk6XmAPyIcodxcA+WZ2BT10dOtXIoTpm++a253
-         IOKg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785292674; x=1785897474;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ldDR1GlYqYpkOYbhLp4L6/s6FSjMIXBhq+7V6bdUGyQ=;
-        b=JoVIgTRl2eQEwZWmoAT7kCXopd4+BaXyMviLTIo1l1pc8dEJO8xgMMOKtliBZajkIb
-         pglsnORGDu2+MuxH98KZKXoYCirPp1avRjjDPAqCaMRp9maGlyqcWTlngJvtIcZd+3WW
-         7HbZB2w9eBJZ+lEBWosXw6paN93lVl4Jjf/RKdgLOf+djSiT4APoD0U2OZa1FGkr9YSp
-         R5uy1aCvCczFJ04sd6MkgOJDb/6qzie7hR+i9HhqqWvocFA/x7CB1J7rXygsFPOSIcrV
-         sApYOfbXizUI9FNCwp4bB4uR4tGmTxPEHs1C38k2wC1N4zWCBDWaSOLYbfWRNn/PGjcM
-         PceQ==
-X-Forwarded-Encrypted: i=1; AHgh+RprcuVs8mOcV/mZf1H87lwp3AdVE4EsCatApLGojQP3su+L1upj/ICWipRAMW+sL4LfAtjrf0fr@lists.infradead.org
-X-Gm-Message-State: AOJu0YwMQpVV+kh7itOW8JYBgVSY+Z3eeCl1Hdd422MHYZyek0R90OF+
-	sZDm8r1o33a7H0LRALTIL3dHTvM8P85cYK9VN9xihHJxglTiL3A8/DOvYAQwvwr0MkGoWtr/lFz
-	6eHzj9MhmTh0tHGX5Q6YURCyb/G62rEX7gKBhT80deA0=
-X-Gm-Gg: AR+sD13p/+n4XZu6u6gk7SfQtqZJucucCUzONXCDtZ2zMCytUgHmkPLCDo8A0CndGtk
-	spKDs2d0oD3/lmMJ2m/MM+7Rif9JEUqJYy2jweOcyoiEycPdCWqm1t3E8V7dsoFo1iLphdkCkZr
-	aqU89qMst5EKHY+mGaxu1/sUChY7wtuYlUALjC9uZ1AsjGfuvk+CGhxwex6Xgw7BXAMs++oGPcV
-	ex4E25kH+isC/pMYsQ2K1F1p/RsUF+MN/wZGYECauCh3vNbbJ3L/N9QoVA75D4ovpz2ewNejtdr
-	7PSvR/2aqcC9BDcp3bPh2WUpMNsgw43YuBG3eZf+yG0inxAAaqhSIEiMXpo4uKZRUBVdqFYYOIT
-	1cw==
-X-Received: by 2002:a05:690c:7205:b0:80c:85c6:898f with SMTP id
- 00721157ae682-81f99260de1mr22288077b3.62.1785292674099; Tue, 28 Jul 2026
- 19:37:54 -0700 (PDT)
+	Wed, 29 Jul 2026 06:42:57 +0000
+Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
+	by APP-01 (Coremail) with SMTP id qwCowABnPfHmoGlqnFsMAg--.32458S2;
+	Wed, 29 Jul 2026 14:42:46 +0800 (CST)
+From: liutong <liutong@iscas.ac.cn>
+To: opensbi@lists.infradead.org
+Cc: liutong <liutong@iscas.ac.cn>
+Subject: [PATCH v2] lib: sbi_mpxy: fix integer overflow in attribute range endpoint
+Date: Wed, 29 Jul 2026 06:42:36 +0000
+Message-Id: <20260729064236.936855-1-liutong@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <CABdD5x==izS_hjx49xytTG+LMEiEO8PE25m-AyjmBeoi0RpsOQ@mail.gmail.com>
+References: <CABdD5x==izS_hjx49xytTG+LMEiEO8PE25m-AyjmBeoi0RpsOQ@mail.gmail.com>
 MIME-Version: 1.0
-References: <20260727135605.465309-1-rahul.pathak@oss.qualcomm.com>
- <20260727135605.465309-4-rahul.pathak@oss.qualcomm.com> <CAAVgOk+rvAbyKAApWub-3KrCNVjcMb8ggaS_bTwGdN_aTPMk1g@mail.gmail.com>
-In-Reply-To: <CAAVgOk+rvAbyKAApWub-3KrCNVjcMb8ggaS_bTwGdN_aTPMk1g@mail.gmail.com>
-From: Rahul Pathak <rahul@summations.net>
-Date: Wed, 29 Jul 2026 08:07:43 +0530
-X-Gm-Features: AUfX_mwbzvw4N9IdRZPoTolxsexb5ybCvYJEIrWyUu7WIBO_C4tk13IT6dBFeSM
-Message-ID: <CABdD5xmqy1NMHg=gDNCvJiJA0YFp8SaD=ukMEMHAFN7TyUvXhw@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 3/5] platform/generic: Initialise MPT at boot
-To: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Cc: Rahul Pathak <rahul.pathak@oss.qualcomm.com>, opensbi@lists.infradead.org
+X-CM-TRANSID: qwCowABnPfHmoGlqnFsMAg--.32458S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7uw47Cw4UXr15AF4DCrW8tFb_yoW8CFy5pF
+	Z8Jayqgrsrt3WfKanFya1DXw4IgryrKa12gr90k340yF45tryxA3s5Wa1YgF15tF97AF4q
+	vF1jqry5uF429FDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyK14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gr
+	1j6F4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv
+	7VC0I7IYx2IY67AKxVWUAVWUtwAv7VC2z280aVAFwI0_Gr1j6F4UJwAm72CE4IkC6x0Yz7
+	v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI
+	7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxV
+	Cjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUXVWUAwCIc40Y0x0EwIxGrwCI42IY
+	6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6x
+	AIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY
+	1x0267AKxVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvjfUYKZXUUUUU
+X-Originating-IP: [36.110.52.2]
+X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260728_193756_262813_A88D5230 
-X-CRM114-Status: GOOD (  18.58  )
+X-CRM114-CacheID: sfid-20260728_234255_978376_0AD69120 
+X-CRM114-Status: UNSURE (   8.31  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,39 +73,69 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gVHVlLCBKdWwgMjgsIDIwMjYgYXQgMTE6MzDigK9QTSBQYXdhbmRlZXAgT3phCjxwYXdhbmRl
-ZXAub3phQG9zcy5xdWFsY29tbS5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCBKdWwgMjcsIDIwMjYg
-YXQgNjo1NuKAr0FNIFJhaHVsIFBhdGhhawo+IDxyYWh1bC5wYXRoYWtAb3NzLnF1YWxjb21tLmNv
-bT4gd3JvdGU6Cj4gPgo+ID4gSW50ZWdyYXRlcyBNUFQgaW5pdGlhbGlzYXRpb24gaW50byB0aGUg
-Z2VuZXJpYyBwbGF0Zm9ybSBib290IGZsb3cuCj4gPgo+ID4gbXB0X2Vhcmx5X2luaXQoKSBwcm9i
-ZXMgZm9yIFNNTVBUIGR1cmluZyBjb2xkLWJvb3QgZWFybHkgaW5pdCBhbmQKPiA+IGluaXRpYWxp
-c2VzIHRoZSBzdHJ1Y3R1cmVzIHJlcXVpcmVkIHRvIGJ1aWxkIE1QVCB0YWJsZXMuCj4gPgo+ID4g
-bXB0X2ZpbmFsX2luaXQoKSBjcmVhdGVzIHRoZSByb290IHN1cGVydmlzb3IgZG9tYWluIHdoaWNo
-IGlzIG1hcHBpbmcgYWxsCj4gPiBwaHlzaWNhbCBtZW1vcnkgd2l0aCB0aGUgZmlybXdhcmUgcmVn
-aW9uIGV4cGxjaXRseSBkZW5pZWQgdG8gUy1tb2RlIGFuZAo+ID4gYWRkcyBzdXBwb3J0IGZvciBh
-biBNUFQgZG9tYWluIGZvciBlYWNoIGFkZGl0aW9uYWwgcmVnaXN0ZXJlZCBTQkkgZG9tYWluLgo+
-ID4KPiA+IFRoZSBoZWFwIGJ1ZGdldCBpcyBleHRlbmRlZCB0byByZXNlcnZlIHNwYWNlIGZvciBN
-UFQgdGFibGVzLgo+ID4KPiA+IFdpdGggdGhpcyBwYXRjaCBNUFQgdGFibGVzIGFyZSBidWlsdCBh
-dCBib290Lgo+ID4KPiA+IFNpZ25lZC1vZmYtYnk6IFJhaHVsIFBhdGhhayA8cmFodWwucGF0aGFr
-QG9zcy5xdWFsY29tbS5jb20+Cj4gPiAtLS0KPiA+ICBwbGF0Zm9ybS9nZW5lcmljL3BsYXRmb3Jt
-LmMgfCAxMDEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gPiAgMSBmaWxl
-IGNoYW5nZWQsIDEwMSBpbnNlcnRpb25zKCspCj4gPgo+ID4KPiA+ICBpbnQgZ2VuZXJpY19maW5h
-bF9pbml0KGJvb2wgY29sZF9ib290KQo+ID4gIHsKPiA+ICsgICAgICAgaW50IHJjOwo+ID4gICAg
-ICAgICB2b2lkICpmZHQgPSBmZHRfZ2V0X2FkZHJlc3NfcncoKTsKPiA+Cj4gPiAgICAgICAgIGlm
-ICghY29sZF9ib290KQo+ID4gICAgICAgICAgICAgICAgIHJldHVybiAwOwo+ID4KPiA+ICsgICAg
-ICAgcmMgPSBtcHRfZmluYWxfaW5pdChjb2xkX2Jvb3QpOwo+ID4gKyAgICAgICBpZiAocmMpCj4g
-PiArICAgICAgICAgICAgICAgcmV0dXJuIHJjOwo+ID4gKwo+IE96YTogZG8geW91IHRoaW5rIC0g
-aWYgdGhlcmUgaXMgYSBuZWVkICB0byBtb3ZlIHRoaXMgY2FsbCBhZnRlciBhbGwKPiB0aGUgZml4
-dXAgY2FsbHMgPwoKVGhlIG9ubHkgZGVwZW5kZW5jeSBpcyB3aGV0aGVyIHNiaSBkb21haW4gbWVt
-cmVnaW9ucwpoYXZlIGZpbmFsaXplZCwgd2hpY2ggYWxyZWFkeSBoYXBwZW5zIGJlZm9yZQpzYmlf
-cGxhdGZvcm1fZmluYWxfaW5pdC4gU28gY2FsbCB0byBtcHRfZmluYWxfaW5pdCBiZWZvcmUgb3Ig
-YWZ0ZXIgdGhlICpmaXh1cHMKd29udCBjaGFuZ2UgYW55dGhpbmcgSU1PLgoKPiA+ICAgICAgICAg
-ZmR0X2NwdV9maXh1cChmZHQpOwo+ID4gICAgICAgICBmZHRfZml4dXBzKGZkdCk7Cj4gPiAgICAg
-ICAgIGZkdF9kb21haW5fZml4dXAoZmR0KTsKPiA+IC0tCj4gPiAyLgoKLS0gCm9wZW5zYmkgbWFp
-bGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
-ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+In sbi_mpxy_read_attrs() and sbi_mpxy_write_attrs(), the attribute range
+endpoint is computed as:
+
+  u32 end_id = base_attr_id + attr_count - 1;
+
+When base_attr_id + attr_count exceeds UINT32_MAX, end_id wraps around to
+a small value. This makes downstream range checks such as
+"end_id >= SBI_MPXY_ATTR_STD_ATTR_MAX_IDX" pass incorrectly, turning them
+into dead code.
+
+A malicious or misconfigured S-mode caller can supply crafted
+base_attr_id and attr_count values that trigger the wraparound, bypassing
+range validation and causing out-of-bounds read/write on the shared
+memory attribute array.
+
+Widen end_id to u64 so the addition cannot wrap within the u32 range.
+
+Fixes: 7939bf1329eb ("lib: sbi: Add SBI Message Proxy (MPXY) framework")
+Signed-off-by: liutong <liutong@iscas.ac.cn>
+---
+
+Thanks for the review, Rahul.
+
+Changes in v2:
+- Added Fixes tag as suggested
+
+ lib/sbi/sbi_mpxy.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/sbi/sbi_mpxy.c b/lib/sbi/sbi_mpxy.c
+index 19f59f3a..37dc8e7e 100644
+--- a/lib/sbi/sbi_mpxy.c
++++ b/lib/sbi/sbi_mpxy.c
+@@ -475,7 +475,8 @@ int sbi_mpxy_read_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
+ {
+ 	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+ 	int ret = SBI_SUCCESS;
+-	u32 *attr_ptr, end_id;
++	u32 *attr_ptr;
++	u64 end_id;
+ 	void *shmem_base;
+ 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
+ 
+@@ -625,7 +626,8 @@ static void mpxy_write_std_attr(struct sbi_mpxy_channel *channel, u32 attr_id,
+ int sbi_mpxy_write_attrs(u32 channel_id, u32 base_attr_id, u32 attr_count)
+ {
+ 	struct mpxy_state *ms = sbi_domain_mpxy_state_thishart_ptr();
+-	u32 *mem_ptr, attr_id, end_id, attr_val;
++	u32 *mem_ptr, attr_id, attr_val;
++	u64 end_id;
+ 	struct sbi_mpxy_channel *channel;
+ 	int ret, mem_idx;
+ 	void *shmem_base;
+-- 
+2.34.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
