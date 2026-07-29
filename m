@@ -4,55 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0716FC54F51
-	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 09:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 64E65C53200
+	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 16:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:CC
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=vRwQ2cUOohx6O0iEmFF50K8LEHzzEh6OvUzkGcUx770=; b=y8P5wpmXyfmdKb
-	SrG5jCBVfxDkav2y5wq8Ya9sENdhRDFTeI6LIehx3oJTR98eMYVjQa/iUUoya3vUCwqZoM5tx0oUe
-	W3/JvNHoFhmqIL11zF92maWxroslJYngphgLr3bOMYrIdFB8vrnm8+xNNoDKTwgOAngqnncJLeBBa
-	IO+3zUqESFchH0TxxcRSGt699fGYrvYqT3OeZebG13r+0Tsa3HdHHmMbwYrosjOnY3y982WsDzcxd
-	Ml6F1Dme3bwjiSRiiYdMFifAtKtVyRf2so+BgxCnaaEiBoPvtjmeq3NHjpjP/55le71pz7Dp0WHhs
-	uPpCqbvW4vOTw6UaTBUA==;
+	List-Owner; bh=suBe0SHoyvQWITfz9xCyr7XRvyXnQgp6apwDQrZvbvM=; b=k+NBDr08eFJgZS
+	WDn7Itn8FGfCIFiH0Alov7ujWJDnWYdzUbCZt0ipH9Z6dE/fb55kAnMrWvN8DCqjTHZhB9D57Uch0
+	6VJ7i6ozWemxqLX9sfySLwMAIHL4Vq/BOU9ygXkSkVlu84ebglIyPcI+KWFnwEMJixDXM8hS8iMcC
+	XfhV6YmigcU+F+TvS45nfrw+pOOCJeJBE27wwlXp7LbRlXI4l9bybBPGLtnkbryo//rqafKrDq4jy
+	+ZY9umEZ6VdtIS/SSmFdkCD/F9Z/sQk2DQ7/1Lg01JL5QDx/RRXP3TzSeC+/9bHRIQk4fWtxPMbMk
+	kHGSX66VmUrKG9hg1pWw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wp0Vm-00000007MEj-2Vb5;
-	Wed, 29 Jul 2026 09:23:38 +0000
-Received: from 220-128-198-181.hinet-ip.hinet.net ([220.128.198.181] helo=Atcsqr.andestech.com)
+	id 1wp7OY-00000008bH4-1Icw;
+	Wed, 29 Jul 2026 16:44:38 +0000
+Received: from mail-wr2-x02.google.com ([2a00:1450:4864:30::2])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wp0Vj-00000007MD7-1nfg
+	id 1wp7OV-00000008bFQ-3fX2
 	for opensbi@lists.infradead.org;
-	Wed, 29 Jul 2026 09:23:36 +0000
-Received: from mail.andestech.com (ATCPCS34.andestech.com [10.0.1.134])
-	by Atcsqr.andestech.com with ESMTPS id 66T9NOS5065477
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-	for <opensbi@lists.infradead.org>; Wed, 29 Jul 2026 17:23:24 +0800 (+08)
-	(envelope-from randolph@andestech.com)
-Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS34.andestech.com
- (10.0.1.134) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Wed, 29 Jul
- 2026 17:23:24 +0800
-From: Randolph <randolph@andestech.com>
-To: <opensbi@lists.infradead.org>
-CC: Randolph <randolph@andestech.com>
-Subject: [PATCH] platform: generic/andes: fix 32-bit shift overflow in decode_pmaaddrx()
-Date: Wed, 29 Jul 2026 17:23:17 +0800
-Message-ID: <20260729092317.2848665-1-randolph@andestech.com>
-X-Mailer: git-send-email 2.34.1
+	Wed, 29 Jul 2026 16:44:37 +0000
+Received: by mail-wr2-x02.google.com with SMTP id ffacd0b85a97d-47f9c6bc99eso334157f8f.0
+        for <opensbi@lists.infradead.org>; Wed, 29 Jul 2026 09:44:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785343473; x=1785948273; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=FIt/DoWQUfE0LmD5BBwj/2GV/xMDEDZzs9PsbViJFv4=;
+        b=bcPFedjq4pOVTLeVXWUz4msdDgb9aNW6FEjRkpoi0rjHtB3wrgseU8sRp8QKu2ysZo
+         mV5yhAQvP+HSYzCpPq3dLmGHxzDYYNB/tlmEJaSC0mPBPHXRUcspAnerebr1KtG1RAqI
+         mmAleI32yAnvpnLk7sI2VbBf0zdAblLklvSdTZwPkQNZ17czOfIQc8J+zJsvFxjM3jhx
+         TX4GkRXd5DsekaADdyihSrkBwTftaaK0ncIzN4bYCbWwdVSgFrqwwU+xqhDHIHjZo43s
+         WmgD17qXP3QuOGlSTYh3g2dzzQ+Z7Y1kGQc77ZirEJeEn2s99SHqwkxtfz9/GRzh0Jau
+         JUxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785343473; x=1785948273;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=FIt/DoWQUfE0LmD5BBwj/2GV/xMDEDZzs9PsbViJFv4=;
+        b=LkFYNRn2CPWaeKj5691aQ3XpUxgagTZ/xW4p6Fsk0J3pU97hkmd3SMsVcjJ78zAG+O
+         0F0RVNNmsRUQtOfmQ9kYmR9xE3m2eRvnFYDdE3WC1Vs5cycBsFDzh8D7oZStCjyba91k
+         Pye/R73+6P2VoL+k7x0ETWxYAVju11GLwJcmx8lZILidDriEUa/ffDl9G0lBguqtWik8
+         AsylKqWJCkbhhgr8g3sPcdCeyzkmt4sW2WxouvCwedMNNxmgWp+ipiWDF3C5R+l0HseQ
+         upaN9vas8PzCWO2cf/sUrbEQHoA1geweaXjC49i6vG3k70/D1tfWEEv7HN14XjvQcQPB
+         hzgA==
+X-Gm-Message-State: AOJu0YyyqcwDSDMDcjtNfh8pub8yK8MBN8VKYuNOyP7IR+yHsEACQ5Ma
+	ASgXfpUZ6Y4sF2FgiK0+8Zs0IvsCNGQ98Zgyz54WtIGKtlsfpyK/Lql7BlwdVhpcQ7A=
+X-Gm-Gg: AR+sD10MunUcdxVllk7VSu8OQGZEnohvcEDoIUS7b5AcGdQN2t21ZHLTou7NGncO6nB
+	w5t9JovJ2NWGGVeIQ8l6zRIpljmKqFeBO+J+VfJFfpAhiBLq4wviI8gqf0igFPo2QhToDQfaM7p
+	9ehnY1+zrzfeg1uDRbpiEThP17S9WZzyStSHk4j62WZXYXf21HJxadZI+aVmq8TrBLS6NBTpj+8
+	5C5zYmGPzo8QZqck1EGykYm3Q3UyQy3zpzfIfgeL3ZCB3I/sYk31N1/W4gLfRgNWugtxuvMvfXP
+	9ugONkOP0TrgS6vTZZxaWFqSJKjtu10AR+vk9FuVGOJObmG2qYR/3VBKfBptGWCSJ+JUhhEngwH
+	oiT60ph63WLsjOJSYvNYUr+3cRqkv69o1Z2VckkOgHwXIaHEjjK9JEiMv0+K0dFh2x34+xJ15fs
+	nU0SYdLlizZlXu+NtskV9/tRwWZmcixltMzi1bDiW+8lvvJ3vefpUQvXLxyDamcUJQsvzVuUDsQ
+	VTkt2kwFPlig0uY9qKYF0Uepz25BO0HhvTNDIM3hXrN8aDPDyYaa9P//g==
+X-Received: by 2002:a05:6000:61e:b0:47f:97e9:fe4a with SMTP id ffacd0b85a97d-47fb1edc973mr8686978f8f.43.1785343473511;
+        Wed, 29 Jul 2026 09:44:33 -0700 (PDT)
+Received: from leap.suse.de ([84.77.88.123])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47fb6aa3a88sm8474869f8f.6.2026.07.29.09.44.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Jul 2026 09:44:33 -0700 (PDT)
+From: =?UTF-8?q?Carlos=20L=C3=B3pez?= <carlos.lopezr4096@gmail.com>
+To: opensbi@lists.infradead.org
+Cc: =?UTF-8?q?Carlos=20L=C3=B3pez?= <carlos.lopezr4096@gmail.com>
+Subject: [PATCH 00/14] Add clang Thread Safety Analysis (TSA) support
+Date: Wed, 29 Jul 2026 18:35:27 +0200
+Message-ID: <20260729163540.3162978-2-carlos.lopezr4096@gmail.com>
+X-Mailer: git-send-email 2.51.0
 MIME-Version: 1.0
-X-Originating-IP: [10.0.15.183]
-X-ClientProxiedBy: ATCPCS33.andestech.com (10.0.1.100) To
- ATCPCS34.andestech.com (10.0.1.134)
-X-DKIM-Results: atcpcs34.andestech.com; dkim=none;
-X-DNSRBL: 
-X-MAIL: Atcsqr.andestech.com 66T9NOS5065477
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260729_022335_803309_AE6DCB35 
-X-CRM114-Status: GOOD (  10.97  )
+X-CRM114-CacheID: sfid-20260729_094435_937235_D9EFEB73 
+X-CRM114-Status: GOOD (  12.90  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -64,57 +91,73 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-decode_pmaaddrx() reconstructs the NAPOT region start and size from a
-pmaaddr CSR value using "1 << (k + 3)" and "1 << k". The integer
-literal 1 has type int, so these shifts are performed in 32-bit
-precision. Shifting a 32-bit value by 32 or more bits is undefined
-behavior, and on RV64 the compiler emits sllw, which truncates the
-shift amount modulo 32.
-
-As a result, any PMA region with size >= 4 GiB (k >= 29) is decoded
-incorrectly. For example, on the Andes QiLai SoC the PCIe region
-0x1000000000 - 0x17ffffffff (pmaaddr = 0x4ffffffff, k = 32) is decoded
-as an 8-byte region at 0x13fffffffc.
-
-This is not merely cosmetic: decode_pmaaddrx() is used by
-has_pma_region_overlap() and andes_sbi_free_pma(), so overlap checks
-are performed against bogus ranges and freeing such an entry by its
-physical address always fails.
-
-Promote the shifts to unsigned long so they are performed in the
-native register width.
-
-Fixes: aa56084c4dfb ("platform: generic: andes: add a new Andes SBI call to set up a PMA entry")
-Signed-off-by: Randolph Lin <randolph@andestech.com>
----
- platform/generic/andes/andes_pma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
-index ba9a35bb..28d33a2f 100644
---- a/platform/generic/andes/andes_pma.c
-+++ b/platform/generic/andes/andes_pma.c
-@@ -82,8 +82,8 @@ static void decode_pmaaddrx(int entry_id, unsigned long *start,
- 	 */
- 	pmaaddr = csr_read_num(CSR_PMAADDR0 + entry_id);
- 	k = sbi_ffz(pmaaddr);
--	*size = 1 << (k + 3);
--	*start = (pmaaddr - (1 << k) + 1) << 2;
-+	*size = 1UL << (k + 3);
-+	*start = (pmaaddr - (1UL << k) + 1) << 2;
- }
- 
- static bool has_pma_region_overlap(unsigned long start, unsigned long size)
--- 
-2.34.1
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+RW5hYmxlIHRoZSB1c2Ugb2YgY2xhbmcncyBUaHJlYWQgU2FmZXR5IEFuYWx5c2lzIFswXS4gVFNB
+IGlzIGEgY2xhbmcKbGFuZ3VhZ2UgZXh0ZW5zaW9uIHRoYXQgYWxsb3dzIGRldGVjdGluZyBwb3Rl
+bnRpYWwgaW52YWxpZCBsb2NraW5nCnBhdHRlcm5zIGFuZCByYWNlIGNvbmRpdGlvbnMgYXQgY29t
+cGlsZSB0aW1lLCB3aXRoIHplcm8gcnVudGltZQpvdmVyaGVhZC4gVFNBIHJlbGllcyBvbiBhbm5v
+dGF0aW9ucyB0byBleHByZXNzIHRoZSByZWxhdGlvbnNoaXBzIGJldHdlZW4KZGF0YSBhbmQgbG9j
+a3MsIGFuZCB0aGUgZXhwZWN0ZWQgc3RhdGUgb2YgYSBsb2NrIGF0IGNlcnRhaW4gcG9pbnRzIGlu
+CnRoZSBwcm9ncmFtLgoKVGhlIGZpcnN0IHR3byBjb21taXRzIGludHJvZHVjZSB0aGUgYmFzaWMg
+aW5mcmFzdHJ1Y3R1cmUgdG8gdXNlIHRoZSBUU0EKYW5ub3RhdGlvbnMuIFRoZSBsYXN0IGNvbW1p
+dCBlbmFibGVzIFRTQSBieSBkZWZhdWx0IGluIHRoZSBNYWtlZmlsZS4KQ29tbWl0cyBpbiBiZXR3
+ZWVuIGFkZCB0aGUgbmV3IGFubm90YXRpb25zIHRvIHBhcnRpY3VsYXIgT3BlblNCSQpzdWJzeXN0
+ZW1zLgoKVGhlIGdlbmVyYWwgcGF0dGVybiBpczoKKiBTdHJ1Y3QgZmllbGRzIGFyZSByZWFycmFu
+Z2VkIHNvIHRoYXQgbG9ja3MgYXBwZWFyIGJlZm9yZSB0aGUKICBmaWVsZChzKSB0aGV5IHByb3Rl
+Y3QuIFRoaXMgaXMgbmVlZGVkIGZvciB0aGUgY29tcGlsZXIgdG8gYmUgYWJsZSB0bwogIHBlcmZv
+cm0gYW5hbHlzaXMuIFByb3RlY3RlZCBmaWVsZHMgYXJlIGFubm90YXRlZCB3aXRoIEdVQVJERURf
+QlkoKSAvCiAgUFRfR1VBUkRFRF9CWSgpLgoqIEZ1bmN0aW9ucyB0aGF0IGFjY2VzcyBzcGlubG9j
+ay1wcm90ZWN0ZWQgZmllbGRzIGFyZSBhbm5vdGF0ZWQgd3RoCiAgTVVTVF9IT0xEKCkuCiogRnVu
+Y3Rpb25zIHRoYXQgYWNxdWlyZSBhIHNwaW5sb2NrLCBhbmQgd2hpY2ggbWF5IHBsYXVzaWJseSBi
+ZSBjYWxsZWQKICB3aXRoIHRoYXQgc3BpbmxvY2sgaGVsZCwgYXJlIGFubm90YXRlZCB3aXRoIE1V
+U1RfTk9UX0hPTEQoKSB0byBwcmV2ZW50CiAgcG90ZW50aWFsIGZ1dHVyZSBkZWFkbG9ja3MuCiog
+SW5pdGlhbGl6ZXIgZnVuY3Rpb25zIGFuZCBvdGhlciBzcGVjaWFsIGNhc2VzIGFyZSBleGNsdWRl
+ZCB2aWEKICBOT19USFJFQURfU0FGRVRZX0FOQUxZU0lTLgoKVGhpcyBzdWNjZXNzZnVsbHkgcmVz
+dWx0cyBpbiBkZXRlY3RpbmcgaW5jb3JyZWN0IGxvY2tpbmcuIEZvciBleGFtcGxlLCB0aGUKZm9s
+bG93aW5nIGNoYW5nZToKCmRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9maWZvLmMgYi9saWIvc2Jp
+L3NiaV9maWZvLmMKaW5kZXggODhiODg4OGQyZTgxLi41MzQ4Yjc0NTJmNjQgMTAwNjQ0Ci0tLSBh
+L2xpYi9zYmkvc2JpX2ZpZm8uYworKysgYi9saWIvc2JpL3NiaV9maWZvLmMKQEAgLTM3LDkgKzM3
+LDcgQEAgdTE2IHNiaV9maWZvX2F2YWlsKHN0cnVjdCBzYmlfZmlmbyAqZmlmbykKICAgICAgICBp
+ZiAoIWZpZm8pCiAgICAgICAgICAgICAgICByZXR1cm4gMDsKCi0gICAgICAgc3Bpbl9sb2NrKCZm
+aWZvLT5xbG9jayk7CiAgICAgICAgcmV0ID0gZmlmby0+YXZhaWw7Ci0gICAgICAgc3Bpbl91bmxv
+Y2soJmZpZm8tPnFsb2NrKTsKCiAgICAgICAgcmV0dXJuIHJldDsKIH0KClJlc3VsdHMgaW4gYSBi
+dWlsZCBlcnJvcjoKCiAgbGliL3NiaS9zYmlfZmlmby5jOjQxOjE0OiBlcnJvcjogcmVhZGluZyB2
+YXJpYWJsZSAnYXZhaWwnIHJlcXVpcmVzIGhvbGRpbmcgc3BpbmxvY2sgJyZzYmlfZmlmbzo6cWxv
+Y2snIFstV2Vycm9yLC1XdGhyZWFkLXNhZmV0eS1hbmFseXNpc10KICAgNDEgfCAgICAgICAgIHJl
+dCA9IGZpZm8tPmF2YWlsOwogICAgICB8ICAgICAgICAgICAgICAgICAgICAgXgogIDEgZXJyb3Ig
+Z2VuZXJhdGVkLgoKVGVzdGVkIHdpdGggY2xhbmcgMTkuMS43IGFuZCAyMi4xLjguCgpbMF0gaHR0
+cHM6Ly9jbGFuZy5sbHZtLm9yZy9kb2NzL1RocmVhZFNhZmV0eUFuYWx5c2lzLmh0bWwKCkNhcmxv
+cyBMw7NwZXogKDE0KToKICBpbmNsdWRlOiBzYmk6IGFkZCB0aHJlYWQgc2FmZXR5IGFuYWx5c2lz
+IG1hY3JvcwogIGxpYjogc2JpX2xvY2tzOiBhbm5vdGF0ZSBzcGlubG9jayBBUElzIGZvciBUU0EK
+ICBsaWI6IHNiaV9maWZvOiBhZGQgVFNBIGFubm90YXRpb25zCiAgbGliOiBzYmlfaGVhcDogYWRk
+IFRTQSBhbm5vdGF0aW9ucwogIGxpYjogc2JpX3NjcmF0Y2g6IGFkZCBUU0EgYW5ub3RhdGlvbnMK
+ICBsaWI6IHJwbWk6IGFkZCBUU0EgYW5ub3RhdGlvbnMKICBsaWI6IHNiaV90aW1lcjogYWRkIFRT
+QSBhbm5vdGF0aW9ucwogIGxpYjogaHRpZjogYWRkIFRTQSBhbm5vdGF0aW9ucwogIGxpYjogc2Jp
+X2RvbWFpbjogYWRkIFRTQSBhbm5vdGF0aW9ucwogIGxpYjogc2JpX3NzZTogaW5saW5lIGVuYWJs
+ZSBldmVudCBsb2NraW5nCiAgbGliOiBzYmlfc3NlOiBwYXNzIFNTRSBoYXJ0IHN0YXRlIGV4cGxp
+Y2l0bHkKICBsaWI6IHNiaV9zc2U6IGFkZCBUU0EgYW5ub3RhdGlvbnMKICBsaWI6IHRlc3Q6IGRp
+c2FibGUgVFNBIGZvciBzcGlubG9jayB0ZXN0cwogIE1ha2VmaWxlOiBlbmFibGUgVGhyZWFkIFNh
+ZmV0eSBBbmFseXNpcwoKIE1ha2VmaWxlICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICB8ICA3ICsrCiBpbmNsdWRlL3NiaS9yaXNjdl9sb2Nrcy5oICAgICAgICAgICAgICAgICAgfCAg
+OCArLQogaW5jbHVkZS9zYmkvc2JpX2RvbWFpbi5oICAgICAgICAgICAgICAgICAgIHwgMTAgKyst
+CiBpbmNsdWRlL3NiaS9zYmlfZmlmby5oICAgICAgICAgICAgICAgICAgICAgfCAgNiArLQogaW5j
+bHVkZS9zYmkvc2JpX3Zpc2liaWxpdHkuaCAgICAgICAgICAgICAgIHwgMTcgKysrKysKIGxpYi9z
+YmkvcmlzY3ZfbG9ja3MuYyAgICAgICAgICAgICAgICAgICAgICB8ICA0ICstCiBsaWIvc2JpL3Ni
+aV9kb21haW4uYyAgICAgICAgICAgICAgICAgICAgICAgfCAgMyArCiBsaWIvc2JpL3NiaV9kb21h
+aW5fY29udGV4dC5jICAgICAgICAgICAgICAgfCAgMiArCiBsaWIvc2JpL3NiaV9maWZvLmMgICAg
+ICAgICAgICAgICAgICAgICAgICAgfCAxMSArKy0KIGxpYi9zYmkvc2JpX2hlYXAuYyAgICAgICAg
+ICAgICAgICAgICAgICAgICB8IDI1ICsrKy0tLQogbGliL3NiaS9zYmlfc2NyYXRjaC5jICAgICAg
+ICAgICAgICAgICAgICAgIHwgIDMgKy0KIGxpYi9zYmkvc2JpX3NzZS5jICAgICAgICAgICAgICAg
+ICAgICAgICAgICB8IDg5ICsrKysrKysrKystLS0tLS0tLS0tLS0KIGxpYi9zYmkvc2JpX3RpbWVy
+LmMgICAgICAgICAgICAgICAgICAgICAgICB8ICA1ICstCiBsaWIvc2JpL3Rlc3RzL3Jpc2N2X2xv
+Y2tzX3Rlc3QuYyAgICAgICAgICAgfCAgMyArCiBsaWIvdXRpbHMvbWFpbGJveC9mZHRfbWFpbGJv
+eF9ycG1pX3NobWVtLmMgfCAxNCArKy0tCiBsaWIvdXRpbHMvc3lzL2h0aWYuYyAgICAgICAgICAg
+ICAgICAgICAgICAgfCAyOCArKysrLS0tCiAxNiBmaWxlcyBjaGFuZ2VkLCAxNDAgaW5zZXJ0aW9u
+cygrKSwgOTUgZGVsZXRpb25zKC0pCgoKYmFzZS1jb21taXQ6IGMwZjg3ZjEwZDFiZmI5ZTcyYTg0
+ZGRmYWZiNTYwNGVlMWJmZTlkMDQKLS0gCjIuNTEuMAoKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlz
+dApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
