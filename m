@@ -4,62 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C333BC54F51
-	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 07:27:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0716FC54F51
+	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 09:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:CC
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=KHpxeICx5+LEtMCv4Snkm2GINPEUzCFV3dMKdvKgykc=; b=fYw2Fm2fDhQtZz
-	prKKBKbIZRVDYFK1ZeVWsXixmLPEeG88HZrEfxdZFqKHCAmnrKwOTzv6T5+/Hxq5TFH58YttgeNlQ
-	WloXXBn5hYUdVXB/PYYBLuRt9W0Q0046BjybdO4xFVlWvxiZNZukKESr/afDaBmlhq8+xolggPCHI
-	/LbS+s0tU0evK+u2e/97AGFWFRErtofWb9U5NvTRjEcFIjBnKqjL0EUW1ifyMjA12Q0CLlnw4V4/M
-	O1upcyO8r+MFpnnyttIXagCRVnHm75SSypYmzcp0u4P3b9WFgSLsrvk4GLYw3rzxoaPbWJAZ5BR/S
-	NQkZiOYC1Oj/eBRbnePg==;
+	List-Owner; bh=vRwQ2cUOohx6O0iEmFF50K8LEHzzEh6OvUzkGcUx770=; b=y8P5wpmXyfmdKb
+	SrG5jCBVfxDkav2y5wq8Ya9sENdhRDFTeI6LIehx3oJTR98eMYVjQa/iUUoya3vUCwqZoM5tx0oUe
+	W3/JvNHoFhmqIL11zF92maWxroslJYngphgLr3bOMYrIdFB8vrnm8+xNNoDKTwgOAngqnncJLeBBa
+	IO+3zUqESFchH0TxxcRSGt699fGYrvYqT3OeZebG13r+0Tsa3HdHHmMbwYrosjOnY3y982WsDzcxd
+	Ml6F1Dme3bwjiSRiiYdMFifAtKtVyRf2so+BgxCnaaEiBoPvtjmeq3NHjpjP/55le71pz7Dp0WHhs
+	uPpCqbvW4vOTw6UaTBUA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1woyhl-000000077dI-3nid;
-	Wed, 29 Jul 2026 07:27:53 +0000
-Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
+	id 1wp0Vm-00000007MEj-2Vb5;
+	Wed, 29 Jul 2026 09:23:38 +0000
+Received: from 220-128-198-181.hinet-ip.hinet.net ([220.128.198.181] helo=Atcsqr.andestech.com)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1woyhj-000000077bR-0oTV
+	id 1wp0Vj-00000007MD7-1nfg
 	for opensbi@lists.infradead.org;
-	Wed, 29 Jul 2026 07:27:52 +0000
-Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-05 (Coremail) with SMTP id zQCowAA3pD5yq2lq+gj1AQ--.20382S2;
-	Wed, 29 Jul 2026 15:27:46 +0800 (CST)
-From: liutong <liutong@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: liutong <liutong@iscas.ac.cn>
-Subject: [PATCH] lib: sbi_dbtr: fix integer overflow in read_trig bounds check
-Date: Wed, 29 Jul 2026 07:27:36 +0000
-Message-Id: <20260729072736.948903-1-liutong@iscas.ac.cn>
+	Wed, 29 Jul 2026 09:23:36 +0000
+Received: from mail.andestech.com (ATCPCS34.andestech.com [10.0.1.134])
+	by Atcsqr.andestech.com with ESMTPS id 66T9NOS5065477
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+	for <opensbi@lists.infradead.org>; Wed, 29 Jul 2026 17:23:24 +0800 (+08)
+	(envelope-from randolph@andestech.com)
+Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS34.andestech.com
+ (10.0.1.134) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Wed, 29 Jul
+ 2026 17:23:24 +0800
+From: Randolph <randolph@andestech.com>
+To: <opensbi@lists.infradead.org>
+CC: Randolph <randolph@andestech.com>
+Subject: [PATCH] platform: generic/andes: fix 32-bit shift overflow in decode_pmaaddrx()
+Date: Wed, 29 Jul 2026 17:23:17 +0800
+Message-ID: <20260729092317.2848665-1-randolph@andestech.com>
 X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-X-CM-TRANSID: zQCowAA3pD5yq2lq+gj1AQ--.20382S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7uF17Ar4xZF17Xr4fAF1rtFb_yoW8Xr1fpF
-	1xGa43Kw4IqryjyrW0ka1rJFyIga18Cw4UtrWSkry0y39xZay8u34ak3WUXayxZrykAF4a
-	vF1Dtr4UZFs0vF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUyC14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Cr
-	1j6rxdM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj
-	6xIIjxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVW8Jr0_Cr1UMcvjeVCFs4IE7xkEbV
-	WUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1l42xK82IYc2Ij
-	64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x
-	8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1Y6r17MIIYrxkI7VAKI48JMIIF0xvE
-	2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42
-	xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF
-	7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x0JUBBT5UUUUU=
-X-Originating-IP: [36.110.52.2]
-X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
+X-Originating-IP: [10.0.15.183]
+X-ClientProxiedBy: ATCPCS33.andestech.com (10.0.1.100) To
+ ATCPCS34.andestech.com (10.0.1.134)
+X-DKIM-Results: atcpcs34.andestech.com; dkim=none;
+X-DNSRBL: 
+X-MAIL: Atcsqr.andestech.com 66T9NOS5065477
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260729_002751_600665_8E55BA01 
-X-CRM114-Status: UNSURE (   9.04  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260729_022335_803309_AE6DCB35 
+X-CRM114-Status: GOOD (  10.97  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -76,43 +69,47 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-In sbi_dbtr_read_trig(), the range check is:
+decode_pmaaddrx() reconstructs the NAPOT region start and size from a
+pmaaddr CSR value using "1 << (k + 3)" and "1 << k". The integer
+literal 1 has type int, so these shifts are performed in 32-bit
+precision. Shifting a 32-bit value by 32 or more bits is undefined
+behavior, and on RV64 the compiler emits sllw, which truncates the
+shift amount modulo 32.
 
-  if (trig_idx_base + trig_count >= hs->total_trigs)
+As a result, any PMA region with size >= 4 GiB (k >= 29) is decoded
+incorrectly. For example, on the Andes QiLai SoC the PCIe region
+0x1000000000 - 0x17ffffffff (pmaaddr = 0x4ffffffff, k = 32) is decoded
+as an 8-byte region at 0x13fffffffc.
 
-When trig_idx_base and trig_count are both unsigned long values supplied
-by S-mode, their sum can wrap past ULONG_MAX to a small value, making
-the check pass. For example trig_idx_base=1, trig_count=ULONG_MAX wraps
-to 0, which is less than total_trigs.
+This is not merely cosmetic: decode_pmaaddrx() is used by
+has_pma_region_overlap() and andes_sbi_free_pma(), so overlap checks
+are performed against bogus ranges and freeing such an entry by its
+physical address always fails.
 
-This allows the subsequent for_each_trig_entry loop to access trigger
-entries far beyond the triggers[] array, corrupting M-mode heap memory
-via CSR read-back writes and leaking M-mode internal state to S-mode
-shared memory.
+Promote the shifts to unsigned long so they are performed in the
+native register width.
 
-Rewrite the condition as trig_count >= total_trigs - trig_idx_base. The
-subtraction is safe because the preceding check already guarantees
-trig_idx_base < total_trigs.
-
-Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
-Signed-off-by: liutong <liutong@iscas.ac.cn>
+Fixes: aa56084c4dfb ("platform: generic: andes: add a new Andes SBI call to set up a PMA entry")
+Signed-off-by: Randolph Lin <randolph@andestech.com>
 ---
- lib/sbi/sbi_dbtr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ platform/generic/andes/andes_pma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 01047969..eeab7d3a 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -572,7 +572,7 @@ int sbi_dbtr_read_trig(unsigned long smode,
- 		return SBI_ERR_FAILED;
+diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
+index ba9a35bb..28d33a2f 100644
+--- a/platform/generic/andes/andes_pma.c
++++ b/platform/generic/andes/andes_pma.c
+@@ -82,8 +82,8 @@ static void decode_pmaaddrx(int entry_id, unsigned long *start,
+ 	 */
+ 	pmaaddr = csr_read_num(CSR_PMAADDR0 + entry_id);
+ 	k = sbi_ffz(pmaaddr);
+-	*size = 1 << (k + 3);
+-	*start = (pmaaddr - (1 << k) + 1) << 2;
++	*size = 1UL << (k + 3);
++	*start = (pmaaddr - (1UL << k) + 1) << 2;
+ }
  
- 	if (trig_idx_base >= hs->total_trigs ||
--	    trig_idx_base + trig_count >= hs->total_trigs)
-+	    trig_count >= hs->total_trigs - trig_idx_base)
- 		return SBI_ERR_INVALID_PARAM;
- 
- 	if (sbi_dbtr_shmem_disabled(hs))
+ static bool has_pma_region_overlap(unsigned long start, unsigned long size)
 -- 
 2.34.1
 
