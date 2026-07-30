@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3F126C55164
-	for <opensbi@archiver.kernel.org>; Thu, 30 Jul 2026 16:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 14D2EC55164
+	for <opensbi@archiver.kernel.org>; Thu, 30 Jul 2026 16:08:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=w1lrSirTQD98PnHKd5dXrpCHjTb58eFOaI3yoarF2vk=; b=L1y8zhWhhNw6b6
-	X+iqeF+1WfZzcsUsthIMYEUME1qFNsuZGfWmEMTGsdskghcIXonp81mvIeerQ8Z6/9WO5YW/PJR8a
-	tBF98ceGPegbvEoxxKfGfAMm3+7E2YlGIsmHNenA3FMj9u00WKxYkG/6UkqRU8oL0rK672aNm3M4Y
-	Q6dUBqip7155tgCMGVf/iOcFSPhF5/dNMCYfVfi6L1pToSzD+yLTmJuwA4tPv/+XR/4Ukc2cqo4ml
-	Q4ItVK5r3SeMAt6a5mx5+WX2pnQXvSCu5x8+80rmqkG3qwLpTzDUsyzQQWkdWa/azxF4J+mV7q//w
-	p45OLmiTysXJnkgZgATw==;
+	List-Owner; bh=h1h5G5J7ZB9Mr8e1LSjsXY+PwunJ983xmu1VrGf0PPk=; b=qflWJ5SxxK34tv
+	sNmxwgb7oaePSaXEOMHP/dyooT5xKEfxovfu7rUHMjAyJks36fkeYKQGKwP2XAGL4eeNmHkoc5Mr4
+	vF9Yt7MWEf17SBHp8QGXZZ+6pvlJXVUVuxw/pOYh5JvfF8e+oppG4sxcSTtYas7KKqGwmN26gRzPR
+	RJxTLmKdvzOkE4phOGNtkwhuy2kMAku/OAj+zIHFFw2Fvw7rR1eB4c32gQrRb9P5sNnqq/fjFIRte
+	UfGG1pE08rQwqqZKYfz36QC6Ea28KkXLxx6Bjk26h9iJB8hySMMNRW7iWioaPqIsbpFiK+1kiu+g2
+	qKc1wvP0J6PbqGiYsxCw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wpTGe-0000000AwZG-2KMz;
-	Thu, 30 Jul 2026 16:05:56 +0000
+	id 1wpTIZ-0000000Awq1-0WfT;
+	Thu, 30 Jul 2026 16:07:55 +0000
 Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wpTGb-0000000AwXH-1UmT
+	id 1wpTIU-0000000Awp6-02bF
 	for opensbi@lists.infradead.org;
-	Thu, 30 Jul 2026 16:05:55 +0000
+	Thu, 30 Jul 2026 16:07:51 +0000
 Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-05 (Coremail) with SMTP id zQCowACX_zledmtqIblWAg--.29808S2;
-	Fri, 31 Jul 2026 00:05:50 +0800 (CST)
+	by APP-05 (Coremail) with SMTP id zQCowACXAj3TdmtqcsFWAg--.30486S2;
+	Fri, 31 Jul 2026 00:07:47 +0800 (CST)
 From: liutong <liutong@iscas.ac.cn>
 To: opensbi@lists.infradead.org
 Cc: liutong <liutong@iscas.ac.cn>
-Subject: [PATCH v3] lib: sbi_dbtr: fix shared memory double-fetch in install_trig
-Date: Thu, 30 Jul 2026 16:05:40 +0000
-Message-Id: <20260730160540.1326394-1-liutong@iscas.ac.cn>
+Subject: [PATCH v2] lib: sbi_sse: fix shared memory double-fetch in sse_write_attrs
+Date: Thu, 30 Jul 2026 16:07:36 +0000
+Message-Id: <20260730160736.1327916-1-liutong@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260628092949.218380-1-liutong@iscas.ac.cn>
-References: <20260628092949.218380-1-liutong@iscas.ac.cn>
+In-Reply-To: <20260628092110.209040-1-liutong@iscas.ac.cn>
+References: <20260628092110.209040-1-liutong@iscas.ac.cn>
 MIME-Version: 1.0
-X-CM-TRANSID: zQCowACX_zledmtqIblWAg--.29808S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxuFW8AF4rJrW3JFW8Zw15CFg_yoW7tF13pF
-	Z3WF9rGrZ7XryqyrWxAa18Cry3uw48J3WrtrZakr92yas8Zr10q34aqasYvFyfKFyDZ3Wj
-	y3WjgF1UCan0yF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID: zQCowACXAj3TdmtqcsFWAg--.30486S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7ur4fWF18tw45Zr4ktF1fZwb_yoW8Zry8pF
+	yrKasIgr4ft3WxKryDZw48Xas3W348J34aqF9Fyw1Ivan8Za4xX34a93s0vr17Kr97AF4U
+	Za1UtFy5AFWDZa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUUyq14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
 	6F4UM28EF7xvwVC2z280aVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r1j6r
 	4UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
 	jxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
@@ -59,8 +59,8 @@ X-Coremail-Antispam: 1UD129KBjvJXoWxuFW8AF4rJrW3JFW8Zw15CFg_yoW7tF13pF
 X-Originating-IP: [36.110.52.2]
 X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260730_090553_761518_F0A586DC 
-X-CRM114-Status: GOOD (  15.30  )
+X-CRM114-CacheID: sfid-20260730_090750_441084_EFA93062 
+X-CRM114-Status: GOOD (  10.87  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -77,175 +77,66 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_dbtr_install_trig() reads trigger configuration from S-mode shared
-memory in two separate loops: first to validate, then to install. Since
-the shared memory remains writable by S-mode between the two reads, the
-data used for installation may differ from what was validated.
+sse_write_attrs() reads attribute values from S-mode shared memory in
+two passes: first to validate, then to apply. Since the shared memory
+remains writable by S-mode between the two reads, the values used for
+application may differ from what was validated.
 
 This allows S-mode to bypass validation by modifying shared memory
-contents between the two passes, potentially installing malicious
-trigger configurations in M-mode.
+contents between the two passes, potentially setting unauthorized SSE
+event attributes in M-mode.
 
-Fix this by merging validation and installation into a single pass.
-Each entry is copied to a local variable before use, so S-mode cannot
-modify the data between validation and installation. On validation
-failure, all previously installed triggers are rolled back.
+Fix this by snapshotting the shared memory data into a local buffer
+and performing both validation and application against that snapshot.
 
-Also add a bounds check on trig_count against RV_MAX_TRIGGERS, and fix
-a redundant read in dbtr_trigger_setup() where tdata1 was read from
-the message pointer a second time instead of using the value already
-saved in trig->tdata1.
-
-Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
+Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
 Signed-off-by: liutong <liutong@iscas.ac.cn>
 ---
 
-Changes in v3:
-- Added Fixes tag
 Changes in v2:
-- Single-pass with per-entry snapshot instead of full-array copy
+- Added Fixes tag
 
- lib/sbi/sbi_dbtr.c | 81 +++++++++++++++++++++++-----------------------
- 1 file changed, 40 insertions(+), 41 deletions(-)
+ lib/sbi/sbi_sse.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 01047969..b5ba4b72 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -327,7 +327,7 @@ static void dbtr_trigger_setup(struct sbi_dbtr_trigger *trig,
- 	trig->tdata2 = lle_to_cpu(recv->tdata2);
- 	trig->tdata3 = lle_to_cpu(recv->tdata3);
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index 818afb87..94b333c5 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -1064,25 +1064,27 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
+ 	unsigned long attr = 0, val;
+ 	uint32_t id, end_id = base_attr_id + attr_count;
+ 	unsigned long *attrs = (unsigned long *)input_phys;
++	unsigned long local_attrs[SBI_SSE_ATTR_MAX];
  
--	tdata1 = lle_to_cpu(recv->tdata1);
-+	tdata1 = trig->tdata1;
+ 	sbi_hart_protection_map_range(input_phys, sizeof(unsigned long) * attr_count);
  
- 	trig->state = 0;
- 
-@@ -603,12 +603,14 @@ int sbi_dbtr_read_trig(unsigned long smode,
- int sbi_dbtr_install_trig(unsigned long smode,
- 			  unsigned long trig_count, unsigned long *out)
- {
-+	struct sbi_dbtr_data_msg local;
- 	void *shmem_base = NULL;
- 	union sbi_dbtr_shmem_entry *entry;
--	struct sbi_dbtr_data_msg *recv;
- 	struct sbi_dbtr_id_msg *xmit;
- 	unsigned long ctrl;
- 	struct sbi_dbtr_trigger *trig;
-+	struct sbi_dbtr_trigger *installed[RV_MAX_TRIGGERS];
-+	int num_installed = 0;
- 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
- 	bool tdata2_impl, tdata3_impl;
- 
-@@ -619,9 +621,13 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 	if (sbi_dbtr_shmem_disabled(hs))
- 		return SBI_ERR_NO_SHMEM;
- 
--	shmem_base = hart_shmem_base(hs);
--	sbi_hart_protection_map_range((unsigned long)shmem_base,
--				      trig_count * sizeof(*entry));
-+	if (trig_count > RV_MAX_TRIGGERS)
-+		return SBI_ERR_INVALID_PARAM;
++	copy_attrs(local_attrs, attrs, attr_count);
 +
-+	if (hs->available_trigs < trig_count) {
-+		*out = hs->available_trigs;
-+		return SBI_ERR_FAILED;
-+	}
- 
- 	/*
- 	 * SBI v3.0 sec 19.4 requires SBI_ERR_NOT_SUPPORTED when a trigger
-@@ -632,62 +638,55 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 	tdata2_impl = tdata_implemented(CSR_TDATA2);
- 	tdata3_impl = tdata_implemented(CSR_TDATA3);
- 
--	/* Check requested triggers configuration */
--	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
--		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
--		ctrl = recv->tdata1;
-+	shmem_base = hart_shmem_base(hs);
-+	sbi_hart_protection_map_range((unsigned long)shmem_base,
-+				      trig_count * sizeof(*entry));
- 
--		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl))) {
--			*out = _idx;
--			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
--							trig_count * sizeof(*entry));
--			return SBI_ERR_FAILED;
--		}
-+	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-+		/*
-+		 * Snapshot one entry from shared memory so that S-mode
-+		 * cannot modify it between validation and installation.
-+		 */
-+		local = entry->data;
-+		ctrl = lle_to_cpu(local.tdata1);
- 
--		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
-+		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl)) ||
-+		    !dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
- 			*out = _idx;
--			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
--							trig_count * sizeof(*entry));
--			return SBI_ERR_FAILED;
-+			goto rollback;
- 		}
- 
--		if ((recv->tdata2 && !tdata2_impl) ||
--		    (recv->tdata3 && !tdata3_impl)) {
-+		if ((local.tdata2 && !tdata2_impl) ||
-+		    (local.tdata3 && !tdata3_impl)) {
- 			*out = _idx;
--			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
--							trig_count * sizeof(*entry));
-+			sbi_hart_protection_unmap_range(
-+				(unsigned long)shmem_base,
-+				trig_count * sizeof(*entry));
- 			return SBI_ERR_NOT_SUPPORTED;
- 		}
--	}
--
--	if (hs->available_trigs < trig_count) {
--		*out = hs->available_trigs;
--		sbi_hart_protection_unmap_range((unsigned long)shmem_base,
--					       trig_count * sizeof(*entry));
--		return SBI_ERR_FAILED;
--	}
- 
--	/* Install triggers */
--	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
--		/*
--		 * Since we have already checked if enough triggers are
--		 * available, trigger allocation must succeed.
--		 */
- 		trig = sbi_alloc_trigger();
--
--		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
- 		xmit = (struct sbi_dbtr_id_msg *)(&entry->id);
- 
--		dbtr_trigger_setup(trig,  recv);
-+		dbtr_trigger_setup(trig, &local);
- 		dbtr_trigger_enable(trig);
- 		xmit->idx = cpu_to_lle(trig->index);
--
-+		installed[num_installed++] = trig;
++	sbi_hart_protection_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
++
+ 	for (id = base_attr_id; id < end_id; id++) {
+-		val = attrs[attr++];
++		val = local_attrs[attr++];
+ 		ret = sse_event_set_attr_check(e, id, val);
+ 		if (ret)
+-			goto out;
++			return ret;
  	}
  
- 	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
- 					trig_count * sizeof(*entry));
+ 	attr = 0;
+ 	for (id = base_attr_id; id < end_id; id++) {
+-		val = attrs[attr++];
++		val = local_attrs[attr++];
+ 		sse_event_set_attr(e, id, val);
+ 	}
  
- 	return SBI_SUCCESS;
-+
-+rollback:
-+	while (num_installed--) {
-+		dbtr_trigger_clear(installed[num_installed]);
-+		sbi_free_trigger(installed[num_installed]);
-+	}
-+	sbi_hart_protection_unmap_range((unsigned long)shmem_base,
-+					trig_count * sizeof(*entry));
-+	return SBI_ERR_FAILED;
+-out:
+-	sbi_hart_protection_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
+-
+ 	return ret;
  }
  
- int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
 -- 
 2.34.1
 
