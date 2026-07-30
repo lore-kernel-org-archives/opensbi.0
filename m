@@ -4,86 +4,63 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 59C40C53219
-	for <opensbi@archiver.kernel.org>; Wed, 29 Jul 2026 16:44:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 41CD5C55164
+	for <opensbi@archiver.kernel.org>; Thu, 30 Jul 2026 16:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=ZCiE6ho16ODUbs0TcI9zNK0NqBLwUjhaPocDsBd6Zbw=; b=WXgmJDy4ISWshZ
-	oNwaUyhVTZgj2Gc6SIgH6hQ0RiGF788chVkr9mI4j/0Aspg4xlRBv81PtiXkq7OcB7cEXtRdstEYV
-	gAmkknAlGuTW3c0KmxRluMhgOTSJmUThyFzNPO7tooDHdvLLX1owiMDKFbCI3HEgyr7sHnCpmozwT
-	2/87hqGFYjDCKB0J78yXtD13jhLHKpg5XIYFp1jECFpr3JUimnBqRA512xl8ayofvwwjafO3plZ65
-	N2idSPTQx3LI8UdHzpzoOyuhnDaT/+m1dUz2nqIAVVYo6HVJYCp92kw+xSbIzsoD/kaVfLdR30d1K
-	TFGT3A8yWcU+4j3sQQJA==;
+	List-Owner; bh=r3uKH6CjHWeXCPYl4S8Ub29gRda3R/BWnqppAu3ohKE=; b=LBceQ3XaKbeRYl
+	QWxraqbH4X8+QaloMQUAsJsTqEmFGko7tA2MfnO+6kKI69Scyz77n5rgoniy4c/6u9OtmAAC6U0U7
+	xdyY8NgOrO2nI9kf/YdzbyPuz2mYRfgbMhfJPCKGv6gDrsGP+NlD10+R6t7x1l6Rl+C2lchMda5OX
+	1md1oQocJon1ciupqP4OUJYotLdUSTAod8qpODOGXx7JXt3pyYApffO+c0BcYH0yo8cjaUZkR7d/y
+	hMaKsaFpOgPdiwHO6IumaS9CUpnKVWVZU3hKCa+RGPQuTYla1a1QRdKrlhwvkLwHT9W+YXmur76HZ
+	hCx4BANiszHSI+D5503A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wp7Ok-00000008bZe-2zF6;
-	Wed, 29 Jul 2026 16:44:50 +0000
-Received: from mail-wr2-x02.google.com ([2a00:1450:4864:30::2])
+	id 1wpTE0-0000000AvXh-15pZ;
+	Thu, 30 Jul 2026 16:03:12 +0000
+Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wp7Oi-00000008bTB-10FH
+	id 1wpTDv-0000000AvWe-3wgO
 	for opensbi@lists.infradead.org;
-	Wed, 29 Jul 2026 16:44:49 +0000
-Received: by mail-wr2-x02.google.com with SMTP id ffacd0b85a97d-47f8fd5f16aso417349f8f.0
-        for <opensbi@lists.infradead.org>; Wed, 29 Jul 2026 09:44:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785343486; x=1785948286; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=1vK87WVurv60TeCOhjYgUsH+elyo/0Vie5Qb3Nh3ESU=;
-        b=G0g7/hP2tUD7+HE+RbAyR5YYWCSW+fmmKctbmTyXdIUre43AdzM0s9cw2mR8KHFTfw
-         +icXP0eQgHAyqpe1pboVVlNwbXietgrnI0Jf/QjTOEs4PyQYsprA1rhPf8pnveAMehS7
-         2cKWYyV/3zMgb+tOdM6lLyPLiRfZ4REqHSnV32XB0lwtZ9aFRgunNy50Cp2PpVWXMDdK
-         4j5mpWN1+YKeJnGAM1arbkWA2NYYnjQdn+6TTESJ5CP+3cKOQYBjRSSExl2d9jkRvUKh
-         NUytVdYuIYcvdMfW/Clkgd+vIwJM7H2mYZ6EZ2oNDwxUosbVUbrYSIBLHyxhbo1uwrna
-         D3Hg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785343486; x=1785948286;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=1vK87WVurv60TeCOhjYgUsH+elyo/0Vie5Qb3Nh3ESU=;
-        b=JyLQQ7wgaEm78NyryWSHDvPR6O8jNnYn2fmMrZdqjeKAlABzkHqjx3/PtRYYG1Rv8f
-         pr1AI04mZNf71cbaWw4RHfnmIED4AQ/Dwp0TTLKQFIb6JiMg8GjzY/vfhurYoNxeYm3G
-         eh1Df3uDxosLB9TK8ejAssIleHsPD+jXGDXav2FnCqqVxYxM+U1FuXmWlBZHok/6/GEV
-         4LBKp6cMn8V8tX/82Rapz+OTWHWB49DdCkoZj2dQahCnRWH3YTJduCzDQxofWDWi+6tG
-         5sGUk4LfBx+GgG6pciTPOwLa8sxlYUDv037aeaBMhW9nligqr2PDJoZjO+l2DvCmRB61
-         86Mg==
-X-Gm-Message-State: AOJu0YzcQhx2PhLRw43y8Qk30mRU1tMTTLOwUUnGe6Di4edst2lHvPYT
-	BNuXFYjOCKTo+9W04+2VGNG0aRqcRmtIPR3moBbGsNU87Lpt14ODf7/mSCQgtu36o2w=
-X-Gm-Gg: AR+sD11sPwjk+tvNLxgpRTF1gSUR3oAkyrttDz2MLV02kDg4/yXGEd+KyI9BC7V1ry/
-	yokSjtdHD15GaAc1QOKfNCFnvUh0OZosHL2oNZ1LYW+UFWba45vnd8ENMk9AGqQ3468AkBuAWBU
-	wfEjD1nKkMKDcplpxzhiSaQkVxZkziJnGW650xv2yjQ4P1ail6oBvR2qGgTtU1pW3klAX+HRZ3l
-	vPV9SY+pdVKs3JUchY0SJu+UEzSRag4fgjF5ep4u3MyRlDSxey3FnUAruV1ZhQ1gHD4XVc40RCM
-	Ay4CASxq6wiK3mREMYA5+rc+iz5tKEA/5brDFpbMBOCUry9Fgo0UvPaP+Tzv3fw2WYCaS9AbPmK
-	+CJOWUKMF1L6tbOZZhItU/WT7AlYuD5ZCB6FIE9hcqNEjORsUleGaoVvigRjl8euqKHcsI1Tsqv
-	f6BP/g5r/sbCtaY047bT+aIeRvHbkHZqbYuJdBq5XXnI8BWdjnDgflj5+K5Snx70VmanRZkz9E3
-	EvrtWxD6q1rBm7uiRldaNk5v3qcGDN7rdhSenngStEo/DA8145h8bhTsQ==
-X-Received: by 2002:a5d:64e9:0:b0:47f:921f:3a37 with SMTP id ffacd0b85a97d-47fb1f107f9mr8776638f8f.35.1785343486486;
-        Wed, 29 Jul 2026 09:44:46 -0700 (PDT)
-Received: from leap.suse.de ([84.77.88.123])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47fb6aa3a88sm8474869f8f.6.2026.07.29.09.44.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Jul 2026 09:44:46 -0700 (PDT)
-From: =?UTF-8?q?Carlos=20L=C3=B3pez?= <carlos.lopezr4096@gmail.com>
+	Thu, 30 Jul 2026 16:03:10 +0000
+Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowABnlkC2dWtqkqxWAg--.50580S2;
+	Fri, 31 Jul 2026 00:03:02 +0800 (CST)
+From: liutong <liutong@iscas.ac.cn>
 To: opensbi@lists.infradead.org
-Cc: =?UTF-8?q?Carlos=20L=C3=B3pez?= <carlos.lopezr4096@gmail.com>
-Subject: [PATCH 14/14] Makefile: enable Thread Safety Analysis
-Date: Wed, 29 Jul 2026 18:35:41 +0200
-Message-ID: <20260729163540.3162978-16-carlos.lopezr4096@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260729163540.3162978-2-carlos.lopezr4096@gmail.com>
-References: <20260729163540.3162978-2-carlos.lopezr4096@gmail.com>
+Cc: liutong <liutong@iscas.ac.cn>
+Subject: [PATCH v2] lib: sbi_pmu: fix integer overflow and zero-address in event_get_info
+Date: Thu, 30 Jul 2026 16:02:52 +0000
+Message-Id: <20260730160252.1325335-1-liutong@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20260628090421.188161-1-liutong@iscas.ac.cn>
+References: <20260628090421.188161-1-liutong@iscas.ac.cn>
 MIME-Version: 1.0
+X-CM-TRANSID: zQCowABnlkC2dWtqkqxWAg--.50580S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7ZrWrJF1kKrWkXw48Zr17Awb_yoW8Zw1xpF
+	4rKasxtrW0q342gasrZw1rXa4rJa18G3WDKFW7tryFyF43WF18ZF4qq3sIyr45ArykZFy2
+	yayjyF4jka45ZaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyq14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r1j6r
+	4UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
+	jxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
+	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAKI48J
+	MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwV
+	AFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUXVWUAwCIc40Y0x0EwIxGrwCI42IY6xIIjxv2
+	0xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4
+	v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AK
+	xVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvjfUYDGYDUUUU
+X-Originating-IP: [36.110.52.2]
+X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260729_094448_320330_BB0B053F 
-X-CRM114-Status: UNSURE (   8.27  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20260730_090308_362105_94F6DCB8 
+X-CRM114-Status: GOOD (  10.61  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,40 +72,67 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Tm93IHRoYXQgYWxsIGxvY2tpbmcgY29kZSBoYXMgYmVlbiBwcm9wZXJseSBhbm5vdGF0ZWQsIGVu
-YWJsZSBjbGFuZydzClRocmVhZCBTYWZldHkgQW5hbHlzaXMuCgpUd28gZmxhZ3MgYXJlIGF2YWls
-YWJsZSwgLVd0aHJlYWQtc2FmZXR5LCBhbmQgdGhlIG1vcmUgcmVjZW50Ci1XdGhyZWFkLXNhZmV0
-eS1wb2ludGVyLiBUaGUgZm9ybWVyIHdhcyBpbnRyb2R1Y2VkIGJlZm9yZSBjbGFuZyBnYWluZWQK
-UklTQy1WIHN1cHBvcnQsIHNvIGl0IGlzIGd1YXJhbnRlZWQgdG8gYmUgYXZhaWxhYmxlLiBUaGUg
-bGF0dGVyIHdhcwppbnRyb2R1Y2VkIGluIGNsYW5nIDIxLCBzbyBjaGVjayBpZiB0aGUgcHJvdmlk
-ZWQgY29tcGlsZXIgc3VwcG9ydHMgaXQKYmVmb3JlIGVuYWJsaW5nIGl0LgoKU2lnbmVkLW9mZi1i
-eTogQ2FybG9zIEzDs3BleiA8Y2FybG9zLmxvcGV6cjQwOTZAZ21haWwuY29tPgotLS0KIE1ha2Vm
-aWxlIHwgNyArKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspCgpkaWZmIC0t
-Z2l0IGEvTWFrZWZpbGUgYi9NYWtlZmlsZQppbmRleCAzNzc5M2FhZjRmZDYuLjUxYTRjN2FlYzFi
-YiAxMDA2NDQKLS0tIGEvTWFrZWZpbGUKKysrIGIvTWFrZWZpbGUKQEAgLTIwOSw2ICsyMDksOSBA
-QCBDQ19TVVBQT1JUX1pJQ1NSX1pJRkVOQ0VJIDo9ICQoc2hlbGwgJChDQykgJChDTEFOR19UQVJH
-RVQpICQoUkVMQVhfRkxBRykgLW5vc3RkbAogIyBDaGVjayB3aGV0aGVyIHRoZSBhc3NlbWJsZXIg
-YW5kIHRoZSBjb21waWxlciBzdXBwb3J0IHRoZSBWZWN0b3IgZXh0ZW5zaW9uCiBDQ19TVVBQT1JU
-X1ZFQ1RPUiA6PSAkKHNoZWxsICQoQ0MpICQoQ0xBTkdfVEFSR0VUKSAkKFJFTEFYX0ZMQUcpIC1u
-b3N0ZGxpYiAtbWFyY2g9cnYkKE9QRU5TQklfQ0NfWExFTilndiAtZE0gLUUgLXggYyAvZGV2L251
-bGwgMj4mMSB8IGdyZXAgLXEgcmlzY3YuKnZlY3RvciAmJiBlY2hvIHkgfHwgZWNobyBuKQogCisj
-IENoZWNrIHdoZXRoZXIgdGhlIGNvbXBpbGVyIHN1cHBvcnRzIC1XdGhyZWFkLXNhZmV0eS1wb2lu
-dGVyIChjbGFuZyA+PSAyMikKK0NDX1NVUFBPUlRfV1RIUkVBRF9TQUZFVFlfUE9JTlRFUiA6PSAk
-KHNoZWxsICQoQ0MpICQoQ0xBTkdfVEFSR0VUKSAkKFJFTEFYX0ZMQUcpIC1ub3N0ZGxpYiAtV3Ro
-cmVhZC1zYWZldHktcG9pbnRlciAteCBjIC9kZXYvbnVsbCAtbyAvZGV2L251bGwgMj4mMSB8IGdy
-ZXAgLXEgInVua25vd24gd2FybmluZyIgJiYgZWNobyBuIHx8IGVjaG8geSkKKwogaWZuZXEgKCQo
-T1BFTlNCSV9MRF9QSUUpLHkpCiAkKGVycm9yIFlvdXIgbGlua2VyIGRvZXMgbm90IHN1cHBvcnQg
-Y3JlYXRpbmcgUElFcywgb3BlbnNiaSByZXF1aXJlcyB0aGlzLikKIGVuZGlmCkBAIC0zNTksNiAr
-MzYyLDEwIEBAIGVuZGlmCiBpZmVxICgkKENDX0lTX0NMQU5HKSx5KQogR0VORkxBR1MJKz0JJChD
-TEFOR19UQVJHRVQpCiBHRU5GTEFHUwkrPQktV25vLXVudXNlZC1jb21tYW5kLWxpbmUtYXJndW1l
-bnQKK0dFTkZMQUdTCSs9CS1XdGhyZWFkLXNhZmV0eQoraWZlcSAoJChDQ19TVVBQT1JUX1dUSFJF
-QURfU0FGRVRZX1BPSU5URVIpLHkpCitHRU5GTEFHUwkrPQktV3RocmVhZC1zYWZldHktcG9pbnRl
-cgorZW5kaWYKIGVuZGlmCiBHRU5GTEFHUwkrPQktSSQocGxhdGZvcm1fc3JjX2RpcikvaW5jbHVk
-ZQogR0VORkxBR1MJKz0JLUkkKGluY2x1ZGVfZGlyKQotLSAKMi41MS4wCgoKLS0gCm9wZW5zYmkg
-bWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+sbi_pmu_event_get_info() computes the shared memory size as
+num_events * sizeof(struct sbi_pmu_event_info) without checking for
+integer overflow. A sufficiently large num_events causes the product to
+wrap around, making the domain check pass on a truncated size while the
+loop iterates with the original count.
+
+This allows S-mode to trigger out-of-bounds writes in M-mode memory.
+A zero physical address is also not rejected, which would cause M-mode
+to write to address 0 and hang the hart.
+
+Add bounds checking on num_events before the multiplication and reject
+zero shmem addresses early.
+
+Fixes: e4345842168b ("lib: sbi_pmu: Implement SBI PMU event info function")
+Signed-off-by: liutong <liutong@iscas.ac.cn>
+---
+
+Changes in v2:
+- Added Fixes tag
+
+ lib/sbi/sbi_pmu.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
+index a0f6d2fa..3a2321cc 100644
+--- a/lib/sbi/sbi_pmu.c
++++ b/lib/sbi/sbi_pmu.c
+@@ -1061,7 +1061,7 @@ int sbi_pmu_ctr_get_info(uint32_t cidx, unsigned long *ctr_info)
+ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys_hi,
+ 			   unsigned long num_events, unsigned long flags)
+ {
+-	unsigned long shmem_size = num_events * sizeof(struct sbi_pmu_event_info);
++	unsigned long shmem_size;
+ 	int i, j, event_type;
+ 	struct sbi_pmu_event_info *einfo;
+ 	struct sbi_pmu_hart_state *phs = pmu_thishart_state_ptr();
+@@ -1076,6 +1076,14 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
+ 	if (!num_events || (shmem_phys_lo & 0xF))
+ 		return SBI_ERR_INVALID_PARAM;
+ 
++	if (!shmem_phys_lo)
++		return SBI_ERR_INVALID_ADDRESS;
++
++	if (num_events > ((unsigned long)-1) / sizeof(struct sbi_pmu_event_info))
++		return SBI_ERR_INVALID_PARAM;
++
++	shmem_size = num_events * sizeof(struct sbi_pmu_event_info);
++
+ 	/*
+ 	 * On RV32, the M-mode can only access the first 4GB of
+ 	 * the physical address space because M-mode does not have
+-- 
+2.34.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
