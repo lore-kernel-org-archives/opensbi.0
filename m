@@ -4,63 +4,64 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 14D2EC55164
-	for <opensbi@archiver.kernel.org>; Thu, 30 Jul 2026 16:08:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 35F98C55162
+	for <opensbi@archiver.kernel.org>; Thu, 30 Jul 2026 16:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=h1h5G5J7ZB9Mr8e1LSjsXY+PwunJ983xmu1VrGf0PPk=; b=qflWJ5SxxK34tv
-	sNmxwgb7oaePSaXEOMHP/dyooT5xKEfxovfu7rUHMjAyJks36fkeYKQGKwP2XAGL4eeNmHkoc5Mr4
-	vF9Yt7MWEf17SBHp8QGXZZ+6pvlJXVUVuxw/pOYh5JvfF8e+oppG4sxcSTtYas7KKqGwmN26gRzPR
-	RJxTLmKdvzOkE4phOGNtkwhuy2kMAku/OAj+zIHFFw2Fvw7rR1eB4c32gQrRb9P5sNnqq/fjFIRte
-	UfGG1pE08rQwqqZKYfz36QC6Ea28KkXLxx6Bjk26h9iJB8hySMMNRW7iWioaPqIsbpFiK+1kiu+g2
-	qKc1wvP0J6PbqGiYsxCw==;
+	List-Owner; bh=H4jo1OK5Tb9XTJ1Cl8X2gQ+EqBEBUHAKmtQKvvXWl08=; b=muwVpIZW5iZG5B
+	4N6D1DG3Xp7BHoYI37eRV2kQHpCetN1W+VEu7MJ9M0cYpMivqSkz+m/H1DoD+fIBco01T0r3YWGIN
+	1tNQrXr9TC1gymzj5zQVBOkhcLkdPPlSbAWprRXgotcFp4XtKKgo7cwjUR08gK0am+ONOZrlL/cTy
+	7qsOiOPuDDB1PKmyVSB5qTcIhJ7lJ680+hR6JBYUD6PoKJQhy/+Y8qIQIT3DADqt6K4cQaVmedCxm
+	0zb2/NEpQbzXf33NSK2DJGHJ1JHGbZ8GbxtbbevYLIpHll+nBGeeBb7SLFYX8OM0lH273aEgTIwld
+	tOTO0eqa8Xtivjsjsa9Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wpTIZ-0000000Awq1-0WfT;
-	Thu, 30 Jul 2026 16:07:55 +0000
+	id 1wpTRZ-0000000AyMA-3xOG;
+	Thu, 30 Jul 2026 16:17:13 +0000
 Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wpTIU-0000000Awp6-02bF
+	id 1wpTRW-0000000AyKw-44Jx
 	for opensbi@lists.infradead.org;
-	Thu, 30 Jul 2026 16:07:51 +0000
+	Thu, 30 Jul 2026 16:17:12 +0000
 Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-05 (Coremail) with SMTP id zQCowACXAj3TdmtqcsFWAg--.30486S2;
-	Fri, 31 Jul 2026 00:07:47 +0800 (CST)
+	by APP-05 (Coremail) with SMTP id zQCowABnlkADeWtqD+5WAg--.50738S2;
+	Fri, 31 Jul 2026 00:17:07 +0800 (CST)
 From: liutong <liutong@iscas.ac.cn>
 To: opensbi@lists.infradead.org
 Cc: liutong <liutong@iscas.ac.cn>
-Subject: [PATCH v2] lib: sbi_sse: fix shared memory double-fetch in sse_write_attrs
-Date: Thu, 30 Jul 2026 16:07:36 +0000
-Message-Id: <20260730160736.1327916-1-liutong@iscas.ac.cn>
+Subject: [PATCH v2] lib: sbi_dbtr: use range check for shared memory domain validation
+Date: Thu, 30 Jul 2026 16:16:57 +0000
+Message-Id: <20260730161657.1331396-1-liutong@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260628092110.209040-1-liutong@iscas.ac.cn>
-References: <20260628092110.209040-1-liutong@iscas.ac.cn>
+In-Reply-To: <20260706065303.2871739-1-liutong@iscas.ac.cn>
+References: <20260706065303.2871739-1-liutong@iscas.ac.cn>
 MIME-Version: 1.0
-X-CM-TRANSID: zQCowACXAj3TdmtqcsFWAg--.30486S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7ur4fWF18tw45Zr4ktF1fZwb_yoW8Zry8pF
-	yrKasIgr4ft3WxKryDZw48Xas3W348J34aqF9Fyw1Ivan8Za4xX34a93s0vr17Kr97AF4U
-	Za1UtFy5AFWDZa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUyq14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+X-CM-TRANSID: zQCowABnlkADeWtqD+5WAg--.50738S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Ar1xWF4Uury7Cr4rJw15twb_yoW8WFWxpr
+	4kWF17tw4Iqr9FvFZrK3ZYqFy0kw48Aa1UK398CFnYy3Z8Zw1xCryYgw1q9w1xAF95Ja1j
+	kF18AFZruF43ZFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyv14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r1j6r
-	4UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAKI48J
-	MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwV
-	AFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUXVWUAwCIc40Y0x0EwIxGrwCI42IY6xIIjxv2
-	0xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4
-	v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AK
-	xVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvjfUYwIDUUUUU
+	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r4j6r
+	4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
+	I7IYx2IY67AKxVWUAVWUtwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
+	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCF04k20xvY0x0EwIxG
+	rwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4
+	vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jrv_JF1lIxkGc2Ij64vIr41lIxAIcVC0I7IY
+	x2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26c
+	xKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAF
+	wI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUb4v3UUUUUU==
 X-Originating-IP: [36.110.52.2]
 X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260730_090750_441084_EFA93062 
-X-CRM114-Status: GOOD (  10.87  )
+X-CRM114-CacheID: sfid-20260730_091711_640314_AF37CF61 
+X-CRM114-Status: UNSURE (   8.74  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -77,66 +78,48 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sse_write_attrs() reads attribute values from S-mode shared memory in
-two passes: first to validate, then to apply. Since the shared memory
-remains writable by S-mode between the two reads, the values used for
-application may differ from what was validated.
+sbi_dbtr_setup_shmem() validates the shared memory address using
+sbi_domain_check_addr(), which only checks a single address. However,
+subsequent DBTR operations (install, read, update) access up to
+total_trigs * sizeof(sbi_dbtr_shmem_entry) bytes starting from that
+address.
 
-This allows S-mode to bypass validation by modifying shared memory
-contents between the two passes, potentially setting unauthorized SSE
-event attributes in M-mode.
+If the shared memory region spans a domain boundary, accesses beyond
+the first byte could violate domain isolation, allowing S-mode to
+read or write M-mode memory through DBTR operations.
 
-Fix this by snapshotting the shared memory data into a local buffer
-and performing both validation and application against that snapshot.
+Replace the single-address check with sbi_domain_check_addr_range()
+to validate the entire shared memory region that DBTR operations
+will use.
 
-Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
+Fixes: 23b7badeee3c ("lib: sbi: check incoming dbtr shmem address")
 Signed-off-by: liutong <liutong@iscas.ac.cn>
 ---
 
 Changes in v2:
 - Added Fixes tag
 
- lib/sbi/sbi_sse.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ lib/sbi/sbi_dbtr.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 818afb87..94b333c5 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -1064,25 +1064,27 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
- 	unsigned long attr = 0, val;
- 	uint32_t id, end_id = base_attr_id + attr_count;
- 	unsigned long *attrs = (unsigned long *)input_phys;
-+	unsigned long local_attrs[SBI_SSE_ATTR_MAX];
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 01047969..983f0f6a 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -304,9 +304,10 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+ 	if (shmem_phys_hi)
+ 		return SBI_EINVALID_ADDR;
  
- 	sbi_hart_protection_map_range(input_phys, sizeof(unsigned long) * attr_count);
+-	if (dom && !sbi_domain_check_addr(dom,
+-		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
+-		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
++	if (dom && !sbi_domain_check_addr_range(dom,
++		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo),
++		  hart_state->total_trigs * sizeof(union sbi_dbtr_shmem_entry),
++		  smode, SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+ 		return SBI_ERR_INVALID_ADDRESS;
  
-+	copy_attrs(local_attrs, attrs, attr_count);
-+
-+	sbi_hart_protection_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
-+
- 	for (id = base_attr_id; id < end_id; id++) {
--		val = attrs[attr++];
-+		val = local_attrs[attr++];
- 		ret = sse_event_set_attr_check(e, id, val);
- 		if (ret)
--			goto out;
-+			return ret;
- 	}
- 
- 	attr = 0;
- 	for (id = base_attr_id; id < end_id; id++) {
--		val = attrs[attr++];
-+		val = local_attrs[attr++];
- 		sse_event_set_attr(e, id, val);
- 	}
- 
--out:
--	sbi_hart_protection_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
--
- 	return ret;
- }
- 
+ 	hart_state->shmem.phys_lo = shmem_phys_lo;
 -- 
 2.34.1
 
