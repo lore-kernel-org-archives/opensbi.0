@@ -4,86 +4,61 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C5BA6C54F54
-	for <opensbi@archiver.kernel.org>; Fri, 31 Jul 2026 07:18:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id BFC90C55167
+	for <opensbi@archiver.kernel.org>; Fri, 31 Jul 2026 08:47:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=QdlxXmhNQFt99xqUeR0xzrYj2TojY5EHl9dU9W2g7Qo=; b=xyBFh/cE4Bd8k+
-	HVPk+VRE76MnyRBNJX4PKBUz6RJJHwychvyYw4zWEW2+RHZR+h6/G9AhATYMI2YBB7vDfI1UjykYv
-	bihMWzC5CAgI5gqm3hA3WQMRy/O4cxZg+o4AelJiA+kt1tg7IUyBuUV5O1sWyrtWEeKvWitqBpEqz
-	8Q36Zuzl3a1z7ZpryOryD0fEWyzZHOR21IFYZBocWk4lbl1koTeEnQQvDB9AU6N5W3Y5btPhu3vs9
-	jPGsHMRiCKSQ02gBHWTxjqIuoLLLBk2AB92BLjU0pWhV0lTkuF+Ry9dOAaC6PKERz30+eoHY6raPJ
-	NdQ4E9DzbXXPOyniALBQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=bDuyliHwuIYvI5H1yFISBG+j99UG1XRmEaBPKsBZcN4=; b=PfZIRRdY26bke/
+	L1XJ0EK6a38P6YFPqQ66D+GFxMxSKwunh0WL9ny5qiWzL2spnyiGyg1hvpA4GUuEJepzuV7fnRc+N
+	xEu5lXRwPp2nR5Bu0fq8pAoZiHu0yoM1kr3sKApqDLHaq9sDmynIr5RH3kCDDnQExF5rGbwKMIPAb
+	63cM0eQZelxBGZ1tmvL3BWso0sLvkXggWPV1Nv1cxo+weP8TUZkXkl4PbVL9kSVk7PCIqINa4jyDo
+	pACCEfgaqL/DTkqhjr0sK9IKW3tn2OzgAb4qO5Lmj4mbDb23ci6bENznL7zBX5m2Rb3veOpqER/b0
+	lDEXoD41YRaK0gwpJnqg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wphVr-0000000BwXd-3qMy;
-	Fri, 31 Jul 2026 07:18:35 +0000
-Received: from mail-pl1-x62e.google.com ([2607:f8b0:4864:20::62e])
+	id 1wpiu3-0000000C6IH-0F6T;
+	Fri, 31 Jul 2026 08:47:39 +0000
+Received: from smtpout-02.galae.net ([185.246.84.56])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wphVn-0000000BwWb-1vfq
+	id 1wpiu0-0000000C6HH-0avq
 	for opensbi@lists.infradead.org;
-	Fri, 31 Jul 2026 07:18:33 +0000
-Received: by mail-pl1-x62e.google.com with SMTP id d9443c01a7336-2cc73e322dbso5452725ad.1
-        for <opensbi@lists.infradead.org>; Fri, 31 Jul 2026 00:18:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1785482310; x=1786087110; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hIRWQlGtp9X0En+LknZ0jVGDKi76zpsYPN+tDYmDadQ=;
-        b=RqzbctfWUvFmZa6cke6R5UKXS9LaTuoH8LCtUVUefM+EqdwdKy1xWRvMyORHiMpLJ6
-         vXC4L3LycGnSpJ+hNrjhhXRiNSsSwuJ1Ex58iXVXsyIgEV6/nI7dtxQYtnk6JqKjlYyw
-         nc6rqtgPEzg3/buSpPoWcB35GydrNUO+Ui2hlWAQboGnfMNb0UPmiKHRiVCGwIz0a3SN
-         mTA8Tz6A4hUYsZnqMGrzXRRAz4BK5BOgCmZ5qjiMKQoGVN2D8HMgj98LqMK4e2iaxp2C
-         HL+roQdcG+0nYx6+t+UC8LlGgwe92DFaBYKFxSX+KPuzwJer5CzoVzBDBwvlfaWuEa67
-         Ynhg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785482310; x=1786087110;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=hIRWQlGtp9X0En+LknZ0jVGDKi76zpsYPN+tDYmDadQ=;
-        b=eABrEin3E738PTY/NrUiP76wAUvI6fzobI/MZ3DqMuYJv5jgh9ueHXuk+9qCw6PjAP
-         d8yPRXQrvzDOPRoe1intH0MwdF/FbpcvFBdJv6c3be2ve4Yd5y0zt+sGwZpZ+r+MCFzG
-         dtgShqQFLeKlqnt0yPfohcSrxN2sClpPbXIqG+2kJrbEuHFsJFRzDjIdz45fUFb4/m1F
-         79tdk9kooyieA+QR/NHYHMbid6ZXSr/F560ctiUEo/s56O6xPLEFTeOIXkq3LnVaRqMA
-         nfLHc/y3ND9bG68HEd79BErtbBuuZs39Sk0n+YhWEgmI4UK2tPVEzUXKtm/egWycqY9r
-         b11w==
-X-Gm-Message-State: AOJu0YyM5BWj3RknZx2TWQcFeEb5krmW2MNY0/xsx0XXZNQ6HJ2JbQSQ
-	Vllkshm/1UEIvihnVk3aH6QM2vjpYh8or7adLgSvT5T4moSeRq4IOWoMmX9brTNpYBRZGTKlmSx
-	FNZXpbxpUgQ==
-X-Gm-Gg: AR+sD13st5SUsjLN/0dwQKNuCXWtJcp4TwvEYCgeNgtwLTemqlCx2IRZCE3OSK3qPmL
-	6o9BeTuwkjOXybXaA7bqxQiblDFkr/Pupa7Ft7a7d7ew2NkFab+HO03b+oXXI32o04+cOYxxCxR
-	YWOEDn+C1ZFu7nmi7NFok50AbMCMdlZ0KU+d1TrcWL01WEbqFl3YCHoUJ8Bz1hQB3HuDuuTaAKm
-	fLArZdK+CbuO2e5FIG8QPWa64UQS2faviqfhJMKG3r7NEJn5dKqIMxsDOo1RLWDc62eLi5we26i
-	6EnWOu/yegbzI9s878/vvG/RUFOnwX/vc7i/RKw2z0XvFKxXnCjsUkL1HufQ5EknI/FKAq/JNYV
-	r4GFiTnDNblKeTLQ+ZmJIaIltXdP/sZADGiWs0zGIp2gMov/J6Y5KgUQ6d3UUByvGnL3dcYLqhj
-	nS/VOrXbE2MfU93y+2A/UVrJXiBrJbLebyneWFZp/cAMkhhhdoOVgrR1v/j7p3HagxD4snyqhX6
-	+1cwiAbsGnxUmSHn8X0hsX4pVKDWwrqovUaSl4Y0jbXLOc4b3dyGi0KunsaZxllaiUrJdLU3cXQ
-	mbhmwWg=
-X-Received: by 2002:a17:902:da90:b0:2c9:97a7:b1eb with SMTP id d9443c01a7336-2d046ed7f7cmr9807645ad.42.1785482310480;
-        Fri, 31 Jul 2026 00:18:30 -0700 (PDT)
-Received: from FJ7FR2JRQ3.bytedance.net (109.197.124.34.bc.googleusercontent.com. [34.124.197.109])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d04ae68cf7sm1692405ad.31.2026.07.31.00.18.27
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 31 Jul 2026 00:18:29 -0700 (PDT)
-From: Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
+	Fri, 31 Jul 2026 08:47:37 +0000
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id B64201A134B
+	for <opensbi@lists.infradead.org>; Fri, 31 Jul 2026 08:47:31 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 838886039A;
+	Fri, 31 Jul 2026 08:47:31 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 20F0911C1658D;
+	Fri, 31 Jul 2026 10:47:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1785487651; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=66KWe5dD16ZPvH9Jv1gCZ6IGFp8fXmzpAjG5XV8e7HQ=;
+	b=irl0VI/izsX+pJhwl4paZ6SxoIAeEh7LRA65FeRBeEkta8ccImkPNlEa0Jsnr+5TXfwFtC
+	Y9YxZJvq2YsfEgGqQG7T1kVQGmBKeO46FGM/F0yzROYXcWKR1ae3B0aV9qFUXpW0zIj+uh
+	9tbfsw1SyTO4NeazIVqM+efNy7QtT1JOJj75Pj3f/1lJLfmk494MJp3MiwmN2TnsdW0GKK
+	0p6zoLJ2aOVQm5qU37cJNDh88MLuS+bn7z4ZK4vy0PQIk/nl5tyRBUD+38Zqwu/9JpPbMH
+	NBK40Nn+QcMZr4CUkSp7QqTwZZd9FxyRqH8Cj0rxCWLtIQO72OhL5B53ZppITw==
+From: =?UTF-8?B?QmVub8OudA==?= Monin <benoit.monin@bootlin.com>
 To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	himanshu.chauhan@oss.qualcomm.com,
-	thecharlesjenkins@gmail.com,
-	cleger@rivosinc.com
-Subject: [PATCH] lib: sbi: sse: clear SPV for non-virtualized events
-Date: Fri, 31 Jul 2026 15:18:20 +0800
-Message-ID: <20260731071820.7318-1-zhangzhanpeng.jasper@bytedance.com>
-X-Mailer: git-send-email 2.50.1
+Cc: Randolph <randolph@andestech.com>
+Subject: Re: [PATCH] platform: generic/andes: fix 32-bit shift overflow in
+ decode_pmaaddrx()
+Date: Fri, 31 Jul 2026 10:47:27 +0200
+Message-ID: <Nwqvc9X0S76pmOXY1bOJ2w@bootlin.com>
+In-Reply-To: <20260729092317.2848665-1-randolph@andestech.com>
+References: <20260729092317.2848665-1-randolph@andestech.com>
 MIME-Version: 1.0
+X-Last-TLS-Session-Version: TLSv1.3
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260731_001831_873646_D73F84D3 
-X-CRM114-Status: GOOD (  10.58  )
+X-CRM114-CacheID: sfid-20260731_014736_325403_5D21ECC8 
+X-CRM114-Status: UNSURE (   7.28  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,59 +70,30 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-SSE injection sets hstatus.SPV to the virtualization state of the
-interrupted context before entering the supervisor handler. This patch
-completes that existing requirement and does not change the SSE ABI.
-
-The existing code sets SPV when the interrupted context is virtualized,
-but leaves it unchanged otherwise. A stale SPV value can therefore make
-an event that interrupted host execution appear to have interrupted a
-guest. Event completion can then resume with virtualization enabled.
-
-Clear SPV when the interrupted context is not virtualized so the
-handler-visible state matches the interrupted context. This also lets
-supervisor software, such as the Linux PMU and perf code, reliably tell
-whether an SSE interrupted host or virtualized execution.
-
-Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
-Signed-off-by: Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
----
- lib/sbi/sbi_sse.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
-
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 818afb87..68e4fab4 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -563,15 +563,10 @@ static void sse_event_inject(struct sbi_sse_event *e,
- 
- 	if (misa_extension('H')) {
- 		unsigned long hstatus = csr_read(CSR_HSTATUS);
--
--#if __riscv_xlen == 64
--		if (regs->mstatus & MSTATUS_MPV)
--#elif __riscv_xlen == 32
--		if (regs->mstatusH & MSTATUSH_MPV)
--#else
--#error "Unexpected __riscv_xlen"
--#endif
-+		if (sbi_regs_from_virt(regs))
- 			hstatus |= HSTATUS_SPV;
-+		else
-+			hstatus &= ~HSTATUS_SPV;
- 
- 		hstatus &= ~HSTATUS_SPVP;
- 		if (hstatus & HSTATUS_SPV && regs->mstatus & SSTATUS_SPP)
--- 
-2.50.1 (Apple Git-155)
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gV2VkbmVzZGF5LCAyOSBKdWx5IDIwMjYgYXQgMTE6MjM6MTcgQ0VTVCwgUmFuZG9scGggd3Jv
+dGU6Cj4gZGVjb2RlX3BtYWFkZHJ4KCkgcmVjb25zdHJ1Y3RzIHRoZSBOQVBPVCByZWdpb24gc3Rh
+cnQgYW5kIHNpemUgZnJvbSBhCj4gcG1hYWRkciBDU1IgdmFsdWUgdXNpbmcgIjEgPDwgKGsgKyAz
+KSIgYW5kICIxIDw8IGsiLiBUaGUgaW50ZWdlcgo+IGxpdGVyYWwgMSBoYXMgdHlwZSBpbnQsIHNv
+IHRoZXNlIHNoaWZ0cyBhcmUgcGVyZm9ybWVkIGluIDMyLWJpdAo+IHByZWNpc2lvbi4gU2hpZnRp
+bmcgYSAzMi1iaXQgdmFsdWUgYnkgMzIgb3IgbW9yZSBiaXRzIGlzIHVuZGVmaW5lZAo+IGJlaGF2
+aW9yLCBhbmQgb24gUlY2NCB0aGUgY29tcGlsZXIgZW1pdHMgc2xsdywgd2hpY2ggdHJ1bmNhdGVz
+IHRoZQo+IHNoaWZ0IGFtb3VudCBtb2R1bG8gMzIuCj4gCj4gQXMgYSByZXN1bHQsIGFueSBQTUEg
+cmVnaW9uIHdpdGggc2l6ZSA+PSA0IEdpQiAoayA+PSAyOSkgaXMgZGVjb2RlZAo+IGluY29ycmVj
+dGx5LiBGb3IgZXhhbXBsZSwgb24gdGhlIEFuZGVzIFFpTGFpIFNvQyB0aGUgUENJZSByZWdpb24K
+PiAweDEwMDAwMDAwMDAgLSAweDE3ZmZmZmZmZmYgKHBtYWFkZHIgPSAweDRmZmZmZmZmZiwgayA9
+IDMyKSBpcyBkZWNvZGVkCj4gYXMgYW4gOC1ieXRlIHJlZ2lvbiBhdCAweDEzZmZmZmZmZmMuCj4g
+Cj4gVGhpcyBpcyBub3QgbWVyZWx5IGNvc21ldGljOiBkZWNvZGVfcG1hYWRkcngoKSBpcyB1c2Vk
+IGJ5Cj4gaGFzX3BtYV9yZWdpb25fb3ZlcmxhcCgpIGFuZCBhbmRlc19zYmlfZnJlZV9wbWEoKSwg
+c28gb3ZlcmxhcCBjaGVja3MKPiBhcmUgcGVyZm9ybWVkIGFnYWluc3QgYm9ndXMgcmFuZ2VzIGFu
+ZCBmcmVlaW5nIHN1Y2ggYW4gZW50cnkgYnkgaXRzCj4gcGh5c2ljYWwgYWRkcmVzcyBhbHdheXMg
+ZmFpbHMuCj4gCj4gUHJvbW90ZSB0aGUgc2hpZnRzIHRvIHVuc2lnbmVkIGxvbmcgc28gdGhleSBh
+cmUgcGVyZm9ybWVkIGluIHRoZQo+IG5hdGl2ZSByZWdpc3RlciB3aWR0aC4KPiAKV29ya3MgZmlu
+ZSBvbiBNZXRhbm9pYSBNVDI4MjQgU29DLgoKVGVzdGVkLWJ5OiBCZW5vw650IE1vbmluIDxiZW5v
+aXQubW9uaW5AYm9vdGxpbi5jb20+CgpCZXN0IHJlZ2FyZHMsCi0tIApCZW5vw650CgoKCgotLSAK
+b3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
+aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
