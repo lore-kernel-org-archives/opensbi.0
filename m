@@ -4,104 +4,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E3516C5AC9E
-	for <opensbi@archiver.kernel.org>; Fri,  7 Aug 2026 04:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0DC43C5AD4E
+	for <opensbi@archiver.kernel.org>; Mon, 10 Aug 2026 06:11:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=2/ydNIYKBJtHiz47Z5cYBhU2o+sHEnB5Yhjn4XMYoWw=; b=rkgtTuIwfcK3jX
-	LZ7O9aLLV+MQ+zS4cHMQFtHLq9ic2h7Ur/TY9vhzjlYEhFk0qo6aD3CENJDITG8dKpf0oXU+UfDhZ
-	yVItfNLWC/9Om8wLZRAfpxpnqnR7FYla/QDHDpKurs2n+6PuKQwJ/2NlMsMVKfwSha6YwxooFK0qZ
-	66Yo1AAL6UuzmkL2bz2FV1suuWgqGu+ftfkY+8QkzJlJGDs++SIlX0vRC1t68a0tjcjSt0dik6Xpo
-	1JEV2g4E99IZNbV9iHRP1EVJYzslvRQJwrVx2xiiwDrN5gPlEU8EGnS4GuanW5/6Rv4gkpU5H4fnP
-	sn7UpvvqveDhlpsPYWJA==;
+	List-Owner; bh=KSxpoFq/6hrlHMpxii65rU8z2gcnWNjLqowxZ6kDCdc=; b=tgQfsUDuQNz+lp
+	1dMz51ICKxzHaePfmdiaT2p7QNHCZOHPwCiwfvitRrmshuN0/yH/Q/iZlJuos8TsrWBKdBYIIR372
+	19F6TRABlawH8uXlm5niS4zlswy/es2VpBjbqzPUyHCLvgr6VcH3m8k5ACZw0mNszDhMG6cMgm80e
+	MZzSRgDJNzJrvF5AtM7hvIfW4n7VWPjlOqkHKtWNvwh9lQv0Xik7LYNyFS/aC+qf+rvT0CLoxSVgO
+	Q/+kO07EDHyU0ui5LEGicanXRG77dz3Dc7/W2Wx0iIm/iZxhSgsh+5b7orKTD+PdjfL6UyFfNHlui
+	iIFJTwqsCxWuwIjKO/Eg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wsCXB-000000075rZ-1rVl;
-	Fri, 07 Aug 2026 04:50:17 +0000
-Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
+	id 1wtJEl-0000000B4fe-2Pbt;
+	Mon, 10 Aug 2026 06:11:51 +0000
+Received: from mail-ed1-x536.google.com ([2a00:1450:4864:20::536])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wsCX6-000000075pe-3RwW
+	id 1wtJEi-0000000B4fC-1Ers
 	for opensbi@lists.infradead.org;
-	Fri, 07 Aug 2026 04:50:15 +0000
-Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6770Glie3829286;
-	Fri, 7 Aug 2026 04:50:08 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=fQw3EiTr1JA
-	xJ5rmd1tnAhtpzUME7bYt5q/OFIOBY6k=; b=V09PRRUmZ0XJEje/z490df8RYRq
-	llZOIuRI+ADe0AXFoqf4hz8F3EHWkx7GO+T2z78vuRITeClA9bF75mciCMTCHDT2
-	TgEm/qQNWt75gdCKLZS/TG408DcAlikTEGGCthUx4H/IGcImPOk5IEaJrd3o7Xgf
-	eG77hIj+Hq0T508bA7YwPHk5pCaDexeOJhhjsXFdYhxLTwIuEBZ8yTzbwo1aPBvR
-	79fJ0kchfUZGB3VyFZIrZ0Ri68FR0W9Pc4SqxEvSs7HOWN2GZwxLQQXiEBtiIRA+
-	G9CPbCOlDLG7KSCi2L+7Pt4CgM8cNP6ptQ8yqq0EyVwASGRIAXAt6/u/DOQ==
-Received: from apblrppmta02.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fvy6gtb6b-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2026 04:50:08 +0000 (GMT)
-Received: from pps.filterd (APBLRPPMTA02.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA02.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 6774o5KK018715;
-	Fri, 7 Aug 2026 04:50:05 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 4fs9vm119p-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2026 04:50:05 +0000 (GMT)
-Received: from APBLRPPMTA02.qualcomm.com (APBLRPPMTA02.qualcomm.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 6774o5Wo018690;
-	Fri, 7 Aug 2026 04:50:05 GMT
-Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA02.qualcomm.com (PPS) with ESMTPS id 6774o5UU018684
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2026 04:50:05 +0000 (GMT)
-Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id BFFB024B09; Fri,  7 Aug 2026 10:20:04 +0530 (+0530)
-From: Anup Patel <anup.patel@oss.qualcomm.com>
-To: Atish Patra <atish.patra@linux.dev>
-Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
-        Samuel Holland <samuel.holland@sifive.com>,
-        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
-        Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH 2/3] lib: sbi_domain: Re-work boot-time assignment of HARTs to non-ROOT domains
-Date: Fri,  7 Aug 2026 10:20:01 +0530
-Message-ID: <20260807045002.2538935-3-anup.patel@oss.qualcomm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260807045002.2538935-1-anup.patel@oss.qualcomm.com>
-References: <20260807045002.2538935-1-anup.patel@oss.qualcomm.com>
+	Mon, 10 Aug 2026 06:11:50 +0000
+Received: by mail-ed1-x536.google.com with SMTP id 4fb4d7f45d1cf-6a0a4a18180so2148451a12.0
+        for <opensbi@lists.infradead.org>; Sun, 09 Aug 2026 23:11:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786342305; cv=none;
+        d=google.com; s=arc-20260327;
+        b=W0JaBWFWnMQhPpMQNM199vK4V44bcnpMbfT7rx25D1R/zqu91l5gZ5npCH8BSA+6kd
+         DCK2cRbxoyliokFRKNS1TMR4i3YoOF8RR0jiRhlQpVO9FpyxD56gFHYMRsSR9GP3IN7P
+         djFDsRS7CO9IUSXNfQFZuMtPHF8PMiG93z8/Th/a4vVlZdbvVI5ISGh76KQZS3YtfkDx
+         avxNKtBPOUPy1yldp5JAtdnrzdPSMBlPi+YVGRGfWQfG69FkCgPUJGV02XvpIhX26Qq0
+         Ym7L6Lgntk5wQmXQ4m7nesxPAQDSsqDLDwEuZoUTaYLhpThnEGn8TuvZZQoLzwLiKbtE
+         MI6g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=NOqe7Zm2vbauxUw+p25BfGf9UtOYz4kIl2N0X/A74hA=;
+        fh=4LsF/ppNCopxa++F+clEpaQ9pDe2uFpwioOKXs1mzNk=;
+        b=fwhUr8Hv3G7WejM1VEUCyGwl8syhpGDjOGUsVxAgddAoyrPH9LxYx+J0wn8uN9XlUV
+         8OPZIG3ilXpODIkCevhx38FiFihVkdXxW6pyMSN3CmIDs3TDSph+1SPx6bloHhUTCNZ4
+         9pdI8Z/y5Z4dMMaLmx2XgzkHb5UzHXr/fJHW1B9WLDqLKkQj2GUZHhxbJxFsYGoGGNDC
+         CcbAhlv8HPzLWcrZ9+ttBfUrTKAOBthKtXrlLlaz/DW925GG/eBR/iuuOz2w/scqDFo4
+         E7OZv6oJctZqzeCNwOJpuD9tdc2Q7vE4aIWbQtdSsYR/YFS97Gdke+wA/dinYZ8roewM
+         BqTg==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1786342305; x=1786947105; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=NOqe7Zm2vbauxUw+p25BfGf9UtOYz4kIl2N0X/A74hA=;
+        b=FXwD9a+eIzSciYC6QbO7Zf5QsDbT91EaGbJu4T7pijQVP2hZN1An6U4t6gasrqMLoL
+         AEm92BYDS7R4lIlWByfQxqYlLzXzqL1sy8mMaHFPgTcQAH8zQNZMj/2twOXrlS6X63Wz
+         uhaKlUUiescId8Hi79suO4FJp6qR/NWBykliGRdpyagBYih6JPcZl65Pwm5xOkZ8BdBZ
+         I8lQY8mKpW/o/1SFQyEElSK3vUF0yRHqxS1a8tRs0K8ZJoEJ/zMcnuxh056/9wD6cyPg
+         WzuVFrNFWRrLZwbVebPlf429JsoF4O14a90U2bmzKdpqdVkZ81ob6eEv5uwjG3QDE9QZ
+         ct0g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786342305; x=1786947105;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=NOqe7Zm2vbauxUw+p25BfGf9UtOYz4kIl2N0X/A74hA=;
+        b=fl85V9eQrcvvGMNAIXc1Qn0hyvd4n81bqkmtfXYcI2lSg7FQYPEMjSCDGg8GstCb7J
+         WOwVWIVq2Wy+xn5e/CPQapCUxQ16gmZW2hFLgszeaTXGXvmpWgxyR/7+GRZXj+PAZ1kd
+         FFtXQAyh0iI0NNDvpi25CP0mrp4HPKANSDG15pdMB+KJ1yLJg9mztqM+7eFV6yjzvXv8
+         fvR5BImH2LeqRRvOYPw5O0Sm08GFXNudeTBccP0hMq1LnIiBO9EUuN3aWmW1FdNM/0QM
+         MGl2ZZuPbJCSNdR+05eCzHnuW/LNQ2v+tvhNNIRedRuU4u4vf49xMrKzKYBHAfStYhDc
+         druQ==
+X-Gm-Message-State: AOJu0Yygmi6cvK/hkU68NX9e00Z5pkgaBhNNyzJaDymdvMhL59p1RkOK
+	tsNSNrAzpfOpEHecCKmHkTNPjpUSViHEmdJlRKFd5nutKt1I4Q242gABb0uKBBXQmXrNGRwTX04
+	kCHo456L88AXN6Wr6ZHZPNMu6K3vgMnGdn5qGJiElCo6r8489QIMlTNQHBA==
+X-Gm-Gg: AR+sD11UgsBCTZXTWw3y2SbelxeAQsuuSip8rf4x4IueydbLw0T25YX92uS8qFwdTkh
+	2YWaa0AcCPbAXGEi2QXivBcA839lzq+reZ890D0RbH9baLRv5H4OTHphkB/x3N+CcyaVz39s7J+
+	wUeORpNsL6P3kFLbSRJwQp2UfSN7575HzjeyN52u/h/WyiZDXOSrMTjvllyvTFFKxwVEN6OvyMr
+	lC2QA1QiRwHu8qG3+bJwcZGW2qg4ZCEXbKf6aYsn1ATBcsko39ZuCCjKEpAFOEV1DDf3zH2dvFr
+	j8XNnUTUKRh6PpmUazIaCkr4ZIM0n/2/tmt0r7j+O6nWci4=
+X-Received: by 2002:a05:6402:28cb:b0:6a1:8fff:1590 with SMTP id
+ 4fb4d7f45d1cf-6a1e62d7f80mr9438706a12.19.1786342305552; Sun, 09 Aug 2026
+ 23:11:45 -0700 (PDT)
 MIME-Version: 1.0
-X-QCInternal: smtphost
-X-QCInternal: smtphost
-X-Authority-Analysis: v=2.4 cv=frDsol4f c=1 sm=1 tr=0 ts=6a756400 cx=c_pps
- a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=_glEPmIy2e8OvE2BGh3C:22 a=EUspDBNiAAAA:8 a=ZJOUiLeJ6B_-f_V8wgkA:9
-X-Proofpoint-GUID: TDLc7tjUloOUvM64q_yQDdLzVVY7UJM-
-X-Proofpoint-ORIG-GUID: TDLc7tjUloOUvM64q_yQDdLzVVY7UJM-
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODA3MDAzMiBTYWx0ZWRfX+KACknokYeVl
- OUPfB1KylSdT10VVdun2Ss0va/r67EzkHOTh7zbDZ7GbL5Zu88KB+koka4HJhsCAqCfSByMpHub
- HH6DkqqClXgtnvx4acRJyTzHXdVkXtE=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA3MDAzMiBTYWx0ZWRfXxacDvYrErUzV
- Ahoo7tZz/yr+2NXA3L/mf5bSYYPYXBmCKcxzGyZpMq395GO81H2oj8FJ7dIANyt/5nhttu56s7S
- T/VSGBHUm3z5FIRSDJ1ymB2pT9Mk1jJp27Z/ZlwQ5smCLhFqXt/veUFaYDFWq1ZSth93BbcVP4L
- a74bm5fku3Ub88fMrwjORiha1Hio/MYP2fu/tziPai5WAPNtRu20pbqziy8zxkC3I8Tj1U5vEpv
- 9F1s/+LLqYgptwnPg6onmtffKp+xa7o91dtoW2Th89Zq/Pq7qZH2+J0WXGzcwiubKDuGyS7xn2Q
- D7/M7HMcobiEbpvxmgBNH/2CWMUCNtC0O6o106yTO0DfUF55GuYuez/U0pOxlEIXQMXPc+0mHI6
- BJywjqmqxPe1n6qZIorKpjEiVfG5nK1sshJC1O3qSJi52Z26C75V4yys6DXHeoKgI8tZrZbe9tC
- 12RO0GyavSItnmyFfKQ==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-07_01,2026-08-06_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 priorityscore=1501 clxscore=1015 suspectscore=0 impostorscore=0
- malwarescore=0 lowpriorityscore=0 adultscore=0 phishscore=0 bulkscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608070032
+References: <20260707033954.2054859-1-zong.li@sifive.com> <CANXhq0qx=gryXgWKnrc7XuaJnPwhw0wqNB=NWYzgjv3h2hk4jA@mail.gmail.com>
+In-Reply-To: <CANXhq0qx=gryXgWKnrc7XuaJnPwhw0wqNB=NWYzgjv3h2hk4jA@mail.gmail.com>
+From: Zong Li <zong.li@sifive.com>
+Date: Mon, 10 Aug 2026 14:11:33 +0800
+X-Gm-Features: AUfX_mxhCdB7FDCcLYNCew8R9ch-EoD26VdDi4TmmKpxAIKrwfPL0dWjD-bFcOY
+Message-ID: <CANXhq0qQVVZCEaVQe5v7grk=KVMMPwkKfP-B=quhPOnF3GK_YQ@mail.gmail.com>
+Subject: Re: [PATCH 0/7] firmware: add FW_DYNAMIC_APPEND firmware type
+To: opensbi@lists.infradead.org, Anup Patel <anup@brainfault.org>
+Cc: anup.patel@oss.qualcomm.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260806_215012_984979_009E23BE 
-X-CRM114-Status: GOOD (  28.19  )
+X-CRM114-CacheID: sfid-20260809_231148_378816_9C37B668 
+X-CRM114-Status: GOOD (  31.87  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,337 +110,92 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Assign a non-ROOT domain to a HART on first come first serve basis if the
-HART is listed as a possible HART of the non-ROOT domain. If no non-ROOT
-domain list a HART as possible HART then the HART is assigned to the ROOT
-domain.
-
-This allows us to drop the OpenSBI specific DT property from each CPU DT
-node (aka "opensbi-domain" Dt property).
-
-Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
----
- docs/domain_support.md             | 20 +++----
- include/sbi/sbi_domain.h           |  4 +-
- include/sbi_utils/fdt/fdt_domain.h |  3 +-
- lib/sbi/sbi_domain.c               | 34 ++++++------
- lib/utils/fdt/fdt_domain.c         | 86 +++---------------------------
- 5 files changed, 36 insertions(+), 111 deletions(-)
-
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index e267a9f7..82f155e1 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -207,15 +207,14 @@ The DT properties of a domain instance DT node are as follows:
- 
- ### Assigning HART To Domain Instance
- 
--By default, all HARTs are assigned to **the ROOT domain**. The OpenSBI
--platform support can provide the HART to domain instance assignment using
--platform specific callback.
-+At boot-time, a HART is assigned to a non-ROOT domain on first come
-+first serve basis if the HART is listed as a possible HART of the
-+non-ROOT domain. If no non-ROOT domain list a HART as possible HART
-+then the HART is assigned to **the ROOT domain**.
- 
--The HART to domain instance assignment can be parsed from the device tree
--using optional DT property **opensbi-domain** in each CPU DT node. The
--value of DT property **opensbi-domain** is the DT phandle of the domain
--instance DT node. If **opensbi-domain** DT property is not specified then
--corresponding HART is assigned to **the ROOT domain**.
-+At runtime, the assignment of a HART can change from one domain to
-+another domain as long as the HART is listed in possible HARTs of
-+both domains.
- 
- ### Domain Configuration Only Accessible to OpenSBI
- 
-@@ -289,7 +288,6 @@ be done:
-             device_type = "cpu";
-             reg = <0x00>;
-             compatible = "riscv";
--            opensbi-domain = <&tdomain>;
-             ...
-         };
- 
-@@ -297,7 +295,6 @@ be done:
-             device_type = "cpu";
-             reg = <0x01>;
-             compatible = "riscv";
--            opensbi-domain = <&udomain>;
-             ...
-         };
- 
-@@ -305,7 +302,6 @@ be done:
-             device_type = "cpu";
-             reg = <0x02>;
-             compatible = "riscv";
--            opensbi-domain = <&udomain>;
-             ...
-         };
- 
-@@ -313,7 +309,6 @@ be done:
-             device_type = "cpu";
-             reg = <0x03>;
-             compatible = "riscv";
--            opensbi-domain = <&udomain>;
-             ...
-         };
- 
-@@ -321,7 +316,6 @@ be done:
-             device_type = "cpu";
-             reg = <0x04>;
-             compatible = "riscv";
--            opensbi-domain = <&udomain>;
-             ...
-         };
-     };
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 16edd4ce..b6731c04 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -328,12 +328,10 @@ void sbi_domain_dump_all(const char *suffix);
- /**
-  * Register a new domain
-  * @param dom pointer to domain
-- * @param assign_mask pointer to HART mask of HARTs assigned to the domain
-  *
-  * @return 0 on success and negative error code on failure
-  */
--int sbi_domain_register(struct sbi_domain *dom,
--			const struct sbi_hartmask *assign_mask);
-+int sbi_domain_register(struct sbi_domain *dom);
- 
- /**
-  * Add a memory range with its flags to the root domain
-diff --git a/include/sbi_utils/fdt/fdt_domain.h b/include/sbi_utils/fdt/fdt_domain.h
-index 8c2dee09..a366b271 100644
---- a/include/sbi_utils/fdt/fdt_domain.h
-+++ b/include/sbi_utils/fdt/fdt_domain.h
-@@ -50,8 +50,7 @@ int fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
-  *
-  * This routine:
-  * 1. Disables MMIO devices not accessible to the coldboot HART domain
-- * 2. Removes "opensbi-domain" DT property from CPU DT nodes
-- * 3. Removes domain configuration DT node under /chosen DT node
-+ * 2. Removes domain configuration DT node under /chosen DT node
-  *
-  * It is recommended that platform support call this function in
-  * their final_init() platform operation.
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index fa69170b..af753459 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -625,16 +625,14 @@ void sbi_domain_dump_all(const char *suffix)
- 	}
- }
- 
--int sbi_domain_register(struct sbi_domain *dom,
--			const struct sbi_hartmask *assign_mask)
-+int sbi_domain_register(struct sbi_domain *dom)
- {
--	u32 i;
--	int rc;
-+	u32 i, cold_hartid = current_hartid();
- 	struct sbi_domain *tdom;
--	u32 cold_hartid = current_hartid();
-+	int rc;
- 
- 	/* Sanity checks */
--	if (!dom || !assign_mask || domain_finalized)
-+	if (!dom || domain_finalized)
- 		return SBI_EINVAL;
- 
- 	/* Check if domain already discovered */
-@@ -663,15 +661,21 @@ int sbi_domain_register(struct sbi_domain *dom,
- 	/* Clear assigned HARTs of domain */
- 	sbi_hartmask_clear_all(&dom->assigned_harts);
- 
--	/* Assign domain to HART if HART is a possible HART */
--	sbi_hartmask_for_each_hartindex(i, assign_mask) {
--		if (!sbi_hartmask_test_hartindex(i, dom->possible_harts))
--			continue;
--
-+	/*
-+	 * Assign a non-ROOT domain to a HART on first come first serve
-+	 * basis if the HART is listed as a possible HART of the non-ROOT
-+	 * domain. If no non-ROOT domain list a HART as possible HART then
-+	 * the HART is assigned to the ROOT domain.
-+	 */
-+	sbi_hartmask_for_each_hartindex(i, dom->possible_harts) {
- 		tdom = sbi_hartindex_to_domain(i);
--		if (tdom)
--			sbi_hartmask_clear_hartindex(i,
--					&tdom->assigned_harts);
-+		if (tdom) {
-+			if (tdom == &root)
-+				sbi_hartmask_clear_hartindex(i, &tdom->assigned_harts);
-+			else
-+				continue;
-+		}
-+
- 		sbi_update_hartindex_to_domain(i, dom);
- 		sbi_hartmask_set_hartindex(i, &dom->assigned_harts);
- 
-@@ -975,7 +979,7 @@ int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid)
- 		sbi_hartmask_set_hartindex(i, root_hmask);
- 
- 	/* Finally register the root domain */
--	rc = sbi_domain_register(&root, root_hmask);
-+	rc = sbi_domain_register(&root);
- 	if (rc)
- 		goto fail_free_root_hmask;
- 
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 61627db3..31786e0e 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -170,26 +170,11 @@ static int __fixup_disable_devices(void *fdt, int doff, int roff,
- 
- void fdt_domain_fixup(void *fdt)
- {
--	u32 i, dcount;
-+	u32 dcount;
- 	int err, poffset, doffset;
- 	struct sbi_domain *dom = sbi_domain_thishart_ptr();
- 	struct __fixup_find_domain_offset_info fdo;
- 
--	/* Remove the domain assignment DT property from CPU DT nodes */
--	poffset = fdt_path_offset(fdt, "/cpus");
--	if (poffset < 0)
--		return;
--	fdt_for_each_subnode(doffset, fdt, poffset) {
--		err = fdt_parse_hart_id(fdt, doffset, &i);
--		if (err)
--			continue;
--
--		if (!fdt_node_is_enabled(fdt, doffset))
--			continue;
--
--		fdt_nop_property(fdt, doffset, "opensbi-domain");
--	}
--
- 	/* Skip device disable for root domain */
- 	if (!dom->index)
- 		goto skip_device_disable;
-@@ -315,12 +300,11 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
- 	const char *inherit;
- 	struct sbi_domain *dom;
- 	struct sbi_hartmask *mask;
--	struct sbi_hartmask assign_mask;
- 	struct parse_region_data preg;
- 	int *cold_domain_offset = opaque;
- 	struct sbi_domain_memregion *reg;
- 	int inheritance_mode = FDT_ROOT_REGION_INHERIT_M_ONLY;
--	int i, err = 0, len, cpus_offset, cpu_offset, doffset;
-+	int i, err = 0, len, cpus_offset, cpu_offset;
- 
- 	dom = sbi_zalloc(sizeof(*dom));
- 	if (!dom)
-@@ -368,6 +352,10 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
- 			if (!fdt_node_is_enabled(fdt, cpu_offset))
- 				continue;
- 
-+			if (*cold_domain_offset == -1 &&
-+			    val32 == current_hartid())
-+				*cold_domain_offset = domain_offset;
-+
- 			sbi_hartmask_set_hartid(val32, mask);
- 		}
- 	}
-@@ -490,37 +478,8 @@ static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
- 		goto fail_free_all;
- 	}
- 
--	/* HART to domain assignment mask based on CPU DT nodes */
--	sbi_hartmask_clear_all(&assign_mask);
--	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
--		err = fdt_parse_hart_id(fdt, cpu_offset, &val32);
--		if (err)
--			continue;
--
--		if (SBI_HARTMASK_MAX_BITS <= sbi_hartid_to_hartindex(val32))
--			continue;
--
--		if (!fdt_node_is_enabled(fdt, cpu_offset))
--			continue;
--
--		/* This is an optional property */
--		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
--		if (!val || len < 4)
--			continue;
--
--		/* However, it should be valid if specified */
--		doffset = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
--		if (doffset < 0) {
--			err = doffset;
--			goto fail_free_all;
--		}
--
--		if (doffset == domain_offset)
--			sbi_hartmask_set_hartid(val32, &assign_mask);
--	}
--
- 	/* Register the domain */
--	err = sbi_domain_register(dom, &assign_mask);
-+	err = sbi_domain_register(dom);
- 	if (err)
- 		goto fail_free_all;
- 
-@@ -537,43 +496,14 @@ fail_free_domain:
- 
- int fdt_domains_populate(const void *fdt)
- {
--	const u32 *val;
- 	int cold_domain_offset;
--	u32 hartid, cold_hartid;
--	int err, len, cpus_offset, cpu_offset;
- 
- 	/* Sanity checks */
- 	if (!fdt)
- 		return SBI_EINVAL;
- 
--	/* Find /cpus DT node */
--	cpus_offset = fdt_path_offset(fdt, "/cpus");
--	if (cpus_offset < 0)
--		return cpus_offset;
--
--	/* Find coldboot HART domain DT node offset */
--	cold_domain_offset = -1;
--	cold_hartid = current_hartid();
--	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
--		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
--		if (err)
--			continue;
--
--		if (hartid != cold_hartid)
--			continue;
--
--		if (!fdt_node_is_enabled(fdt, cpu_offset))
--			continue;
--
--		val = fdt_getprop(fdt, cpu_offset, "opensbi-domain", &len);
--		if (val && len >= 4)
--			cold_domain_offset = fdt_node_offset_by_phandle(fdt,
--							   fdt32_to_cpu(*val));
--
--		break;
--	}
--
- 	/* Iterate over each domain in FDT and populate details */
-+	cold_domain_offset = -1;
- 	return fdt_iterate_each_domain_ro(fdt, &cold_domain_offset,
- 					  __fdt_parse_domain);
- }
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gV2VkLCBKdWwgMjIsIDIwMjYgYXQgMTE6NTbigK9BTSBab25nIExpIDx6b25nLmxpQHNpZml2
+ZS5jb20+IHdyb3RlOgo+Cj4gT24gVHVlLCBKdWwgNywgMjAyNiBhdCAxMTozOeKAr0FNIFpvbmcg
+TGkgPHpvbmcubGlAc2lmaXZlLmNvbT4gd3JvdGU6Cj4gPgo+ID4gVGhpcyBzZXJpZXMgYWRkcyBh
+IGZvdXJ0aCBPcGVuU0JJIGZpcm13YXJlIHR5cGUsIEZXX0RZTkFNSUNfQVBQRU5ELCBuZXh0IHRv
+Cj4gPiB0aGUgZXhpc3RpbmcgRldfRFlOQU1JQywgRldfSlVNUCBhbmQgRldfUEFZTE9BRC4KPiA+
+Cj4gPiBNb3RpdmF0aW9uCj4gPiA9PT09PT09PT09Cj4gPgo+ID4gRldfRFlOQU1JQyByZXF1aXJl
+cyB0aGUgcHJldmlvdXMgYm9vdGluZyBzdGFnZSB0byBidWlsZCBhIHN0cnVjdAo+ID4gZndfZHlu
+YW1pY19pbmZvIGluIG1lbW9yeSBhbmQgcGFzcyBpdHMgYWRkcmVzcyBpbiBhMi4gU29tZSBib290
+aW5nIHN0YWdlcwo+ID4gY2Fubm90IGVhc2lseSBhbGxvY2F0ZSBhbmQgcGFzcyBzdWNoIGEgc3Ry
+dWN0dXJlLCBidXQgdGhleSBjYW4gbG9hZCB0aGUKPiA+IE9wZW5TQkkgaW1hZ2UgYW5kIHBhdGNo
+IGEgZmV3IHdvcmRzIGF0IGEga25vd24gbG9jYXRpb24gYmVmb3JlIGp1bXBpbmcgdG8KPiA+IGl0
+LiBGV19EWU5BTUlDX0FQUEVORCB0YXJnZXRzIGV4YWN0bHkgdGhhdCBjYXNlOiB0aGUgc3RydWN0
+IGZ3X2R5bmFtaWNfaW5mbwo+ID4gaXMgYXBwZW5kZWQgaW50byB0aGUgT3BlblNCSSBiaW5hcnkg
+YW5kIHBhdGNoZWQgaW4gcGxhY2UgYnkgdGhlIHByZXZpb3VzCj4gPiBzdGFnZS4gRm9yIGV4YW1w
+bGUsIHRoZSBwcmV2aW91cyBib290IHN0YWdlIHJ1bnMgb24gYSBkZWRpY2F0ZWQgaGFydC4KPiA+
+IFRoZXJlZm9yZSwgaXQgY2Fubm90IHNldCB1cCBDU1JzIG9mIGFub3RoZXIgaGFydCB0aGF0IHJ1
+bnMgT3BlblNCSS4KPiA+IFRoaXMgc2NlbmFyaW8gd2lsbCBvY2N1cnMgaW4gc2VydmVyIHN5c3Rl
+bXMgd2l0aCBzZWN1cmUgYm9vdC4KPiA+Cj4gPiBLZXkgZGVzaWduIHBvaW50cwo+ID4gPT09PT09
+PT09PT09PT09PT0KPiA+Cj4gPiAgIC0gVGhlIGFwcGVuZGVkIHN0cnVjdCBmd19keW5hbWljX2lu
+Zm8gaXMgcGxhY2VkIGltbWVkaWF0ZWx5IGJlZm9yZSAuYnNzLgo+ID4gICAgIC5ic3MgaXMgTk9C
+SVRTIGFuZCBpcyBkcm9wcGVkIGJ5ICdvYmpjb3B5IC1PIGJpbmFyeScsIHNvIGEgc3RydWN0dXJl
+Cj4gPiAgICAgYWZ0ZXIgaXQgd291bGQgbm90IGJlIHBhcnQgb2YgdGhlIGZsYXQgLmJpbi4gUGxh
+Y2luZyBpdCBiZWZvcmUgLmJzcwo+ID4gICAgIG1ha2VzIGl0IHRoZSBsYXN0IFBST0dCSVRTIGNv
+bnRlbnQsIGkuZS4gaXQgc2l0cyBhdCB0aGUgdGFpbCBvZiB0aGUKPiA+ICAgICAuYmluIGFuZCBj
+YW4gYmUgbG9jYXRlZCBmcm9tIHRoZSBpbWFnZSBzaXplLiBUaGUgcHJldmlvdXMgYm9vdGluZwo+
+ID4gICAgIHRhZ2UgY2FuIHRoZXJlZm9yZSBmaW5kIHRoZSBzdHJ1Y3R1cmUgYXQ6Cj4gPgo+ID4g
+ICAgICAgICBsb2FkX2FkZHJlc3MgKyBiaW5hcnlfZmlsZV9zaXplIC0gc2l6ZW9mKHN0cnVjdCBm
+d19keW5hbWljX2luZm8pCj4gPgo+ID4gICAtIHN0cnVjdCBmd19keW5hbWljX2luZm8gZ2FpbnMg
+YSBuZXcgJ2Jvb3RfZHRiJyBmaWVsZCAoaW5mbyB2ZXJzaW9uIDMpCj4gPiAgICAgdG8gY2Fycnkg
+dGhlIERUQiBhZGRyZXNzLiBFeGlzdGluZyBvZmZzZXRzIGFyZSB1bmNoYW5nZWQuCj4gPgo+ID4g
+ICAtIFRoZSBwcmV2aW91cyBib290aW5nIHN0YWdlIHBhdGNoZXMgZXZlcnkgZmllbGQgYXQgcnVu
+dGltZS4gVGhlCj4gPiAgICAgcmVzZXJ2YXRpb24gaXMgYSBLRUVQKCkgUFJPR0JJVFMgc2VjdGlv
+biwgc28gdGhlIHplcm8taW5pdGlhbGlzZWQKPiA+ICAgICBieXRlcyBzdGlsbCBsYW5kIGF0IHRo
+ZSB0YWlsIG9mIHRoZSAuYmluLgo+ID4KPiA+ICAgLSBPbiB0aGUgY29sZC1ib290IHBhdGggKGd1
+YXJkZWQgYnkgRldfRFlOQU1JQ19BUFBFTkQpLCBmd19iYXNlLlMgY2FsbHMKPiA+ICAgICBmd19k
+eW5hbWljX2FwcGVuZF9ib290X2FyZ3MoKSBpbiBmd19keW5hbWljX2FwcGVuZC5TLiBUaGUgaGVs
+cGVyIHNldHMKPiA+ICAgICBhMCA9IG1oYXJ0aWQsIGEyID0gJmFwcGVuZGVkIHN0cnVjdCwgYW5k
+IGExID0gYm9vdF9kdGIsIGFuZCBjbGVhcnMgdGhlCj4gPiAgICAgcmVzZXJ2ZWQgYTMvYTQgdGhh
+dCBmd19wbGF0Zm9ybV9pbml0IGNvbnN1bWVzLiBPbmx5IGEwLWE0IGFyZSBoYW5kbGVkCj4gPiAg
+ICAgaGVyZSwgdGhlIHJlbWFpbmluZyBHUFJzIGFyZSBhbHJlYWR5IGNsZWFyZWQgYnkgdGhlIGV4
+aXN0aW5nIF9yZXNldF9yZWdzCj4gPiAgICAgbGF0ZXIgb24gdGhlIGNvbGQgcGF0aC4gVGhlIGJv
+b3RfZHRiIGxvYWQgaXMgZ2F0ZWQgb24gaW5mbyB2ZXJzaW9uIDMsIHNvCj4gPiAgICAgYW4gb2xk
+ZXIgbGF5b3V0IGxlYXZlcyBhMSA9IDAgaW5zdGVhZCBvZiByZWFkaW5nIHBhc3QgdGhlIHN0cnVj
+dC4KPiA+Cj4gPiBCYWNrd2FyZCBjb21wYXRpYmlsaXR5Cj4gPiA9PT09PT09PT09PT09PT09PT09
+PT09Cj4gPgo+ID4gQWxsIGNoYW5nZXMgZm9yIHRoZSBleGlzdGluZyB0aHJlZSBmaXJtd2FyZSB0
+eXBlcyBhcmUgY29tcGlsZWQgb3V0OiB0aGUKPiA+IGZ3X2Jhc2UuUyBmaXh1cCBhbmQgdGhlIC5m
+d19keW5hbWljX2luZm8gb3V0cHV0IHNlY3Rpb24gYXJlIHVuZGVyCj4gPiAjaWZkZWYgRldfRFlO
+QU1JQ19BUFBFTkQsIHdoaWNoIGlzIGRlZmluZWQgb25seSBieSBmd19keW5hbWljX2FwcGVuZC5T
+IGFuZAo+ID4gZndfZHluYW1pY19hcHBlbmQuZWxmLmxkUy4gRldfRFlOQU1JQywgRldfSlVNUCBh
+bmQgRldfUEFZTE9BRCBiaW5hcmllcyBhcmUKPiA+IGJ5dGUtZm9yLWJ5dGUgdW5jaGFuZ2VkLgo+
+ID4KPiA+IEJ1aWxkCj4gPiA9PT09PQo+ID4KPiA+ICAgbWFrZSBQTEFURk9STT08cGxhdGZvcm1f
+c3ViZGlyPiBGV19EWU5BTUlDX0FQUEVORD15Cj4gPgo+ID4gT24gdGhlIGdlbmVyaWMgcGxhdGZv
+cm0gRldfRFlOQU1JQ19BUFBFTkQ9eSBpcyBzZXQgaW4KPiA+IHBsYXRmb3JtL2dlbmVyaWMvb2Jq
+ZWN0cy5taywgc28gaXQgaXMgYnVpbHQgYnkgZGVmYXVsdC4KPiA+Cj4gPiBab25nIExpICg3KToK
+PiA+ICAgZmlybXdhcmU6IGZ3X2R5bmFtaWM6IGFkZCBib290X2R0YiBmaWVsZCB0byBzdHJ1Y3Qg
+ZndfZHluYW1pY19pbmZvCj4gPiAgIGZpcm13YXJlOiBmd19iYXNlLmxkUzogYWRkIC5md19keW5h
+bWljX2luZm8gb3V0cHV0IHNlY3Rpb24gYmVmb3JlIC5ic3MKPiA+ICAgZmlybXdhcmU6IGFkZCBm
+d19keW5hbWljX2FwcGVuZCBmaXJtd2FyZSB0eXBlCj4gPiAgIGZpcm13YXJlOiBmd19iYXNlLlM6
+IGNhbGwgZndfZHluYW1pY19hcHBlbmRfYm9vdF9hcmdzIG9uIGNvbGQgYm9vdAo+ID4gICBmaXJt
+d2FyZTogYnVpbGQgYW5kIGVuYWJsZSB0aGUgRldfRFlOQU1JQ19BUFBFTkQgZmlybXdhcmUgdHlw
+ZQo+ID4gICBkb2NzOiBmaXJtd2FyZTogZG9jdW1lbnQgdGhlIEZXX0RZTkFNSUNfQVBQRU5EIGZp
+cm13YXJlIHR5cGUKPiA+ICAgZG9jczogZmlybXdhcmU6IGxpc3QgRldfRFlOQU1JQ19BUFBFTkQg
+aW4gZncubWQKPiA+Cj4gPiAgZG9jcy9maXJtd2FyZS9mdy5tZCAgICAgICAgICAgICAgICB8ICAx
+OSArKysrLQo+ID4gIGRvY3MvZmlybXdhcmUvZndfZHluYW1pY19hcHBlbmQubWQgfCAxMTAgKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+ICBmaXJtd2FyZS9leHRlcm5hbF9kZXBzLm1r
+ICAgICAgICAgIHwgICAxICsKPiA+ICBmaXJtd2FyZS9md19iYXNlLlMgICAgICAgICAgICAgICAg
+IHwgIDExICsrKwo+ID4gIGZpcm13YXJlL2Z3X2Jhc2UubGRTICAgICAgICAgICAgICAgfCAgMjQg
+KysrKysrKwo+ID4gIGZpcm13YXJlL2Z3X2R5bmFtaWNfYXBwZW5kLlMgICAgICAgfCAxMDYgKysr
+KysrKysrKysrKysrKysrKysrKysrKysrCj4gPiAgZmlybXdhcmUvZndfZHluYW1pY19hcHBlbmQu
+ZWxmLmxkUyB8ICAyNCArKysrKysrCj4gPiAgZmlybXdhcmUvb2JqZWN0cy5tayAgICAgICAgICAg
+ICAgICB8ICAgMiArCj4gPiAgaW5jbHVkZS9zYmkvZndfZHluYW1pYy5oICAgICAgICAgICB8ICAx
+NyArKysrLQo+ID4gIHBsYXRmb3JtL2dlbmVyaWMvb2JqZWN0cy5tayAgICAgICAgfCAgIDEgKwo+
+ID4gIHBsYXRmb3JtL3RlbXBsYXRlL29iamVjdHMubWsgICAgICAgfCAgIDkgKysrCj4gPiAgMTEg
+ZmlsZXMgY2hhbmdlZCwgMzIyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gPiAgY3Jl
+YXRlIG1vZGUgMTAwNjQ0IGRvY3MvZmlybXdhcmUvZndfZHluYW1pY19hcHBlbmQubWQKPiA+ICBj
+cmVhdGUgbW9kZSAxMDA2NDQgZmlybXdhcmUvZndfZHluYW1pY19hcHBlbmQuUwo+ID4gIGNyZWF0
+ZSBtb2RlIDEwMDY0NCBmaXJtd2FyZS9md19keW5hbWljX2FwcGVuZC5lbGYubGRTCj4gPgo+ID4g
+LS0KPiA+IDIuNDMuNwo+ID4KPgo+IEhpIEFudXAsCj4gQ291bGQgSSBrbm93IHlvdXIgcGVyc3Bl
+Y3RpdmUgb24gdGhpcyBzZXJpZXMuIEkgd291bGQgYXBwcmVjaWF0ZSBpdCBpZgo+IHlvdSBjb3Vs
+ZCBsZXQgbWUga25vdyBpZiBpdCBpcyByZWFkeSB0byBtb3ZlIGZvcndhcmQuIFRoYW5rcwoKSGkg
+QW51cCwKV291bGQgeW91IG1pbmQgdGFraW5nIGEgbG9vayBhdCB0aGlzIHNlcmllcyB3aGVuIHlv
+dSBoYXZlIGEgbW9tZW50PwpUaGFua3MKCi0tIApvcGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2Jp
+QGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9vcGVuc2JpCg==
