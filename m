@@ -4,103 +4,150 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id B0858C5CFCF
-	for <opensbi@archiver.kernel.org>; Fri, 14 Aug 2026 17:23:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 197F2C5B572
+	for <opensbi@archiver.kernel.org>; Fri, 14 Aug 2026 18:19:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=ocbB4r498mScMSga3MEGgUxPmNwgO769qRkZluL3RtA=; b=fCuXOrlVehR2dt
-	+XM0Y7Me0OnLOPip7CsJd1E4GJE+NBEqH21u1Twk5Toi0WnbHtfuoZGOupFN2yvA/GW9ygF6FnYjx
-	IyLgHdJ2ZIZKm3IungJ0OFUgl/OtLaB4sDTeIcYf0Ae3wjCRqi6JiM47+hW5BKqYnI9Msydh8BaV8
-	jD/cpiOINeiJ6IiC4ZlvJaa48/tZF+Y4hSzg2kXrJVjezS5TPj8rvbL/vhbH7gStU8e0maQ68o6qd
-	7qswexjBGUd35NxfJtnwIiamD3MAVCqA85sEs1gD9tXcjaChYhKqAYsNgART0fgCxUNO8MLnwiYep
-	u2hXqqSqsnG2i+xwXtNw==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=v/7CnKtd+G3Gcd69W8cv+CTF3rn0UiYXNNZ1pvWva4o=; b=0LofOypReOktGo
+	ZavXDi9pJ+1bM7deW8ar/JgNrP3LyMxdDdUFsUV69s+Dcg53asNgYPyqc0xkCOTfFgm9IREQIYawR
+	gFqG3GvAV/DQKaQ+hnwZR0nt2QrkHl/FEwrBPpDxIewAQvfSsQsJkr5YmFRQ4zE1OJRBwWBeVdsLd
+	sOwdS893ddCs/0gLzR7Xq87R2W1RI/yEUwT79IA9ZQ1VSYB1QbwX4O138OVsYMagq7maddmXWSp4x
+	GpC0EW84jp1uYdazOtikMEl1Bk+QNYmYKs4IOmePFPz4B/1GuZMDqkdwOU1yCQbOw/lImLngrMDWN
+	uP3ZTU6TAralC4UxJo1Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wuvdF-00000002zBr-1aGf;
-	Fri, 14 Aug 2026 17:23:49 +0000
-Received: from mail-westus2azlp170120002.outbound.protection.outlook.com ([2a01:111:f403:c007::2] helo=MW6PR02CU001.outbound.protection.outlook.com)
+	id 1wuwV8-000000031rY-1mt8;
+	Fri, 14 Aug 2026 18:19:30 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wuvdD-00000002zB6-1gMK
+	id 1wuwV5-000000031qn-2OQT
 	for opensbi@lists.infradead.org;
-	Fri, 14 Aug 2026 17:23:48 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=rqXaIoZzPeOgVn4U2w+rdHLjulLjULJ3HdXt4GasjQZKPaRDEbWRmSDC6NpBVgUY3tW67tcgBLzGHKCEMfdGi5a9GdH4l3tPvMHpMmAwjCNElVwZ8E0BkeOrI/oZIzCaPAkngzMFsmP5obOYZJyBGXsLNmmsWzdc/8SYK3YJQaIhq+d0QhQi//JHrkJn07RqzerOigGvZMTo3oO4OdVEeEdRS4cUf1IucROxpL3VxUy83VL2Wr6ht/VZvaPg7QHF7j2UCWgt78CNMSYz1d0CtyafiumXNfnHWOKdWL+JcCo/zLfxzf8FeQvQ/rF9USL3naXp+/sLb5AvpVZfdrMB+A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=BYzbsw2zTeMdtzM2FS2nsetn5GBdsU+U7l52n3GmAiA=;
- b=FRCxcEYrvS5brzzhpN9I4+M1QxoNo++NJx7blP3Nrm1/kiCirRyCkrAQ8wzG/9SrD7oqpCAm7jzPfBJaEouVvyXxm4NJWJlQAeH0E7cH1yhJ2rzPfVYpB7QHYUIDOSicpQG/Z/PtR8bLh5ekoJhPmdErJa72i+h944zKDJqhcBqAKl0G9vBgxUk1aZt75LFCe9I4LEUZhf9jgUiUDCYCTnPY6Ie9vpQwR3LPH4dIx4ZCWXGmoFzTl7dTsaGeV4+TSXB+LLtZRVeA2lmLrUlwmY6cheFAeuVAGyS8a6t/BjmPid5YL4IBbB4aqtCOcyfQp2a2Zsw4HFVll+9DDVx8XA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=BYzbsw2zTeMdtzM2FS2nsetn5GBdsU+U7l52n3GmAiA=;
- b=3My8BK0zcer07/jZ+wNVO4v02M4o4Dadtms/y82msdHpvP6zzNkgWY3Prj8y1HfGLFDyRwDTZwwN2DFqjJUqEYM741Fc53uwQvrBLIARwxhLjTkfiQpafuJg1Am5p1L/jCvwuNFmwBipobYYaQmAMzbvy9ni4ux2qR+DUFqbz3s/oirhAvt2GDqA2kkLYcqFeK0A8JjDYHj8w9HYbyGqIdBF/QN7YzvpohYx4u5HSD0KIyElGBANKq3W71eBgnZ8ue7SVbMsCeU+37qxLKcJx17GAjyEHvEVbF1Jbjasg3m1ihu7z/qiS6kZDdm832u4doHkMYjMpTPsHub7EmrsFQ==
-Received: from CH0PR13CA0002.namprd13.prod.outlook.com (2603:10b6:610:b1::7)
- by LV2PR22MB3629.namprd22.prod.outlook.com (2603:10b6:408:17b::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.15; Fri, 14 Aug
- 2026 17:23:34 +0000
-Received: from CH3PEPF0000000E.namprd04.prod.outlook.com
- (2603:10b6:610:b1:cafe::e) by CH0PR13CA0002.outlook.office365.com
- (2603:10b6:610:b1::7) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.339.5 via Frontend Transport; Fri, 14
- Aug 2026 17:23:34 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- CH3PEPF0000000E.mail.protection.outlook.com (10.167.244.42) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.339.3
- via Frontend Transport; Fri, 14 Aug 2026 17:23:34 +0000
-Received: from davidAhead.lan (unknown [10.8.0.25])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 842D7800FE;
-	Fri, 14 Aug 2026 10:23:32 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-To: opensbi@lists.infradead.org
-Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH] lib: sbi: Fix DBTR error codes and semantics as per SBI v3.0 spec
-Date: Fri, 14 Aug 2026 11:23:29 -0600
-Message-ID: <20260814172329.52258-1-david.garcia@aheadcomputing.com>
-X-Mailer: git-send-email 2.43.0
+	Fri, 14 Aug 2026 18:19:28 +0000
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67EGhjXs2608034
+	for <opensbi@lists.infradead.org>; Fri, 14 Aug 2026 18:19:25 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	jGrugokewo4cMUKhvXy1H71kRkodqNklsSMjg/nIw+o=; b=O9JTSnlpdRQJeird
+	ideDQN3AeNNuzxAu1wr4FscTsan6oXBHmGOPbv/eUHNgsPMxUkomNfynu99iPvkz
+	B5Udw2WhkgbbFGazBYsfCMYcDPA44DjtwmgLj/k/qXo8r7FB5VbEoY7X4v+wLTWc
+	dlG8lAk5nO6MsCNP3XT844/W/xwmRp/FuziJS5/k8DeC74+xyl4TDlWoCzQrdh+/
+	FV27JuEmhRDIdMOdtZ3o/XjSwZYhY/QVlwdooa0+BJQAyJpZBc/5UkqqJtnhh6F0
+	Z/t1DWs17RNmYDHfsSXzNpp8zANx6N6GUKaQrrCpDItO7VYrwmfkTeq0WA6+4ovH
+	r6W4HQ==
+Received: from mail-oa1-f70.google.com (mail-oa1-f70.google.com [209.85.160.70])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4g26j6ge0w-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Fri, 14 Aug 2026 18:19:25 +0000 (GMT)
+Received: by mail-oa1-f70.google.com with SMTP id 586e51a60fabf-44aeefa1c36so658672fac.3
+        for <opensbi@lists.infradead.org>; Fri, 14 Aug 2026 11:19:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786731564; cv=none;
+        d=google.com; s=arc-20260327;
+        b=cq4B0g8elbc4jBawaw4OEd9Jk1d2NI9u3AVhEIHfwaI3SRKHBOSgJ1L1wW2AxNa8vk
+         cKsHdvFgWC9GrEvI4OcDMZn3dXwhxC4ckIRMAYl+l+KIfeK+JlGWHANydUeb/0gEd8BN
+         dMkV5qFy1shLzfJgUXMxCZ9eW6vEWSWOy4CMusZAkBv7DmPhNi1JovVYz2iy+BG1STGk
+         3+6+UFCIefzDeYVuXNbxubSTNSNJZOK4geuosnpufQC1WWf8pXLpEBzSC2xbn9+Mh0Co
+         BULZZFKSbfcs9sD2+XfYvIiEk9w4aaHzE8GAxNsl98ScxbkgLI0MXDWc6ns/AoewIVHD
+         XFPA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=jGrugokewo4cMUKhvXy1H71kRkodqNklsSMjg/nIw+o=;
+        fh=mpfGXRYo+FrbP5IoaaaE1oiJA+2XMrbtPaMREodPUiA=;
+        b=oLvBWG3bpskTEe/yzrJKXdZCssmpN2n3W16y+mdJvFUK78MDs5bkQxbiMEaVpWhmU2
+         D1iHW+oVADYoBUp6BMgP48iOCem6xtHw/wpLOeu7fFT3af8n0zbkGEfvVRHEgGD4phLp
+         5ukdlMfiOSNZhboIwxs/aqOUWIqCwHoCE26UlKECoNoQ7Y2frKqVlNyKKD9si2ASED/Z
+         KbepE84SS7kSP/+JKgRjXlkU7MbhhPNiPL5v25sK5PEfVo81r2hZeDMS6zXJbPGLjkOx
+         GAeTL8A7nDunSjmaJTU+wo1pFYIDrUv5OudnN9pIONLbgt+6+bKfTNw1ur24/wXchqEK
+         vsFw==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1786731564; x=1787336364; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=jGrugokewo4cMUKhvXy1H71kRkodqNklsSMjg/nIw+o=;
+        b=cEx8HrudmTlD/C0/7Qn/D3E6RDhZkPOxRBLorZBJ7QgHQnjpm/Fid2ElDY8tDqAYUP
+         hCmErDXLI5LXHZjPJpZNdhAQ6ny4lL9QouJyDgp6Dw+VVJvzcnpXPL+GSmw2FrKFm9x4
+         VTnH1PMXlBMLYBssZCScgc2kGYu3TxQbSFZMV4TQLxQkvBxJKAnXkhKHFgpo0Y3Iln6i
+         DlZHG3mrurArRTO0cYkzQ8VXL701A43T4ggXGWAmEm6IdkxKsjrRDC/r2HNEgnPCfwRG
+         aWYoPzItkM5W8xHfrWgMBvqCYrrRbUrHyxj6Vy26pjlj4Vd8vXjA8v8bSFeJAFQYF+aT
+         OIZw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786731564; x=1787336364;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=jGrugokewo4cMUKhvXy1H71kRkodqNklsSMjg/nIw+o=;
+        b=dwbGQPD5JiD9yFzi06L9UyXuFjKBTGdPX2EHLargp92ViI0VBgmMBLpmfxRWa/fywf
+         ruF12AvR1uzbqkgAI3Vm7uTIw8XJVeeWaSCyzn2BC/Apog3bubQ9dEEYlTBhNoV/Y/4r
+         gVZ6AqeJUtuCkqAA0LYInJjX9zkENKwU1bPrCFkIPwsTAWHvkrfLks4XABT/AINco0lk
+         yExM00jalYVPHdQrs4yG85YauBVBK5SXhGaEJRrsj8WBFA2yPlYdKHmYP8JyPqq2OgBj
+         Ow1qu0ymaemc3KCnbXFnTo5nrp0PdM+o1F3CnXaiM3TLibxYwLdHOfXYI/RRsSomfis7
+         VLFw==
+X-Forwarded-Encrypted: i=1; AHgh+Rrxfi3A0mYOVOAZGIw/qddwkqH+DivbKYY+TDmPC/Tqg8vCMJCX4w6bXcrKXiE/foSdBo8P4bnl@lists.infradead.org
+X-Gm-Message-State: AOJu0YzD4+e4LW9V98OtE29zfO/Oh4a8rAFCXDTgnq5Zlo+wmpE6sF11
+	mXIABfsScAfYmONIGfSmDzScS5xpnJ89TG2H6egyR89AhSfFyEuYfl0e91UChbB5p9od1unZ4ac
+	9+jHp46fGNYKZ8np3JzYAcrZQD5tFbFZGz6FcE95xILpEzkQcRjRSsk7BLD9PT7gVEDL+KNZJVN
+	38Ixk4fE2Ra7Ije5uIew9+mEdekgotvF6F3TIvdRsW
+X-Gm-Gg: AR+sD13be9QLm0+Kj3lmTprgrAipkdvFtKvKKFA0EJfNAYhu3Nyk9Azg1atlhduQsPa
+	gOiZwOXlhZzcqt9rQAD4j4NFty5jauYWiGoH7wXK+pDT4AIBafex7xgxYZ05Ke3xz56TM8wJJuL
+	yHE6loSa8N4C8EZRRN6PTsQCCL3N42SPEwPc0S8vrv3jrtt3Zn8jvG9oxKKQ==
+X-Received: by 2002:a05:6870:210e:b0:456:b9a2:1374 with SMTP id 586e51a60fabf-45e92350330mr6233757fac.11.1786731564392;
+        Fri, 14 Aug 2026 11:19:24 -0700 (PDT)
+X-Received: by 2002:a05:6870:210e:b0:456:b9a2:1374 with SMTP id
+ 586e51a60fabf-45e92350330mr6233715fac.11.1786731564002; Fri, 14 Aug 2026
+ 11:19:24 -0700 (PDT)
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF0000000E:EE_|LV2PR22MB3629:EE_
-X-MS-Office365-Filtering-Correlation-Id: aea19168-9e1a-4a42-d9ff-08defa28c4f5
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|23010399003|36860700016|1800799024|82310400026|6133799003|10067099003|56012099006|11063799006|5023799004|18002099003|55112099003;
-X-Microsoft-Antispam-Message-Info: X9Zk9eVg8Tpix9lThwjVxODxdnC75vB5RHvFvMtJuqhUXXFthULgMqOAzYcoLyjKhqlNoBBPnqjNhoLI7IsVRup92u4Tsi3C3FUUWpueUdM6b1hYLhHhd3ot46f8ZvM9TwF4jREDwwvokhjdtnBUClGvZBw7usxdniLeBQEc6hMJFhoASrhIyAr9iazCf1H0sf2j1cC+pazZ1ZVjf+dUVLY5Z0C+CbFQncMFB6ubntsxd+Tly6AlQxGUJSa3MgYEnFAe7niCh1c8npu2tSUvKoOKJLeSVkyPcb319Q4yPFmIGzYl9oW8tH5aXEj1LffQnAVkqEYPiehNXL306hGP/1jYeKQZUw0hUTRXJ+Zq6TxtUhK2kTVNTR4QN8X75G80+2dWzcmPWXdwZY5OOTLvAh9ugC9GW5D4HMYxEHEVzy45ZI4FJpaV7cu1XustY6yJPHEbx9/GJBH+yp1lEgC6Du9jqk8zajJkOeIgRLRsIt8nP4wrG2WlJQOcHrrdJtPQO1OAo5y0+im2zsu96xDKs9dhIcAESPvEoC22Yq13ybPKkFGhT/tOyQuju/5IZB4BpMp49fDrO0lLeRDAfeUoDxL+ISIYdAVPNUJTWi6vVVqcqJJnn/TJCjk0V/4OsXxEH9lMVlX/h2kYeqBjnY958F0L8EfFGUdz0H/2rUkQfkqH84P+oAcCRY/4R8Bhq8vOj4bFt89xqgOxys/mYvPU8A==
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(23010399003)(36860700016)(1800799024)(82310400026)(6133799003)(10067099003)(56012099006)(11063799006)(5023799004)(18002099003)(55112099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: op9FtecFdIkqqVXHvF6iCaEpYquNNW4GZj3Y9DZlvFwCpdv++OOVj2wcEhMxgezYIwzVgl2Dmoq9/rg8+U3A1eXWrcN3tgdHeYrotVGJCkAvKPETA3RSNk7iqLwQF+LGpQOyjJD2DdCDW/hI9/Oc+lJPWIQEXACmYP4C0xEliUkeefOgX84OgPEtOVmjLfU5bXX/GyPcz1xMG1ZQLzDn0K4kXC862c2RTp4wdDUWUyHmVnOwn8xlZu1p7GEMoSjUvi+WB9yezdUbLioYUvjRMrrStyp+c7/++CdKO1Y+TE0fi++I+hmRw6m1Ar1rJ0wDx1RYrOnPvcg6tSY/tzraerHerwWhCiqmMG3/OOWkNGMZzGn9StHyhbYgSj7LEkouQGTkqnpmSu9e89OHRXWgjbB5I/Bxm7iyuGFii2Io1H6yE/z9fj3Dx8zlUcJczn+Q
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Aug 2026 17:23:34.2159
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: aea19168-9e1a-4a42-d9ff-08defa28c4f5
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: CH3PEPF0000000E.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR22MB3629
+References: <20260807045002.2538935-1-anup.patel@oss.qualcomm.com> <20260807045002.2538935-2-anup.patel@oss.qualcomm.com>
+In-Reply-To: <20260807045002.2538935-2-anup.patel@oss.qualcomm.com>
+From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
+Date: Fri, 14 Aug 2026 11:19:12 -0700
+X-Gm-Features: AUfX_mxch0YO2UYrcCTOp8I-zyEiyL8wVXHWLjOOBrtLEyfbGtEV_qnrQribZ2s
+Message-ID: <CAAVgOkJG4nyd-PgwQxBvVL0Dj7R+unXC+NXe_uTjeqT=kd91Xg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] lib: sbi_domain: Check possible harts in sbi_domain_context_enter/exit()
+To: Anup Patel <anup.patel@oss.qualcomm.com>
+Cc: Atish Patra <atish.patra@linux.dev>,
+        Andrew Jones <andrew.jones@oss.qualcomm.com>,
+        Samuel Holland <samuel.holland@sifive.com>,
+        Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org
+X-Proofpoint-ORIG-GUID: O1G0MjyjCs6QtWCHLXJm_Z6b_UNJo00M
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODE0MDE0MCBTYWx0ZWRfX9cjuTFZf21MI
+ RmXSvvRI4gIK+Ts3NFxbR0aLbACA7PWhI1kzCAVVB0scm2MmsLjLJGDHvtgHXZkhwc/2DfSujAg
+ R56jjCASCHi+WfoyJ0Vw0Fx3uBJAVXTqGWT1F3+3HLeqapgPujTjVAUI/smzqnZ/u4YpOBioxVY
+ 8A7k6ejCdrBZ4gID7N9JWmMKKMFyMzpzVpWL+nWtbtIsCRO4ZnjoC32BCn4AFHRuq+Cvh0OxZCc
+ 9c1fkr6pDWMKQyOv20nH5fH0F9ez/gnWF3iejKKHfi4PyFg9IcjNZEy/0SzR9rCmM3ntxZQqTNn
+ LLnCHnX5JsejyLjMYwJ9OBa62vTHUqSMLBvomgNi0Jt7VBqvYPpXPRfsabQblaJ8y77PjVBZWRv
+ VuT9/bRwsntcRUdOcunRrTR1ouYZx3KW37M/Wb9RkNdJpjv3g9RHIqLrDRmTWJsqd1Eicw45qzF
+ 6+yWFYBDJIl6ZO97WMA==
+X-Authority-Analysis: v=2.4 cv=ZbMt8MVA c=1 sm=1 tr=0 ts=6a7f5c2d cx=c_pps
+ a=nSjmGuzVYOmhOUYzIAhsAg==:117 a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=3WHJM1ZQz_JShphwDgj5:22 a=JfrnYn6hAAAA:8 a=EUspDBNiAAAA:8
+ a=lf-S3f9Phoz_vvJnbsoA:9 a=QEXdDO2ut3YA:10 a=1zu1i0D7hVQfj8NKfPKu:22
+ a=1CNFftbPRP8L7MoqJWF3:22
+X-Proofpoint-GUID: O1G0MjyjCs6QtWCHLXJm_Z6b_UNJo00M
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODE0MDE0MCBTYWx0ZWRfX5I92SToy5Sq5
+ XF0vxGdybfiqzPzpDZf5TlTWyZ87r5f4utIHovFExfs1is1iUcMLnWA5X+QtnHioOP31hyc9r35
+ MuYoSurQD0Z5lFSG20zc2IRmlsJhkRY=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-14_06,2026-08-12_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ suspectscore=0 adultscore=0 clxscore=1015 priorityscore=1501 malwarescore=0
+ spamscore=0 impostorscore=0 bulkscore=0 lowpriorityscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608140140
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260814_102347_547873_15D0B9EF 
-X-CRM114-Status: GOOD (  16.15  )
+X-CRM114-CacheID: sfid-20260814_111927_737126_B512FF35 
+X-CRM114-Status: GOOD (  22.81  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -112,287 +159,68 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Align the Debug Triggers (DBTR) extension implementation with the
-error codes and behavior required by the SBI v3.0 specification,
-chapter 19:
-
- - sbi_debug_set_shmem (sec 19.2): accept the flags parameter and
-   return SBI_ERR_INVALID_PARAM when it is not zero. Also validate
-   the entire shared memory range of trig_max * (XLEN / 2) bytes
-   instead of only the base address, returning SBI_ERR_INVALID_ADDRESS
-   when the range is not accessible.
-
- - sbi_debug_install_triggers (sec 19.4, table 101): return
-   SBI_ERR_BAD_RANGE when trig_count >= trig_max, and return
-   SBI_ERR_NOT_SUPPORTED instead of SBI_ERR_FAILED when the trigger
-   type is not supported.
-
- - sbi_debug_update_triggers (sec 19.5, table 102): return the array
-   index of the failing trigger configuration in sbiret.value, and
-   return SBI_ERR_INVALID_PARAM when trig_tdata1.type or
-   trig_tdata1.chain do not match the originally installed debug
-   trigger. Validate the complete request before updating any trigger.
-
- - sbi_debug_uninstall_triggers, sbi_debug_enable_triggers and
-   sbi_debug_disable_triggers (secs 19.6-19.8, tables 103-105): return
-   SBI_ERR_INVALID_PARAM when any trigger in the set has
-   trig_idx >= trig_max, and validate the complete set before acting
-   on any trigger so a partially processed batch is not left behind.
-
- - Set the trig_state.have_hw_trig bit when a trigger is mapped to a
-   HW debug trigger (table 98).
-
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
----
- include/sbi/sbi_dbtr.h   |  5 ++-
- lib/sbi/sbi_dbtr.c       | 91 +++++++++++++++++++++++++++++++++-------
- lib/sbi/sbi_ecall_dbtr.c |  4 +-
- 3 files changed, 81 insertions(+), 19 deletions(-)
-
-diff --git a/include/sbi/sbi_dbtr.h b/include/sbi/sbi_dbtr.h
-index 5e0bf84e..e6b76086 100644
---- a/include/sbi/sbi_dbtr.h
-+++ b/include/sbi/sbi_dbtr.h
-@@ -104,7 +104,8 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot);
- int sbi_dbtr_supported(void);
- int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 			 unsigned long shmem_phys_lo,
--			 unsigned long shmem_phys_hi);
-+			 unsigned long shmem_phys_hi,
-+			 unsigned long flags);
- int sbi_dbtr_num_trig(unsigned long trig_tdata1, unsigned long *out);
- int sbi_dbtr_read_trig(unsigned long smode,
- 		       unsigned long trig_idx_base, unsigned long trig_count);
-@@ -115,7 +116,7 @@ int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
- int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
- 			 unsigned long trig_idx_mask);
- int sbi_dbtr_update_trig(unsigned long smode,
--			 unsigned long trig_count);
-+			 unsigned long trig_count, unsigned long *out);
- int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
- 			  unsigned long trig_idx_mask);
- 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 01047969..1d4785c7 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -261,8 +261,10 @@ int sbi_dbtr_get_total_triggers(void)
- 
- int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 			 unsigned long shmem_phys_lo,
--			 unsigned long shmem_phys_hi)
-+			 unsigned long shmem_phys_hi,
-+			 unsigned long flags)
- {
-+	unsigned long shmem_size;
- 	struct sbi_dbtr_hart_triggers_state *hart_state;
- 
- 	if (dom && !sbi_domain_is_assigned_hart(dom, current_hartindex())) {
-@@ -271,6 +273,9 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 		return SBI_ERR_DENIED;
- 	}
- 
-+	if (flags)
-+		return SBI_ERR_INVALID_PARAM;
-+
- 	hart_state = dbtr_thishart_state_ptr();
- 	if (!hart_state)
- 		return SBI_ERR_FAILED;
-@@ -304,9 +309,11 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 	if (shmem_phys_hi)
- 		return SBI_EINVALID_ADDR;
- 
--	if (dom && !sbi_domain_check_addr(dom,
--		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
--		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
-+	/* Must fail if address *range* is not fully accessible - size is assumed to be trig_max * (XLEN /2) bytes */
-+	shmem_size = (unsigned long) hart_state->total_trigs * (__riscv_xlen / 2);
-+	if (dom && !sbi_domain_check_addr_range(dom,
-+		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), shmem_size,
-+		  smode, SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
- 		return SBI_ERR_INVALID_ADDRESS;
- 
- 	hart_state->shmem.phys_lo = shmem_phys_lo;
-@@ -332,6 +339,7 @@ static void dbtr_trigger_setup(struct sbi_dbtr_trigger *trig,
- 	trig->state = 0;
- 
- 	__set_bit(RV_DBTR_BIT(TS, MAPPED), &trig->state);
-+	__set_bit(RV_DBTR_BIT(TS, HAVE_TRIG), &trig->state);
- 
- 	SET_TRIG_HW_INDEX(trig->state, trig->index);
- 
-@@ -616,6 +624,9 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 	if (!hs)
- 		return SBI_ERR_FAILED;
- 
-+	if (trig_count >= hs->total_trigs)
-+		return SBI_ERR_BAD_RANGE;
-+
- 	if (sbi_dbtr_shmem_disabled(hs))
- 		return SBI_ERR_NO_SHMEM;
- 
-@@ -641,7 +652,7 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 			*out = _idx;
- 			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
- 							trig_count * sizeof(*entry));
--			return SBI_ERR_FAILED;
-+			return SBI_ERR_NOT_SUPPORTED;
- 		}
- 
- 		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
-@@ -702,13 +713,17 @@ int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
- 	if (!hs)
- 		return SBI_ERR_FAILED;
- 
--	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
-+	for_each_set_bit_from(idx, &trig_mask, RV_MAX_TRIGGERS) {
- 		trig = INDEX_TO_TRIGGER(idx);
--		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
-+		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)) || idx >= hs->total_trigs)
- 			return SBI_ERR_INVALID_PARAM;
-+	}
- 
-+	/* Only uninstall after validating the arguments - maintain atomicity */
-+	idx = trig_idx_base;
-+	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
-+		trig = INDEX_TO_TRIGGER(idx);
- 		dbtr_trigger_clear(trig);
--
- 		sbi_free_trigger(trig);
- 	}
- 
-@@ -727,6 +742,14 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
- 	if (!hs)
- 		return SBI_ERR_FAILED;
- 
-+	for_each_set_bit_from(idx, &trig_mask, RV_MAX_TRIGGERS) {
-+		trig = INDEX_TO_TRIGGER(idx);
-+		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)) || idx >= hs->total_trigs)
-+			return SBI_ERR_INVALID_PARAM;
-+	}
-+
-+	/* Only enable after validating the arguments - maintain atomicity */
-+	idx = trig_idx_base;
- 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
- 		trig = INDEX_TO_TRIGGER(idx);
- 		sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
-@@ -737,8 +760,9 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
- }
- 
- int sbi_dbtr_update_trig(unsigned long smode,
--			 unsigned long trig_count)
-+			 unsigned long trig_count, unsigned long *out)
- {
-+	int stat = SBI_SUCCESS;
- 	unsigned long trig_idx;
- 	struct sbi_dbtr_trigger *trig;
- 	union sbi_dbtr_shmem_entry *entry;
-@@ -772,23 +796,52 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 		trig_idx = entry->id.idx;
- 
- 		if (trig_idx >= hs->total_trigs) {
--			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
--			return SBI_ERR_INVALID_PARAM;
-+			stat = SBI_ERR_INVALID_PARAM;
-+			goto endloop;
- 		}
- 
- 		trig = INDEX_TO_TRIGGER(trig_idx);
- 
- 		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED))) {
--			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
--			return SBI_ERR_FAILED;
-+			stat = SBI_ERR_FAILED;
-+			goto endloop;
-+		}
-+
-+		if (TDATA1_GET_TYPE(entry->data.tdata1) != TDATA1_GET_TYPE(trig->tdata1)) {
-+			stat = SBI_ERR_INVALID_PARAM;
-+			goto endloop;
-+		}
-+
-+		switch(TDATA1_GET_TYPE(entry->data.tdata1)) {
-+			case RISCV_DBTR_TRIG_MCONTROL:
-+			case RISCV_DBTR_TRIG_MCONTROL6:
-+				if ( (entry->data.tdata1 & RV_DBTR_BIT_MASK(MC6, CHAIN)) != (trig->tdata1 & RV_DBTR_BIT_MASK(MC6, CHAIN)) ) {
-+					stat = SBI_ERR_INVALID_PARAM;
-+					goto endloop;
-+				}
-+				break;
-+			default:
-+				break;
- 		}
- 
- 		if ((entry->data.tdata2 && !tdata2_impl) ||
- 		    (entry->data.tdata3 && !tdata3_impl)) {
--			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
--			return SBI_ERR_NOT_SUPPORTED;
-+			stat = SBI_ERR_NOT_SUPPORTED;
-+			goto endloop;
- 		}
- 
-+		endloop:
-+			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
-+			if (stat != SBI_SUCCESS) {
-+				*out = _idx;
-+				return stat;
-+			}
-+	}
-+
-+	/* Only update after validating request - maintain atomicity */
-+	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-+		sbi_hart_protection_map_range((unsigned long)entry, sizeof(*entry));
-+		trig = INDEX_TO_TRIGGER(entry->id.idx);
- 		dbtr_trigger_setup(trig, &entry->data);
- 		sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
- 		dbtr_trigger_enable(trig);
-@@ -809,6 +862,14 @@ int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
- 	if (!hs)
- 		return SBI_ERR_FAILED;
- 
-+	for_each_set_bit_from(idx, &trig_mask, RV_MAX_TRIGGERS) {
-+		trig = INDEX_TO_TRIGGER(idx);
-+		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)) || idx >= hs->total_trigs)
-+			return SBI_ERR_INVALID_PARAM;
-+	}
-+
-+	/* Only disable after validating the arguments - maintain atomicity */
-+	idx = trig_idx_base;
- 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
- 		trig = INDEX_TO_TRIGGER(idx);
- 		dbtr_trigger_disable(trig);
-diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
-index 40a437ee..b86ce5b3 100644
---- a/lib/sbi/sbi_ecall_dbtr.c
-+++ b/lib/sbi/sbi_ecall_dbtr.c
-@@ -28,7 +28,7 @@ static int sbi_ecall_dbtr_handler(unsigned long extid, unsigned long funcid,
- 		break;
- 	case SBI_EXT_DBTR_SETUP_SHMEM:
- 		ret = sbi_dbtr_setup_shmem(sbi_domain_thishart_ptr(), smode,
--					   regs->a0, regs->a1);
-+					   regs->a0, regs->a1, regs->a2);
- 		break;
- 	case SBI_EXT_DBTR_TRIGGER_READ:
- 		ret = sbi_dbtr_read_trig(smode, regs->a0, regs->a1);
-@@ -43,7 +43,7 @@ static int sbi_ecall_dbtr_handler(unsigned long extid, unsigned long funcid,
- 		ret = sbi_dbtr_enable_trig(regs->a0, regs->a1);
- 		break;
- 	case SBI_EXT_DBTR_TRIGGER_UPDATE:
--		ret = sbi_dbtr_update_trig(smode, regs->a0);
-+		ret = sbi_dbtr_update_trig(smode, regs->a0, &out->value);
- 		break;
- 	case SBI_EXT_DBTR_TRIGGER_DISABLE:
- 		ret = sbi_dbtr_disable_trig(regs->a0, regs->a1);
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gVGh1LCBBdWcgNiwgMjAyNiBhdCA5OjUw4oCvUE0gQW51cCBQYXRlbCA8YW51cC5wYXRlbEBv
+c3MucXVhbGNvbW0uY29tPiB3cm90ZToKPgo+IFdoZW4gY29udGV4dCBzd2l0Y2hpbmcgdG8gYSBk
+b21haW4gdGhlIGN1cnJlbnQgaGFydCBNVVNUIGJlIHBhcnQKPiBvZiB0aGUgcG9zc2libGUgaGFy
+dHMgb2YgdGhhdCBkb21haW4uIEFkZCBhcHByb3ByaWF0ZSBjaGVja3MgaW4KPiBzYmlfZG9tYWlu
+X2NvbnRleHRfZW50ZXIvZXhpdCgpIGFsb25nIHRoZXNlIGxpbmVzLgo+Cj4gU2lnbmVkLW9mZi1i
+eTogQW51cCBQYXRlbCA8YW51cC5wYXRlbEBvc3MucXVhbGNvbW0uY29tPgo+IC0tLQo+ICBsaWIv
+c2JpL3NiaV9kb21haW5fY29udGV4dC5jIHwgMTQgKysrKysrKysrKystLS0KPiAgMSBmaWxlIGNo
+YW5nZWQsIDExIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEv
+bGliL3NiaS9zYmlfZG9tYWluX2NvbnRleHQuYyBiL2xpYi9zYmkvc2JpX2RvbWFpbl9jb250ZXh0
+LmMKPiBpbmRleCAwODYxZDU0MS4uODM3ZmY1NGYgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9zYmlf
+ZG9tYWluX2NvbnRleHQuYwo+ICsrKyBiL2xpYi9zYmkvc2JpX2RvbWFpbl9jb250ZXh0LmMKPiBA
+QCAtMjMxLDE4ICsyMzEsMjMgQEAgaW50IHNiaV9kb21haW5fY29udGV4dF9lbnRlcihzdHJ1Y3Qg
+c2JpX2RvbWFpbiAqZG9tKQo+ICAgICAgICAgaW50IHJjOwo+ICAgICAgICAgc3RydWN0IGhhcnRf
+Y29udGV4dCAqZG9tX2N0eDsKPiAgICAgICAgIHN0cnVjdCBoYXJ0X2NvbnRleHQgKmN0eCA9IGhh
+cnRfY29udGV4dF90aGlzaGFydF9nZXQoKTsKPiArICAgICAgIHUzMiBoYXJ0aW5kZXggPSBjdXJy
+ZW50X2hhcnRpbmRleCgpOwo+Cj4gICAgICAgICAvKiBUYXJnZXQgZG9tYWluIG11c3Qgbm90IGJl
+IHNhbWUgYXMgdGhlIGN1cnJlbnQgZG9tYWluICovCj4gICAgICAgICBpZiAoIWRvbSB8fCBkb20g
+PT0gc2JpX2RvbWFpbl90aGlzaGFydF9wdHIoKSkKPiAgICAgICAgICAgICAgICAgcmV0dXJuIFNC
+SV9FSU5WQUw7Cj4KPiArICAgICAgIC8qIFRhcmdldCBkb21haW4gbXVzdCBoYXZlIGN1cnJlbnQg
+aGFydCBhcyBhIHBvc3NpYmxlIGhhcnRzICovCj4gKyAgICAgICBpZiAoIXNiaV9oYXJ0bWFza190
+ZXN0X2hhcnRpbmRleChoYXJ0aW5kZXgsIGRvbS0+cG9zc2libGVfaGFydHMpKQo+ICsgICAgICAg
+ICAgICAgICByZXR1cm4gU0JJX0VJTlZBTDsKPiArCj4gICAgICAgICAvKgo+ICAgICAgICAgICog
+SWYgaXQncyBmaXJzdCB0aW1lIHRvIGNhbGwgYGVudGVyYCBvbiB0aGUgY3VycmVudCBoYXJ0LCBu
+bwo+ICAgICAgICAgICogY29udGV4dCBhbGxvY2F0ZWQgYmVmb3JlLiBBbGxvY2F0ZSBjb250ZXh0
+IGZvciBlYWNoIHZhbGlkCj4gICAgICAgICAgKiBkb21haW4gb24gdGhlIGN1cnJlbnQgaGFydC4K
+PiAgICAgICAgICAqLwo+ICAgICAgICAgaWYgKCFjdHgpIHsKPiAtICAgICAgICAgICAgICAgcmMg
+PSBoYXJ0X2NvbnRleHRfaW5pdChjdXJyZW50X2hhcnRpbmRleCgpKTsKPiArICAgICAgICAgICAg
+ICAgcmMgPSBoYXJ0X2NvbnRleHRfaW5pdChoYXJ0aW5kZXgpOwo+ICAgICAgICAgICAgICAgICBp
+ZiAocmMpCj4gICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHJjOwo+Cj4gQEAgLTI1MSw3
+ICsyNTYsNyBAQCBpbnQgc2JpX2RvbWFpbl9jb250ZXh0X2VudGVyKHN0cnVjdCBzYmlfZG9tYWlu
+ICpkb20pCj4gICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIFNCSV9FSU5WQUw7Cj4gICAg
+ICAgICB9Cj4KPiAtICAgICAgIGRvbV9jdHggPSBoYXJ0X2NvbnRleHRfZ2V0KGRvbSwgY3VycmVu
+dF9oYXJ0aW5kZXgoKSk7Cj4gKyAgICAgICBkb21fY3R4ID0gaGFydF9jb250ZXh0X2dldChkb20s
+IGhhcnRpbmRleCk7Cj4gICAgICAgICAvKiBWYWxpZGF0ZSB0aGUgZG9tYWluIGNvbnRleHQgZXhp
+c3RlbmNlICovCj4gICAgICAgICBpZiAoIWRvbV9jdHgpCj4gICAgICAgICAgICAgICAgIHJldHVy
+biBTQklfRUlOVkFMOwo+IEBAIC0yNzYsNyArMjgxLDcgQEAgaW50IHNiaV9kb21haW5fY29udGV4
+dF9leGl0KHZvaWQpCj4gICAgICAgICAgKiBpdHMgY29udGV4dCBvbiB0aGUgY3VycmVudCBoYXJ0
+IGlmIHZhbGlkLgo+ICAgICAgICAgICovCj4gICAgICAgICBpZiAoIWN0eCkgewo+IC0gICAgICAg
+ICAgICAgICByYyA9IGhhcnRfY29udGV4dF9pbml0KGN1cnJlbnRfaGFydGluZGV4KCkpOwo+ICsg
+ICAgICAgICAgICAgICByYyA9IGhhcnRfY29udGV4dF9pbml0KGhhcnRpbmRleCk7Cj4gICAgICAg
+ICAgICAgICAgIGlmIChyYykKPiAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gcmM7Cj4K
+PiBAQCAtMjk0LDYgKzI5OSw5IEBAIGludCBzYmlfZG9tYWluX2NvbnRleHRfZXhpdCh2b2lkKQo+
+ICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChkb20gPT0gJnJvb3QgfHwgZG9tID09IHNiaV9k
+b21haW5fdGhpc2hhcnRfcHRyKCkpCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBj
+b250aW51ZTsKPgo+ICsgICAgICAgICAgICAgICAgICAgICAgIGlmICghc2JpX2hhcnRtYXNrX3Rl
+c3RfaGFydGluZGV4KGhhcnRpbmRleCwgZG9tLT5wb3NzaWJsZV9oYXJ0cykpCj4gKyAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsKPiArCj4gICAgICAgICAgICAgICAgICAg
+ICAgICAgdG1wID0gaGFydF9jb250ZXh0X2dldChkb20sIGhhcnRpbmRleCk7Cj4gICAgICAgICAg
+ICAgICAgICAgICAgICAgaWYgKHRtcCAmJiAhdG1wLT5pbml0aWFsaXplZCkgewo+ICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgZG9tX2N0eCA9IHRtcDsKPiAtLQo+IDIuNDMuMAoKaWYg
+KCFkb21fY3R4IHx8IHRtcC0+ZG9tLT5pbml0X29yZGVyIDwgZG9tX2N0eC0+ZG9tLT5pbml0X29y
+ZGVyKSB7CmRvbV9jdHggPSB0bXA7CmJyZWFrOwp9Ck96YTogcmVtb3ZlIHRoaXMgYnJlYWsgYXMg
+aXQgcGlja3MgdXAgd3Jvbmcgb3JkZXIgc2luY2UgaXQgZG9lbnN0IGdldAphIGNoYW5jZSB0byBp
+dGVyYXRlIHRocm91Z2ggdGhlIGxpc3QgZnVsbHkuCgpSZXZpZXdlZC1ieTogUGF3YW5kZWVwIE96
+YSA8cGF3YW5kZWVwLm96YUBvc3MucXVhbGNvbW0uY29tPgpUZXN0ZWQtYnk6IFBhd2FuZGVlcCBP
+emEgPHBhd2FuZGVlcC5vemFAb3NzLnF1YWxjb21tLmNvbT4KCgoKPgo+Cj4gLS0KPiBvcGVuc2Jp
+IG1haWxpbmcgbGlzdAo+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQoKLS0gCm9wZW5zYmkgbWFp
+bGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
+ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
