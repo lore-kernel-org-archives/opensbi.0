@@ -4,106 +4,102 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 72C16C5DF7D
-	for <opensbi@archiver.kernel.org>; Tue, 18 Aug 2026 21:01:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 65C76C5DF81
+	for <opensbi@archiver.kernel.org>; Tue, 18 Aug 2026 21:32:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=sQH7OLkk7zdma723oT+xK1Id3HUGeR6GEk2EtOGpS6A=; b=aAMaLLjfWqrqem
-	mzpHhq8kAdg+N/I2m0WwphNO7ts5hKbfzyS0nw9c1ZfwmLBR9pAGsAOgG1fOE8p+4/aghIjZ3Nm4z
-	FEn11E8ypMahdN4b2yjtoafLr1emVkXb3ZoG2T53gnKCT/LoFlvWzeDdGRYlP3nO1qaWXcxiOCt6C
-	FKTpjLSIEvUv56TVyilGY8LwKmTsCA6lrv/PoEOHRlxzspadjZWLXFx/oxK+34fG5Dx1bRwjxkxzK
-	SAX6QCyzeuoq/zayw17L8s5fSiW24idtE5fsymjH8wVUR53bY1cZSrIIv6iDJ38zuyJJLWy09uEMm
-	UvWTnXcFAR4U9OP7j4ew==;
+	List-Owner; bh=gz3VsJ4SdmDdaGhDXNWP/wE88/S1FYl6DXNM0P5Jtuk=; b=al/Lu+FAzTHlEl
+	huH6CfqSCVsRWJ/c5BDwZ0f0e7pjdz/l/plo64fajtu6DnpPw4a22nItfxdtDXOdtKOsqemJJqjgq
+	g1B7W+Aej9BRTP4wazatDcC4S2y5htrYYTdZqWzmcU9k2l+RDXRRwAflBmEoIfqRLdQoiCCbDGcH8
+	r/YrBJ215eBWm0+Wx5DElEcEzEs2GcIzjGZGdht1awwG1lQL6/jh6K8mBk0BGUAzkiuMifN/A34up
+	8vEtgu3+VYARCsVkzRpJ8ck88KncIVWpar7DNT+cKoCJULvuNfZ/RNKurmbXSGbWAZkImkJ9oaK7e
+	muJgGTLLG7OdD/QnPMkw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wwQvf-00000008eVR-1nQk;
-	Tue, 18 Aug 2026 21:01:03 +0000
-Received: from mail-centralusazon11021110.outbound.protection.outlook.com ([52.101.62.110] helo=DM5PR21CU001.outbound.protection.outlook.com)
+	id 1wwRQ9-00000008g4p-1Vcq;
+	Tue, 18 Aug 2026 21:32:33 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wwQvd-00000008eUs-1or5
+	id 1wwRQ6-00000008g3K-3uJw
 	for opensbi@lists.infradead.org;
-	Tue, 18 Aug 2026 21:01:02 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=gQIDQVsmwIW53FdCatgmv1OwgstgwpNCdyrWWHjp9bv31iRveb5/4pawVqK4QP0LTXsvReK3X4n9bxqdl9trdncrClqZjg7TIKTANj3b+be31pNeNAz0lGgIhucNcxjpP48BeD5uqaTBkTl3z+zSb3cOVfeM0ZnavrMXz/Lik1M8xQS/FIHKx4wELBODVasNpb3zgyms1B6U1AcZvdxvkJECv6V7yHlH8VYKosmkMRz4DapDzu04L2fG1+AinMWf0LSykiJONGEDCBlhObq2MWqARxqU1v1JEM9VRlkcug7LEwV/HgmPHY2hQYxTrMY5tIdyUXymFbFUlE5cwca2Ww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ufG1zPSBqOCK8hsTRjjB0Zom/mnNT6U8s8Zy6EXjEhU=;
- b=xqSSiYBXRAQEiaE3Rb09/77uQcIJdav/0ZZrUOJr/WjfREOWYVXDpk3xEPNwGMD4QtE+LgSz1BWZ2KxznRyybMCyeUuUrjnJ4Km5hv15M85+KsTn2kwRxPbZmsx3dlFCx0WXAKrI6KsOcmC2ycVi+gfU/zucFficThvmzLqMNuTFA6sRFqgNbOdKKOT31n62jUXRLlsOSEZqpn7sLsF8aNxHbp15guKRrS8gPlZqFb+9/oyqL7LK3hYvVkKX/Ls2/NN4s14on1zF6lgDHkdsqQ6iwuZQvJ3/KHthFKO89rgnulMUpHv3B0s8P79lZ0XUZ5YshBtM1w3BJVpsuSVohw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.45.236.54) smtp.rcpttodomain=aheadcomputing.com
- smtp.mailfrom=aheadcomputing.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=aheadcomputing.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aheadcomputing.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ufG1zPSBqOCK8hsTRjjB0Zom/mnNT6U8s8Zy6EXjEhU=;
- b=xhIu7JCBOuvwvX3+IhQj+AjtiO7/5sRsoPOmXTeVw7Wf1Nsn51sR1wNH0VyWvbvfwzFvs5VBToFYzrXGwBAdwDkCvVRodpiDnaOYFNFC+ikaMb+HJ3cCLs1E+9zhhnA0QB7W3Y+sXg5ZOO7MJxyV3eT1OvoeHytlKymca/tdA2rWq4zkqimsF8thhOt/gfLaYO5wi23nzB8JYlE/hyMOl0Fsc+u0Jp+JAM9EZpFc0llNNYxdOw+hblfNFrRu1Tjbgd+j5iSgh1lzHYiQmQ5aC8wBwOmq49CTN+4qQlJHsv2pKjaEyj3qTO2id9cW/LFlGPC9AOfEUI+FTWSH8JTqhQ==
-Received: from SJ0PR05CA0105.namprd05.prod.outlook.com (2603:10b6:a03:334::20)
- by SA1PR22MB4335.namprd22.prod.outlook.com (2603:10b6:806:386::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.17; Tue, 18 Aug
- 2026 21:00:41 +0000
-Received: from SJ1PEPF00002314.namprd03.prod.outlook.com
- (2603:10b6:a03:334:cafe::6a) by SJ0PR05CA0105.outlook.office365.com
- (2603:10b6:a03:334::20) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.339.8 via Frontend Transport; Tue, 18
- Aug 2026 21:00:41 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.45.236.54)
- smtp.mailfrom=aheadcomputing.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=aheadcomputing.com;
-Received-SPF: Fail (protection.outlook.com: domain of aheadcomputing.com does
- not designate 50.45.236.54 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.45.236.54;
- helo=mail.aheadcomputing.com;
-Received: from mail.aheadcomputing.com (50.45.236.54) by
- SJ1PEPF00002314.mail.protection.outlook.com (10.167.242.168) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.339.3
- via Frontend Transport; Tue, 18 Aug 2026 21:00:41 +0000
-Received: from davidAhead.lan (unknown [10.8.0.15])
-	by mail.aheadcomputing.com (Postfix) with ESMTP id 0BDF780369;
-	Tue, 18 Aug 2026 14:00:37 -0700 (PDT)
-From: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
+	Tue, 18 Aug 2026 21:32:32 +0000
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67IJZevD1031365;
+	Tue, 18 Aug 2026 21:32:29 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=N35KfDRzewb
+	a7JTFkDJnuSGD+XJ/ZFBZXqIltWYaoQc=; b=hFeTQeabEDx1IfVV7H7598FLjrx
+	aWslRLslpRni9TAWbITaLk996IMdgeVYvE0AozvnIOYhBi7Ctd/omulfaTQzEFD1
+	JXtmgMMwg8vAX1WOUOgqcv4r64M4Pco2mJURhFkxNphcXeGSuJu1yeNIhNR9N3wh
+	lZCmd+uDYGskNIETLVVgWZ+F6L4YrIA6ci+51cMNOQQS435+wXUzRdhqmAvx/VW5
+	dirTVKWb+tCvSvkBf9zCRrR+Y0YvT6FSk0aRRARaCTzklF0HBgS8JZoit4gNOHHY
+	QWL26G9PbIJMCrf70rVvw6iVmrpNf4w55Lj4lUDrpvN9ePB290HiJUvwphQ==
+Received: from nalasppmta03.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4g4resj550-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 18 Aug 2026 21:32:28 +0000 (GMT)
+Received: from pps.filterd (NALASPPMTA03.qualcomm.com [127.0.0.1])
+	by NALASPPMTA03.qualcomm.com (8.18.1.7/8.18.1.7) with ESMTP id 67ILWRAK024462;
+	Tue, 18 Aug 2026 21:32:27 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by NALASPPMTA03.qualcomm.com (PPS) with ESMTPS id 4g3qr2w5a5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 18 Aug 2026 21:32:27 +0000 (GMT)
+Received: from NALASPPMTA03.qualcomm.com (NALASPPMTA03.qualcomm.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 67ILWRYm024456;
+	Tue, 18 Aug 2026 21:32:27 GMT
+Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
+	by NALASPPMTA03.qualcomm.com (PPS) with ESMTPS id 67ILWRwn024454
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 18 Aug 2026 21:32:27 +0000 (GMT)
+Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
+	id 6A4CE23F9F; Tue, 18 Aug 2026 14:32:27 -0700 (PDT)
+From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 To: opensbi@lists.infradead.org
-Cc: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
-Subject: [PATCH v2 3/3] lib: sbi_pmu: Fix counter and event info error codes as per SBI v3.0 spec
-Date: Tue, 18 Aug 2026 15:00:23 -0600
-Message-ID: <20260818210023.466462-4-david.garcia@aheadcomputing.com>
+Cc: Anup Patel <anup@brainfault.org>,
+        Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+Subject: [PATCH v2 2/3] sbi_utils: mailbox: add RPMI REQUEST_FORWARD service group definitions
+Date: Tue, 18 Aug 2026 14:32:17 -0700
+Message-ID: <20260818213218.875883-3-pawandeep.oza@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260818210023.466462-1-david.garcia@aheadcomputing.com>
-References: <20260803171128.3506804-1-david.garcia@aheadcomputing.com>
- <20260818210023.466462-1-david.garcia@aheadcomputing.com>
+In-Reply-To: <20260818213218.875883-1-pawandeep.oza@oss.qualcomm.com>
+References: <20260818213218.875883-1-pawandeep.oza@oss.qualcomm.com>
 MIME-Version: 1.0
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF00002314:EE_|SA1PR22MB4335:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7bc50411-fa4f-4833-1dff-08defd6bc33f
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|82310400026|376014|23010399003|1800799024|36860700016|3023799007|56012099006|10067099003|4143699003|22082099003|18002099003|11063799006|55112099003;
-X-Microsoft-Antispam-Message-Info: 8GedGkSErYGINdu2doF9R0sCgs34/bh46XGOeLxSBcmJQ8n1PzxO4f+NS33Oo3x4C5QT6FC1Wu9kooJI8MtIuuiYCCqySVb486YaS2M3qATh3QG5zHy3Lo9W4Xz2bs1c58JVRzyJGOiOyfzFLkQyw6gea3Vlki2bA2W+pMlsvC5v1+1m8e5FXMF7IySOCWaSdx3ZLlrmMB0GeOS2GZ58FlBT1xrJcTYQzZyA7X/UWZumwb8VIOr6nsCRQ4dA0xt+cOa9RXJues9A86iQXwhs0whVGbCN4mjGw8MHfNiUAyeTJk55f7VRoGYHjFkIDu8DfCyzdEkN0IOBeWbK1qKSnH/qhTy7s2JvrVe8g7UB7Wl1z3k8Yhj6GSmg6kEGnwTxTY2/iDBKbKpyCZ3QGMJ9IjpKlXXsu5LjWPCuFBI6q1MxAtFb2+hFlYjtQMFeVL0fjfpA375rSTOSCw9QYkv65KqbZ1/aSW7EUOm3xpxsyja1r+cpaNioaL7L0LEo9NXDS2M78TNDmD9RPskipIzVYLnN8e2Ouyy7fGUTDKtvyPsfImKdqTO3t45eg9ZF8ZCaZX8eKOLhmbr00ScYinD5uUsX+MR3MC1oU5dtaVyEt2sN/pg198QJJIIEFZFJyxURwxqVVwq0psmYPqNrk4Aak8HDba88XEmNTmDs35eA16YfbchscIUqJk4IFqBp/Q7yRB0H6FqRcB7iBN28AgnJWQ==
-X-Forefront-Antispam-Report: CIP:50.45.236.54;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.aheadcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(376014)(23010399003)(1800799024)(36860700016)(3023799007)(56012099006)(10067099003)(4143699003)(22082099003)(18002099003)(11063799006)(55112099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: xLItiLaUNJb7ChleKFAX0qGGoUdqGnpaxvEhl8mYqCX6YWq9tACy/XlAwz2bm7sCPW4u9T8n3bqxO8xpLli/ZaNdEF7tp/YannFbVZLxxYiRLbZGkIW9NectscvCvNA69QHIHcUzAecGby9QBxb6cFnUwxLjDlbC/DIxPpYzMUZkJmUR0PadoV6YbIA3jWKcbUxd46ayL+7vg0a4Bj1x3t0Z7KXEl3LHQ1T+2zss+/l3cu32mj6t8b2IQ37FsC7kRWnzu32a4A9pCcWOhuQQgcgMzm29zmiVf9kjvMwIg+wKfNuQ7SxMk2gSNn3lOunFWIQ6X1wBus8Dh3UEDT1F9tKST65n9gofAnjBvefjaLmEqcmTlEg5WAyZAM4muUAnOnQR1JbOYEqirigyTJpAY+wcyH0SoJPcRbrP7e8TpFNP1v7HA4QWVxnIW+SOjJHJ
-X-OriginatorOrg: aheadcomputing.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Aug 2026 21:00:41.1661
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7bc50411-fa4f-4833-1dff-08defd6bc33f
-X-MS-Exchange-CrossTenant-Id: 53cf747c-7b8f-4d06-8b1e-b22383a3fabf
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=53cf747c-7b8f-4d06-8b1e-b22383a3fabf;Ip=[50.45.236.54];Helo=[mail.aheadcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource: SJ1PEPF00002314.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR22MB4335
+X-QCInternal: smtphost
+X-QCInternal: smtphost
+X-Authority-Analysis: v=2.4 cv=Ne/WEWD4 c=1 sm=1 tr=0 ts=6a84cf6d cx=c_pps
+ a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
+ a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=_glEPmIy2e8OvE2BGh3C:22 a=EUspDBNiAAAA:8 a=2o_taVJjGYtXnc9YsGQA:9
+X-Proofpoint-GUID: R-augD7PpOLBfF1RkQCPdEnnkuJB8LWr
+X-Proofpoint-ORIG-GUID: R-augD7PpOLBfF1RkQCPdEnnkuJB8LWr
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODE4MDE1OCBTYWx0ZWRfX3NaWZy/imFaW
+ TZIHyoFBK2T2BK/xmUWaQszf1Vi8eYJqX7NWctqRqNIv7OvpTIaZgK6+u7MaRDSrXqSljoPuyyR
+ 1OuJC8u7jdguHeXwyHQbRzOMyo5cJG0=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODE4MDE1OCBTYWx0ZWRfX0wOkOXsXoQa5
+ GdT0sNAMuIrCwl/u4eeCDDQ+JZxqcHep5QraZOawLkYsKas8ClROUw/rDFVi9AddvDvbGfrWx8o
+ JAtfFa559N++mHA8K+dskzHuBYHyKa++pdcUq1c1p3zmcyXhcH8uT7MQ/c5ZFG5WYdP0T39weh0
+ yUnzpOQoAufadSECqHCF9bNqGWJGUUc8dZSIo74pDs0/6WvFGDRz2BgFe34sNj2pShx/TImvtqE
+ wGUY+wrYI14Tr5zsRn+XuPZXE+RwhI1Zj33zeRUpHCdQ3xTJoZu441FNqC7omM8xxZVcfEqL37w
+ zwTE/dMJXf0q+ZKzxmAD/SeWfcQeLiWtPHHZpMSYuOumIQRRxV/cBSwo7TS/ZD99BN8v7hLCA5i
+ bAZnV++rCdM1sZa/hu/zg2w7uZYT9ZcHl4LXPvosuIj4OUV3VlIaNig2iSQ20YRTxNf5Rk/x+0A
+ MF13rtHpu9n3HNLCTlg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-18_04,2026-08-18_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 priorityscore=1501 malwarescore=0 suspectscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 bulkscore=0 impostorscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608180158
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260818_140101_483956_9D4A5F4D 
-X-CRM114-Status: GOOD (  21.27  )
+X-CRM114-CacheID: sfid-20260818_143231_085430_D2DA4CDA 
+X-CRM114-Status: GOOD (  12.17  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -120,169 +116,66 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Align the PMU extension implementation with the error codes required
-by the SBI v3.0 specification, chapter 11:
+From: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
 
- - sbi_pmu_counter_start and sbi_pmu_counter_stop (secs 11.9-11.10,
-   tables 39-42): the start_flags/stop_flags bits 2:(XLEN-1) are
-   reserved and must be zero, so return SBI_ERR_INVALID_PARAM when any
-   reserved flag bit is set. Introduce SBI_PMU_START_FLAGS_MASK and
-   SBI_PMU_STOP_FLAGS_MASK for the valid bits of each function.
+Add message protocol definitions for the RPMI REQUEST_FORWARD service
+group (SERVICEGROUP_ID: 0x000D).
 
- - sbi_pmu_counter_start and sbi_pmu_counter_stop (tables 40 and 42):
-   return SBI_ERR_ALREADY_STARTED / SBI_ERR_ALREADY_STOPPED when the
-   set of counters includes a counter which is already started or
-   stopped, instead of ignoring the error returned for each counter.
+The following are introduced:
 
- - sbi_pmu_event_get_info (sec 11.14, table 47): the output word must
-   indicate whether the event is supported, but firmware events were
-   only matched against the hardware event map and were always
-   reported as unsupported. Report a validated firmware event as
-   supported.
+  - enum rpmi_request_forward_service_id: service IDs for the
+    REQUEST_FORWARD service group:
+      - REQFWD_ENABLE_NOTIFICATION  (0x01)
+      - REQFWD_RETRIEVE_CURRENT_MESSAGE (0x02)
+      - REQFWD_COMPLETE_CURRENT_MESSAGE (0x03)
 
-Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
+  - struct rpmi_request_forward_resp: response structure for
+    REQFWD_RETRIEVE_CURRENT_MESSAGE (SERVICE_ID 0x02) carrying
+    status, remaining bytes, returned bytes and a flexible array
+    member for the inline message data.
+
+  - struct rpmi_request_complete_resp: response structure for
+    REQFWD_COMPLETE_CURRENT_MESSAGE (SERVICE_ID 0x03) carrying
+    status and the number of pending forwarded messages.
+
+These definitions are used by the MPXY bridge driver to implement
+the RPMI REQUEST_FORWARD protocol for inter-domain message passing
+over the SBI MPXY extension.
+
+Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
 ---
- include/sbi/sbi_ecall_interface.h | 12 ++++++
- lib/sbi/sbi_pmu.c                 | 61 ++++++++++++++++++++-----------
- 2 files changed, 52 insertions(+), 21 deletions(-)
+ include/sbi_utils/mailbox/rpmi_msgprot.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index bfde25d0..fd4e77ca 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -306,10 +306,22 @@ struct sbi_pmu_event_info {
- /* Flags defined for counter start function */
- #define SBI_PMU_START_FLAG_SET_INIT_VALUE (1 << 0)
- #define SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT (1 << 1)
-+/* Start flags valid mask */
-+#define SBI_PMU_START_FLAGS_MASK	\
-+	( \
-+		SBI_PMU_START_FLAG_SET_INIT_VALUE | \
-+		SBI_PMU_START_FLAG_INIT_FROM_SNAPSHOT \
-+	)
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index 7ae4abe0..c5d564ac 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -1064,4 +1064,24 @@ struct rpmi_logging_log_data_resp {
+ 	s32 status;
+ };
  
- /* Flags defined for counter stop function */
- #define SBI_PMU_STOP_FLAG_RESET (1 << 0)
- #define SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT (1 << 1)
-+/* Stop flags valid mask */
-+#define SBI_PMU_STOP_FLAGS_MASK	\
-+	( \
-+		SBI_PMU_STOP_FLAG_RESET | \
-+		SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT \
-+	)
- 
- /* SBI function IDs for DBCN extension */
- #define SBI_EXT_DBCN_CONSOLE_WRITE		0x0
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 676de9aa..0c62bde0 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -574,6 +574,9 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
- 	if (!pmu_ctr_idx_validate(cbase, cmask))
- 		return ret;
- 
-+	if (flags & ~SBI_PMU_START_FLAGS_MASK)
-+		return SBI_ERR_INVALID_PARAM;
++/** RPMI REQUEST_FORWARD ServiceGroup Service IDs */
++enum rpmi_request_forward_service_id {
++	REQFWD_ENABLE_NOTIFICATION = 0x01,
++	REQFWD_RETRIEVE_CURRENT_MESSAGE = 0x02,
++	REQFWD_COMPLETE_CURRENT_MESSAGE,
++};
 +
- 	if (flags & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
- 		return SBI_ENO_SHMEM;
- 
-@@ -592,6 +595,8 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
- 				 : 0x0;
- 			ret = pmu_ctr_start_fw(phs, cidx, event_code, edata,
- 					       ival, bUpdate);
-+			if (ret)
-+				return ret;
- 		} else {
- 			if (cidx >= 3) {
- 				struct sbi_pmu_hw_event_config *ev_cfg =
-@@ -605,6 +610,8 @@ int sbi_pmu_ctr_start(unsigned long cbase, unsigned long cmask,
- 					return ret;
- 			}
- 			ret = pmu_ctr_start_hw(cidx, ival, bUpdate);
-+			if (ret)
-+				return ret;
- 		}
- 	}
- 
-@@ -693,6 +700,9 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
- 	if (!pmu_ctr_idx_validate(cbase, cmask))
- 		return ret;
- 
-+	if (flag & ~SBI_PMU_STOP_FLAGS_MASK)
-+		return SBI_ERR_INVALID_PARAM;
++struct rpmi_request_forward_resp {
++	u32 status;
++	u32 remaining;
++	u32 returned;
++	u8 data[];
++};
 +
- 	if (flag & SBI_PMU_STOP_FLAG_TAKE_SNAPSHOT)
- 		return SBI_ENO_SHMEM;
- 
-@@ -708,6 +718,9 @@ int sbi_pmu_ctr_stop(unsigned long cbase, unsigned long cmask,
- 		else
- 			ret = pmu_ctr_stop_hw(cidx);
- 
-+		if(ret)
-+			return ret;
++/** RPMI MM ServiceGroup Communicate response struct */
++struct rpmi_request_complete_resp {
++	u32 status;
++	u32 num_of_messages;
++};
 +
- 		if (cidx > (CSR_INSTRET - CSR_CYCLE) && flag & SBI_PMU_STOP_FLAG_RESET) {
- 			phs->active_events[cidx] = SBI_PMU_EVENT_IDX_INVALID;
- 			pmu_reset_hw_mhpmevent(cidx);
-@@ -1105,30 +1118,36 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 		if (event_type < 0) {
- 			einfo[i].output = 0;
- 		} else {
--			for (j = 0; j < num_hw_events; j++) {
--				temp = &hw_event_map[j];
--				/* For raw events, event data is used as the select value */
--				if (event_idx == SBI_PMU_EVENT_RAW_IDX ||
--					event_idx == SBI_PMU_EVENT_RAW_V2_IDX) {
--					/*
--					 * Only a raw event map entry carries a
--					 * meaningful select/select_mask pair, so
--					 * skip any entry which does not cover the
--					 * raw event index.
--					 */
--					if (temp->start_idx > event_idx ||
--					    event_idx > temp->end_idx)
--						continue;
--					/* just match the selector */
--					if (temp->select == (einfo[i].event_data &
--									temp->select_mask)) {
-+			if (event_type == SBI_PMU_EVENT_TYPE_FW) {
-+				/* pmu_event_validate() already confirmed this event is valid; counter support is checked later by cfg_match/find_fw. */
-+				einfo[i].output = 1;
-+				continue;
-+			} else {
-+				for (j = 0; j < num_hw_events; j++) {
-+					temp = &hw_event_map[j];
-+					/* For raw events, event data is used as the select value */
-+					if (event_idx == SBI_PMU_EVENT_RAW_IDX ||
-+						event_idx == SBI_PMU_EVENT_RAW_V2_IDX) {
-+						/*
-+						 * Only a raw event map entry carries a
-+						 * meaningful select/select_mask pair, so
-+						 * skip any entry which does not cover the
-+						 * raw event index.
-+						 */
-+						if (temp->start_idx > event_idx ||
-+						    event_idx > temp->end_idx)
-+							continue;
-+						/* just match the selector */
-+						if (temp->select == (einfo[i].event_data &
-+										temp->select_mask)) {
-+							found = true;
-+							break;
-+						}
-+					} else if (temp->start_idx <= event_idx &&
-+						   event_idx <= temp->end_idx) {
- 						found = true;
- 						break;
- 					}
--				} else if (temp->start_idx <= event_idx &&
--					   event_idx <= temp->end_idx) {
--					found = true;
--					break;
- 				}
- 			}
- 			if (found)
+ #endif /* !__RPMI_MSGPROT_H__ */
 -- 
 2.43.0
 
