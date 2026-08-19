@@ -4,78 +4,77 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 78770C5B572
-	for <opensbi@archiver.kernel.org>; Wed, 19 Aug 2026 07:52:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0088AC5DF6D
+	for <opensbi@archiver.kernel.org>; Wed, 19 Aug 2026 07:52:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=tVOHArF5KhWn9jYklIlFz9AMHMcXWU2l8y7Z07A87U0=; b=aqhECN1A7FGa04
-	eU8+gcK3kfVz7zAxeykq71dR25fPQC3GWN752uKJn81sjX9bllyI+lZvKtP0EdwDkll4z29aKmi+I
-	xvkByr+CIOUuBjBVigUoHqXtcz9kXeqejICgR4sFID9i3zUMnqXd4XKqp8ZFcWgF94JiB8SQN0fiY
-	uQYxddWwKWfuU5lHV1cX7LDDKXpGPC2MPyM8BhzlB8b6C8gC5/ayIzT/yJU/hovYp3YSKtB4Uw1HQ
-	D6a7MET6y8yOElrvWOD60RgpvCrfdYKqEPmd8nNUxwIRKAbMmJmpLZaiNRb7iEwGh2leUvZ3+FX0Y
-	2jLhrOSBD/xzqDx3K3Bw==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=8ZGjhOWXt1v6QAG6UyyD2L78ndUmVPys/DRFAhg665Q=; b=aYT5f4+flBMQqb
+	zKp6mHu3xRAkgy6ktrJ85iH0EwhJDBjXA8mi7JzGAgZV7aZTMPE/MSBvBLjEZOp1bSPwumqXEDCKF
+	KjnmpGBqWQEELt4d6unO7yVNr/LBfE35xXL5shn9tNyQgFNJOIZJ4D/YS5GHRGwGb/A36oCrqZe7J
+	lvPdHMIbrCzGI/URvIGzR5brR0elHTfZcnDpDoGERvNmcsgb2legd95U9sP2djjIMPSstpsvmtfqp
+	QTqtvEjtnUilbPnj9C4Aj56KPxmBmv2gLdtfDM82ekaAXO7vTJDa8KdepYCdLZe2N3hutnhzZAICV
+	zNRUOT9SNNnBnf7LW7OA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wwb5d-00000009Et8-0ISs;
-	Wed, 19 Aug 2026 07:52:01 +0000
-Received: from smtpbgau1.qq.com ([54.206.16.166])
+	id 1wwb5b-00000009Eso-3Tup;
+	Wed, 19 Aug 2026 07:51:59 +0000
+Received: from smtpbgsg2.qq.com ([54.254.200.128])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wwb5Y-00000009Eqx-24MF
+	id 1wwb5X-00000009Eqp-3KeJ
 	for opensbi@lists.infradead.org;
 	Wed, 19 Aug 2026 07:51:58 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1787125903;
-	bh=aTt2Ds+K/JxMO5l+wyzAQ7RkgDpMJXzn9yWPEY+CdlI=;
+	s=mxsw2412; t=1787125901;
+	bh=gIm1Cz0k4NIUHWEtLmMkkxIsTdcMqRQkg4CoH/CWOi0=;
 	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=h44KTEbVXdF4D6+CF6kHiq4AyTYcm2mLIfDQI/Gc3f7Ne9WolqODhyNCWBkNNCaxo
-	 Nz8zzm75XQig0QhxUEfXaYVpGc2Ix3TA5vyZPgvUZepcHIn9RF4LNDCQVn1ezZ741w
-	 UFT1p+RdybIexzCBLMP/2o4+RcmFSepMFhC+AvlU=
-X-QQ-mid: esmtpsz11t1787125902tdee78a36
-X-QQ-Originating-IP: bKsVy2ICvA0yNue7qDjGaCPQDwSVuMoSrnWfHlsqdcc=
+	b=BDqf1I83SbEHS7MdDykaR6BUjxf2FbC2qMzuWbHlR7vDvU6fs4ehBIL7sqyYdxJmu
+	 boL7XFWu4Skq+WeVfgL1aSAPLgtbrQdUfUjXPAeaLkDdJVnllfTNcKE3LJsXAEaJB8
+	 ahRJdvlU7kODUE5PPoRG8ODZwVPw7QaG+3zAOuSU=
+X-QQ-mid: esmtpsz11t1787125900t43a84871
+X-QQ-Originating-IP: oyskutSmRuuWGGVQkE9FHezSV+3om1glg3YRBQoJS+Y=
 Received: from LT-WUHUAMAO.dc.com ( [101.71.222.5])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Wed, 19 Aug 2026 15:51:41 +0800 (CST)
+	id ; Wed, 19 Aug 2026 15:51:38 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 16803476132852463536
+X-BIZMAIL-ID: 2647986116104251148
 EX-QQ-RecipientCnt: 2
 From: Huamao Wu <huamao.wu@linux.spacemit.com>
 To: opensbi@lists.infradead.org
 Cc: Huamao Wu <huamao.wu@linux.spacemit.com>
-Subject: [PATCH 1/2] lib: sbi_domain: introduce atomic hart assignment helper
-Date: Wed, 19 Aug 2026 15:51:37 +0800
-Message-ID: <916EFC083B00F8AC+20260819075138.31535-2-huamao.wu@linux.spacemit.com>
+Subject: [PATCH 0/2] Fix domain assignment TOCTOU races
+Date: Wed, 19 Aug 2026 15:51:36 +0800
+Message-ID: <D574DD93352E25B4+20260819075138.31535-1-huamao.wu@linux.spacemit.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260819075138.31535-1-huamao.wu@linux.spacemit.com>
-References: <20260819075138.31535-1-huamao.wu@linux.spacemit.com>
 MIME-Version: 1.0
 X-QQ-SENDSIZE: 520
 Feedback-ID: esmtpsz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz5b-1
-X-QQ-XMAILINFO: MyzYaaOJD7B3ooTcjaAFRQgunHXpdydHecuAANIcu0IvHxtTHEuN+XYq
-	p7r3X9MlYUddo1cP6bw3QYyWbadEJhZUuYaH+ooiXiU9VG+iCySydJ4BgMAH8z3nkUN8DEn
-	a17K1DQVJBO7TZuOX7012YiBuhLUbZvkIbKIHlvJP4ws4jGj/gQCFa0NvsUwNDordX5ot1N
-	zlIVhZPmya8q0bvBprkoz89UbO4YRAKVHS3qQ25Gs/mvxO0oB1BIzUT/KQyokyGp4sijm8y
-	WRsBL8aeJZWry/OhjWVjro6TQkKdR2wbEurCGsaTuDV5ku1I9Yofr7H4A8NRwiBPhwDCeMD
-	IlhebK2BTIZEWrl8++YlpNPUnII9roY7egRbTBFgIKSV0xc3qNpAbGVOpTHEkLm008GVWON
-	txeaYIHKKFVyRlo1dM2/aAT2/u99qKawv69/z2UDquQfuY0kD+hICGw+s8oYys+ypmu8k0/
-	QXqy3KKa3++NhDedHMUr8ZPFD+mPq39tOs38M2QBn5N4YdPTjkGEt7Yqst0OY7kbPttQLSS
-	KDWpHJUnTkDXILaVzS08N6BnRR1D7xpYSZTHijEzDzgH92FzL8F70LUkjNXx8ugo0RdlPW7
-	ae6gFf1/a4z2ZlajJBcYlXWUF+u9+PtLuKfhX8qhWGZxbWCM4NJgEDbEV2vCgJzdCaLrpNx
-	dCpkBuWr23yfMp6tKdoBhW+lEam6zsBxruyEm3KsaBwbKU7r3NYF02ZT4AwylX60F4ykjVG
-	u9oE+O+P7nUGwLIxmMw0JJl2XCyz8cS3o0CDrrCHxKVKK+UHGJqaudtF7UjNjfUDQDftoD7
-	dvlWn70Td8wWrTHhHgZ6mdpPyPgK8ex9DsPsiatRWd+KR2O8oIzv77gGsIN/gdqjffBjb9U
-	6HNS7Au2GjV4WtVb+a/hFlDTloOmJhjo+q7XoUlKStJYmMBjPwGHbdJ7RZ3qa85NmCmDv4v
-	y/D3iltqRTj5JZw9Vg7e8pXZr2jAaSL/HT/juWax8odLuq6TBd/Rq8rmdYida3b8KOcDPN5
-	USs94R4FVTSSRcDD24cUNZ+Bqh0jx40TKtse1qVwpZZ0wi7pHpxDcs+ANZWVk=
-X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
+X-QQ-XMAILINFO: OATpkVjS499ukZKfOd3ghtsMhq2YcXTbBki+FVYXTqs2WemyxNF+yDTd
+	I5D3v2141aLu9B7aF5Ng1h5tQJwS70AqBeXtH/HPmtauPybNfB2KPdrYAUEMbLKgKw3y5vl
+	Gcj99+1PHQGm4YV33mn+cmVBZcve6zpYnZagPINyTz9Klw0gLtKfJrlU36+mqvD+HjVnncc
+	Q+mLPTpf8nv66oG80+dUwJwLq0GD776WwAkct0IZGAeAez02WrFliW/7GtUtA+bxQYz77pU
+	8N63TBLEOVU00b5rJ1bBOhkvzXaimSTi4si4S3SWM46mUKTobSKT6YAZc7T1XWmUWZcElKb
+	oKg++xMmeEV4qq34SmGzCS289Efpn/lr50Qu8Fu3NFyLK8oZtDD9HzG7K0LhJ1Eb5Xi768B
+	q5bumIrDhYfT7MSto/6fGDtuabzFje7CjBGxaebKyll9BK9zZ0QdMN9dJaqHMWeepECXBak
+	e/iMu8xmT4NuOiDdQz6AjX4DyjtAlZ0XJXmMEJHfOJ1gWqz3l6+vuwEDF4QDNafwnAlxUm9
+	N3h8Gq8IPrvQL7Hg5wcVjoczjx8ptL5ABpRoEB53vQxhPi4LvmJkySlB1X9ABKpX47E8aZl
+	7D1Ovz0HWGnueQvFYZgBkD1W+GBcmoSVG+fRKukHl7zo7dCQ2qhvTwkTzR8sYST+phB64Fk
+	f0ZSFTJHHA+FvkZvmAj7U58I6HA0OUmjI9n1I8srdP14KLZl2tEZhxxzo+nbVIDh7D5ZnNh
+	yHaIxeXXHKA5G89RxOjmxx2MXOgpubS+bJM+Bo5lz09uOAhGdjFLLm67yl81kpWB4Kc5kvU
+	azt03bTdULhWTviYvBSTPjcF5aVcmh5X7xvJbqBmugZCfCpB1/3PRzhCKsc4n8vvJTq9CCB
+	J6eOx+LfV3jSQO3Damz7tPQu0En09kEZa1O7K+Gx2QVOUJ43lz4QDECx7mZ0oYql8J2OWec
+	F8I2UBrupes7Mi2eOyhLsQPHWoXhnSSVQqVdqBq9CIRR+T1Lr8nvh7CI5dlT4hqpvK/+bPE
+	WVURWCzWZxpJkP57xQzCTjWO0EdN966cq8DfFofEZenaizDcwWZ7ch/gwDh64=
+X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
 X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260819_005156_991398_A5821BEA 
-X-CRM114-Status: GOOD (  13.23  )
+X-CRM114-CacheID: sfid-20260819_005156_599372_554B4A9E 
+X-CRM114-Status: UNSURE (   8.97  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -92,169 +91,84 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The per-hart domain assignment is represented by two fields: a
-per-hart pointer (in sbi_scratch) and a per-domain bitmap
-(assigned_harts).  These must stay consistent, but
-switch_to_next_domain_context() and sbi_domain_register() update
-them in separate locked steps with no surrounding critical
-section, leaving a window where a concurrent reader can observe
-a hart that belongs to no domain.
+The per-hart domain assignment is represented by two fields that must
+stay consistent at all times:
 
-Introduce sbi_domain_assign_hart() which atomically removes a hart
-from its current domain and adds it to the target domain under a
-new domain_assignment_lock.
+  1. a per-hart pointer stored in sbi_scratch (hartindex_to_domain)
+  2. a per-domain bitmap (assigned_harts)
 
-Add sbi_domain_check_hart_assignment() and its locked variant
-sbi_domain_check_hart_assignment_locked() for callers that need a
-consistent snapshot of both fields.  The unlocked variant is for
-one-shot checks where the caller does not need to hold
-domain_assignment_lock across a multi-step operation, such as
-platform code on systems with an HSM that must validate domain
-ownership of a hart before starting it.
+A concurrent reader is correct only if it observes both fields in
+agreement.  Today these fields are updated independently, creating
+TOCTOU windows where a hart transiently belongs to no domain or to
+two domains.
 
-Signed-off-by: Huamao Wu <huamao.wu@linux.spacemit.com>
----
- include/sbi/sbi_domain.h | 19 ++++++++++
- lib/sbi/sbi_domain.c     | 81 +++++++++++++++++++++++++++++++++++++---
- 2 files changed, 94 insertions(+), 6 deletions(-)
+These races were identified through code review.  On our internal
+platform we observed symptoms consistent with the cross-call TOCTOU
+described in Race 2 (a HART_START ecall seeing an assignment that a
+preceding HART_GET_STATUS did not), though the root cause of those
+specific symptoms turned out to be an unrelated cache-coherency issue.
+The code paths nonetheless present TOCTOU windows worth addressing
+regardless of the observed root cause.
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 16edd4ce..a8528bd1 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -228,6 +228,25 @@ struct sbi_domain *sbi_hartindex_to_domain(u32 hartindex);
- /** Update HART local pointer to point to specified domain */
- void sbi_update_hartindex_to_domain(u32 hartindex, struct sbi_domain *dom);
- 
-+/** Atomically assign HART to specified domain */
-+void sbi_domain_assign_hart(u32 hartindex, struct sbi_domain *dom);
-+
-+/** Lock domain assignment state for a compound operation */
-+void sbi_domain_assignment_lock(void);
-+
-+/** Unlock domain assignment state after a compound operation */
-+void sbi_domain_assignment_unlock(void);
-+
-+/** Check HART assignment while domain assignment lock is held */
-+bool sbi_domain_check_hart_assignment_locked(const struct sbi_domain *dom,
-+					     u32 hartindex,
-+					     struct sbi_domain **mapped_dom);
-+
-+/** Atomically check HART assignment and return its mapped domain */
-+bool sbi_domain_check_hart_assignment(const struct sbi_domain *dom,
-+				      u32 hartindex,
-+				      struct sbi_domain **mapped_dom);
-+
- /** Get pointer to sbi_domain for current HART */
- #define sbi_domain_thishart_ptr() \
- 	sbi_hartindex_to_domain(current_hartindex())
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index fa69170b..9ea7b7cb 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -37,6 +37,8 @@ struct sbi_domain root = {
- 
- static unsigned long domain_hart_ptr_offset;
- 
-+static spinlock_t domain_assignment_lock = SPIN_LOCK_INITIALIZER;
-+
- struct sbi_domain *sbi_hartindex_to_domain(u32 hartindex)
- {
- 	struct sbi_scratch *scratch;
-@@ -59,6 +61,78 @@ void sbi_update_hartindex_to_domain(u32 hartindex, struct sbi_domain *dom)
- 	sbi_scratch_write_type(scratch, void *, domain_hart_ptr_offset, dom);
- }
- 
-+void sbi_domain_assignment_lock(void)
-+{
-+	spin_lock(&domain_assignment_lock);
-+}
-+
-+void sbi_domain_assignment_unlock(void)
-+{
-+	spin_unlock(&domain_assignment_lock);
-+}
-+
-+static void __sbi_domain_assign_hart_locked(u32 hartindex,
-+					    struct sbi_domain *dom)
-+{
-+	struct sbi_domain *current_dom;
-+
-+	current_dom = sbi_hartindex_to_domain(hartindex);
-+	if (current_dom) {
-+		spin_lock(&current_dom->assigned_harts_lock);
-+		sbi_hartmask_clear_hartindex(hartindex,
-+						&current_dom->assigned_harts);
-+		spin_unlock(&current_dom->assigned_harts_lock);
-+	}
-+	sbi_update_hartindex_to_domain(hartindex, dom);
-+	if (dom) {
-+		spin_lock(&dom->assigned_harts_lock);
-+		sbi_hartmask_set_hartindex(hartindex, &dom->assigned_harts);
-+		spin_unlock(&dom->assigned_harts_lock);
-+	}
-+}
-+
-+void sbi_domain_assign_hart(u32 hartindex, struct sbi_domain *dom)
-+{
-+	sbi_domain_assignment_lock();
-+	__sbi_domain_assign_hart_locked(hartindex, dom);
-+	sbi_domain_assignment_unlock();
-+}
-+
-+bool sbi_domain_check_hart_assignment_locked(const struct sbi_domain *dom,
-+						     u32 hartindex,
-+						     struct sbi_domain **mapped_dom)
-+{
-+	bool assigned;
-+	struct sbi_domain *mapped;
-+
-+	mapped = sbi_hartindex_to_domain(hartindex);
-+	assigned = false;
-+	if (dom && mapped == dom) {
-+		spin_lock(&mapped->assigned_harts_lock);
-+		assigned = sbi_hartmask_test_hartindex(hartindex,
-+						      &mapped->assigned_harts);
-+		spin_unlock(&mapped->assigned_harts_lock);
-+	}
-+	if (mapped_dom)
-+		*mapped_dom = mapped;
-+
-+	return assigned;
-+}
-+
-+bool sbi_domain_check_hart_assignment(const struct sbi_domain *dom,
-+					      u32 hartindex,
-+					      struct sbi_domain **mapped_dom)
-+{
-+	bool assigned;
-+
-+	sbi_domain_assignment_lock();
-+	assigned = sbi_domain_check_hart_assignment_locked(dom, hartindex,
-+						   mapped_dom);
-+	sbi_domain_assignment_unlock();
-+
-+	return assigned;
-+}
-+
- bool sbi_domain_is_assigned_hart(const struct sbi_domain *dom, u32 hartindex)
- {
- 	bool ret;
-@@ -668,12 +742,7 @@ int sbi_domain_register(struct sbi_domain *dom,
- 		if (!sbi_hartmask_test_hartindex(i, dom->possible_harts))
- 			continue;
- 
--		tdom = sbi_hartindex_to_domain(i);
--		if (tdom)
--			sbi_hartmask_clear_hartindex(i,
--					&tdom->assigned_harts);
--		sbi_update_hartindex_to_domain(i, dom);
--		sbi_hartmask_set_hartindex(i, &dom->assigned_harts);
-+		sbi_domain_assign_hart(i, dom);
- 
- 		/*
- 		 * If cold boot HART is assigned to this domain then
--- 
+Race 1: switch_to_next_domain_context() non-atomic reassignment
+---------------------------------------------------------------
+
+The context-switch path updates the two fields in three separate
+locked steps.  A concurrent HART_START that checks ownership between
+steps sees an inconsistent state:
+
+  1. Hart A: clear hart N from old_dom->assigned_harts
+  2. Hart A: update hartindex_to_domain[hart N] = new_dom
+             -- hart N is in no domain's bitmap --
+  3. Hart B: check assigned_harts for hart N -> not found
+             -- hart appears unowned, HART_START rejected --
+  4. Hart A: set hart N in new_dom->assigned_harts
+
+Between steps 1 and 4 the hart is in no domain.  A concurrent
+HART_START that validates ownership at step 3 will incorrectly
+reject the hart.
+
+Race 2: sbi_hsm_hart_start() check-vs-transition gap
+-----------------------------------------------------
+
+The HART_START handler validates domain ownership, acquires the start
+ticket, and atomically transitions the hart to START_PENDING in three
+unprotected steps.  A concurrent domain assignment can reassign the
+hart between the check and the commit:
+
+  1. Hart A: check dom->assigned_harts for hart N -> OK
+  2. Hart B: assign_hart(hart N, other_dom)
+             -- hart N now belongs to other_dom --
+  3. Hart A: acquire start ticket
+  4. Hart A: cmpxchg state STOPPED -> START_PENDING
+             -- hart N starts in a domain that no longer owns it --
+
+The ownership check and the state transition are not serialized
+against concurrent assignment changes, so HART_START can commit for
+a domain that lost ownership between check and commit.
+
+Patch 1 introduces the locking infrastructure and converts the
+assignment path in sbi_domain_register().
+
+Patch 2 converts the two remaining callers (sbi_hsm_hart_start and
+switch_to_next_domain_context) to the atomic API.
+
+The patches are also available on GitHub:
+
+  https://github.com/kasperis7/opensbi branch domain-assignment-race-fix
+
+Huamao Wu (2):
+  lib: sbi_domain: introduce atomic hart assignment helper
+  lib: sbi: serialize HSM hart_start ownership check with assignment
+    lock
+
+ include/sbi/sbi_domain.h     | 19 +++++++++
+ lib/sbi/sbi_domain.c         | 81 ++++++++++++++++++++++++++++++++++------
+ lib/sbi/sbi_domain_context.c | 13 +------
+ lib/sbi/sbi_hsm.c            | 15 +++++--
+ 4 files changed, 108 insertions(+), 20 deletions(-)
+
+--
 2.43.0
 
 
