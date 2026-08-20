@@ -4,90 +4,126 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id F2A48C5DF81
-	for <opensbi@archiver.kernel.org>; Thu, 20 Aug 2026 09:26:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 9F587C5DF81
+	for <opensbi@archiver.kernel.org>; Thu, 20 Aug 2026 12:13:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=T5FSllExL91V+3W0NsW7tda0Kx/eeAtL/HgVOc0zZxI=; b=qZLhuCqaLq/G2r
-	12kOnSXyATwHIvcDlXgXNMWIegMkVTviznhTKZvU3P4J090WsNqmC+K7IKJeGCRQQYcGaCtuIebtK
-	CjXoyxTb/ApNQk1y2475kZ+oJkf/1mzPbdc+jbDizdD1Q/dcniOG0OTGicQ2Unt0Ubk0ywJxf1CNS
-	wgfhy4UVE/xKPK02f1qNjj1n+Um8pBKWA7pCTmBFgD12YgJwR4N3Y3GM4k8Q5khYZoAUCjjnwhAkF
-	12XwTnkYgnveXSlX3MyS16ufBwHIoeaFznFTGnX9qYoT3eBY2B+IQgPbQWURzxOQq2Z5LwZPLg8c9
-	WT3F41w74fnmkVZCwPTw==;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=jdA/K8u6t5rlEO+/qhNCoFNW8xh7UEgq1Vjc2yv0lHA=; b=lOeEr6SQJMdqhe
+	DCZvWNzp9sQRMzKSEibFO3ZLkSwwND+4aFpKtq0VOf8WwTaxltLIg76fui/KfEnIg8R+jlvSMkZ3y
+	2AMzkvgvdXzURgzD4Ej+ru/3W+fdxA7MTzvAm506PD0UjXN3txb8tr7baVCHxLyuyiKWPUlDz4fea
+	+Va92avlYalmGtglkBhNTjH0y7TzmBrxyKz6MsZottIm3G6XR77Cl4+lVdyY52ejgT3lG6uHqcz72
+	IQnETMFsDIEv8ipIpP+WNBXboSUcl1PyR5UZurlIMshXIKuXQARNqPEuoAK0bIndUrOHxowMNlGJa
+	YUgV+KwfXY/v2L7s/V7A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wwz2f-0000000BH9I-0KLc;
-	Thu, 20 Aug 2026 09:26:33 +0000
-Received: from mail-pl1-x632.google.com ([2607:f8b0:4864:20::632])
+	id 1wx1e7-0000000BVeq-0Zix;
+	Thu, 20 Aug 2026 12:13:23 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wwz2c-0000000BH8o-1qRE
+	id 1wx1e3-0000000BVdm-40Mu
 	for opensbi@lists.infradead.org;
-	Thu, 20 Aug 2026 09:26:32 +0000
-Received: by mail-pl1-x632.google.com with SMTP id d9443c01a7336-2cf452def93so5079995ad.1
-        for <opensbi@lists.infradead.org>; Thu, 20 Aug 2026 02:26:30 -0700 (PDT)
+	Thu, 20 Aug 2026 12:13:21 +0000
+Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67K8jjUx2529709
+	for <opensbi@lists.infradead.org>; Thu, 20 Aug 2026 12:13:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=af/gqX54+Tdg4UO287P+t1ViYcl2/TUJhPZ
+	ZMEKV59w=; b=cAZsSjsFTKz/GW94E950QkI9PXrmHubIWcaUf2i9Alu2s+AN19v
+	3GTfu80GDVIwCSr3qSPh1CSb2NtfXZ5+OeB/MAgyAw2AKzHSu3wVsWNatQNQrY4i
+	puv0g9/hLvhNAW6hXD5FVyIL5ubrnK9qu0JqdxA1rZwiiK6hqp/sq5diFd85Ax2e
+	D/mlly0ctQ+gFOmf3dzwhYIDR5LByXINF4RrX/sotzwhDUh0k2z/+KHeAfSTbv4Q
+	c0ih41OhMWCtbTyp240/zXWRjBRMM6Q9BQJOUkswfzUBbG2Hh7dkKQSkR0Ueu4sa
+	tSedClSWU9fRbEOQpHZNkOrP9mF4SAdb8jQ==
+Received: from mail-pl1-f197.google.com (mail-pl1-f197.google.com [209.85.214.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4g5xbv8rsg-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Thu, 20 Aug 2026 12:13:17 +0000 (GMT)
+Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-2cfa4e4684bso53584235ad.2
+        for <opensbi@lists.infradead.org>; Thu, 20 Aug 2026 05:13:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787217990; x=1787822790; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=HrPcSTpEyEf08VAxPKSCvgvGaEl0Dj1IiyQExMR0bNg=;
-        b=sT4vfCbiUgQTImd630I6pCNw9gvUnt3ju6oKqYkG+0fP2Rn8RBVqIlgrCYPnpGnv6v
-         a8fU88xmVzVr2n83l5ByRjmAENaaKBgGgm3aRMYdF7slMVTqREfWgPSY6xP4TE7zBGVD
-         fkq0qAunHx4xt4inh9NbojUFUX9An+fWEjVSvAD+ykdejlURrRkQdOqJMj59n4O0wMll
-         /6F0Nf1qnYO/l09JiTaJg/mrhIx1wBPM+eYAGSt7zrYnbHmKmTe1Kp/M/epe2r8Ridm1
-         vYHp60m/MD8g3juQ0kFYzshkNnTfBDjGnuRr+egLb+UMlDTkymGr9ihHdtRndfuUWkX8
-         OD1w==
+        d=oss.qualcomm.com; s=google; t=1787227996; x=1787832796; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=af/gqX54+Tdg4UO287P+t1ViYcl2/TUJhPZZMEKV59w=;
+        b=OlPuueG8uVnOT9dv0N+Spx/Hfp/o092xQwXhvpE4dhTOUenZaDN5a0Ql0XWExFEsUK
+         o43NBxKvVBE6dCluxh88FibvoHfTz/LU7lQS9bFtl1ECiPI6ZFzCw0oNJA3fa9gRPvxh
+         1ShKxthZcFCl67bKc/QYWNH3mWOsBMGf+o65s7nvD/6Et846on3YmK3dgoblJ8V472kb
+         LhwKSLoxIuXga/7qLTDjAZkBmhWU4YcGtdzZqYpOz1bE9bW1X4yyDqynxxKaFXBaTtgt
+         h1ObwlaZ/5+G8gVYP2AsvRk78lJuAJ8dAXFedOpDaTLwOcL/XB+o2QQPz4AHbYwvROm3
+         IXaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787217990; x=1787822790;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20251104; t=1787227996; x=1787832796;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=HrPcSTpEyEf08VAxPKSCvgvGaEl0Dj1IiyQExMR0bNg=;
-        b=QXh2rplzkMOjS2JpbZ25hWqm20GDJRD70i+Q8c3oAz1AfTTcaVUlZ5L9hH6kTGAcI6
-         bjX37TFbd4mO/PiV1w9dDeLZtnnCGwHqfnyilWOZT39J1SklfqyhC8KX14IrDPOgGW55
-         YlTbkjQDQjv7BM5qfYUpUJCmhGUAAKwretmyLgqQc/A/tCFjj6IfDgr2Rypo4TgIS4kC
-         0YO7/1LGZw4RNpEQqtvk8qUKfr6RDeVEzaLnu1TGb+cnSb7s/iAVIbJIwBMwvx2szkqh
-         nOdq7mh83ST6CX4TX2N613R+sZc7vM6p81pdzXoOvDGVlPjNyf5pOR1zVACHiN4S1T0x
-         Pd9A==
-X-Forwarded-Encrypted: i=1; AHgh+Rqtj2RMWx6/9JZUp3bG7mJcL1BB9KrX8LzoPvDIJedQRqZweWvjOxlaRYJvstFpTy9YZrGPobGX@lists.infradead.org
-X-Gm-Message-State: AFuF++lVOcUVbdrjj0J2uAYyPydkuM1bQdIyn8C7SAcsuKjf/OdKOIOO
-	1gsmP9xYv/iDsLxyVJnue4ezP7UutYbrq7ZFnejYZKvUdTiizzS/0eS4
-X-Gm-Gg: AR+sD10XY72Pm/9ANPjQxJoAWN6EICqC0P+hm2d8OdWoUIURkpSLWvkzYnmVnIFDn9p
-	oK9AhMlU0WCNcO+NXdhXkmnw8m6kjD9TJz31asMt9fhluO9vYe4ffB32zLbmb+o2A631x4BzVVR
-	ZdDtHHWhtJaY+NZh9qG590g3RqGJAr5SjEeNVnxqy6i2UXY4ojG5xNbClH1i8tCwQZC6hiFJZUf
-	fgJ4vf8MajnueuenvfvVLWwnjaqgr4UVeH8MXK2YrSfU5tWYvoPTOMlsMc7UHmlbgB/2pnv3Ksh
-	R7A8TJrP2PPfiLWWD3EPagyC2eys6/A/4Ip9y7YFkBJqaq1KGnv3Ht2xD1dyvexgeqJtz/kCKtP
-	O3fTZPoVnLGgiDcsdbp1JnIWzB83UqP4AdU502dRVLl3Br0M0dN5lXY+XbMunV8rxeQba00dWcM
-	YQZSuohHH6fasMA9TDoHddpuZvutH2M1ScoHn8Qk/MG04jKe1OPSN94I6+tO0B1Q==
-X-Received: by 2002:a17:90b:2584:b0:38f:de94:bf34 with SMTP id 98e67ed59e1d1-395a074aab8mr5519668a91.10.1787217989475;
-        Thu, 20 Aug 2026 02:26:29 -0700 (PDT)
-Received: from [192.168.0.13] ([172.92.174.155])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3957f9ad013sm5875009a91.7.2026.08.20.02.26.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 20 Aug 2026 02:26:29 -0700 (PDT)
-Message-ID: <df177995-1c44-420d-8138-2bbc7a4861bd@gmail.com>
-Date: Thu, 20 Aug 2026 02:26:28 -0700
+        bh=af/gqX54+Tdg4UO287P+t1ViYcl2/TUJhPZZMEKV59w=;
+        b=ak0VYZmgLZbP/3X8lxxS8d7bhwA/FZz63wAIRHtdIKVe3nNxnR6fegqgooTmieGsaM
+         +DLYvsRyWQcBe3YNzg/rP84JsVuDJV/q9b2u97iOGkkGlhCwRZmRdZCF7GU5ATQHpuEB
+         G+fizigJQvC/NzqCautPuvhUYTNbKsW+hrxjXgw/Xf1b/2OZYdjReeCk8bVIixdYj2X3
+         pzCxpc4SrYSqegS7/dlOPDfW8IjbZ2hR3U2vnkgWOKvIvLpRHwAXpfr+dsqCEuDmLvKZ
+         UIxHDE6PM01v6dqe1Mtr3Q5G6mWkCvAswDGqkOUhYd010sKrm7dgzjfDhy7etDtTiFSF
+         a8UQ==
+X-Gm-Message-State: AFuF++kQEGaJF+aqqptseWgWuE+Q1OI4bQqZT7y72aT2+f3P7V4cS5Zp
+	JuV8Jy8Xi6urd+Vay9NrXDW6Qx0Zef6EVAPw0O4Y469hC7gVfps/1z1DKOwjatKWaZfJNqidUDl
+	cnbThikIA06rsRFD67Fq38JkqHH4OVF6YOOmsEwq9d4Tjht71SRvnqWVi7dwIFwFA3R89UBHDRw
+	==
+X-Gm-Gg: AR+sD10kGS7PLOzCZMWnXUkHI0+Js61nTipzhuKcyrfbLfjxDYO1D8dyyK03XGcLohQ
+	BwBNH2HzgeZZZxeI4HJFgBUn5VBzjm3iOJYpxJBrxVYhH+SP2vbIYJBW5q5vCi/Wik0hdUD3rI9
+	7Uuk1dVK+sRTCjolm7d+hB/FQl+xnz/suNQWG8RZOiGl1eljeDOhHJLYslPhd1FWrDtIj9w8RPP
+	ZQc5OT3i3s/VjRg7FQcUouRQzeZ4bKDMZ7VqV23HL68mBUNnvm3CSNaM+a8p33W7dWVqGK1q4Op
+	X3mv0hVilPOknEf9iE5nJ1TDb051cCZGSJciSwJOomzcn1RyBIms9mYA5KeEwB3zoY45154x0CU
+	rqL+MEr+OPyoOn9xUpNCyqRD6oZXMuZcKc9Wok1Pe/f2FRz6asOXQKlob6D/C3aJvBo2ZTW5vbY
+	LPFnb6kl0qtW/wrvNLlb8d
+X-Received: by 2002:a17:902:e746:b0:2cf:ccc2:6088 with SMTP id d9443c01a7336-2d5fd6b1a8amr212516325ad.4.1787227996239;
+        Thu, 20 Aug 2026 05:13:16 -0700 (PDT)
+X-Received: by 2002:a17:902:e746:b0:2cf:ccc2:6088 with SMTP id d9443c01a7336-2d5fd6b1a8amr212515245ad.4.1787227995691;
+        Thu, 20 Aug 2026 05:13:15 -0700 (PDT)
+Received: from hu-rahupath-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d62d55538fsm6005415ad.13.2026.08.20.05.13.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Aug 2026 05:13:15 -0700 (PDT)
+From: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+To: opensbi@lists.infradead.org
+Cc: rahul.pathak@oss.qualcomm.com, rahul@summations.net
+Subject: [PATCH 0/2] Rename sbi_domain functions and per-domain data
+Date: Thu, 20 Aug 2026 17:43:07 +0530
+Message-ID: <20260820121309.2551296-1-rahul.pathak@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 0/5] platform: generic: spacemit: add K3 platform
- support
-To: Troy Mitchell <troy.mitchell@linux.spacemit.com>,
- opensbi@lists.infradead.org
-Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
- Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>
-References: <20260818-spacemit-k3-v2-0-84cb7773a481@linux.spacemit.com>
-Content-Language: en-US
-From: Bo Gan <ganboing@gmail.com>
-In-Reply-To: <20260818-spacemit-k3-v2-0-84cb7773a481@linux.spacemit.com>
+X-Authority-Analysis: v=2.4 cv=AMKAkK6n c=1 sm=1 tr=0 ts=6a86ef5d cx=c_pps
+ a=cmESyDAEBpBGqyK7t0alAg==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=Sv0fKeRqtYgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=yx91gb_oNiZeI1HMLzn7:22 a=VwQbUJbxAAAA:8
+ a=EUspDBNiAAAA:8 a=D2JQj3Sdp9h7u0U-dOcA:9 a=1OuFwYUASf3TG4hYMiVC:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODIwMDA5MSBTYWx0ZWRfX7nM6uyR1esly
+ a30as55wdz7WIwKHkdDukB99/ROjx/3xF3gqkLTL+jOiRnJ0zheCIN11f0J7Y1ECLEdKjYb9ye9
+ pwxzJlZPMeJY36WUOIYdp1wM61fI7hF5YOf3WGdO/knkSmyWk8l6q4kClj/a1Y3+0pEvj87/ZM2
+ i32s3Ox5Ebd4czYLhC6vWZIqAyLDErlCuQ+Nce0IrzL8C45ZVfh+Eft6itZtPi6dRjSoDFAT7MU
+ EkMJ/IiTgUh929RlwrKRBFBB5A9IqQzvs1zMkKm2IrmsmdB601pkDBCgGPnqNni8Abp7DVL66bV
+ b5FZv4Y0j+z7wIDpuflu+BidI3KR6Qs2GHDq7+/NeFhGFqz+fKzCKU2PNVoIvLn/tdIJXFqUfXN
+ 3WpOz7qlF13B5IZd0cwA9NbX+QAYUNnDf2VDIKw/0/PvAeIkWApOQr1/SqWIWiHoj2YO5jfQ+sy
+ Mt+hyPZLSZy3x6rtehw==
+X-Proofpoint-GUID: yeHEK688jQVq1TUgf0HgFC85GseENr1A
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODIwMDA5MSBTYWx0ZWRfX0LsAqlX4zkul
+ 31UQcto3jQdHlvGoucQXSbRcFel0aM5LalnKPGHGOEMbc2yx0xKvBEXmcR7ZH8k34ywwNDmihJC
+ QQ2/PswvPMeKTyJO9bNDxIBa/BgGo9U=
+X-Proofpoint-ORIG-GUID: yeHEK688jQVq1TUgf0HgFC85GseENr1A
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-19_06,2026-08-19_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 spamscore=0 phishscore=0 lowpriorityscore=0 bulkscore=0
+ adultscore=0 suspectscore=0 malwarescore=0 impostorscore=0 clxscore=1015
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608200091
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260820_022630_498644_95E527C6 
-X-CRM114-Status: GOOD (  32.28  )
+X-CRM114-CacheID: sfid-20260820_051320_213397_B4401438 
+X-CRM114-Status: GOOD (  15.31  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -99,170 +135,59 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Hi Troy, Xianbin,
+This series changes the names of sbi domain callback
+functions and per-domain data structures and functions
+to represent what they actually do. There are no functional
+changes.
 
-I got my com260 delivered just days ago, and I'm able to review and test
-this series. I just sent out some review feedbacks. One more high-level
-question is regarding rpmi. I see the vendor opensbi utilize the services
-provided by esos running on the small cores. What's the plan here? Is it
-(this patch series) suppose to work with the esos currently shipped?
+Patch 1 renames the hart protection map_range()/unmap_range() callbacks
+and their  wrappers to temp_map_range()/temp_unmap_range(). These
+are not generic address-range mapping operations but they are only used by
+M-mode to get temporarily access to an S/U-mode address range.
 
-Also you mentioned "K3 SDK" many times, but I couldn't find any pointers.
-What is that exactly?
+Patch 2 renames the per-domain data mechanism to per-domain state. The
+areas registered through it hold various states associated with a
+domain - hart context in sbi_domain_context and MPXY state in sbi_mpxy
+today - which "data" does not convey.
 
-Bo
+Patch 1 earlier was part of SMMPT series but due to patch 2 making it
+a separate series and it will be removed from next version of SMMPT
+series.
+https://lore.kernel.org/opensbi/20260805183839.2576691-1-rahul.pathak@oss.qualcomm.com/
 
-On 8/17/26 18:14, Troy Mitchell wrote:
-> Add initial OpenSBI platform support for the SpacemiT K3 SoC. K3 has
-> 16 harts split across four clusters: eight X100 harts in C0/C1 and
-> eight A100 harts in C2/C3.
-> 
-> The main upstream integration constraint is that K3 is heterogeneous at
-> the ISA level. The CPU device tree used for testing exposes the same
-> non-H standard extensions for X100 and A100. X100 additionally exposes H
-> and the related Sha, Shcounterenw, Shgatpa, Shtvala, Shvsatpa,
-> Shvstvala, and Shvstvecd extensions. X100 has a 256-bit VLEN, while
-> A100 has a 1024-bit VLEN. A100 also implements the vendor-specific
-> SpacemiT IME and FP8 AI extensions, which OpenSBI does not inspect or
-> use.
-> 
-> At the base of this series, OpenSBI selects the expected-trap handler
-> once from the cold-boot hart and reuses it globally. An X100 cold-boot
-> hart would therefore make an A100 hart use the H-aware handler, which
-> accesses mtval2 and mtinst even though A100 does not implement H. Select
-> the handler from the current hart instead. An audit of the remaining
-> extension-dependent paths found that ISA extensions and detected CSR
-> features are stored per-hart, the generic FDT parser visits every hart,
-> and vector code reads the current hart's VLENB. The K3 CPU device tree
-> also exposes the same counter and timer extensions on both core types.
-> No other cold-boot-hart-derived ISA selection was found.
-> 
-> K1 and K3 share vendor cache-control CSRs, PMU idle fields, cluster
-> sizing, and the CCI-550 programming sequence, but their CCI topology,
-> boot flow, and HSM support differ. Factor only the common definitions and
-> CCI helper so K3 does not depend on K1 and the K1 encoded values and
-> behavior remain unchanged. Run per-hart register setup from
-> nascent_init() rather than the policy-only cold_boot_allowed() hook.
-> 
-> On K3, the cold-boot hart programs the four cluster warm-boot vectors,
-> enables CCI snoop and DVM requests, prevents WFI from powering down cores
-> or clusters, and wakes the secondary harts. A bounded wait prevents a
-> non-responsive secondary hart from stalling boot indefinitely. Each hart
-> programs its own PMA, cache, snooping, and prefetch state, with X100 harts
-> also enabling H. The warm-boot entry establishes cache coherency before
-> entering common code so secondary harts can observe state published by
-> the cold-boot hart.
-> 
-> Runtime validation used the SpacemiT K3 SDK. The UART at 115200 baud
-> showed OpenSBI and U-Boot starting successfully, followed by Linux
-> bringing all 16 harts online. The series has also been build-tested with:
-> 
->    - the generic default configuration
->    - a K1 configuration with K3 disabled and the SpacemiT HSM driver
->    - a K3 configuration with K1 and the SpacemiT HSM driver disabled
-> 
-> To reproduce the runtime test, build this OpenSBI tree at the address
-> where the SDK loads it, then copy the resulting firmware into the SDK
-> output directory:
-> 
->    K3_SDK_DIR=/path/to/k3-sdk
->    make O=build-k3 CROSS_COMPILE=riscv64-linux-gnu- PLATFORM=generic \
->         FW_TEXT_START=0x100000000
->    cp build-k3/platform/generic/firmware/fw_dynamic.bin \
->       "$K3_SDK_DIR/output/fw_dynamic.bin"
-> 
-> Before rebuilding U-Boot, update the UART0 node in the K3 board DT
-> selected by SPL and passed to OpenSBI. The SDK describes it only as
-> "ns16550", so upstream OpenSBI initializes it without UART_CAP_UUE and
-> writes 0x00 to UART_IER. The K3 UART requires UART_IER_UUE (bit 6).
-> Change the node in uboot-2022.10/arch/riscv/dts/k3.dtsi to:
-> 
->    uart0: uart@d4017000 {
->            ...
->            compatible = "spacemit,k1-uart", "intel,xscale-uart",
->                         "ns16550";
->            ...
->    };
-> 
-> The compatible order is significant. Upstream OpenSBI skips the vendor
-> string, then matches "intel,xscale-uart", which selects UART_CAP_UUE and
-> writes 0x40 to UART_IER. The final "ns16550" remains a generic fallback.
-> This is the DT used for the successful boot test.
-> 
-> With output/fw_dynamic.bin already present, rebuild U-Boot. The SDK
-> preserves that OpenSBI binary and packages it with U-Boot:
-> 
->    make -C "$K3_SDK_DIR" uboot
-> 
-> This produces output/FSBL.bin and output/u-boot-opensbi.itb. Using the
-> SDK-built output/Image.itb, enter BROM fastboot mode with FEL+RESET and
-> stage all three images into RAM:
-> 
->    fastboot stage "$K3_SDK_DIR/output/FSBL.bin"
->    fastboot continue
->    sleep 8
->    fastboot stage "$K3_SDK_DIR/output/u-boot-opensbi.itb"
->    fastboot continue
->    sleep 3
->    fastboot stage "$K3_SDK_DIR/output/Image.itb"
->    fastboot continue
-> 
-> Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-> ---
-> Changes in v2:
->    - correct the K3 PMACFG0 CSR number from 0xbc0 to 0x7de
->    - select the expected-trap handler per hart for heterogeneous H support
->    - move K1 and K3 per-hart setup out of cold_boot_allowed()
->    - split the generic and K1 fixes into standalone patches, growing the
->      series from three patches to five
->    - document X100/A100 ISA and VLEN differences and the homogeneous-core
->      audit
->    - document OpenSBI/U-Boot packaging, the UART compatible adjustment,
->      and the USB fastboot test procedure
->    - Link to v1: https://lore.kernel.org/r/20260724-spacemit-k3-v1-0-f0e49329feb8@linux.spacemit.com
-> 
-> ---
-> Troy Mitchell (2):
->        lib: sbi: select expected trap handler per hart
->        platform: generic: spacemit: k1: move hart init to nascent hook
-> 
-> Xianbin Zhu (3):
->        platform: generic: spacemit: k1: rename cache flush operation
->        platform: generic: spacemit: k1: refactor platform support
->        platform: generic: spacemit: k3: add platform support
-> 
->   include/sbi/sbi_csr_detect.h                 |   4 +-
->   include/sbi/sbi_hart.h                       |   2 +-
->   lib/sbi/sbi_hart.c                           |   9 +-
->   lib/sbi/sbi_illegal_atomic.c                 |   4 +-
->   lib/sbi/sbi_unpriv.c                         |   6 +-
->   lib/utils/hsm/fdt_hsm_spacemit.c             |   7 +-
->   platform/generic/Kconfig                     |   9 +
->   platform/generic/configs/defconfig           |   1 +
->   platform/generic/include/spacemit/common.h   |  88 +++++++++
->   platform/generic/include/spacemit/k1.h       |  96 ++--------
->   platform/generic/include/spacemit/k3.h       | 144 +++++++++++++++
->   platform/generic/include/spacemit/k3_asm.h   |  16 ++
->   platform/generic/include/spacemit/spacemit.h |  14 ++
->   platform/generic/spacemit/k1.c               |  45 ++---
->   platform/generic/spacemit/k3.c               | 266 +++++++++++++++++++++++++++
->   platform/generic/spacemit/k3_asm.S           |  33 ++++
->   platform/generic/spacemit/objects.mk         |   3 +
->   platform/generic/spacemit/spacemit.c         |  36 ++++
->   18 files changed, 661 insertions(+), 122 deletions(-)
-> ---
-> base-commit: c0f87f10d1bfb9e72a84ddfafb5604ee1bfe9d04
-> change-id: 20260723-spacemit-k3-84720a7be53d
-> 
-> Best regards,
-> --
-> Troy Mitchell <troy.mitchell@linux.spacemit.com>
-> 
+Rahul Pathak (2):
+  lib: sbi: Rename map_range/unmap_range functions
+  lib: sbi_domain: Rename per-domain data to per-domain state
+
+ include/sbi/sbi_domain.h          |   6 +-
+ include/sbi/sbi_domain_data.h     |  93 --------------------
+ include/sbi/sbi_domain_state.h    |  93 ++++++++++++++++++++
+ include/sbi/sbi_hart_protection.h |  27 +++---
+ lib/sbi/objects.mk                |   2 +-
+ lib/sbi/sbi_dbtr.c                |  26 +++---
+ lib/sbi/sbi_domain.c              |   6 +-
+ lib/sbi/sbi_domain_context.c      |  14 +--
+ lib/sbi/sbi_domain_data.c         | 138 ------------------------------
+ lib/sbi/sbi_domain_state.c        | 138 ++++++++++++++++++++++++++++++
+ lib/sbi/sbi_ecall_dbcn.c          |   4 +-
+ lib/sbi/sbi_hart_pmp.c            |  10 +--
+ lib/sbi/sbi_hart_protection.c     |  12 +--
+ lib/sbi/sbi_mpxy.c                |  56 ++++++------
+ lib/sbi/sbi_pmu.c                 |   4 +-
+ lib/sbi/sbi_sse.c                 |   8 +-
+ 16 files changed, 321 insertions(+), 316 deletions(-)
+ delete mode 100644 include/sbi/sbi_domain_data.h
+ create mode 100644 include/sbi/sbi_domain_state.h
+ delete mode 100644 lib/sbi/sbi_domain_data.c
+ create mode 100644 lib/sbi/sbi_domain_state.c
+
+-- 
+2.53.0
 
 
 -- 
