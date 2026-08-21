@@ -4,84 +4,84 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E7FECC5DF87
-	for <opensbi@archiver.kernel.org>; Fri, 21 Aug 2026 01:19:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 75ABDC5DF81
+	for <opensbi@archiver.kernel.org>; Fri, 21 Aug 2026 01:56:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
 	List-Subscribe:List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:
-	In-Reply-To:References:To:From:Subject:Cc:Message-Id:Date:Mime-Version:
+	References:In-Reply-To:To:From:Subject:Cc:Message-Id:Date:Mime-Version:
 	Reply-To:Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date
 	:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Owner;
-	bh=5L9bqdfy4xOMScmgsJI8DKW91IAn9D379YMfyQNAAb4=; b=UFB/RNXNcyRO7SZDFaxQvPsL8V
-	dYKTDov8FrTkezXRZ0w89tHpWL2PBOtE+P0sTTAIaW0BJnqinXIetKYd9OY7vWiC8YLg7lbNyiQ23
-	0njzIBX7XhIVKD1It69d7o5wTq0wJa3wIppxKXvH4Jted9vz3bR4yqyAeFOnqw0wafrp/XIUD48vH
-	/gZBWmWOlqMmiLER/Nu3CutCI/9el4wz8OBe6jmetZ0ryplPMCbFMf7Xopt42m7TMepMhCogGRS64
-	QH74nDFByYnUpDAlJ3CTji04AHTkoiCSHeqfXalqVYQiOVnMpbt9ihDDzzcWgYPfOZhhFB0ZkMAFA
-	B0PeTkUw==;
+	bh=70CRnAv4YTPronuwg/VtCBTi5abaitYiMAch1ketUIY=; b=CGTZJ/6tV+PX6sJ+j6a4vWi3js
+	mHsTiUHhoIaOdoy1QeGJpBqKgpgBEtTYKQyHMr/gTl4j1A1nhKTijzMgvuZqF8Dq3Jcu5HNyMsb3R
+	HletUwz9I1cdqK/RaucbRIuZqxBAIL/+9E1cSgmRqK7LPku0LTeRq5pDATnUuXepQeDSQBWfrtWEb
+	b9q6D01YRcVbMLnBfbqj5wyRqQZ3+mKUom0HIT5rna50L8JBUUQWbq5I1+NgrNdex4ka7NqLjkKdz
+	FP790kPfNp3OnTZRALyWtDZRnD1m2x1ofiCQ4IjyTN3KyaZi4O1GP2R2SVeOmNgZf2LKlyEM1G8/7
+	bbbxKvhQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wxDup-0000000CPVD-25vf;
-	Fri, 21 Aug 2026 01:19:27 +0000
-Received: from smtpbguseast1.qq.com ([54.204.34.129])
+	id 1wxEUI-0000000CR3c-2sf3;
+	Fri, 21 Aug 2026 01:56:06 +0000
+Received: from smtpbguseast2.qq.com ([54.204.34.130])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wxDuj-0000000CPRj-018T
+	id 1wxEUE-0000000CR33-2Gyp
 	for opensbi@lists.infradead.org;
-	Fri, 21 Aug 2026 01:19:26 +0000
+	Fri, 21 Aug 2026 01:56:06 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1787275130;
-	bh=dz76RgLCkFRUAsGyjvYmBgBLIeh4upznty6/cxOYbxM=;
+	s=mxsw2412; t=1787277334;
+	bh=tf+so7ewTDWl14p6tjeEnV0A0aTy8H6Us9uJCFRh0Q4=;
 	h=Mime-Version:Date:Message-Id:Subject:From:To;
-	b=OH3cvZEd/aqWvObQY1m1Ktl4CZRuV6+weLvyeHkq9csUg07zLh2viIVNi1A0w0cvz
-	 ZZdgeHAPmwukX0HFNu9vOdMz/vuJvhUMgDXlNXbggub7iWp7NX0ttyIRKMFKXNprCp
-	 /BKtilqWrx9cpUXanpIH4Cx/Z9x5cqejJlv8wgBo=
-X-QQ-mid: zesmtpsz4t1787275128t499e588f
-X-QQ-Originating-IP: jpm85C4KGTz3hp37Qi/EIY6m9UCIpoG+XS0RsqFhxV8=
-Received: from = ( [112.92.69.33])
+	b=iSHJtTu0LutebjqmehGJYzEe5jcXlPS6ls7/giZXOG9RfrLRPoTOpd2E4d13v5IkM
+	 sDlGwNsRB1Z5sLjbt/Wcfp4dmA4rY4yprJKWxN0z8xGgPRZTKzM7kNlI44IJADvb4u
+	 cVaN279r3Lz+CFxIr7vMkeREbQygZOsRduZqbSHI=
+X-QQ-mid: zesmtpsz6t1787277329t866aa147
+X-QQ-Originating-IP: Dawo4aB+c/HnAcs7+OA8NPKbZj9UJQS+I1DS/jqFKx4=
+Received: from = ( [120.237.158.181])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 21 Aug 2026 09:18:47 +0800 (CST)
+	id ; Fri, 21 Aug 2026 09:55:27 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 9585624052206586286
-EX-QQ-RecipientCnt: 5
+X-BIZMAIL-ID: 17261610495691387026
+EX-QQ-RecipientCnt: 6
 Mime-Version: 1.0
-Date: Fri, 21 Aug 2026 09:18:44 +0800
-Message-Id: <DKU85LD7UDZB.1IQH1DZ35KKQO@linux.spacemit.com>
+Date: Fri, 21 Aug 2026 09:55:25 +0800
+Message-Id: <DKU8XOF2Z3GT.3HYZYL8V7VCF9@linux.spacemit.com>
 Cc: "Xianbin Zhu" <xianbin.zhu@linux.spacemit.com>, "Anup Patel"
- <anup@brainfault.org>
-Subject: Re: [PATCH v2 0/5] platform: generic: spacemit: add K3 platform
+ <anup@brainfault.org>, "Bo Gan" <ganboing@gmail.com>, "Troy Mitchell"
+ <troy.mitchell@linux.spacemit.com>
+Subject: Re: [PATCH v2 5/5] platform: generic: spacemit: k3: add platform
  support
 From: "Troy Mitchell" <troy.mitchell@linux.spacemit.com>
-To: "Bo Gan" <ganboing@gmail.com>, "Troy Mitchell"
- <troy.mitchell@linux.spacemit.com>, <opensbi@lists.infradead.org>
-X-Mailer: aerc 0.21.0-0-g5549850facc2
+To: "Samuel Holland" <samuel.holland@sifive.com>,
+ <opensbi@lists.infradead.org>
+In-Reply-To: <d3217c02-1dc6-4bcf-a5eb-da30c9a9860d@sifive.com>
 References: <20260818-spacemit-k3-v2-0-84cb7773a481@linux.spacemit.com>
- <df177995-1c44-420d-8138-2bbc7a4861bd@gmail.com>
-In-Reply-To: <df177995-1c44-420d-8138-2bbc7a4861bd@gmail.com>
+	<20260818-spacemit-k3-v2-5-84cb7773a481@linux.spacemit.com>
+	<d3217c02-1dc6-4bcf-a5eb-da30c9a9860d@sifive.com>
 X-QQ-SENDSIZE: 520
 Feedback-ID: zesmtpsz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
-X-QQ-XMAILINFO: MokxBf7CFy2KLn06G4AcJ65WEwi3v57d4B9TyXa/ndM7Y//PNS2P3tKl
-	W/YFYPMEvmGLC+RD8VEdloylyr6aOO7BatIsuYdWYEqphlivICwwdf2udF7vruRAwlqNi5w
-	nbxsCUiAf/wUUZ3LiPqeFJz0gxwgPo6VLxxNPHlVonhwgwQn/VSGzwBoc+hoooKKPfyxtnR
-	3w1Jrn0vanVWaVBpxLocrCbDjlCeWOapcV0ABCS7/6J+GIyzvRpV2a35RLzXEDYcWuvuGAo
-	+30VrJO6JLFhV12iqN2XTUKzcIkziWWC236ou/I32pj20h0L7wpoocle798kQy4xSX7WRdw
-	MFunEi2TWmkrU/N4gQgSJGRb8nfs4pX21ZABPGqnMbYoSO1A6AkB5sQmBEto44l5Y22L8+p
-	pno5Ra8DapPo3Uh2w6GI31ClOeURFdEhXDG0lod6RYaLlpQ+9NYErRQEatJcfMOZ83lmWPp
-	Ut1KuC97w3pEMyX+yL9EAbiBj4j4dE4pgtnXgUIAI4RDfR8SFyOF7tXZ6IPM7UHclHlQISM
-	Yyt1TO9FC842woc6VOZR+KOYXMwHbXws0ya6K53F8Ddh5NqCtwm66Fcp/gS61e28KvIA4Ex
-	LU2roLwi/9l3Mn1lsZBHPmYxBt7eihZJ7eG4KAno5IDnyqvLt1AZEZaaKCFDn6P/9F2Od8F
-	u98+jYhYjqf94sfGjaak3lscSALnGevhGfYAoxXBRa6q3I7pAsdgQx0nFtPd6Y5cmosJJO/
-	2prtyKIBLmZrARw6comvg+9oTrFQzs8kqqFTPwzNML+KNZVhCbog+y0QjufcfBY4zNxof9L
-	sjvWmnHWLu2Uw4wer5ezc1stRKki/U4eE0mNYkF/tHuRfc3qtHO6HhCr7W+vkP8uF+Fyrfg
-	DvR4wvaNo1xlAPbjvKcevQgJ3i3Z8SJ4fTkGHk7/O1N44UizHLk8PLB9r8KUjDNVOtb+WD0
-	JW80YyWWPVNhOXy31J3e1Y+90ORH2ySGaeR31w8oza5wTGjS7nkKjB6/zirGsNcVBFvY8Vj
-	aBe+scHMoGPclR3zYmOQ0yyreNBZunB7qhHuJeG2Y/gSU9eapg7jTHwMrhRLyT8H/putGIx
-	WBbz0WaJJac0xoyjzODZEBAPsXB99WFajx7JMp9k8OeKcuI5SRy/InxjNl3FwgHdKVWmR6f
-	vCc8m7R9cKenfNA=
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+X-QQ-XMAILINFO: MQaSltTJPhII83MOXGxGO1tJL5DXuoaVI94++MTfG9VQSzhmGYnCZ9RY
+	0Uqve8M/eBSSdBqniexiYWzEgGj1D6ZqJSR4GeQaYF8WY8LKnso9GNlMfhOGOS2mTlqR8AT
+	bEG2E7faJi0XMpUTpM1cXWquA8ACmfBPaHAHolg4OXxraj0xF45jzouifL8ess3JA19bmoC
+	TyH5Y3wxh5gVEw3lTVU20YBS+/B0LYgQwc6uLkAGcga08czqXp5C6FDhrSi+kbvH72PpPM7
+	WP5TNJpXh6CZ+r1xDJEd4avuadB3ldgwEoALr5DP/5i7TH05LzFou19oMP6TnI5nAA467Yq
+	AXf+PKt97ffpaU4n+GTFYIFZUo4GBRgIRc4hRavaSilCb+pd+jUCYQEZcgsvQKDVRiE/OFT
+	zFTqMo4h3U1wo/vlQwbsutAycnqnmZEAi2QCdMeWDwWBIkvy1CpQcEI64Q3Lth/WhDBE+Fy
+	3b9BUkOQUGhYOwjZjVgoX3NoFfToWOMj0gEWMUXhY9ACaIugV8S1tnmLt5nIGmAr8IouSUi
+	gHqX9aXVdybwV4pYGQ17SAD61/A5ym8Jj0jVJlWDAR9nbzM/lereAF4DTsnt36J8l1UHAjq
+	Zh/MYcJJrh4dnYtfaqz9uqtKrLb3344sOWKTymP12QjZrKcTKlFnDx2Ou1O9h5NqR7FJHDp
+	Ye5n24KTiJFL37ywQjxU6ZfkPG/mmlO664lonrBskRdzvVzUhexgvaO8O9AJAj9GWcVtTq0
+	DgOoJhLoz9fylK2b6jCyFoZkmvYcqDTR2rUplPlsAnYTQgvrHK4quZTF+MWXGJFn8j8sPQ4
+	SNb2fJwHcwxhDZGlLP6bgbfVNn8l2yR6cn0ErsgaUjprruYDJgL3VNcGbKMXycWM1bwWBiU
+	3gfRTUYVYYnH25BLsVu7d68qjDm8PT3kAy4IoHJrYBxccVu8Kf3s1lVqDettsjKPNNLIAfr
+	d+ufybLn7GSgMJd9zDO53iRXuaBbksrBsUK4m44RolkjkTzMZIQyo2Hy7qRbiWbcHg6NsYD
+	fu+rs/+NA+PGdV9ojS0zwHfN2v8makYmh7PguCfHaZdN1lnvAzYe1kODmQkZn++DBslCkfv
+	a3WRdAXdmMpnCRGkQmhkJCUU7gF4zOdOQ==
+X-QQ-XMRINFO: NI4Ajvh11aEjEMj13RCX7UuhPEoou2bs1g==
 X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260820_181921_845713_6D056022 
-X-CRM114-Status: GOOD (  13.82  )
+X-CRM114-CacheID: sfid-20260820_185603_488397_5BDDADC9 
+X-CRM114-Status: GOOD (  14.54  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -93,65 +93,84 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============9087847447887349738=="
+Content-Type: multipart/mixed; boundary="===============7159765597351506378=="
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
---===============9087847447887349738==
+--===============7159765597351506378==
 Content-Type: multipart/signed;
- boundary=ae85d0fbff21b00ddfe967424358b95b749885af026abae7835d58cbc073;
+ boundary=6c5187a0d406d7c70382a93f56309ddd9d0b2e18b5968736f66cb397f9f1;
  micalg=pgp-sha512; protocol="application/pgp-signature"
 
---ae85d0fbff21b00ddfe967424358b95b749885af026abae7835d58cbc073
+--6c5187a0d406d7c70382a93f56309ddd9d0b2e18b5968736f66cb397f9f1
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset=UTF-8
 
-On Thu Aug 20, 2026 at 5:26 PM +08, Bo Gan wrote:
-> Hi Troy, Xianbin,
+> +       /* Clear core and cluster power-down votes so WFI does not trigge=
+r power-down. */
+> +       for (i =3D 0; i < PLATFORM_MAX_CPUS; i++)
+> +               spacemit_disable_pwrdown_core(i);
 >
-> I got my com260 delivered just days ago, and I'm able to review and test
-> this series. I just sent out some review feedbacks. One more high-level
-> question is regarding rpmi. I see the vendor opensbi utilize the services
-> provided by esos running on the small cores. What's the plan here?=20
-The RPMI interface between OpenSBI and ESOS is mainly used for
-suspend/resume, power-button handling, and enabling or disabling
-regulators. In our upstream Linux implementation, regulator control
-is already handled by Linux. We also plan to move power-button and
-suspend/resume handling into Linux, although we do not yet have a
-concrete implementation plan.
+> [...]
 >
-> Is it
-> (this patch series) suppose to work with the esos currently shipped?
-This series is clearly compatible with the current version of ESOS,
-since it only removes the RPMI-related code.
+> +       for (i =3D 1; i < array_size(core_wakeup_reg); i++)
+> +               writel(1 << i, (void *)(unsigned long)core_wakeup_reg[i])=
+;
 >
-> Also you mentioned "K3 SDK" many times, but I couldn't find any pointers.
-> What is that exactly?
-I apologize for forgetting to include the link. However, it is readily
-available from the official source [1].
+> [...]
+>
+> +       for (i =3D 1; i < PLATFORM_MAX_CPUS; i++) {
+> +               u64 deadline =3D sbi_timer_value_after_msecs(HART_WFI_TIM=
+EOUT_MS);
+> +
+> +               while (!(readl((void *)(unsigned long)wfi_status_reg[i]) =
+&
+> +                        wfi_status_mask[i])) {
+> +                       /* ... */
+> +               }
+> +       }
+>
+> The operations in these loops should be in a .hart_start function of an H=
+SM
+> driver, not run in a loop at cold boot. You will need to do this anyway t=
+o
+> support power management, and it makes cold boot faster.
 
-Link: https://www.spacemit.com/community/document/info?lang=3Den&nodepath=
-=3Dsoftware/SDK/buildroot/k3_buildroot/source.md [1]
+Agreed. I will add a K3 HSM .hart_start callback which clears the target
+hart's core and cluster power-down votes and wakes only that hart. The
+cold-boot path will retain the one-time boot-vector and CCI setup, but
+will no longer wake all secondary harts or wait for them to enter WFI.
+This also removes the WFI status tables and timeout.
 
---=20
-Troy Mitchell
+> +static bool spacemit_cold_boot_allowed(u32 hartid)
+> +{
+> +       return !hartid;
+> +}
+>
+> If harts 1-15 are not powered on until spacemit_k3_pre_init(), this callb=
+ack
+> won't do anything, because hart 0 is the only hart running at this point.
 
+Right. Since only hart 0 is running before platform early init, the
+callback is redundant. I will remove it and its assignment.
 
---ae85d0fbff21b00ddfe967424358b95b749885af026abae7835d58cbc073
+                                            - Troy
+
+--6c5187a0d406d7c70382a93f56309ddd9d0b2e18b5968736f66cb397f9f1
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iIMEABYKACsWIQSL4Ay2cExaPXAQcU2YCe+A+TM0LwUCaoendA0caUB0cm95LXku
-b3JnAAoJEJgJ74D5MzQvHCsBAJITcTIJ8GRF9cxEvo71qPb0IrmElbfZ7h9GwL1e
-K1QoAP9WaHE/l/veBxknxlM+58u8dcojwa24PZk+J69PnPzMCg==
-=f+sJ
+iIMEABYKACsWIQSL4Ay2cExaPXAQcU2YCe+A+TM0LwUCaoewDQ0caUB0cm95LXku
+b3JnAAoJEJgJ74D5MzQvMVQBAK9PYXl0dwizYLfTGxWYlhC7Zzjvn1gXOGCPGHmC
+qdRUAP0SLoAp44RhDvEeImMMomrrtv3ayUXmy4w2+Mpe08EWCg==
+=5cdv
 -----END PGP SIGNATURE-----
 
---ae85d0fbff21b00ddfe967424358b95b749885af026abae7835d58cbc073--
+--6c5187a0d406d7c70382a93f56309ddd9d0b2e18b5968736f66cb397f9f1--
 
 
---===============9087847447887349738==
+--===============7159765597351506378==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -162,5 +181,5 @@ opensbi mailing list
 opensbi@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/opensbi
 
---===============9087847447887349738==--
+--===============7159765597351506378==--
 
