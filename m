@@ -4,63 +4,104 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 070F6C61DC6
-	for <opensbi@archiver.kernel.org>; Thu, 27 Aug 2026 11:58:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B6746C61DB9
+	for <opensbi@archiver.kernel.org>; Fri, 28 Aug 2026 06:09:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
+	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=MKzOQrIdmtco2BRsLoUuo3iYAuQNNtcwd0C6G7EhEHo=; b=r7oFLCpwfhYd5Y
-	k3akYoCUgjnjFi9NdSdTc6cEIx0cNe60AtEzguxfaI0vI3El6w/FzTL2Kq49eamnyw/AOG7joyoyl
-	rK7dCkzv1xmGjziyYsyNhdIzFTjQGzDyInI6lqj11BWiYwqRcGmBnepoDNVOBqDLecBNCW08S6p0Y
-	z6pJKY2cizCQ61qrp1n4xcqolyDVU7ZNE2j8iz/CT8yQFZoSv2GDX6Sk+8azWoOPcQi1NstLghUra
-	AXVoXKyOrQFYS+RG5HNrWsNumEQICLadE7FZqAVT9ijcVWzufYQ6CD4kcXgpymG1y8xKLFgEmpQQ7
-	leBF5j/EA+kqfLqPL3dA==;
+	List-Owner; bh=pxTZpN6S5sOrcQwetTSRMtF2G4J955bBYx2D/EKqS2g=; b=Bkakh/Yv3Wdn4m
+	9XcrmIjIMwo7VotZGmRsJxk77rctaM70F42R2cOS/OxZlaaXrNb4lVoNt6FTyzHt5amlyFn9zFHfY
+	NAK4nBk5bUolvWDkm2JzS8WFEAjBV7ke2kynbLfGym90ZrNOUcKOTF5zXwvNur2nf4VDBlXa6TeA7
+	ZYCxZBzbAMs6ZIYEMbejqnEbFwPI/FTbW025I3Rajgaad0SZNEsHV+4h1xqHzdP5ACu4sqdid9VU+
+	MpE8xjTqRQNu+9A7g6Xq7JWxTVGCIQyW5I4ed+ljYmjTNt9vVFbxYHqYjhybda+eleVMsu8U+C8jV
+	42pTXftVtEen0gLW8m9w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wzYki-00000003v83-100m;
-	Thu, 27 Aug 2026 11:58:40 +0000
-Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
+	id 1wzpmV-00000005BPz-11cs;
+	Fri, 28 Aug 2026 06:09:39 +0000
+Received: from mail-pg1-x52d.google.com ([2607:f8b0:4864:20::52d])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wzYke-00000003v7a-2k6D
+	id 1wzpmS-00000005BOh-3OVX
 	for opensbi@lists.infradead.org;
-	Thu, 27 Aug 2026 11:58:38 +0000
-Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-05 (Coremail) with SMTP id zQCowAA3pT9qJpBqPpDJBg--.64046S2;
-	Thu, 27 Aug 2026 19:58:34 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
-	Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>,
-	Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH] lib: sbi: dbtr: validate complete shared memory range
-Date: Thu, 27 Aug 2026 19:58:33 +0800
-Message-ID: <20260827115833.50735-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
+	Fri, 28 Aug 2026 06:09:38 +0000
+Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-cc1bcdb3c4cso519689a12.2
+        for <opensbi@lists.infradead.org>; Thu, 27 Aug 2026 23:09:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1787897375; x=1788502175; darn=lists.infradead.org;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=bqVUyYyDGvBAbBmtXISQ7uBvdrlgpFIHHzUX6AzJl0I=;
+        b=hL1/ZoZVXfQYNFQpgHOK1uWbi2TD14z9STxIsX+TlFzSoP29IUu+fVRcRCxIyDOyUc
+         OvuFY3cu+ECTut9+TxcxRLwdmMkprJhqOpoF5MCHWYvI9fP9fIsruXncLx3P8DRWYPC+
+         OA//D6USKVqIAbinxXWXidLFj/uqFYyRbUAHPr8lcugD1tUzGSvqOuww3oB3d8fimo7V
+         4br+A460QkAQzPniVoh8NUusQ9fS5bPKwnJ24lB9YukCnhAq8j2Gdzfh0ck/T4vKxki+
+         VTCl/7Br9rreDshkrJp775YX6nDiBG9xso210D6vmeI1dYnqdF1KIYMjPPWHoEVEvX1H
+         a2DA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787897375; x=1788502175;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=bqVUyYyDGvBAbBmtXISQ7uBvdrlgpFIHHzUX6AzJl0I=;
+        b=IwXj6koOJl1nk43gNASEHaWj0U8CYgiwYRdoXfzMXnJ1d/+RJM19p/QMFkkJ6G/VwS
+         sqC/Jr22xVQVfnIvXtayrREpKIk0vgUTKdkl8ddmY9TuVwbqomlyF5zsNAjsxhXKDOix
+         9AABN93ufBHllYEdiTlO/UNSum877boDkdbF8Fopxbn5BkRksGt8XaEIPte/gKCHKF1I
+         qS2bbBsZzElw28gi+cXs6JkYeZ7VJMX/GbkLgEhS/aLqlYOOgl9S+AkC3jop/3Lmnk4D
+         WvDBmmnR80f0oUX4KayYBh+/43wOqwbsq5gzYHqxxja73SLGrPxsi2YnZhnb9WeeP2ls
+         kNEw==
+X-Gm-Message-State: AFuF++n9LpXLq9f93h4P1tv0KNCl8k1n7+HueVYbGUWfjaTQUB0FV0Y+
+	2scsg+kbdkkWbSyrtezu9ioYa7kAPeQ5HhKW2EUUucBHAa/YR3Pv8A6g7KezSTmoadP6SEEFpBl
+	DjYGNwxDxQ4SGyEd4daoQZGVigAS/XT8I4X9fiLNC0wp64wGNY2my2M+QRYIta1yy4s+JyMB8cU
+	W2XbygrRsfXGJ12HJ0XGfOkMbzu44UDgzzmfWq8Hq/syDSHFY=
+X-Gm-Gg: AR+sD12cN//awKenm5HQQ86qE0PLrVx6LmYPHc5w+QctvgC90mZ4b6bTbJfsfFRIO/6
+	WSWOTUKrPxfbcrzT1YsOssjxzn1f3mEu+zTFGXWtRU4u7REc/fxNvF6D95gpKlTGavY/TWVGFFy
+	hovlaPMD0CkKKuPQW0oF+5BtNwwE37pab8c5pBycpiqEo9ystWGk2cxkMMRH/+Kei3fMMCdnYaT
+	8Vn3NWS3DnAxMzI+lKk+l6Aiqh2TQDwGwwmvg9SDMq94Ots9Pm0EARFhXQdZ3t1B/ObyCXqLzX4
+	qZ/fKsowIi9I1+gx1I5n2ovMgCqV4LWvl86upoehvJIm7Ep6Mhy3cA7s6jZEOh29kYt41dfWmqb
+	sfRU/TxJnEjdLnNSovFp+CeS6CkzqN3mS8HocGAtwGIPPLhwGEo016wmOcaAY2Fs2QYB0UFlpF+
+	ZcmkEB5uNXpRI69H+9VFOckV+DHs+SjbK4tGeFqVVrBtp3WCPrsGtlaD5efkh1KtkBdL6kHXw=
+X-Received: by 2002:a17:90b:3c47:b0:38d:f5bb:e0f4 with SMTP id 98e67ed59e1d1-396d0e27e11mr9760296a91.1.1787897375145;
+        Thu, 27 Aug 2026 23:09:35 -0700 (PDT)
+Received: from sw08.internal.sifive.com ([4.53.31.132])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3286f95a847sm1995864eec.17.2026.08.27.23.09.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 27 Aug 2026 23:09:34 -0700 (PDT)
+From: Nia Su <nia.su@sifive.com>
+Subject: [PATCH 0/2] lib: sbi: Fix Smrnmi/RNMI trap handling issues
+Date: Thu, 27 Aug 2026 23:09:30 -0700
+Message-Id: <20260827-rnmi-trap-fixes-v1-0-df371cf92301@sifive.com>
 MIME-Version: 1.0
-X-CM-TRANSID: zQCowAA3pT9qJpBqPpDJBg--.64046S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxuF1DWrWrGr1UtF15JrWUJwb_yoW5GryrpF
-	n7WF1xtr42qr9Fyr92y3WrXryYkrW8AayUK3sxCFnay3WkZr10kr4ag3Wq9a4fZFy8Xa4j
-	va18KFWDCa1YvFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUyv14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAKI48J
-	MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwV
-	AFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y0x0EwIxGrwCI42IY6xIIjxv2
-	0xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4
-	v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AK
-	xVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VUb3rc3UUUUU==
-X-Originating-IP: [111.196.241.250]
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
+X-B4-Tracking: v=1; b=H4sIABomkWoC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzMDCyMz3aK83EzdkqLEAt20zIrUYl1LQ2MT8yRT4ySDlBQloK6ColSwBFB
+ TdGxtLQBVmajKYQAAAA==
+X-Change-ID: 20260826-rnmi-trap-fixes-91347b53b0dd
+To: opensbi@lists.infradead.org
+Cc: Nia Su <nia.su@sifive.com>, Nick Hu <nick.hu@sifive.com>, 
+ Nylon Chen <nylon.chen@sifive.com>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1333; i=nia.su@sifive.com;
+ h=from:subject:message-id; bh=bD7LtOpMKR8pjZ9QbsZRzkpO/DajgxJQVSTsM03wEu8=;
+ b=owEBbQKS/ZANAwAIAYihNJa3+YfgAcsmYgBqkSYevU2xaOdfIZNGhfht1/EwuDPGLcoEubQB7
+ laRCwRcOhaJAjMEAAEIAB0WIQThGl/T4FqBBU9NhIeIoTSWt/mH4AUCapEmHgAKCRCIoTSWt/mH
+ 4DSCD/4yK5aWZ+lIANlPDs+mp4ABdhPF7qkHp0raZY+BtfkVfow060zhipgy981O6lcZLRlTxL1
+ OlBYv/aksPLoPt32LoTVNVqreOR0mu/9LxdNJqkAv8gZSKpxdjuEVzsGHTJDkDJ1Pt5y9Se3Cy0
+ WsShy89GCTim3HFtDXu4iHOD6f3QdmUoDPkxYXiRJqHoWlpi7wmXIzY2Z8UOW3wwotdVEiBX/wE
+ 8KrAJT9SAPuCFmcokdjAfzxA3cfT4TZApsPOA4RnVpozzfeAi4flVVzpTu1LWp0DRRGEbzLMrpo
+ Oo3zuQBaOxx87k+3DkNN0x/mveBuTgc55Wqhs+sVDT+1gt/iUhW7tXx0fXuEL+iP9RJ8QuxhDvF
+ 08OlWBYKxDbVU1z9suzbAoXf5Ovl7I2g/7QcxDN1c3GFsAOU1qJ72y1hVCRPZ1JJPwx9XdhiAx8
+ 5uOh6UH1jOBLu4MYfL6aXbeBBM0M7FNwIly9/sKdXEO0K2HKIZEtSWmusoBik8q2YGLCWYMIxHn
+ RgXasB3WstxSf5fobR8H6k+E9P6/0ddsp2/O+TdbMiiXFRqTJ1gp95g206sT+7kfG9BqVT99hiD
+ F6EL38blB+DRifoG6wVul3NKX2b9s1eNeepq7bIhNXiUOCE9uu5hx0C/yEX/T42A7FqxQjYJpa6
+ xMXagqmzhPK7Ahw==
+X-Developer-Key: i=nia.su@sifive.com; a=openpgp;
+ fpr=55235C875092ACC578EFCE6CD1699E646B29B1AF
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260827_045837_178075_AD93137A 
-X-CRM114-Status: UNSURE (   9.21  )
+X-CRM114-CacheID: sfid-20260827_230936_876396_8B570F24 
+X-CRM114-Status: UNSURE (   7.80  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -78,70 +119,40 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The DBTR shared memory contains total_trigs entries, but setup currently
-checks domain access for only its first byte.  A supervisor can place that
-base near a domain boundary so later entries extend into inaccessible or
-M-mode-only memory.
+This series fixes two issues in the Smrnmi extension and RNMI trap
+handling code:
 
-Validate the complete specification-defined shared-memory extent with
-sbi_domain_check_addr_range().  Also reject an install count prohibited by
-the DBTR specification before mapping or reading that many entries.
+Patch 1 moves the Smrnmi CSR setup into a dedicated
+sbi_smrnmi_hart_init() helper so it also runs on the non-retentive
+suspend resume path (sbi_hart_reinit()), and relaxes
+smrnmi_handlers_init to allow a NULL callback and to report failure
+via an int return value instead of void.
 
-This patch intentionally does not alter sbi_dbtr_read_trig().  Its equality
-predicate follows the current DBTR error table even though the surrounding
-half-open-range prose is inconsistent; that specification issue is a
-separate decision.
+Patch 2 fixes sbi_trap_rnmi_handler(), which never updates
+prev_context and can inherit a stale value from an earlier trap
+that reused the same M-mode exception-stack slot. This can make
+sbi_trap_error() loop indefinitely instead of printing diagnostics.
+The fix maintains the trap-context pointer the same way
+sbi_trap_handler() does, so nested contexts always link correctly.
 
-Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
-
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+Signed-off-by: Nia Su <nia.su@sifive.com>
 ---
-Base-commit: 4e79fd7de59f1b2899092c1a84ce68c8ebc68f93
+Nia Su (1):
+      lib: sbi: Fix stale prev_context in RNMI handler
 
- lib/sbi/sbi_dbtr.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+Nylon Chen (1):
+      lib: sbi: Fix Smrnmi init and non-retentive suspend handling
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index 0104796..41d5e6f 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -263,6 +263,7 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 			 unsigned long shmem_phys_lo,
- 			 unsigned long shmem_phys_hi)
- {
-+	unsigned long shmem_addr, shmem_size;
- 	struct sbi_dbtr_hart_triggers_state *hart_state;
- 
- 	if (dom && !sbi_domain_is_assigned_hart(dom, current_hartindex())) {
-@@ -304,9 +305,13 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
- 	if (shmem_phys_hi)
- 		return SBI_EINVALID_ADDR;
- 
--	if (dom && !sbi_domain_check_addr(dom,
--		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
--		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
-+	shmem_addr = DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo);
-+	shmem_size = hart_state->total_trigs *
-+		     sizeof(union sbi_dbtr_shmem_entry);
-+	if (dom && !sbi_domain_check_addr_range(dom, shmem_addr, shmem_size,
-+						smode,
-+						SBI_DOMAIN_READ |
-+						SBI_DOMAIN_WRITE))
- 		return SBI_ERR_INVALID_ADDRESS;
- 
- 	hart_state->shmem.phys_lo = shmem_phys_lo;
-@@ -619,6 +624,9 @@ int sbi_dbtr_install_trig(unsigned long smode,
- 	if (sbi_dbtr_shmem_disabled(hs))
- 		return SBI_ERR_NO_SHMEM;
- 
-+	if (trig_count >= hs->total_trigs)
-+		return SBI_ERR_BAD_RANGE;
-+
- 	shmem_base = hart_shmem_base(hs);
- 	sbi_hart_protection_map_range((unsigned long)shmem_base,
- 				      trig_count * sizeof(*entry));
--- 
-2.50.1 (Apple Git-155)
+ include/sbi/sbi_hart.h     |  1 +
+ include/sbi/sbi_platform.h |  2 +-
+ lib/sbi/sbi_hart.c         | 55 +++++++++++++++++++++++++++++-----------------
+ lib/sbi/sbi_trap.c         | 10 +++++++--
+ 4 files changed, 45 insertions(+), 23 deletions(-)
+---
+base-commit: 4e79fd7de59f1b2899092c1a84ce68c8ebc68f93
+change-id: 20260826-rnmi-trap-fixes-91347b53b0dd
+
+--
 
 
 -- 
