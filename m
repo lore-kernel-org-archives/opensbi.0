@@ -4,65 +4,68 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 64EF9C61DBD
-	for <opensbi@archiver.kernel.org>; Fri, 28 Aug 2026 14:25:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id F2A4CC61DBD
+	for <opensbi@archiver.kernel.org>; Fri, 28 Aug 2026 17:27:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Date:Subject:Cc:To:From:
+	Message-ID:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=yd7P91pus2XtXTdAhOvmkEjDplhLHuzk2CwSQg2+h6U=; b=XCasUDAiz2lv2G
-	fafqdGNtRacSyEJHhVMrPWDVD+00vfzhYeOKeBROVi7BZ+u+NlRwS2xWNmucT+1WqpbUVfgsOZtb7
-	1+Ey8Kt6ZCjDCRtLsqpi5VqACB+lmpzrvml5vUZ2+Pz84ZglTzR/KFiXHTnG/PXl7DvXOXYPS+bkl
-	a5iVoReItl4N6OE2jQtQ9zjtPDLuzuyJEDE25MlwH35C7PWFhoWVZPaJgtHsgQdxaVEFpYK2TkSaU
-	8Rf1UnvQ1H9jSFaMohn1K3VHMieG3UnJGJpwp4mhIVbDmNj2GVt7sc5/bLwBIu9MSq3E5VmHLO189
-	zIZ/K2PnvWLH5znQyQKg==;
+	List-Owner; bh=ga8nvEIb67Qz4zDA60MtPsfXQ/0t7othvwv0/PVvvHA=; b=SnH1FD/OxUil9d
+	K3EIIM8maCYITwbLkLy8FZeTRuWEdmlsylWCxgtV4xBLd1MI6eggILAJclMXQCJWf/5G69BIFqWGd
+	3ArI6/hT5qofFYHC1WWHjkaYTImL/m3WhO4rFS1HELN/kmw+faOHW4Ij48EMybamXOg+8Csisu8rE
+	gH81ToR1dfJTxE88SQJfYhEer9IUbnjv0E9sgS3tf9i0eAKG78HjP5i9zWdC4HazYvzcO9GX/ZFCa
+	itO749bgg95sTSEqa6C1E345KS8YRe1CLWLA4/hUGxDLU5KpMQ+rmlrB4urxm5goS1nf2WSd27Zvt
+	G4vREV45wihjvuF15HsQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wzxWK-00000005ye5-2nSG;
-	Fri, 28 Aug 2026 14:25:28 +0000
-Received: from smtp21.cstnet.cn ([159.226.251.21] helo=cstnet.cn)
+	id 1x00MZ-00000006GN0-1bsk;
+	Fri, 28 Aug 2026 17:27:35 +0000
+Received: from out203-205-221-205.mail.qq.com ([203.205.221.205])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wzxWH-00000005yd5-3cOY
+	id 1x00MV-00000006GME-3I7L
 	for opensbi@lists.infradead.org;
-	Fri, 28 Aug 2026 14:25:27 +0000
-Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowADnvPBTmpFqcGnABg--.42912S2;
-	Fri, 28 Aug 2026 22:25:23 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
+	Fri, 28 Aug 2026 17:27:33 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1787938043; bh=8d6C+GlaC2ROTm03f6Un3qUh+HUNOjskCSWy2ryj2Zs=;
+	h=From:To:Cc:Subject:Date;
+	b=dG+SHaienR4wx4yGTz/tbtdWMdrHLOpsJHciH3DuvET7/RH6u7maYhYHKAnyVYvsN
+	 o+Er8pnPcKTQC/lxTrEqJLBuso6Pmp0SuA1rjFztkilot5WjyVzETHKqbdICVF8vx0
+	 EgBLL69kMpB4cIds/ZIUhof4M+omOtfa7WhFRfkU=
+Received: from zs-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.. ([124.79.168.208])
+	by newxmesmtplogicsvrszc43-0.qq.com (NewEsmtp) with SMTP
+	id 6D5BCEBD; Sat, 29 Aug 2026 01:27:21 +0800
+X-QQ-mid: xmsmtpt1787938041t36ms3zjs
+Message-ID: <tencent_41D845E8A5581104FC008200CAC9C484770A@qq.com>
+X-QQ-XMAILINFO: MeukCuWaRbQl1J9IWM3d+suHBJ3VJRP5ZqJvUUbCL0D4w+XkCdVNDbxFArlMk7
+	 jfb4o/S8QkEN9wRJjILYScRlrSlRWi3gL0rH0be7ebJ38/4EVIXgkUSesSApaoyW6cMNYRSg/lRT
+	 ukR0GHGvAN6ID0lfk4bLn9SddwaBiahBDTEMXU67mTyTQ8/l6TVLm3WH5ac7p+k0IaFdZAYqbaOI
+	 IvyMNIqwoGLjJl61hEcaxtOo5A7P27sfyG+s65bWqEuV0aB2IQkgBGG9vQ8k1pub48+WQWfV1+3m
+	 L0/L/1w+Txtfzox2LfvFcgl36nNnv9dqw6sQKnhoaKGQZSP2Q3hcrMOrC34Rg5G9UqB45F/LHGQa
+	 h1zkEjVuMQYuqTXZSyARUPrqoPxuooDG4Vr0bT5iopgjT6JoV/q+UrryalmOF86pwrnxyfiyWqRI
+	 wch1FJlcqCbDpuJVeDKlvenAHq5VZf/XmgsXE316IEYro/thAKlSNUOaiuQXfFi/XCneWYLqnVz+
+	 bGJPwE90JhAJ0IpdChr2s6XcQHCZRTMdxK5AAEeCveqGy+2C7uF0MC5n9olNiJIgZe7C9J/BNVNa
+	 PAZaCxrvgs5RLN5jTS3aWlADVgudGjLq6I32aQgn0fgJwlVz/dSqqCMqbmxfjTXPX7dAsNMDQap9
+	 8kQg73ELRpp8ONeReu0NqUgvsbnsuDb+nmghsS8zIE9jp79CXcL/VjoijQ+fz+5M6A2DcG3Tfxzv
+	 wdelBTPHqivXlTkZdFNKZLpEE1dxBKPjpUMuIund8b3Prv95rnpLFIgmGaZqTjjLEUhPb25nTo/J
+	 4xrWddl+ccsPqHnV//rDQzTt3SouGGupGq7FJww6GbH5v1GQLZ0WaZpJS3nVV/Vxz87FyfnXdc/V
+	 OIC0aOL12CRxeSrcleDebQq2iG+AtWoOSjK0UbfrrBBdUonNMsMSsWfI1V82gO81YjrzaR3RIoDY
+	 qIcnn78+Goo+nfO6799Ah7cPjeqOSk/yD/2NXKQPBhkSxGNnxnXoujgK6WnhvrpEEAiXXpwAw=
+X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+From: Shibo Zhu <3499129952@qq.com>
 To: opensbi@lists.infradead.org
-Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
-	Rahul Pathak <rpathak@ventanamicro.com>,
-	Subrahmanya Lingappa <slingappa@ventanamicro.com>,
-	Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH] lib: utils/mailbox: reject undersized RPMI shmem queues
-Date: Fri, 28 Aug 2026 22:25:01 +0800
-Message-ID: <20260828142521.14267-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
+Cc: Anup Patel <anup@brainfault.org>,
+	Atish Patra <atish.patra@linux.dev>
+Subject: [Question] HSM START_PENDING when hart_start request never completes
+Date: Sat, 29 Aug 2026 01:27:17 +0800
+X-OQ-MSGID: <20260828172717.175148-1-3499129952@qq.com>
+X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
-X-CM-TRANSID: qwCowADnvPBTmpFqcGnABg--.42912S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxuF13XF1UtF13Jr47GF4kWFg_yoW5GryrpF
-	45G34Sq348XFZxWFyktrs5ZwsrAF9YqFWYgr9ayry8Wws2qry5tFWYy34jqryrKFWkAw4U
-	Z39YvrZ5GwsFvF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUkG14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVW8JVWxJwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkF7I0En4kS14v26r12
-	6r1DMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI
-	0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y
-	0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxV
-	W8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_Cr1l
-	IxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUIfO7UUU
-	UU=
-X-Originating-IP: [111.196.241.250]
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260828_072526_269585_AC8DE285 
-X-CRM114-Status: GOOD (  10.25  )
+X-CRM114-CacheID: sfid-20260828_102732_291035_6F018D83 
+X-CRM114-Status: UNSURE (   7.89  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -79,67 +82,91 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The RPMI shared-memory mailbox transport derives qctx->num_slots from the
-device-tree queue window size and the riscv,slot-size property. The current
-initialization only checks that the queue window is nonzero before
-subtracting the two RPMI header slots.
+Hi OpenSBI maintainers,
 
-Reject queue windows that cannot provide the two header slots plus at least
-two data ring slots. A zero data-slot count would later be used as a modulo
-divisor, and a one-slot ring is also unusable with the current full/empty
-convention because one empty slot is reserved to distinguish the two
-states.
+I have a question about the failure semantics of
+sbi_hsm_hart_start() when a start backend reports success but the
+target hart never makes progress.
 
-Also reject data-slot counts that cannot be represented by qctx->num_slots.
+The relevant generic HSM flow appears to be:
 
-Fixes: 91f46fb47eef ("lib/utils: Add RPMI messaging protocol and shared memory transport support")
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
----
- lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+STOPPED
+   |
+   | sbi_hsm_hart_start()
+   v
+START_PENDING
+   |
+   | issue wake/start request
+   v
+backend returns success
 
-diff --git a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-index 521e0673..4457617a 100644
---- a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-+++ b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-@@ -589,6 +589,7 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
- 	const fdt32_t *prop;
- 	int count, len, ret, qid;
- 	uint64_t reg_addr, reg_size;
-+	u64 total_slots;
- 	struct smq_queue_ctx *qctx;
- 
- 	ret = fdt_node_check_compatible(fdt, nodeoff,
-@@ -638,6 +639,14 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
- 		if (ret < 0 || !reg_addr || !reg_size)
- 			return SBI_ENOENT;
- 
-+		/* calculate number of slots in each queue */
-+		total_slots = reg_size / mctl->slot_size;
-+		if (total_slots < RPMI_QUEUE_HEADER_SLOTS + 2 ||
-+		    total_slots - RPMI_QUEUE_HEADER_SLOTS > (u32)-1)
-+			return SBI_EINVAL;
-+
-+		qctx->num_slots = total_slots - RPMI_QUEUE_HEADER_SLOTS;
-+
- 		ret = sbi_domain_root_add_memrange(reg_addr, reg_size, reg_size,
- 						   (SBI_DOMAIN_MEMREGION_MMIO |
- 						    SBI_DOMAIN_MEMREGION_M_READABLE |
-@@ -645,10 +654,6 @@ static int rpmi_shmem_transport_init(struct rpmi_shmem_mbox_controller *mctl,
- 		if (ret)
- 			return ret;
- 
--		/* calculate number of slots in each queue */
--		qctx->num_slots =
--			(reg_size - (mctl->slot_size * RPMI_QUEUE_HEADER_SLOTS)) / mctl->slot_size;
--
- 		/* setup queue pointers */
- 		qctx->headptr = ((void *)(unsigned long)reg_addr) +
- 				RPMI_QUEUE_HEAD_SLOT * mctl->slot_size;
+For the generic path, OpenSBI may use an IPI to wake the target hart.
 
-base-commit: 4e79fd7de59f1b2899092c1a84ce68c8ebc68f93
--- 
-2.43.0
+After the wake/start backend reports success, sbi_hsm_hart_start()
+returns SBI_SUCCESS while the target remains in START_PENDING.
+
+Normally, the target hart later enters the OpenSBI warm-start path and
+eventually calls sbi_hsm_hart_start_finish(), which performs:
+
+START_PENDING -> STARTED
+
+and releases the start ticket.
+
+The case I am interested in is when the backend reports success, but
+the target hart never responds and therefore never reaches
+sbi_hsm_hart_start_finish().
+
+In that case, the state appears to remain:
+
+state        = START_PENDING
+start_ticket = held
+
+indefinitely.
+
+A later hart_start() request for the same hart cannot proceed because
+the previous start request still owns the start ticket.
+
+What makes this case interesting to me is the distinction between a
+wake/start backend reporting success and knowing that the target hart
+will actually execute.
+
+For example, an IPI implementation may successfully perform its
+send-side operation, but that does not necessarily establish that the
+target hart received the interrupt, started executing, or will
+eventually complete the HSM startup sequence.
+
+Once the backend has returned success, I do not see a generic path
+that can later determine that the outstanding start request has failed
+and safely transition:
+
+START_PENDING -> STOPPED
+
+The target hart itself normally owns the successful completion path,
+while the requesting hart has already returned from
+sbi_hsm_hart_start().
+
+I would like to understand the intended contract here.
+
+When the generic IPI path or a platform HSM hart_start() backend
+returns success, is it expected to guarantee that the target hart
+will eventually reach the HSM startup completion path?
+If the backend reports success but the target hart never responds,
+is an indefinitely START_PENDING hart considered an expected
+consequence of a platform/backend failure, or is there intended to
+be a recovery mechanism at the generic HSM layer?
+Is it intentional that generic HSM only handles synchronous backend
+failures, while failures discovered after a successful backend
+return are outside the generic HSM failure model?
+More generally, what is the intended ownership of an outstanding
+START_PENDING request after sbi_hsm_hart_start() has returned
+SBI_SUCCESS but before the target reaches
+sbi_hsm_hart_start_finish()?
+
+I am mainly trying to understand the intended HSM state-machine and
+backend contract here. I am not proposing a code change at this point.
+
+Thanks,
+Shibo Zhu
 
 
 -- 
