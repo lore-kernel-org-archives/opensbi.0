@@ -4,67 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id F2A4CC61DBD
-	for <opensbi@archiver.kernel.org>; Fri, 28 Aug 2026 17:27:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3FA15C61DB9
+	for <opensbi@archiver.kernel.org>; Fri, 28 Aug 2026 21:31:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Date:Subject:Cc:To:From:
-	Message-ID:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=ga8nvEIb67Qz4zDA60MtPsfXQ/0t7othvwv0/PVvvHA=; b=SnH1FD/OxUil9d
-	K3EIIM8maCYITwbLkLy8FZeTRuWEdmlsylWCxgtV4xBLd1MI6eggILAJclMXQCJWf/5G69BIFqWGd
-	3ArI6/hT5qofFYHC1WWHjkaYTImL/m3WhO4rFS1HELN/kmw+faOHW4Ij48EMybamXOg+8Csisu8rE
-	gH81ToR1dfJTxE88SQJfYhEer9IUbnjv0E9sgS3tf9i0eAKG78HjP5i9zWdC4HazYvzcO9GX/ZFCa
-	itO749bgg95sTSEqa6C1E345KS8YRe1CLWLA4/hUGxDLU5KpMQ+rmlrB4urxm5goS1nf2WSd27Zvt
-	G4vREV45wihjvuF15HsQ==;
+	List-Owner; bh=leIDKq139uhIBVK3KYcSuaHqXoxPghpg3ExMAzmgMKY=; b=r43RKn1zQ0ij0c
+	DQVUseE8qCdaiHgYkSGRbWahjIlWfLqqX6IeQG/2nhRNzKV3fss3ij4Dq+1k4uGWGAPL+g325rFX1
+	0p53CMMhlU5nHbDFr8YpMEpYXJxtqQKer2IvQdelEl04X3muLjpE7551tMp3wFc0wxGBDzOk7UXzI
+	fmfZ0CVlxUld3shIhAjJ1YwdwMTKI6GbxXf0ok2lciVgtgbiSuNeeE7bfcS7A6vL1A8iI35jXIUdx
+	UX4rffHczc3lzj0XFp2Yo6cPBLvd8c/HvhoptoOp8ZKsecY2Y6FPIVmRNzp0ITVTBYH8sONCTX6xe
+	dgZw3HunvudypDqXlKDg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x00MZ-00000006GN0-1bsk;
-	Fri, 28 Aug 2026 17:27:35 +0000
-Received: from out203-205-221-205.mail.qq.com ([203.205.221.205])
+	id 1x04AP-00000006RtH-0qAQ;
+	Fri, 28 Aug 2026 21:31:17 +0000
+Received: from mail-pj1-x102f.google.com ([2607:f8b0:4864:20::102f])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x00MV-00000006GME-3I7L
+	id 1x04AN-00000006Rsz-2Js8
 	for opensbi@lists.infradead.org;
-	Fri, 28 Aug 2026 17:27:33 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1787938043; bh=8d6C+GlaC2ROTm03f6Un3qUh+HUNOjskCSWy2ryj2Zs=;
-	h=From:To:Cc:Subject:Date;
-	b=dG+SHaienR4wx4yGTz/tbtdWMdrHLOpsJHciH3DuvET7/RH6u7maYhYHKAnyVYvsN
-	 o+Er8pnPcKTQC/lxTrEqJLBuso6Pmp0SuA1rjFztkilot5WjyVzETHKqbdICVF8vx0
-	 EgBLL69kMpB4cIds/ZIUhof4M+omOtfa7WhFRfkU=
-Received: from zs-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.. ([124.79.168.208])
-	by newxmesmtplogicsvrszc43-0.qq.com (NewEsmtp) with SMTP
-	id 6D5BCEBD; Sat, 29 Aug 2026 01:27:21 +0800
-X-QQ-mid: xmsmtpt1787938041t36ms3zjs
-Message-ID: <tencent_41D845E8A5581104FC008200CAC9C484770A@qq.com>
-X-QQ-XMAILINFO: MeukCuWaRbQl1J9IWM3d+suHBJ3VJRP5ZqJvUUbCL0D4w+XkCdVNDbxFArlMk7
-	 jfb4o/S8QkEN9wRJjILYScRlrSlRWi3gL0rH0be7ebJ38/4EVIXgkUSesSApaoyW6cMNYRSg/lRT
-	 ukR0GHGvAN6ID0lfk4bLn9SddwaBiahBDTEMXU67mTyTQ8/l6TVLm3WH5ac7p+k0IaFdZAYqbaOI
-	 IvyMNIqwoGLjJl61hEcaxtOo5A7P27sfyG+s65bWqEuV0aB2IQkgBGG9vQ8k1pub48+WQWfV1+3m
-	 L0/L/1w+Txtfzox2LfvFcgl36nNnv9dqw6sQKnhoaKGQZSP2Q3hcrMOrC34Rg5G9UqB45F/LHGQa
-	 h1zkEjVuMQYuqTXZSyARUPrqoPxuooDG4Vr0bT5iopgjT6JoV/q+UrryalmOF86pwrnxyfiyWqRI
-	 wch1FJlcqCbDpuJVeDKlvenAHq5VZf/XmgsXE316IEYro/thAKlSNUOaiuQXfFi/XCneWYLqnVz+
-	 bGJPwE90JhAJ0IpdChr2s6XcQHCZRTMdxK5AAEeCveqGy+2C7uF0MC5n9olNiJIgZe7C9J/BNVNa
-	 PAZaCxrvgs5RLN5jTS3aWlADVgudGjLq6I32aQgn0fgJwlVz/dSqqCMqbmxfjTXPX7dAsNMDQap9
-	 8kQg73ELRpp8ONeReu0NqUgvsbnsuDb+nmghsS8zIE9jp79CXcL/VjoijQ+fz+5M6A2DcG3Tfxzv
-	 wdelBTPHqivXlTkZdFNKZLpEE1dxBKPjpUMuIund8b3Prv95rnpLFIgmGaZqTjjLEUhPb25nTo/J
-	 4xrWddl+ccsPqHnV//rDQzTt3SouGGupGq7FJww6GbH5v1GQLZ0WaZpJS3nVV/Vxz87FyfnXdc/V
-	 OIC0aOL12CRxeSrcleDebQq2iG+AtWoOSjK0UbfrrBBdUonNMsMSsWfI1V82gO81YjrzaR3RIoDY
-	 qIcnn78+Goo+nfO6799Ah7cPjeqOSk/yD/2NXKQPBhkSxGNnxnXoujgK6WnhvrpEEAiXXpwAw=
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
-From: Shibo Zhu <3499129952@qq.com>
+	Fri, 28 Aug 2026 21:31:16 +0000
+Received: by mail-pj1-x102f.google.com with SMTP id 98e67ed59e1d1-382ef647e20so1470282a91.1
+        for <opensbi@lists.infradead.org>; Fri, 28 Aug 2026 14:31:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1787952674; x=1788557474; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Wwwp+xuMqTO9glvVpvPacR1zEjft/doJRglBoA9dT+4=;
+        b=MWjkzC6wIxvTCB1yG/5NVjTVy3aNBf4O64//3VFGGT7mHBx23LLK1CwGsNq7dY7T/I
+         LGP3KLOxwO12kIk9/xehmHPcBT0yI89n32MzmyyfCMH4n0vOBFOSdSagtC+7dpKj8sH2
+         z5aJQrHUiwJtfb9TY6wPTXSG6ymkr2nRPKhhFA0csUybXTx/SXFuQjhPU0k2xa1QqYtG
+         Jfrcj8lQhw0nwUio4g0FRIE9EivhK6T8hRp7GW67PAopzqlQs1y1s/pwpIaU51sHZrYo
+         uedBgMVlU7M+dlVh7QYV8i7dT+J28dE8Zqtwn6v6mejx6cYWkjG4+K/DC1u85oqtZcRx
+         myoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787952674; x=1788557474;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Wwwp+xuMqTO9glvVpvPacR1zEjft/doJRglBoA9dT+4=;
+        b=RFwrwViPmbXMQ3N8NjRbF8y9WYqd9eo3cNlbT4neX90VyJf9dyslgps3G+Apv0kBbd
+         1k8fxLdeP9SfGTQ0HHeez0/0HA2+K79OGeH5M5wFt0oK1iUgvtesJe+uW3uvLDNCxHgY
+         pGKl6VkKX2sAJgTNeGLtJbDkUmyNaqYfOU032612BaTlfPNDUxbtVFwPb0KawsiLEMes
+         uHBqkitOmYBHMOOCSIHc66VAzxR41pWZVmxnRXXQOgDATxTDMQfCo32Qam1wS71d2scy
+         U85awFtk/nOIvCQBLaDKCNyMFWWtKAnCroJ5Ej/5OvIs+iHwv1cNbJTOkkHUi/VJ1veT
+         rh9A==
+X-Gm-Message-State: AFuF++lj61PfN7PVHQEnewpWoyb7a+YCqf4En7cS+oheQkP8Qw/Wh4c8
+	38mF0jMFpNkTcUlDew+ut7+Ae9UPhCGEKrS7RdtTpSHHtSvdqEdVpfiIGpk3oA==
+X-Gm-Gg: AYBFou0MzNJk/Bk+dftTfu0ReIFgML44gwV0I42zy68bJh6/eUrfxQ0Q6BAwGpY1JBd
+	v6pOyOsj/vOstFlEskRCUFuVTy6YC6xwR0GRWrbOLxPtqeSX2hQNRjHDLLMiif/pQNIEveELOt+
+	QZd5JmHVRX6Y1ARGx1JfoFpPrnYkFBJGqi86vISJAlwOBVD4Dg4dd0sFE4gFhiu3h1ssSrhbipm
+	z74M8lTbM4jTZsqKENO+Yjmnn9rGNeTd2wOeAHkczg+xIM3TktiwiYFla9JZ95RXA+JUvc0Dee6
+	nsxn44O67Q3bmtQQv44hUi3uUztwWP/vr4FVcFcx1SC3mQpMXbFqDCNJvePF3f5TJias593kGm0
+	Eyk2cABl7C6BEzQiYREb0K9n7JUK9v8IomLADA3JgzcI3bB1Ao0oiQJuFVNsRjRSn9IJXMojHpQ
+	aUroCR/kpEbA43JSI/0dz2j6LBNuaPv6N0x/BCUdA/6ibeu91mXKs0ZTc3B6xovQ5tjVYJQPNK9
+	w1fDpgyDM7lQL1TQddxyFbnEfGdClUHBGwiw7AWffbUx95+1dH/wRtZjaN/IkVbYO9hqRXocdOl
+	YQ==
+X-Received: by 2002:a17:90b:5405:b0:38e:67e1:15b with SMTP id 98e67ed59e1d1-396d0de4c19mr17803324a91.6.1787952674208;
+        Fri, 28 Aug 2026 14:31:14 -0700 (PDT)
+Received: from aster-MS-7D31.scai.dhcp.asu.edu (209-147-138-26.nat.asu.edu. [209.147.138.26])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-328713b0451sm9868015eec.16.2026.08.28.14.31.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 28 Aug 2026 14:31:13 -0700 (PDT)
+From: whensun <theodoruswensanfebruanto025@gmail.com>
 To: opensbi@lists.infradead.org
-Cc: Anup Patel <anup@brainfault.org>,
-	Atish Patra <atish.patra@linux.dev>
-Subject: [Question] HSM START_PENDING when hart_start request never completes
-Date: Sat, 29 Aug 2026 01:27:17 +0800
-X-OQ-MSGID: <20260828172717.175148-1-3499129952@qq.com>
+Cc: whensun <theodoruswensanfebruanto025@gmail.com>
+Subject: [PATCH] lib: sbi: Fix FP state enable in sbi_fp_save
+Date: Fri, 28 Aug 2026 14:31:04 -0700
+Message-ID: <20260828213104.84490-1-theodoruswensanfebruanto025@gmail.com>
 X-Mailer: git-send-email 2.43.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260828_102732_291035_6F018D83 
-X-CRM114-Status: UNSURE (   7.89  )
+X-CRM114-CacheID: sfid-20260828_143115_593102_1E27E9AA 
+X-CRM114-Status: UNSURE (   8.77  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -82,91 +97,35 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Hi OpenSBI maintainers,
+sbi_fp_save() currently sets mstatus.VS before executing floating-point
+store instructions. VS controls vector state and does not enable
+floating-point instructions.
 
-I have a question about the failure semantics of
-sbi_hsm_hart_start() when a start backend reports success but the
-target hart never makes progress.
+Set mstatus.FS instead, matching sbi_fp_restore(), so floating-point
+state can be saved when FS was previously Off.
 
-The relevant generic HSM flow appears to be:
+Fixes: 718e1d194f5a ("lib: sbi: Add floating-point context save/restore support.")
 
-STOPPED
-   |
-   | sbi_hsm_hart_start()
-   v
-START_PENDING
-   |
-   | issue wake/start request
-   v
-backend returns success
+Signed-off-by: whensun <theodoruswensanfebruanto025@gmail.com>
+---
+ lib/sbi/sbi_fp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-For the generic path, OpenSBI may use an IPI to wake the target hart.
-
-After the wake/start backend reports success, sbi_hsm_hart_start()
-returns SBI_SUCCESS while the target remains in START_PENDING.
-
-Normally, the target hart later enters the OpenSBI warm-start path and
-eventually calls sbi_hsm_hart_start_finish(), which performs:
-
-START_PENDING -> STARTED
-
-and releases the start ticket.
-
-The case I am interested in is when the backend reports success, but
-the target hart never responds and therefore never reaches
-sbi_hsm_hart_start_finish().
-
-In that case, the state appears to remain:
-
-state        = START_PENDING
-start_ticket = held
-
-indefinitely.
-
-A later hart_start() request for the same hart cannot proceed because
-the previous start request still owns the start ticket.
-
-What makes this case interesting to me is the distinction between a
-wake/start backend reporting success and knowing that the target hart
-will actually execute.
-
-For example, an IPI implementation may successfully perform its
-send-side operation, but that does not necessarily establish that the
-target hart received the interrupt, started executing, or will
-eventually complete the HSM startup sequence.
-
-Once the backend has returned success, I do not see a generic path
-that can later determine that the outstanding start request has failed
-and safely transition:
-
-START_PENDING -> STOPPED
-
-The target hart itself normally owns the successful completion path,
-while the requesting hart has already returned from
-sbi_hsm_hart_start().
-
-I would like to understand the intended contract here.
-
-When the generic IPI path or a platform HSM hart_start() backend
-returns success, is it expected to guarantee that the target hart
-will eventually reach the HSM startup completion path?
-If the backend reports success but the target hart never responds,
-is an indefinitely START_PENDING hart considered an expected
-consequence of a platform/backend failure, or is there intended to
-be a recovery mechanism at the generic HSM layer?
-Is it intentional that generic HSM only handles synchronous backend
-failures, while failures discovered after a successful backend
-return are outside the generic HSM failure model?
-More generally, what is the intended ownership of an outstanding
-START_PENDING request after sbi_hsm_hart_start() has returned
-SBI_SUCCESS but before the target reaches
-sbi_hsm_hart_start_finish()?
-
-I am mainly trying to understand the intended HSM state-machine and
-backend contract here. I am not proposing a code change at this point.
-
-Thanks,
-Shibo Zhu
+diff --git a/lib/sbi/sbi_fp.c b/lib/sbi/sbi_fp.c
+index c8941252..38fb7a01 100644
+--- a/lib/sbi/sbi_fp.c
++++ b/lib/sbi/sbi_fp.c
+@@ -20,7 +20,7 @@ void sbi_fp_save(struct sbi_fp_context *dst)
+ 	if (!dst)
+ 		return;
+ 
+-	mstatus_orig = csr_read_set(CSR_MSTATUS, MSTATUS_VS);
++	mstatus_orig = csr_read_set(CSR_MSTATUS, MSTATUS_FS);
+ 
+ 	asm volatile(
+ #if defined(__riscv_d)
+-- 
+2.43.0
 
 
 -- 
