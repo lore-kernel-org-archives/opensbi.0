@@ -4,68 +4,66 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0DF26C61DE2
-	for <opensbi@archiver.kernel.org>; Mon, 31 Aug 2026 02:22:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0EE2DC61DE2
+	for <opensbi@archiver.kernel.org>; Mon, 31 Aug 2026 03:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:CC:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:CC:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=YTTxqHLmP8Uk3qa3sLmkLltOB3JXuuMKN3SBv9zrAi0=; b=vvii28Yr9pmnR4
-	zVM2Z/amFHIG+n+MuejLLkNAEf2EVWDvBUSQDBjYz+fbeDpXMnLZlbqDRtBKRyagIZQIkEhmU9o1L
-	MbuZ5ePV26Yy6EKl4xBlN9Uj2n5uCt0Z++8P649Rfvfr+6kfCmAHMgo7DNhjNGvVz58zyQk3EfuW7
-	42pR/Ez0GyhlS/hV86odJbIXv0dX5so77B+DIlTUdGJGnQ1fAAnk4qGPCc8ibrJCcKUf0PeO6oa64
-	J9VU/wwq6wuWp8Sn9o1Ymvuat6C+mLZY4hW+pcITqg9t+BB6PpGAl6vnf85JcOHNGC5GLEILuKWpi
-	2I1UuDQcleZiNT5G6p4g==;
+	List-Owner; bh=UQBwAnAdPN3wbeBS5HYZPdboTT+R+ISFd4MNbiNpoUY=; b=efqlPfWzHmdfNj
+	cl8y56PJ85Ri1CQ8rfUSvB3Re3eYep00j3StUueTa9r+MnTQJs+2vngmPltAEqBkVg5C9wM47eAdY
+	jvbioJy96JbanXeP4/uDnL9TGCE5V9gYhiPl9UtqXqJIMR2V/K9NcXOw8nfhL5Z6UoWeqicTJcRQR
+	5Z60coL7cWQihAgHWszPFqwYKaGmDwmw9p+LYX/EYRvj+W862SOgkT4a7/VIQUTZEhRzbYnXE86j2
+	R1V6DzhsIaRIz7Ys5/36A2x48vmU7d/JG94gqUcgiUCNM2kU3t8o++N/xvARWqqE88PxXWlxAAOJl
+	9wVscNBrBIX8D+TQ/RWg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x0rfY-00000008M7H-14e4;
-	Mon, 31 Aug 2026 02:22:44 +0000
+	id 1x0sGB-00000008NmX-0e22;
+	Mon, 31 Aug 2026 03:00:35 +0000
 Received: from atcsqr.andestech.com ([220.128.198.184])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x0rfT-00000008M5E-2ukv
+	id 1x0sG5-00000008NlW-0oZH
 	for opensbi@lists.infradead.org;
-	Mon, 31 Aug 2026 02:22:42 +0000
+	Mon, 31 Aug 2026 03:00:33 +0000
 Received: from mail.andestech.com (atcpcs55.andestech.com [10.0.1.155])
-	by Atcsqr.andestech.com with ESMTPS id 67V2M95E023621
+	by Atcsqr.andestech.com with ESMTPS id 67V2xwOD043827
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 31 Aug 2026 10:22:09 +0800 (+08)
-	(envelope-from alvinga@andestech.com)
+	Mon, 31 Aug 2026 10:59:58 +0800 (+08)
+	(envelope-from ben717@andestech.com)
 Received: from ATCPCS34.andestech.com (10.0.1.134) by atcpcs55.andestech.com
  (10.0.1.155) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.43; Mon, 31 Aug
- 2026 10:22:09 +0800
-Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS34.andestech.com
- (10.0.1.134) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 10:59:58 +0800
+Received: from swlinux02 (10.0.15.183) by ATCPCS34.andestech.com (10.0.1.134)
+ with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Mon, 31 Aug
- 2026 10:22:09 +0800
-From: Alvin Chang <alvinga@andestech.com>
-To: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+ 2026 10:59:58 +0800
+Date: Mon, 31 Aug 2026 10:59:57 +0800
+From: Ben Zong-You Xie <ben717@andestech.com>
+To: Pengpeng Hou <pengpeng@iscas.ac.cn>
 CC: <opensbi@lists.infradead.org>,
-        Xianbin Zhu
-	<xianbin.zhu@linux.spacemit.com>,
-        Anup Patel <anup@brainfault.org>, Bo Gan
-	<ganboing@gmail.com>,
-        Samuel Holland <samuel.holland@sifive.com>,
-        "Heinrich
- Schuchardt" <heinrich.schuchardt@canonical.com>
-Subject: Re: [PATCH v3 1/5] lib: sbi: select expected trap handler per hart
-Date: Mon, 31 Aug 2026 10:21:56 +0800
-Message-ID: <20260831022156.2060561-1-alvinga@andestech.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260827-spacemit-k3-v3-1-5d8dbb68539d@linux.spacemit.com>
-References: <20260827-spacemit-k3-v3-0-5d8dbb68539d@linux.spacemit.com> <20260827-spacemit-k3-v3-1-5d8dbb68539d@linux.spacemit.com>
+        Lad Prabhakar
+	<prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        Anup Patel
+	<anup.patel@oss.qualcomm.com>
+Subject: Re: [PATCH] platform: generic: andes: validate PMAADDR decoding
+Message-ID: <apTuLW4FYdKNblRB@swlinux02>
+References: <20260827115435.49190-1-pengpeng@iscas.ac.cn>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20260827115435.49190-1-pengpeng@iscas.ac.cn>
+User-Agent: Mutt/2.3.0 (2026-01-25)
 X-Originating-IP: [10.0.15.183]
 X-ClientProxiedBy: ATCPCS33.andestech.com (10.0.1.100) To
  ATCPCS34.andestech.com (10.0.1.134)
 X-DKIM-Results: atcpcs55.andestech.com; dkim=none;
 X-DNSRBL: 
-X-MAIL: Atcsqr.andestech.com 67V2M95E023621
+X-MAIL: Atcsqr.andestech.com 67V2xwOD043827
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260830_192240_106678_7EEF2752 
-X-CRM114-Status: GOOD (  20.02  )
+X-CRM114-CacheID: sfid-20260830_200029_577927_25A2282C 
+X-CRM114-Status: GOOD (  22.35  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -82,174 +80,113 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
+On Thu, Aug 27, 2026 at 07:54:35PM +0800, Pengpeng Hou wrote:
+> decode_pmaaddrx() reconstructs a NAPOT region with signed int shifts.  The
+> QiLai platform configures 2^35 and 2^37 PCIe regions, so decoding the first
+> enabled region while checking the next one reaches shifts by 32 and 35.
+> Those shifts are undefined even on RV64.
+>
+> The all-ones PMAADDR value also violates the sbi_ffz() precondition, and a
+> decoded base or end may not fit in unsigned long.
+>
+> Use unsigned shifts and make the decoder reject encodings whose size, base,
+> or inclusive end cannot be represented.  Treat an invalid enabled entry as
+> overlapping when adding a region, and fail rather than skipping it when
+> freeing a region.
+>
+> Fixes: aa56084c4dfb ("platform: generic: andes: add a new Andes SBI call to set up a PMA entry")
+>
+> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+> ---
+> Base-commit: 4e79fd7de59f1b2899092c1a84ce68c8ebc68f93
+>
+>  platform/generic/andes/andes_pma.c | 28 ++++++++++++++++++++++------
+>  1 file changed, 22 insertions(+), 6 deletions(-)
+>
+> diff --git a/platform/generic/andes/andes_pma.c b/platform/generic/andes/andes_pma.c
+> index ba9a35b..cdc06ac 100644
+> --- a/platform/generic/andes/andes_pma.c
+> +++ b/platform/generic/andes/andes_pma.c
+> @@ -69,10 +69,10 @@ static void set_pmaxcfg(int entry_id, char flags)
+>         csr_write_num(pmacfg_addr, pmacfg_val);
+>  }
+>
+> -static void decode_pmaaddrx(int entry_id, unsigned long *start,
+> +static bool decode_pmaaddrx(int entry_id, unsigned long *start,
+>                             unsigned long *size)
+>  {
+> -       unsigned long pmaaddr;
+> +       unsigned long addr, pmaaddr;
+>         int k;
+>
+>         /**
+> @@ -81,9 +81,23 @@ static void decode_pmaaddrx(int entry_id, unsigned long *start,
+>          * start = 4 * ($pmaaddr - (size / 8) + 1)
+>          */
+>         pmaaddr = csr_read_num(CSR_PMAADDR0 + entry_id);
+> +       if (pmaaddr == ~0UL)
+> +               return false;
+> +
+>         k = sbi_ffz(pmaaddr);
+> -       *size = 1 << (k + 3);
+> -       *start = (pmaaddr - (1 << k) + 1) << 2;
+> +       if (k >= __riscv_xlen - 3)
+> +               return false;
+> +
+> +       addr = pmaaddr - (1UL << k) + 1;
+> +       if (addr > (~0UL >> 2))
+> +               return false;
+> +
+> +       *size = 1UL << (k + 3);
+> +       *start = addr << 2;
+> +       if (*start > ~0UL - (*size - 1))
+> +               return false;
+> +
+> +       return true;
 
-Hi Troy,
+Hi Pengpeng,
 
-Have you tried stack protector?
+Thanks for catching this.
 
-I changed them to use extern symbol directly because they break stack protector.
-Please check my patchset sent last year:
-https://lore.kernel.org/all/20250703151957.2545958-1-alvinga@andestech.com/
+andes_pma_setup() is the only place that programs a PMA entry, and it
+already requires a power-of-two size >= 4096 at a naturally aligned addr,
+both of type unsigned long. That guarantees k is exactly log2(size) - 3,
+so none of the above checks can ever trigger.
 
+Changing 1 to 1UL is reasonable, but we already sent a patch [1] for this
+issue, so I would rather see that one land. No need for a v2.
+
+[1] https://patchwork.ozlabs.org/project/opensbi/patch/20260729092317.2848665-1-randolph@andestech.com/
 
 Thanks,
-Alvin
+Ben
 
-On Thu, 27 Aug 2026 17:19:19 +0800, Troy Mitchell wrote:
-> The expected trap handler is selected once by the cold boot hart. This
-> breaks heterogeneous systems where the cold boot hart implements H but
-> another hart does not, because the H-aware handler accesses mtval2 and
-> mtinst.
+>  }
 >
-> Select the handler from the current hart's MISA at each use so every
-> hart uses only the CSRs it implements.
+>  static bool has_pma_region_overlap(unsigned long start, unsigned long size)
+> @@ -97,7 +111,8 @@ static bool has_pma_region_overlap(unsigned long start, unsigned long size)
+>                 if (is_pma_entry_disable(pmaxcfg))
+>                         continue;
 >
-> Fixes: 1de66d170e71 ("lib: Optimize unpriv load/store implementation")
-> Reported-by: Bo Gan <ganboing@gmail.com>
-> Link: https://lore.kernel.org/r/e702f291-dde8-4b99-a65e-182d2b847720@gmail.com
-> Suggested-by: Bo Gan <ganboing@gmail.com>
-> Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-> Reviewed-by: Bo Gan <ganboing@gmail.com>
-> ---
->  include/sbi/sbi_csr_detect.h | 4 ++--
->  include/sbi/sbi_hart.h       | 2 +-
->  lib/sbi/sbi_hart.c           | 9 +++++----
->  lib/sbi/sbi_illegal_atomic.c | 4 ++--
->  lib/sbi/sbi_unpriv.c         | 6 +++---
->  5 files changed, 13 insertions(+), 12 deletions(-)
+> -               decode_pmaaddrx(i, &_start, &_size);
+> +               if (!decode_pmaaddrx(i, &_start, &_size))
+> +                       return true;
+>                 _end = _start + _size - 1;
 >
-> diff --git a/include/sbi/sbi_csr_detect.h b/include/sbi/sbi_csr_detect.h
-> index 097c31c8..31e50db9 100644
-> --- a/include/sbi/sbi_csr_detect.h
-> +++ b/include/sbi/sbi_csr_detect.h
-> @@ -16,9 +16,9 @@
->  
->  #define csr_read_allowed(csr_num, trap)					\
->  	({								\
-> +	register ulong mtvec = sbi_hart_expected_trap_addr();		\
->  	register ulong tinfo asm("a3") = (ulong)trap;			\
->  	register ulong ttmp asm("a4");					\
-> -	register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
->  	register ulong ret = 0;						\
->  	((struct sbi_trap_info *)(trap))->cause = 0;			\
->  	asm volatile(							\
-> @@ -35,9 +35,9 @@
->  
->  #define csr_write_allowed(csr_num, trap, value)				\
->  	({								\
-> +	register ulong mtvec = sbi_hart_expected_trap_addr();		\
->  	register ulong tinfo asm("a3") = (ulong)trap;			\
->  	register ulong ttmp asm("a4");					\
-> -	register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
->  	((struct sbi_trap_info *)(trap))->cause = 0;			\
->  	asm volatile(							\
->  		"add %[ttmp], %[tinfo], zero\n"				\
-> diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-> index 543393bb..6f4ee31e 100644
-> --- a/include/sbi/sbi_hart.h
-> +++ b/include/sbi/sbi_hart.h
-> @@ -135,7 +135,7 @@ struct sbi_scratch;
->  int sbi_hart_reinit(struct sbi_scratch *scratch);
->  int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
->  
-> -extern void (*sbi_hart_expected_trap)(void);
-> +ulong sbi_hart_expected_trap_addr(void);
->  
->  unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
->  void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index bee88557..14e44955 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -25,7 +25,11 @@
->  extern void __sbi_expected_trap(void);
->  extern void __sbi_expected_trap_hext(void);
->  
-> -void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
-> +ulong sbi_hart_expected_trap_addr(void)
-> +{
-> +	return misa_extension('H') ? (ulong)&__sbi_expected_trap_hext :
-> +				     (ulong)&__sbi_expected_trap;
-> +}
->  
->  unsigned long hart_features_offset;
->  
-> @@ -712,9 +716,6 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
->  	csr_write(CSR_MIP, 0);
->  
->  	if (cold_boot) {
-> -		if (misa_extension('H'))
-> -			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
-> -
->  		hart_features_offset = sbi_scratch_alloc_offset(
->  					sizeof(struct sbi_hart_features));
->  		if (!hart_features_offset)
-> diff --git a/lib/sbi/sbi_illegal_atomic.c b/lib/sbi/sbi_illegal_atomic.c
-> index 977a9ad0..30f5118e 100644
-> --- a/lib/sbi/sbi_illegal_atomic.c
-> +++ b/lib/sbi/sbi_illegal_atomic.c
-> @@ -30,7 +30,7 @@ int sbi_illegal_atomic(ulong insn, struct sbi_trap_regs *regs)
->  	{									\
->  		register ulong tinfo asm("a3");					\
->  		register ulong mstatus = 0;					\
-> -		register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
-> +		register ulong mtvec = sbi_hart_expected_trap_addr();		\
->  		type ret = 0;							\
->  		trap->cause = 0;						\
->  		asm volatile(							\
-> @@ -57,7 +57,7 @@ int sbi_illegal_atomic(ulong insn, struct sbi_trap_regs *regs)
->  	{									\
->  		register ulong tinfo asm("a3");					\
->  		register ulong mstatus = 0;					\
-> -		register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
-> +		register ulong mtvec = sbi_hart_expected_trap_addr();		\
->  		type ret = 0;							\
->  		trap->cause = 0;						\
->  		asm volatile(							\
-> diff --git a/lib/sbi/sbi_unpriv.c b/lib/sbi/sbi_unpriv.c
-> index 60becedc..1550d111 100644
-> --- a/lib/sbi/sbi_unpriv.c
-> +++ b/lib/sbi/sbi_unpriv.c
-> @@ -33,9 +33,9 @@ union sbi_unpriv_data {
->  	type sbi_load_##type(const type *addr,                                \
->  			     struct sbi_trap_info *trap)                      \
->  	{                                                                     \
-> +		register ulong mtvec = sbi_hart_expected_trap_addr();         \
->  		register ulong tinfo asm("a3") = (ulong)trap;                 \
->  		register ulong mstatus = 0;                                   \
-> -		register ulong mtvec = (ulong)sbi_hart_expected_trap;         \
->  		type ret = 0;                                                 \
->  		trap->cause = 0;                                              \
->  		asm volatile(                                                 \
-> @@ -58,9 +58,9 @@ union sbi_unpriv_data {
->  	void sbi_store_##type(type *addr, type val,                           \
->  			      struct sbi_trap_info *trap)                     \
->  	{                                                                     \
-> +		register ulong mtvec = sbi_hart_expected_trap_addr();         \
->  		register ulong tinfo asm("a3") = (ulong)trap;                 \
->  		register ulong mstatus = 0;                                   \
-> -		register ulong mtvec = (ulong)sbi_hart_expected_trap;         \
->  		trap->cause = 0;                                              \
->  		asm volatile(                                                 \
->  			"csrrw %[mtvec], " STR(CSR_MTVEC) ", %[mtvec]\n"      \
-> @@ -207,7 +207,7 @@ ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap)
->  	register ulong tinfo asm("a3");
->  	register ulong ttmp asm("a4");
->  	register ulong mstatus = 0;
-> -	register ulong mtvec = (ulong)sbi_hart_expected_trap;
-> +	register ulong mtvec = sbi_hart_expected_trap_addr();
->  	ulong insn = 0;
->  
->  	trap->cause = 0;
+>                 if (MAX(start, _start) <= MIN(end, _end)) {
+> @@ -352,7 +367,8 @@ int andes_sbi_free_pma(unsigned long pa)
+>                 if (is_pma_entry_disable(pmaxcfg))
+>                         continue;
 >
-> -- 
-> 2.55.0
+> -               decode_pmaaddrx(i, &start, &size);
+> +               if (!decode_pmaaddrx(i, &start, &size))
+> +                       return SBI_ERR_FAILED;
+>                 if (start != pa)
+>                         continue;
 >
+> --
+> 2.50.1 (Apple Git-155)
 >
-> -- 
-> opensbi mailing list
-> opensbi@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
 
 -- 
 opensbi mailing list
