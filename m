@@ -4,103 +4,86 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id CA2CEC61DFD
-	for <opensbi@archiver.kernel.org>; Mon, 31 Aug 2026 20:09:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B4D52C61DFD
+	for <opensbi@archiver.kernel.org>; Tue,  1 Sep 2026 02:22:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=C9YgaxpYD5dE8utAbrRZSvBIaXW1TwLymA8UNrbwPLM=; b=pLUNxUWz2tQfjL
-	zgJlsx8JNr6Lb2DCA/LwY/dB6WpZ+tYuhE/x3O+EikaoNMeRH2pV/CL7h/68i/x/S3SG6GoB8MdBs
-	NKfkbFI+zvTU4X+OSb/G2sdyhx/lxuNXnudFJ+GWi8Ko+0WyrSzT6hb+4nZIwGZGkK829XsAV6p7y
-	/Szt1PBaybLyNro503Q5BK8/8NLqnuNI2vEqokUnorXgkO491fijPpNASS1G4TlUqgAvFApGyKNZ3
-	keyk+s0ewheecqsgyqAUPsfXx0GVfygLAd/RrBjKDU1Ipvv8e/v9ceZOqaSyAllQGToslIqNjoKyG
-	lb2pUBslYF7uXJHMNH8A==;
+	List-Owner; bh=rJXPIzVbsCAzJO60p00uykzenWoqXhQXAv0IL2L8EIg=; b=ZavWcfjpIOP2Ww
+	jqs4CRjo0Wv6pBcnSh6x0WFYw0A9fFJsFLgftAEtZKvnDI9B3Ld6Lcvi94QCEcUhydh404POUBKOK
+	VskWF34fOvriOeS4i6941JFV5bUnu7CJ9heYV6n9EGCMc7HHb1XhmO2PC0U8TsaK2zeF6u42yozVv
+	VteVttBpAJ38TzY0oZhYUV4FC9g4X7xWiiG8++jEZxSmzwUW62FqagHYLRC8+GlzU02zC359CiWfL
+	HcNoFN+ETtakDO9sj4KN4NQPVj1G8aCg8ehM2iRrfYYRSAI0t+CWB7Y945ad/gaQRoM3SQNhNIYiD
+	m1y+mYKtWfzXYSe9iAPg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x18JW-0000000AQ9o-0W41;
-	Mon, 31 Aug 2026 20:09:06 +0000
-Received: from smtp-relay-internal-1.canonical.com ([185.125.188.123])
+	id 1x1E8j-0000000Argq-1xcH;
+	Tue, 01 Sep 2026 02:22:21 +0000
+Received: from mail-pg1-x530.google.com ([2607:f8b0:4864:20::530])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x18JT-0000000AQ7p-1cAX
+	id 1x1E8g-0000000ArfH-21sV
 	for opensbi@lists.infradead.org;
-	Mon, 31 Aug 2026 20:09:04 +0000
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com [209.85.221.71])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-internal-1.canonical.com (Postfix) with ESMTPS id 09B6E3F610
-	for <opensbi@lists.infradead.org>; Mon, 31 Aug 2026 20:09:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-	s=20251003; t=1788206942;
-	bh=tlfQGu+ZF5hylDsBNu9EIyA5L+mPpYtjup5/Zr4fy/I=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version;
-	b=TKHwxLg1CcVGA3ICzP2y9PK5Ga5+rHC+z9VDCpvFEwVz63SSk6BGHLMLYZmxboJat
-	 2AKDJw+0YFUYuabcFYy1/mSxzA6SY7u8pYi4u7Lvqj8GFsswdeppimcOwY28O0XUBU
-	 ViqrfWY4PNX+DjWbXwvSgXji5epV8PXNk4b22cN+nu4EdtrfLJ90bXDzCwNSbH84jl
-	 NrkLGP4ofwf4ChpQjE81e1a8kRgCYgbQ5wlt7TIhL4v5Gp3uNR7cPNZjCqAIZwOR2d
-	 2Xk6lQmV7rQZfGvWtbaVACGyOgDWYYnOUcxmR8PH1ACU9q6c1DYv27jXDvgOLslW+W
-	 VomKlN8YIlxbI4xkkVdNZqu2WKSwuWfLGtPTvqH5S/jYpCvn4tL+WUALT07uQ1/1K4
-	 kjfC9RecBBk3DOaY8s+ryGRlEV3Vgk/7Qijjbl5t0mGyDLHgw4m7FRxYyqjE+VXfcr
-	 duJjCfnUBPPAYM5uLVNnBkNYnKcBz6W3hpmXWlklTGghQHXa/pGzCCU02uOxQ0Ymni
-	 ijfZvVqTJAnsE9vXON6VH4MQi8V1NFSBpJNvFU40NTc7HqiL7wx5xZFKG/qCnRcsz9
-	 yljl7sf9Q5hznFqyvNaBvokZxzbC+YREYn3LnvcbQfutLIvmDn0rf9cWactgvdBXd0
-	 3Sxg/r75ggwwlDbxaVgM9ruA=
-Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-48437090e74so80526f8f.2
-        for <opensbi@lists.infradead.org>; Mon, 31 Aug 2026 13:09:02 -0700 (PDT)
+	Tue, 01 Sep 2026 02:22:20 +0000
+Received: by mail-pg1-x530.google.com with SMTP id 41be03b00d2f7-cc1cc97b84bso3752122a12.1
+        for <opensbi@lists.infradead.org>; Mon, 31 Aug 2026 19:22:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1788229338; x=1788834138; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ytSKm5C2E+jtd+CbfUMGPTc+Q0I8tzsCT3mOTe4cLIw=;
+        b=ZVkR1bgcFQr0UDKShRANEqqxJTPQZjbQzY0zogHds9QMWeuqxoLvAMSKCg6t5Gt02r
+         P+otxPSfqAdjwpvQxzLsbhLFI37HcyLeXIBPkFtXhPgb7LAh+ekwbglV7VYFdJUXWHf9
+         /98YNdF4TfsNCJAGsJSWvx0o7uPNqIUC3V6Q8p4iw9ES8fjxpsd16KdZD5fKrrHx43M7
+         b0aJr+hf47kRAz1lbusf5bxjTL4iW0jjM0RYbtm//3C5yAY1Bwv+CU6FyXmQdmCoy9+2
+         y0tLWZ7XYfoFySvLsq0+DJg/a9UDK2LxqBMs2ImrxiyAFoe2yLi0+wyfqvntBOGqsCzg
+         Z1Pw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788206941; x=1788811741;
+        d=1e100.net; s=20251104; t=1788229338; x=1788834138;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=tlfQGu+ZF5hylDsBNu9EIyA5L+mPpYtjup5/Zr4fy/I=;
-        b=KK6USTbyiDLD5ynhvVLPb4Jlh6ZfpViq6KnlwMD6eZ/JIRXhfQvCOc6ZHniel9DDsM
-         RKzAz+HXeXyFBl8DANmJJB+k7CekTY5A/WjrSFa8lD/tY818qtadTf+b3Ae34J+YypCf
-         9BnoJFOAHeIFjGOGK/QUl+z2LrBzqWcce4skuy2xCROhTC3SPmbWGbqPBgaDMpa+iFy4
-         HTXpux5cuyB0odhHO/LQE3FwrAzMzNcF3Qtl6yKex3TH+zMAJxR/fPgDubV3wih1KtYF
-         zofr/5BKne8UU09ckAl7UDgaA5upSl/CpjeEcvmtlDmLU76s0DDj4ATA1ZbJ7IMzETLh
-         E4+g==
-X-Gm-Message-State: AFuF++kc0JcG5rJkvfzrmyswM/sR0e5kbAbeRTJsd2+Gcyl7md8YH1GR
-	IY7JmkJBWAk1yRWSCqHZ/FUE2//ZP5p2Ww/kVbVsHNvnvBv3nW6E4UjBsYhBKrmGFWK9K49k7WG
-	TGSum7Bnn5C4V7ijV48KuGCUxkbWHMe2DcdtwATwjLlW3vD4/sVnMB+3tLThfwLkqvLGkhc+db1
-	R69br9sw31rs8KsCI=
-X-Gm-Gg: AR+sD10mHAzcMM1OJ9AVDToc0PFvhO7H7v13yB/vXM3Tb3qCoKr1T4eXwTbx7bTgfvq
-	InE/FX5Bkgu6rdb6EoZBxGRmQ/lcTr6jN3D8/LmUwE65G4naZ8mlWxoxV61h9TkW9Vo1wxG9dmm
-	o3kTEt9BVSIobDWLCYXsSv7kEG5HOIdgszJHs6YnFi25JWnNnAWbhPNhO6H0GthTr6PT1D2h6by
-	H+ny5Kqm8atCrLyUYICCBBcTfM/3N1XmlyGM3pvdo1C6yC9reQEQzi0MVht08G6nxDP9ihvw0TY
-	4cyl+DuwM4MomQWd20Wk8Fgmi7i9LbJJnON7xRr3tRy1AGn7l4EiQIKUCA7DwwAbfPopfOnPmF5
-	jgzAbxh9w/pheGaVwG67BeNGq2Jx2pNuDsA==
-X-Received: by 2002:a05:600c:a106:b0:49c:cb6a:1687 with SMTP id 5b1f17b1804b1-49ccb6a1689mr272125875e9.4.1788206941527;
-        Mon, 31 Aug 2026 13:09:01 -0700 (PDT)
-X-Received: by 2002:a05:600c:a106:b0:49c:cb6a:1687 with SMTP id 5b1f17b1804b1-49ccb6a1689mr272125465e9.4.1788206941168;
-        Mon, 31 Aug 2026 13:09:01 -0700 (PDT)
-Received: from k6.lan (141.175.65.37.rev.sfr.net. [37.65.175.141])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49cdce1e3a9sm15515825e9.15.2026.08.31.13.09.00
+        bh=ytSKm5C2E+jtd+CbfUMGPTc+Q0I8tzsCT3mOTe4cLIw=;
+        b=DSECPqlFAWXfNJ+FJK2709Bsmy6T7tCs+04DenLQr/ClPCdbdif5AJpFIffBstplAb
+         u1T5GkNiWU6+7D6U/A+i6nrA+39HAqoo/N/wjkM3EPjUN26jkH0/1fl3SrFWmJuawi9g
+         tUtIl8qyguy3Gcz1+LtodPPrS7ApxTuP/7ki77EL233acPlNe/sACkt2D3ybOTX1ldr3
+         RuaeCx6LR1+dd20Nd7gnOPTvz+4SKtRnT4/J1Saud1jLkI85bYRrofLYAT2Fwos6ak4B
+         de7PQepKiifKXYDR6qcezH4rwldHAyJRMRpc3275Mc8PQqbmJqTYHWQNqe9PEGHpYbna
+         +6hQ==
+X-Gm-Message-State: AFuF++lyd877XmfsN/ZH2RoRXbd6VDif/8Xc58PqvpIg0J3xPoFr/9Ny
+	NQDSq0p+TxW74PPi3SEL5RufGsqPpovNk+AHYGaqvn0MSAA9wiBGamQZtmOjOpFlhip39Ktf0qb
+	hrC5NgHigVePbHIMReJvNyifl0/RxnhmD8V/ye9FTYKvMJ3gZ8L2U3YIpm4E8E86cCopi2DhzXN
+	G7g7KHKJ7fxAXO6W/J2fT2rY13hTJKq+vX4ly7cZXI4I+0Jg==
+X-Gm-Gg: AYBFou3FPZLUWrKw0X/ysKVwgzkUS8t0jldVA4FPN1sSaXzEA8ITzeIe3TMaAxvtR7P
+	qR+XNqY/a6gk54GUD8zgwPnVs20XWCvIEx5fD6JkYHSFzD5VdrBzg758EsCu/ACtW63I4FSuo3e
+	pqtDRSzkpkV2cl6oy/KwoVAwTMrj87xZX3JPGp2+/dYWppTjdzRtuF78BogkneP7Xyx8frkeWXP
+	3cIDwWA6F+atbLWaalXtUQp/8bmn/BGN5RUeCBpoNqkqu1ajr15EU3I9cIJHxVsj2cvddL6Xtuy
+	Ut4jmoqHSnz/VP7RvzAQO+xIwzWb+twepr3RopDfk+3KQF/7yibmxGCYg9YAuqvFHh2WXXJW3vK
+	liLsk91ooQYRtr4buSYoB6/SmLjaIhRt5SBl0iUaPk7O0g7QLpWrD/CTCX1itLadaHtbfo/iRor
+	og1Af5FqeU6mesZ7VMMA3lL5RS/UeLDITBLA+A5bIqXN2T2TpP8MA7Putm1dlGfuyf9bpIydbo
+X-Received: by 2002:a17:90b:4e88:b0:398:a145:5d3d with SMTP id 98e67ed59e1d1-39907b17a4dmr7308075a91.6.1788229337736;
+        Mon, 31 Aug 2026 19:22:17 -0700 (PDT)
+Received: from sw04.internal.sifive.com ([4.53.31.132])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-142e0d3fdf6sm33287164c88.6.2026.08.31.19.22.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2026 13:09:00 -0700 (PDT)
-From: Valentin Haudiquet <valentin.haudiquet@canonical.com>
-To: opensbi@lists.infradead.org
-Cc: troy.mitchell@linux.spacemit.com,
-	xianbin.zhu@linux.spacemit.com,
-	anup@brainfault.org,
-	ganboing@gmail.com,
-	samuel.holland@sifive.com,
-	heinrich.schuchardt@canonical.com,
-	Valentin Haudiquet <valentin.haudiquet@canonical.com>
-Subject: [PATCH 3/3] platform: generic: spacemit: k3: wake A100 core 8 for ESOS/RPMI services
-Date: Mon, 31 Aug 2026 22:07:52 +0200
-Message-ID: <20260831200832.404000-4-valentin.haudiquet@canonical.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260831200832.404000-1-valentin.haudiquet@canonical.com>
-References: <20260827-spacemit-k3-v3-0-5d8dbb68539d@linux.spacemit.com>
- <20260831200832.404000-1-valentin.haudiquet@canonical.com>
+        Mon, 31 Aug 2026 19:22:17 -0700 (PDT)
+From: Zong Li <zong.li@sifive.com>
+To: opensbi@lists.infradead.org,
+	anup@brainfault.org
+Cc: Zong Li <zong.li@sifive.com>
+Subject: [PATCH 2/3] firmware: fw_base.S: override a0, a1 and a2 from the firmware header
+Date: Mon, 31 Aug 2026 19:22:10 -0700
+Message-ID: <20260901022211.2619560-3-zong.li@sifive.com>
+X-Mailer: git-send-email @GIT_VERSION@
+In-Reply-To: <20260901022211.2619560-1-zong.li@sifive.com>
+References: <20260901022211.2619560-1-zong.li@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260831_130903_559409_544CB405 
-X-CRM114-Status: GOOD (  18.29  )
+X-CRM114-CacheID: sfid-20260831_192218_522465_7A843F74 
+X-CRM114-Status: GOOD (  16.66  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -117,181 +100,76 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The K3 SoC has two asymmetric CPU complexes: X100 (harts 0-7) and A100
-(harts 8-15).  ESOS -- the rcpu-side firmware already loaded in SPI NOR --
-runs on A100 core 8 and provides RPMI services (clock, voltage, device
-power, system reset, suspend) that the X100 side depends on during boot.
+Wire up the flags word and the three override values in the OpenSBI
+firmware header. When the previous booting stage sets one of the
+FW_HEADER_FLAGS_OVERRIDE_A[012] bits, the cold boot path replaces the
+matching register with the value stored in the header before doing
+anything else with the boot arguments.
 
-Without waking core 8, all RPMI mailbox transactions time out and the
-system hangs early during Linux boot (at basic.target or
-cryptsetup.target, depending on which earlier fixes are present).
+This lets a previous booting stage which cannot pass the boot arguments
+in registers hand them over by patching a few words in the firmware
+image instead. For example, a booting stage running on a dedicated boot
+processor can load the OpenSBI image, patch the header with the hart id,
+the DTB address and, for FW_DYNAMIC, the address of a struct
+fw_dynamic_info it built somewhere in DRAM, and then release the hart
+that runs OpenSBI, without ever being able to set up that hart's
+registers itself.
 
-Wake hart 8 during pre_init by writing its RVBADDR to a minimal assembly
-entry (_spacemit_k3_dummy_start) that does A100-specific CSR setup,
-restores C2 RVBADDR to the normal warm-boot entry, and enters WFI.  The
-HSM can later start hart 8 normally -- the HSM hart_start happens
-post-boot from Linux, so there is no race with the dummy path writing
-RVBADDR concurrently.
+The flags word is zero in a freshly built image, so nothing is
+overridden and every existing booting stage keeps passing a0, a1 and a2
+in registers as before.
 
-Add A100 performance CSR definitions (VEC_L1BYPASS, L2_PERF_DIST,
-CIU_CHR2_DEPD_DIS, CIU_CHR2_MER_DIS) to k3.h and the
-_spacemit_k3_dummy_start entry to k3_asm.S.
-
-Signed-off-by: Valentin Haudiquet <valentin.haudiquet@canonical.com>
+Suggested-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Zong Li <zong.li@sifive.com>
 ---
- platform/generic/include/spacemit/k3.h     | 11 ++++
- platform/generic/include/spacemit/k3_asm.h |  1 +
- platform/generic/spacemit/k3.c             | 19 ++++++
- platform/generic/spacemit/k3_asm.S         | 75 ++++++++++++++++++++++
- 4 files changed, 106 insertions(+)
+ firmware/fw_base.S | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/platform/generic/include/spacemit/k3.h b/platform/generic/include/spacemit/k3.h
-index ed1637b9..b50e9b1b 100644
---- a/platform/generic/include/spacemit/k3.h
-+++ b/platform/generic/include/spacemit/k3.h
-@@ -129,4 +129,15 @@
- #define DMASYS_CLK_EN				(0xd8440000 + 0x234)
- #define DMASYS_RESET_DEASSERT			BIT(0)
- #define DMASYS_CLK_EN_BIT			BIT(0)
-+/*
-+ * A100 core performance CSRs.  CIU_CHR2_DEPD_DIS and CIU_CHR2_MER_DIS
-+ * are bitfields of CSR_ML2HINT (0x7f7), named after the hardware manual's
-+ * CIU_CHR2 register description.
-+ */
-+#define CSR_PERF_CTRL				0x7d0
-+#define VEC_L1BYPASS				(_UL(1) << 32)
-+#define CSR_PREFETCH_CTRL			0x7d1
-+#define L2_PERF_DIST				(_UL(3) << 10)
-+#define CIU_CHR2_DEPD_DIS			(_UL(1) << 3)
-+#define CIU_CHR2_MER_DIS			(_UL(1) << 2)
- #endif /* __RISCV_SPACEMIT_K3_H__ */
-diff --git a/platform/generic/include/spacemit/k3_asm.h b/platform/generic/include/spacemit/k3_asm.h
-index 70c00478..3f06b20e 100644
---- a/platform/generic/include/spacemit/k3_asm.h
-+++ b/platform/generic/include/spacemit/k3_asm.h
-@@ -11,6 +11,7 @@
- 
- #ifndef __ASSEMBLY__
- void _spacemit_k3_warm_start(void);
-+void _spacemit_k3_dummy_start(void);
- #endif
- 
- #endif /* __RISCV_SPACEMIT_K3_ASM_H__ */
-diff --git a/platform/generic/spacemit/k3.c b/platform/generic/spacemit/k3.c
-index f134427d..650e9f98 100644
---- a/platform/generic/spacemit/k3.c
-+++ b/platform/generic/spacemit/k3.c
-@@ -128,6 +128,25 @@ static void spacemit_k3_pre_init(void)
- 
- 	for (i = 0; i < array_size(cci_map); i++)
- 		cci_enable_snoop_dvm_reqs(cci_map, i);
-+
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index dd2adb8a..bf458ba0 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -114,6 +114,38 @@ _fw_header_override_a2:
+ 	/* Reserved, pads the header up to FW_HEADER_SIZE bytes */
+ 	.fill	(FW_HEADER_SIZE - FW_HEADER_RESERVED_OFFSET), 1, 0
+ _start_real:
 +	/*
-+	 * Wake hart 8 (first A100 core, cluster 2) so that ESOS -- already
-+	 * loaded in SPI NOR -- can provide RPMI services (clock, voltage,
-+	 * device power, system reset, suspend).  Without this, all RPMI
-+	 * mailbox transactions time out.
++	 * Override a0, a1 and a2 with the values from the firmware header.
 +	 *
-+	 * Core 8 jumps to _spacemit_k3_dummy_start which does minimal A100
-+	 * setup, restores C2 RVBADDR to the normal warm-boot entry, and
-+	 * enters WFI.  The K3 HSM can later start it normally -- the HSM
-+	 * hart_start for hart 8 happens much later (post-boot, from Linux),
-+	 * so there is no window where both the dummy path and HSM could
-+	 * write RVBADDR concurrently.
++	 * This is for a previous booting stage which cannot pass the boot
++	 * arguments in registers, but can patch the firmware image before
++	 * jumping to it. Nothing is overridden when the previous booting
++	 * stage left the flags word alone, so the registers passed by all
++	 * existing booting stages are used as-is.
++	 *
++	 * This runs before relocation, so only PC-relative addressing is
++	 * used. t0, t1 and t2 are free to use here: the boot arguments live
++	 * in a0-a4 and every other register is reset further down the cold
++	 * boot path.
 +	 */
-+	writel((u32)(unsigned long)&_spacemit_k3_dummy_start,
-+	       (void *)(unsigned long)C2_RVBADDR_LO_ADDR);
-+	writel((u32)((unsigned long)&_spacemit_k3_dummy_start >> 32),
-+	       (void *)(unsigned long)C2_RVBADDR_HI_ADDR);
-+	writel(BIT(8), (void *)(unsigned long)PMU_CAP_CORE8_WAKEUP);
- }
- 
- static int spacemit_k3_early_init(bool cold_boot)
-diff --git a/platform/generic/spacemit/k3_asm.S b/platform/generic/spacemit/k3_asm.S
-index 2da58857..9d1ea5c5 100644
---- a/platform/generic/spacemit/k3_asm.S
-+++ b/platform/generic/spacemit/k3_asm.S
-@@ -50,3 +50,78 @@ _spacemit_k3_warm_start:
- 	.word	0x62000073	/* hfence.gvma */
- 1:
- 	j	_start_warm
++	lla	t0, _fw_header_flags
++	lw	t0, (t0)
++	andi	t1, t0, FW_HEADER_FLAGS_OVERRIDE_A0
++	beqz	t1, _skip_override_a0
++	lla	t2, _fw_header_override_a0
++	REG_L	a0, (t2)
++_skip_override_a0:
++	andi	t1, t0, FW_HEADER_FLAGS_OVERRIDE_A1
++	beqz	t1, _skip_override_a1
++	lla	t2, _fw_header_override_a1
++	REG_L	a1, (t2)
++_skip_override_a1:
++	andi	t1, t0, FW_HEADER_FLAGS_OVERRIDE_A2
++	beqz	t1, _skip_override_a2
++	lla	t2, _fw_header_override_a2
++	REG_L	a2, (t2)
++_skip_override_a2:
 +
-+/*
-+ * Minimal entry point for the initial wake of an A100 core (hart 8) on
-+ * cluster 2.  Its sole purpose is to power up the cluster so that ESOS
-+ * -- already loaded in SPI NOR -- can provide RPMI services (clock, voltage,
-+ * device power, system reset, suspend).  After setup the core enters WFI;
-+ * the K3 HSM can later start it normally via the warm-boot vector.
-+ *
-+ * The PMA/L2/cache setup below mirrors _spacemit_k3_warm_start, plus
-+ * A100-specific performance CSRs that ESOS needs.  These are applied
-+ * only here because upstream K3 support targets X100 harts (0-7) for
-+ * Linux; A100 harts (8-15) are used solely for ESOS.  When the HSM
-+ * later starts hart 8 from Linux, it enters warm_start -- the perf CSR
-+ * settings persist from this initial wake since it is a WFI exit, not
-+ * a cold reset.
-+ *
-+ * The C2 RVBADDR is restored to _spacemit_k3_warm_start so that the next
-+ * wake (from HSM hart_start) enters the standard OpenSBI warm-boot path.
-+ */
-+	.align 3
-+	.globl _spacemit_k3_dummy_start
-+_spacemit_k3_dummy_start:
-+	/* Disable all interrupts. */
-+	csrw	0x304, zero		/* CSR_MIE */
-+
-+	/* Program PMA attributes before enabling the caches. */
-+	li	t0, (PMACFG0_AUDIO_BUF_FIELD_MASK << \
-+		     PMACFG0_AUDIO_BUF_FIELD_SHIFT)
-+	csrc	CSR_PMACFG0, t0
-+	li	t0, (PMACFG0_AUDIO_BUF_ATTR_CACHEABLE << \
-+		     PMACFG0_AUDIO_BUF_FIELD_SHIFT)
-+	csrs	CSR_PMACFG0, t0
-+	li	t0, PMACFG0_XIP_FIELD_CLEAR
-+	csrc	CSR_PMACFG0, t0
-+	li	t0, PMACFG0_XIP_ATTR_IO
-+	csrs	CSR_PMACFG0, t0
-+	sfence.vma
-+
-+	/* A100-specific performance CSRs. */
-+	li	t0, VEC_L1BYPASS
-+	csrs	CSR_PERF_CTRL, t0
-+	li	t0, L2_PERF_DIST
-+	csrs	CSR_PREFETCH_CTRL, t0
-+	li	t0, CIU_CHR2_DEPD_DIS
-+	csrc	CSR_ML2HINT, t0
-+	li	t0, CIU_CHR2_MER_DIS
-+	csrs	CSR_ML2HINT, t0
-+
-+	/* Enable L1 snooping and L2 prefetch for this hart. */
-+	csrr	t0, mhartid
-+	andi	t0, t0, (PLATFORM_MAX_CPUS_PER_CLUSTER - 1)
-+	li	t1, 1
-+	sll	t1, t1, t0
-+	li	t2, (ML2SETUP_IPRF | ML2SETUP_TPRF)
-+	or	t1, t1, t2
-+	csrs	CSR_ML2SETUP, t1
-+	li	t0, ML2HINT_TRACE_TOP_ICGEN
-+	csrs	CSR_ML2HINT, t0
-+
-+	/* Enable caches. */
-+	li	t0, MSETUP_BOOT_FLAGS
-+	csrs	CSR_MSETUP, t0
-+	fence	iorw, iorw	/* A100 needs explicit fence after MSETUP */
-+
-+	/* Restore C2 RVBADDR to the normal warm-boot entry. */
-+	lla	t0, _spacemit_k3_warm_start
-+	li	t1, C2_RVBADDR_LO_ADDR
-+	sw	t0, 0(t1)
-+	li	t1, C2_RVBADDR_HI_ADDR
-+	srli	t0, t0, 32
-+	sw	t0, 0(t1)
-+
-+	/* Enter WFI until the HSM starts this hart. */
-+1:	wfi
-+	j	1b
+ 	/* Find preferred boot HART id */
+ 	MOV_3R	s0, a0, s1, a1, s2, a2
+ 	call	fw_boot_hart
 -- 
-2.53.0
+2.43.7
 
 
 -- 
