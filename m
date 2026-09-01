@@ -4,103 +4,93 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 36AFAC61DD6
-	for <opensbi@archiver.kernel.org>; Tue,  1 Sep 2026 07:28:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id B235AC61DD3
+	for <opensbi@archiver.kernel.org>; Tue,  1 Sep 2026 22:34:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=U0BPKBVrso7xdhQ06+YBKl7549LmUFjG591tmYCKb7o=; b=C7Kgs0R2nmLTn8
-	Fb9CyJ9CTYsla1shFhmQxbVIYxtppDkAnhoBb/JFseirP9civjYpdDG82qL3+lZYJnMJXhVXxlxci
-	rGPa0c53Ji3njZSnb8fW/6yhB3hgsTHUXPoE7qlJ7dt4bw+en1O5Od3l541ZXi+dybgvh78EL6N/c
-	M4C9rnaGHV9p35Ep0yECUEaVacbk2yffzzA59orpGDbk6KJJcoty9joAHh2H7tHuftDgcQCJR0H/V
-	94gesvnSBF+O0KB0xXVeUtHfJN0ZVmIGH50LMMnaOwpCbZTCpYjrd9W/RJpoEO6dk41v8tkigHrXD
-	scmEBG8jympyM8WUXJ6w==;
+	List-Owner; bh=dT3p0/7CrOIzkO6YfFclVxBmpm1TqEbCUBZhx38GhoQ=; b=3JgaNCqZBApuBK
+	5JL3kVqcD/TRYBa1c9Mle/0Bq2iOMKwctygdRWtt8SXrixSTye+qSLv5vxX2UQ5mjLO5GNosyQslQ
+	pGkzNDW/ahObUA7MPD64HnuF/zJDOHaWduuny/TnbG5CjeCqCc2zifaMV5ff/oJTEUpuujsa4wM++
+	iwEYmYZE8DtO9QaYDYgMeEiVflHVK/X7nPL+fa+nSttQsXTU1A/OXJ9Lbwo2925jFzgGFuKw9gXR0
+	xH/E+fv7H/sYngR6KgfG9tVyk8Qwyiwi6y6eThqHbCQjYxET7rbkoUOLVqs2g5MbY8bEtWIQ6lrit
+	5ah0wiXTxvVvEdepDKKQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x1IvC-0000000B8FM-0YKN;
-	Tue, 01 Sep 2026 07:28:42 +0000
-Received: from mail-wm1-x32e.google.com ([2a00:1450:4864:20::32e])
+	id 1x1X3t-0000000DUu8-1Mxj;
+	Tue, 01 Sep 2026 22:34:37 +0000
+Received: from mail-pl1-x630.google.com ([2607:f8b0:4864:20::630])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x1Iv9-0000000B8Ez-3bkM
+	id 1x1X3q-0000000DUth-3Z6S
 	for opensbi@lists.infradead.org;
-	Tue, 01 Sep 2026 07:28:40 +0000
-Received: by mail-wm1-x32e.google.com with SMTP id 5b1f17b1804b1-49cca4ffdcfso3768515e9.0
-        for <opensbi@lists.infradead.org>; Tue, 01 Sep 2026 00:28:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1788247718; cv=none;
-        d=google.com; s=arc-20260327;
-        b=MmBYC6uB82/ntQ1aUESLD9/Ls/b/V9F3g2lFYZqFH1E+5KdfUpvtvrRHMeoKfO+HJU
-         MOWyBw5IXQm8NJhinSvxS5LRNXiqaCkCbs2Ml/dXEt64N6miyo24JdF0nRukt0XWVWfV
-         GDhUeU3E2GvqMboe50Nn0nDSLLwWifYUTiABYJUT/H58vLBtbw2w5UpK02thB1bJacPH
-         aFQ+j7T9DQlpf6Zu3aWght75HS59KyBFXymegT+MSAJ6W2EGqYQSnVywEJlash2qyQlJ
-         rs7V19PtZueuEdPQXkrWGy+xyHIa1Uq9FAsbRaVRfAYvvB5rxkdA3DGkiuQ7acW3Dm8G
-         IgSg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=oxS7sQYqNiEIPNh4DdYrgLVqbOMeXRJ5Bgbi9UxlJGM=;
-        fh=UKE2hCUIskB9+31bp6MMA6kaXrGpLgmIm+rZbphqL8k=;
-        b=TAvtpKM/UmNw1VzxjxgQMovJ7En5qtIPE/n7U6iGhC1OEVzHLsIVx4YNmAg0QasQgX
-         XTJSCm6HQRIJR/qz8IKO/mCwy75UmRITiWxtgzPxY9E5jjux4jQBJJ6oWWNxsHnoxL9b
-         fAvwG7iyiWn2zjxBsqwi2wg3YhR3e6BVxWKy4homC17U6BenZi23XBbJxo/cVy2g9QKB
-         dtJ2GpA+DdCJ5IJcYXhglNpYngt1x86bdHdbKijSNf1q9rOS+IPGx18kcje9hpfqia90
-         efoYYp2swjcJWDKdPLtxPph0KjNuYqbyghYKEjgukftpsIgrs/rZKpaqETbaw8ftdWgE
-         nQ1g==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	Tue, 01 Sep 2026 22:34:36 +0000
+Received: by mail-pl1-x630.google.com with SMTP id d9443c01a7336-2ceab75934dso3918215ad.2
+        for <opensbi@lists.infradead.org>; Tue, 01 Sep 2026 15:34:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault.org; s=google; t=1788247718; x=1788852518; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=oxS7sQYqNiEIPNh4DdYrgLVqbOMeXRJ5Bgbi9UxlJGM=;
-        b=h3q81W3Ct11vmb4lBP6rBaZr0ynzrpdJZCleBMWY7U3IywnfXO/AXbc9R+WX0bLzpY
-         1Jvom0vRv/JAy511/Ttzia0fU8hfXempjh4vpERY/UCgVgiHYzHHJiUJjIXVEtxpH4go
-         Lm8Upbrqzy8/DwTCL9CulzKe++5wcoaxnMXFjXf6youmZRlBMcYTj9jv5SSSAP/qyAJ4
-         FVQ4rGMnFAZxgfJ3uUQuubRnKkg01q6//IHKWoO66lTYcaB7jHUIy2WLBR+InD0RkZNo
-         bBQ7vULxyrOqYjTza2J5rGahGa15qVoGly+itMgTv0aPHz4DkHQlEXfPLgKy7RdQ/NFZ
-         aV3w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788247718; x=1788852518;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=gmail.com; s=20251104; t=1788302074; x=1788906874; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=oxS7sQYqNiEIPNh4DdYrgLVqbOMeXRJ5Bgbi9UxlJGM=;
-        b=p+aivpjc/ymAPSGGhI6SMhcEjreG4u8MLyQHTVMBkJEF3cXByXAWxdB3rJijN2OiOH
-         3JJZO7AcJTdyfiLo2KvvYIO0N9wnfDazVrPMxWI3yDIRkiteeXaMFOPvfxp/3CJkSeMp
-         W3FpN5aFwAdL91i3gRNGPT5VlhjaUN/pDbTwzI9L/x9VMBvI074Db1BQ9RZxH2B/6701
-         rw3GebbOcB+EkAAB2kh5oTM0F9GCDeDfSWtEpIMGcp3KDOgM8pmRWww4pOERTPl5Mdyr
-         dZxGNwtnuTOzweZrpxMdUVtqVy/Jc0IXZ+zYK+vDFhrV0AhB2ysuqFBtrZCsWLaJlbj6
-         5mYw==
-X-Gm-Message-State: AFuF++mVaD2RNt3+E08CwbHjwCJ8P9L1eqXUW0Pw2stEG0fE15AShr/t
-	Ya78BKj2TAuL3jmR5DcpoUA2O5SdMaAYLzJr7hZjZzObee9uW6LJwsZO844bKOjudOCCSpS3yrL
-	T8vZGz+emRUgJCJ38AgA/W8qvomGLvK4LAYM0rYESs37ou56Wlc3s
-X-Gm-Gg: AR+sD11UGXttk51goG7KRZ6uBALv9tszzVNkd8hUhByuUFLii0J4Uq09a7eSv3M8K1w
-	k3vc6ZHietyC/SSLHFkGhD6sMy8aNn8QyPyOvm3ws0esdaTlXPA0KdUNBwXFlVIm154Y43DUqXj
-	h9+TYwUQNutonwYBXvae4F47l2mbrHl1NxdUe1tz5mwO8m8cGwiM+kl9+fE6vu1knDZAmKgwbWW
-	zc6UJmWiqcSJw3iWz5OK7l0wivyaZnTwR0vfBmsadqhVcLRGTLJhLgNCHC69m6RvuGCkIjZqVhM
-	VG3dYGM+KOuS7lctY/X7bMhI4Su7bcf5oGnCOkZgAESEggWr6ZqzpewgjYeSiVMzDnP38c/klsp
-	efjNJRa+SRN9Baqyrx6fKbUQ15jOMKNKtRmM+21nNCzLPePpYtJRRXKuaeexRrSLn
-X-Received: by 2002:a05:600c:8b42:b0:496:c93d:e2f with SMTP id
- 5b1f17b1804b1-49b91c57d64mr509125545e9.15.1788247717482; Tue, 01 Sep 2026
- 00:28:37 -0700 (PDT)
+        bh=8SZ8bLk6CvddV2DoaUudub3VpzLWfb6w1zc1ORXdlag=;
+        b=tGHRJZTtlynQugcdoTSVabiRO3nqTmUdJbggr5dbYI9OcMKPFtFJZyv3lOrTLV7k90
+         lrhLlhqJopVftM/eQffoBG6Xu9korMsvOMBmpVkCKnfpr8LDurHejJBanl5dBoFMs2Qj
+         luQcKMzUwOo/mpU5HGK1J+MKL1/IKOYTlKtR4pMed3iG6fe4oAmjheM5YpRphVzeVa4S
+         FucgBtPu2Gjq7savUcIRMJgpRaYSfU1lMMI8yqQ4v6MqTBzeP2xrxEI8GwwCI/uMuVQp
+         LHMnvBFCssXNci52DFLA3n7N6caQJXkGPyK8Q2JRuyvS4Wbfqq1ja8K5O8I/Uj3eWOYh
+         DV9g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788302074; x=1788906874;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8SZ8bLk6CvddV2DoaUudub3VpzLWfb6w1zc1ORXdlag=;
+        b=I/CHP36jY/S+z9EAtixSIzcKhjr1oM1M6/f1YshTktqJB5ijnARC8Z2ngFL/eD8O+p
+         lVFAVkTXzJof9nDSRsSjnL5X6dmAeObiLAf2O64hGM0vbbN7kLYW/vGBQ9jG0+6pYMWi
+         PoYZr/3BOT9kqNcQf1JH3TnunwMEvV/3vO7bgSGFIoEw7exVffpGRNOrPhlulWk9ApEi
+         /X3N9jsaeMEUFN+VXM+G5qkXFftVSEQ0eAjUP9WpLuuBIYEy8RAguD2KC6fjcuxQ3FKd
+         /ljp1zD5ZrGIIbYYsiRjx/K8+tHcJgK8d270JkTHkRBZETZjXvWjrxXK7BPf0Xjc60/M
+         50BA==
+X-Forwarded-Encrypted: i=1; AKwUvBy3e4L6Bk8XloTdVi+cCx+PidInpnrrfJFWA2WHx8bGbFPcr2MASRtu/pxCCZAom/WlHXAsn6ew@lists.infradead.org
+X-Gm-Message-State: AFuF++nvsKXyBtStPAk7YGVw9WA+mFBOOGtCNwgFJZ1PCRnDHf8F8TLy
+	pizEWW2IeAdrDiiaQITJGm0BRNxHf77oCLTqeUsg89arylo7Cfxco2YX
+X-Gm-Gg: AYBFou03HDH+sBxSVyL4XowZhq0cRT7lrm06Tf6bYYDYvI58u0Qu2RlbTUF8NezIyOd
+	Z5YY0/bG/IAeziMmfzB+4u3yAxGco/sgdm1Oi2MGWaNx3HKzZxFSQkDfkTg3+TjBS9vwdU6SjH9
+	rtqcJQo97mY4nI/D9g6NKlIQiA1EYCewvXDYeij7bzXvJrXWLhP9HsmdUs/msxKLAUxRhXlOTey
+	WlcyOqiJya4JDKeAYsr8vX5uVNysWYtaf49S+AMzw/K8YMa/Ahoy39fGfUH6WvQwLpJe9GO+S4F
+	vA0lqduQdtTV72YYfvhcbjnLHpqjw+RN9HC056xcQcIBfCvZGkM2qotOXMJh/UAKp1ZrpubAo5F
+	NQo/dOB1HEuNCsnLX40txDPGyRuygsQZ50twE+AunphhuI+In7XtfWMivw5QyuvJyMGbDlhJzsQ
+	0qfk2mODaKa3fa4U7SPQsJXSysGHDXFXt5EnRLLWwNSnD8k0QlFd3sdd0RXx9tTyyfWZM7QxBMn
+	hQnpgRemOSlEqMmumOXPt0=
+X-Received: by 2002:a17:902:ef4e:b0:2ca:e19c:986 with SMTP id d9443c01a7336-2daec5df7aamr7036465ad.1.1788302073585;
+        Tue, 01 Sep 2026 15:34:33 -0700 (PDT)
+Received: from [172.16.0.242] ([192.19.161.250])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-32f079f1f4fsm1072949eec.11.2026.09.01.15.34.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 01 Sep 2026 15:34:33 -0700 (PDT)
+Message-ID: <2c3672f5-dcfe-489b-be0d-5c1d2a50840c@gmail.com>
+Date: Tue, 1 Sep 2026 15:41:07 -0700
 MIME-Version: 1.0
-References: <20260731071820.7318-1-zhangzhanpeng.jasper@bytedance.com>
-In-Reply-To: <20260731071820.7318-1-zhangzhanpeng.jasper@bytedance.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Tue, 1 Sep 2026 12:58:24 +0530
-X-Gm-Features: AcwNN1XLg1QSXysFBRwM2EVMtTk3hsKg6f-DkfARE88Ms1Mxd222JqwPrV7DQpU
-Message-ID: <CAAhSdy3beJBWGXSJbuwnZia-9Lmu659zMtv4e+hwj6zv1=sX9g@mail.gmail.com>
-Subject: Re: [PATCH] lib: sbi: sse: clear SPV for non-virtualized events
-To: Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
-Cc: opensbi@lists.infradead.org, himanshu.chauhan@oss.qualcomm.com, 
-	thecharlesjenkins@gmail.com, cleger@rivosinc.com
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 0/5] platform: generic: spacemit: add K3 platform
+ support
+To: Valentin Haudiquet <valentin.haudiquet@canonical.com>,
+ opensbi@lists.infradead.org
+Cc: troy.mitchell@linux.spacemit.com, xianbin.zhu@linux.spacemit.com,
+ anup@brainfault.org, ganboing@gmail.com, samuel.holland@sifive.com,
+ heinrich.schuchardt@canonical.com
+References: <20260827-spacemit-k3-v3-0-5d8dbb68539d@linux.spacemit.com>
+ <20260831200832.404000-1-valentin.haudiquet@canonical.com>
+Content-Language: en-US
+From: Bo Gan <ganboing@gmail.com>
+In-Reply-To: <20260831200832.404000-1-valentin.haudiquet@canonical.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260901_002839_920155_03C4EE36 
-X-CRM114-Status: GOOD (  19.92  )
+X-CRM114-CacheID: sfid-20260901_153434_923623_9BB34B66 
+X-CRM114-Status: GOOD (  24.26  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -112,47 +102,71 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-T24gRnJpLCBKdWwgMzEsIDIwMjYgYXQgMTI6NDjigK9QTSBaaGFucGVuZyBaaGFuZwo8emhhbmd6
-aGFucGVuZy5qYXNwZXJAYnl0ZWRhbmNlLmNvbT4gd3JvdGU6Cj4KPiBTU0UgaW5qZWN0aW9uIHNl
-dHMgaHN0YXR1cy5TUFYgdG8gdGhlIHZpcnR1YWxpemF0aW9uIHN0YXRlIG9mIHRoZQo+IGludGVy
-cnVwdGVkIGNvbnRleHQgYmVmb3JlIGVudGVyaW5nIHRoZSBzdXBlcnZpc29yIGhhbmRsZXIuIFRo
-aXMgcGF0Y2gKPiBjb21wbGV0ZXMgdGhhdCBleGlzdGluZyByZXF1aXJlbWVudCBhbmQgZG9lcyBu
-b3QgY2hhbmdlIHRoZSBTU0UgQUJJLgo+Cj4gVGhlIGV4aXN0aW5nIGNvZGUgc2V0cyBTUFYgd2hl
-biB0aGUgaW50ZXJydXB0ZWQgY29udGV4dCBpcyB2aXJ0dWFsaXplZCwKPiBidXQgbGVhdmVzIGl0
-IHVuY2hhbmdlZCBvdGhlcndpc2UuIEEgc3RhbGUgU1BWIHZhbHVlIGNhbiB0aGVyZWZvcmUgbWFr
-ZQo+IGFuIGV2ZW50IHRoYXQgaW50ZXJydXB0ZWQgaG9zdCBleGVjdXRpb24gYXBwZWFyIHRvIGhh
-dmUgaW50ZXJydXB0ZWQgYQo+IGd1ZXN0LiBFdmVudCBjb21wbGV0aW9uIGNhbiB0aGVuIHJlc3Vt
-ZSB3aXRoIHZpcnR1YWxpemF0aW9uIGVuYWJsZWQuCj4KPiBDbGVhciBTUFYgd2hlbiB0aGUgaW50
-ZXJydXB0ZWQgY29udGV4dCBpcyBub3QgdmlydHVhbGl6ZWQgc28gdGhlCj4gaGFuZGxlci12aXNp
-YmxlIHN0YXRlIG1hdGNoZXMgdGhlIGludGVycnVwdGVkIGNvbnRleHQuIFRoaXMgYWxzbyBsZXRz
-Cj4gc3VwZXJ2aXNvciBzb2Z0d2FyZSwgc3VjaCBhcyB0aGUgTGludXggUE1VIGFuZCBwZXJmIGNv
-ZGUsIHJlbGlhYmx5IHRlbGwKPiB3aGV0aGVyIGFuIFNTRSBpbnRlcnJ1cHRlZCBob3N0IG9yIHZp
-cnR1YWxpemVkIGV4ZWN1dGlvbi4KPgo+IEZpeGVzOiBjOGNkZjAxZDhmM2EgKCJsaWI6IHNiaTog
-QWRkIHN1cHBvcnQgZm9yIFN1cGVydmlzb3IgU29mdHdhcmUgRXZlbnRzIGV4dGVuc2lvbiIpCj4g
-U2lnbmVkLW9mZi1ieTogWmhhbnBlbmcgWmhhbmcgPHpoYW5nemhhbnBlbmcuamFzcGVyQGJ5dGVk
-YW5jZS5jb20+CgpMR1RNLgoKUmV2aWV3ZWQtYnk6IEFudXAgUGF0ZWwgPGFudXBAYnJhaW5mYXVs
-dC5vcmc+CgpBcHBsaWVkIHRoaXMgcGF0Y2ggdG8gdGhlIHJpc2N2L29wZW5zYmkgcmVwby4KClRo
-YW5rcywKQW51cAoKPiAtLS0KPiAgbGliL3NiaS9zYmlfc3NlLmMgfCAxMSArKystLS0tLS0tLQo+
-ICAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQo+Cj4gZGlm
-ZiAtLWdpdCBhL2xpYi9zYmkvc2JpX3NzZS5jIGIvbGliL3NiaS9zYmlfc3NlLmMKPiBpbmRleCA4
-MThhZmI4Ny4uNjhlNGZhYjQgMTAwNjQ0Cj4gLS0tIGEvbGliL3NiaS9zYmlfc3NlLmMKPiArKysg
-Yi9saWIvc2JpL3NiaV9zc2UuYwo+IEBAIC01NjMsMTUgKzU2MywxMCBAQCBzdGF0aWMgdm9pZCBz
-c2VfZXZlbnRfaW5qZWN0KHN0cnVjdCBzYmlfc3NlX2V2ZW50ICplLAo+Cj4gICAgICAgICBpZiAo
-bWlzYV9leHRlbnNpb24oJ0gnKSkgewo+ICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIGhz
-dGF0dXMgPSBjc3JfcmVhZChDU1JfSFNUQVRVUyk7Cj4gLQo+IC0jaWYgX19yaXNjdl94bGVuID09
-IDY0Cj4gLSAgICAgICAgICAgICAgIGlmIChyZWdzLT5tc3RhdHVzICYgTVNUQVRVU19NUFYpCj4g
-LSNlbGlmIF9fcmlzY3ZfeGxlbiA9PSAzMgo+IC0gICAgICAgICAgICAgICBpZiAocmVncy0+bXN0
-YXR1c0ggJiBNU1RBVFVTSF9NUFYpCj4gLSNlbHNlCj4gLSNlcnJvciAiVW5leHBlY3RlZCBfX3Jp
-c2N2X3hsZW4iCj4gLSNlbmRpZgo+ICsgICAgICAgICAgICAgICBpZiAoc2JpX3JlZ3NfZnJvbV92
-aXJ0KHJlZ3MpKQo+ICAgICAgICAgICAgICAgICAgICAgICAgIGhzdGF0dXMgfD0gSFNUQVRVU19T
-UFY7Cj4gKyAgICAgICAgICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgICAgICAgICBoc3Rh
-dHVzICY9IH5IU1RBVFVTX1NQVjsKPgo+ICAgICAgICAgICAgICAgICBoc3RhdHVzICY9IH5IU1RB
-VFVTX1NQVlA7Cj4gICAgICAgICAgICAgICAgIGlmIChoc3RhdHVzICYgSFNUQVRVU19TUFYgJiYg
-cmVncy0+bXN0YXR1cyAmIFNTVEFUVVNfU1BQKQo+IC0tCj4gMi41MC4xIChBcHBsZSBHaXQtMTU1
-KQo+CgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+Hi Valentin, Troy,
+
+AFAIK, the ESOS runs on the two RT24 cores, not the A100 cores. While
+testing v3 patchset, I also observed the rpmi-shmem-mbox@cac90c00 timeout
+xmitting messages, and I lost the rpmi backed power-regulator, which then
+caused some issues in Linux. I don't think this is caused by the A100 cores
+but I suspect this might have something to do with clocks not configured in
+vendor uboot SPL. Please check if there're other modification to vendor
+uboot that needs to be done, apart from the dts changes, in order to adapt
+to this patchset.
+
+Regarding the core/cluster HSM, can SpacemiT publish the K3 TRM, at least
+regarding this topic? As there're special power-up/down sequences that a
+core needs to follow, it's impossible for outsiders like me to review and
+verify if the sequence is correct or not. I was told there's even more
+complicated sequences when powering-down a core, if it's the last one in
+cluster to power-down (suppose that we may want to support HSM stop in the
+future).
+
+Publishing the TRM would also clarify the mysterious Audio buffer, and PMA
+register format. What's the address of the Audio buffer, exactly? Is there
+a CSR_PMAADDR0?
+
+Bo
+
+On 8/31/26 13:07, Valentin Haudiquet wrote:
+> Hello,
+> 
+> I have tested this patchseries on my K3 board. I had to patch U-Boot
+> SPL and EDK2 with the mentioned DTS changes.
+> 
+> Afterwards, booting the upstream 7.2 kernel with Spacemit patches
+> (still in mailing list) works but the kernel hangs in initramfs.
+> 
+> I had to add 3 patches to make it work properly, see the series
+> below.
+> 
+> I believe one of the issues is that the v3 HSM wakes A100 core 8 only
+> when Linux onlines CPU 8. The vendor kernel onlines all 16 CPUs
+> so ESOS starts and RPMI works. Mainline uses only the X100 complex
+> (harts 0-7), so CPU 8 is never onlined, core 8 is never woken,
+> ESOS never runs, and RPMI mailbox transactions time out.
+> Patch 3/3 wakes core 8 in OpenSBI pre_init so ESOS is available
+> regardless of which CPUs Linux uses.
+> 
+> For the other patches, I'm not sure why the issues are not encountered
+> with the vendor kernel.
+> 
+> I have adapted those patches from the Spacemit OpenSBI 1.6 vendor tree
+> logic, through a lot of trial and error. I'm not sure I deeply understand
+> the hardware-specific details at play, so any comments would be appreciated.
+> 
+> Feel free to take this in as part of the patchseries and modify it if needed,
+> or send review comments and I can also improve them.
+> 
+> Tested-by: Valentin Haudiquet <valentin.haudiquet@canonical.com>
+> 
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
