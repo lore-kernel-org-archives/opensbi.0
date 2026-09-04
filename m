@@ -4,71 +4,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E170AC624DE
-	for <opensbi@archiver.kernel.org>; Fri,  4 Sep 2026 16:29:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A2F82C79F87
+	for <opensbi@archiver.kernel.org>; Fri,  4 Sep 2026 16:29:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=RRK95cOj7bN/Iw/RiJgCGWtFComyAqTWr+X04QW8598=; b=PMyEpQtE9Zvd1j
-	3yf3p2y2Eb9FcIpdm0lrihZ+qkKKgMS8qbNlWCuGrnF4hE0uAd0e6uimbq79BUxw+wNoC2P8KktVh
-	D0k2FfSd7eyROvZJix2K2GIqFMuYmr+GxtN+/H9a+08plslMROiwMvfBMnZvv0YxToMrvMl8y9NOU
-	ZOtm5sY1eTWqhmM/bdZftCZB0pk3A8J+n/TLSAwauixLnWzSBBUV+YviicNR3OtPLOJv/EBM65DGm
-	3Ne3o9PsDyY3b33i0MhuGk7jCyfv5pKjuXa+xWJtH4yWHzLANCkeak1+dAurzQV4prWw/e1doG9CR
-	/lA9bavfOWNJp6/wZOKw==;
+	List-Owner; bh=d9vxWCZmo1TSNiFVrw/raK+L3ef1H8waw7cB6PjxGLA=; b=MHrGeD6f0d844N
+	Blqrl/tgagi423fssdcjqIe9dcmTyKSt0dQLIqPfVMcZI24DMYJQo3sNu0TKtGeMe6F/jFm7KxIO1
+	OSX9tGs2dcoeKKnSWq3YGF06GHEjXBor8NiASYhu9ZnnkvfcJ0OWJT7fVcaId7DgzuJ+1NaLAgZ7W
+	nNBrbBITY3GExCiXqCvgIfS8wGve7y0int78sILftjxg4ZJON93yH6Dhz4Vwdtod4rPK6r2nmy9mj
+	ANiLsnOS/RGmQwTqEg3h03TKhTsO8zxsP4P3BpHd9L/BPN8J77dOO1SQW/XR2r9ArZnbQbl+fLvls
+	U5ZmCY+0hU6WNLTzWF5g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x2WnF-00000002jYN-2U0e;
-	Fri, 04 Sep 2026 16:29:33 +0000
-Received: from mail-qt1-x835.google.com ([2607:f8b0:4864:20::835])
+	id 1x2WnH-00000002jZH-31aI;
+	Fri, 04 Sep 2026 16:29:35 +0000
+Received: from mail-qv1-xf34.google.com ([2607:f8b0:4864:20::f34])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x2WnD-00000002jWZ-03U0
+	id 1x2WnF-00000002jXk-1n7e
 	for opensbi@lists.infradead.org;
-	Fri, 04 Sep 2026 16:29:32 +0000
-Received: by mail-qt1-x835.google.com with SMTP id d75a77b69052e-52cd38ddcdfso14917521cf.3
-        for <opensbi@lists.infradead.org>; Fri, 04 Sep 2026 09:29:30 -0700 (PDT)
+	Fri, 04 Sep 2026 16:29:34 +0000
+Received: by mail-qv1-xf34.google.com with SMTP id 6a1803df08f44-90ce08834feso17726856d6.0
+        for <opensbi@lists.infradead.org>; Fri, 04 Sep 2026 09:29:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788539370; x=1789144170; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1788539372; x=1789144172; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=aChLsEokWRjvJChzyx28wPmVgPmPAP/lNJ5qzF5xYQw=;
-        b=oGBRkKvEXcvvgi5082Wpjl34iyTjO75g1YqY+Xo4Lb3ble+PHDVM9c0GVtdr0Rnf5r
-         Ld62mRUhhyF5/yMpgnAK0TctJZ6x8NuD4yLhVbH1JKXKetrYBCajTuEoXL45nNx2a2Am
-         e2/5o77ReKAkoeoD4rYM6TELQ98cb0/l/kUc98nyvYQP23O0Kp0ODf9W8RwOF/2LqiZw
-         a47ZkW+WvLm20V+6QrCC+p/tlM/at1glDme1vNZuvGZn3ArLUSu9HYk/dIWnxSzPekAL
-         u2ZyEujQxvlrnxwZC/BM+1fbP4HMl5BcnGDiVdyUUNe9vW6+kQfz3LswJ48lkGHSRzxh
-         FhRA==
+        bh=BxkmhAiEgzgL0m6a2XIwYI28aet6jKP6N+Rmyc23lkE=;
+        b=qUM9xWQQNVHIW/Csv7+U06ZGF+khQ236ZU8P7NGa+S2jzteAFpV9Da1S3Q3XLOeslt
+         NBXVC3bVJULSTNBTqVvMhLhsytf+i4TZaMlMkG/tq/k3i14y7mDffHek7IBIeTkijHWX
+         bnGqhCPjcbjUBgCodORJjAihTW3ATYMbK2LMQc54MiHzVm/I3AU4M+81B+f8k1hN6OE4
+         LBiDDuZ11dk8LFaVlNHdoCYad6ZvBdt7DmkcTr0pwkor/k13a8MBc/6r6oqo+h9HjG1J
+         XUTIYApUEzycsmE1qH8/cCJnns/GXUbS3mX9yguK6o+ZMC0JF5vjK0kn48pdiHs/SHiX
+         zzHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788539370; x=1789144170;
+        d=1e100.net; s=20251104; t=1788539372; x=1789144172;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=aChLsEokWRjvJChzyx28wPmVgPmPAP/lNJ5qzF5xYQw=;
-        b=Z1ue6K1ekxXkaSAopJew77GBjxbVbK7a8Bful24Vl6wU/brKhom2UHoBIhzBMdaO7L
-         +p+2jeIa/UTQTEaC84Q4rrYMthjBOpN34GlnB+OjvcL5v4U/tjHmTEZwbx6WCkWP/4Mv
-         Glu7vIVlU0wIHzbBs/lHeOytjBhcsN5mn6tYnt8Epv6r1qY+c5EKAxvHEAyHavWkWx8+
-         TxwCBEaLqx0w0FHomdZaSyhQfvu+KP1MLCCpcrVq1cezKR1JXPjZY2KVmmFPBrC0iXsB
-         lUkbszBAFaEW770SkXuM8PTb7PKr7DRo+7PRccKB5ldTc1z10Qh3Ua9Az4kr7qN+0vfU
-         G/Yg==
-X-Gm-Message-State: AFuF++lKqQyxiSKCwFeZcEOonesCT4051bolqHHAonfuV3brzxC7TeZN
-	pfGqOZpBxSPKWH60KuKeXEfjkmTdtH0u54h7TKx2RngDtIHpXaEDhW9tH+Gb4w==
-X-Gm-Gg: AYBFou0waY2OgI/mITfG+k2lOWNwiVyESvwrrHR/VNuiAEWpuHuC+9AzAGgC9qPFc/1
-	vCSLp8CsCcSnotc7kxvdiMtQKbXME1x4bbdCeBAlaA7bTMMqR+4wQbZq3XXSZfTJISUnAHe2Wyg
-	xkbXXhR30nbDrkNjwy7blrvN0drfp9rEqCzSD54gxQfams6f9xgp+NKB8zP4kUH98MMYcRNVJ+6
-	izlgDFUBzqFMs4Tf+uhYCZc8u390m6J29mY0WThUObPc2nLTcswCsq7T3eTHm9HNZtM/hBStNRT
-	H00tMrBk3NAgwkPjvZv7hx4Zuxp/SrCMkaNyJFGNj13ypIJY5rgHie/iu82ssKBWVRZd7oTE/Vl
-	A6tkzkJZaAXTSd82kAz0dZANTpc33AtySmflTGPi7cxI0CIREbhQErCSm7feMdoVWdJKbb4YxeD
-	+xlr//w6w3Rz/lsOJFCrrUBdowZoxEl9Q6D6xc+h9mGPweHvnP1nDTPUWaSW/HhGw5VqludZAJO
-	Cr9Bs7UemU=
-X-Received: by 2002:a05:622a:cf:b0:51c:14f5:8f9c with SMTP id d75a77b69052e-5305498b069mr72862481cf.27.1788539369447;
-        Fri, 04 Sep 2026 09:29:29 -0700 (PDT)
+        bh=BxkmhAiEgzgL0m6a2XIwYI28aet6jKP6N+Rmyc23lkE=;
+        b=UmnojNARU6h1L2/nCl8dC0H0V2kGaVMgJIiCEz678XpJ5A2GOUtm596y8kgrJEK93p
+         zeasO1lWe/a5wuWfoytv2grrfjfs5JD9MJypOor3hpi7ckWfZihcsXsR5UMZBHpi3Z8Z
+         HqSoPthr5ngfRpw5m7NHmi7MO1vAri4N9igXXY/FDSoXc88oV04UED2RIXNsmUemjSGE
+         I0lc5VpI8Q71T0eZlqKnDottUy6sE6aIYjb48COZ4XuWeA0BedHzGWEZNteAFblWNewK
+         bJsB5QWDypeK5J/QLEyif+idW+b1Ka+xGSRDKqPvGGC6OPMDYYSJj2vQhcb4GWVjXbQL
+         LWLQ==
+X-Gm-Message-State: AFuF++nyy+XS3WLywZV55DIUaFOGNAvpPeHARadgRgq5b+VNbNbQrnXD
+	S7C/umUkqpU9nYrFghJDHPS5gr1ve0NAXRVcsB1TnEi/W/6vk54wDxsyukEfkQ==
+X-Gm-Gg: AYBFou2OxZ9iDmKKPDpoQHiBuXTkuMGKFnWILZ+zHt9pIZtxLVuW0GCOS9RRdR8JX/w
+	KOnSQpcS3hxjYf8g4D323tA5MZHG1ffDq2aDYmg243m3QR2hFUJqp/O5Ip8d5wMxhV/HIAkCLWv
+	GzqXcYcCVJJUpqgMVJVbiZVQFhvvz+3ireDzfoydqniv/sV1bmz5qgrSlLEmadozNhuSvbaidwV
+	VzmEebx4lkHbnunepW4aIOAM8a1YdG6zdqoK28I082WpHkoMJLNpc+cVAqioquQwJOqMb5ZgPgI
+	Xx6dbks/TqXuUtcKXaaqVOWs//+lTKfbSyqAsqhzXqGOcViR0FcAW28l2v+OKmwlvriKn/Bc9a5
+	bZQbzUmbyP+uXkKowr5AVbXErENbcRqA7fBhW6DrDW60js05RY/XwJbQ4h/eb3RZ9L+WZOm9xvL
+	xZDNThZay67z8xhl2mOYzJsjo1Ib1zDAR7QhYrCMgXHl2GU3Gytvc/eZBuGvG0EsdU4HvPXIBmo
+	afM0PlJ9KpKXWxiyvz9hQ==
+X-Received: by 2002:ad4:4ee4:0:b0:910:3453:d4a7 with SMTP id 6a1803df08f44-9103f0365famr73973716d6.33.1788539372124;
+        Fri, 04 Sep 2026 09:29:32 -0700 (PDT)
 Received: from ubuntu.localdomain ([209.227.130.181])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-910405966f0sm24432386d6.6.2026.09.04.09.29.28
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-910405966f0sm24432386d6.6.2026.09.04.09.29.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2026 09:29:29 -0700 (PDT)
+        Fri, 04 Sep 2026 09:29:31 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup.patel@oss.qualcomm.com,
@@ -77,16 +77,17 @@ Cc: anup.patel@oss.qualcomm.com,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	peter.lin@sifive.com
-Subject: [PATCH v3 1/5] lib: utils: fdt: add generic domain and property parsing helpers
-Date: Fri,  4 Sep 2026 12:29:11 -0400
-Message-Id: <20260904162915.1092353-2-raymondmaoca@gmail.com>
+Subject: [PATCH v3 2/5] hart: add WorldGuard CSR IDs and hart extension flags
+Date: Fri,  4 Sep 2026 12:29:12 -0400
+Message-Id: <20260904162915.1092353-3-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260904162915.1092353-1-raymondmaoca@gmail.com>
 References: <20260904162915.1092353-1-raymondmaoca@gmail.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260904_092931_072846_33DC7DBF 
-X-CRM114-Status: GOOD (  19.06  )
+X-CRM114-CacheID: sfid-20260904_092933_481048_D41E5C22 
+X-CRM114-Status: UNSURE (   8.82  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -105,243 +106,84 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add reusable FDT helpers for domain-oriented and other FDT-based
-consumers.
-
-This adds helpers to:
-- find a domain instance DT node by exact name match
-- parse a single u32 property
-- parse a single u64 property
-- parse a u32 property list into a bitmask
-
-Also tighten the internal domain-name matching to use exact node-name
-matching.
+Define the WorldGuard-related CSR numbers and advertise the Worlds
+ISA extensions: smlwid, smlwidlist, smwid, smwiddeleg, and sswid.
+This lets platform code probe support before programming MLWID,
+MLWIDLIST, MWIDDELEG, and SLWID.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi_utils/fdt/fdt_domain.h | 13 +++++
- include/sbi_utils/fdt/fdt_helper.h | 10 ++++
- lib/utils/fdt/fdt_domain.c         | 46 +++++++++++++++++-
- lib/utils/fdt/fdt_helper.c         | 76 ++++++++++++++++++++++++++++++
- 4 files changed, 144 insertions(+), 1 deletion(-)
+ include/sbi/riscv_encoding.h |  4 ++++
+ include/sbi/sbi_hart.h       | 10 ++++++++++
+ lib/sbi/sbi_hart.c           |  5 +++++
+ 3 files changed, 19 insertions(+)
 
-diff --git a/include/sbi_utils/fdt/fdt_domain.h b/include/sbi_utils/fdt/fdt_domain.h
-index 8c2dee09..60d51d6c 100644
---- a/include/sbi_utils/fdt/fdt_domain.h
-+++ b/include/sbi_utils/fdt/fdt_domain.h
-@@ -11,12 +11,18 @@
- #ifndef __FDT_DOMAIN_H__
- #define __FDT_DOMAIN_H__
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index ffe7666c..5aca57a5 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -373,6 +373,7 @@
  
-+#include <sbi/sbi_error.h>
- #include <sbi/sbi_types.h>
+ /* Supervisor Protection and Translation */
+ #define CSR_SATP			0x180
++#define CSR_SLWID			0x190
  
- #ifdef CONFIG_FDT_DOMAIN
+ /* Supervisor Indirect Register Alias */
+ #define CSR_SISELECT			0x150
+@@ -510,6 +511,7 @@
+ /* Machine Configuration */
+ #define CSR_MENVCFG			0x30a
+ #define CSR_MENVCFGH			0x31a
++#define CSR_MLWID			0x390
  
- struct sbi_domain;
+ /* Machine Trap Handling */
+ #define CSR_MSCRATCH			0x340
+@@ -736,6 +738,8 @@
+ /* Machine Security Configuration CSR (mseccfg) */
+ #define CSR_MSECCFG			0x747
+ #define CSR_MSECCFGH			0x757
++#define CSR_MWIDDELEG			0x748
++#define CSR_MLWIDLIST			0x74a
  
-+struct fdt_find_domain_offset_info {
-+	const char *name;
-+	int domain_offset;
-+};
-+
- /**
-  * Iterate over each domains in device tree
-  *
-@@ -45,6 +51,8 @@ int fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
- 					 int region_offset, u32 region_access,
- 					 void *opaque));
- 
-+int fdt_find_domain_offset(const void *fdt, const struct sbi_domain *dom);
-+
- /**
-  * Fix up the domain configuration in the device tree
-  *
-@@ -76,6 +84,11 @@ int fdt_domains_populate(const void *fdt);
- 
- static inline void fdt_domain_fixup(void *fdt) { }
- static inline int fdt_domains_populate(const void *fdt) { return 0; }
-+static inline int fdt_find_domain_offset(const void *fdt,
-+					 const struct sbi_domain *dom)
-+{
-+	return SBI_ENOENT;
-+}
- 
- #endif
- 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 75a564d1..05ca9f79 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -50,6 +50,16 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid);
- 
- int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
- 
-+int fdt_parse_u32(const void *fdt, int nodeoff, const char *prop_name,
-+		  u32 *out_val);
-+
-+int fdt_parse_u64(const void *fdt, int nodeoff, const char *prop_name,
-+		  u64 *out_val);
-+
-+int fdt_parse_u32_array_bitmask(const void *fdt, int nodeoff,
-+				const char *prop_name, u32 max_bits,
-+				u32 *out_mask);
-+
- int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long  *cbom_block_size);
- 
- int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 61627db3..af653505 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -97,6 +97,49 @@ int fdt_iterate_each_memregion(void *fdt, int domain_offset, void *opaque,
- 	return 0;
- }
- 
-+static bool fdt_find_domain_offset_match(void *fdt, int domain_offset,
-+					 void *opaque)
-+{
-+	struct fdt_find_domain_offset_info *info = opaque;
-+	const char *name;
-+
-+	name = fdt_get_name(fdt, domain_offset, NULL);
-+	if (name && !strcmp(info->name, name)) {
-+		info->domain_offset = domain_offset;
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static int fdt_find_domain_offset_iter(void *fdt, int domain_offset,
-+				       void *opaque)
-+{
-+	return fdt_find_domain_offset_match(fdt, domain_offset, opaque) ? 1 : 0;
-+}
-+
-+int fdt_find_domain_offset(const void *fdt, const struct sbi_domain *dom)
-+{
-+	struct fdt_find_domain_offset_info info;
-+	int rc;
-+
-+	if (!fdt || !dom)
-+		return SBI_EINVAL;
-+	if (dom == &root)
-+		return -1;
-+
-+	info.name = dom->name;
-+	info.domain_offset = -1;
-+	rc = fdt_iterate_each_domain((void *)fdt, &info,
-+				     fdt_find_domain_offset_iter);
-+	if (rc < 0)
-+		return rc;
-+	if (info.domain_offset >= 0)
-+		return info.domain_offset;
-+
-+	return SBI_ENOENT;
-+}
-+
- static int fdt_iterate_each_memregion_ro(const void *fdt, int domain_offset, void *opaque,
- 					 int (*fn)(const void *fdt, int domain_offset,
- 						   int region_offset, u32 region_access,
-@@ -114,8 +157,9 @@ struct __fixup_find_domain_offset_info {
- static int __fixup_find_domain_offset(void *fdt, int doff, void *p)
- {
- 	struct __fixup_find_domain_offset_info *fdo = p;
-+	const char *name = fdt_get_name(fdt, doff, NULL);
- 
--	if (!strncmp(fdo->name, fdt_get_name(fdt, doff, NULL), strlen(fdo->name)))
-+	if (name && !strcmp(fdo->name, name))
- 		*fdo->doffset = doff;
- 
- 	return 0;
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 747ba028..c0f65643 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -250,6 +250,82 @@ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid)
- 	return 0;
- }
- 
-+int fdt_parse_u32(const void *fdt, int nodeoff, const char *prop_name,
-+		  u32 *out_val)
-+{
-+	const fdt32_t *prop;
-+	int len;
-+
-+	if (!fdt || nodeoff < 0 || !prop_name || !out_val)
-+		return SBI_EINVAL;
-+
-+	prop = fdt_getprop(fdt, nodeoff, prop_name, &len);
-+	if (!prop)
-+		return SBI_ENOENT;
-+	if (len != (int)sizeof(fdt32_t))
-+		return SBI_EINVAL;
-+
-+	*out_val = fdt32_to_cpu(prop[0]);
-+	return 0;
-+}
-+
-+int fdt_parse_u64(const void *fdt, int nodeoff, const char *prop_name,
-+		  u64 *out_val)
-+{
-+	const fdt32_t *prop;
-+	int len;
-+
-+	if (!fdt || nodeoff < 0 || !prop_name || !out_val)
-+		return SBI_EINVAL;
-+
-+	prop = fdt_getprop(fdt, nodeoff, prop_name, &len);
-+	if (!prop)
-+		return SBI_ENOENT;
-+	if (len != (int)(2 * sizeof(fdt32_t)))
-+		return SBI_EINVAL;
-+
-+	*out_val = ((u64)fdt32_to_cpu(prop[0]) << 32) | fdt32_to_cpu(prop[1]);
-+	return 0;
-+}
-+
-+int fdt_parse_u32_array_bitmask(const void *fdt, int nodeoff,
-+				const char *prop_name, u32 max_bits,
-+				u32 *out_mask)
-+{
-+	const fdt32_t *prop;
-+	u32 mask = 0, count, val;
-+	int len, i;
-+
-+	if (!fdt || nodeoff < 0 || !prop_name || !out_mask || !max_bits ||
-+	    max_bits > 32)
-+		return SBI_EINVAL;
-+
-+	*out_mask = 0;
-+
-+	prop = fdt_getprop(fdt, nodeoff, prop_name, &len);
-+	if (!prop)
-+		return 0;
-+	if (len < 0 || (len % (int)sizeof(fdt32_t)))
-+		return SBI_EINVAL;
-+
-+	count = len / sizeof(fdt32_t);
-+	if (count > max_bits)
-+		return SBI_EINVAL;
-+
-+	for (i = 0; i < (int)count; i++) {
-+		val = fdt32_to_cpu(prop[i]);
-+		if (val >= max_bits)
-+			return SBI_EINVAL;
-+		if (mask & (1U << val))
-+			return SBI_EINVAL;
-+
-+		mask |= 1U << val;
-+	}
-+
-+	*out_mask = mask;
-+	return 0;
-+}
-+
- int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long *cbom_block_size)
- {
- 	int len;
+ #define MSECCFG_MML_SHIFT		(0)
+ #define MSECCFG_MML			(_UL(1) << MSECCFG_MML_SHIFT)
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 543393bb..67362ec3 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -63,6 +63,16 @@ enum sbi_hart_extensions {
+ 	SBI_HART_EXT_SSCSRIND,
+ 	/** Hart has Ssccfg extension */
+ 	SBI_HART_EXT_SSCCFG,
++	/** Hart has Smlwid extension */
++	SBI_HART_EXT_SMLWID,
++	/** Hart has Smlwidlist extension */
++	SBI_HART_EXT_SMLWIDLIST,
++	/** Hart has Smwid extension */
++	SBI_HART_EXT_SMWID,
++	/** Hart has Smwiddeleg extension */
++	SBI_HART_EXT_SMWIDDELEG,
++	/** Hart has Sswid extension */
++	SBI_HART_EXT_SSWID,
+ 	/** Hart has Svade extension */
+ 	SBI_HART_EXT_SVADE,
+ 	/** Hart has Svadu extension */
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index bee88557..aeafb51a 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -344,6 +344,11 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
+ 	__SBI_HART_EXT_DATA(smcdeleg, SBI_HART_EXT_SMCDELEG),
+ 	__SBI_HART_EXT_DATA(sscsrind, SBI_HART_EXT_SSCSRIND),
+ 	__SBI_HART_EXT_DATA(ssccfg, SBI_HART_EXT_SSCCFG),
++	__SBI_HART_EXT_DATA(smlwid, SBI_HART_EXT_SMLWID),
++	__SBI_HART_EXT_DATA(smlwidlist, SBI_HART_EXT_SMLWIDLIST),
++	__SBI_HART_EXT_DATA(smwid, SBI_HART_EXT_SMWID),
++	__SBI_HART_EXT_DATA(smwiddeleg, SBI_HART_EXT_SMWIDDELEG),
++	__SBI_HART_EXT_DATA(sswid, SBI_HART_EXT_SSWID),
+ 	__SBI_HART_EXT_DATA(svade, SBI_HART_EXT_SVADE),
+ 	__SBI_HART_EXT_DATA(svadu, SBI_HART_EXT_SVADU),
+ 	__SBI_HART_EXT_DATA(smnpm, SBI_HART_EXT_SMNPM),
 -- 
 2.25.1
 
