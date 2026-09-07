@@ -4,55 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 80326C79F9E
-	for <opensbi@archiver.kernel.org>; Mon,  7 Sep 2026 11:45:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E0ADFC79F9E
+	for <opensbi@archiver.kernel.org>; Mon,  7 Sep 2026 11:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=mwHBUKEhtsD7iehRYuEMHJczWwXE4BFhojknXHdLPqw=; b=Flc6RkHHK2m87w
-	gRUR+2Sn5OMxfoOooT7qCH/glwloo57EqHRczSzHbVGQ4pf00sHu1xQ5vrEGHkKSIyvV4C8x+VUGh
-	N31okrLVljfOG7hnSTp74cOP5Dr6fxfWUuMblejN8re/DNvIpRPH0XDfX/DH6kYubn7fydP1tdL7Z
-	GcZ3YaiQLNatMlcj6TI9cGgONdlodc83G2KmDD9FPH8EW8nN02TUkhkWiy3ztyG8bHyPvI3NpuqW6
-	b65pPyxQq5s6Ak+FbDSZx58Al3/1+ZEmGvj0dcJyV9ukV3VAnu8dDDqU6NGrof9JhpGjm4QXrZaHQ
-	xfSyKOaBpdQbYny3V1fQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=/wM1IgnHFhdqRp0g9mbm0vUl45aXjVlMvN+tWyZR5Oc=; b=xFa1b/fyO1AqRS
+	bMozZN3XBpD1Zf8sfXq1kXDzZq8FUMwFBr/nAwjAzczyDNvN/GiyyW4E8pheCRjH2n6W5icO+hhrn
+	hjE1qU0dQCi8JVfJHr5YXZI/YX5Sr4/ZnAGEX9TK0/X4WBweCNY4SeuQQK18pMo9PUT+U73/hLTKp
+	b5KmkgOGDQ/8nqpSCtERCDxxcr9tR7LclkvID7HKP+zPYMIeufA7/L0byRe7lYIgqDrrbpu5DyLMU
+	rftPx88UoJrbxcY/NWoaw3LiZ6wi/3+BYJQpgsohvTmtNHZ3ZjB3+kryt+LYR83a/pBp1A9JqqR/U
+	EqgXVO52x33eMgxs5Q/A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3XnK-00000006hUr-36Pc;
-	Mon, 07 Sep 2026 11:45:50 +0000
-Received: from mail-northeuropeazlp170100001.outbound.protection.outlook.com ([2a01:111:f403:c200::1] helo=DB3PR0202CU003.outbound.protection.outlook.com)
+	id 1x3XnR-00000006hWq-3Rzt;
+	Mon, 07 Sep 2026 11:45:57 +0000
+Received: from mail-francecentralazon11013040.outbound.protection.outlook.com ([40.107.162.40] helo=PA4PR04CU001.outbound.protection.outlook.com)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3XnH-00000006hUL-21xP
+	id 1x3XnP-00000006hVS-0IR6
 	for opensbi@lists.infradead.org;
-	Mon, 07 Sep 2026 11:45:49 +0000
+	Mon, 07 Sep 2026 11:45:56 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=xkFZtl9J+uRf+EeYYuCBY467EuVUjkqOCk99Nnv1az62Jry0IdoSzbXtqZ4oi2CmSOiH2qbqOJo96K43gPdPizM+ufnaPH8yfUIeFRJoIbic62bWxViwlH0Vyet+zfBWuV3hCm8XebM2OMJNmgytWtypKwNSKffltfIU206tDDABx2kva0aCsIqpj3agG8BNm6S76sCkVuN4o0/W8vO4CIMcRWuwz9jSf4LgdT10poWp3gSxJqMR2nBfUKwrcwmqhmnfDT85OjuxWQTblIv8G1FPwUB/4jF0CNROlxYvIvxtM74Ej6ce0G25IsXMHO8196B+QPdloCeRDV/qXLVjeA==
+ b=fBNtidIbL1PWLXQL6IVwz3nOErOm3GtGLccs+u8OR9HEwFRWmXKY68Zmmwj4E1Vg5pI75VBZ7hTIGAGFkd4+Y8L40iKzhfyb7Y2U6wM7VwjKcAZIyC5/rcGSqMkBPNRNWLgmvhHazWRxc2iIdkQ22cmn+y6lDbVvZdhSfVtUAiGf0PSvG+5YTgE+gULhvM+M4dpZZ4NYe4AG845cIK5bVDMfQ1zOAWnSCCdpWa69KNMQbosXD9fx7st8YR5JtUpfWxG02YG1gof8bs+mojFoqN4neX9AOiuTkC24lgsN2LkjuZc/tfy4lh9Y4mgC01qIGLVeUBphYyF2qufRcLon3w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=s8cIcl+sGV7XkKVCY+cbFvFi1VBlX8jBp6Ars14aF84=;
- b=qjt2U06U0bP/ZlwmhggePAZ+IEkR6+q46H0NljSUEDHcLiE/DpVnwqwFHP5QHDu6UrtatgH8rDqfPApnJNWMLXsenHQLIn5UlG+CwVTUQkm5thFpLOAyrJcvbBB/gvvcAvRvJYNH26C4llUjiWX5FGX5pz/dlOvG1nX4qskwu+9Hs0Shwjewd5hOW4qwVEo69bg4+J/3qw0ilz2BrufAIHkDT7hCywKp2sj/oAXd969WuR3Fk/XzmPPpmHEogHHbk9G/giA31o4DkB/tuPLMZuJ5x14rlZKsX/02EkSXk8WHdLSRoZCku+SkZhEJAy6Vqqf7QHV5ABqOweqfJ6Q/Bg==
+ bh=QBGg85BlzTrQTqwGAdfYRGLRIKM5Ub1fI81Fdv5ic0s=;
+ b=W2vwDrcpAQLj/G0zb8p6G+0zFH4To6lP+SogGafHbX5sLrVI6S089XhlLyRxAG7NncP7LYdKnS1Q+TfXtYfSc564dudaejSWZUsWxKvxVHHiJwMzzs9GkqyDPdSjltgbJV0Ngmm4pTpHpPAtCsjDMNyT5Eqm936ig+m7GKxLhcEqzPryio3CHhVhmNCJ7QM+o63xRuzCf/MfJJmT5cZlreUUo41xi3pzHtw/fOoLJ9tcT9U/ew1D+/skEsl4R9llmiTZ82sh83Cn0eQO5WNW0PLOwLJXPftD1+poZ4/K8/qK60stNL3tjGDc0W+4JJjhNtkqfRJXWX2TEreKIYGhig==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector1-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=s8cIcl+sGV7XkKVCY+cbFvFi1VBlX8jBp6Ars14aF84=;
- b=FzJc2jdGjg5T7jv5j6/6R4i/w/N1TLMsV0/vJxCU2oAVT5i+HMh6D1gauhoUs1dxwZpSgCLI1OIDf8kWLMdDgLR6E0YubewGnzlvnwRz2OUaqF/8sFa8ca7hxRMPJDLscFTVKVyellPk/gxdwDqVrcV0Yjfajz7yUIcmCP537VWwvy5d2RxVggE1pigx2Wy6d+vGnfMgJgxwosxm1bYD892gcU/yza1qFkEq4J2A9JtcjtwFAocMUZZEMCsHnF5ML/0DhZdHa2OyoGCk2pV1EEdJ+K4OIIGGqf5sM9TCioGgBzJ9i1p4xhB8NMoKpzAkpCk36QsHvZMSDaWsp9hNvg==
+ bh=QBGg85BlzTrQTqwGAdfYRGLRIKM5Ub1fI81Fdv5ic0s=;
+ b=Oq9F+YKQrqlL0fWptcK6w2Qs90U3+zbj+rftDM+G0PnusDvMqG8tN9No0CVkGnl0WC2zXVCV/8IlebbVoAcNFXGkFKOehABxfwg3wZQTcI7Yk1CnO4VBQqPwSn34plrUuhtfr5t9sxaRB2l116toS9siAvJQXvxhu4caxMXWJ4JVTNn2E0I6mqth4ZsMLUcwGMdmSS4I1KpcTxbBnjKPnN36CxRwwC9xRxDtur3Bkbv3HjHEjsMpnwYzXvBC3SI4/7ihnKP1U+yM7WE1sx7/4ey7K5E5qfWQNZMCO1nAd7GwV+IGMe7Z8SxLwBuD07b7/D9e61wLLTsUGgux5gy5xA==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=oss.nxp.com;
 Received: from PA3PR04MB11203.eurprd04.prod.outlook.com
  (2603:10a6:102:4ab::13) by DU4PR04MB10575.eurprd04.prod.outlook.com
  (2603:10a6:10:585::18) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.15; Mon, 7 Sep
- 2026 11:45:42 +0000
+ 2026 11:45:50 +0000
 Received: from PA3PR04MB11203.eurprd04.prod.outlook.com
  ([fe80::80e9:ab1c:dbc4:6930]) by PA3PR04MB11203.eurprd04.prod.outlook.com
  ([fe80::80e9:ab1c:dbc4:6930%3]) with mapi id 15.21.0382.014; Mon, 7 Sep 2026
- 11:45:42 +0000
+ 11:45:48 +0000
 From: marouene.boubakri@oss.nxp.com
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -60,68 +60,70 @@ Cc: anup@brainfault.org,
 	sunilvl@oss.qualcomm.com,
 	maroueneboubakri@gmail.com,
 	Marouene Boubakri <marouene.boubakri@nxp.com>
-Subject: [PATCH 0/5] RPMI REQUEST_FORWARD service group in OpenSBI
-Date: Mon,  7 Sep 2026 13:59:08 +0200
-Message-Id: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
+Subject: [PATCH 1/5] lib: utils: Add RPMI REQUEST_FORWARD service group defines
+Date: Mon,  7 Sep 2026 13:59:09 +0200
+Message-Id: <20260907115913.101752-2-marouene.boubakri@oss.nxp.com>
 X-Mailer: git-send-email 2.34.1
-X-ClientProxiedBy: AM8P251CA0030.EURP251.PROD.OUTLOOK.COM
- (2603:10a6:20b:21b::35) To PA3PR04MB11203.eurprd04.prod.outlook.com
+In-Reply-To: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
+References: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
+X-ClientProxiedBy: AM8P189CA0022.EURP189.PROD.OUTLOOK.COM
+ (2603:10a6:20b:218::27) To PA3PR04MB11203.eurprd04.prod.outlook.com
  (2603:10a6:102:4ab::13)
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: PA3PR04MB11203:EE_|DU4PR04MB10575:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1d398ecd-3b84-4422-d441-08df0cd58ba2
+X-MS-Office365-Filtering-Correlation-Id: 2092d512-738c-4bfd-86c4-08df0cd58f77
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|19092799006|376014|1800799024|23010399003|366016|6133799003|3023799007|10067099003|56012099006|5023799004|11063799006|18002099003;
-X-Microsoft-Antispam-Message-Info: /F/+qaYC9YtOjNtIAlzKi0XsoLEbGnjnn5nJYKtSCDBFqRKLWGsQNfFGHi+Ca8x6wP3L+F/TDRYZDWC6htUWwsfi4aONaPpZDeaxBwWLub5EgOyskr5F2zHCgKBXCX3hAwZQlXrwpAWz281cZJODLzod4J5oDf5dVv2VVPnt3ylcUMHK67eT4PrjUKydIJVYKrQhp0RR4PwMpw/0blbboD+wNuZXfElDhvdbOGluYejuONj0gm8JZwXps4Xk31xWu8hAs4mIzQQ2SHWXIeLYPBk/YLVt4BsEBo9RPmYyQYQHOVImV4/Idz5c+2p9+iCvUbr8NxgJRfqzQV9qRuSO/mEniQpzZbi8maTzFDwt21MTTUvUH2iltll2M9YYeS/hfv/4yVmckKTuhxEKW94JDCl74NOpA3zeH/aZCl+wq/99Nz4lmiNJ+B+z8vySFrN4rD73xxvbClUm4tOHK2eRAvkK5rBKX1UUTdCUWRXeuhtgAKJiRGxVvZgGUuiWKIE/ovQ+OJ0FedTXE8/tYrieMThHn1cWEIaYrKBQG9yrPXnovBdnehi93QxAOGHSDDhudKMMdP8TsIWgCPi7LRjdkr6AF1OevMjLikfbEWCy8Dauv0HlKDlLzIRBo3sBSP06/3gszSsAbidmCAwcBkPLMdzE384P4AQuYf8CB/qktjc=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA3PR04MB11203.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(376014)(1800799024)(23010399003)(366016)(6133799003)(3023799007)(10067099003)(56012099006)(5023799004)(11063799006)(18002099003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|19092799006|376014|1800799024|23010399003|366016|10067099003|56012099006|11063799006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info: oS8MutCVjPQf56C4W1Zzo6XrPSd3Hc32qio83+hQs6ZBW0c6ogQCUg4y67105bgvRfRv5Mp3FYd9AfxclK1+tlFDAvWlmDVNVnw2qmnH+6XkJ4SR6hdve7Izi7GeUhuaspNj7P3OE5Uw9lNVbEnBn2c96oytV4kW56oeD6w6YiK5JaktK9/9Ty7fdCICqAnNTc1FGI35Gz5GgoOUV7+AINV8sX+SPcUv6kw4ciOKmcPh69FXPbDUbhps09uY1/+wRXVZy1iEfsPqMgIOafBkAIWV1R2HSXkxxPSDxEViDAiSSHFAEm/qMXllf2Taq0gdUphCpd+9AJgL5AUVTvGl/iJ1mitsHHr4we1m56ygUQtK4dF8lfApdEEgXSECLc1mr9WKcb+ndywP/LDG6bvW/wo/WD3BZey6T0dAuNhFQg9OkymrUk4WW6zIcOdgiK6716ZWi+ZsNfTHIsH0EmPzdxYalHlGfFnVAJMIASSZfdEEmB5BKkItBqYgu8ZvVB7pbLp+wvOakEBX5KNE6ATaaRurDP+1ReXVBpt+FQoPZAJKR51u/oKxNHHN/FKcTJRB6dDynYM1nwsi6LIVS0JXHHKhV547Vs7la9yxuni1kmBiQFaLK5G/D3WX5FuRT+bOVXfXCmZ2Iv2n6M8bYQAZGMQHLEudwfge/JJ1CKxzmfs=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA3PR04MB11203.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(376014)(1800799024)(23010399003)(366016)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?gCXrig6MZauPgIf9F40po4fzWj4qP2MJWIwYMdPiBDgTFo8aZL61UXjp4KaD?=
- =?us-ascii?Q?xg+YjwkmmCaf1wQQ0L4g+fxRFV+WPqOERtLEl+4VVHxJqJ2N3bxskg3Khn1Q?=
- =?us-ascii?Q?M7Zgl2JSzclxkyWQwteen6dGGHrhfr07fv4a/FhyiI6ScSoU5+/lvNeYnIfm?=
- =?us-ascii?Q?E0TNV4ddL1OVL7WSVCe/vQDOg3zrJhbLVIGDiNFiBFITjr3oVXbc/O8/qvvj?=
- =?us-ascii?Q?B8KukPWTePVT8geB7xsYhl607sJC2ZZTkNHN9RN8dWcdhBodHt9FRLGAlyx9?=
- =?us-ascii?Q?EMKttUsodHtywBsmUbvt1JSlGYB87J/GmVLJ0c1H1+Yrdb2yJJkem8Wy4PZq?=
- =?us-ascii?Q?tcAInII8+Pqq/LfUHIm2/B3tFjW/jZxQ1Qn/sXJdDzoRvSBhVTHba8xCel1t?=
- =?us-ascii?Q?u+5+oFm1khyDW3m1uCktPQ0hYW+GvzRf3yxVjOY4ZqWjnrK8V6sNHhHKDhah?=
- =?us-ascii?Q?QySrqQ1spLv2qr8HX7cgRkqm0D+fSH3YP1NxxWwmCgiC3amak26qfRmaNld5?=
- =?us-ascii?Q?vvLSI9KRz2LTzgcr+1txAiq5HavAQ5+/VfxOC5lCzqFOXm//3k2AYTPHeRyd?=
- =?us-ascii?Q?nXCEf2FzBYwO2XKJTvWk3YfZ9wn8ijyF48xDtRllFiDZk5tRt+91bTi364WQ?=
- =?us-ascii?Q?0gswedObcJtCIY2UtRy3ixz2oNttUWEef0kqM7beqZrP476xmzQrbcdeVN4Z?=
- =?us-ascii?Q?j8U3YpqbHfqcokfT6Gb+OISWzWKLKN2G6854KUr0ML32RMn9Jll6+C9YCFlI?=
- =?us-ascii?Q?lGYmVFKeiijhqndWSoNuQREdvjS13w4OfsO2/RBbrPoZav10aB7Jt98g43hn?=
- =?us-ascii?Q?ZhrMqkgf7IkH5mjSlFhAIHOlFoyN3RJUfDVFwX1E6y6ubQd6itpQz9+VnG3b?=
- =?us-ascii?Q?WVocbI60ynycQFplBh8QjM13Zdmcwk4CASmMVMbdaW9jcq3Devlfs6dhh9AX?=
- =?us-ascii?Q?wFZERMdQZJIHF7JxgSlNoTztO457lvqv/0T2QdY4SyH0pEnTMpPzDje2S2DB?=
- =?us-ascii?Q?li8JxY+rVWabGZVXwDD0Ysd7rvf5QZgXX+j/CL6smVBl/e1BWJg6izdHlNXb?=
- =?us-ascii?Q?hEbYApD7WZO5Za6cnjlRjvEsPZFfRoB5hQsv8GDc3d234Pbe46wXlM3HmEKk?=
- =?us-ascii?Q?e4RrJCAZIk+w/qg2vzjCSPhv2Oh4o2ESvRB+z7FWzaYjHnbRy85joexyLeps?=
- =?us-ascii?Q?vJp/OwD8uAupkF4xAQqbubTAz1CiJrqLA4h8WTwayUmyD8yapwPmvCNGVARh?=
- =?us-ascii?Q?nDDT6MIVH1OODTf0uuVGd9zSa3aWxLwp3qX3UAxA2iunAYA/ItX8Ew9Li8XY?=
- =?us-ascii?Q?/FDf5YiEmzVvBa291mx1ajTuAje6ytAKMcY97FNioZb8n65zutXqVmEQbMua?=
- =?us-ascii?Q?vsPFKcIzR7heBJC2w8ooggSWz8Z77KBILXPfIjWQCD4NHVNQo3ttZa9FbcA4?=
- =?us-ascii?Q?2lUeb9aODBkKdvZTl08Z1DEeMB4zdtHeJ6wrjLWt2GH6B+r0W9w3ZdHl6GaZ?=
- =?us-ascii?Q?iVfkG04FdZD9+GHhCNc5phwLIuxu9ktsB7S7bjChe7bcbfci5S1KknVZlsr3?=
- =?us-ascii?Q?GK3SECo2F7SqHoq2CaSC9Rluq6tksOUxSXPrviFlMolLxuFcpEIRl37oIUlJ?=
- =?us-ascii?Q?f3TwWMYJ9lQwHWM5N3SZMhKDKFhn6su7YawyKbXp+2OVIE80KhqFTDOKIhxn?=
- =?us-ascii?Q?uz5EyW1i7hUV8xdVTXqtEQSO5aBREZc0AowfiBmadeO6qd1NLVmwJ0/oLKfZ?=
- =?us-ascii?Q?APHwebUELjTn9mH3wN3sYjTOrkpHw3aeYLDJf+coRKg0IBTd5FZxYWrkw8Oh?=
-X-MS-Exchange-AntiSpam-MessageData-1: YuyCbezvJakD/Q==
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?GFsw1Ni3vaB2/2l3FxiB20ASh/OrLzCVjq0wGOYGnfF2ili6KJll+HSdAsny?=
+ =?us-ascii?Q?/DlbnryNinnzuyxRfeJUA07WLbIpFK3kuQOAbbnVUyKFoK/mMbX4IHUe0kz/?=
+ =?us-ascii?Q?RZ0NLKNdZj9BDwYjedtBiQ2J0jV/puOziBQ/cS7L183Tpl4jxN9PiX+PkVTZ?=
+ =?us-ascii?Q?CKoWpFdWHIYAkIIoKbNXKk7aSHVeARWyCFhWo4KBEXneFNgEBjFOadwWSTds?=
+ =?us-ascii?Q?66oSle3PAznr219jwtb/quvHcxM6edcstZD28sxcE98kNdxFpJXOKTpuu7x3?=
+ =?us-ascii?Q?BXM3kvbRiqlNqhErWl48CCw3TqYjb3Qo5dlWFt46vvSQHavDTzIFRGew0oyc?=
+ =?us-ascii?Q?h2uIknnhmhnXfOe6Auq/InluJR8ywkPvJwG0QXJUy+gt+8CK1oTFI/nmPx+7?=
+ =?us-ascii?Q?aN9qISYsDQ0/vLZi058Q0g4WtKtea6KmhUY1HYgCjqqHcXGmNUZxhz+b4rHu?=
+ =?us-ascii?Q?fAiBgNoTAICquS5reeJwL8H9KI44K+byRsDEDW7jwxcaepKv24SoAgOm9Wus?=
+ =?us-ascii?Q?poEAYT/dTz16N9bqpRW7U9fvXneb5+fl0QwITv5hkD3vWfu0G1REPknAgHoD?=
+ =?us-ascii?Q?/QJ+Pwmfo3WkRL5JCq8wyPCtlTWFYwqU4fxU/k+13DvaKgg/MbjlU2GFahpP?=
+ =?us-ascii?Q?G2ZQgIrOGtXMnodSfQtdpDiIsXb1ywDhoFmMYDfJc1PlPO9cueEkTD4gZBdp?=
+ =?us-ascii?Q?gcwOEKTOTSEr8/b2oL66zHfkkPU7/Z+BouLaFBxEn7fFLcpYgnnoUnZz+yJ1?=
+ =?us-ascii?Q?F3Q7ToApnVSlivhENLfUMkmF9ttaAhwYO5NkQt/vzBY22oY1OLS1JmuYZ0du?=
+ =?us-ascii?Q?bQWyxQK8nmfTZF0fPeGdnP0ebZp5VAAGFLOyf8BQPngZfU02S4iHd4e0ARDY?=
+ =?us-ascii?Q?9eF4Supwzi7JakHRMgoYmVs8A8MlGz8we/BpSxqsfjpGRydndXfPtrYaIJc6?=
+ =?us-ascii?Q?7v0bSEcZt8jU50w9jLyxU0Pf8lntM5+QdJ+1+1RW6sPhCzUsIxX6Eti5sykV?=
+ =?us-ascii?Q?Uw1kT08itSWObZd8K0EhWH/9l+ZQ/zbKEuruMrENv+fU8SAHvgjRIJyqPsiB?=
+ =?us-ascii?Q?tMplPiPN10uVAvnoIiJ0bw2cCGd6QIfOwWxgzC65D6iixMrmkLooZJsGc+k6?=
+ =?us-ascii?Q?9IoZFdwPOCjsSIbJXIMcYP3slWgkVdZgPPpqy6uJXLQm+LRxNcadhv2E7d43?=
+ =?us-ascii?Q?T9h6hBNsI4ubKSJmmKuVf21KuTjSI3uNOLb5uST5QHvQcFcheYWBofFaFAaQ?=
+ =?us-ascii?Q?Wr9VebFR39av0jrpj0s1aSFiw0M7ao9zTEXzYxQLmyF+mZC7byOjCbbAFIg/?=
+ =?us-ascii?Q?G/HbqqsWgQ3wAD1rzPHx8oKO7QrZR1B0VJDUJy2MJ+zYlPO++xSXfUg1cADK?=
+ =?us-ascii?Q?ORxyaGHHJ22HwVOG5CUIS1Bnt3YXdBrwxHUEp1SuxI05xDRf3rxbspayiwDS?=
+ =?us-ascii?Q?SeGwQ3FZoxFtvyYE2mnuEeNQicNOhTFORCTjyVg8NA4HQk1vsONittmrthwb?=
+ =?us-ascii?Q?99mvlYWuygqvcQ6ro2HpAHw2AzSAAUgApJWcGJvvfnk5pghEIQcjIFp6dEa4?=
+ =?us-ascii?Q?btpdTS4yf81/50A0djHH9OR34i84zOzoPhioRRXDOW7rM5DpReEl1D9MPTnh?=
+ =?us-ascii?Q?Ay0fql1n7Vv9UwbyK4TiAbZ11xvkWqI73h2wK+S3cMN0KVB8S85p72zYpXPi?=
+ =?us-ascii?Q?URYzXmXtMxX0oNiHsxw9u+PGyYZymkVVWTo6mL0x1V7H9p/xs9SEJTrDwECV?=
+ =?us-ascii?Q?junsWr0ADMBsf4fL1C5mYW7qcLAMqxgxuPnPUsSkxZYOYTPoywgkCkoCJwOb?=
+X-MS-Exchange-AntiSpam-MessageData-1: uvhqRABqX8Celg==
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1d398ecd-3b84-4422-d441-08df0cd58ba2
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2092d512-738c-4bfd-86c4-08df0cd58f77
 X-MS-Exchange-CrossTenant-AuthSource: PA3PR04MB11203.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2026 11:45:42.2168
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2026 11:45:48.7023
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: e+a6lrMq08HS51tQ/kyNVOKKXyt4C4kQmoPDBdZQFGbzNc2T3/5C4qhVbQF2cD2Sckoec6ojj50IDg9PTKCphtrIiKyliyB/hDnJmisG7bPJDk0UrLIpELe6DvXtAZgRpydvjgrJ3KKIkSu3fy3vnw==
+X-MS-Exchange-CrossTenant-UserPrincipalName: qTe5Hnb0if4EuG0J3/7+CYjQhySNQkq7oENUhHQXMdtLr1orvt19+8AJ35DPLw820jf0g/vVdT7OizTUtyFWDGai8MOkEqIZp0xW4eU6FUPECvOHLCkfWCLLn3v7ksHwDlnTnpWm+egW6nXnppDWpg==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU4PR04MB10575
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260907_044547_828655_B5ECBBA0 
-X-CRM114-Status: GOOD (  21.56  )
+X-CRM114-CacheID: sfid-20260907_044555_115936_6A9B2991 
+X-CRM114-Status: GOOD (  10.75  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -140,126 +142,87 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Marouene Boubakri <marouene.boubakri@nxp.com>
 
-Hi all,
+Add the service group ID, service IDs, notification event ID and the
+request and response data layouts of the RPMI REQUEST_FORWARD service
+group (SERVICEGROUP_ID 0x000D) defined by RPMI v1.0.
 
-I maintain the RISC-V port of OP-TEE. We are adding Management Mode
-support to it so that a non-secure supervisor can invoke MM services
-implemented in OP-TEE, and RPMI already defines the interface for that:
-MANAGEMENT_MODE (0x000B) on the calling side, and REQUEST_FORWARD
-(0x000D) on the side that serves the calls.
+The forwarded request message carried by REQFWD_RETRIEVE_CURRENT_MESSAGE
+is a complete RPMI message including its 8-byte message header, unlike
+the message data exchanged over an SBI MPXY channel.
 
-The piece in between is missing. OpenSBI serves MANAGEMENT_MODE today
-only by passing MM_COMMUNICATE to a platform microcontroller over an RPMI
-mailbox (lib/utils/mpxy/fdt_mpxy_rpmi_mm.c), and there is no
-REQUEST_FORWARD support at all. When Management Mode runs in software on
-the application processor there is no mailbox and no microcontroller, and
-the SBI implementation itself has to be the forwarder. The OP-TEE side
-cannot proceed until that exists upstream, which is what this series
-adds.
+Signed-off-by: Marouene Boubakri <marouene.boubakri@nxp.com>
+---
+ include/sbi_utils/mailbox/rpmi_msgprot.h | 50 ++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-The RPMI v1.0 specification calls out this exact arrangement in the
-REQUEST_FORWARD service group: "This service group also allows an SBI
-implementation to forward RPMI request messages from one system-level
-partition (or domain) to another using the SBI MPXY extension."
-
-How it works: an RPMI request that arrives on one MPXY channel is queued
-and handed to software which pulls it off a second MPXY channel serving
-REQUEST_FORWARD, answers it, and completes it. The response comes back as
-the response of the original request. The queue and the REQUEST_FORWARD
-channel know nothing about MM; the MANAGEMENT_MODE channel of patch 5 is
-simply their first producer.
-
-The series touches include/sbi_utils/ and lib/utils/mpxy/ only. There is
-no change to lib/sbi/.
-
-  1  the RPMI v1.0 REQUEST_FORWARD service group defines
-  2  a prep patch moving the RPMI message protocol attributes out of the
-     mailbox header, so a channel driver with no mailbox behind it does
-     not have to include the mailbox headers. No functional change.
-  3  the forwarded message queue
-  4  the REQUEST_FORWARD channel driver
-  5  the MANAGEMENT_MODE channel that forwards through it
-
-Notes on what is deliberately not here:
-
-* REQFWD_ENABLE_NOTIFICATION reports RPMI_ERR_NOTSUPP. REQFWD_NEW_MESSAGE
-  is an RPMI notification message and SBI MPXY delivers those through an
-  MSI or an SSE event, neither of which is wired up for these channels, so
-  software polls REQFWD_RETRIEVE_CURRENT_MESSAGE.
-* Both channels are owned by the root domain, like every other MPXY
-  channel today. Making channel ownership follow the device tree needs the
-  platform domains to exist when MPXY drivers are probed, which is an init
-  order change worth its own discussion; it is not needed for the
-  forwarder itself.
-
-Tested on QEMU virt with two bare-metal S-mode payloads on two HARTs: one
-calls MM_COMMUNICATE with a buffer in the MM shared memory, the other
-serves the REQUEST_FORWARD channel and transforms it. The forwarded
-message is retrieved in three chunks (the channel MSG_MAX_LEN is set to 20
-bytes on purpose), a request outside the MM shared memory is refused, a
-response claiming more output than the request allowed is refused, a
-dropped request times out within MSG_COMPLETION_TIMEOUT, the late
-completion is refused, and the queue is usable afterwards.
-
-Marouene Boubakri (5):
-  lib: utils: Add RPMI REQUEST_FORWARD service group defines
-  lib: utils/mpxy: Split RPMI message protocol attributes out of the
-    mailbox header
-  lib: utils/mpxy: Add queue of forwarded RPMI messages
-  lib: utils/mpxy: Add RPMI REQUEST_FORWARD channel driver
-  lib: utils/mpxy: Add RPMI MANAGEMENT_MODE channel over request forward
-
- include/sbi_utils/mailbox/rpmi_msgprot.h    |  50 +++
- include/sbi_utils/mpxy/fdt_mpxy_rpmi.h      |  64 ++++
- include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h |  37 +-
- include/sbi_utils/mpxy/reqfwd_queue.h       | 157 ++++++++
- lib/utils/mpxy/Kconfig                      |  15 +
- lib/utils/mpxy/fdt_mpxy_rpmi.c              |  29 ++
- lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c         |  19 +-
- lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c   | 391 ++++++++++++++++++++
- lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c       | 280 ++++++++++++++
- lib/utils/mpxy/objects.mk                   |   9 +
- lib/utils/mpxy/reqfwd_queue.c               | 198 ++++++++++
- platform/generic/configs/defconfig          |   2 +
- 12 files changed, 1198 insertions(+), 53 deletions(-)
- create mode 100644 include/sbi_utils/mpxy/fdt_mpxy_rpmi.h
- create mode 100644 include/sbi_utils/mpxy/reqfwd_queue.h
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi.c
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c
- create mode 100644 lib/utils/mpxy/reqfwd_queue.c
-
--- 
-2.43.0
-
-Marouene Boubakri (5):
-  lib: utils: Add RPMI REQUEST_FORWARD service group defines
-  lib: utils/mpxy: Split RPMI message protocol attributes out of the
-    mailbox header
-  lib: utils/mpxy: Add queue of forwarded RPMI messages
-  lib: utils/mpxy: Add RPMI REQUEST_FORWARD channel driver
-  lib: utils/mpxy: Add RPMI MANAGEMENT_MODE channel over request forward
-
- include/sbi_utils/mailbox/rpmi_msgprot.h    |  50 +++
- include/sbi_utils/mpxy/fdt_mpxy_rpmi.h      |  64 ++++
- include/sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h |  37 +-
- include/sbi_utils/mpxy/reqfwd_queue.h       | 157 ++++++++
- lib/utils/mpxy/Kconfig                      |  15 +
- lib/utils/mpxy/fdt_mpxy_rpmi.c              |  29 ++
- lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c         |  19 +-
- lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c   | 391 ++++++++++++++++++++
- lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c       | 280 ++++++++++++++
- lib/utils/mpxy/objects.mk                   |   9 +
- lib/utils/mpxy/reqfwd_queue.c               | 198 ++++++++++
- platform/generic/configs/defconfig          |   2 +
- 12 files changed, 1198 insertions(+), 53 deletions(-)
- create mode 100644 include/sbi_utils/mpxy/fdt_mpxy_rpmi.h
- create mode 100644 include/sbi_utils/mpxy/reqfwd_queue.h
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi.c
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c
- create mode 100644 lib/utils/mpxy/reqfwd_queue.c
-
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index 7ae4abe..a479f07 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -225,6 +225,7 @@ enum rpmi_servicegroup_id {
+ 	RPMI_SRVGRP_DEVICE_POWER = 0x0009,
+ 	RPMI_SRVGRP_PERFORMANCE = 0x0000A,
+ 	RPMI_SRVGRP_MANAGEMENT_MODE = 0x000B,
++	RPMI_SRVGRP_REQUEST_FORWARD = 0x000D,
+ 	RPMI_SRVGRP_LOGGING = 0x000E,
+ 	RPMI_SRVGRP_ID_MAX_COUNT,
+ 
+@@ -1046,6 +1047,55 @@ struct rpmi_mm_communicate_rsp {
+ 	u32 mm_comm_retdata_size;
+ };
+ 
++/** RPMI REQUEST_FORWARD ServiceGroup Service IDs */
++enum rpmi_reqfwd_service_id {
++	RPMI_REQFWD_SRV_ENABLE_NOTIFICATION = 0x01,
++	RPMI_REQFWD_SRV_RETRIEVE_CURRENT_MESSAGE = 0x02,
++	RPMI_REQFWD_SRV_COMPLETE_CURRENT_MESSAGE = 0x03,
++	RPMI_REQFWD_SRV_MAX_COUNT,
++};
++
++/** RPMI REQUEST_FORWARD ServiceGroup notification event IDs */
++enum rpmi_reqfwd_event_id {
++	RPMI_REQFWD_EVENT_NEW_MESSAGE = 0x01,
++};
++
++/** RPMI REQUEST_FORWARD retrieve current message request struct */
++struct rpmi_reqfwd_retrieve_current_message_req {
++	u32 start_index;
++};
++
++/**
++ * RPMI REQUEST_FORWARD retrieve current message response struct
++ *
++ * The request_message array carries the returned part of the current
++ * forwarded RPMI request message, which is a complete RPMI message
++ * including its message header.
++ */
++struct rpmi_reqfwd_retrieve_current_message_rsp {
++	s32 status;
++	u32 remaining;
++	u32 returned;
++	u8 request_message[];
++};
++
++/**
++ * RPMI REQUEST_FORWARD complete current message request struct
++ *
++ * The response_data array carries the RPMI message data to be sent as
++ * the response of the current forwarded RPMI request message. Its length
++ * is inferred from the length of the service message.
++ */
++struct rpmi_reqfwd_complete_current_message_req {
++	u8 response_data[];
++};
++
++/** RPMI REQUEST_FORWARD complete current message response struct */
++struct rpmi_reqfwd_complete_current_message_rsp {
++	s32 status;
++	u32 num_messages;
++};
++
+ /** RPMI LOGGING ServiceGroup Service IDs */
+ enum rpmi_logging_service_id {
+ 	RPMI_LOGGING_SRV_ENABLE_NOTIFICATION = 0x01,
 -- 
 2.43.0
 
