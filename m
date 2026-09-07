@@ -4,55 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2FFACC79FA0
-	for <opensbi@archiver.kernel.org>; Mon,  7 Sep 2026 11:46:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0DB2BC79F9E
+	for <opensbi@archiver.kernel.org>; Mon,  7 Sep 2026 11:46:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=l2VKChqZS3LQNa0koDyG003x5gqIwHHm/5Dyh45F7dc=; b=bPPhUmFicnKxNj
-	IxafaiguMrk+94d/umjDQ8Kw/t5aHWm4/IYDfeqnv4BzyjVj6hFtBymahGFmu5EzxB4IU1ttQHuLw
-	ZR8yDp39wzRw5Hqoio8SYbEM0yVR41pXAr7D0ZawVfxSqbHCPIAuk10Cs/cMQpUvWiXgXhIcdmigH
-	uK+O+VGZf99vZuBrwAbLEGu6PoQRSICuJQrfevMKECoGsIeIxnbl9d+IcUr9hVuhk7/1IIH8UGgg2
-	MGzNTwk/XPxsgPdy73UMMBmIgUVT1NZoAbLCbQS2/lFgaCZs2PxU00UPK93WtoibgjEngqec3SGZU
-	UjB8M95G5oYisrOovvqQ==;
+	List-Owner; bh=0oyBj/sPcrpWKbgKcrbd5kL/JxqfZIE2xUIh4Ieoob4=; b=L6FpJQ4b1CLixM
+	PO4pP/cUE9PGZo0hv5BnQoV1GuKzNVsadVM1coCBQ/I6DlqaCePXeH3ybXxYilPWnwdra+eU5E+Im
+	0NNSugQGvDnj4lhfjL0iyM/bzhpZvDdr1G70jZrArcmW+4ilGrjAELuuHYOyDsWmJuoK+KPaRMVqA
+	lloMHmxVY0KjChm4xAw/3oK3vdIyUU/TTBMmzw0eBqAw/gbG9a2wn4e2JSyuhT8d+A3/bS53WnJ5n
+	1OCfc28f8fMeOBULCMdkC/UUMiVOS1BYoJ37bUDw4sXSq0rfrJviM0nedQn+f3iIstlbFFGhcf6Bw
+	Or0x9D2Ow5hM/HNjuIMQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3XnV-00000006hYr-0Q9C;
-	Mon, 07 Sep 2026 11:46:01 +0000
-Received: from mail-francecentralazon11013040.outbound.protection.outlook.com ([40.107.162.40] helo=PA4PR04CU001.outbound.protection.outlook.com)
+	id 1x3XnX-00000006haM-0oIw;
+	Mon, 07 Sep 2026 11:46:03 +0000
+Received: from mail-francecentralazlp170130007.outbound.protection.outlook.com ([2a01:111:f403:c20a::7] helo=PA4PR04CU001.outbound.protection.outlook.com)
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3XnT-00000006hVS-0ekZ
+	id 1x3XnV-00000006hY7-1ZpR
 	for opensbi@lists.infradead.org;
-	Mon, 07 Sep 2026 11:46:00 +0000
+	Mon, 07 Sep 2026 11:46:02 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=LQqe/Qv4ebI5D/D/XVhVakIMCKKetB7NytR5iHiBSQ1BvZTshkpl0RVp2dzDe1LEF6h4wfLf52WZYje243xvi/q3Dh2Shj6oYhFIZcC8hooakBxD6PG+FOCEiOineq4KpVP/NtnVuTQytyLlXw/F4BRGiC8vIfuiCYdKi6qW5gfvzpPtzH4RGY1M8xXALr0Pv+9GeyCFIPeHjiW2cMfAYbEl5VBlZCzt1I0+gFAarSxALOJ4RCAuXWO7vHaYqTB6o33KlksNIwBtnT4m5dWbuuKNGn9+BMV5rfAMz+TvtUy6TSdcn+D1K1vCypfMwjbD9Tpq5ZxfQZmGKhRBhUQc2A==
+ b=S8w4fXakaj3lZOIITzosR2KadOq12a0kAWhs+rbzrIwrpbwWZBPX2BJ79FcsnVV62pf041TQ/zJSJ+DmeCNpeSM3dCmnq3Poe8uspJKvkaPFYSnPOWfjiVMZekVddbTJ59FWA+LExPlfONzQf+M8psC1MCsFZifTV+fOKv3EJg+Mp1sej2QOd07zA+1ZSBYOJClJKTDYqo/oqLHCYotIjfF8BeeNNtqxr3l0vmFRIV6loV9CcNukyfDXXZ6W3/Z+xO/FiGOeGqGby6NuT4iYznK7JmBwRi4+CJMDCvp2bJaJ52cIjhh3VH7uvT6Qf3JKwnxsBnVNhNtdBa+isjUb6w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=zYfuOWG+5eU51+Rvl1s7ScVEQeS6PakSXqwMejuY+94=;
- b=yKnCY2Q8iZDv0y7hWucDJBDxQq+CL4VWCGOShUSgP2r+cwRhDPNGuGWAayb7dKRjb14E4A6Xag8UFgMGfG1xzMY3dgMiYCZXmFYYYn8tzPm1x9juqWBPKJ+jJoKMhOPC7HWWzIpmD98fpXSYR9kqKcnL/iQtCDq5uYtiXWp6SyKFs2yjNr+QkrbekpVmYDyLgjNDS9zPjMuXGKcoN87YNjS19++yPWSanPlp5pvGMXOCSgBi8q2Ib1iM59KSFI+zqKF5dWz03brOLAcml0OKd6virm60X7pP2tB/c6csTDGrrXOZMysOFdnqpkYKvzhfxvWi9lwi5HdyKOOxnuZ6gg==
+ bh=44hW6/w7ulwNM6mTj+9BP5YGEJCHpYvmoyhiY6gjrbg=;
+ b=B/bh7RX8cGJfMhHLRwx8PyWc3kLq3QJKi+GCOtnzv+mHDVGGLJ7pgg/xH5K5zYLIT9m2a8xbT9afj9BctXi5f4wJ2BlkkZpHiPDuvVaNsWxYIbN8nx9y5ujmc+0fcSntnMuA7Su70UmLq6xag3UfXi4rQjnVLXgF+lkypuUo7uHFA8vQM8yQxdo1+tgMsuCwsXjDcJWRyodx+XM8OJn+woxWdtaq63xrhPW1PYe8vLvye9iqu8QbKJ0k+0KeLpoef/xvCQuLsDLNSdMDmAzO6LIrCjLae1zry/z1Zy47dM/bo6Ah4h9Q/S2LtYd7MsW/xXqyIviFK7LSFbPvDlOO1Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector1-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=zYfuOWG+5eU51+Rvl1s7ScVEQeS6PakSXqwMejuY+94=;
- b=W+QXMdf6Id4zshrf2GwVwfgmQiKdLAXYWRulBwr5ZYU7KP/9qBzXD77WWCgLyPLE2TV7zbNX9K6jYyZ5+rpbEIE7DZ6QqJmUHkuFJqJSn6pkPKakWX0PhKecxBgA8Wre60+NoRvFc+z4oznWaeh/H4+lvgyEGIAAy0vdzquCIji57CGMl5VHuk7sEGW+v8GKt4Mcctp3DS9fUjFFE1O7hPrOO8ah1U/jBpJ7cOhNwcFMxczLnKYYHOO2dGBsntXun3a9BmavMIPexT/OyyBB+j+o+ditlbp5ZutmfbvY3BvniTvGCoeRzWmpeONB1Xoe0rtD9tT6rgtiuTM/KqKzIg==
+ bh=44hW6/w7ulwNM6mTj+9BP5YGEJCHpYvmoyhiY6gjrbg=;
+ b=KLwVdTCvB2L7dFBFgiNVo8qGnI2KLNDHImfvtjnZ6KS+ybJEyVXI3+qkfiJ5jWGLbnst/5JbrbbhAaucFls8utog6yqJzFsXXc/FPb8wZW8hqg4Zf3C76QJNadhGhDTqzcWdWP+4I5QTkH5KwWi1w2xiuQlTXm7Ky1TXhuALGvsCDVEaAMjPnjhI+e/fazygGU0OJK5Ax7w51fZKpa8LJQgWJAqAr22MN9/8em6XWcXhHvIcgwLykwfSVvXcJ39xJgxhfuL7hYd+L5XJTToSK3l3oB65k3DoHN7sCw2F652cBkJoFE/qpHQvp/PwTaS8ZdalebXV/V0CQwU9+P3hyA==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=oss.nxp.com;
 Received: from PA3PR04MB11203.eurprd04.prod.outlook.com
- (2603:10a6:102:4ab::13) by DU4PR04MB10575.eurprd04.prod.outlook.com
- (2603:10a6:10:585::18) with Microsoft SMTP Server (version=TLS1_2,
+ (2603:10a6:102:4ab::13) by DUZPR04MB9984.eurprd04.prod.outlook.com
+ (2603:10a6:10:4dd::18) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.15; Mon, 7 Sep
- 2026 11:45:53 +0000
+ 2026 11:45:56 +0000
 Received: from PA3PR04MB11203.eurprd04.prod.outlook.com
  ([fe80::80e9:ab1c:dbc4:6930]) by PA3PR04MB11203.eurprd04.prod.outlook.com
  ([fe80::80e9:ab1c:dbc4:6930%3]) with mapi id 15.21.0382.014; Mon, 7 Sep 2026
- 11:45:53 +0000
+ 11:45:54 +0000
 From: marouene.boubakri@oss.nxp.com
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -60,70 +60,70 @@ Cc: anup@brainfault.org,
 	sunilvl@oss.qualcomm.com,
 	maroueneboubakri@gmail.com,
 	Marouene Boubakri <marouene.boubakri@nxp.com>
-Subject: [PATCH 3/5] lib: utils/mpxy: Add queue of forwarded RPMI messages
-Date: Mon,  7 Sep 2026 13:59:11 +0200
-Message-Id: <20260907115913.101752-4-marouene.boubakri@oss.nxp.com>
+Subject: [PATCH 4/5] lib: utils/mpxy: Add RPMI REQUEST_FORWARD channel driver
+Date: Mon,  7 Sep 2026 13:59:12 +0200
+Message-Id: <20260907115913.101752-5-marouene.boubakri@oss.nxp.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
 References: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
-X-ClientProxiedBy: AS4P191CA0042.EURP191.PROD.OUTLOOK.COM
- (2603:10a6:20b:657::19) To PA3PR04MB11203.eurprd04.prod.outlook.com
+X-ClientProxiedBy: AS4PR09CA0008.eurprd09.prod.outlook.com
+ (2603:10a6:20b:5e0::18) To PA3PR04MB11203.eurprd04.prod.outlook.com
  (2603:10a6:102:4ab::13)
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PA3PR04MB11203:EE_|DU4PR04MB10575:EE_
-X-MS-Office365-Filtering-Correlation-Id: c65fa3b6-456b-4315-9990-08df0cd5920f
+X-MS-TrafficTypeDiagnostic: PA3PR04MB11203:EE_|DUZPR04MB9984:EE_
+X-MS-Office365-Filtering-Correlation-Id: b1591274-4fca-4237-83b6-08df0cd59319
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|19092799006|376014|1800799024|23010399003|366016|10067099003|56012099006|5023799004|11063799006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info: 2SCzuTEUJv0cttgq+1bOPRQalJ3HgBVoUTFZ4UYySV3f9wXjcbW8QRS69oZXMVj8ZbdOvdyx/vtKtxoPdUzwK3S1wTlVr6Yy2rm+rkJXgBUfvun+pxkgeXa5j1zzvEeJdEF6R6RagX4/g1j+PdO3DyxXNGXxnuz/6B4Oxfxb+zqm916rip8NOoQFsBy8AqGGlphOGGZYBLx9+z/5AHTlO4D0gx/mHz1p5m1aGMedURZrZNQNHYlLDn7I5gUgdqee1GA5+qYMm5Q2zhDD1cgw6MNIA79eBJZfS7Xk63KaHPtF2jMyHrMAEb73TpMOcbRu1ZM5AycbfJZUhhWYWS38GvVcPxsLmyFlkbeKOasN7Y+Ieg40RqjTB2sPs2UlhpXqVirlpt2MxRDxplzncUAXiR3pcDQRa2weHBWDDFCgYyF84FvXxleWms9D6V26lngLsaq1Fs1ifOUMN1KoG+3PFZ4wH3y9nmqJ7IIUu50PJ2suCPMB5C6M39iDc83m4Tu0KaEl+nK0yET69hAtz40SaekwOYJcUo03QGOWh2SpmahUFrHXRIP7eHKk4McETepTLcNcFCyAiRNHkc6Eb5417kYv4anQJczOTbY//GI6Y5Qlx5m1pq95OknL6/cFlYPnRL/caQM8QsTfylNGRYjglauV098qMPVOxEaNyNwf6oY=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA3PR04MB11203.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(376014)(1800799024)(23010399003)(366016)(10067099003)(56012099006)(5023799004)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|19092799006|23010399003|366016|1800799024|376014|10067099003|22082099003|18002099003|56012099006|11063799006;
+X-Microsoft-Antispam-Message-Info: ZE3hIuOfHWZV66prmquqrGUjYqTS4QJGaB3qLz+2mEPEXj/+LjtTQBtxDqJ+Q/GxH9f3jqXdAMbuCG59LplUZZjaFoPpzWXgAzh/Dt52mOpXfBS9gYjYnvxoaVq1Xgz2yEXT266Ts/+uYig26GwOrlooceLwULjz4qB3R/wa9p0lzWxDSjPVfJKnMS7wGbT+3BQhMK8XxJCjKMvqhEDUIJanYgN205w2tI98IkpOL3i0IaaTfvzXr9Tm0/i46ww+po/kFoa6s6wuOEEOBIzhTBk141qdNwxV95T20ZGLv4iaY0UQ8uqthsJOjQ6f2eL1x5zkRwlho1mB6RsIMTnEwSz0gKJumlQuq95f+rSBFwbjIJDl/Wn3HWrchpYO0r91mtYKb0zoVefgI1ZXbczlOPeKkfqPIvjUwLy5KHNLZ4mRot4HlC79KHNmC3gc6qFzJqlkAaqxADQ0NULAS//hc+FnXF6DskR4g8zVv8F/WV8EukHvIS+zZ/UiTwZJyc13OWLekPDVSTOfPax4RSYXLhfewJiS6oMv0VlOIsUDRSBKRubD+vF44nGT3V4F/0+827OEUFSXQbAlefXbZ0RKZwkdAmLaskf730Q+eJQsuhijikYrpTJEbWPEpBrJdIbhiotnOrAUAn8XJKuyq5o/2t7N/95eloRu75xwW3hGTKw=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA3PR04MB11203.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(23010399003)(366016)(1800799024)(376014)(10067099003)(22082099003)(18002099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?DFP+9Z/k6G5yIyxFTglTxv+DyHqu4lU9jNfnUXyuU2Qa1pNEcwYLqcUETUjG?=
- =?us-ascii?Q?tvAh+QLePCkkdW5gyZ6QK1ZfslPnlPmUx/wiw2XM3LQWE328mSY2q/YHigQG?=
- =?us-ascii?Q?C0oG9hEUzoxNxC1EsBmWRrF0bQ5W6hseKrJn3QcgXS0IinKXuEyiCXZdSMo8?=
- =?us-ascii?Q?1+hQUyVRSboPFL6mM4TJ5cEi9MMgoS9RF3ChNFszOzqKG9Q22Gg6l3O6BC2s?=
- =?us-ascii?Q?+CokqiqXvsk+bdXWvLKXUJscfUTP0sVvrAdLZTmUg+f1if93HG9P/SKYNc0X?=
- =?us-ascii?Q?2N8Dpq5znJXhNY0DXthoYIJFowtFU6m33n9/FxR8vhpRGyOfcsbW+43H8h2k?=
- =?us-ascii?Q?aBKpkt5Mw2jbcPcKkU6C4LmioBqnEkEDxlNmyOVSrlMhhn5D/FZoGP0NokeX?=
- =?us-ascii?Q?ZlcCIcObI4dv2ivwL+xqy323Z1G4k7I/Ri2RadUK8EDGhEVUAqaWnIYMZHzl?=
- =?us-ascii?Q?wRXBNWNfgnfPUaRCN0GzTTKY54lmcTuHXTQz4YWL2pVkhTcGCBXNRGCHbfLF?=
- =?us-ascii?Q?MgZmxwKAgLjZ0hfTjSVbl4zeRMV8OgLeTrT8daNcs1Hz7iwgSqL98rWPNebM?=
- =?us-ascii?Q?lB6yZDKsCl1+HKlSXGahwbjUpWbN1B7uciPz3d4l5t8mabBAJiVpcGsgtzYA?=
- =?us-ascii?Q?EOdQsXxfxkkzAULlEBe3PfXlAQqZc8k0sGxvOAM8WsbyZPIIKbFZRn5QzQ4q?=
- =?us-ascii?Q?XHTQ3VeM9wQTwKz86a0ZhiwZ7ZGCrLYn8Dff00r9Tt8Sd9weR8AGja+j4mat?=
- =?us-ascii?Q?cG+KkSGRtxox0smuQe20PQISlYfVBdnFgPb78/seb0lwzP5EQx9NJ7WX2Pb0?=
- =?us-ascii?Q?jbFPwhoGNjTHIwcfDd8OsmY81LxS1Jjuzlh7MYERnX8YTp9UcTHOR+7dxPIX?=
- =?us-ascii?Q?zpZB+umMWuOpBAHuHoHDdtlaRhbreDGOxis7Qoh43JEVNUV7Zj4kvUUc4x5i?=
- =?us-ascii?Q?mkayxNoKq1wQS5C/wRJNL16Xx6Cc7WQp0CZxnAZEj1Jz5xQw0+svuCTyhqUP?=
- =?us-ascii?Q?hnoSpevUOmldV7HkoEVRLpie9swJpdZyLKxC00rDjwPae9sYl7Y2eup17OQD?=
- =?us-ascii?Q?Czbed1iyXuiBk5MG25yN5pKURjfEm9chqZ2oZjqIG2ifp3g3dZvRXSMoraHD?=
- =?us-ascii?Q?agP0TPcQyXixTuJkrA3zo+cqiXfAH0Q8YN3ryeciKQIRf8LfrWSRo/ZVLkRb?=
- =?us-ascii?Q?KU8F/ww2XQjTdV0ddaxUK16nE3ISbThs1N7jTo7KawXt0o6VRlIrUFFF4yka?=
- =?us-ascii?Q?C6Sic7uHlC56s5yzdaLplDyBfB0t7jIW/RRB0Ya0lvncp0jOF9xx/mdQW4ga?=
- =?us-ascii?Q?bcVRYkg7YJ/x4qx8iN2cRsOpxlBQ9fhS6rMo39kVFuidvNkzRxrE5sHeW83d?=
- =?us-ascii?Q?HNK5CJmmEaqsHRneO2EK8QUgo8P6guw3u2AkvjUd7bm31zsKn5eyUfubt4iK?=
- =?us-ascii?Q?7R+BKi9zxzDXomsBIT1eLhABwk7NhAVGxoNCRgLU0ofuT+e5uraCaeOblYZK?=
- =?us-ascii?Q?zMNp+yR6HuZ8nf14718glXGyEM8SS42ZjSKAVZpe+zkeGzf2ZxrwYd35Ms/p?=
- =?us-ascii?Q?OXCnWWy+q7/PIPwq08hJnaU05iCeij7Ev28q9moq6Zf3ynwwCWVJti/myOfk?=
- =?us-ascii?Q?4Bs7VJiiGnGjOk23s5cfVw1y4JAcA7tD0yPPpY3wmOcDGCCMRQp3vseWHThi?=
- =?us-ascii?Q?m+rOoHqU8TQ2+SB0prExs+K4h34plDJAPXCTwZb4m/zoghycARpa0z4MIDVc?=
- =?us-ascii?Q?MI3EvJbOafj47KYUAXHVm/l4P5N7l8TB5hgjG3FswtH/rUJv1cECX0WN84np?=
-X-MS-Exchange-AntiSpam-MessageData-1: Rdx04k6F/mpmbg==
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?a6nVRjstpLMz7PRa/8RHfrUU2YNIJbofAhtlUWSA9RZCqy7DKKvp5Ie7sgTx?=
+ =?us-ascii?Q?hsw51UmZ0JA3g+cgWB7r9Z0wOsyoVG6knoGheDpQdOfVqO3ifR5biRrwm6jM?=
+ =?us-ascii?Q?Mk58SMCEGjjLLzIeJEYus7rosA85Y0WEpCBmePO8v5CofFKtwhOOMwEwYp7w?=
+ =?us-ascii?Q?vBtLVr+vT9zM6Wx1dFu6RfoAOabfwhb65k7vHL1xPuHYIr5CiasYIjVW4LbP?=
+ =?us-ascii?Q?Zvs9/tGnxPgSwWlZX6Eauyl2EiU4qYsy01vW8c458Qy+7YUr1R8GjPknP18Y?=
+ =?us-ascii?Q?a36quCsLszp/Zmaz05vujDKlgxKsmU/W0R4mXdCKm84sYSOV1fiqXde0FxIN?=
+ =?us-ascii?Q?aMWSyYEiNjowWTxaSdOBEC/nQoR5aSS8pfq/+CGx6hNCFzNFoTddjNUJw+kY?=
+ =?us-ascii?Q?SMk0HsfuHSuyGBFUvRbzIPvx8kVbVBVuX4SPRR9X+xT54xEP3PN6hVXBqlIl?=
+ =?us-ascii?Q?XrIosYsl8dL3S95JrChxgRhuJOSZejaKPBoafoXMsvLj1vPYQpLn+IrSAW+6?=
+ =?us-ascii?Q?4ugLNIMbZ/orZf++zf4ReC7svU9Gbs855fwMKdqSnosqGHpoKUaZHIfPsjNx?=
+ =?us-ascii?Q?3ZhQUHRakWg67UF/7h1yaOAzp8yNpzYEBCPkc4Bwt6wC3wIiok98N+pE2HdG?=
+ =?us-ascii?Q?SBu8QRQE0MFsJKvMHjtrpdLNpNkDfD8iCQ4tR5/ybqgMxXVPIliCLXWWa1c6?=
+ =?us-ascii?Q?yF0/mqjzb33gPFcN8oeXoGlPabedZDM9Pl3yzZd4DAXVGoKE4n9/vYT32bdw?=
+ =?us-ascii?Q?pgE+vbsOH7JIuamnqbNs4nUhzCUlnX7HPynNrGnm7avHifLG5jveo+Bne9Dq?=
+ =?us-ascii?Q?/2WwzsYlPRE1NdrnsZ5cBEy4Pn0GDuzpuwJ832hxgYzt27KG+nqn8kaN1FU4?=
+ =?us-ascii?Q?7Yy+cFXILUtqIMv8K/LLSBkiwn8jmZ8m6NYxdRZDKNboII2DwNSw0MDNfNk5?=
+ =?us-ascii?Q?Vm2ilHAKHOL6HR99VIXJFi9yq3omZDdxnu/WCIXA+XvBz2hiVwz1thvirgPP?=
+ =?us-ascii?Q?8Few+DBCrqesRFIMRHabDzAZ7ysSHNvY0PM2ToJdGTHhpOf1KZnALfHyrLDr?=
+ =?us-ascii?Q?6vwtX0XAHZ8455KDer7H5wyuTtz6RJpTIqq2a/69+mwRvywdJ5esYYzandVI?=
+ =?us-ascii?Q?YsBJnJgAqYUQIMboGf0B5ad4BfXvSX73m0h9G5XNu+bl0ylcEHKJmUrZ6ftE?=
+ =?us-ascii?Q?cVXiMxmCcDmVWaFcHpc2Y+covZzqzS+tY11+A7hozgrrhs9lB6lChMgHCxFL?=
+ =?us-ascii?Q?/adEvuodiQj6G2FfyK8aB7kdlBIFyMEa3flza4QulHojqofw3DKPqxlLF+p6?=
+ =?us-ascii?Q?gRZCxem0gTjfkODI9DMNQCtxL+H7lH0VeAmX4ofu37chCNQx8XOdj7FpyIno?=
+ =?us-ascii?Q?e9sKcbQ2aDz4ruPFZzbqmHvu2tdvjQcBS49ZPigfW86IFKfDL1/1tKySnfd4?=
+ =?us-ascii?Q?KAXZJKZzTJCHSWtUzvKqJGVp12JjIjvykd+WSV46v78k653P2V0vyA+1WAWm?=
+ =?us-ascii?Q?PiYeKrTO4iCueb6Au+wx4C9XkjKq+b50LV4CFb+c/wat6SQ6wUG6VY4usKPn?=
+ =?us-ascii?Q?F+SWgthpsqSI9y44on4FZEECZIaNhyYVmOCIMeUD3ZxL4k1PfKtg3ZYpxoly?=
+ =?us-ascii?Q?PocYAHHhF4+taBXWh++HQ+ryul4UVm8qXmiDeHeW8xosHwEDrZ899j1tLE9s?=
+ =?us-ascii?Q?MqKM3JzsaCwjfPG6PjHvC7+FkRhNNgRJTK+Izl9vZKvjLVnEFBrqDl3Lt7rQ?=
+ =?us-ascii?Q?9K/qUe8R234BdHq/le2djdkdyZxRgU9/+JF+ggmUBYm1wjjojPIKeGAoBWk7?=
+X-MS-Exchange-AntiSpam-MessageData-1: hLB4myHuycwF1A==
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c65fa3b6-456b-4315-9990-08df0cd5920f
+X-MS-Exchange-CrossTenant-Network-Message-Id: b1591274-4fca-4237-83b6-08df0cd59319
 X-MS-Exchange-CrossTenant-AuthSource: PA3PR04MB11203.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2026 11:45:53.1357
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2026 11:45:54.7846
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: jW81UQeJr6I1lvwUHomSKdpa+nRf32hydM7IDAkUwLXSbjIyjlMhjnD39Z9uqiS11kgFa7fVJg3AJnV7KtWG86Rre0Q+K1t6HSGxKWj9ocrkHgy3z+Ua9o82ZcsJy1pqrJ1E5Asy6plymULYzxJMoA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU4PR04MB10575
+X-MS-Exchange-CrossTenant-UserPrincipalName: 0kCDEFSbCrxwe+rczJkQPYCpn/26KJqeeqmiNGy+WEPouCdrRJPXqOkIeq33+q1UHpa0HyWiGPVSnFaMK/GTzxmLnYNfC7O6tc9+CoNWb/k5rAzPh4Inggb4yaiYAwu+lqYfFIdnkOOzzM3cHy4TEA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DUZPR04MB9984
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260907_044559_208801_965C065A 
-X-CRM114-Status: GOOD (  26.48  )
+X-CRM114-CacheID: sfid-20260907_044601_581682_8DC4B40E 
+X-CRM114-Status: GOOD (  22.62  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -142,37 +142,61 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
 From: Marouene Boubakri <marouene.boubakri@nxp.com>
 
-The RPMI REQUEST_FORWARD service group lets a software agent pull RPMI
-messages out of the SBI implementation and answer them, which makes the
-SBI implementation a forwarder between an RPMI client and that agent.
+Add an MPXY channel which serves the RPMI REQUEST_FORWARD service group
+out of a forwarded message queue. Software owning such a channel is the
+agent the messages of that queue are forwarded to: it retrieves the
+current message of the queue, in as many chunks as the message data
+length of the channel requires, and completes it with the response data.
+Both services report RPMI_ERR_NO_DATA when the queue is empty.
 
-Add the queue sitting between the two. A producer appends a complete
-RPMI message to a queue and waits for the agent to complete it, while
-the agent retrieves the oldest message of the queue, possibly in several
-chunks, and completes it with the response data. Nothing in here knows
-which RPMI service group a forwarded message belongs to.
+The queue is registered under the MPXY channel ID of the channel, which
+is how a producer of forwarded messages names it.
 
-The producer and the agent run on different HARTs, so a message and its
-response buffer must be reachable from M-mode on any HART. This is why
-the queue holds references to firmware memory rather than to the memory
-of the RPMI client.
+REQFWD_ENABLE_NOTIFICATION reports RPMI_ERR_NOTSUPP. The
+REQFWD_NEW_MESSAGE event is an RPMI notification message and SBI MPXY
+delivers those through an MSI or an SSE event, neither of which is
+implemented for this channel, so software polls for messages instead.
+
+Device tree properties of the channel node:
+
+  compatible                   "riscv,rpmi-mpxy-request-forward"
+  riscv,sbi-mpxy-channel-id    MPXY channel ID, required
+  riscv,sbi-mpxy-msg-max-len   MSG_MAX_LEN of the channel in bytes,
+                               optional, a multiple of 4 and at least 16,
+                               4096 by default
 
 Signed-off-by: Marouene Boubakri <marouene.boubakri@nxp.com>
 ---
- include/sbi_utils/mpxy/reqfwd_queue.h | 157 ++++++++++++++++++++
- lib/utils/mpxy/Kconfig                |   4 +
- lib/utils/mpxy/objects.mk             |   2 +
- lib/utils/mpxy/reqfwd_queue.c         | 198 ++++++++++++++++++++++++++
- 4 files changed, 361 insertions(+)
- create mode 100644 include/sbi_utils/mpxy/reqfwd_queue.h
- create mode 100644 lib/utils/mpxy/reqfwd_queue.c
+ lib/utils/mpxy/Kconfig                |   6 +
+ lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c | 280 ++++++++++++++++++++++++++
+ lib/utils/mpxy/objects.mk             |   3 +
+ platform/generic/configs/defconfig    |   1 +
+ 4 files changed, 290 insertions(+)
+ create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c
 
-diff --git a/include/sbi_utils/mpxy/reqfwd_queue.h b/include/sbi_utils/mpxy/reqfwd_queue.h
+diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
+index d309735..3d715e0 100644
+--- a/lib/utils/mpxy/Kconfig
++++ b/lib/utils/mpxy/Kconfig
+@@ -44,6 +44,12 @@ config FDT_MPXY_RPMI_MM
+ 
+ endif
+ 
++config FDT_MPXY_RPMI_REQUEST_FORWARD
++	bool "MPXY driver for RPMI request forward service group"
++	depends on FDT_MPXY
++	select MPXY_REQFWD_QUEUE
++	default n
++
+ config MPXY_REQFWD_QUEUE
+ 	bool "Queue of RPMI messages forwarded to a software agent"
+ 	default n
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c b/lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c
 new file mode 100644
-index 0000000..cb703c4
+index 0000000..4753874
 --- /dev/null
-+++ b/include/sbi_utils/mpxy/reqfwd_queue.h
-@@ -0,0 +1,157 @@
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_reqfwd.c
+@@ -0,0 +1,280 @@
 +/*
 + * SPDX-License-Identifier: BSD-2-Clause
 + *
@@ -182,384 +206,303 @@ index 0000000..cb703c4
 + *   Marouene Boubakri <marouene.boubakri@nxp.com>
 + */
 +
-+#ifndef __REQFWD_QUEUE_H__
-+#define __REQFWD_QUEUE_H__
++#include <libfdt.h>
++#include <sbi/sbi_byteorder.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/mailbox/rpmi_msgprot.h>
++#include <sbi_utils/mpxy/fdt_mpxy.h>
++#include <sbi_utils/mpxy/fdt_mpxy_rpmi.h>
++#include <sbi_utils/mpxy/reqfwd_queue.h>
 +
-+#include <sbi/riscv_locks.h>
-+#include <sbi/sbi_list.h>
-+#include <sbi/sbi_types.h>
++/** Implementation ID and version reported for this service group */
++#define MPXY_REQFWD_IMPL_ID		0
++#define MPXY_REQFWD_IMPL_VERSION	RPMI_VERSION(1, 0)
++
++/** Service group version implemented here */
++#define MPXY_REQFWD_SRVGRP_VERSION	RPMI_VERSION(1, 0)
 +
 +/**
-+ * Queue of RPMI messages forwarded to a software agent which serves the
-+ * RPMI REQUEST_FORWARD service group.
-+ *
-+ * A producer forwards a message to a queue and waits for the agent to
-+ * complete it. The oldest message of a queue is its current message and
-+ * it is the only one which can be retrieved and completed.
-+ *
-+ * The producer and the agent run on different HARTs, so the message and
-+ * response buffers must be reachable from M-mode on any HART of the
-+ * system. In other words they must be in firmware memory.
++ * Default and minimum message data length of the channel. The minimum
++ * has to hold the fixed part of a retrieve response plus one 4-byte word
++ * of the forwarded message.
 + */
++#define MPXY_REQFWD_MSG_MAX_LEN_DEFAULT	4096
++#define MPXY_REQFWD_MSG_MAX_LEN_MIN	16
 +
-+/** State of a forwarded message */
-+enum reqfwd_state {
-+	/** Queued and not retrieved yet */
-+	REQFWD_STATE_QUEUED = 0,
-+	/** At least partly retrieved by the agent */
-+	REQFWD_STATE_RETRIEVED,
-+	/** Completed by the agent, the response is available */
-+	REQFWD_STATE_COMPLETED,
++/*
++ * M-mode answers a retrieve or a complete without talking to anyone, so
++ * the channel timeouts only need to be non-zero.
++ */
++#define MPXY_REQFWD_SEND_TIMEOUT_US	10
++#define MPXY_REQFWD_COMPLETION_TIMEOUT_US 10
++
++/** Fixed part of a REQFWD_RETRIEVE_CURRENT_MESSAGE response */
++#define MPXY_REQFWD_RETRIEVE_RSP_SIZE	\
++	sizeof(struct rpmi_reqfwd_retrieve_current_message_rsp)
++
++/** An MPXY channel serving the RPMI REQUEST_FORWARD service group */
++struct mpxy_reqfwd {
++	struct mpxy_rpmi_channel_attrs msgprot_attrs;
++	struct sbi_mpxy_channel channel;
++	struct reqfwd_queue queue;
 +};
 +
-+/** A forwarded message */
-+struct reqfwd_message {
-+	/** Node in the message list of a queue */
-+	struct sbi_dlist node;
-+	/** State of this message */
-+	enum reqfwd_state state;
-+	/** Message bytes */
-+	const void *msg;
-+	/** Number of message bytes */
-+	unsigned long msg_len;
-+	/** Buffer receiving the response */
-+	void *rsp;
-+	/** Size of the response buffer */
-+	unsigned long rsp_max_len;
-+	/** Number of response bytes written by the agent */
-+	unsigned long rsp_len;
++static int mpxy_reqfwd_read_attributes(struct sbi_mpxy_channel *channel,
++				       u32 *outmem, u32 base_attr_id,
++				       u32 attr_count)
++{
++	struct mpxy_reqfwd *rf =
++		container_of(channel, struct mpxy_reqfwd, channel);
++
++	return mpxy_rpmi_read_attrs(&rf->msgprot_attrs, outmem,
++				    base_attr_id, attr_count);
++}
++
++/**
++ * Notifications are not implemented.
++ *
++ * REQFWD_NEW_MESSAGE is an RPMI notification message and SBI MPXY
++ * delivers such messages through an MSI or an SSE event, neither of
++ * which is wired up here. Software waiting for forwarded messages polls
++ * REQFWD_RETRIEVE_CURRENT_MESSAGE instead.
++ */
++static int mpxy_reqfwd_enable_notification(struct mpxy_reqfwd *rf,
++					   void *tx, u32 tx_len,
++					   void *rx, u32 rx_max_len,
++					   unsigned long *ack_len)
++{
++	struct rpmi_enable_notification_resp *rsp = rx;
++
++	if (tx_len < sizeof(struct rpmi_enable_notification_req) ||
++	    rx_max_len < sizeof(*rsp))
++		return SBI_EINVAL;
++
++	rsp->status = cpu_to_le32(RPMI_ERR_NOTSUPP);
++	rsp->current_state = cpu_to_le32(RPMI_EVENT_NOTIF_DISABLE_STATE);
++	*ack_len = sizeof(*rsp);
++
++	return SBI_OK;
++}
++
++static int mpxy_reqfwd_retrieve(struct mpxy_reqfwd *rf,
++				void *tx, u32 tx_len,
++				void *rx, u32 rx_max_len,
++				unsigned long *ack_len)
++{
++	const struct rpmi_reqfwd_retrieve_current_message_req *req = tx;
++	struct rpmi_reqfwd_retrieve_current_message_rsp *rsp = rx;
++	unsigned long returned = 0, remaining = 0;
++	u32 start_index, max_len;
++	s32 status;
++	int ret;
++
++	if (tx_len < sizeof(*req) ||
++	    rx_max_len < MPXY_REQFWD_RETRIEVE_RSP_SIZE)
++		return SBI_EINVAL;
++
++	/* The request and the response share the shared memory */
++	start_index = le32_to_cpu(req->start_index);
++
++	max_len = rx_max_len;
++	if (max_len > rf->channel.attrs.msg_data_maxlen)
++		max_len = rf->channel.attrs.msg_data_maxlen;
++	max_len -= MPXY_REQFWD_RETRIEVE_RSP_SIZE;
++
++	/* An RPMI message data length is always a multiple of 4 bytes */
++	max_len &= ~0x3U;
++
++	ret = reqfwd_queue_retrieve(&rf->queue, start_index,
++				    rsp->request_message, max_len,
++				    &returned, &remaining);
++	switch (ret) {
++	case 0:
++		status = RPMI_SUCCESS;
++		break;
++	case SBI_ENOENT:
++		status = RPMI_ERR_NO_DATA;
++		break;
++	default:
++		status = RPMI_ERR_INVALID_PARAM;
++		break;
++	}
++
++	rsp->status = cpu_to_le32(status);
++	rsp->remaining = cpu_to_le32(remaining);
++	rsp->returned = cpu_to_le32(returned);
++	*ack_len = MPXY_REQFWD_RETRIEVE_RSP_SIZE + returned;
++
++	return SBI_OK;
++}
++
++static int mpxy_reqfwd_complete(struct mpxy_reqfwd *rf,
++				void *tx, u32 tx_len,
++				void *rx, u32 rx_max_len,
++				unsigned long *ack_len)
++{
++	struct rpmi_reqfwd_complete_current_message_rsp *rsp = rx;
++	unsigned long count = 0;
++	s32 status;
++	int ret;
++
++	if (rx_max_len < sizeof(*rsp))
++		return SBI_EINVAL;
++
++	/*
++	 * The response data is copied out of the shared memory before the
++	 * response of this service is written back into it.
++	 */
++	ret = reqfwd_queue_complete(&rf->queue, tx, tx_len, &count);
++	switch (ret) {
++	case 0:
++		status = RPMI_SUCCESS;
++		break;
++	case SBI_EBAD_RANGE:
++		/* The response does not fit the buffer of the producer */
++		status = RPMI_ERR_BAD_RANGE;
++		break;
++	default:
++		status = RPMI_ERR_NO_DATA;
++		break;
++	}
++
++	rsp->status = cpu_to_le32(status);
++	rsp->num_messages = cpu_to_le32(count);
++	*ack_len = sizeof(*rsp);
++
++	return SBI_OK;
++}
++
++static int mpxy_reqfwd_send_message(struct sbi_mpxy_channel *channel,
++				    u32 message_id, void *tx, u32 tx_len,
++				    void *rx, u32 rx_max_len,
++				    unsigned long *ack_len)
++{
++	struct mpxy_reqfwd *rf =
++		container_of(channel, struct mpxy_reqfwd, channel);
++
++	if (!rx || !ack_len)
++		return SBI_EINVAL;
++
++	switch (message_id) {
++	case RPMI_REQFWD_SRV_ENABLE_NOTIFICATION:
++		return mpxy_reqfwd_enable_notification(rf, tx, tx_len, rx,
++						       rx_max_len, ack_len);
++	case RPMI_REQFWD_SRV_RETRIEVE_CURRENT_MESSAGE:
++		return mpxy_reqfwd_retrieve(rf, tx, tx_len, rx,
++					    rx_max_len, ack_len);
++	case RPMI_REQFWD_SRV_COMPLETE_CURRENT_MESSAGE:
++		return mpxy_reqfwd_complete(rf, tx, tx_len, rx,
++					    rx_max_len, ack_len);
++	default:
++		break;
++	}
++
++	return SBI_ENOTSUPP;
++}
++
++static int mpxy_reqfwd_init(const void *fdt, int nodeoff,
++			    const struct fdt_match *match)
++{
++	struct mpxy_reqfwd *rf;
++	const fdt32_t *val;
++	u32 msg_max_len;
++	int rc, len;
++
++	val = fdt_getprop(fdt, nodeoff, "riscv,sbi-mpxy-channel-id", &len);
++	if (!val || len < 4)
++		return SBI_ENODEV;
++
++	rf = sbi_zalloc(sizeof(*rf));
++	if (!rf)
++		return SBI_ENOMEM;
++
++	rf->channel.channel_id = fdt32_to_cpu(*val);
++	rf->channel.owner_domain = &root;
++
++	msg_max_len = MPXY_REQFWD_MSG_MAX_LEN_DEFAULT;
++	val = fdt_getprop(fdt, nodeoff, "riscv,sbi-mpxy-msg-max-len", &len);
++	if (val && len >= 4)
++		msg_max_len = fdt32_to_cpu(*val);
++	if (msg_max_len < MPXY_REQFWD_MSG_MAX_LEN_MIN || (msg_max_len & 0x3)) {
++		rc = SBI_EINVAL;
++		goto fail_free;
++	}
++
++	rf->channel.read_attributes = mpxy_reqfwd_read_attributes;
++	rf->channel.send_message_with_response = mpxy_reqfwd_send_message;
++
++	rf->channel.attrs.msg_proto_id = SBI_MPXY_MSGPROTO_RPMI_ID;
++	rf->channel.attrs.msg_proto_version = RPMI_VERSION(1, 0);
++	rf->channel.attrs.msg_data_maxlen = msg_max_len;
++	rf->channel.attrs.msg_send_timeout = MPXY_REQFWD_SEND_TIMEOUT_US;
++	rf->channel.attrs.msg_completion_timeout =
++		MPXY_REQFWD_COMPLETION_TIMEOUT_US;
++
++	rf->msgprot_attrs.servicegrp_id = RPMI_SRVGRP_REQUEST_FORWARD;
++	rf->msgprot_attrs.servicegrp_ver = MPXY_REQFWD_SRVGRP_VERSION;
++	rf->msgprot_attrs.impl_id = MPXY_REQFWD_IMPL_ID;
++	rf->msgprot_attrs.impl_ver = MPXY_REQFWD_IMPL_VERSION;
++
++	/*
++	 * A producer names the queue it forwards to by the ID of the
++	 * channel the messages are retrieved from.
++	 */
++	rc = reqfwd_queue_register(&rf->queue, rf->channel.channel_id);
++	if (rc)
++		goto fail_free;
++
++	rc = sbi_mpxy_register_channel(&rf->channel);
++	if (rc)
++		goto fail_unregister_queue;
++
++	return SBI_OK;
++
++fail_unregister_queue:
++	reqfwd_queue_unregister(&rf->queue);
++fail_free:
++	sbi_free(rf);
++	return rc;
++}
++
++static const struct fdt_match mpxy_reqfwd_match[] = {
++	{ .compatible = "riscv,rpmi-mpxy-request-forward" },
++	{},
 +};
 +
-+/** Queue of messages forwarded to one agent */
-+struct reqfwd_queue {
-+	/** Node in the list of registered queues */
-+	struct sbi_dlist node;
-+	/** Identifier of this queue, unique across registered queues */
-+	u32 id;
-+	/** Lock protecting the message list */
-+	spinlock_t lock;
-+	/** Forwarded messages, oldest first */
-+	struct sbi_dlist messages;
-+	/** Number of messages in the list */
-+	unsigned long count;
++const struct fdt_driver fdt_mpxy_rpmi_reqfwd = {
++	.experimental = true,
++	.match_table = mpxy_reqfwd_match,
++	.init = mpxy_reqfwd_init,
 +};
-+
-+/**
-+ * Register a forwarded message queue
-+ *
-+ * @param queue message queue to register
-+ * @param id identifier producers use to find the queue, in practice the
-+ * MPXY channel ID of the REQUEST_FORWARD channel serving it
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int reqfwd_queue_register(struct reqfwd_queue *queue, u32 id);
-+
-+/**
-+ * Unregister a forwarded message queue
-+ *
-+ * The queue must be empty.
-+ *
-+ * @param queue message queue to unregister
-+ */
-+void reqfwd_queue_unregister(struct reqfwd_queue *queue);
-+
-+/**
-+ * Find a registered forwarded message queue
-+ *
-+ * @param id identifier the queue was registered with
-+ *
-+ * @return pointer to the queue or NULL if there is no such queue
-+ */
-+struct reqfwd_queue *reqfwd_queue_find(u32 id);
-+
-+/**
-+ * Forward a message and wait for the agent to complete it
-+ *
-+ * @param queue message queue to forward to
-+ * @param fmsg caller provided state tracking the forwarded message
-+ * @param msg message bytes, must stay valid until this function returns
-+ * @param msg_len number of message bytes
-+ * @param rsp buffer receiving the response, may be NULL
-+ * @param rsp_max_len size of the response buffer
-+ * @param rsp_len place to store the number of response bytes, may be NULL
-+ * @param timeout_us how long to wait for completion in microseconds
-+ *
-+ * @return 0 on success, SBI_ETIMEDOUT if the agent did not complete the
-+ * message in time, and a negative error code on failure
-+ */
-+int reqfwd_queue_send(struct reqfwd_queue *queue,
-+		      struct reqfwd_message *fmsg,
-+		      const void *msg, unsigned long msg_len,
-+		      void *rsp, unsigned long rsp_max_len,
-+		      unsigned long *rsp_len, unsigned long timeout_us);
-+
-+/**
-+ * Copy a part of the current forwarded message of a queue
-+ *
-+ * The current message is marked as retrieved even if only a part of it
-+ * was copied, because the agent may not need the whole message.
-+ *
-+ * @param queue message queue to retrieve from
-+ * @param offset index of the first byte to copy
-+ * @param buf buffer receiving the copied bytes
-+ * @param buf_len size of the buffer
-+ * @param returned place to store the number of bytes copied
-+ * @param remaining place to store the number of bytes left after this call
-+ *
-+ * @return 0 on success, SBI_ENOENT if the queue has no current message,
-+ * and a negative error code on failure
-+ */
-+int reqfwd_queue_retrieve(struct reqfwd_queue *queue, unsigned long offset,
-+			  void *buf, unsigned long buf_len,
-+			  unsigned long *returned, unsigned long *remaining);
-+
-+/**
-+ * Complete the current forwarded message of a queue
-+ *
-+ * @param queue message queue to complete in
-+ * @param rsp response bytes
-+ * @param rsp_len number of response bytes
-+ * @param count place to store the number of messages left behind
-+ *
-+ * @return 0 on success, SBI_ENOENT if the queue has no current message or
-+ * the current message was not retrieved, and a negative error code on
-+ * failure
-+ */
-+int reqfwd_queue_complete(struct reqfwd_queue *queue, const void *rsp,
-+			  unsigned long rsp_len, unsigned long *count);
-+
-+#endif /* __REQFWD_QUEUE_H__ */
-diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
-index a3ed1c2..d309735 100644
---- a/lib/utils/mpxy/Kconfig
-+++ b/lib/utils/mpxy/Kconfig
-@@ -44,4 +44,8 @@ config FDT_MPXY_RPMI_MM
- 
- endif
- 
-+config MPXY_REQFWD_QUEUE
-+	bool "Queue of RPMI messages forwarded to a software agent"
-+	default n
-+
- endmenu
 diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
-index c406c12..6cdfb6b 100644
+index 6cdfb6b..6ff4a62 100644
 --- a/lib/utils/mpxy/objects.mk
 +++ b/lib/utils/mpxy/objects.mk
-@@ -13,6 +13,8 @@ libsbiutils-objs-$(CONFIG_FDT_MPXY) += mpxy/fdt_mpxy_drivers.carray.o
+@@ -15,6 +15,9 @@ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MBOX) += mpxy/fdt_mpxy_rpmi_mbox.o
  
- libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MBOX) += mpxy/fdt_mpxy_rpmi_mbox.o
+ libsbiutils-objs-$(CONFIG_MPXY_REQFWD_QUEUE) += mpxy/reqfwd_queue.o
  
-+libsbiutils-objs-$(CONFIG_MPXY_REQFWD_QUEUE) += mpxy/reqfwd_queue.o
++carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_REQUEST_FORWARD) += fdt_mpxy_rpmi_reqfwd
++libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_REQUEST_FORWARD) += mpxy/fdt_mpxy_rpmi_reqfwd.o
 +
  carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_CLOCK) += fdt_mpxy_rpmi_clock
  libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_CLOCK) += mpxy/fdt_mpxy_rpmi_clock.o
  
-diff --git a/lib/utils/mpxy/reqfwd_queue.c b/lib/utils/mpxy/reqfwd_queue.c
-new file mode 100644
-index 0000000..b49c004
---- /dev/null
-+++ b/lib/utils/mpxy/reqfwd_queue.c
-@@ -0,0 +1,198 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright 2026 NXP
-+ *
-+ * Authors:
-+ *   Marouene Boubakri <marouene.boubakri@nxp.com>
-+ */
-+
-+#include <sbi/riscv_barrier.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_string.h>
-+#include <sbi/sbi_timer.h>
-+#include <sbi_utils/mpxy/reqfwd_queue.h>
-+
-+/** List of registered forwarded message queues */
-+static SBI_LIST_HEAD(reqfwd_queue_list);
-+
-+/** Current message of a queue, called with the queue lock held */
-+static struct reqfwd_message *reqfwd_current(struct reqfwd_queue *queue)
-+{
-+	if (sbi_list_empty(&queue->messages))
-+		return NULL;
-+
-+	return sbi_list_first_entry(&queue->messages,
-+				    struct reqfwd_message, node);
-+}
-+
-+int reqfwd_queue_register(struct reqfwd_queue *queue, u32 id)
-+{
-+	if (!queue)
-+		return SBI_EINVAL;
-+
-+	if (reqfwd_queue_find(id))
-+		return SBI_EALREADY;
-+
-+	queue->id = id;
-+	SPIN_LOCK_INIT(queue->lock);
-+	SBI_INIT_LIST_HEAD(&queue->messages);
-+	queue->count = 0;
-+
-+	sbi_list_add_tail(&queue->node, &reqfwd_queue_list);
-+
-+	return 0;
-+}
-+
-+void reqfwd_queue_unregister(struct reqfwd_queue *queue)
-+{
-+	if (!queue)
-+		return;
-+
-+	sbi_list_del(&queue->node);
-+}
-+
-+struct reqfwd_queue *reqfwd_queue_find(u32 id)
-+{
-+	struct reqfwd_queue *queue;
-+
-+	sbi_list_for_each_entry(queue, &reqfwd_queue_list, node) {
-+		if (queue->id == id)
-+			return queue;
-+	}
-+
-+	return NULL;
-+}
-+
-+int reqfwd_queue_send(struct reqfwd_queue *queue,
-+		      struct reqfwd_message *fmsg,
-+		      const void *msg, unsigned long msg_len,
-+		      void *rsp, unsigned long rsp_max_len,
-+		      unsigned long *rsp_len, unsigned long timeout_us)
-+{
-+	u64 start, ticks;
-+
-+	if (!queue || !fmsg || !msg || !msg_len || !timeout_us)
-+		return SBI_EINVAL;
-+
-+	fmsg->state = REQFWD_STATE_QUEUED;
-+	fmsg->msg = msg;
-+	fmsg->msg_len = msg_len;
-+	fmsg->rsp = rsp;
-+	fmsg->rsp_max_len = rsp ? rsp_max_len : 0;
-+	fmsg->rsp_len = 0;
-+
-+	spin_lock(&queue->lock);
-+	sbi_list_add_tail(&fmsg->node, &queue->messages);
-+	queue->count++;
-+	spin_unlock(&queue->lock);
-+
-+	start = sbi_timer_value();
-+	ticks = sbi_timer_compute_udelta(timeout_us);
-+
-+	while (1) {
-+		spin_lock(&queue->lock);
-+
-+		/*
-+		 * reqfwd_queue_complete() removes the message from the list
-+		 * before releasing the lock, so once it is completed the
-+		 * agent no longer refers to it.
-+		 */
-+		if (fmsg->state == REQFWD_STATE_COMPLETED) {
-+			spin_unlock(&queue->lock);
-+			if (rsp_len)
-+				*rsp_len = fmsg->rsp_len;
-+			return 0;
-+		}
-+
-+		if ((sbi_timer_value() - start) >= ticks) {
-+			sbi_list_del(&fmsg->node);
-+			queue->count--;
-+			spin_unlock(&queue->lock);
-+			return SBI_ETIMEDOUT;
-+		}
-+
-+		spin_unlock(&queue->lock);
-+		cpu_relax();
-+	}
-+}
-+
-+int reqfwd_queue_retrieve(struct reqfwd_queue *queue, unsigned long offset,
-+			  void *buf, unsigned long buf_len,
-+			  unsigned long *returned, unsigned long *remaining)
-+{
-+	struct reqfwd_message *fmsg;
-+	unsigned long len;
-+	int ret = 0;
-+
-+	if (!queue || (buf_len && !buf))
-+		return SBI_EINVAL;
-+
-+	spin_lock(&queue->lock);
-+
-+	fmsg = reqfwd_current(queue);
-+	if (!fmsg) {
-+		ret = SBI_ENOENT;
-+		goto out;
-+	}
-+
-+	if (offset > fmsg->msg_len) {
-+		ret = SBI_EINVAL;
-+		goto out;
-+	}
-+
-+	len = fmsg->msg_len - offset;
-+	if (len > buf_len)
-+		len = buf_len;
-+
-+	if (len)
-+		sbi_memcpy(buf, (const char *)fmsg->msg + offset, len);
-+	fmsg->state = REQFWD_STATE_RETRIEVED;
-+
-+	if (returned)
-+		*returned = len;
-+	if (remaining)
-+		*remaining = fmsg->msg_len - offset - len;
-+
-+out:
-+	spin_unlock(&queue->lock);
-+	return ret;
-+}
-+
-+int reqfwd_queue_complete(struct reqfwd_queue *queue, const void *rsp,
-+			  unsigned long rsp_len, unsigned long *count)
-+{
-+	struct reqfwd_message *fmsg;
-+	int ret = 0;
-+
-+	if (!queue || (rsp_len && !rsp))
-+		return SBI_EINVAL;
-+
-+	spin_lock(&queue->lock);
-+
-+	fmsg = reqfwd_current(queue);
-+	if (!fmsg || fmsg->state != REQFWD_STATE_RETRIEVED) {
-+		ret = SBI_ENOENT;
-+		goto out;
-+	}
-+
-+	if (rsp_len > fmsg->rsp_max_len) {
-+		ret = SBI_EBAD_RANGE;
-+		goto out;
-+	}
-+
-+	if (rsp_len)
-+		sbi_memcpy(fmsg->rsp, rsp, rsp_len);
-+	fmsg->rsp_len = rsp_len;
-+	fmsg->state = REQFWD_STATE_COMPLETED;
-+
-+	sbi_list_del(&fmsg->node);
-+	queue->count--;
-+
-+out:
-+	if (count)
-+		*count = queue->count;
-+	spin_unlock(&queue->lock);
-+
-+	return ret;
-+}
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 9882988..8400850 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -78,6 +78,7 @@ CONFIG_FDT_TIMER=y
+ CONFIG_FDT_TIMER_MTIMER=y
+ CONFIG_FDT_TIMER_PLMT=y
+ CONFIG_FDT_MPXY=y
++CONFIG_FDT_MPXY_RPMI_REQUEST_FORWARD=y
+ CONFIG_FDT_MPXY_RPMI_MBOX=y
+ CONFIG_FDT_MPXY_RPMI_CLOCK=y
+ CONFIG_FDT_MPXY_RPMI_VOLTAGE=y
 -- 
 2.43.0
 
