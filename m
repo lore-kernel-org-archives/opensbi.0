@@ -4,126 +4,132 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 28FC2C79F89
-	for <opensbi@archiver.kernel.org>; Mon,  7 Sep 2026 11:46:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A89AEC79F99
+	for <opensbi@archiver.kernel.org>; Tue,  8 Sep 2026 04:18:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=8RbKEz0bOz12bl0AmI+qfwloypfgZ2pxAI+eZj6WoTU=; b=kJT3nseMH2WqiA
-	YtNBU5sPSBntTju/lQZPK51jfRmI4Qj+S6w+FZSQFZY13KEF2gE+XDx0LcbbsS21LpDgJZtHsEKcI
-	slFKmx+6v4nNR93hhPtvZtpjgQmGp7LgOOGbx/Yf8YWaibSypnp6y2E8Vv2NwMjDre6U+zr8ul5w9
-	VX03oB1sQhdLR9GE65TszUo1inTbvFv6i+86dnu2qyKXP0pY6jMdCWWVhGuF+RQsk2gdmytWImeEb
-	FmVu7OIo5+085T482YDAL1kB4wzn7/mMcUskBBfDvhIW2J4im2eStb8RpSdJlnb+zChBzZS/dcn2I
-	NecyNQMMDDEYCvOTQ50Q==;
+	List-Owner; bh=/hA59F0SwugXSJtM8i1T9D/ngY8agt/Ee2Jsdo6c6D0=; b=K4upXTgHG7o+IA
+	vppyiTsQmmdMamHon6f7jFuXu3+h3rEOUxw45Wk2Mt3Ls1UtgZauaEXeUc45teQzzDscynsgfFO/i
+	Ik4aUdcYbozk49/OewKbQ+BDdy3mYzBaOhmzQJ5QMAG3hLNUIFIgDAC50AK0nA5HZiFflGD9yGvhA
+	2mfPIyNIx6eK6AckE5dXHXBsTlrb41l0fDF4GekKVdN7BwNgfB7P9mMuawQR3jJuNj5NEIqGR6B74
+	wLHjbk4UL9LcMAWwOin7wvA0/BFL6BFtJ6wR659+cJdPq8oqEEKbtv3Rda1VF3Nbuu/9KTcPsKIx3
+	WI0l40VfqzzPuwAVseAA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3Xnb-00000006hcm-1ZlW;
-	Mon, 07 Sep 2026 11:46:07 +0000
-Received: from mail-francecentralazlp170130007.outbound.protection.outlook.com ([2a01:111:f403:c20a::7] helo=PA4PR04CU001.outbound.protection.outlook.com)
+	id 1x3nIA-0000000810e-3ak0;
+	Tue, 08 Sep 2026 04:18:42 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3XnY-00000006hY7-2yFZ
+	id 1x3nI4-0000000810G-3OJF
 	for opensbi@lists.infradead.org;
-	Mon, 07 Sep 2026 11:46:05 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=oIL2CVwKRTfIRk4d5Bt5+JPQF8d9WwPHLZUk+yNu4fYKET8zxpA1HvEuxZNIH+XFvIOuyv4ggQN04yQHhw4RVAfHi10TRF0KvlMDd+rLM2yT1EubAmWV+kXkRvowpOglfLMEt3iQ5egKVv1jK/HfyUhwKu/glzH3q+2zKhXL9nk/mnBLVkYfoZQn8oTaEBi87781ZPtkJHf5sQm1NxVB3ZXVIrqV2/l83JG6td2tnPWvAnOexxz4cEGuWFAu5t/742276FBYKLB8jM4oZjylxCHy4/NgFliUxS3mJI+yhhVrZu1h/fxzCbY6LSMzM7eSCC/JGdLy0dOiOgcFv0F+ug==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TP8XBnkeGPIVBxrwfk4oKbUQ8ZYhC2tG0t3SihTicYs=;
- b=SEugET27NkK1CyIIo/NuBZR9K+7l991M/zz1nRNtDZIq+3QCYqdeukmD7iuD5TJXDZAoTJGgZn+urTkyzab0m9rfTwpa1QfQMUf0Ib1p8ajA58XWuif8GQk4k9mmcKVtr4Sy9NLmCyUDVfGUNt1GVEC8zQWYv8OzEsJdJJ1lhtWXn21TTDQsGcukOO8TFDIZltwoWFEJPMQv1SVlrJTa7NQqVdHuL9xXHYL+krCPq3wn1dhB21sRmicdjNn22jwzRCBJ+dVlwoOOQSly+Fw7R5acgoQPrIUPlddtxriWO0McFdCbPh61sFm4NkHo48EA0MNIEQDFflUDAv5SGLquOg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
- dkim=pass header.d=oss.nxp.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
- s=selector1-NXP1-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TP8XBnkeGPIVBxrwfk4oKbUQ8ZYhC2tG0t3SihTicYs=;
- b=Sg7e9yyp7tYuJt7VT95VPl+nttSbBjMc1aK4gDicj1J9u/oX9EM4qNwSxsnw1AYdMRAuT4vHtV2i2qeb668iQnW4zdJ2Zx9D/1y0okZ8mJBnmbxrE09jr53XdnJ2vuPrlaCyb4Sa/IuoejfBU1mo7G7BmRyKh+DnKTApTSJUYMc0Tu82LFSRVhNyHqMET/DwGieJCzK9MPwVnQZkxXcX2agELhmJGDpSkxZTMQuoTLtsiTKw/mgH7TT+tP4iiVFb4aGUcO4f7/VHMyXgl2abafkhkaTqtnQfHHBrKeZH2pzsu7tZVtyNUJl+vqJt+ZdOMNMvr/lmWRAlbrJpwfW0bg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=oss.nxp.com;
-Received: from PA3PR04MB11203.eurprd04.prod.outlook.com
- (2603:10a6:102:4ab::13) by DUZPR04MB9984.eurprd04.prod.outlook.com
- (2603:10a6:10:4dd::18) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.15; Mon, 7 Sep
- 2026 11:45:56 +0000
-Received: from PA3PR04MB11203.eurprd04.prod.outlook.com
- ([fe80::80e9:ab1c:dbc4:6930]) by PA3PR04MB11203.eurprd04.prod.outlook.com
- ([fe80::80e9:ab1c:dbc4:6930%3]) with mapi id 15.21.0382.014; Mon, 7 Sep 2026
- 11:45:56 +0000
-From: marouene.boubakri@oss.nxp.com
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	ranbir.singh@oss.qualcomm.com,
-	sunilvl@oss.qualcomm.com,
-	maroueneboubakri@gmail.com,
-	Marouene Boubakri <marouene.boubakri@nxp.com>
-Subject: [PATCH 5/5] lib: utils/mpxy: Add RPMI MANAGEMENT_MODE channel over request forward
-Date: Mon,  7 Sep 2026 13:59:13 +0200
-Message-Id: <20260907115913.101752-6-marouene.boubakri@oss.nxp.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
-References: <20260907115913.101752-1-marouene.boubakri@oss.nxp.com>
-X-ClientProxiedBy: AS4P191CA0031.EURP191.PROD.OUTLOOK.COM
- (2603:10a6:20b:657::13) To PA3PR04MB11203.eurprd04.prod.outlook.com
- (2603:10a6:102:4ab::13)
+	Tue, 08 Sep 2026 04:18:38 +0000
+Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 687NlbiK681573
+	for <opensbi@lists.infradead.org>; Tue, 8 Sep 2026 04:18:26 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=qcppdkim1; bh=1N2/+JjOSNIyv8bHDnDj2HJx
+	3QjygKw+yhgQ8mEu3M0=; b=FHnLamRr+uqHFRjVYTdwWuU3x5BJtQC8ABxx3RqR
+	elhjIery67aaDeiL9rz8E9YHF5X87FrfWeIES2/OV7YEiaAkyX2yCp83rCLIlx7Z
+	v4IP/syECjbIP2yyai09vtCpxlZ/tu+l1FiEFmhetw0YEvdok4RTNo55irORuZpw
+	gNPIs0sSoSQ8tBLBH2Mm2yLP9RtTjzbFF+60G0B5FYdH+duSXBh6LsuBctMa+MvI
+	tB1fkGTTxuSua8JnEN54jL1X2wlRA4RXHEE+IK5Kxj4lKB4P9jt1asZcKkD/lEA0
+	dw9HgYUPXhrtTGqcv62yBAjWDd5h5wrQ570dQCt4c5OQaA==
+Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4gj077hv5x-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Tue, 08 Sep 2026 04:18:25 +0000 (GMT)
+Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-398d0010cfaso8027213a91.3
+        for <opensbi@lists.infradead.org>; Mon, 07 Sep 2026 21:18:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1788841105; x=1789445905; darn=lists.infradead.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=1N2/+JjOSNIyv8bHDnDj2HJx3QjygKw+yhgQ8mEu3M0=;
+        b=c4pNk5nNnCrbgq/Wj5ytAph9QSfHhP78ziZPKu6vj6A18l/DAvJR516TD7U1lTNCr6
+         /O59sGDiR4NpEzjFMQSxr574umDFOBgxYbhiCRxEN+00LsW8dZRCRbIQyZQGxfXuNxKd
+         JeLxVBafV8ityiEFdVdloMO+VfQ6CWf0LqbhLqATjNdd46zwitRW5LSxMUU409RHj1GY
+         pDk+waRD8CF/5SVdyNJVQqI8ZsxUaREFq6w0h/wPV0fz+Smw3vDgzmz1Pt0btxOS12I+
+         X5Gt66heBWutxlqkTWxm9gvnHfnpOaSNV/DAkAELhaAKiec/+k3fNkyWcIjhUrV2+HsF
+         KRnw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788841105; x=1789445905;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=1N2/+JjOSNIyv8bHDnDj2HJx3QjygKw+yhgQ8mEu3M0=;
+        b=lMPY9NbPO8be4i9NskDWj5onylOkAlzrjL2UQ+fClx4UOmMb/IYY9tDfBp+QrEoWH2
+         lqr5ybfGrBRkSWK59hBXvJWJRSD94Lsg6gONgYmdgCTAEBupp8cOvOw9WCvlQIDgPAoC
+         NX6azlBwqsKUEDjIEMVe4/I50HGW67BDo8GIf2cWCULGPJRACwb8zSuW2oc8oimaf7wt
+         cpSoM+wnEhgrKqadtRTN4+qge9QCZGxspgE8DUs2zyRBA042H+oJCQhWEXwiJ75zPGV7
+         PBc8upOl2pnhJFEQAyOeJ0GTqvKLyyisJkrxQiMUyIjASjpsh+vzr4YHfqUAqlvGCbTO
+         PWdA==
+X-Gm-Message-State: AFuF++mjeOAo85aXYz5RlxLmw5BTcUjroSJcDwwKwRd+Rm9uvHmE9xQ3
+	3aKxUWGv+Rp47QlM2Cf7Fw28qx/zh8ZOT/Jr1ELVhRNbhQocBjatNdP9epda4Bri8q6u0MUN/mm
+	cuN3y2TBKTVcT52CaKjz+x+NJe6cZyyIy0akwYw9LjIX0br7IqW/fULhQfSn/1i0HP61d3/iKdQ
+	==
+X-Gm-Gg: AYBFou1U1BbD9xNByZwFRM9kO51fjAczfAXTlJ0o0fd4B6AjzAqa2VTgrFUYpoEb9x1
+	z8lVbCPpbaZs65GDFUra683iX7jTcfN6fQGpTXR7GTehiFydOk04JNI4EqaisBh+rGkgSb/o24S
+	Dl2PMKcj1wvUMF5O++ODQEr3PG6Ouzu/dB5w0N0P2NHCWUCoUAzzueCJVcLOHt/bdwaIf+qh3p4
+	ePbJDWy8rhHn8RPLJ+TAngQqiUypgQNyyNciDsJvB0/FsHchSRFbPKQRZbxpYuF6tD5O+1RNI+g
+	Mhh9Kty/rgmCJfiaIyMdS0bQ3sFQjgV3KqP0KBXcfdemxydz3gMsGqFfvhXPq25kxTNLWNnX0Nd
+	JG9qao9S2CXSn8IEGghfTLCzfhJ0ppMDiTYizNbA7mVfUbFofE8j4QZ4UAtWVWgrQT8wUw4Emef
+	P2NrRXQ1vgU/5l6ldX4kcOfef/
+X-Received: by 2002:a17:90a:d004:b0:398:c9be:cca8 with SMTP id 98e67ed59e1d1-39b2609f363mr46817504a91.2.1788841104924;
+        Mon, 07 Sep 2026 21:18:24 -0700 (PDT)
+X-Received: by 2002:a17:90a:d004:b0:398:c9be:cca8 with SMTP id 98e67ed59e1d1-39b2609f363mr46817441a91.2.1788841104310;
+        Mon, 07 Sep 2026 21:18:24 -0700 (PDT)
+Received: from hu-himchau-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339b608409sm36615531eec.21.2026.09.07.21.18.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Sep 2026 21:18:23 -0700 (PDT)
+Date: Tue, 8 Sep 2026 09:48:19 +0530
+From: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+To: "David E. Garcia Porras" <david.garcia@aheadcomputing.com>
+Cc: opensbi@lists.infradead.org
+Subject: Re: [PATCH] lib: sbi: Fix DBTR error codes and semantics as per SBI
+ v3.0 spec
+Message-ID: <ap-Mi2DsE8wzEt3w@hu-himchau-blr.qualcomm.com>
+References: <20260814172329.52258-1-david.garcia@aheadcomputing.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PA3PR04MB11203:EE_|DUZPR04MB9984:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1d4f8a0d-c674-4711-c26a-08df0cd59400
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|19092799006|23010399003|366016|1800799024|376014|10067099003|3023799007|22082099003|18002099003|56012099006|11063799006;
-X-Microsoft-Antispam-Message-Info: pFP/2ZXieG3IACZ5a9v47hhncDXSO+RUZDyQo+mBRf/m8RdsXKVE55Iy8uJ6tUGjQ8eb7/PwjpSBpMGUuoy8oxIZzrQNRiYgj38n34mlpz3a74+5+Veq11lnDxEc7DVmKS7/nH+UgU1STKjmUMmue9tZpK6B+VlOPH//JWS/NcC0B9xpVnkh2zqwmLfZWfKbXfh74Ze5PWvKTiPHPBnJMy8wSe0FbVFGZmAj4Uhb77MfAZDl9EYaoXLNXQEJYiAp5YrmcoB9Kxg3HaVfg04MQz5n+bTVmsmbiJZLlanvpiM/66lniz4BZhCS2E9KANstPLWJZcJIPw4IzUl7N5Ba6IGiSCoxxoCyRXAxzJNwZZjPB/591HcVK4VW3VGZJ+RE5p+z3TEpuU8rbU3zuS8Px3twQgElwZOwpk2qWeqEn8QJ5nc0gXNhtqEdadZVOGUPdlvBb22M568AamBNo894jfI36Ms5Z+vx3Q+g6oiaSNVd/Ik+MNzBQOu6tp/szmA9hKgbciAC120+Xnn1QLssgg9xEsAhIFVIkR9BAG69r39jFFJv7j91IXl6bag84foFb8kYEDBUmK70q51J46kKYWlTD3b2W0dNdEPDjfZ8fJtWczyVNdlNf++sdNqIgIpJVBOcuqK/Ao55hnGpAG0gPJJYESvaJcMw6XU9ED2ACsw=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PA3PR04MB11203.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(23010399003)(366016)(1800799024)(376014)(10067099003)(3023799007)(22082099003)(18002099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?OQlR1SS0HrYSlQToDBtgKessX7QVLnGsDUbA7sK26ZbVuhfZBUCc8HjB783T?=
- =?us-ascii?Q?WWmDWBjDXVo/pohFDYog053QCr/8vOO/rtp9ZuxFZ6t0Xpo9wCtyKE+Zr7hj?=
- =?us-ascii?Q?baMFQQF2BdYOepSIh0UJIF5Brj94ZtZMNQQsODRfqYEud3XiS8qglZusYavl?=
- =?us-ascii?Q?aN1cQR+da+rhfIaZADg14O8VKVB3XOwp0vS/s0/MvEzNpgdToDz2mk5PFGXV?=
- =?us-ascii?Q?7+qhdHlfZJbqMZYXogvddq+4S3kfAA9jE1MyTY10Qg934TuMSIbgzYJ4N+Gj?=
- =?us-ascii?Q?odONWunK8b90YGcAQci7os8nQTTg7WTGT/YqMckDavBQQzJY4nTrtIs20ryM?=
- =?us-ascii?Q?Q9OviFFY9XuL55jzGGsdnXOcAnErV1FAVpm5+IHK16qd2ydTPwuUi+mhq7C3?=
- =?us-ascii?Q?f6YvbRyquav3Wf6a52CuEMnfWyGzWq1CTsQLiDot+HRYE41Oej4crclc1E2o?=
- =?us-ascii?Q?gUraZVp00k8e+BdoeGThI3IzwNHlGyCcrkEKYVoh/7c1/j1zDCBsDeSF8R+K?=
- =?us-ascii?Q?N0hnXJgFfckMrSNVYRUaWDILw+CBG7KEvMrucZwirTp+GqpX7n0enFI3/iJu?=
- =?us-ascii?Q?I2CJBo6IE0YYq5wDC1sJ8RfJn0gcFG3/CMa9I49cJited3/TH/h9W0HEKP7J?=
- =?us-ascii?Q?8RO8uQNyFfDeZ5g5KCkxg3bzrnYFtSUsQrQ9MjafIVyuq6agLqV4HUYhTlFx?=
- =?us-ascii?Q?N4hGzra+FJ+NlQgWuNkfSu3mSwVJx2my4HMpi0kUuEx+RNAhE0h2Usf3n153?=
- =?us-ascii?Q?QsP7D/1zluvZIU0eaxccIRz89FcasFUYHoaBhXo6EyL8eYx4dIiuKAskWiLh?=
- =?us-ascii?Q?oZBJgl1U6qeRR/XJNwu41ubq8KY3SPPRYNmps4GL1kNVUdSAdOU4inNrIiUp?=
- =?us-ascii?Q?TF00LweUiGBSEku7p4/6YQpepQZCTaWHuuEF5BR6hToG9Ui1XFJ5+7jXo28t?=
- =?us-ascii?Q?AlfYf62aZeyQMsOUcDxAszhakQeIzCmAPd19+Ja+7QgEMGKzGKmlIBekWOnB?=
- =?us-ascii?Q?rGGrsuG84n16PuWj/Fwrhi9xaCCm3LhSPvmeCW25hkQ+hYiAU0va69KnnUBP?=
- =?us-ascii?Q?fb+cdw4jUqNOlgW81JgKmWMdIZ/KB+85TYhIE4/XVNKrV8Tl4/eFKny84NoV?=
- =?us-ascii?Q?VQ05PT0CGEOFV8L1YEy2bwZz63imZx/yVXDJxyBV9jotifugLfldBqOeA/yT?=
- =?us-ascii?Q?IRHeUyjNs7eM/oOrA8lb/FFM4hlOsK33JxbnvHVFN8IIhIHgeqkm5dDgR0sH?=
- =?us-ascii?Q?cRcHCmO6e7uG3ko4XIwU8auJza4ZhlH6q3zVfIVi32IzEU86hlKWTIhxVwhC?=
- =?us-ascii?Q?Vgj/wbpFhFmLa+F7ktI15flD6d7CmgT3Z34ghXFjHgq33cumcI4pZKfaEeA0?=
- =?us-ascii?Q?eMIreeDAfUdxB7iB4P9k0lBB9AvkB/TVkvibgiay6XIwukwEibJAvSQDctBy?=
- =?us-ascii?Q?E9iNvOYUbEp1xGmzbNlIEwKv8hRkDjr5qiGYLaV2o4eiw+4X7Twp0TJIKpA3?=
- =?us-ascii?Q?7pkuBQgmEGw/m9eLSJtyIE6dAOLVbkZysB2JIeN6FvN0jv5Hu6vF5sXEh3Xh?=
- =?us-ascii?Q?9Wh6nL+jny54/UamQPY1jfZ62OYD0CL5f7XvjjfdStkGlDvIc0VSiiwEZ2tT?=
- =?us-ascii?Q?AS3eL63wlru48UFf+hl6zhSs/IUiSUghLMCdZ7xSABzzVww+ahAU3WOBtFK5?=
- =?us-ascii?Q?7jztYG7e+wACJRk2TQ2TscbE3R8/2PgJOhcrwfMLtEyi3W+ogcaAYdhsqw3E?=
- =?us-ascii?Q?x+rnoywkNwHbEY1njuqXS2Wd83SSCpqXgiCU7Qg5ArLNjYgxXwR92vaDgDQV?=
-X-MS-Exchange-AntiSpam-MessageData-1: 5EEY6joVuP598w==
-X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1d4f8a0d-c674-4711-c26a-08df0cd59400
-X-MS-Exchange-CrossTenant-AuthSource: PA3PR04MB11203.eurprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2026 11:45:56.1956
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8blaEmGC+0P6zyq1+54AKXRYJCOlEMdpT3Pm/LOV9xXHBhS8fHnovTOJ4RmtYWHSMvO1vmEsn1YIVSh3elSJ2+MfCmnJhRqXqiBoNx1Tl+UcIehSn46MxRZS175onRTKp0OsASLjXd348WOw3FCe2Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DUZPR04MB9984
+Content-Disposition: inline
+In-Reply-To: <20260814172329.52258-1-david.garcia@aheadcomputing.com>
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA4MDA0NCBTYWx0ZWRfX0PDf1xFv6ckx
+ mxEu6AlGL6vpzARLEc8iotl3BNZoy8z4/vocHjELMJfEei1TsEnEv21XLQcrgFf1AkT8Hd+05O3
+ TuS7SB9aVjcykEYWTT7lrqixcqAlqWH68hfgScGYY65xxyMbeTgPFujI5nkWdL+BOVveC5iHJYo
+ rIGmkNDqHF6orjQKUutuTYvOT/ItrEIT9IpUIUfhhSI1KEdUQhGj/7jKIf5sQgpifuJ3sSGrTit
+ 8i6nuvq/pmq2AChcPAdWPI9LHYzwGxkiSPOik3Jlv+ZgiAn33ZsiXylTK2HCH4asOtGPjGZbSH1
+ QrhOuFvtUzOKv800y0wfavGh81sbLa3F5/Nbt/M3A1KVDK6mQ4HmzDuIeYH8WusvCRsLjSKDi0h
+ NAzKiiesRKXr3t/9L4c8XWiqKxFCGRU2SLum+IDJK3Zsr60NezM9Bopmp02SaVU3NIx3qvPnmD+
+ csA2CrSU+wd/Gd0DMcA==
+X-Authority-Analysis: v=2.4 cv=Xbe5Co55 c=1 sm=1 tr=0 ts=6a9f8c92 cx=c_pps
+ a=0uOsjrqzRL749jD1oC5vDA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yx91gb_oNiZeI1HMLzn7:22
+ a=JfrnYn6hAAAA:8 a=mlbbMAg2AAAA:8 a=h0HFRB-iABERQTE3ktIA:9 a=CjuIK1q_8ugA:10
+ a=mQ_c8vxmzFEMiUWkPHU9:22 a=1CNFftbPRP8L7MoqJWF3:22 a=MVgJjSScqoDYXLft4fpg:22
+X-Proofpoint-ORIG-GUID: Nnq4-i_T6cq9cbPtSPb9io9McwTjalaD
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA4MDA0NCBTYWx0ZWRfX7SijICFAj0bx
+ BrGWfYdRLZN447pYRb29T6IAb1kpoFZZ/fi+Y0sgXMQZkJGQe+8BIo3ILKnc+Fm5tJRB8WAneub
+ RvcCoK4iRsTPDPrzU9rSLeUnTjW/whk=
+X-Proofpoint-GUID: Nnq4-i_T6cq9cbPtSPb9io9McwTjalaD
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-07_07,2026-09-07_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 impostorscore=0 lowpriorityscore=0 clxscore=1015 adultscore=0
+ suspectscore=0 priorityscore=1501 spamscore=0 bulkscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2609080044
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260907_044604_767698_63ED34B6 
-X-CRM114-Status: GOOD (  24.01  )
+X-CRM114-CacheID: sfid-20260907_211837_084727_FDB750F9 
+X-CRM114-Status: GOOD (  32.17  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -140,498 +146,320 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Marouene Boubakri <marouene.boubakri@nxp.com>
+HI David,
 
-The RPMI MANAGEMENT_MODE service group is served today by
-fdt_mpxy_rpmi_mm.c, which passes MM_COMMUNICATE to a platform
-microcontroller over an RPMI mailbox. Management Mode can also run in
-software on the application processor, in which case there is no
-mailbox and no microcontroller to talk to.
+On Fri, Aug 14, 2026 at 11:23:29AM -0600, David E. Garcia Porras wrote:
+> Align the Debug Triggers (DBTR) extension implementation with the
+> error codes and behavior required by the SBI v3.0 specification,
+> chapter 19:
+> 
+>  - sbi_debug_set_shmem (sec 19.2): accept the flags parameter and
+>    return SBI_ERR_INVALID_PARAM when it is not zero. Also validate
+>    the entire shared memory range of trig_max * (XLEN / 2) bytes
+>    instead of only the base address, returning SBI_ERR_INVALID_ADDRESS
+>    when the range is not accessible.
+> 
+>  - sbi_debug_install_triggers (sec 19.4, table 101): return
+>    SBI_ERR_BAD_RANGE when trig_count >= trig_max, and return
+>    SBI_ERR_NOT_SUPPORTED instead of SBI_ERR_FAILED when the trigger
+>    type is not supported.
+> 
+>  - sbi_debug_update_triggers (sec 19.5, table 102): return the array
+>    index of the failing trigger configuration in sbiret.value, and
+>    return SBI_ERR_INVALID_PARAM when trig_tdata1.type or
+>    trig_tdata1.chain do not match the originally installed debug
+>    trigger. Validate the complete request before updating any trigger.
+> 
+>  - sbi_debug_uninstall_triggers, sbi_debug_enable_triggers and
+>    sbi_debug_disable_triggers (secs 19.6-19.8, tables 103-105): return
+>    SBI_ERR_INVALID_PARAM when any trigger in the set has
+>    trig_idx >= trig_max, and validate the complete set before acting
+>    on any trigger so a partially processed batch is not left behind.
+> 
+>  - Set the trig_state.have_hw_trig bit when a trigger is mapped to a
+>    HW debug trigger (table 98).
+> 
+> Signed-off-by: David E. Garcia Porras <david.garcia@aheadcomputing.com>
+> ---
+>  include/sbi/sbi_dbtr.h   |  5 ++-
+>  lib/sbi/sbi_dbtr.c       | 91 +++++++++++++++++++++++++++++++++-------
+>  lib/sbi/sbi_ecall_dbtr.c |  4 +-
+>  3 files changed, 81 insertions(+), 19 deletions(-)
+> 
+> diff --git a/include/sbi/sbi_dbtr.h b/include/sbi/sbi_dbtr.h
+> index 5e0bf84e..e6b76086 100644
+> --- a/include/sbi/sbi_dbtr.h
+> +++ b/include/sbi/sbi_dbtr.h
+> @@ -104,7 +104,8 @@ int sbi_dbtr_init(struct sbi_scratch *scratch, bool coldboot);
+>  int sbi_dbtr_supported(void);
+>  int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+>  			 unsigned long shmem_phys_lo,
+> -			 unsigned long shmem_phys_hi);
+> +			 unsigned long shmem_phys_hi,
+> +			 unsigned long flags);
+>  int sbi_dbtr_num_trig(unsigned long trig_tdata1, unsigned long *out);
+>  int sbi_dbtr_read_trig(unsigned long smode,
+>  		       unsigned long trig_idx_base, unsigned long trig_count);
+> @@ -115,7 +116,7 @@ int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
+>  int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+>  			 unsigned long trig_idx_mask);
+>  int sbi_dbtr_update_trig(unsigned long smode,
+> -			 unsigned long trig_count);
+> +			 unsigned long trig_count, unsigned long *out);
+>  int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
+>  			  unsigned long trig_idx_mask);
+>  
+> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+> index 01047969..1d4785c7 100644
+> --- a/lib/sbi/sbi_dbtr.c
+> +++ b/lib/sbi/sbi_dbtr.c
+> @@ -261,8 +261,10 @@ int sbi_dbtr_get_total_triggers(void)
+>  
+>  int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+>  			 unsigned long shmem_phys_lo,
+> -			 unsigned long shmem_phys_hi)
+> +			 unsigned long shmem_phys_hi,
+> +			 unsigned long flags)
+>  {
+> +	unsigned long shmem_size;
+>  	struct sbi_dbtr_hart_triggers_state *hart_state;
+>  
+>  	if (dom && !sbi_domain_is_assigned_hart(dom, current_hartindex())) {
+> @@ -271,6 +273,9 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+>  		return SBI_ERR_DENIED;
+>  	}
+>  
+> +	if (flags)
+> +		return SBI_ERR_INVALID_PARAM;
+> +
+>  	hart_state = dbtr_thishart_state_ptr();
+>  	if (!hart_state)
+>  		return SBI_ERR_FAILED;
+> @@ -304,9 +309,11 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+>  	if (shmem_phys_hi)
+>  		return SBI_EINVALID_ADDR;
+>  
+> -	if (dom && !sbi_domain_check_addr(dom,
+> -		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
+> -		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+> +	/* Must fail if address *range* is not fully accessible - size is assumed to be trig_max * (XLEN /2) bytes */
+> +	shmem_size = (unsigned long) hart_state->total_trigs * (__riscv_xlen / 2);
+> +	if (dom && !sbi_domain_check_addr_range(dom,
+> +		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), shmem_size,
+> +		  smode, SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+>  		return SBI_ERR_INVALID_ADDRESS;
+>  
+>  	hart_state->shmem.phys_lo = shmem_phys_lo;
+> @@ -332,6 +339,7 @@ static void dbtr_trigger_setup(struct sbi_dbtr_trigger *trig,
+>  	trig->state = 0;
+>  
+>  	__set_bit(RV_DBTR_BIT(TS, MAPPED), &trig->state);
+> +	__set_bit(RV_DBTR_BIT(TS, HAVE_TRIG), &trig->state);
+>  
+>  	SET_TRIG_HW_INDEX(trig->state, trig->index);
+>  
+> @@ -616,6 +624,9 @@ int sbi_dbtr_install_trig(unsigned long smode,
+>  	if (!hs)
+>  		return SBI_ERR_FAILED;
+>  
+> +	if (trig_count >= hs->total_trigs)
+> +		return SBI_ERR_BAD_RANGE;
+> +
+>  	if (sbi_dbtr_shmem_disabled(hs))
+>  		return SBI_ERR_NO_SHMEM;
+>  
+> @@ -641,7 +652,7 @@ int sbi_dbtr_install_trig(unsigned long smode,
+>  			*out = _idx;
+>  			sbi_hart_protection_unmap_range((unsigned long)shmem_base,
+>  							trig_count * sizeof(*entry));
+> -			return SBI_ERR_FAILED;
+> +			return SBI_ERR_NOT_SUPPORTED;
+>  		}
+>  
+>  		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
+> @@ -702,13 +713,17 @@ int sbi_dbtr_uninstall_trig(unsigned long trig_idx_base,
+>  	if (!hs)
+>  		return SBI_ERR_FAILED;
+>  
+> -	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+> +	for_each_set_bit_from(idx, &trig_mask, RV_MAX_TRIGGERS) {
 
-Add a MANAGEMENT_MODE channel which serves such a setup. MM_COMMUNICATE
-becomes a complete RPMI request message appended to the forwarded
-message queue of a REQUEST_FORWARD channel; the software owning that
-channel retrieves it, does the work and completes it, and its response
-data is returned as the response of MM_COMMUNICATE. MM_GET_ATTRIBUTES
-is answered from the device tree, because the MM shared memory is
-described there rather than by a microcontroller.
+Why RV_MAX_TRIGGERS? hs->total_trigs may be less than RV_MAX_TRIGGERS and you will want to
+work only on available triggers.
 
-The MM agent reports how many bytes it wrote and the RPMI client reads
-that many at MM_COMM_OUTPUT_DATA_OFFSET, so a response claiming more than
-the output area the request gave out is refused with RPMI_ERR_IO instead
-of being passed on.
+>  		trig = INDEX_TO_TRIGGER(idx);
+> -		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+> +		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)) || idx >= hs->total_trigs)
 
-The RPMI client and the MM agent run on different HARTs, so the request
-and its response are bounced through firmware memory. Both buffers live
-on the stack frame of the call, which outlives the wait, so calls from
-several HARTs can be in flight at once.
+Better add a boolean macro IS_TRIGGER_MAPPED(trig).
 
-Device tree properties of the channel node:
+>  			return SBI_ERR_INVALID_PARAM;
+> +	}
+>  
+> +	/* Only uninstall after validating the arguments - maintain atomicity */
+> +	idx = trig_idx_base;
+> +	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+> +		trig = INDEX_TO_TRIGGER(idx);
+>  		dbtr_trigger_clear(trig);
+> -
+>  		sbi_free_trigger(trig);
+>  	}
+>  
+> @@ -727,6 +742,14 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+>  	if (!hs)
+>  		return SBI_ERR_FAILED;
+>  
+> +	for_each_set_bit_from(idx, &trig_mask, RV_MAX_TRIGGERS) {
 
-  compatible                   "riscv,rpmi-mpxy-mm-forward"
-  riscv,sbi-mpxy-channel-id    MPXY channel ID, required
-  opensbi-reqfwd-channel       phandle of the REQUEST_FORWARD channel
-                               node serving the MM agent, required
-  riscv,rpmi-mm-shmem          address and size of the MM shared memory
-                               as <addr_hi addr_lo size_hi size_lo>,
-                               required
-  riscv,rpmi-mm-version        MM version reported by MM_GET_ATTRIBUTES,
-                               optional, 1.0 by default
-  riscv,sbi-mpxy-completion-timeout-us
-                               how long MM_COMMUNICATE waits for the MM
-                               agent, optional, 1 second by default
+ditto.
 
-Signed-off-by: Marouene Boubakri <marouene.boubakri@nxp.com>
----
- lib/utils/mpxy/Kconfig                    |   5 +
- lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c | 391 ++++++++++++++++++++++
- lib/utils/mpxy/objects.mk                 |   3 +
- platform/generic/configs/defconfig        |   1 +
- 4 files changed, 400 insertions(+)
- create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c
+> +		trig = INDEX_TO_TRIGGER(idx);
+> +		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)) || idx >= hs->total_trigs)
+> +			return SBI_ERR_INVALID_PARAM;
+> +	}
+> +
+> +	/* Only enable after validating the arguments - maintain atomicity */
+> +	idx = trig_idx_base;
+>  	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
 
-diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
-index 3d715e0..c5d5b68 100644
---- a/lib/utils/mpxy/Kconfig
-+++ b/lib/utils/mpxy/Kconfig
-@@ -50,6 +50,11 @@ config FDT_MPXY_RPMI_REQUEST_FORWARD
- 	select MPXY_REQFWD_QUEUE
- 	default n
- 
-+config FDT_MPXY_RPMI_MM_FORWARD
-+	bool "MPXY driver for RPMI MM service group over request forward"
-+	depends on FDT_MPXY_RPMI_REQUEST_FORWARD
-+	default n
-+
- config MPXY_REQFWD_QUEUE
- 	bool "Queue of RPMI messages forwarded to a software agent"
- 	default n
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c
-new file mode 100644
-index 0000000..e91af9d
---- /dev/null
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mm_forward.c
-@@ -0,0 +1,391 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright 2026 NXP
-+ *
-+ * Authors:
-+ *   Marouene Boubakri <marouene.boubakri@nxp.com>
-+ */
-+
-+#include <libfdt.h>
-+#include <sbi/riscv_atomic.h>
-+#include <sbi/sbi_byteorder.h>
-+#include <sbi/sbi_domain.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_heap.h>
-+#include <sbi/sbi_string.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/mailbox/rpmi_msgprot.h>
-+#include <sbi_utils/mpxy/fdt_mpxy.h>
-+#include <sbi_utils/mpxy/fdt_mpxy_rpmi.h>
-+#include <sbi_utils/mpxy/reqfwd_queue.h>
-+
-+/** Implementation ID and version reported for this service group */
-+#define MPXY_MM_IMPL_ID			0
-+#define MPXY_MM_IMPL_VERSION		RPMI_VERSION(1, 0)
-+
-+/** Service group version implemented here */
-+#define MPXY_MM_SRVGRP_VERSION		RPMI_VERSION(1, 0)
-+
-+/** Management Mode version reported when the DT does not give one */
-+#define MPXY_MM_VERSION_DEFAULT		RPMI_VERSION(1, 0)
-+
-+/** How long MM_COMMUNICATE waits for the MM agent, in microseconds */
-+#define MPXY_MM_COMPLETION_TIMEOUT_US	1000000
-+
-+/** MM_COMMUNICATE reaches the MM agent, MM_GET_ATTRIBUTES does not */
-+#define MPXY_MM_SEND_TIMEOUT_US		10
-+
-+/** Longest service message of this service group */
-+#define MPXY_MM_MSG_MAX_LEN		sizeof(struct rpmi_mm_get_attributes_rsp)
-+
-+/** The forwarded MM_COMMUNICATE request message */
-+struct mpxy_mm_forwarded_request {
-+	struct rpmi_message_header header;
-+	struct rpmi_mm_communicate_req data;
-+} __packed;
-+
-+/**
-+ * An MPXY channel serving the RPMI MANAGEMENT_MODE service group where
-+ * Management Mode runs in software served by an RPMI REQUEST_FORWARD
-+ * channel rather than behind an RPMI mailbox.
-+ */
-+struct mpxy_mm_forward {
-+	struct mpxy_rpmi_channel_attrs msgprot_attrs;
-+	struct sbi_mpxy_channel channel;
-+	/** Queue the MM requests are forwarded to */
-+	struct reqfwd_queue *queue;
-+	/** ID the queue is registered under */
-+	u32 queue_id;
-+	/** Management Mode attributes answered from the device tree */
-+	struct rpmi_mm_attributes mma;
-+	/** Token of the next forwarded RPMI request message */
-+	atomic_t token;
-+};
-+
-+static int mpxy_mm_read_attributes(struct sbi_mpxy_channel *channel,
-+				   u32 *outmem, u32 base_attr_id,
-+				   u32 attr_count)
-+{
-+	struct mpxy_mm_forward *mm =
-+		container_of(channel, struct mpxy_mm_forward, channel);
-+
-+	return mpxy_rpmi_read_attrs(&mm->msgprot_attrs, outmem,
-+				    base_attr_id, attr_count);
-+}
-+
-+/** The MANAGEMENT_MODE service group defines no notification event */
-+static int mpxy_mm_enable_notification(struct mpxy_mm_forward *mm,
-+				       void *tx, u32 tx_len,
-+				       void *rx, u32 rx_max_len,
-+				       unsigned long *ack_len)
-+{
-+	struct rpmi_enable_notification_resp *rsp = rx;
-+
-+	if (tx_len < sizeof(struct rpmi_enable_notification_req) ||
-+	    rx_max_len < sizeof(*rsp))
-+		return SBI_EINVAL;
-+
-+	rsp->status = cpu_to_le32(RPMI_ERR_NOTSUPP);
-+	rsp->current_state = cpu_to_le32(RPMI_EVENT_NOTIF_DISABLE_STATE);
-+	*ack_len = sizeof(*rsp);
-+
-+	return SBI_OK;
-+}
-+
-+static int mpxy_mm_get_attributes(struct mpxy_mm_forward *mm,
-+				  void *rx, u32 rx_max_len,
-+				  unsigned long *ack_len)
-+{
-+	struct rpmi_mm_get_attributes_rsp *rsp = rx;
-+
-+	if (rx_max_len < sizeof(*rsp))
-+		return SBI_EINVAL;
-+
-+	rsp->status = cpu_to_le32(RPMI_SUCCESS);
-+	rsp->mma.mm_version = cpu_to_le32(mm->mma.mm_version);
-+	rsp->mma.shmem_addr_lo = cpu_to_le32(mm->mma.shmem_addr_lo);
-+	rsp->mma.shmem_addr_hi = cpu_to_le32(mm->mma.shmem_addr_hi);
-+	rsp->mma.shmem_size = cpu_to_le32(mm->mma.shmem_size);
-+	*ack_len = sizeof(*rsp);
-+
-+	return SBI_OK;
-+}
-+
-+/** Both data areas must lie inside the MM shared memory */
-+static bool mpxy_mm_range_ok(struct mpxy_mm_forward *mm, u32 off, u32 size)
-+{
-+	if (off > mm->mma.shmem_size)
-+		return false;
-+
-+	/* Written this way so that off + size cannot wrap */
-+	return size <= (mm->mma.shmem_size - off);
-+}
-+
-+static int mpxy_mm_communicate(struct mpxy_mm_forward *mm,
-+			       void *tx, u32 tx_len,
-+			       void *rx, u32 rx_max_len,
-+			       unsigned long *ack_len)
-+{
-+	const struct rpmi_mm_communicate_req *req = tx;
-+	struct rpmi_mm_communicate_rsp *rsp = rx;
-+	u32 ipoff, ipsize, opoff, opsize;
-+	unsigned long rsp_len = 0;
-+	struct reqfwd_message fmsg;
-+	s32 status;
-+	int ret;
-+
-+	/*
-+	 * The forwarded message queue never touches the memory of the RPMI
-+	 * client, so the forwarded request and its response are bounced
-+	 * through firmware memory. They live on this stack frame, which
-+	 * outlives the wait, so several HARTs can be in flight at once.
-+	 */
-+	struct mpxy_mm_forwarded_request fwd;
-+	struct rpmi_mm_communicate_rsp fwd_rsp;
-+
-+	if (tx_len < sizeof(*req) || rx_max_len < sizeof(*rsp))
-+		return SBI_EINVAL;
-+
-+	/*
-+	 * The REQUEST_FORWARD channel may well have been probed after this
-+	 * one, so its queue is looked up on first use rather than at probe
-+	 * time.
-+	 */
-+	if (!mm->queue) {
-+		mm->queue = reqfwd_queue_find(mm->queue_id);
-+		if (!mm->queue)
-+			return SBI_ENODEV;
-+	}
-+
-+	ipoff = le32_to_cpu(req->mm_comm_ipdata_off);
-+	ipsize = le32_to_cpu(req->mm_comm_ipdata_size);
-+	opoff = le32_to_cpu(req->mm_comm_opdata_off);
-+	opsize = le32_to_cpu(req->mm_comm_opdata_size);
-+
-+	if (!mpxy_mm_range_ok(mm, ipoff, ipsize) ||
-+	    !mpxy_mm_range_ok(mm, opoff, opsize)) {
-+		status = RPMI_ERR_INVALID_ADDR;
-+		goto out;
-+	}
-+
-+	/*
-+	 * REQUEST_FORWARD forwards a complete RPMI message, so build the
-+	 * message header the RPMI client would have sent to a platform
-+	 * microcontroller and put the service request data behind it.
-+	 */
-+	fwd.header.servicegroup_id = cpu_to_le16(RPMI_SRVGRP_MANAGEMENT_MODE);
-+	fwd.header.service_id = RPMI_MM_SRV_COMMUNICATE;
-+	fwd.header.flags = RPMI_MSG_NORMAL_REQUEST;
-+	fwd.header.datalen = cpu_to_le16(sizeof(fwd.data));
-+	fwd.header.token = cpu_to_le16(atomic_add_return(&mm->token, 1));
-+	sbi_memcpy(&fwd.data, req, sizeof(fwd.data));
-+
-+	ret = reqfwd_queue_send(mm->queue, &fmsg, &fwd, sizeof(fwd),
-+				&fwd_rsp, sizeof(fwd_rsp), &rsp_len,
-+				mm->channel.attrs.msg_completion_timeout);
-+	if (ret == SBI_ETIMEDOUT) {
-+		status = RPMI_ERR_TIMEOUT;
-+		goto out;
-+	}
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * The MM agent answers with the response data of the RPMI message
-+	 * it was given, which is what this service must return.
-+	 */
-+	if (rsp_len != sizeof(fwd_rsp)) {
-+		status = RPMI_ERR_IO;
-+		goto out;
-+	}
-+
-+	/*
-+	 * The RPMI client reads MM_COMM_RETURN_DATA_SIZE bytes at
-+	 * MM_COMM_OUTPUT_DATA_OFFSET, so an agent claiming more than the
-+	 * output area it was given would send the client reading past that
-+	 * area and possibly past the MM shared memory. Only the offsets of
-+	 * the request were checked on the way in, so check this on the way
-+	 * out.
-+	 */
-+	if (le32_to_cpu(fwd_rsp.mm_comm_retdata_size) > opsize) {
-+		status = RPMI_ERR_IO;
-+		goto out;
-+	}
-+
-+	/*
-+	 * Both the forwarded response and the response of this service are
-+	 * little-endian RPMI message data, so the words are passed through
-+	 * without a conversion.
-+	 */
-+	rsp->status = fwd_rsp.status;
-+	rsp->mm_comm_retdata_size = fwd_rsp.mm_comm_retdata_size;
-+	*ack_len = sizeof(*rsp);
-+
-+	return SBI_OK;
-+
-+out:
-+	rsp->status = cpu_to_le32(status);
-+	rsp->mm_comm_retdata_size = cpu_to_le32(0);
-+	*ack_len = sizeof(*rsp);
-+
-+	return SBI_OK;
-+}
-+
-+static int mpxy_mm_send_message(struct sbi_mpxy_channel *channel,
-+				u32 message_id, void *tx, u32 tx_len,
-+				void *rx, u32 rx_max_len,
-+				unsigned long *ack_len)
-+{
-+	struct mpxy_mm_forward *mm =
-+		container_of(channel, struct mpxy_mm_forward, channel);
-+
-+	if (!rx || !ack_len)
-+		return SBI_EINVAL;
-+
-+	switch (message_id) {
-+	case RPMI_MM_SRV_ENABLE_NOTIFICATION:
-+		return mpxy_mm_enable_notification(mm, tx, tx_len, rx,
-+						   rx_max_len, ack_len);
-+	case RPMI_MM_SRV_GET_ATTRIBUTES:
-+		return mpxy_mm_get_attributes(mm, rx, rx_max_len, ack_len);
-+	case RPMI_MM_SRV_COMMUNICATE:
-+		return mpxy_mm_communicate(mm, tx, tx_len, rx, rx_max_len,
-+					   ack_len);
-+	default:
-+		break;
-+	}
-+
-+	return SBI_ENOTSUPP;
-+}
-+
-+/** Read the MM shared memory reported by MM_GET_ATTRIBUTES */
-+static int mpxy_mm_parse_shmem(const void *fdt, int nodeoff,
-+			       struct rpmi_mm_attributes *mma)
-+{
-+	const fdt32_t *val;
-+	u64 base, size;
-+	int len;
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,rpmi-mm-shmem", &len);
-+	if (!val || len < 16)
-+		return SBI_ENODEV;
-+
-+	base = ((u64)fdt32_to_cpu(val[0]) << 32) | fdt32_to_cpu(val[1]);
-+	size = ((u64)fdt32_to_cpu(val[2]) << 32) | fdt32_to_cpu(val[3]);
-+
-+	/* The RPMI attribute reporting the size is 32-bit */
-+	if (!size || size > 0xffffffffULL)
-+		return SBI_EINVAL;
-+
-+	mma->shmem_addr_lo = (u32)base;
-+	mma->shmem_addr_hi = (u32)(base >> 32);
-+	mma->shmem_size = (u32)size;
-+
-+	return SBI_OK;
-+}
-+
-+/** Read the MPXY channel ID of the REQUEST_FORWARD channel to forward to */
-+static int mpxy_mm_parse_queue_id(const void *fdt, int nodeoff, u32 *queue_id)
-+{
-+	const fdt32_t *val;
-+	int coff, len;
-+
-+	val = fdt_getprop(fdt, nodeoff, "opensbi-reqfwd-channel", &len);
-+	if (!val || len < 4)
-+		return SBI_ENODEV;
-+
-+	coff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
-+	if (coff < 0)
-+		return SBI_EINVAL;
-+
-+	if (fdt_node_check_compatible(fdt, coff,
-+				      "riscv,rpmi-mpxy-request-forward"))
-+		return SBI_EINVAL;
-+
-+	val = fdt_getprop(fdt, coff, "riscv,sbi-mpxy-channel-id", &len);
-+	if (!val || len < 4)
-+		return SBI_EINVAL;
-+
-+	*queue_id = fdt32_to_cpu(*val);
-+
-+	return SBI_OK;
-+}
-+
-+static int mpxy_mm_init(const void *fdt, int nodeoff,
-+			const struct fdt_match *match)
-+{
-+	struct mpxy_mm_forward *mm;
-+	const fdt32_t *val;
-+	int rc, len;
-+
-+	val = fdt_getprop(fdt, nodeoff, "riscv,sbi-mpxy-channel-id", &len);
-+	if (!val || len < 4)
-+		return SBI_ENODEV;
-+
-+	mm = sbi_zalloc(sizeof(*mm));
-+	if (!mm)
-+		return SBI_ENOMEM;
-+
-+	mm->channel.channel_id = fdt32_to_cpu(*val);
-+	mm->channel.owner_domain = &root;
-+
-+	rc = mpxy_mm_parse_queue_id(fdt, nodeoff, &mm->queue_id);
-+	if (rc)
-+		goto fail_free;
-+
-+	if (mm->queue_id == mm->channel.channel_id) {
-+		rc = SBI_EINVAL;
-+		goto fail_free;
-+	}
-+
-+	rc = mpxy_mm_parse_shmem(fdt, nodeoff, &mm->mma);
-+	if (rc)
-+		goto fail_free;
-+
-+	mm->mma.mm_version = MPXY_MM_VERSION_DEFAULT;
-+	val = fdt_getprop(fdt, nodeoff, "riscv,rpmi-mm-version", &len);
-+	if (val && len >= 4)
-+		mm->mma.mm_version = fdt32_to_cpu(*val);
-+
-+	mm->channel.attrs.msg_completion_timeout =
-+		MPXY_MM_COMPLETION_TIMEOUT_US;
-+	val = fdt_getprop(fdt, nodeoff,
-+			  "riscv,sbi-mpxy-completion-timeout-us", &len);
-+	if (val && len >= 4)
-+		mm->channel.attrs.msg_completion_timeout = fdt32_to_cpu(*val);
-+
-+	mm->channel.read_attributes = mpxy_mm_read_attributes;
-+	mm->channel.send_message_with_response = mpxy_mm_send_message;
-+
-+	mm->channel.attrs.msg_proto_id = SBI_MPXY_MSGPROTO_RPMI_ID;
-+	mm->channel.attrs.msg_proto_version = RPMI_VERSION(1, 0);
-+	mm->channel.attrs.msg_data_maxlen = MPXY_MM_MSG_MAX_LEN;
-+	mm->channel.attrs.msg_send_timeout = MPXY_MM_SEND_TIMEOUT_US;
-+
-+	mm->msgprot_attrs.servicegrp_id = RPMI_SRVGRP_MANAGEMENT_MODE;
-+	mm->msgprot_attrs.servicegrp_ver = MPXY_MM_SRVGRP_VERSION;
-+	mm->msgprot_attrs.impl_id = MPXY_MM_IMPL_ID;
-+	mm->msgprot_attrs.impl_ver = MPXY_MM_IMPL_VERSION;
-+
-+	rc = sbi_mpxy_register_channel(&mm->channel);
-+	if (rc)
-+		goto fail_free;
-+
-+	return SBI_OK;
-+
-+fail_free:
-+	sbi_free(mm);
-+	return rc;
-+}
-+
-+static const struct fdt_match mpxy_mm_match[] = {
-+	{ .compatible = "riscv,rpmi-mpxy-mm-forward" },
-+	{},
-+};
-+
-+const struct fdt_driver fdt_mpxy_rpmi_mm_forward = {
-+	.experimental = true,
-+	.match_table = mpxy_mm_match,
-+	.init = mpxy_mm_init,
-+};
-diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
-index 6ff4a62..d8a692a 100644
---- a/lib/utils/mpxy/objects.mk
-+++ b/lib/utils/mpxy/objects.mk
-@@ -18,6 +18,9 @@ libsbiutils-objs-$(CONFIG_MPXY_REQFWD_QUEUE) += mpxy/reqfwd_queue.o
- carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_REQUEST_FORWARD) += fdt_mpxy_rpmi_reqfwd
- libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_REQUEST_FORWARD) += mpxy/fdt_mpxy_rpmi_reqfwd.o
- 
-+carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_MM_FORWARD) += fdt_mpxy_rpmi_mm_forward
-+libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MM_FORWARD) += mpxy/fdt_mpxy_rpmi_mm_forward.o
-+
- carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_CLOCK) += fdt_mpxy_rpmi_clock
- libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_CLOCK) += mpxy/fdt_mpxy_rpmi_clock.o
- 
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 8400850..7bb9034 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -79,6 +79,7 @@ CONFIG_FDT_TIMER_MTIMER=y
- CONFIG_FDT_TIMER_PLMT=y
- CONFIG_FDT_MPXY=y
- CONFIG_FDT_MPXY_RPMI_REQUEST_FORWARD=y
-+CONFIG_FDT_MPXY_RPMI_MM_FORWARD=y
- CONFIG_FDT_MPXY_RPMI_MBOX=y
- CONFIG_FDT_MPXY_RPMI_CLOCK=y
- CONFIG_FDT_MPXY_RPMI_VOLTAGE=y
--- 
-2.43.0
+If RV_MAX_TRIGGERS there, then why total_trigs here?
 
+>  		trig = INDEX_TO_TRIGGER(idx);
+>  		sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
+> @@ -737,8 +760,9 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+>  }
+>  
+>  int sbi_dbtr_update_trig(unsigned long smode,
+> -			 unsigned long trig_count)
+> +			 unsigned long trig_count, unsigned long *out)
+>  {
+> +	int stat = SBI_SUCCESS;
+>  	unsigned long trig_idx;
+>  	struct sbi_dbtr_trigger *trig;
+>  	union sbi_dbtr_shmem_entry *entry;
+> @@ -772,23 +796,52 @@ int sbi_dbtr_update_trig(unsigned long smode,
+>  		trig_idx = entry->id.idx;
+>  
+>  		if (trig_idx >= hs->total_trigs) {
+> -			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
+> -			return SBI_ERR_INVALID_PARAM;
+> +			stat = SBI_ERR_INVALID_PARAM;
+> +			goto endloop;
+>  		}
+>  
+>  		trig = INDEX_TO_TRIGGER(trig_idx);
+>  
+>  		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED))) {
+> -			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
+> -			return SBI_ERR_FAILED;
+> +			stat = SBI_ERR_FAILED;
+> +			goto endloop;
+> +		}
+> +
+> +		if (TDATA1_GET_TYPE(entry->data.tdata1) != TDATA1_GET_TYPE(trig->tdata1)) {
+> +			stat = SBI_ERR_INVALID_PARAM;
+> +			goto endloop;
+> +		}
+> +
+> +		switch(TDATA1_GET_TYPE(entry->data.tdata1)) {
+> +			case RISCV_DBTR_TRIG_MCONTROL:
+> +			case RISCV_DBTR_TRIG_MCONTROL6:
+> +				if ( (entry->data.tdata1 & RV_DBTR_BIT_MASK(MC6, CHAIN)) != (trig->tdata1 & RV_DBTR_BIT_MASK(MC6, CHAIN)) ) {
+
+Exceeds char limit. Also would you please add comments? Add a boolean macro IS_TRIGGER_CHAINED(trig).
+
+
+> +					stat = SBI_ERR_INVALID_PARAM;
+> +					goto endloop;
+> +				}
+> +				break;
+> +			default:
+> +				break;
+>  		}
+>  
+>  		if ((entry->data.tdata2 && !tdata2_impl) ||
+>  		    (entry->data.tdata3 && !tdata3_impl)) {
+> -			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
+> -			return SBI_ERR_NOT_SUPPORTED;
+> +			stat = SBI_ERR_NOT_SUPPORTED;
+> +			goto endloop;
+>  		}
+>  
+> +		endloop:
+> +			sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
+> +			if (stat != SBI_SUCCESS) {
+> +				*out = _idx;
+> +				return stat;
+> +			}
+
+Is this necessary? End of function error cleanup would be a better place. Right now its same as before.
+
+> +	}
+> +
+> +	/* Only update after validating request - maintain atomicity */
+> +	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+> +		sbi_hart_protection_map_range((unsigned long)entry, sizeof(*entry));
+> +		trig = INDEX_TO_TRIGGER(entry->id.idx);
+>  		dbtr_trigger_setup(trig, &entry->data);
+>  		sbi_hart_protection_unmap_range((unsigned long)entry, sizeof(*entry));
+>  		dbtr_trigger_enable(trig);
+> @@ -809,6 +862,14 @@ int sbi_dbtr_disable_trig(unsigned long trig_idx_base,
+>  	if (!hs)
+>  		return SBI_ERR_FAILED;
+>  
+> +	for_each_set_bit_from(idx, &trig_mask, RV_MAX_TRIGGERS) {
+
+Again why not total_trigs? There is inconsistencies.
+
+> +		trig = INDEX_TO_TRIGGER(idx);
+> +		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)) || idx >= hs->total_trigs)
+> +			return SBI_ERR_INVALID_PARAM;
+> +	}
+> +
+> +	/* Only disable after validating the arguments - maintain atomicity */
+> +	idx = trig_idx_base;
+
+You should probably wait for @liutong patches which try to fix TOCTOU.
+
+>  	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+>  		trig = INDEX_TO_TRIGGER(idx);
+>  		dbtr_trigger_disable(trig);
+> diff --git a/lib/sbi/sbi_ecall_dbtr.c b/lib/sbi/sbi_ecall_dbtr.c
+> index 40a437ee..b86ce5b3 100644
+> --- a/lib/sbi/sbi_ecall_dbtr.c
+> +++ b/lib/sbi/sbi_ecall_dbtr.c
+> @@ -28,7 +28,7 @@ static int sbi_ecall_dbtr_handler(unsigned long extid, unsigned long funcid,
+>  		break;
+>  	case SBI_EXT_DBTR_SETUP_SHMEM:
+>  		ret = sbi_dbtr_setup_shmem(sbi_domain_thishart_ptr(), smode,
+> -					   regs->a0, regs->a1);
+> +					   regs->a0, regs->a1, regs->a2);
+>  		break;
+>  	case SBI_EXT_DBTR_TRIGGER_READ:
+>  		ret = sbi_dbtr_read_trig(smode, regs->a0, regs->a1);
+> @@ -43,7 +43,7 @@ static int sbi_ecall_dbtr_handler(unsigned long extid, unsigned long funcid,
+>  		ret = sbi_dbtr_enable_trig(regs->a0, regs->a1);
+>  		break;
+>  	case SBI_EXT_DBTR_TRIGGER_UPDATE:
+> -		ret = sbi_dbtr_update_trig(smode, regs->a0);
+> +		ret = sbi_dbtr_update_trig(smode, regs->a0, &out->value);
+>  		break;
+>  	case SBI_EXT_DBTR_TRIGGER_DISABLE:
+>  		ret = sbi_dbtr_disable_trig(regs->a0, regs->a1);
+
+As Anup said, please break it down to a series of patches rather than one huge patch.
+
+Regards
+Himanshu
+
+> -- 
+> 2.43.0
+> 
+> 
+> -- 
+> opensbi mailing list
+> opensbi@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/opensbi
 
 -- 
 opensbi mailing list
