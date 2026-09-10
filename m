@@ -4,81 +4,91 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A9D07C79F9F
-	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 18:20:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 06442C79FBF
+	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 18:56:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=KYEepD1k5PuSueTyWZwrdDEXvc2TaDQVVk72PLaTGTU=; b=S+auEPePVzx1eE
-	sqn7Gmbs1yypDk/26Nw/cr9ZuOB3Oul4de4VR1oQdT0Fa9kgYtCQOp45lFkqxmlHkLTOWN2R7+33i
-	p09KkqEsAYTghY9SEkTlenZOM05abipwyZQlo6mzp9oMWfurCqkafoUAhadDKDJX+nPdtj/FrqZJQ
-	60nVKau4G4F5NiN7Z0pYUVK7RMv4FupzerhLFxzD8KimGGNQW85Ff4kr0gYzeVc4x9dhlOePyyrUt
-	vn+U5XpQGjWmubzWbQcj/GfBQLHZXNAe6bxTFc0Wc8hwZd1lS9eWovM8qYzkLIM0dtEcqojtEMwie
-	JM1Cl9ovu7oYopWVhnbQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=5lodRtwdeclIybIhN8QqfMlqm5NqWXMnaGfl/fAMKNM=; b=zGLn5QxvRo/G/A
+	ddM7wgUR9vW3jNZbE8WX2qLyP+5I5wbwO6uKg9g/z5w7rk0u8/YFxm3f7Y2AtHlJnfZO0qO8fDLB5
+	NPICAKn7+9ynAj0y+MQm9cLawrdqgzzCXQkeGP96BFbsBTl4+sz+iBJRitQBA3lCYIMXRQLpS0tSP
+	0KbO1aFD+0xf5Z3JZgo5r7Mu2qqfGav9dCA3c4aCm94Nyrt8mmvXNpoWOH+21Ul+RFk6t+uRLCt4u
+	Q1jCCTALWVZa4ywnWOEFxf56QOv24XlsgI9gGynZjxxrhvhQQs1AzYN67tw6Me355GHgxUtcj+gGK
+	71aBLmIV9rXvbnX5eyHw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4jOF-0000000F8ri-24eL;
-	Thu, 10 Sep 2026 18:20:51 +0000
-Received: from mail-lf1-x12e.google.com ([2a00:1450:4864:20::12e])
+	id 1x4jx1-0000000FD5x-3tYy;
+	Thu, 10 Sep 2026 18:56:47 +0000
+Received: from mail-pj2-x10.google.com ([2607:f8b0:4864:39::10])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4jOD-0000000F8rI-2zy0
+	id 1x4jx0-0000000FD5a-0BtD
 	for opensbi@lists.infradead.org;
-	Thu, 10 Sep 2026 18:20:50 +0000
-Received: by mail-lf1-x12e.google.com with SMTP id 2adb3069b0e04-5b81a2d33f7so97851e87.3
-        for <opensbi@lists.infradead.org>; Thu, 10 Sep 2026 11:20:49 -0700 (PDT)
+	Thu, 10 Sep 2026 18:56:47 +0000
+Received: by mail-pj2-x10.google.com with SMTP id 98e67ed59e1d1-396672b2565so10717a91.0
+        for <opensbi@lists.infradead.org>; Thu, 10 Sep 2026 11:56:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789064447; x=1789669247; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=9sap1iUWRtW26dKOK5oJDcrrfj2BY1aFjvQkL5aMBWM=;
-        b=ReN5LmvvDxVMSl3i9tMm+frLThib6ycKiR6+G3xSzSp5jACpSxqbf0WsmufSrK0T2j
-         5Tx6hZkhoVFkxwXvZcJQxmwQFJhKJpsDcXujuTpariFTLzOckom3m6/aP7IXIkGrRRro
-         D9A4IwMHSkYtLQo13QuGZo1mFMh/LxxRmoFfcCaM301A3E0Ly0tGTE62UFApiQcSV3D0
-         /VIiSjyDzIM/JA/WJs+KUHzuW/CK7aJ+Tjc4sQTbrbLBOWZLGeTe8qOjiKu/dChFOnnZ
-         IV9ZxtSkrBaDETnQm/TQSCcT7dRQ2TMWKuW3hunCa6nCWns7ErDKIGGQXfQXVQ/KKmWD
-         zp0A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789064447; x=1789669247;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=tenstorrent.com; s=google; t=1789066604; x=1789671404; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=9sap1iUWRtW26dKOK5oJDcrrfj2BY1aFjvQkL5aMBWM=;
-        b=bfAa9rLLGNfIVqWLbUtnZhNqrIhOo07WjgR6sXDsRwnCsganhuQ7D5Wmq0PRy7Dxkf
-         H/ayj1vZaZzDlHRjYcDs6p5AElMVjBWpNFB5/D/mhzG4FoE+7y0HPFKZo/IF6lHZkYd2
-         RhPjgzRbhhaPQQObMwoypKT3d1eklX4dMrmQJQTk6Dkt8CSmXUDPoRN3wo5pSYbZHfcM
-         EuP0VqOyoJg8nXhBWwnfxvyd5n2DrLtxlYB/fsQJYFUJgV9/uN5Wbh22dIHPcMgj1vLc
-         aBwWmVHAQuKspEn8CPlA5n1LxjtT2IqiY01mY76wseRUINbVtCHxyyAz5vHhTeuslwh6
-         V3pA==
-X-Gm-Message-State: AFuF++l1mO8m7E7iDw8hzUrmA0o32xM9irx+Y3t7Xy6Kibs0sg09LLUk
-	H7S1Az2E/gq1CiKyul1MHn/lectzpuEM88Exeo+DAc8MsRsUAwDLuV3J76HD8Kat
-X-Gm-Gg: AYBFou0xGEEpRlcdhpfMTcGn8Wr+i8cky/ek/U41mg/dgr+seHmzt53T2VmNqRfZfRF
-	nzt1aoqcVCvQZGreH9Rvu01XgAIYJVXL1byW3lpqzlrkUhNm0oKuDg7/m/oBC3gt+6MJwzAaa+Y
-	ZMrCAIAT1yQEVVCKM/KTZ1iqrJ90V56aX+2f0XaiJjTiE8FNOrn87kxzfyuL7iPiDj2MLK0jjHN
-	xlzMnopq22swX3DjQGgxT1l75WlUv8/sPL0Vi+tmlEsk5M29DEDUs76pftJ5iXkXes7Bku6H53p
-	JuCF/gH6H1YDP3KLlYtbUmRgR51KecEQmbnbjGdbDmPHwq9Yf+U//Fj/9Pl+3xtxyR54JroE2su
-	SFASoAMm4LtptJ80h0IiEhBFahpr8K4oFOYg6aepyM7rjfgaZCO6aUDvP9E/qMAprUixk4F5Bgz
-	9bWEhZXpZm9eB17ER6yPUtEvig1br4f9D13wYSMMhf5+8TIBiTDiBYzk/IKGqy9fShS/YEgvoy8
-	Cvoi+vKAwImuWMBvtq/E8HBzq2gjA4DKg/qWpCpGjljPLAM2GAiiGaoEIYAo789AA==
-X-Received: by 2002:a05:6512:3ba3:b0:5b7:58c6:d808 with SMTP id 2adb3069b0e04-5b8a030450cmr147670e87.35.1789064446984;
-        Thu, 10 Sep 2026 11:20:46 -0700 (PDT)
-Received: from localhost.localdomain (46-138-31-164.dynamic.spd-mgts.ru. [46.138.31.164])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5b8a045726fsm56364e87.20.2026.09.10.11.20.46
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 10 Sep 2026 11:20:46 -0700 (PDT)
-From: Evgenii Prokopiev <eestelle0626@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: Evgenii Prokopiev <eestelle0626@gmail.com>
-Subject: [RFC PATCH] lib: sbi_hart: Retrun zero lenght of mhpmcounter when probing failed
-Date: Thu, 10 Sep 2026 21:20:26 +0300
-Message-ID: <20260910182026.6776-1-eestelle0626@gmail.com>
-X-Mailer: git-send-email 2.50.1
+        bh=zqlxCQBe/raT/KTXOMxc/+5FrWtNQGreHDbDaRg2vPc=;
+        b=J8thO8Hz7wqlEZ5lEw8OwhpkfdgVCFNs0u1E5c/cYT5HKXUdBNb7+aU5TXr4KAoUts
+         iJehiw9JJobVgMKdEeTEIChsrgXKi++PSe0n0vJl0J+e1KwYwY2xm8FGoNtaQW5HHYr8
+         YVdTkcY2Iym+PLBTjIxFsz3wvfY9K6srbhRGqs0HBQE4cPy4D0RRzbHf/od7tfVncucM
+         6k3XbtWG2ItA8uHISFXWoXf5PFyZ6a6C5LWyeDlWHiG9ya78/pDLKeL87xHB22nKdq8z
+         qaKJBx9gvp+nn7uek0t5wbGKskvej6RULYH2isYxdiFvn6/x2IRnSN8je2GChhNYYZtK
+         /w3w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789066604; x=1789671404;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=zqlxCQBe/raT/KTXOMxc/+5FrWtNQGreHDbDaRg2vPc=;
+        b=ItsIwow7+k8usrOoAWcsWK6A+ztZrOnMqml0mCKl6iZQaKODLPEKfbolWyOn54BDgj
+         Z13waDcQ+98jAPENSh5RUMWMSTz0XtXTNyZ3jdCZi7XFSa1P+HPJ0PsWLeqeChUJWHQ/
+         tM8N10TKeLCES1w9LR5VZd0WSgbreHvIFSXsjTuua9qILnk6JPk9hsMLZaLm/0jqDP0V
+         G60SqmzipK4hrpIjTVnkoNJ6UnwrvqHXWNEjKm+03Vio2Qtx9H3rRSP158Fmz26MhOW5
+         jvXXHMZLkJkXcF3QYb/f8GN+K6xoOKWwdYemEMVhqau1s3bYILkbAtGnR6XGVfnV0cse
+         K1Qg==
+X-Forwarded-Encrypted: i=1; AKwUvBzGYE6Ma/zSfXWjBQPbmbsterZxTpLvqnsFCTinUn1fogrHycwev4AfWNxLhrqP0sz6NCZUuI4p@lists.infradead.org
+X-Gm-Message-State: AFuF++lx/uok39eeoMmntIx4ktgz0NJ8DdPINQaY8WAnlN4bz6Yiubpb
+	J0CqB6Hf4hwR6UVmZMZM00FVLN96y+ZhCX6nGPYPtXsPO6NzPS5zf/EGs/6YmcdDFIg=
+X-Gm-Gg: AYBFou2VJCyt/s2bKXAnB6HcYGpMALBg4WqcK70OVNzVdye5Fdje3SDV1Im2SmdmhcO
+	8Tr6Zr7uXlfYye0Mppx05d8DVXUFNSOu1Wt9Ec3RbKdPnu41Y6sYUpuRJi/qt2sJve69fstAc23
+	ObIKQVUGqN3IBP4KWKp33ejp7C0lzIfI7lpnVAp5/hnNueJV2mR/RgGeOvrM+T5T07vM3NlMZWc
+	4SjYWDr00lJ72G1T5rgQ6Xr0MyWZW86NTZJYbxcx3pe3ZFkzOyq8eH01/QCfMj32v0zUHcRBOWO
+	bTJz5bxM+7N64x+TO16A9n06aR/Ue8MJclb8F40Hr74CBACrd96dg0ETlUYOQumcTyanR2Z128l
+	lpOCPrpURVq9KFc82WBn+x/2k4QktPe8f2My8hyPegqJWXCajPvPOCJXU8e+aC+YpJAw4gJy5rn
+	0XPmcfPi7d4I/zXDMTePmxhkYAKnuanccoSc44ZwUD7hYV/FA8mEQHnTGupEyXbpGwRlSuqFhGP
+	A23/k8c5gN7s2BXal7CUO5t9Ts=
+X-Received: by 2002:a17:90b:1d05:b0:398:bac7:72d0 with SMTP id 98e67ed59e1d1-39d9c3938f8mr51301a91.5.1789066604001;
+        Thu, 10 Sep 2026 11:56:44 -0700 (PDT)
+Received: from ausc-rvsw-c-02.tail89d63.ts.net ([38.104.49.66])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4e4fb3esm87242eec.7.2026.09.10.11.56.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Sep 2026 11:56:43 -0700 (PDT)
+From: Evgeny Voevodin <evvoevod@tenstorrent.com>
+To: Nia Su <nia.su@sifive.com>
+Cc: Evgeny Voevodin <evvoevod@tenstorrent.com>,
+	opensbi@lists.infradead.org,
+	Nylon Chen <nylon.chen@sifive.com>,
+	Nick Hu <nick.hu@sifive.com>,
+	Zong Li <zong.li@sifive.com>,
+	Anup Patel <anup@brainfault.org>
+Subject: Re: [PATCH v2 2/3] lib: sbi: report smrnmi_handlers_init failures instead of ignoring them
+Date: Thu, 10 Sep 2026 18:56:15 +0000
+Message-ID: <20260910185618.12126-1-evvoevod@tenstorrent.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260903-smrnmi-context-restore-v2-2-10b17506d257@sifive.com>
+References: <20260903-smrnmi-context-restore-v2-0-10b17506d257@sifive.com> <20260903-smrnmi-context-restore-v2-2-10b17506d257@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260910_112049_764604_45EB5D98 
-X-CRM114-Status: GOOD (  10.48  )
+X-CRM114-CacheID: sfid-20260910_115646_101929_754774F4 
+X-CRM114-Status: UNSURE (   8.65  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,45 +105,24 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-If writing access is not allowed, it will raise a trap, but we increase
-the number of allowed bits to 32 in this approach, which isn't right.
-There must be a write of 0.
+Code looks good to me.
 
-Move the operation of increasing allowed bits into the 'if' condition.
+Please, add a note about assumed SBI_E* return value on error in
+sbi_platform.h where you change the return type of smrnmi_handlers_init:
 
-Signed-off-by: Evgenii Prokopiev <eestelle0626@gmail.com>
----
- lib/sbi/sbi_hart.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+      Returns SBI_OK on success, error code otherwise.
 
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index bee88557..3a9b6c8f 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -450,16 +450,18 @@ static int hart_mhpm_get_allowed_bits(void)
- 		val = csr_read_allowed(CSR_MHPMCOUNTER3, &trap);
- 		if (trap.cause)
- 			return 0;
-+
-+		num_bits = sbi_fls(val) + 1;
- 	}
--	num_bits = sbi_fls(val) + 1;
- #if __riscv_xlen == 32
- 	csr_write_allowed(CSR_MHPMCOUNTER3H, &trap, val);
- 	if (!trap.cause) {
- 		val = csr_read_allowed(CSR_MHPMCOUNTER3H, &trap);
- 		if (trap.cause)
- 			return num_bits;
-+
-+		num_bits += sbi_fls(val) + 1;
- 	}
--	num_bits += sbi_fls(val) + 1;
- 
- #endif
- 
--- 
-2.50.1 (Apple Git-155)
+Note that comment for rnmi_handler below which says returns SBI_SUCCESS
+is not precise. SBI_SUCCESS comes from sbi_ecall_interface.h and it is a
+return value of the SBI call, while this callback is called by the
+firmware itself and its result never goes to S-mode. sbi_error.h has
+SBI_OK for that and the value is the same 0. Maybe worth changing it to
+SBI_OK in the same commit or sending as a separate trivial fix.
 
+Reviewed-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
+
+  Thanks,
+  Evgeny
 
 -- 
 opensbi mailing list
