@@ -4,80 +4,63 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id ABD16C79FB9
-	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 05:26:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id AB86AC79FB7
+	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 05:30:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=w3A48V93mNgFNb0nxYu8x5im5zsGFMSf9+4rjgadc0E=; b=HxxWjCfgPMdbD9
-	imvVB2GAwMgashMK/7zWWor/vzZToHrOe9FRXT/aNiYvB79LdrB22UdrxLeVBfHk+Y/c12+cSlIfx
-	vE5A1oggoAyic8+TorTIcKtxOGafv1UtSI2B2A9AUygiI006tjkH5mioUuvc4hWIIW4312GOp0JM5
-	s4o+lbwv4TAwmibUWpPGSMZvKL+TCBIFrruCR/r0RiAajh1u2bp8pJVEl6Y4bkIylS8pj6nI0nlLL
-	T9gTVJn+IZvWPOCAj1OkiuxOPaYD7G3KBsGcfZR43Z22WB44bKc75fgjLoZq/5vx9fmO7A8j7x/LC
-	cxErCYO/ENVTGvWJzCKg==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=f2vZ4RIeBo73JWq5MxEakBXsoTo5InbknJheCs0qr6E=; b=hsyPIvSPAfTmIf
+	8j5ozh7KEJi6zcDKzPAYVTW2eL2LFrbDBbOs/ccdJnez70pDh5t58zp1uyu6lQe022uDuTDwWlUdm
+	ja9OkR6zd0U3rZJJqEsS3d4bA1FTHATVQUmww6FOOTTizppZY1Fk+/RNOKbBPVz9hAlRei/Q3Cb3B
+	6NNbwsnqtxM5Eky+fTHIH2fZzCnw0A8ICAwviIkGgjoRZyr1PfiLA/YUI7dcOdO0nG/7VA0PEaZlr
+	FeEQIeosfr5vEbKLOH2T23RbHz9CKFdqwTbejsAhEfpdS+CzpybUMtwjHuK91bw0m3Ci7C1mUiQZO
+	GzMdWbjH0VJkCbpS+M0w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4XJF-0000000DRJQ-3VHW;
-	Thu, 10 Sep 2026 05:26:53 +0000
-Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4XJE-0000000DRIa-1FgU
-	for opensbi@bombadil.infradead.org;
-	Thu, 10 Sep 2026 05:26:52 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
-	:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=CBpPnEmBmEaVARDWvQP4MASkBmkBmPVQeQOWAiiZAXQ=; b=Jwlj4EsAX1A3IqXYO/d8jByy4M
-	FUNmF+Vbv99wqULxHOBsDvXdqIkBk+e6wqYDgOHFAbZxUqURE/1pXmiCoP1kvysVSuSx9xjH/3Eta
-	dBSJ3UkwhbvSSz/eWoXW9Kv14RFSahSoKko947LQvdh9ywKsXRRDzsKk4V3MJgwjQsM2QhWwsN1YL
-	60uCjxyj0tYVjmFc6bjvihQr+F4bsKw6VXUllun0LOvIzSc37yy8TzHwbEkLQkVctxyeob4GZYtRa
-	YIBkCUvkyLnloxNtWB94VC9uyVTYO5CieuTlwiIeMNjYbL1j507U7L4rORxQOBivisZ8NIWPze/O6
-	Qx+J7jFg==;
+	id 1x4XMU-0000000DRj8-15QT;
+	Thu, 10 Sep 2026 05:30:14 +0000
 Received: from smtp81.cstnet.cn ([159.226.251.81] helo=cstnet.cn)
-	by desiato.infradead.org with esmtps (Exim 4.99.2 #2 (Red Hat Linux))
-	id 1x4XJ9-000000022Mn-06GM
+	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1x4XMP-0000000DRhQ-49Tv
 	for opensbi@lists.infradead.org;
-	Thu, 10 Sep 2026 05:26:50 +0000
+	Thu, 10 Sep 2026 05:30:13 +0000
 Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowABHTjyOP6Jq6atPBw--.40145S5;
-	Thu, 10 Sep 2026 13:26:39 +0800 (CST)
+	by APP-03 (Coremail) with SMTP id rQCowABHUT9fQKJq9rRPBw--.30051S2;
+	Thu, 10 Sep 2026 13:30:07 +0800 (CST)
 From: liutong <liutong@iscas.ac.cn>
 To: opensbi@lists.infradead.org
 Cc: himanshu.chauhan@oss.qualcomm.com,
+	david.garcia@aheadcomputing.com,
 	liutong <liutong@iscas.ac.cn>
-Subject: [PATCH v3 3/4] lib: sbi_pmu: unmap shared memory on the reserved event_idx path
-Date: Thu, 10 Sep 2026 05:26:28 +0000
-Message-Id: <20260910052629.3359493-4-liutong@iscas.ac.cn>
+Subject: [PATCH v3 0/3] lib: sbi: fix shared memory double-fetch in DBTR and SSE
+Date: Thu, 10 Sep 2026 05:29:55 +0000
+Message-Id: <20260910052958.3365324-1-liutong@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260910052629.3359493-1-liutong@iscas.ac.cn>
-References: <20260910052629.3359493-1-liutong@iscas.ac.cn>
 MIME-Version: 1.0
-X-CM-TRANSID: rQCowABHTjyOP6Jq6atPBw--.40145S5
-X-Coremail-Antispam: 1UD129KBjvJXoW7tr48JrW7JF1kJrW5Kw4rXwb_yoW8XF4rpr
-	4kGF98trWktryIqasxX3Z7J3W8Ca1rJayDAry5Wr1qyF95Xr4xZF47tw1vvF13CF93Jw12
-	qa1UtF4jka45ZFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9l14x267AKxVW5JVWrJwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2048vs2IY020E87I2jVAFwI0_JrWl82xGYIkIc2
-	x26xkF7I0E14v26r1I6r4UM28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8wA2z4x0
-	Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1l84
-	ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26F4UJVW0owAS
-	0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2
-	IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Cr0_Gr1UMcvjeVCFs4IE7xkEbVWUJVW8JwAC
-	jcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1l42xK82IYc2Ij64vIr41l4I
-	8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AK
-	xVWUGVWUWwC2zVAF1VAY17CE14v26r1Y6r17MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcV
-	AFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8I
-	cIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r
-	4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUFqXdUUUUU
+X-CM-TRANSID: rQCowABHUT9fQKJq9rRPBw--.30051S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Ary5AFyrWFWkKr15tw1rtFb_yoW8Kw1rpr
+	WfK3W3Kws7tr97trZ3ua1UXa4rWan3XryDJF9Iyr1kC3yYyryxArWSg3Wru34xCr93GF4U
+	t3Z0qrZ7ua1DZa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyG14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Cr1j6rxdM28EF7xvwVC2z280aVCY1x0267AKxVWxJr
+	0_GcWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_JrI_JrylYx0Ex4A2jsIE14v26F4j6r4UJwAm72CE4IkC6x0Yz7v_Jr
+	0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAK
+	I48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7
+	xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y0x0EwIxGrwCI42IY6xII
+	jxv20xvE14v26r1I6r4UMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw2
+	0EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x02
+	67AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VU1SdgJUUUUU==
 X-Originating-IP: [36.110.52.2]
 X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260910_062647_730308_7E6A6950 
-X-CRM114-Status: GOOD (  12.65  )
+X-CRM114-CacheID: sfid-20260909_223010_403650_3C17688B 
+X-CRM114-Status: GOOD (  12.38  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -94,42 +77,58 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_pmu_event_get_info() maps the S-mode shared memory into M-mode
-before walking the event array and unmaps it when the walk is done.
-The reserved-bit check inside the loop returns directly and skips the
-unmap, so a request with a must-be-zero bit set in event_idx leaves the
-mapping in place after the ecall returns.
+M-mode validates a request held in S-mode shared memory and then reads
+that same memory again in order to act on it. S-mode may rewrite the
+memory in between, so the values programmed into M-mode state are not
+necessarily the values that were validated.
 
-Unmap before returning, as the other error paths in this function do.
+  - sbi_dbtr_install_trig() re-reads each entry in three passes
+  - sbi_dbtr_update_trig() re-reads each entry four times
+  - sse_write_attrs() re-reads the attributes in a check pass and again
+    in an apply pass
 
-Fixes: d97cfb33ae1a ("lib: sbi_pmu: Return invalid param error for reserved event_idx bits")
-Signed-off-by: liutong <liutong@iscas.ac.cn>
----
-New in v3, not part of the v2 series.
+Each is fixed by copying the request once and making every later
+decision against that copy.
 
-Noticed while rebasing the patch before this one onto the current error
-code handling in this function.
+Himanshu pointed out on v2 that the install_trig patch was written
+against a shape of the function that no longer exists upstream: the
+per-slot capability matching and the dry-run slot allocation added
+since then re-read shared memory independently, so the race was still
+open. That patch is reworked here against current master, with the
+copy threaded through those paths.
 
- lib/sbi/sbi_pmu.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The other half of the previous six patch series, three integer overflow
+fixes and one unmap fix, is sent separately as "[PATCH v3 0/4] lib:
+sbi: fix integer overflows in shared memory bounds checks". Both halves
+apply to master in either order.
 
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index 54da5c24..d8e5ea01 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -1120,8 +1120,11 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 	for (i = 0; i < num_events; i++) {
- 		event_idx = einfo[i].event_idx;
- 		/* Any must-be-zero event_idx bits set should return INVALID_PARAM per-spec */
--		if (event_idx & SBI_PMU_EVENT_IDX_MBZ_MASK)
-+		if (event_idx & SBI_PMU_EVENT_IDX_MBZ_MASK) {
-+			sbi_hart_protection_temp_unmap_range(shmem_phys_lo,
-+							     shmem_size);
- 			return SBI_ERR_INVALID_PARAM;
-+		}
- 		event_type = pmu_event_validate(phs, event_idx, einfo[i].event_data);
- 		if (event_type < 0) {
- 			einfo[i].output = 0;
+Changes in v3:
+- Rebased onto current master
+- Split out of the previous six patch series
+- Subject prefixes changed to "lib: sbi: dbtr:" and "lib: sbi: sse:" to
+  match the rest of those files' history
+- 1/3: reworked, see the patch for details
+- 2/3: new in v3
+- 3/3: added a bound check inside sse_write_attrs()
+- Dropped the DBTR shared memory range check that was v2 3/6. Pengpeng
+  Hou sent the same fix in "lib: sbi: dbtr: validate complete shared
+  memory range", which already carries a Reviewed-by. Note that
+  Himanshu's remark on v2 3/6, that the "dom &&" guard skips the check
+  entirely when dom is NULL, applies to that patch as well and is left
+  to its thread.
+- Link to v2: https://lore.kernel.org/opensbi/20260731103405.1535818-1-liutong@iscas.ac.cn/
+
+liutong (3):
+  lib: sbi: dbtr: fix shared memory double-fetch in install_trig
+  lib: sbi: dbtr: fix shared memory double-fetch in update_trig
+  lib: sbi: sse: fix shared memory double-fetch in sse_write_attrs
+
+ lib/sbi/sbi_dbtr.c | 226 +++++++++++++++++++++++++++------------------
+ lib/sbi/sbi_sse.c  |  26 ++++--
+ 2 files changed, 158 insertions(+), 94 deletions(-)
+
+
+base-commit: 3593a5facc4c6938b90429a6973ba9ee21fc5899
 -- 
 2.34.1
 
