@@ -4,100 +4,95 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id F1FF4C88E40
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id D5189C79F9F
 	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 14:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
-	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=dSWWE+IWUeA16RFH/zHa9ERrBISZ1Puhc69OxEzQqQ4=; b=LABhKYtODD1X6r
-	2lYI8UZO/66VWCR1IqSE7U487HPUEl+/u0POC0EaZt651AOseSFFoWyQGWCxJHUgLGB9W9L4Jf2dv
-	Jf0rB/z1hjL4zgL3hweeowQpcP25jNCDcw/lTgzmL6Wc6mbtrXQ6HriisPcDzEAzQnRD3XdWejSwO
-	LEDfwmmKECPitd9ELyG2NWpuSl8V88BwZbUlpQDamRMXy3RCE2ax2+aw/czAVIrugr14fuHEbec12
-	4KUgOT8hY4fyzPhpQkPpsnGCT46OGdnACRj4zOBKd/igxEsPD2vY3pwf6OW0IzpMNYYMQHi3V6iGp
-	b8IQCGsJFyQKHl66Tu1g==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=i5UG/9LDBQABi3DeNqZ+rFjR3pdtvzdiP4C9C99kbIE=; b=jJzTLPkmfighRc
+	6mpxFAw/i0bFJoMoJqugw2s9Z4qb6d/fGUwgjQh48J0ZKBDZTPvZ7HUpDjP+nsNAhRSU4ygDiyoQo
+	aqyNOvdkrhfF4pZ+XCyfHtDiuATTYPgQrlGHbjda2J8eQm73kYNvdprGob9gAAX111z9/8+apN6SF
+	Vfpa/Tz5WpZyrqfruQoGuOdExU+WDHrx7DvcoxI66fPbXzSPfQ9OjkpYTEjgWsMiQFydXfcOHU3Kk
+	E7J+ArxJwAPB1sntAlmHdMZcKm8B0bFL3DI5MprXEQUsKgI+LAsXdbLnO0ee6/errv7IIzGsNaXFr
+	pxbNwrgr2FWPmafHDjcg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4fM2-0000000EY0Y-3ZVp;
+	id 1x4fM2-0000000EY0G-2zIg;
 	Thu, 10 Sep 2026 14:02:18 +0000
-Received: from smtpbguseast1.qq.com ([54.204.34.129])
+Received: from smtpbgeu2.qq.com ([18.194.254.142])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4fLz-0000000EXx8-2kVL
+	id 1x4fLv-0000000EXx5-3Duk
 	for opensbi@lists.infradead.org;
-	Thu, 10 Sep 2026 14:02:17 +0000
+	Thu, 10 Sep 2026 14:02:16 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1789048890;
-	bh=eeDr92bHEC6qvcWjGDdY1ydhMEcOv9bxJzZuyDL00Qg=;
-	h=From:Subject:Date:Message-Id:MIME-Version:To;
-	b=sdgUP8ZluYDoQ/KYD/jqiiusJMnrc0LevABro2mUzDUc7T1s6aYBkk4dKhojHM5YP
-	 XTLGwY7MMbHi+I22STw1lG57UA7tFeaRN4H09YlbOFABHiKdZCayxWrwk85+8b3XqS
-	 +Hu3yuvgtNpKaKm1lmi/lC7Fk9wmTO2nb3UZ+cLU=
-X-QQ-mid: zesmtpgz8t1789048884ta6809b3d
-X-QQ-Originating-IP: vL/CmltVCErN0/VphzPZI8XTDnYfFZLs6sIRncIyD8E=
+	s=mxsw2412; t=1789048905;
+	bh=Xx/5ajFGP7qIlOIa7fRzcn6GBWuFzUv4y/HMXZz8AVo=;
+	h=From:Date:Subject:MIME-Version:Message-Id:To;
+	b=KFvkL1ZD+4W3RCQCQug5dSgmIUMR3nis9plRTY5+l2nOQC13E9/HAB1jhYg7QrQU1
+	 MFusUsv/oUPYh5Nc1Tk5Mw6oLrsjy5EO6WQBJH4P3bmUxHXCsy2REJSusDcba0m0jJ
+	 oRS0aFFpSVzVT1B1gDZuNwSGjFAWKo0AJoz8cw/o=
+X-QQ-mid: zesmtpgz9t1789048900tcb03c800
+X-QQ-Originating-IP: IAU8epy1S33eOHxJiIFwR3C3ZHRP5OmKkx0AcsX8Hvg=
 Received: from = ( [120.237.158.181])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 10 Sep 2026 22:01:22 +0800 (CST)
+	id ; Thu, 10 Sep 2026 22:01:39 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 3694407523367166055
-EX-QQ-RecipientCnt: 10
+X-BIZMAIL-ID: 3438291060563130553
+EX-QQ-RecipientCnt: 8
 From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-Subject: [PATCH v4 0/6] platform: generic: spacemit: add K3 platform
+Date: Thu, 10 Sep 2026 22:00:05 +0800
+Subject: [PATCH v4 4/6] platform: generic: spacemit: k1: refactor platform
  support
-Date: Thu, 10 Sep 2026 22:00:01 +0800
-Message-Id: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
 MIME-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/23NSw6CMBgE4KuQri2BFmh15T2Mi76UX+WRFhoM4
- e62EBNJXE4y882MnLFgHDolM7LGg4OuDaE4JEjVor0bDDpkRDJSZYxQ7HqhTAMDflLMC0YywaQ
- pqUZh0Vtzg2nVLtctu1E+jBoiERs1uKGz7/XOk9jbZJ7znewJzgKvJGOMioLn5xe045R+O6nqG
- hQvPP1BCNsjNCCl5lrKipf0qP8iy7J8ADz2lm0GAQAA
-X-Change-ID: 20260723-spacemit-k3-84720a7be53d
+Message-Id: <20260910-spacemit-k3-v4-4-0793b62329f6@linux.spacemit.com>
+References: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
+In-Reply-To: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
 To: opensbi@lists.infradead.org
 Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
  Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>, 
  Samuel Holland <samuel.holland@sifive.com>, 
  Heinrich Schuchardt <heinrich.schuchardt@canonical.com>, 
  Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>, 
- Troy Mitchell <troy.mitchell@linux.spacemit.com>, 
- Alvin Chang <alvinga@andestech.com>, 
- Valentin Haudiquet <valentin.haudiquet@canonical.com>
+ Troy Mitchell <troy.mitchell@linux.spacemit.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=9868;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=15129;
  i=troy.mitchell@linux.spacemit.com; h=from:subject:message-id;
- bh=zc+LKhb7gjxXD0+UhLqoQyR+fuvsFFrb807ZUwSdU28=;
- b=owGbwMvMwCU2g/N9w09jE33G02pJDFmLdmhkCviL7klf4MQvPN3mi3BvilvU6dijB1IPSxXw6
- geLP73YUcrCIMbFICumyNL9gGdbgU+UbYFAoS/MHFYmkCEMXJwCMBF2d0aGO8e4VnRxLnb4O+OF
- yRGJu9VfdpsfCjrU5Xxr4vI3Te1ulxkZDrq03HRw7ViuzuQ449bz0vkhF/vft75b9JChlOuu5sR
- 8VgA=
+ bh=ikHNXupmAMt03x3ODGF/E4NamiEuwgYrJuJZRUxOKM8=;
+ b=owGbwMvMwCU2g/N9w09jE33G02pJDFmLduiW9s86v5One9bhVSF/Ipi3KWVO/t2R4sjf+ME+0
+ L73isakjlIWBjEuBlkxRZbuBzzbCnyibAsECn1h5rAygQxh4OIUgIm83s/wh/f+gXt3V7j6tNS2
+ S5Ytuzix7otqvuU88f56lyr76tp51Qy/Wd/GSf5RtJcvymCJ0WR0/t8fd+Fijrj2cZlpcupHbDS
+ ZAQ==
 X-Developer-Key: i=troy.mitchell@linux.spacemit.com; a=openpgp;
  fpr=3FE5535CF1B0E658E57DB59BAE1C2FBEA7DB42E1
 X-QQ-SENDSIZE: 520
 Feedback-ID: zesmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
-X-QQ-XMAILINFO: MMk0zjEMUgTJG5iNz8gZRcIrOtM2GtSmw+zMqw4z1dR1xb/TSI3GAUvP
-	stPCuqNDn78pNj/GNMUfhaqlrh+2aNlo8zYvTQlwVg5HE/B6779vNRbWwqgON7YL8CffqwA
-	9CDECLxv5WH+Zvk469RpLKKnTXNwNFlJISmVFJLQCVatnTRUtMkFGfQ/Lu7+PDe4PuCfd6x
-	qwu0u/pLzsbawa5FdYEegh70YY5mJEJYQBRn86XctzeY9K1r8SvsOE4Rxp3PQbGha+WjGix
-	6ngN8FTjJ/UCKWSAbbVYGpregw/xd2KBMApS1w8AOSpsWyYWj/oYymxQfnW1x67RaNKgR8/
-	Icw29dcacwI2Ja/fr+oXEYqcsjyKaLFu2W7zTWueJN0voE5VduoLCvgW/hXJx9wi7knkNA0
-	0vDzAPuLLQPJgxCE+uQ4dsfFwwEVpuFYxt4QLZ5U9Etq/vX8uZLw+KfCXZso6uXMuLsEPzf
-	cXAIUQZFDc8fyAu3VZheu7UiLdIYgcgr7XehHHsPiC46gCUSuPNQQ7SAkRCR3ICZxiSvfmQ
-	UsVDg1u2igMN0zzYxZ0CWbroJPZefL7txdivp9bgmyiOpkWwd71XBuCS1dVaH7Z/TynDWRF
-	r9tkEy3DkV+E4seeEOVJ+EdFIj8fDTu2dMti7t34kPCkxkAP072kZsE19f5s6INKr6VMsOW
-	h/g9U8VCZZZsKe0z4/dYeyq7zQGN7Eq+qYnulrCascQS/zfCbzhUp+n8jLc1k8+afvjHXcA
-	OkB8MDlnzBuy6vpCh7RbtHDUMyZDJctN+MK8Ij067wVQgiOM49GHSRshFXT3+XlBAnlpKcF
-	PPOpH70e/ygr6l0tTPcrv7CO6M5UF4sE9hw9XGjbN17abem0oqSlsj7kcPR4m+qTAktzTqI
-	t4YQXANc/aeSBBkQH7F99MkNFacCTYN9VCrX+WfRvzSHhzSpQ70cvANDy4J4rXspT+wTlv4
-	VxSyt5A9K9pqQFmu/VBvwOoFNkbjHwzSU2ZzqUAa1/m28QWntWtBka7WLQVmtsrctvn1GLB
-	WK9ZIth2zi3vA/IEmmOXvDYLlQJmPGyFvaLPe/8cZNperRY5tCZavBNUDzOeeo7fqkAMWHR
-	wM+FMG7eL8IgjW4In2KTdi3Pc+XcWGci/PtbUp9Jb8ojxrIvTMh0KbJPi6DvtIde2UJorHC
-	AxpZTIXAvKQXPpMz5H/BMWC6N8xZ7awDOAUvLiaqVl10NUpNVPpHxZHxAe/Xk0phbtT5
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+X-QQ-XMAILINFO: MprXaYuKirmTUchscc22wXhh57o+q7i4tZkgH3wz9cRtg9AkxizN+0VN
+	BgHRPnRVrreZ55EmPgmyH8My42/FjGayKhdx0RSCjabUt9aZr4nykkGcZ4AYt0fnjjxQTiq
+	yz0b5ktpz14c5x5+XBoFmY0otD4xiyi/ND5dMlqOiDJN2zoEF8lIZa1VWM2W0i0ZPSjvuCW
+	l5t6VamIjAhAqGKQyghsMM3NTfELfC5xctGZTaEDIVVW53ynGSA6yhAl0YBQSz39m+3WD+f
+	TXMlHMCKNGCwJKfBFqqHVnSKxSZvQCEQvS38SaVdCevQXsyYo2oW8YS3P8YD7N9iL3kcRvk
+	fpYjVGLr4k5rkf8J25tigiKUBtHoNpbocgT0lmOxYXl/i+glYZDDDsGd6NSm30PWdx9uCUF
+	9zQyrC+SWs5acbb3gcq0BtFPSvxXFzQJHZxFyW+cWQB/1WR1bddO/ui8WlfQB0f5aE8DElQ
+	bZsjt10dwViFVtpQiXSKNqJu9IHErmrVEzvfdnGbTNl7La03wRDZf8t91jqCp7ZhPQ3hTwD
+	0r8HvhuLlZ4/1Joyr8m1R1b4tsUCxKx6++DZH++JAd0/mrKngg1w+3gMrwrrbsCUL6IL7Tf
+	goEjEkwxmm83GjqA1UoffNZsdAQARGn6CDt0u2fhvHBAaD7Cni9h2swIfWd3kZIdB8covjX
+	s+zqhxKe4hU6RjtMi6VRNCLI4Q76GZ0qm6Ihq3kX39/uvx5fvGJ4WuTLLYZOmBFH2jM/Cs5
+	52suLSIkUOzXrRapQiXrRblky5nL7eDnJBpsK9kRjIB168P8U6AbS84AD/rRN8zMWry8rTk
+	zVPQjM1ku/Dc6jLBxHzdSTOEU/ePv5x0nIKS3Tl32dOeJjMNGsGmhLtW0NWw0WbU8nyLEiv
+	YJx7089JQoATIKuXz+cBJ/iYw7h2vhz5mkLiGbz5l08KvyJr43Pni/FwosRZlXm/SviqF+X
+	WS3KbCpgnzONiSaxXAz8hwaoCccdtFQI94O0cFZOwnvZ6JzOUttw69fVHXTb3BTknSN4yhc
+	nO7mAqGDFgfihdPOQ4BZc+CKOSdHkAk96w3scQsiHEjUjhrFLULxkRo1DW1LjaGVjDpf81L
+	1LukjDUH94PmbSitmOTMvWZV7+F9yydgClh+LfhJjjlZreZI/8mx64mFkmhX21En27mr3I2
+	aSKQKjNFW7x0iZI2jx8Ev/KY8j8MzNGk+hN/ouYn3l9uBBTteWMblRKeBw==
+X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
 X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260910_070216_246620_2575FC61 
-X-CRM114-Status: GOOD (  23.30  )
+X-CRM114-CacheID: sfid-20260910_070212_288236_E6F42872 
+X-CRM114-Status: GOOD (  17.71  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -114,229 +109,434 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-This series adds basic K3 platform initialization and start-only HSM
-support. Secondary harts are started directly through the SoC PMU. RPMI
-support for the vendor kernel is outside the scope of this series; the
-upstream Linux boot path does not depend on ESOS.
+From: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
 
-K3 has eight X100 harts and eight A100 harts across four clusters. X100
-implements H with a 256-bit VLEN; A100 has no H and a 1024-bit VLEN. The
-existing expected-trap handler is chosen by the cold-boot hart, which
-fails if that hart implements H and another does not. Store the handler
-per hart in scratch space and load it directly, avoiding an accessor call
-in CSR probes. Other extension and vector state is already maintained or
-queried per hart.
+K3 shares cache-control CSRs, PMU idle fields, cluster sizing, and the
+CCI-550 programming sequence with K1. Keeping these definitions and the
+CCI helper in K1-specific files would either duplicate them or make K3
+depend on K1 support.
 
-Only hart 0 is powered at reset. The HSM backend clears the requested
-hart's core and cluster power-down votes and wakes it on demand. PMA,
-cache and X100 H-extension setup precede the common warm-boot entry.
-Cold boot programs the cluster reset vectors and enables CCI-550 snoop
-and DVM requests before secondary harts start.
+Add a hidden PLATFORM_SPACEMIT option and move the shared definitions to
+spacemit/common.h. Move cci_enable_snoop_dvm_reqs() to spacemit.c while
+keeping each SoC's CCI topology and boot flow in its own platform driver.
 
-The shared SpacemiT code is limited to common register definitions and
-the CCI-550 helper. K1 retains its topology, boot flow and HSM behavior.
+Rename the PMU idle fields to match the K1 and K3 User Manuals. Keep the
+K1 power-down mask at 0x1b, so K1 power-management behavior remains
+unchanged. Keep the K1 HSM implementation K1-specific and switch it to
+the shared definitions.
 
-I tested this on a K3 COM260 with Linux v7.3-rc1 and only the v5 CPU PLL
-rate table patch [1] applied, using the unmodified upstream
-k3-com260-ifx.dtb and a minimal initramfs. The board booted from SPI NOR
-using the public SDK FSBL and U-Boot, with OpenSBI installed as a
-separate FIT using the procedure below.
+This is a non-functional refactoring that prepares the common support
+used by K3.
 
-OpenSBI used the SDK's 16-hart DT and booted on hart 0. Linux brought up
-the eight X100 harts described by its DT and reached a shell. I did not
-reproduce the hang Valentin reported with Linux 7.2 and an eight-CPU
-kernel DT [2].
-
-Build-tested with RV64 generic (CONFIG_STACK_PROTECTOR_ALL) and RV32
-generic. SpacemiT platform objects are excluded from RV32 builds.
-
-Firmware installation
----------------------
-
-The following NOR installation steps use the public K3 SDK v1.0.7:
-
-  manifests:
-    https://github.com/spacemit-com/manifests
-    6d767b42fdbd759dc9511b8a13523c3de42aaa5a
-  scripts:
-    https://github.com/spacemit-com/scripts
-    96418825a37a1cf07d3275c13d9d3329934224f0
-  U-Boot:
-    https://github.com/spacemit-com/uboot-2022.10
-    676971d3a61f2583dfd53d8f7dfbc9607cea74b7
-  ESOS and esos-lite:
-    https://github.com/spacemit-com/esos
-    eaf9afd83b27583b9bcafe0153028b32219518f5
-    https://github.com/spacemit-com/esos-lite
-    df4b2665cd4f3af563538cb41ba85c85dd39de7c
-
-The SDK is used to build the boot firmware; the Linux kernel and root
-filesystem are built separately. The commands below assume the SDK is
-configured for K3, with its host toolchain available in output/k3/host.
-
-Before building U-Boot, update UART0 in
-bsp-src/uboot-2022.10/arch/riscv/dts/k3.dtsi. This DT is passed to OpenSBI:
-
-  uart0: uart@d4017000 {
-          ...
-          compatible = "spacemit,k1-uart", "intel,xscale-uart",
-                       "ns16550";
-          ...
-  };
-
-The compatible order makes OpenSBI select UART_CAP_UUE and preserve
-UART_IER_UUE (bit 6); matching only "ns16550" writes 0x00 to UART_IER and
-stops serial output. Rebuild U-Boot and use the FSBL, bootinfo, and U-Boot
-FIT produced by the same SDK build:
-
-  K3_SDK_DIR=/path/to/k3-sdk
-  make -C "$K3_SDK_DIR/output/k3" uboot-rebuild
-
-This produces the following files under output/k3/images:
-
-  FSBL.bin
-  bootinfo_spinor.bin
-  u-boot.itb
-
-From the OpenSBI source directory, build with the SDK toolchain at the
-address used by the SDK, then wrap fw_dynamic.bin in the SDK's standalone
-OpenSBI FIT:
-
-  SDK_CROSS_COMPILE="$K3_SDK_DIR/output/k3/host/bin/riscv64-unknown-linux-gnu-"
-  make -j24 O=build-k3 CROSS_COMPILE="$SDK_CROSS_COMPILE" \
-       PLATFORM=generic PLATFORM_RISCV_ISA=rv64gc \
-       FW_TEXT_START=0x100000000
-  FW_DIR="$PWD/build-k3/platform/generic/firmware"
-  cp "$K3_SDK_DIR/bsp-src/opensbi/platform/generic/spacemit/fw_dynamic.its" \
-     "$FW_DIR/"
-  (cd "$FW_DIR" && \
-   "$K3_SDK_DIR/output/k3/build/uboot-custom/tools/mkimage" \
-     -f fw_dynamic.its fw_dynamic.itb)
-
-There are two ways to enter U-Boot fastboot. On a provisioned board, hold
-`s` during U-Boot startup and run:
-
-  => fastboot 0
-
-Alternatively, extract factory/FSBL.bin and u-boot.itb from
-Bianbu-Minimal-K3-20260728010729.tar.gz. Hold FEL while resetting the
-board to enter BROM fastboot, then run on the host:
-
-  fastboot stage factory/FSBL.bin
-  fastboot continue
-  sleep 8
-  fastboot stage u-boot.itb
-  fastboot continue
-
-COM260 boots from SPI NOR and uses partition_4M.json from the Bianbu image
-for its firmware layout. Select that MTD layout before writing a firmware
-partition:
-
-  fastboot flash mtd partition_4M.json
-
-If the installed FSBL and U-Boot already match the prerequisites above,
-only the OpenSBI partition needs updating:
-
-  fastboot flash opensbi "$FW_DIR/fw_dynamic.itb"
-  fastboot reboot
-
-For an older boot firmware, update the boot-chain components from the
-pinned SDK build in the same fastboot session before rebooting:
-
-  SDK_IMAGES="$K3_SDK_DIR/output/k3/images"
-  fastboot flash bootinfo "$SDK_IMAGES/bootinfo_spinor.bin"
-  fastboot flash fsbl "$SDK_IMAGES/FSBL.bin"
-  fastboot flash uboot "$SDK_IMAGES/u-boot.itb"
-  fastboot flash opensbi "$FW_DIR/fw_dynamic.itb"
-  fastboot reboot
-
-An existing system can be kept when updating the boot firmware. Flashing
-the full Bianbu Minimal system image is only needed for a board without
-a usable system.
-
-Link: https://lore.kernel.org/all/20260907-k3-pll5-pll8-1800mhz-v5-1-5cc96d716b0a@linux.spacemit.com/ [1]
-Link: https://lore.kernel.org/all/CAPEPrSMsnbuPOUuvj06+PtczdokK42vSpy8n_0hCLh0cEO-QkQ@mail.gmail.com/ [2]
-
+Signed-off-by: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
+Co-developed-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 ---
-Changes in v4:
-- use per-hart scratch for the expected-trap handler, avoiding accessor
-  calls and their stack-protector instrumentation; initialize it before
-  platform hooks and preserve scratch allocation alignment
-- include Valentin Haudiquet's hart-0-only cold-boot restriction as a
-  separate patch after K3 platform support
-- update the cover letter's test environment, results, and support scope
-- Link to v3: https://patch.msgid.link/20260827-spacemit-k3-v3-0-5d8dbb68539d@linux.spacemit.com
+ lib/utils/hsm/fdt_hsm_spacemit.c             | 10 +--
+ platform/generic/Kconfig                     |  4 ++
+ platform/generic/include/spacemit/common.h   | 86 +++++++++++++++++++++++++
+ platform/generic/include/spacemit/k1.h       | 94 +++++-----------------------
+ platform/generic/include/spacemit/spacemit.h | 14 +++++
+ platform/generic/spacemit/k1.c               | 33 ++--------
+ platform/generic/spacemit/objects.mk         |  1 +
+ platform/generic/spacemit/spacemit.c         | 36 +++++++++++
+ 8 files changed, 169 insertions(+), 109 deletions(-)
 
-Changes in v3:
-  - select the HSM backend from the root compatible while preserving K1's
-    existing start and stop behavior
-  - start secondary harts on demand from the K3 HSM callback; remove the
-    cold-boot wake-all loop, WFI tables, and timeout
-  - perform PMA, cache, and H-extension setup before the common warm entry;
-    use the OpenSBI VMA and guest-translation fence helpers
-  - use assembler-safe constants shared by the C and assembly paths
-  - omit the 64-bit-only SpacemiT platform objects from RV32 builds
-  - clarify the boundary between the K3 HSM backend and ESOS services
-  - update the cover letter with the public SDK build and split NOR
-    validation procedure
-  - add Reviewed-by trailers from Bo Gan
-  - Link to v2: https://patch.msgid.link/20260818-spacemit-k3-v2-0-84cb7773a481@linux.spacemit.com
+diff --git a/lib/utils/hsm/fdt_hsm_spacemit.c b/lib/utils/hsm/fdt_hsm_spacemit.c
+index 99c52335..6348f6a3 100644
+--- a/lib/utils/hsm/fdt_hsm_spacemit.c
++++ b/lib/utils/hsm/fdt_hsm_spacemit.c
+@@ -10,6 +10,7 @@
+ #include <platform_override.h>
+ #include <sbi/riscv_io.h>
+ #include <sbi/sbi_hsm.h>
++#include <spacemit/common.h>
+ #include <spacemit/k1.h>
+ 
+ static const u64 cpu_wakeup_reg[] = {
+@@ -42,9 +43,9 @@ static inline void spacemit_set_cpu_power(u32 hartid, bool enable)
+ 	value = readl(cpu_idle_base);
+ 
+ 	if (enable)
+-		value &= ~PMU_AP_IDLE_PWRDOWN_MASK;
++		value &= ~PMU_AP_IDLE_PWRDOWN_K1_MASK;
+ 	else
+-		value |= PMU_AP_IDLE_PWRDOWN_MASK;
++		value |= PMU_AP_IDLE_PWRDOWN_K1_MASK;
+ 
+ 	writel(value, cpu_idle_base);
+ }
+@@ -87,7 +88,7 @@ static int spacemit_hart_stop(void)
+ 	csr_write(CSR_STIMECMP, GENMASK_ULL(63, 0));
+ 	csr_clear(CSR_MIE, MIP_SSIP | MIP_MSIP | MIP_STIP | MIP_MTIP | MIP_SEIP | MIP_MEIP);
+ 
+-	/* disable data preftch */
++	/* disable data prefetch */
+ 	csr_clear(CSR_MSETUP, MSETUP_PFE);
+ 	asm volatile ("fence iorw, iorw");
+ 
+@@ -102,8 +103,7 @@ static int spacemit_hart_stop(void)
+ 	/*
+ 	 * Core4-7 do not have dedicated bits in ML2SETUP;
+ 	 * instead, they reuse the same bits as core0-3.
+-	 *
+-	 * Thereforspacemit_deassert_cpue, use modulo with PLATFORM_MAX_CPUS_PER_CLUSTER
++	 * Therefore, use modulo with PLATFORM_MAX_CPUS_PER_CLUSTER
+ 	 * to select the proper bit.
+ 	 */
+ 	csr_clear(CSR_ML2SETUP, 1 << (current_hartid() % PLATFORM_MAX_CPUS_PER_CLUSTER));
+diff --git a/platform/generic/Kconfig b/platform/generic/Kconfig
+index d594b140..958610d3 100644
+--- a/platform/generic/Kconfig
++++ b/platform/generic/Kconfig
+@@ -100,9 +100,13 @@ config PLATFORM_THEAD
+ 	select THEAD_C9XX_PMU
+ 	default n
+ 
++config PLATFORM_SPACEMIT
++	bool
++
+ config PLATFORM_SPACEMIT_K1
+ 	bool "Spacemit K1 support"
+ 	select FDT_HSM_SPACEMIT
++	select PLATFORM_SPACEMIT
+ 	default n
+ 
+ config CPU_MIPS_P8700
+diff --git a/platform/generic/include/spacemit/common.h b/platform/generic/include/spacemit/common.h
+new file mode 100644
+index 00000000..317bb3e9
+--- /dev/null
++++ b/platform/generic/include/spacemit/common.h
+@@ -0,0 +1,86 @@
++/* SPDX-License-Identifier: BSD-2-Clause */
++/*
++ * Copyright (c) 2025 SpacemiT
++ * Authors:
++ *   Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
++ *   Troy Mitchell <troy.mitchell@linux.spacemit.com>
++ */
++
++#ifndef __RISCV_SPACEMIT_COMMON_H__
++#define __RISCV_SPACEMIT_COMMON_H__
++
++#include <sbi/sbi_bitops.h>
++
++#define CSR_MSETUP				0x7c0
++#define CSR_ML2SETUP				0x7f0
++
++/* dcache enable */
++#define MSETUP_DE				BIT(0)
++/* icache enable */
++#define MSETUP_IE				BIT(1)
++/* branch prediction enable */
++#define MSETUP_BPE				BIT(4)
++/* prefetch functionality enable */
++#define MSETUP_PFE				BIT(5)
++/* misaligned memory access enable */
++#define MSETUP_MME				BIT(6)
++/* ECC enable */
++#define MSETUP_ECCE				BIT(16)
++
++#define PMU_AP_BASE				0xd4282800
++
++#define PMU_AP_CORE0_WAKEUP			(PMU_AP_BASE + 0x12c)
++#define PMU_AP_CORE1_WAKEUP			(PMU_AP_BASE + 0x130)
++#define PMU_AP_CORE2_WAKEUP			(PMU_AP_BASE + 0x134)
++#define PMU_AP_CORE3_WAKEUP			(PMU_AP_BASE + 0x138)
++#define PMU_AP_CORE4_WAKEUP			(PMU_AP_BASE + 0x324)
++#define PMU_AP_CORE5_WAKEUP			(PMU_AP_BASE + 0x328)
++#define PMU_AP_CORE6_WAKEUP			(PMU_AP_BASE + 0x32c)
++#define PMU_AP_CORE7_WAKEUP			(PMU_AP_BASE + 0x330)
++
++#define PMU_AP_CORE0_IDLE_CFG			(PMU_AP_BASE + 0x124)
++#define PMU_AP_CORE1_IDLE_CFG			(PMU_AP_BASE + 0x128)
++#define PMU_AP_CORE2_IDLE_CFG			(PMU_AP_BASE + 0x160)
++#define PMU_AP_CORE3_IDLE_CFG			(PMU_AP_BASE + 0x164)
++#define PMU_AP_CORE4_IDLE_CFG			(PMU_AP_BASE + 0x304)
++#define PMU_AP_CORE5_IDLE_CFG			(PMU_AP_BASE + 0x308)
++#define PMU_AP_CORE6_IDLE_CFG			(PMU_AP_BASE + 0x30c)
++#define PMU_AP_CORE7_IDLE_CFG			(PMU_AP_BASE + 0x310)
++
++/* boot entry for X100 clusters (C0, C1) */
++#define C0_RVBADDR_LO_ADDR			0xd4282db0
++#define C0_RVBADDR_HI_ADDR			0xd4282db4
++#define C1_RVBADDR_LO_ADDR			0xd4282eb0
++#define C1_RVBADDR_HI_ADDR			0xd4282eb4
++
++/* CCI-550 base and slave interface layout */
++#define CCI_550_PLATFORM_CCI_ADDR		0xd8500000
++#define CCI_550_STATUS				0x000c
++#define CCI_550_STATUS_CHANGE_PENDING		BIT(0)
++#define CCI_550_SLAVE_IFACE0_OFFSET		0x1000
++#define CCI_550_SLAVE_IFACE_OFFSET(idx)		\
++		(CCI_550_SLAVE_IFACE0_OFFSET + ((0x1000) * (idx)))
++#define CCI_550_SNOOP_CTRL			0x0000
++#define CCI_550_SNOOP_CTRL_ENABLE_SNOOPS	BIT(0)
++#define CCI_550_SNOOP_CTRL_ENABLE_DVMS		BIT(1)
++
++/*
++ * PMU AP per-core idle control register bits (PMU_AP_COREn_IDLE_CFG).
++ * Bit definitions are identical in K1 and K3 User Manuals.
++ * These replace the original ad-hoc names from k1.h (which incorrectly
++ * called bit 1 SRAM_PWRDWN, bit 3 WAKE_MCE, and bit 4 MC_SW_REQ).
++ */
++/* bit 0: CORE_IDLE - gate core clock externally when core enters WFI */
++#define PMU_AP_IDLE_CORE_IDLE			BIT(0)
++/* bit 1: CORE_PWRDWN - power off core on WFI (requires CORE_IDLE set) */
++#define PMU_AP_IDLE_CORE_PWRDWN			BIT(1)
++/* bit 2: Core L1 SRAM Power Down - reserved/not used in K1 and K3 */
++#define PMU_AP_IDLE_CORE_L1_SRAM_PWRDWN		BIT(2)
++/* bit 3: MASK_GIC_NIRQ_TO_CORE - mask nIRQ from GIC, auto-cleared by HW on power-down entry */
++#define PMU_AP_IDLE_MASK_GIC_NIRQ		BIT(3)
++/* bit 4: MASK_GIC_NFIQ_TO_CORE - mask nFIQ from GIC, auto-cleared by HW on power-down entry */
++#define PMU_AP_IDLE_MASK_GIC_NFIQ		BIT(4)
++
++#define PLATFORM_MAX_CPUS_PER_CLUSTER		4
++
++#endif /* __RISCV_SPACEMIT_COMMON_H__ */
+diff --git a/platform/generic/include/spacemit/k1.h b/platform/generic/include/spacemit/k1.h
+index ac727b04..662b42e5 100644
+--- a/platform/generic/include/spacemit/k1.h
++++ b/platform/generic/include/spacemit/k1.h
+@@ -1,88 +1,28 @@
++/* SPDX-License-Identifier: BSD-2-Clause */
++/*
++ * Copyright (c) 2025 SpacemiT
++ * Authors:
++ *   Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
++ *   Troy Mitchell <troy.mitchell@linux.spacemit.com>
++ */
++
+ #ifndef __RISCV_SPACEMIT_K1_H__
+ #define __RISCV_SPACEMIT_K1_H__
+ 
+-#define CSR_MSETUP				0x7c0
+-#define CSR_MHCR				0x7c1
+-#define CSR_MRAOP				0x7c2
+-#define CSR_MHINT				0x7c5
+-#define CSR_ML2SETUP				0x7f0
++#include <spacemit/common.h>
+ 
+-/* decache enable */
+-#define MSETUP_DE				BIT(0)
+-/* icache enable */
+-#define MSETUP_IE				BIT(1)
+-/* branch prediction enable */
+-#define MSETUP_BPE				BIT(4)
+-/* prefetch functionality enable */
+-#define MSETUP_PFE				BIT(5)
+-/* misaligned memory access enable */
+-#define MSETUP_MME				BIT(6)
+-/* ECC enable */
+-#define MSETUP_ECCE				BIT(16)
++#define CSR_MRAOP				0x7c2
+ 
+-/* cache flush */
+ #define MRAOP_CACHE_FLUSH			GENMASK(1, 0)
+ 
+-#define PMU_AP_BASE				0xd4282800
+-
+-#define PMU_AP_CORE0_WAKEUP			(PMU_AP_BASE + 0x12c)
+-#define PMU_AP_CORE1_WAKEUP			(PMU_AP_BASE + 0x130)
+-#define PMU_AP_CORE2_WAKEUP			(PMU_AP_BASE + 0x134)
+-#define PMU_AP_CORE3_WAKEUP			(PMU_AP_BASE + 0x138)
+-#define PMU_AP_CORE4_WAKEUP			(PMU_AP_BASE + 0x324)
+-#define PMU_AP_CORE5_WAKEUP			(PMU_AP_BASE + 0x328)
+-#define PMU_AP_CORE6_WAKEUP			(PMU_AP_BASE + 0x32c)
+-#define PMU_AP_CORE7_WAKEUP			(PMU_AP_BASE + 0x330)
+-
+-#define PMU_AP_CORE0_IDLE_CFG			(PMU_AP_BASE + 0x124)
+-#define PMU_AP_CORE1_IDLE_CFG			(PMU_AP_BASE + 0x128)
+-#define PMU_AP_CORE2_IDLE_CFG			(PMU_AP_BASE + 0x160)
+-#define PMU_AP_CORE3_IDLE_CFG			(PMU_AP_BASE + 0x164)
+-#define PMU_AP_CORE4_IDLE_CFG			(PMU_AP_BASE + 0x304)
+-#define PMU_AP_CORE5_IDLE_CFG			(PMU_AP_BASE + 0x308)
+-#define PMU_AP_CORE6_IDLE_CFG			(PMU_AP_BASE + 0x30c)
+-#define PMU_AP_CORE7_IDLE_CFG			(PMU_AP_BASE + 0x310)
+-
+-/* power down */
+-#define PMU_AP_IDLE_PWRDWN			BIT(0)
+-/* sram power down */
+-#define PMU_AP_IDLE_SRAM_PWRDWN			BIT(1)
+-/* enable wake up the memory controller */
+-#define PMU_AP_IDLE_WAKE_MCE			BIT(3)
+-/* disable memory controller software req */
+-#define PMU_AP_IDLE_MC_SW_REQ			BIT(4)
+-
+-#define PMU_AP_IDLE_PWRDOWN_MASK		(PMU_AP_IDLE_PWRDWN | PMU_AP_IDLE_SRAM_PWRDWN | \
+-						 PMU_AP_IDLE_WAKE_MCE | PMU_AP_IDLE_MC_SW_REQ)
+-/* cci */
+-#define C0_RVBADDR_LO_ADDR			0xd4282db0
+-#define C0_RVBADDR_HI_ADDR			0xd4282db4
+-#define C1_RVBADDR_LO_ADDR			0xd4282eb0
+-#define C1_RVBADDR_HI_ADDR			0xd4282eb4
+-
+-#define CCI_550_PLATFORM_CCI_ADDR		0xd8500000
+-
+-/* relative to cci base */
+-#define CCI_550_STATUS				0x000c
+-/* status register bits */
+-#define CCI_550_STATUS_CHANGE_PENDING		BIT(0)
+-
+-/* slave interface registers */
+-#define CCI_550_SLAVE_IFACE0_OFFSET		0x1000
+-#define CCI_550_SLAVE_IFACE_OFFSET(idx)		(CCI_550_SLAVE_IFACE0_OFFSET + ((0x1000) * (idx)))
+-
+-/* relative to slave interface base */
+-#define CCI_550_SNOOP_CTRL			0x0000
+-/* snoop control register bits */
+-#define CCI_550_SNOOP_CTRL_ENABLE_SNOOPS	BIT(0)
+-#define CCI_550_SNOOP_CTRL_ENABLE_DVMS		BIT(1)
++#define PMU_AP_IDLE_PWRDOWN_K1_MASK		(PMU_AP_IDLE_CORE_IDLE |	\
++						 PMU_AP_IDLE_CORE_PWRDWN |	\
++						 PMU_AP_IDLE_MASK_GIC_NIRQ |	\
++						 PMU_AP_IDLE_MASK_GIC_NFIQ)
+ 
+-/* clusters and CPU mapping */
+-#define PLATFORM_MAX_CPUS			8
+-#define PLATFORM_MAX_CPUS_PER_CLUSTER		4
+ #define CPU_TO_CLUSTER(cpu)			((cpu) / PLATFORM_MAX_CPUS_PER_CLUSTER)
+ 
+-#define PLAT_CCI_CLUSTER0_IFACE_IX		0
+-#define PLAT_CCI_CLUSTER1_IFACE_IX		1
++#define PLAT_CCI_K1_CLUSTER0_IFACE_IX		0
++#define PLAT_CCI_K1_CLUSTER1_IFACE_IX		1
+ 
+-#endif
++#endif /* __RISCV_SPACEMIT_K1_H__ */
+diff --git a/platform/generic/include/spacemit/spacemit.h b/platform/generic/include/spacemit/spacemit.h
+new file mode 100644
+index 00000000..671cfd05
+--- /dev/null
++++ b/platform/generic/include/spacemit/spacemit.h
+@@ -0,0 +1,14 @@
++/* SPDX-License-Identifier: BSD-2-Clause */
++/*
++ * Copyright (c) 2025 SpacemiT
++ * Authors:
++ *   Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
++ *   Troy Mitchell <troy.mitchell@linux.spacemit.com>
++ */
++
++#ifndef __RISCV_SPACEMIT_H__
++#define __RISCV_SPACEMIT_H__
++
++void cci_enable_snoop_dvm_reqs(const int *cci_map, unsigned int master_id);
++
++#endif
+diff --git a/platform/generic/spacemit/k1.c b/platform/generic/spacemit/k1.c
+index 19a9b27c..323239e0 100644
+--- a/platform/generic/spacemit/k1.c
++++ b/platform/generic/spacemit/k1.c
+@@ -12,37 +12,16 @@
+ #include <sbi/riscv_io.h>
+ #include <sbi/sbi_hsm.h>
+ #include <spacemit/k1.h>
++#include <spacemit/spacemit.h>
++
++#define PLATFORM_MAX_CPUS			8
+ 
+ /* only use 0-1 cluster in SpacemiT K1 */
+ static const int cci_map[] = {
+-	PLAT_CCI_CLUSTER0_IFACE_IX,
+-	PLAT_CCI_CLUSTER1_IFACE_IX,
++	PLAT_CCI_K1_CLUSTER0_IFACE_IX,
++	PLAT_CCI_K1_CLUSTER1_IFACE_IX,
+ };
+ 
+-static void cci_enable_snoop_dvm_reqs(unsigned int master_id)
+-{
+-	int slave_if_id = cci_map[master_id];
+-
+-	/*
+-	 * Enable Snoops and DVM messages, no need for Read/Modify/Write as
+-	 * rest of bits are write ignore
+-	 */
+-	writel(CCI_550_SNOOP_CTRL_ENABLE_DVMS | CCI_550_SNOOP_CTRL_ENABLE_SNOOPS,
+-	       (void *)(u64)CCI_550_PLATFORM_CCI_ADDR +
+-	       CCI_550_SLAVE_IFACE_OFFSET(slave_if_id) + CCI_550_SNOOP_CTRL);
+-
+-	/*
+-	 * Wait for the completion of the write to the Snoop Control Register
+-	 * before testing the change_pending bit
+-	 */
+-	mb();
+-
+-	/* Wait for the dust to settle down */
+-	while ((readl((void *)(u64)CCI_550_PLATFORM_CCI_ADDR + CCI_550_STATUS) &
+-	       CCI_550_STATUS_CHANGE_PENDING))
+-		;
+-}
+-
+ static void spacemit_k1_pre_init(void)
+ {
+ 	unsigned int clusterid, cluster_enabled = 0;
+@@ -62,7 +41,7 @@ static void spacemit_k1_pre_init(void)
+ 
+ 		if (!(cluster_enabled & (1 << clusterid))) {
+ 			cluster_enabled |= 1 << clusterid;
+-			cci_enable_snoop_dvm_reqs(clusterid);
++			cci_enable_snoop_dvm_reqs(cci_map, clusterid);
+ 		}
+ 	}
+ }
+diff --git a/platform/generic/spacemit/objects.mk b/platform/generic/spacemit/objects.mk
+index dcb37867..8309ad1f 100644
+--- a/platform/generic/spacemit/objects.mk
++++ b/platform/generic/spacemit/objects.mk
+@@ -2,5 +2,6 @@
+ # SPDX-License-Identifier: BSD-2-Clause
+ #
+ 
++platform-objs-$(CONFIG_PLATFORM_SPACEMIT) += spacemit/spacemit.o
+ carray-platform_override_modules-$(CONFIG_PLATFORM_SPACEMIT_K1) += spacemit_k1
+ platform-objs-$(CONFIG_PLATFORM_SPACEMIT_K1) += spacemit/k1.o
+diff --git a/platform/generic/spacemit/spacemit.c b/platform/generic/spacemit/spacemit.c
+new file mode 100644
+index 00000000..a215c1ad
+--- /dev/null
++++ b/platform/generic/spacemit/spacemit.c
+@@ -0,0 +1,36 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2025 SpacemiT
++ * Authors:
++ *   Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
++ *   Troy Mitchell <troy.mitchell@linux.spacemit.com>
++ */
++
++#include <platform_override.h>
++#include <sbi/riscv_io.h>
++#include <spacemit/common.h>
++
++void cci_enable_snoop_dvm_reqs(const int *cci_map, unsigned int master_id)
++{
++	int slave_if_id = cci_map[master_id];
++
++	/*
++	 * Enable Snoops and DVM messages, no need for Read/Modify/Write as
++	 * rest of bits are write ignore
++	 */
++	writel(CCI_550_SNOOP_CTRL_ENABLE_DVMS | CCI_550_SNOOP_CTRL_ENABLE_SNOOPS,
++	       (void *)(unsigned long)CCI_550_PLATFORM_CCI_ADDR +
++	       CCI_550_SLAVE_IFACE_OFFSET(slave_if_id) + CCI_550_SNOOP_CTRL);
++
++	/*
++	 * Wait for the completion of the write to the Snoop Control Register
++	 * before testing the change_pending bit
++	 */
++	mb();
++
++	/* Wait for the dust to settle down */
++	while (readl((void *)(unsigned long)CCI_550_PLATFORM_CCI_ADDR + CCI_550_STATUS) &
++	       CCI_550_STATUS_CHANGE_PENDING)
++		;
++}
 
-Changes in v2:
-  - correct the K3 PMACFG0 CSR number from 0xbc0 to 0x7de
-  - select the expected-trap handler per hart for heterogeneous H support
-  - move K1 and K3 per-hart setup out of cold_boot_allowed()
-  - split the generic and K1 fixes into standalone patches, growing the
-    series from three patches to five
-  - document X100/A100 ISA and VLEN differences and the homogeneous-core
-    audit
-  - document OpenSBI/U-Boot packaging, the UART compatible adjustment,
-    and the USB fastboot test procedure
-  - Link to v1: https://lore.kernel.org/r/20260724-spacemit-k3-v1-0-f0e49329feb8@linux.spacemit.com
-
----
-Troy Mitchell (2):
-      lib: sbi: select expected trap handler per hart
-      platform: generic: spacemit: k1: move hart init to nascent hook
-
-Valentin Haudiquet (1):
-      platform: generic: spacemit: k3: override cold_boot_allowed for hart 0 only
-
-Xianbin Zhu (3):
-      platform: generic: spacemit: k1: rename cache flush operation
-      platform: generic: spacemit: k1: refactor platform support
-      platform: generic: spacemit: k3: add platform support
-
- include/sbi/sbi_csr_detect.h                 |   4 +-
- include/sbi/sbi_hart.h                       |   5 +-
- include/sbi/sbi_scratch.h                    |   7 +-
- lib/sbi/sbi_hart.c                           |   8 --
- lib/sbi/sbi_illegal_atomic.c                 |   4 +-
- lib/sbi/sbi_init.c                           |   7 ++
- lib/sbi/sbi_scratch.c                        |   4 +
- lib/sbi/sbi_unpriv.c                         |   6 +-
- lib/utils/hsm/fdt_hsm_spacemit.c             | 125 ++++++++++++++++++++------
- platform/generic/Kconfig                     |  11 +++
- platform/generic/configs/defconfig           |   1 +
- platform/generic/include/spacemit/common.h   |  90 +++++++++++++++++++
- platform/generic/include/spacemit/k1.h       |  96 ++++----------------
- platform/generic/include/spacemit/k3.h       | 127 ++++++++++++++++++++++++++
- platform/generic/include/spacemit/k3_asm.h   |  16 ++++
- platform/generic/include/spacemit/spacemit.h |  14 +++
- platform/generic/spacemit/k1.c               |  45 ++++------
- platform/generic/spacemit/k3.c               | 128 +++++++++++++++++++++++++++
- platform/generic/spacemit/k3_asm.S           |  52 +++++++++++
- platform/generic/spacemit/objects.mk         |   5 ++
- platform/generic/spacemit/spacemit.c         |  36 ++++++++
- 21 files changed, 638 insertions(+), 153 deletions(-)
----
-base-commit: c0f87f10d1bfb9e72a84ddfafb5604ee1bfe9d04
-change-id: 20260723-spacemit-k3-84720a7be53d
-
-Best regards,
---  
-Troy Mitchell <troy.mitchell@linux.spacemit.com>
+-- 
+2.55.0
 
 
 -- 
