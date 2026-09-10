@@ -4,96 +4,87 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1352FC79FB9
-	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 14:02:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 2E9A3C79FB9
+	for <opensbi@archiver.kernel.org>; Thu, 10 Sep 2026 14:43:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
 	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=5TRA5ufRHwdR9/aJ+XoV2Cs0xQWSSrpZNFRo3Blh6iA=; b=yv58SXzl1HEE72
-	bcAfgiYXPq18aOFl+IzmDG1F4Msn+wo+iLqY76MEgLwYDM2cHUvg5idfXC/0148q1/LQ5/jB+zSau
-	GGyXpQe2Q6j4gYXRdgtc3S0FqZdZSPRSNPIjdaXq7Aq0AqEotBsV9tq0Hn3O8WMp1d+h+EMF7PphX
-	Q1DVqCE+SPteRUDDmP35NwaSspLbYn6R7+n1Hrbh1Jp+pU9PrhCqpa/YG+pRPihtedhJL2cZ1WUES
-	D3VB3cyLtTst56hV/U/ABbEdTjLDTWTt0FzhgvN8/eldNESqNg8fh3n8z5AEt/lGnHCQY33zWrEHu
-	uPk8kIEKWIaMklEruRPA==;
+	List-Owner; bh=aDoyrFn7tuktXoYwVRu3BPx6WsSmU0aySAs/W8h3guQ=; b=vwgR5KjZBEtshM
+	nTZStvafn0qHua4s1zN0GGPEPCiAhI86pUD+XqTGYN7f1VnpL06xi/vjbnmM9M30zMQmYRhyM96GP
+	zvNzv4B/hCeJInTTH7TfPOiULo9FGubDBfejDcardypg7/cKXWBvLhVPw05wjVmj0sa53jiy0XqEc
+	TgdqR6AKxNxSe+PrWhzClEOG2c4Jc9C34QP9snO2jDEMfcy7SkNVPRC3fIoUFodd04ikr4JOBnpQt
+	kK1VfcSu4AKMJXAtdpiagiznu6RJaM6dn2mpMKbR2gYlmLEr3ZGZ1s1EDc5XbFA1VfCg8FuRwNaut
+	3HHF+0bSXO5jsXfiz4uQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4fMO-0000000EY7q-1h8O;
-	Thu, 10 Sep 2026 14:02:40 +0000
-Received: from smtpbgbr2.qq.com ([54.207.22.56])
+	id 1x4g03-0000000Ef7Z-47QM;
+	Thu, 10 Sep 2026 14:43:39 +0000
+Received: from mail-yx1-xb133.google.com ([2607:f8b0:4864:20::b133])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x4fML-0000000EY0x-27YD
+	id 1x4g00-0000000Ef6U-0b43
 	for opensbi@lists.infradead.org;
-	Thu, 10 Sep 2026 14:02:39 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1789048913;
-	bh=EFZAn0wUviN/yPc6SQFCz1OzqKF7ZJkEzdY9Nco7xRc=;
-	h=From:Date:Subject:MIME-Version:Message-Id:To;
-	b=NKsZI3nRPHmIcLdEZ2YwY2pMtNTctHxTF6CJFlRqqDY1USmsZvPyybt+gnJLcevfw
-	 1IZZG36taBgNjz6IZJ/l7vwjpNU79echlxtHetxe1DW5AJYgO3ZBczS7+nOTgxZwuZ
-	 hdoU81xWR5M58cnVi2tcrbo7sr5VLM14ytqp+h78=
-X-QQ-mid: zesmtpgz3t1789048908tb1c65aea
-X-QQ-Originating-IP: nULfZeQCMAu2vvVFfpxFHS6B9RSA1qYmYDOOcZHlBEY=
-Received: from = ( [120.237.158.181])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 10 Sep 2026 22:01:47 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 17377836830275896916
-EX-QQ-RecipientCnt: 9
-From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-Date: Thu, 10 Sep 2026 22:00:07 +0800
-Subject: [PATCH v4 6/6] platform: generic: spacemit: k3: override
- cold_boot_allowed for hart 0 only
+	Thu, 10 Sep 2026 14:43:37 +0000
+Received: by mail-yx1-xb133.google.com with SMTP id 956f58d0204a3-67119f919bfso611488d50.0
+        for <opensbi@lists.infradead.org>; Thu, 10 Sep 2026 07:43:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1789051415; x=1789656215; darn=lists.infradead.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ZDZs7jz8SVgQ9F2Oe2AE2/BdLW9o+mtwAGNqA+M+4cQ=;
+        b=XrVbaUfW+txEPIr3dDCEuV1OaRIFjLWCzqIQjcZSzFIl/dMZuduDYiNyEUqedir7hr
+         w4l40YN1mebQ0ujlzjYY98iXVLTRAUQE4HIUf0biWxo3Ow/qCHV1Iplz32AaolwDHpf4
+         wH1oEaNqoG1ciOfbSGrSbOGRh5zQKgDOS2HFbPJCgZosdMwokymrzoBU8DrAPNK9DYUQ
+         CzoL9bQQSJHiC1Fn3iRksKMH1aBkbBm3fn4Gq3nitgid7Ste8NYEIMuX31/Y/0eeitU4
+         9n7vNXwd4kd3jAABHL/O2weX4kSTc8z+VVNg28rzYdPYo4HxuGuhQ5KXhD9L7Eqs+9kS
+         mDlg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789051415; x=1789656215;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ZDZs7jz8SVgQ9F2Oe2AE2/BdLW9o+mtwAGNqA+M+4cQ=;
+        b=fPenR7i9fyGX9B1LcAbIQVT2EIHXtiktQygBzXeL/HS5TWsRWGUp0wCX2OaU5GWyTP
+         Pi58A9JStbnVZbplXuTwC8zLOUAKrV9IwV9NAXS/mSbEhXLg9OZ950QTmD6IZ+/R2W6p
+         lZMRCX0ZIC8ClPXZAzRNKlc/OTzzQVDxtbkzb4+miT00nL4z9Es+AY5nAHA2vWoxLvj5
+         mksqbqZEN8KyVjJej+l2112DywUnTsrvPhBaPmZnpEQT8lbHVukB4s874zygef4xTBR8
+         nv3pcEhZt9d5g1ZrLuA5oRigQyAteEtQu5mt8Z3yFe6ca0F894f6Se+/QAYkRZy0reO9
+         GCEQ==
+X-Gm-Message-State: AFuF++lWVyD2eq04Q94Q3PUpkPyak1bY1marxFsswm+j0Onlhvb2ynnG
+	tmrvoXqY0yCBOM9O4iGBDHcKt32IU72JS/hOzm/4hQDqpe/BPY253JAnyNDm0X4ofxHTQhVvDXA
+	x8a0L
+X-Gm-Gg: AYBFou1sigebfcCHSq+lvSx0b/JBFaxar4ZQjqRyFBnJpd2H+TZSzX2vk3ZWwQIC6tW
+	ypnuLlUY7fBmWSiRIv91SKyodJLPalvtEFkfoERN2Iev7r+aZlgQKFD+1X4GS8JQCODKLIznTEm
+	zBQdJuoRLIzjJGRUGVDLLYrD3dIzU/pspKjGcnKRF4mk4msyGa0TyECr1v+APeaP7xunBOPLGJb
+	bnnMkU6qRxsfjikKz9uMknHGGZsNGil83ZMraXl9weY2blYAiu+nardXN7DaCbiXMoGmhQYsz8Z
+	YkwZ99pTwUeGr0O4PjNE6KO1XBHkDXZAP786kwiDrgX5iZ0Wfw+uwdHJ6hYzBnMJYuFw6aAPTV5
+	WbKASpfdPM7tDLj25ej25jicUtOU9DUxfmT6nnAbPiGe4uuVYQ3OroMNI7QmAaYLiSceYpbsZrq
+	UFKQ72XtfAWLuvvBFLACo5bNW+t+98+eESVOqXMlH+UMsbYTy89iLhA+ZB74cn7Wg8nrl/u5Ez3
+	UyVoKJdU7x/OWbvJPj646LRMyBfiKM8ljvgxFAbGCs=
+X-Received: by 2002:a53:c152:0:b0:66f:c1bc:c097 with SMTP id 956f58d0204a3-66fc1bcc711mr8764132d50.95.1789051414786;
+        Thu, 10 Sep 2026 07:43:34 -0700 (PDT)
+Received: from [192.168.40.230] ([2001:1970:3847:e000:1977:be2f:4a71:2892])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9120d9df1b6sm2057546d6.18.2026.09.10.07.43.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Sep 2026 07:43:34 -0700 (PDT)
+From: Trevor Gamblin <tgamblin@baylibre.com>
+Date: Thu, 10 Sep 2026 10:43:22 -0400
+Subject: [PATCH 2/3] Makefile: don't grep when setting
+ CC_SUPPORT_STRICT_ALIGN
 MIME-Version: 1.0
-Message-Id: <20260910-spacemit-k3-v4-6-0793b62329f6@linux.spacemit.com>
-References: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
-In-Reply-To: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
+Message-Id: <20260910-makefile_extension_grep-v1-2-b3ae0d456a6e@baylibre.com>
+References: <20260910-makefile_extension_grep-v1-0-b3ae0d456a6e@baylibre.com>
+In-Reply-To: <20260910-makefile_extension_grep-v1-0-b3ae0d456a6e@baylibre.com>
 To: opensbi@lists.infradead.org
-Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
- Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>, 
- Samuel Holland <samuel.holland@sifive.com>, 
- Heinrich Schuchardt <heinrich.schuchardt@canonical.com>, 
- Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>, 
- Troy Mitchell <troy.mitchell@linux.spacemit.com>, 
- Valentin Haudiquet <valentin.haudiquet@canonical.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1143;
- i=troy.mitchell@linux.spacemit.com; h=from:subject:message-id;
- bh=vIkOFmPPJAWYjaHzSlnfe/ds0On3A82bMNJd2spPzaA=;
- b=owGbwMvMwCU2g/N9w09jE33G02pJDFmLdhiIxewu/Ps95sI1Ox1HEwudI3+WPZ2R83KLkxjfQ
- t4Cr5x/HaUsDGJcDLJiiizdD3i2FfhE2RYIFPrCzGFlAhnCwMUpABN5eYvhf2yPVMmC68tPpH6a
- IPLxlsnkNxOWh3/k/zpX5lTSLZ7NW+IZfrM2x9zwWb9uges83sXGS2eb9cZua09aNXXn2wtX18S
- V7WYEAA==
-X-Developer-Key: i=troy.mitchell@linux.spacemit.com; a=openpgp;
- fpr=3FE5535CF1B0E658E57DB59BAE1C2FBEA7DB42E1
-X-QQ-SENDSIZE: 520
-Feedback-ID: zesmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
-X-QQ-XMAILINFO: MnDLfP0IFnF4+P2ietP8ZGVx2Jrz0FZszx/l/y6ELp7Quuh+ijrplbm/
-	kBlxPsFgiz4XWH581xgpLZRk0KLjq2wnXxna5ryN38tRkoyLvC7zKXs9TeDHzFCZPTkIF7W
-	uZzacSjkTBLRgcSup8yu4ZABuASt9nwMIIW2PwataSlKHhBLTTpEj/W93035VVJcSsrsy5U
-	dN+B5gbR8ZvGJf3Q73DqxvS5LDHbnUQWpMH4oRHrJDWvM75KskpscquyhrfeNq6qyMBf9Ym
-	p7xHoTE/7TivoYYZo+2G59+RugV0UIcvLIdfnX8255UljvEh6z0OgMytmc/uHnRoY/Ff9sM
-	Uxnkoq5ylSljLpvJAwFf+aDD4xAIEJScT9vU/LsMQvQBgwQ/wrlSZvgMjJljhgn//lAjJDO
-	mXCMxdo/1viiRoXZDxRmeQZPjsjpMvof93OFqHmzg91y1TtgINP7H0iTXzJ3DvdwejvBFhp
-	Z/sjWhQGzjvwp3ZRzLmlJ9AWSpTIVeeNAh4CkliUbzA3gqiSca4+3Upkv+GS1CATM7rJ9r3
-	YSzW1PK2vE0lSBOGsx6b4oryheeiArquh1MOUmjoqb6lLHbtBXfAVRsU7ATsve7NDLdn9N3
-	TKIvX7+1FE9mtVSiujVi90rv7vU9yAf6H504S3pJrR+AsUZLT5te5tEskQIm7LZwDNaLcEW
-	RC7Fed6oh91AU07zBWh9/BQtmNk+rKY4mLE04lDVguUHqXSr3s16uXcVVq2b5Xe2zyjzUHP
-	+ls069qLLcT3ba+z92ZRBJZTGbHBxJsYz6Wse0lKhQWDvGhiekgulO9i4DbtOhTIYSc5Qv2
-	TETl8+s6/MGhnbnPZlJiV0p9jmsE0k80hug/2rk/B6Gx0AQvWF0LAfCwM9rQWAE+5G2h/PM
-	zqdtffblYR1/rm6qvDrPukj3KKQjt0Mww/xLygi4iuwjXYk9i5DYxgak+ZWQt3GRfzJGLW3
-	IHeMemNwtUW4QJ5kn4tYhuBvBnnhjMXhjaMNRagMe3Fg+ygdit2k0J5GbJdZE+k4FapLnnt
-	sb2xzc3VVNTym9iPQOUcN8HFsqSrJJKTlOwHcjmZgVF6t0TtgSb5SZ/ugV4uDtr6Utc6Npz
-	+J2JTPjTnNOG3sRYgra1i/+7Pdf4qsjIWWY35mDAH2yZ819clysiKnl+nVNBR0Y/57rlr7B
-	vT8NY3IyJ+fZd/E=
-X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
-X-QQ-RECHKSPAM: 0
+Cc: carlos.lopezr4096@gmail.com, Trevor Gamblin <tgamblin@baylibre.com>
+X-Mailer: b4 0.16.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260910_070238_408121_17500CD0 
-X-CRM114-Status: UNSURE (   8.95  )
+X-CRM114-CacheID: sfid-20260910_074336_196348_0840AD32 
+X-CRM114-Status: UNSURE (   9.19  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -111,40 +102,28 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Valentin Haudiquet <valentin.haudiquet@canonical.com>
+Check exit status from the compiler/linker check directly (similar to
+OPENSBI_LD_PIE), rather than using grep to search for a pattern. This
+avoids potential unrelated matches in the command.
 
-Only hart 0 is powered at reset on K3; secondary harts are started later
-through HSM. Restrict cold-boot eligibility to hart 0 instead of using
-the generic DT-configured hart mask, matching K1.
-
-Signed-off-by: Valentin Haudiquet <valentin.haudiquet@canonical.com>
-Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+Signed-off-by: Trevor Gamblin <tgamblin@baylibre.com>
 ---
- platform/generic/spacemit/k3.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/platform/generic/spacemit/k3.c b/platform/generic/spacemit/k3.c
-index 967d09bf..7922ab11 100644
---- a/platform/generic/spacemit/k3.c
-+++ b/platform/generic/spacemit/k3.c
-@@ -102,11 +102,17 @@ static int spacemit_k3_early_init(bool cold_boot)
- 	return generic_early_init(cold_boot);
- }
+diff --git a/Makefile b/Makefile
+index 07ac7e30..a8ccfbab 100644
+--- a/Makefile
++++ b/Makefile
+@@ -201,7 +201,7 @@ OPENSBI_LD_EXCLUDE_LIBS := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) $(USE_LD_
+ CC_SUPPORT_SAVE_RESTORE := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mno-save-restore -x c /dev/null -o /dev/null 2>&1 | grep -e "-save-restore" >/dev/null && echo n || echo y)
  
-+static bool spacemit_k3_cold_boot_allowed(u32 hartid)
-+{
-+	return !hartid;
-+}
-+
- static int spacemit_k3_platform_init(const void *fdt, int nodeoff,
- 				     const struct fdt_match *match)
- {
- 	spacemit_k3_hart_init(current_hartid());
- 	generic_platform_ops.early_init = spacemit_k3_early_init;
-+	generic_platform_ops.cold_boot_allowed = spacemit_k3_cold_boot_allowed;
+ # Check whether the compiler supports -m(no-)strict-align
+-CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 | grep -e "-mstrict-align" -e "-mno-unaligned-access" >/dev/null && echo n || echo y)
++CC_SUPPORT_STRICT_ALIGN := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -mstrict-align -x c /dev/null -o /dev/null 2>&1 && echo y || echo n)
  
- 	return 0;
- }
+ # Check whether the assembler and the compiler support the Zicsr and Zifencei extensions
+ CC_SUPPORT_ZICSR_ZIFENCEI := $(shell $(CC) $(CLANG_TARGET) $(RELAX_FLAG) -nostdlib -march=rv$(OPENSBI_CC_XLEN)imafd_zicsr_zifencei -x c /dev/null -o /dev/null >/dev/null 2>&1 && echo y || echo n)
 
 -- 
 2.55.0
