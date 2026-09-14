@@ -4,106 +4,103 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 731CAC88E50
-	for <opensbi@archiver.kernel.org>; Mon, 14 Sep 2026 08:39:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7A738C88E6E
+	for <opensbi@archiver.kernel.org>; Mon, 14 Sep 2026 08:39:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
-	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=IG1grccqqvh8mtUJ7cS3EW9E26djE+oK/Kt8dg325FA=; b=EEV18Nnpgx7F4Q
-	WwH5dlGcqMI5BxkjKApDmYYm8q0bWw24YxxRfiC1AMpQo9wc3TYZtwQiboCcUCegEPZRTcliCeKxf
-	imt1G6K+usFZQ90NPiEVneJ1Cnv+a/NWlrnRgOGhdE/swlqe52l7X6LgjFLAxqFRKrTvwYVWhfqlj
-	ffFFzaxyE+IwbgrJVqDN9xUGIc2LHZ9WJPFY7+NoW8YGB0M2RpRd9A98bTCBXM/U2GbPyEh/kPzC0
-	/2liPtbDQbnL/njzkzkl3WpQPKHFjewoGQ1bhYORPyqo/RAcqZnAKNt7QTpPRxFiM+a01HXxDzeJX
-	DzfHzlhJkBEKvsTZBn+g==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=VopZc5IhXUxseLpRYlj2uQhOmXZiTC7+dMikCy5eKR4=; b=3a9U9FqUq/rwRH
+	tu5/HPn5WOyeHKRgqezS2868GZVMO2ZloPEVyqSlHsQNPIR5iS7C2ugVVsyImtkiTSY03hbcI96SW
+	OiZ6GzEYI+OeYJYXTtiKdoakGMwkw3htCkGARIOMLwuJ+aj1QWG+zbItCkJ766tm/8Qd1K1aVpOFE
+	giCkSgqIJDKTHvkNLqVs6OvJkqn8nQwhAybVhZEwZutLg8eoxYbg0qSpL7V1pmIgIs4szmyFKYr3u
+	ldYGSJgubAFlvlhWsnbUdkRAe/lO/zWMB/YD/nuA9YeM6AM+Sl7bOE+5XH3M9bZanGNtKi3Ema6n5
+	XWznFyQ2EpZVkOwz4c8g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x62E0-00000002m8i-3cGo;
-	Mon, 14 Sep 2026 08:39:40 +0000
-Received: from mail-pj2-x10.google.com ([2607:f8b0:4864:39::10])
+	id 1x62E2-00000002m9M-1ytc;
+	Mon, 14 Sep 2026 08:39:42 +0000
+Received: from mail-pg1-x536.google.com ([2607:f8b0:4864:20::536])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x62Dx-00000002m6a-3yxK
+	id 1x62Dy-00000002m7E-3stA
 	for opensbi@lists.infradead.org;
-	Mon, 14 Sep 2026 08:39:39 +0000
-Received: by mail-pj2-x10.google.com with SMTP id d9443c01a7336-2d747f01363so11992315ad.2
-        for <opensbi@lists.infradead.org>; Mon, 14 Sep 2026 01:39:37 -0700 (PDT)
+	Mon, 14 Sep 2026 08:39:40 +0000
+Received: by mail-pg1-x536.google.com with SMTP id 41be03b00d2f7-cc4aa18f9afso2045886a12.3
+        for <opensbi@lists.infradead.org>; Mon, 14 Sep 2026 01:39:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1789375177; x=1789979977; darn=lists.infradead.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=0yZ4rj2HwupoTFNsJXwhT0qGtaGIsy3xhePLW7yiN2c=;
-        b=Jj+z0bbdsqLAgVBMvvtC2CAYM1RUgy8k+k2h+wR50QArk9qlcpltkVLNc2JSwtZyNI
-         kQqL0JjpnXJE4TgasKKdAlskVGUNrlrNcOA9nyWkiQTNPbo6aZTWfA5w2UYT3JJnEcpK
-         e0gkDZESYyQFi5Nr/6wNyZ5GMdiITLr/LyjSynIbCmnGXBum4FiMpq3BhWZyls4ItdMW
-         qStQh795LOfo+/xG956T4rOX77PmNSDsxqTiuOIM5YXt1aEAk/gdOrKn1sPRlTRcCpTo
-         DdtgQ5s0+BKW/4eEWpmxf4JZkQ4XeRjcf+L3QauwKC4jXRoZ/ItewieXDoFU6IWrIWSO
-         XUJQ==
+        d=sifive.com; s=google; t=1789375178; x=1789979978; darn=lists.infradead.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=zDvXEo0jVTj/l3bVFTbEZuG5Zu336o9nooUeKXvC9qc=;
+        b=L48upVoikMEMrg1T3qaRdTPLaqDT1zqZp1OM3fkRxRVgTR7lBlPtHVKRtfZ54QQK4+
+         +2YcHT506cRKH+Eog5UW8mxcMPVf7n3SlQrdGuSXLRMtuBukmftvbDWX1xtuABsdqXhz
+         8HmmtUsCFW21d6QVbnON/8D3UlgdnkCLpgVTsjEi/wjaytUaTDIcmGCCgFxmgkPNhRxj
+         aW2OgDOmYsZSCbr++WXxQM9wWyMJuuekp/f2Vi7ei/Yp3BsoTFlYZp1mOKAj6oxveFbU
+         Z/VYSLvtlaQ+GiWFYa6NH1ZYzxAgrxmGRNWL+k3RkEaRkPhOnSYyDpl87mONzxlHkCeS
+         p65g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789375177; x=1789979977;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=0yZ4rj2HwupoTFNsJXwhT0qGtaGIsy3xhePLW7yiN2c=;
-        b=ELiW3Z6kqRjEaFZ+Wyfp3LkEO61QWIIBZX49sODPTJRL8NXK1cFAK2fzAlJR53Wj9A
-         QgunUDu3cEFiRciKPwh+m/5upE5zu9gFKoQlXwVUXPRX4ReBnPr+g3LszJIggfmP2Xb4
-         sycs0kdzF52hkP6yPYwW1LjRPcC/owiN5YQHMbFHGDMNHUky/N9Cw4YGmzL4DrBJHazF
-         jzQHPzVoAWi/UyHKQkr4pgefT+1csoqHSgUg6/+wPdpNVbCR1v1NVRa77HPcsXsq/A2V
-         StJoKAHY4H7CP+wlL4iQfRYQ7d+mS7U/lmcYtP1e2t7A4ThxzpOEBz8j3KGTmw7iIPqJ
-         hQ1w==
-X-Gm-Message-State: AFuF++nz4kwQC59V9tLy5yrUfNgOsdAHcTi6wZrZ6pyKqptlmeIkgl5u
-	NAhLli7flyPS2p9pgwUvgs7wKEZHLju+dOqWXF3uHP7jI+YvBsJwoO51fT1f+El0et8=
-X-Gm-Gg: AYBFou2LohYgnslmDF13/wrmjV19KlV/Wm5jF3Nqsbsn1Wzxn64Ay0XZJOKRLk5rnyd
-	sK0vmJrOdzMKx0gzhDT7Rzl+snp1dySygVZkv61rDu4IxYhpwKxXvK55sii5H3A3C08xHGgl+3d
-	pe+20Bmt66JcL4OCWtjRZAwcGa5xN8P9BKTgCJ6TUFpHfy3uq7JIhTEJvY5txCSxovqHu+0OvBH
-	RJwAHyJs4u3jmZhhcDoLrng/zSitD2X/25fGLrsFhUSpVNgMouU7fj9ufIUkUZovJ9gDzMpIlNg
-	nnLHO8vkgz4OOhodzyeoWD20IeRAji7hFdH1gm330V4KWFxxD4UKU/tGbhmAi6pD2Qo/+ret0up
-	gJm/tIrPfLIdMxzWAUBcuuMqdfkSZqsxs6JkyOyHq8L5kos6MiAGI3BV1pAhop/AHDEwYh7LBGz
-	TAJPQRwXY0kFyymgU+c483D13GHorBtWxIw7U22tn6Btb4SzzDQl1CXhT4dHLADX2Yud99HKVjJ
-	0cZcyXuUg==
-X-Received: by 2002:a05:6a21:9187:b0:3c3:a3f4:5485 with SMTP id adf61e73a8af0-3db4047d0d7mr3482087637.6.1789375177002;
-        Mon, 14 Sep 2026 01:39:37 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1789375178; x=1789979978;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=zDvXEo0jVTj/l3bVFTbEZuG5Zu336o9nooUeKXvC9qc=;
+        b=tIMoB0f50qOdlgirmUTyi96pvLehM+exm3d9HXEuRuKU9zK+DOIniIF2eV0ZD102kc
+         MTKxLvk852t9bWfCxaQL/gBK3rMW7XgQvtZVgTI8EN75ZiCDXRVmn88F/su1zR0o9Fah
+         jpXujiwX7bNbo02+4dE+IsGydYbhml0J60hu9bsV9FEluaTr6iRnZo31107KV0wS1fNL
+         rxjLT90v+DU9SteovCtgZkUoJVgG/Nc+lw6bKVyEeOSZya+h6BWskpUNrF5oEHVs4fD2
+         L8mij1EjeqW9IuTouOHLZlqdZ94jLW6p8dy2+iUOpEObHwpVYG3K0n6DbYBTdRWq9tA0
+         CyPA==
+X-Gm-Message-State: AFuF++nGjZG1wxYqX2Q+NRgJpP59TWh5x2lwNQkJ2FK1R3VsZYIQoFXT
+	N0lka5+iVc/EsHwut05P1GsvHSWaKbow1cytnXppYpYserA7AoGsLCbMnqF0mo1UPT8=
+X-Gm-Gg: AYBFou2TFr6bmJzPzh84NXWbkWfSr7fOdluxQ0HEgkkdcjAJKphOwOMGMIy19iydy2n
+	l6KXKCyjAeofhvnw5cjYQiB1k/PhdyAAAndLzRutuxkqwhjfSMTSLpRTk3lKDfpTDOMG6qIqs/J
+	L27cvwJwKf78Imcyct8bySibT5Z+BckxUVl+5/VFF+YQ+1YBVN4Duq4MxvkeGwGXDsHcAuVOIJQ
+	TAiKe6trE3ru9Pa8UWLAKxTO/xR/U5jjpg91clw8386FU+l834L2HuEOOSO7S4iwMRq774iUdz0
+	NJ4UFjfqKjdiXhGCydGiYkk1StxBSd/xrsxdXkzknoFY9q2PRP+d20xZ1WYFe5d02pPEmmvoY4H
+	lkJIFYcsCxReilRa6vq0VhDDeo/RUqWW7DQSdd2DFrx42dejWY+8i7PIUe6kxOJY+nb2U1GZKU3
+	IN6E3rFC2p9dKATIHkk8hZ6WyxXUljcWYedrKXWg2QLWzxqOLF/JKyIxRxf/casrwnr/xHtQtoY
+	ZwnUBJZ8w==
+X-Received: by 2002:a17:90b:4a45:b0:398:d292:e6d5 with SMTP id 98e67ed59e1d1-39dec10b1f1mr3495076a91.24.1789375178084;
+        Mon, 14 Sep 2026 01:39:38 -0700 (PDT)
 Received: from sw08.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4e9a8a9sm24665369eec.13.2026.09.14.01.39.36
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4e9a8a9sm24665369eec.13.2026.09.14.01.39.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 14 Sep 2026 01:39:36 -0700 (PDT)
+        Mon, 14 Sep 2026 01:39:37 -0700 (PDT)
 From: Nia Su <nia.su@sifive.com>
-Subject: [PATCH v2 0/2] lib: sbi: Fix stale trap_context/prev_context
- linking
-Date: Mon, 14 Sep 2026 01:39:32 -0700
-Message-Id: <20260914-trap-context-fix-v2-0-3a6bedc6fcf0@sifive.com>
+Date: Mon, 14 Sep 2026 01:39:33 -0700
+Subject: [PATCH v2 1/2] firmware: Clear scratch->trap_context on warm boot
 MIME-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIAMSyp2oC/2WNQQ6CMBBFr0Jm7Zi2FhBX3sOwKDCVWUhJ2zQY0
- rtbSVy5fC/57+8QyDMFuFU7eEoc2C0F1KmCcTbLk5CnwqCEakQnFEZvVhzdEmmLaHnDoaP2qrX
- s6gtBma2eij6Sj77wzCE6/z4ekvzaX0z/x5JEgc1gW2t0PdVW3gNbTnQe3Qv6nPMHQerFBrEAA
- AA=
-X-Change-ID: 20260902-trap-context-fix-b9e78441953e
+Message-Id: <20260914-trap-context-fix-v2-1-3a6bedc6fcf0@sifive.com>
+References: <20260914-trap-context-fix-v2-0-3a6bedc6fcf0@sifive.com>
+In-Reply-To: <20260914-trap-context-fix-v2-0-3a6bedc6fcf0@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: Nia Su <nia.su@sifive.com>, Evgeny Voevodin <evvoevod@tenstorrent.com>, 
  Nick Hu <nick.hu@sifive.com>, Nylon Chen <nylon.chen@sifive.com>, 
  Zong Li <zong.li@sifive.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=967; i=nia.su@sifive.com;
- h=from:subject:message-id; bh=/BnES/XksS+elY3wZH+GiK7Lf0WtW5zCgBjth70NPNM=;
- b=owEBbQKS/ZANAwAIAYihNJa3+YfgAcsmYgBqp7LIgfgmp+Hzf+pP1DeA9Te6LwBDriCuBmadj
- ncVVQ+zaTKJAjMEAAEIAB0WIQThGl/T4FqBBU9NhIeIoTSWt/mH4AUCaqeyyAAKCRCIoTSWt/mH
- 4BWdD/404hOgb3rA6Mye9MtvC98Q7JQuwkFmfjLN9vyaLg1SSW8yX7RcBDH6YED8ZNTl3yk6yYC
- uj378bnHfCU9+hTytXP7xJRi8DxHL81C9J5p/oR40IUbjrcyE4gxB18Rv3Os1aLEP3WvfOUKiB1
- Gl1Vgm4FWrH/MhQmFH+6FrOvCsbaEAOdweXDY3Y3zV5TGxJqthttogxT/S/SQjwgknYzUN/UiTB
- 6ibqnU8bEGlWjlyJ49YhrcDHyfI6w14pSSz0itHmMn4ZuNR7mIPB0QxY86j3VyovJJzOgX9RpX+
- n67HcShxl4sshd/o4FheEl55s29tFN90kuZZvmeGTj1yWN6na3qe3QBvhrm4YRKOmmgrFhBW4gs
- tyQQX9VC9LycNLofC2yqkgUODNYLwF8ZTuf5o9dRp7xnMRKsb3Y0hwoXfaTSs3LEycSVRry3nrZ
- 16spZQDkcY9w8cZKa6FHof9OOUiENrdtTGfN5KftItuLmJp4cA6evbIhNiKnVdNZE9jfr9OEgQB
- n6b3Yzdm/kq41EctiOKpRI30v8ekA27i1pv5+kFqtkgASWibp2Yzd83hCjycCBZZ2Z/X/5D6Mdz
- pc7r52n0/ByeILcPCggqfXtkO8mUcAs8/VGt5NqGC3Rjla8pE5UyDQvbYe/XMe7IR9MNjh/+8sD
- tdhXqyAqjKZ8dmA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1428; i=nia.su@sifive.com;
+ h=from:subject:message-id; bh=tg9zI5bQAR9GfIN8sR3In4PmUikyFuBK+65rtfT/Kjs=;
+ b=owEBbQKS/ZANAwAIAYihNJa3+YfgAcsmYgBqp7LI2cEXHXy4vEIwRFf0Ob9mbHFNF5Aw4tIXy
+ At1E8xBFkmJAjMEAAEIAB0WIQThGl/T4FqBBU9NhIeIoTSWt/mH4AUCaqeyyAAKCRCIoTSWt/mH
+ 4LDWD/9V6tQd+a0MURJJv58UMncRda4+ommKgYYoI9Ikq3JBQjOmyG3rCOra8+HBf6TyAlfqM0t
+ hOCe+w++QnmZ58IBroLorsIcIr4AUYqbSXx7iWFli2fkZ0KSa8zDExH6uulK5WSVmsv2wMXDfhX
+ yyWs5Pch0k08UC9R/Xs4JcOY0tkm8EnL2XYYYh3N7Q7OwkES54Ln2D9UWPoqJXWzGdM2yU+ffhM
+ EPD7LJdsxud3ppSYdV8L8Zmm0JJBrvzHGH3aQRTxe2arKYteDNTjuoYFg7RaxIn2u/XpHmD3LEf
+ XXwCqL+eRu5PIxeppBicYkkUE29Ee8VeCMGT2jFtp2r2YuCtXLYR+EtEbuNtj6N3gTKnGFGWzGF
+ +muNLpnKVAPPv1alHK9AfWM3HVO2nVF4wS/t02kgp949LYW2+yGGUygcAidFrsJXQCQmqlQ3+yi
+ NS+HVll1NVBnnjlqAHOuHkAWv4Yi9+rDUXUMa22mvgmKEcu57/lB/jJl9gkVeYw+FhZGVRSyGco
+ AYAdPKDu4VQVbvqFQmu4LVpQUqcZJNrt6h/J+05D9yKRvsCvBoK1kHahFzz6fsuTGC/WGWUToHm
+ MeW893HZPLM6JDzrbkVmJJT0emX+i5QGAhYzBPhHq5VJyd1ay1/PT1zqFJLZYvMJKAB2v8+Qex+
+ kPH0BwX5K1T4HLw==
 X-Developer-Key: i=nia.su@sifive.com; a=openpgp;
  fpr=55235C875092ACC578EFCE6CD1699E646B29B1AF
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260914_013938_005708_CA084A4B 
-X-CRM114-Status: UNSURE (   7.53  )
+X-CRM114-CacheID: sfid-20260914_013938_974842_76891B36 
+X-CRM114-Status: UNSURE (   9.03  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -121,33 +118,45 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Patch 1 clears scratch->trap_context on warm boot, since
-non-retentive suspend/resume jumps straight there without restoring
-it, leaving a stale pointer misused as the next trap's prev_context.
+sbi_trap_handler() links tcntx->prev_context on entry and restores
+scratch->trap_context on exit, forming a stack that unwinds through
+the same path it was pushed from.
 
-Patch 2 fixes sbi_trap_rnmi_handler() to link prev_context on entry
-and restore it on exit, the same way sbi_trap_handler() does.
+Non-retentive suspend/resume breaks that unwind: the SBI call
+requesting suspend jumps straight to warm boot (jump_warmboot())
+instead of returning through the normal exit path, leaving
+scratch->trap_context stale. Since each hart's scratch space sits at
+a fixed address, the next trap taken after warm boot resume reads
+that same stale scratch->trap_context as its prev_context, which
+sbi_trap_error() then walks to print trap diagnostics -- producing a
+broken trap dump.
 
+Clear trap_context in the scratch space on warm boot entry.
+
+Fixes: 60ffc154c84d ("include: sbi: Add trap_context pointer in struct sbi_scratch")
 Signed-off-by: Nia Su <nia.su@sifive.com>
+Reviewed-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
 ---
-Changes in v2:
-- Patch 1: trimmed the commit message, added a Fixes tag.
-- Added Reviewed-by from Evgeny Voevodin.
-- Link to v1: https://lore.kernel.org/r/20260904-trap-context-fix-v1-0-6bf7fa45d5f1@sifive.com
+ firmware/fw_base.S | 3 +++
+ 1 file changed, 3 insertions(+)
 
----
-Nia Su (2):
-      firmware: Clear scratch->trap_context on warm boot
-      lib: sbi: Fix stale prev_context in RNMI handler
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 0c5c65c10e5cf38d1cc6d0b3a66ffac661e7bacf..8ccca5e91c09f9c4cfcbab9c31c7e77afe7a96ab 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -364,6 +364,9 @@ _start_warm:
+ 	/* update the mscratch */
+ 	csrw	CSR_MSCRATCH, tp
+ 
++	/* Clear trap_context in scratch space */
++	REG_S	zero, SBI_SCRATCH_TRAP_CONTEXT_OFFSET(tp)
++
+ 	/* Setup stack */
+ 	add	sp, tp, zero
+ 
 
- firmware/fw_base.S |  3 +++
- lib/sbi/sbi_trap.c | 10 ++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
----
-base-commit: 35511bc6ee1c9c17b6a89b44c52e2044bb51b979
-change-id: 20260902-trap-context-fix-b9e78441953e
-
---
+-- 
+2.43.7
 
 
 -- 
