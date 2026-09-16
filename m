@@ -4,109 +4,107 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 73F23C982C1
-	for <opensbi@archiver.kernel.org>; Wed, 16 Sep 2026 05:57:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 05323C88E5C
+	for <opensbi@archiver.kernel.org>; Wed, 16 Sep 2026 05:57:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
-	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=9xWRoeyUM6CH7reRJBYuPDuk32thmocR29nE8m48rAU=; b=xdcbnVC5EII2Nk
-	+oH4rU1xmKjLkvvi+uX25A2E393KvEuneCRMJTGmJ3QCuYUz5uty3//vereAza0QHnN9h39saJTGt
-	lvhsaq6py34FRgWrM5qbSS2iWTtrkuFvwEEhG68eMm6E3hS6ITLH+LfqQO/A9+AsqGXoy3VRzMIwt
-	KE9ghkgyOYA5En13fKrUCYvxdnh5FzSmtdYQhTIHfAtah0vEs4GLe4fkV+eXvUwPEQ1wZfF6q6ljN
-	6bRquiYv0uBBIJQTN+Oc45uHS31lKW+bmu5ARf4DdXFyQyRHlnvGjnsvx2cXFKGfi4CH0/7tcGEmH
-	LeFWkRiOrOVIfFdwIf3g==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=0WXYSnCBqXyg45XH92D6yFgmyugb1VjP+bmSoQDDzA0=; b=kUQTUdStiShPGr
+	m/+9IeHyY8swOdrzDaywSABEb2T9GnvOyupnRdWD6+sVCJiX0rCCFvZQ/LxxD5JaiSEdagz32Y54Q
+	/8kdyI3g9haOV37Cko1s/qMy5RpJxkLrUHnj4Qyh+VRuojD1BBod0IyFWFHiuocSl6ryfmYicqaCF
+	Rosm/v6FMgZJs2ZxI5vqCbnOLS4OAEuKEtWTYp/JySBeq0optUTfioM6+OAr/ea5BVpLhCGzBWLOA
+	u2Fb9fd/UzzHVz11xFOOwU+JPIk1Sxix+j1kUgKlcN7HDupVI7zNtX2DEJ85YgffPanXElHzEhAry
+	f2lBiuBSBowpa4renNNw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x6idf-00000008Qf9-15k3;
-	Wed, 16 Sep 2026 05:56:59 +0000
-Received: from mail-pz2-x0f.google.com ([2607:f8b0:4864:3b::f])
+	id 1x6idh-00000008Qh5-2LfB;
+	Wed, 16 Sep 2026 05:57:01 +0000
+Received: from mail-pz2-x10.google.com ([2607:f8b0:4864:3b::10])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x6idY-00000008QdE-1mjx
+	id 1x6idZ-00000008Qdk-3lTd
 	for opensbi@lists.infradead.org;
-	Wed, 16 Sep 2026 05:56:56 +0000
-Received: by mail-pz2-x0f.google.com with SMTP id d2e1a72fcca58-85469e211a3so413907b3a.2
-        for <opensbi@lists.infradead.org>; Tue, 15 Sep 2026 22:56:52 -0700 (PDT)
+	Wed, 16 Sep 2026 05:56:59 +0000
+Received: by mail-pz2-x10.google.com with SMTP id 41be03b00d2f7-cc4aa0f1766so487101a12.0
+        for <opensbi@lists.infradead.org>; Tue, 15 Sep 2026 22:56:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1789538211; x=1790143011; darn=lists.infradead.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=cA4naszIO367kaWgrQQVOsGsNu8rx5bEPZmcwItfCVQ=;
-        b=LzTqqOncA0F+YbF+w74623Asf8inMtBgX/gB1Q7sBTmNi13jjidGQBZQ1ddAezJqJo
-         lBs1nXy10leObOZV3cqfndt4zbr2gceDUPCdyrByR4aVvfaxVl1TwDBAg/4r6mkdUhsC
-         vQfWy2YgGs66eJvK5TKs317Qx7dII57E1+a/5K6QAHspGAFBw4URTMBFl9VpuGFWE2tc
-         Z38UVzNmA8BjBJuAuoecwh4FRAQOj3nO4XGvUkiaLhxPOhdi8q7/Jo/HDjkZetZ7fUYP
-         C4mr0YeUA+NA5GdSsy/wdJKni818Qoid5QDiyK3Acs+n+BDADYIvzgRsXfUkYS5OU+BU
-         7zGA==
+        d=sifive.com; s=google; t=1789538213; x=1790143013; darn=lists.infradead.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=yfT/SKQVZJjdILapgnVa8FJgiECRZVmhWOM1CBHiKgQ=;
+        b=U+a767bIRmvzTqJHyqSxOTcVC7gR4S4+QphSiQXyFOjLwnAO2Vezpel8rBr7m84HzG
+         lDdpQko5mNUOHv/Wb7qcHGAURgaMeIGi0hTgxPXRVWC3wrDkixIZMkcwtB3k5eKcPqkw
+         Ys/tutgiA0zlsjD3sFuK1mG1Epl9p4ou2porrEzqBDX1fu6S6z0PKzwaj+agVcZjGiZW
+         VW4a4L632+43RgnGeTQNkTeVV5Gmkku5+cvahosCmCUGmnPMUn+NJku1rCHp/WdMPzyx
+         exs5XWwB5BM3FmeL+CBNzdHzRMqKlY3rhbtD/xWk43VedwtqO87Wm6ktY+z0EcJ67YzF
+         EA1w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789538211; x=1790143011;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=cA4naszIO367kaWgrQQVOsGsNu8rx5bEPZmcwItfCVQ=;
-        b=Hief3O6bIiAXcBpEt34E+6Hhkzrja6t2DVV7WfDosOcCPa0y5tlZ4J19yMLT2bXaSa
-         QRKAhXxVe8lXbxpNmEDbHyv/PxqsqQFay4dQbRVh+xddnK2QlhJGIIs98D2BbL+uZ8UN
-         u4roGLPJcIH1hWT1/iQm1ewoQuIRzybySI9K1zI+9Ejac4cXHfvxrSJuj/djHMvn1j3d
-         B6LLgZ+AUi1B+ON9zgUZCMDpwYYHiSQQAmxwkpx7Rup9yenjgeM4cExSat4bjylWnOV8
-         dlN9rK7dw9Okgjqyr5/cDHpCALWGibhNDQrxAlXaPYh8AhCQHsjrBoJGMQZ3jSZUTbd4
-         QFZw==
-X-Gm-Message-State: AFuF++n4kexiC4xtvrGSvS3IAfANO2uO7wh3kF3hblIortgjyaj+32zw
-	zs73lqUcUQix5Hbk5mdnpnMDt+QMTJ/XM9JFipSv36IPJWk/JMrAT5+yteGZiwVQXN5RoDiCKf4
-	bu7UIdiV0AR7J2Coz1lxV64yo7KXr8DM4bCWPRQVtyBsxD59upNOqNOXa7wZTsc/9AQMDono1Un
-	afAsd0Uh+jB8POLPnf0D9BBdLgI4iVH3cGal6WfEXpoTqVjnI=
-X-Gm-Gg: AYBFou0VfnYtm4xO8AtobjdiIqeipXyE5b8hxRVSKgtPJStq+o8Bp8d1mGEHQX8OuHP
-	7AAKhr6sXSC/oLntoMmmaaPkzJiAYJ9NCGQHmsPKBKHlQT30lIbC+HgbR+AjsHwiiar9pkwh1AR
-	kmnYMOl5f6I3y5HQCltxXxylka7SYYhUbxv/Z5MmKjKjbyg3rp7Q35QxYFcyTHIqNVnWgrwElMp
-	ySek2Qr2qdQ6I+uknoMTc92QNxQkk6w6ok+xTmgdEAQ8BfGI5ycmDglyqdKDEQAZ1hqm5JwVmWs
-	OPpWa6ehmU2WHqvpfKuv4ZaTq+ulhTDVvOaEco7dB5LIrR2FgfT+BGbCHuX5iIhKPnWDM9IJbnu
-	dkdm98kO5/dkayZWkds4TaXzN8CEk0ndYy6hjSbHI1P1moNOmKerl65J1OHyGZyVlgmhUroyUsH
-	T6wMF0unBflA6X6Zz+G1slMcy/je44xjfV8PHV9rpNPQKx+12lu8UP4GnbMVQnTf5AGRKQSKAdU
-	L+Qs8sIlrU=
-X-Received: by 2002:a05:6a20:6f0e:b0:3d1:e510:905f with SMTP id adf61e73a8af0-3dd5f3c26dfmr3492683637.1.1789538211182;
-        Tue, 15 Sep 2026 22:56:51 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1789538213; x=1790143013;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=yfT/SKQVZJjdILapgnVa8FJgiECRZVmhWOM1CBHiKgQ=;
+        b=0cgXB3a+aIkMnoxPZCt1f7yrXcAz/EUbB94NPhUWMWz/p6jkncj1OXcClgUknEoKT1
+         gCg4SLLFsTmlovKVa2rE2clMHkVrgokwpE/JAdog1p9O9IS3s5pJk5hrUg/9eE+Vnsq9
+         7Dqc03pjrhtrowqOqscZRT8UPVuzIIqDPtT/htq4VCm31PZeBOaUtJaIl0Ocou6DP0IL
+         9HO0+JghYOFVrH8PMasI3WQjXQUhe3zXbkSgspDys/W19ZGkcUthYd7wUWhyG3IIT+2H
+         ko0uHw+/04CBoMCnfkgzS+Yal9whWO2KPLLYwunTmMy6cZ5ITf7jPUJxKcBS53M/Culk
+         RhHA==
+X-Gm-Message-State: AFuF++mKtlsFNIVtFd/D+QzZkJe81/jBSBTRhyayzsqxjyiKt+gTHwx+
+	KsewhkCS/x0Eje59+kBJtKrNJgRAHVZOwl8ExfyHXtFufaoEHMT0oJ69hlV2w1+S9jtgLVlhT7K
+	onPTKRVbyEWi/aiwOnEcB0n/+8X2sqbq1rnABZv3qmFLP4xjd7UA+owSvlb97H0uLx59FI3iZpd
+	f6a34pgaCC9TJS9dTRQy6b6SeQEOiqZrZxhxXACjuRlGJe2Vk=
+X-Gm-Gg: AYBFou0gfpH8pzrBrn95hHjOWYnuF6yGtBOaVpha9VDpXwbf1n0uzQGIDwBUBY72jeT
+	5hJz82SOIIEaniHmf3NyA1B3auhtOZbQ8yS9w/alVJPmYUvbL/npvVkHhK4/WvvFYFYeq7omfxY
+	sKqmzi8gDK6tlPVuLWsjemxjE0JTqV2uEEhS4AJdrWacckd5GztHUvn0f4C8/Fi2hn6MlxhpMUL
+	Vvsc7wQKpFnouQOSGgQ3+FIpBaVvvnUePXji4fZEQNtRzXzHCsrMhF0qLKAYW+fhnks6BGyGkhq
+	ypl5oi4g+Wv2fq3PVHeThTEYrumi2V2mQc6gQUhbs/wrAlj5HBLCYFhEnSn501Kb7P9pJHEb23t
+	TAxzijOmqnuT7GQ4C1upAzkyDXK2ReNekm/sMtBq/TPyyyUlviMTV53NB3kD2WwvxvTmOIx55uT
+	uGS56VEUqjqCGMb4C++PtvwVCJlKEjMI5CXPr3jC5FtyaZ3r0h4DfwO9zB45f3onjQrt2yxVble
+	1iRwkUSHA==
+X-Received: by 2002:a05:6a21:138f:b0:3dd:5831:ef58 with SMTP id adf61e73a8af0-3dd5f5ad269mr3610433637.15.1789538212644;
+        Tue, 15 Sep 2026 22:56:52 -0700 (PDT)
 Received: from sw08.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14395d4cbc9sm3550521c88.11.2026.09.15.22.56.50
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14395d4cbc9sm3550521c88.11.2026.09.15.22.56.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Sep 2026 22:56:50 -0700 (PDT)
+        Tue, 15 Sep 2026 22:56:52 -0700 (PDT)
 From: Nia Su <nia.su@sifive.com>
-Subject: [PATCH v3 0/3] lib: sbi: Fix Smrnmi resume init and optional
- platform callback
-Date: Tue, 15 Sep 2026 22:56:42 -0700
-Message-Id: <20260915-smrnmi-context-restore-v3-0-e9dd31152515@sifive.com>
+Date: Tue, 15 Sep 2026 22:56:44 -0700
+Subject: [PATCH v3 2/3] lib: sbi: report smrnmi_handlers_init failures
+ instead of ignoring them
 MIME-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIAJovqmoC/3WNwQ6CMBBEf4Xs2TXtNoB68j8MB1sW2QOtaUmDI
- fy7hcSjxzeZebNC4iic4FatEDlLkuALmFMFbnz6F6P0hYEUNeqqNKYp+knQBT/zMmPkNIfIaI3
- VAxnLji5Qxu/IgyyH+NEVHmXvfY6fTHv6U5p/ykyoUCur21o1PdXtPckgmc8uTNBt2/YFrhST/
- b0AAAA=
-X-Change-ID: 20260901-smrnmi-context-restore-b3b1f23bec28
+Message-Id: <20260915-smrnmi-context-restore-v3-2-e9dd31152515@sifive.com>
+References: <20260915-smrnmi-context-restore-v3-0-e9dd31152515@sifive.com>
+In-Reply-To: <20260915-smrnmi-context-restore-v3-0-e9dd31152515@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: Nia Su <nia.su@sifive.com>, Nick Hu <nick.hu@sifive.com>, 
  Anup Patel <anup@brainfault.org>, Zong Li <zong.li@sifive.com>, 
  Nylon Chen <nylon.chen@sifive.com>, 
  Evgeny Voevodin <evvoevod@tenstorrent.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2482; i=nia.su@sifive.com;
- h=from:subject:message-id; bh=LE7xeHpjOFUww63q0rrCHrbtDds9dNW/HJtCOnSJq34=;
- b=owEBbQKS/ZANAwAIAYihNJa3+YfgAcsmYgBqqi+i3QHBe4+/PhS5dAMBc7FtGNsNvuTt+JWnw
- FwvHWxPNjOJAjMEAAEIAB0WIQThGl/T4FqBBU9NhIeIoTSWt/mH4AUCaqovogAKCRCIoTSWt/mH
- 4L9fD/4pmfpMMWtKZ2vnpS1dOvjmViKFI6mBmJV6JlKSEamwaIPxA6erI0rnkvvzqTMuVSHz6h6
- ZdXBSU00A+4Wt1ubZJnLL5F925y2hb1XNSZ/158KExdgPetiWznS2LDoPcpMA5tLLRMLeu9wLZK
- iPzOd4HLShdh6zGYY8ACsQsanB+QmUKFX2AjkPi5fPMSWN3bxfun2kpze4DhewjgaGK8oTCr+yw
- ySqmDoOZX9VjCajqOv/RGsWlrtACvkKct9HsWLxuo/Ayd3v3IfU5Diu7Tc5anc11B7hqAcKYGll
- VhRfDOO7Bs3B4UFaxvPWEKYoP6Ev+E2rRhv4N5pnn50qdHxeA1bazelRISND7cvGNWp23AUaWWa
- lX9BbOQTI+eNVNoAl8DcfWrkwVh0cbEmgCChUGGYQqhA7d9j8XfOmUGA6F6khhAIq3J3/uFoZlV
- I89XgJMFYrSQwCkRx+2fE28u440kwfs4I8itG759nWkHdV8/XpBQcT2PfupOnFByiJFsnWZF7qi
- iz3XWt8TV1EIKINTOovcOv584H+E9MRJiQD5Ak8vhEW0qiBcbh6I28T5QmAxhnQ5A0Adlw0/zu0
- BScY9CP4Ro67dhFgO5rHgNe6X+r3+M1nc0+ZtAw0IjKQuDV0oa9Hgeesx+3Hm1daH2eYpM2qMM+
- vtdaW9XpToBFwIg==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3766; i=nia.su@sifive.com;
+ h=from:subject:message-id; bh=uu3dhcz4wVIan670q77jEh/+c4F3dHNmuIf5ocwPqe0=;
+ b=owEBbQKS/ZANAwAIAYihNJa3+YfgAcsmYgBqqi+igiorzPbZmp2QbQAeQufTdlk6rZHbvsllv
+ ycC/EuDHjGJAjMEAAEIAB0WIQThGl/T4FqBBU9NhIeIoTSWt/mH4AUCaqovogAKCRCIoTSWt/mH
+ 4EUBD/4yLPcLs24yh7hp3fJ8JvKVNXOOyO+fri8CsMklw6xUjTziZITAJhMa6A4ibJ8Czvin/AC
+ Ul3h+XzomnkDdD6XhAxJy1by3ekSSA8ovylQ4fZk2TLniaR7J/a9agu5s54qwrFmwpNiG2hIJuX
+ tK1W3wlp+/dADC01WR1UguwhAey/A0d2j9VoE7jqf7qI0RDrONy1iPSG2cRYs7qdn/EiQVlAnOy
+ DzJHPzlY0hlovzzX7mlVD0c3/WCNdOKDj+I/zX3cmOAG6T5NW7DgZQ7C/jjbgkL3zXnYBxlODWY
+ OSx9KzF1xsM8YVqEvBBu42Xe7IMFPSKmhod1m4xtT/hWagxKdxCDW5Y7f0ATySOokSQXjsHvJWD
+ h0zDWu36uERfNN4I4mgVbZ1SlZ63Tt+TyyBuRuhvoHIH6oRxv6X27QSKRBaclvWePp8fbI9O7S7
+ 4yRqabN40paVR/4LCnjaCvRdMf1lowDnqX4GJSgdsndigrcSIejU1mLcq2dmgm+MoMNRt/9y3IQ
+ ZYLJsQImZnvtgWQakAbJQfhcE3nAxSsFqdLnZAAgHfrFQTy580C5BacpNMS2lJ5WCzVBxorWPhj
+ OGiWQmlJNC11J2V1cEZIvFJcL5F9u3kIGCwY0AV73F6cMDwI5C5EIgcaknpWLn+BS35vRusOQtn
+ Xq0GmT7wn1wS+AQ==
 X-Developer-Key: i=nia.su@sifive.com; a=openpgp;
  fpr=55235C875092ACC578EFCE6CD1699E646B29B1AF
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260915_225652_688513_7ADAAE6F 
-X-CRM114-Status: GOOD (  10.54  )
+X-CRM114-CacheID: sfid-20260915_225656_181283_F71C468F 
+X-CRM114-Status: GOOD (  15.89  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -123,60 +121,113 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-On non-retentive suspend resume, the hart never initializes the
-Smrnmi CSRs the way hart_detect_features() does at boot, so a hart
-waking from non-retentive suspend resumes with NMIs disabled and no
-RNMI handler installed.
+smrnmi_handlers_init returned void, so a failed callback went
+unreported and NMIE was enabled anyway.
 
-Patch 1 extracts the setup into sbi_smrnmi_hart_init() and calls it
-from both hart_detect_features() and sbi_hart_reinit().
+Change it to return int and skip enabling NMIE on failure. Also
+update the doc comment on rnmi_handler to use SBI_OK instead of
+SBI_SUCCESS, so both callbacks consistently reference the correct
+firmware-internal success constant rather than the ecall-facing one.
 
-Patch 2 changes smrnmi_handlers_init to return int, so a failed
-callback no longer gets ignored before NMIE is enabled anyway. It
-also documents the SBI_OK/error return convention and aligns the
-neighboring rnmi_handler comment to use SBI_OK as well.
-
-Patch 3 allows a NULL smrnmi_handlers_init only when the platform
-sets the new SBI_PLATFORM_HAS_FIXED_SMRNMI_VECTOR feature flag, so a
-platform with a fixed or mtvec-based NMI vector can say so
-explicitly instead of a bare NULL being indistinguishable from a
-callback the platform simply forgot to set. It also reports the init
-mode ("Platform" or "Default") in the boot HART banner.
-
+Signed-off-by: Nylon Chen <nylon.chen@sifive.com>
+Co-developed-by: Nia Su <nia.su@sifive.com>
 Signed-off-by: Nia Su <nia.su@sifive.com>
+Reviewed-by: Evgeny Voevodin <evvoevod@tenstorrent.com>
 ---
-Changes in v3:
-- Patch 1: call sbi_smrnmi_hart_init() early in sbi_hart_reinit();
-  document that smrnmi_handlers_init may run twice on cold boot.
-- Patch 2: document SBI_OK/error return convention on
-  smrnmi_handlers_init; align rnmi_handler comment to use SBI_OK too.
-- Patch 3: gate NULL smrnmi_handlers_init behind new
-  SBI_PLATFORM_HAS_FIXED_SMRNMI_VECTOR flag instead of accepting it
-  unconditionally.
-- Link to v2: https://lore.kernel.org/r/20260903-smrnmi-context-restore-v2-0-10b17506d257@sifive.com
+ include/sbi/sbi_platform.h |  7 ++++---
+ lib/sbi/sbi_hart.c         | 21 ++++++++++++++++-----
+ 2 files changed, 20 insertions(+), 8 deletions(-)
 
-Changes in v2:
-- Break v1's patch 1 into three smaller, self-contained patches for
-  a clearer structure.
-- Dropped v1's patch 2, which is unrelated to this fix and will be
-  sent separately.
-- Link to v1: https://lore.kernel.org/opensbi/20260827-rnmi-trap-fixes-v1-0-df371cf92301@sifive.com/
+diff --git a/include/sbi/sbi_platform.h b/include/sbi/sbi_platform.h
+index 0a1e7eee0bae8eee963e5a4ebc0895b2bd10dd23..2cfb0976772dcff627b3c7c6bb8ff6488a3ac365 100644
+--- a/include/sbi/sbi_platform.h
++++ b/include/sbi/sbi_platform.h
+@@ -157,12 +157,13 @@ struct sbi_platform_operations {
+ 	/** platform specific Smrnmi handlers init on current HART.
+ 	 *  May be called more than once on the same HART (e.g. once
+ 	 *  during boot feature detection and again during hart
+-	 *  re-init), so it must be safe to call repeatedly. */
+-	void (*smrnmi_handlers_init)(void (*rnmi_handler)(void),
++	 *  re-init), so it must be safe to call repeatedly.
++	 *  Returns SBI_OK on success, error code otherwise. */
++	int (*smrnmi_handlers_init)(void (*rnmi_handler)(void),
+ 			void (*rnme_handler)(void));
+ 
+ 	/** platform specific Smrnmi NMI handler.
+-	 *  Returns SBI_SUCCESS on success, error code if NMI cannot be handled. */
++	 *  Returns SBI_OK on success, error code if NMI cannot be handled. */
+ 	int (*rnmi_handler)(struct sbi_trap_context *tcntx);
+ };
+ 
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index 18fac76ac070cb626ccb1cc959f4327de0e7c1d8..34f02ece279333366370114333b95ced916b0e1c 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -466,15 +466,16 @@ static int hart_mhpm_get_allowed_bits(void)
+ 	return num_bits;
+ }
+ 
+-static void sbi_smrnmi_hart_init(struct sbi_scratch *scratch)
++static int sbi_smrnmi_hart_init(struct sbi_scratch *scratch)
+ {
+ 	const struct sbi_platform *plat;
+ 	const struct sbi_platform_operations *ops;
+ 	extern void _trap_rnmi_handler(void);
+ 	extern void _trap_handler(void);
++	int ret;
+ 
+ 	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMRNMI))
+-		return;
++		return 0;
+ 
+ 	plat = sbi_platform_thishart_ptr();
+ 	ops  = sbi_platform_ops(plat);
+@@ -484,13 +485,17 @@ static void sbi_smrnmi_hart_init(struct sbi_scratch *scratch)
+ 
+ 	/* Reuse _trap_handler for the RNME slot since RNME is taken
+ 	 * as a regular M-mode trap with NMIE=0. */
+-	ops->smrnmi_handlers_init(_trap_rnmi_handler, _trap_handler);
++	ret = ops->smrnmi_handlers_init(_trap_rnmi_handler, _trap_handler);
++	if (ret)
++		return ret;
+ 
+ 	/* Initialize MNSCRATCH for the RNMI handler */
+ 	csr_write(CSR_MNSCRATCH, scratch);
+ 
+ 	/* Enable NMIs */
+ 	csr_set(CSR_MNSTATUS, MNSTATUS_NMIE);
++
++	return 0;
+ }
+ 
+ static int hart_detect_features(struct sbi_scratch *scratch, bool cold_boot)
+@@ -514,7 +519,9 @@ static int hart_detect_features(struct sbi_scratch *scratch, bool cold_boot)
+ 	if (rc)
+ 		return rc;
+ 
+-	sbi_smrnmi_hart_init(scratch);
++	rc = sbi_smrnmi_hart_init(scratch);
++	if (rc)
++		return rc;
+ 
+ #define __check_hpm_csr(__csr, __mask) 					  \
+ 	oldval = csr_read_allowed(__csr, &trap);			  \
+@@ -699,7 +706,11 @@ __pmp_skip:
+ 
+ int sbi_hart_reinit(struct sbi_scratch *scratch)
+ {
+-	sbi_smrnmi_hart_init(scratch);
++	int rc;
++
++	rc = sbi_smrnmi_hart_init(scratch);
++	if (rc)
++		return rc;
+ 
+ 	mstatus_init(scratch);
+ 
 
----
-Nia Su (3):
-      lib: sbi: extract sbi_smrnmi_hart_init() and call on non-retentive resume
-      lib: sbi: report smrnmi_handlers_init failures instead of ignoring them
-      lib: sbi: allow NULL smrnmi_handlers_init and report init mode at boot
-
- include/sbi/sbi_platform.h | 19 ++++++++++---
- lib/sbi/sbi_hart.c         | 68 ++++++++++++++++++++++++++++++----------------
- lib/sbi/sbi_init.c         |  9 ++++++
- 3 files changed, 69 insertions(+), 27 deletions(-)
----
-base-commit: 35511bc6ee1c9c17b6a89b44c52e2044bb51b979
-change-id: 20260901-smrnmi-context-restore-b3b1f23bec28
-
---
+-- 
+2.43.7
 
 
 -- 
