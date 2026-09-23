@@ -4,7 +4,7 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C97C0C98302
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id E0CE6C98306
 	for <opensbi@archiver.kernel.org>; Wed, 23 Sep 2026 03:24:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
@@ -12,56 +12,55 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=4qMx2nk+1IRXfPzEU6PdUjYJ29AL8Lopt7OLPx6fBQ0=; b=KsrATmjNiXiCjO
-	A6gOiuvqxQ7zqDbu4nUaeiIsXdm+Qks4N3TpJ+qBj7anTAcE3H7mwGOLZ5n92jZx7uYdgWQ1U7GuM
-	HxQZsK8/6ODAY6/jf0MezQqr/XjCHWhdVrXPzqpqBUl3oq9JWcV5OoVLb1FWBfY0GJ16U3fyG0/Up
-	1OUAH2WXDf+3zECClvOv1xBXwYDGJCM3G1fZt1zw85+LcB4XZIushYpICJj/m80iDcmktKEqfiAlL
-	/iy916s/qRBh+PJUbOft9UBLAC0wHSe0NYfMy2DanTrMEuoJFo0iKjP4gm0vW7ImMhuCIJCJpYvG3
-	SfQ+0cn9jV63akOaFybQ==;
+	List-Owner; bh=tiHMSMCZHufmlPL7ZZ3/v4cczSmeTb5NL1bCNYF6FDg=; b=tVdQppvHnPBthW
+	2uaB1uw4Bhtu+yN+iKSnSQGiMRimRguEhCEwz1EMScZKe2hPqsi/dkg8YJZMluVDQ43GHb+epz4Lo
+	JT9qvII2fVmMpkPZ6Zw46HoC95WR+7OUjECQuKcGAAu6OCVbnHFPXyO4VSqVO4MCjyWaJ39fGSIbO
+	OuOPbTEJAea0lwNhnA2vcojfzeVN/MRoNOrx4EgAXZSp4libAbQ921o/IypCrHnNTcyjgRVL7ibcs
+	Rqa1rdAF1fcvhviASyZt05axiDovslV71oHrSew7mZUP4jrFHacTzkfWWp54c9UVvjOUtH0EqFUXL
+	5Hy5ZAQcdfXt+HBf7Wdw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x9Dai-0000000723E-096y;
-	Wed, 23 Sep 2026 03:24:16 +0000
-Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
+	id 1x9Dah-0000000722l-0X4t;
+	Wed, 23 Sep 2026 03:24:15 +0000
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x9Dac-000000071zl-1Zjd
+	id 1x9Dac-000000071zo-2EXa
 	for opensbi@lists.infradead.org;
-	Wed, 23 Sep 2026 03:24:13 +0000
-Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68MIXN3U268290;
+	Wed, 23 Sep 2026 03:24:12 +0000
+Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68MI6xBa2033234;
 	Wed, 23 Sep 2026 03:24:05 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=CfkhdOhMOmG
-	Exd5SXSsrXusaea+Cfvb3g997n0MMa+E=; b=BgqC05Tw4mg5BifhJkQ2jDTpWVs
-	yRuDFfVVPfszaxUrxiXBhCvIT/+YcyKEW3MOHOYPvCHdVnSH2N9pzO0f4NQHwO76
-	EZkMXx75mwznpFz4Vu3OY9UVIZLEx9FGcYKP+syaXXCaj/7ltU5BX5aWH6Yqzhwt
-	jlrFQ8s9aPPfagAfz+3MM0l8Ylbud/lfs0c16fIqi8AXexPMAEgnRPAyP4LazFO7
-	00cQIicoM43kLnSxe2Zkh2BoBSx0xOZmKD5O16S9DWN7/xqFkrIBnk0kGZj4SngZ
-	+tR13/9ITDjXs6rZrbS2kt5Y0SDXIF9Bld56eUfVZOqlXNX7V6YNS3ekdxg==
+	:mime-version:references:subject:to; s=qcppdkim1; bh=+0BQdrG20XO
+	NuWXg1ttBLRXctHHjMNGFmFh8D2Q4UnA=; b=BwNhwAW7GDeviHFXtiV61gZzcPJ
+	qTAgorqgJjleWcMGD3rgFQJgYTIbfNm80l85+8IiyGessJjRPiqxUvgJtowzGdHZ
+	Xd7fL6OJptF4fW2HplaNz+cr+vLyrzrsnI9ZlC3QnvBDzoE87oAiYAvVePNLdYRd
+	aklNRjnI4PiROkIMu13unJyYEaxXxXWWCcuQfPBYnTVm3+3BmWOx2VSOGNQ2w0qC
+	iTu3fM2Bmru7QxIas7KsQoOPi0Gh27f+UaOSG8v74LiHdEAX7MrukE1CRgKYMlwz
+	9pzZCPTh4Gtyq9h6uJ3vlKMc6Egooi8p3yQavb9msZQt74jeH+1WhzpfUdA==
 Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4guy2c1xjm-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4gux8c27qt-1
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
 	Wed, 23 Sep 2026 03:24:05 +0000 (GMT)
 Received: from pps.filterd (apblrppmta01.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (8.18.1.11/8.18.1.11) with ESMTP id 68N3O2J1016003;
+	by APBLRPPMTA01.qualcomm.com (8.18.1.11/8.18.1.11) with ESMTP id 68N3O2wB015896;
 	Wed, 23 Sep 2026 03:24:02 GMT
 Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 68N3O2Bl015967
+	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 68N3O1QD015847
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Wed, 23 Sep 2026 03:24:02 +0000 (GMT)
+	Wed, 23 Sep 2026 03:24:01 +0000 (GMT)
 Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id 237AB249A4; Wed, 23 Sep 2026 08:54:01 +0530 (+0530)
+	id 0ED0F248F7; Wed, 23 Sep 2026 08:54:01 +0530 (+0530)
 From: Anup Patel <anup.patel@oss.qualcomm.com>
 To: Atish Patra <atish.patra@linux.dev>
 Cc: Andrew Jones <andrew.jones@oss.qualcomm.com>,
         Samuel Holland <samuel.holland@sifive.com>,
         Anup Patel <anup@brainfault.org>, opensbi@lists.infradead.org,
-        Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>,
         Anup Patel <anup.patel@oss.qualcomm.com>
-Subject: [PATCH 10/11] lib: sbi_domain: Add domain notifier infrastructure
-Date: Wed, 23 Sep 2026 08:53:58 +0530
-Message-ID: <20260923032359.4041876-11-anup.patel@oss.qualcomm.com>
+Subject: [PATCH 04/11] lib: sbi_domain: Introduce sbi_domain_find_by_name() function
+Date: Wed, 23 Sep 2026 08:53:52 +0530
+Message-ID: <20260923032359.4041876-5-anup.patel@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260923032359.4041876-1-anup.patel@oss.qualcomm.com>
 References: <20260923032359.4041876-1-anup.patel@oss.qualcomm.com>
@@ -69,34 +68,34 @@ MIME-Version: 1.0
 X-Proofpoint-Reinject: loops=2 maxloops=12
 X-QCInternal: smtphost
 X-QCInternal: smtphost
-X-Proofpoint-GUID: e6XcBLAMkiOfJozG66JTnMMoZ4OPDJHI
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTIzMDAxMyBTYWx0ZWRfXwUnk7CXtaVrP
- zLgQ6amifGdp05abyhjXHBSPbqCaxBq6CdqdcXGy375Bc20QB/n6HQ35EK0uljcFiWne83kxiMB
- gzM/MLC1f1jFv1dJtB3K3idi0zz5PKM=
-X-Authority-Analysis: v=2.4 cv=Zsh4uN7G c=1 sm=1 tr=0 ts=6ab34655 cx=c_pps
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTIzMDAxMyBTYWx0ZWRfX8MX3R5XpAKy2
+ sRhRoJ5076eSl02XFo8GiZh5FPcyNtrnVSEUCOOZpvSO62hBMLVYjlIdqrvThTqg0A6o+6kkDzZ
+ 86myb4Qfmqqx3H0mJJrRz7XO7U1+lFP7vyJpez6EVTZ3Af5S2G7FewaA02iPO+l07YNmotuULPh
+ 3gbRjGE13qHzZ2KjyM/BLlx01zMjYIAVis2+PJL8haDaHekXXmEGIYUeHDQkawj14Ey/dogLrXx
+ o7+sSoDqp7uTpSIyISO6gnt8Dph+H7xd+dRPuqwgAi5tU3vgH75hlsz651nzmR8WSJPcRYtD+oK
+ WC0InhnpY9iL0RBpg6r+GKxU32vtp+eSh6YkrMwVPLh2BoMz6tRLz7oTkqoHisn9HlNhaxYh3Cw
+ b3FzFLUwM6IcSN5SDWcQehLzhiUeDMb9NgZtUt9XBpDa73IGCYuGukwthSQedvUvn4ncvZzrRzq
+ x7mvZiIjOTg11XVDYww==
+X-Authority-Analysis: v=2.4 cv=P9evFSAu c=1 sm=1 tr=0 ts=6ab34655 cx=c_pps
  a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
  a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=yx91gb_oNiZeI1HMLzn7:22 a=EUspDBNiAAAA:8 a=oQeJ2WtW1ex_Upc5PeoA:9
-X-Proofpoint-ORIG-GUID: e6XcBLAMkiOfJozG66JTnMMoZ4OPDJHI
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTIzMDAxMyBTYWx0ZWRfXznD6i/pQaeGm
- CZoCjxNLWBuTLmWnBGMqF+JRTm4qSM4HHQY76INIhiXx/s8x94yI+XkMnfbVnjL7aDzVzVq+z2A
- 3eVki4o9/9EaN9DvoCEFhUVweHnOo3CbclcdHbV+laAjTNdWBz26vmtzQVglKIHDOTWCAsn4HlU
- UqsnzxmZCBq4vsyq3qKGo7vn7hG58fmgjl9lqwQ49huauIp+kLAL9yMkSvS3Xv41fhx5BcSXztm
- PaufZa1kDP/57U2PNk8gf6O1Flni7O+FSfDL4v4qAVe8F/v6nHIrLkXC2LugYaoGHAuNFD2aeT9
- +gHbIRUsoa4z++Qop750QfGmCQ1PnDgOu5nY29b/Zu6MIUoKjhH23RhVqULP6nJvfDBUexUaFD0
- 3dW7nfILWlSAhcBeE0O6zm7yAb7SigRsA0H8eDkQsO45Xe3WhWqWKkQlEF4kTA099VrCQBcwJYg
- hD7qzcenvTgXF9gWBHA==
+ a=eoimf2acIAo5FJnRuUoq:22 a=EUspDBNiAAAA:8 a=WUJfmSRJ23pjHjXAEBAA:9
+X-Proofpoint-ORIG-GUID: yrSC-t1z72X9YdGasHYKovSVXh6uuhnN
+X-Proofpoint-GUID: yrSC-t1z72X9YdGasHYKovSVXh6uuhnN
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTIzMDAxMyBTYWx0ZWRfX76/x+hYi9CX0
+ J2alaRZCfUDiAsILJRvw+eLpl8gztRiuSmqAMspHTXbickxGKY5Arw12f5sajbjFVX4iZgr2vaw
+ qUgKPNJovnQMDnuBaDseikc6xwI1kO0=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-09-22_03,2026-09-21_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 adultscore=0 clxscore=1015 priorityscore=1501 phishscore=0
- bulkscore=0 suspectscore=0 malwarescore=0 spamscore=0 lowpriorityscore=0
+ spamscore=0 lowpriorityscore=0 malwarescore=0 priorityscore=1501 phishscore=0
+ clxscore=1015 bulkscore=0 suspectscore=0 impostorscore=0 adultscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609230013
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260922_202410_616990_87D70AFE 
-X-CRM114-Status: GOOD (  14.75  )
+X-CRM114-CacheID: sfid-20260922_202410_616873_64D87B81 
+X-CRM114-Status: GOOD (  13.26  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -113,171 +112,73 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-From: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
-
-Introduce a notifier callback mechanism that allows subsystems to
-register interest in domain events (such as registration). Whenever
-such events happen for a domain, all registered notifiers are invoked.
-
-The following public interfaces are added to sbi_domain.h:
-
-  - sbi_domain_register_notifier(): registers a notifier callback.
-    Duplicate (fn, event, priv) pairs are silently ignored.
-
-  - sbi_domain_unregister_notifier(): removes a previously registered
-    notifier callback.
+Add sbi_domain_find_by_name() to allow driver locate domain instance
+using domain name. This also means domain names must be unique.
 
 Signed-off-by: Anup Patel <anup.patel@oss.qualcomm.com>
-Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
 ---
- include/sbi/sbi_domain.h | 40 +++++++++++++++++++++
- lib/sbi/sbi_domain.c     | 78 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 118 insertions(+)
+ include/sbi/sbi_domain.h |  7 +++++++
+ lib/sbi/sbi_domain.c     | 19 ++++++++++++++++++-
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
 diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index d530f939..56a21397 100644
+index 1f773e41..394e7ddf 100644
 --- a/include/sbi/sbi_domain.h
 +++ b/include/sbi/sbi_domain.h
-@@ -387,4 +387,44 @@ int sbi_domain_finalize(struct sbi_scratch *scratch);
- /** Initialize domains */
- int sbi_domain_init(struct sbi_scratch *scratch, u32 cold_hartid);
+@@ -323,6 +323,13 @@ bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+ 				 unsigned long mode,
+ 				 unsigned long access_flags);
  
-+/** Possible domain notify events */
-+enum sbi_domain_notify_event {
-+	SBI_DOMAIN_NOTIFY_EVENT_REGISTER = 0,
-+	SBI_DOMAIN_NOTIFY_EVENT_MAX,
-+};
-+
 +/**
-+ * Domain notify callback.
-+ * @param dom pointer to domain
-+ * @param event domain notify event
-+ * @param priv private data of the callback
-+ * @return 0 on success (informs framework to continue notifications)
-+ * @return negative error code on failure (informs framework to not continue notifications)
++ * Find a domain by name
++ * @param name Name of the domain
++ * @return pointer to the domain or NULL upon failure
 + */
-+typedef int (*sbi_domain_notify_fn)(struct sbi_domain *dom,
-+				     enum sbi_domain_notify_event event,
-+				     void *priv);
++struct sbi_domain *sbi_domain_find_by_name(const char *name);
 +
-+/**
-+ * Register domain notifier
-+ * @param fn domain notify callback
-+ * @param event domain notify event
-+ * @param priv private data of the callback
-+ * @return 0 on success
-+ * @return negative error code on failure
-+ */
-+int sbi_domain_register_notifier(sbi_domain_notify_fn fn,
-+				 enum sbi_domain_notify_event event, void *priv);
-+
-+/**
-+ * Unregister domain notifier
-+ * @param fn domain notify callback
-+ * @param event domain notify event
-+ * @param priv private data of the callback
-+ * @return 0 on success
-+ * @return negative error code on failure
-+ */
-+int sbi_domain_unregister_notifier(sbi_domain_notify_fn fn,
-+				   enum sbi_domain_notify_event event, void *priv);
-+
- #endif
+ /** Dump domain details on the console */
+ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix);
+ 
 diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 1c95b0fc..42fe5632 100644
+index b3f5892d..f5c62509 100644
 --- a/lib/sbi/sbi_domain.c
 +++ b/lib/sbi/sbi_domain.c
-@@ -35,6 +35,74 @@ struct sbi_domain root = {
- 
- static unsigned long domain_hart_ptr_offset;
- 
-+struct sbi_domain_notify_entry {
-+	struct sbi_dlist		node;
-+	sbi_domain_notify_fn		fn;
-+	enum sbi_domain_notify_event	event;
-+	void				*priv;
-+};
-+
-+static SBI_LIST_HEAD(domain_notifier_list);
-+
-+int sbi_domain_register_notifier(sbi_domain_notify_fn fn,
-+				 enum sbi_domain_notify_event event, void *priv)
-+{
-+	struct sbi_domain_notify_entry *entry;
-+
-+	if (!fn || SBI_DOMAIN_NOTIFY_EVENT_MAX <= event)
-+		return SBI_EINVAL;
-+
-+	sbi_list_for_each_entry(entry, &domain_notifier_list, node) {
-+		if (entry->fn == fn && entry->event == event && entry->priv == priv)
-+			return SBI_OK;
-+	}
-+
-+	entry = sbi_zalloc(sizeof(*entry));
-+	if (!entry)
-+		return SBI_ENOMEM;
-+
-+	entry->fn    = fn;
-+	entry->event = event;
-+	entry->priv  = priv;
-+	sbi_list_add_tail(&entry->node, &domain_notifier_list);
-+	return SBI_OK;
-+}
-+
-+int sbi_domain_unregister_notifier(sbi_domain_notify_fn fn,
-+				   enum sbi_domain_notify_event event, void *priv)
-+{
-+	struct sbi_domain_notify_entry *entry, *tmp;
-+
-+	if (!fn || SBI_DOMAIN_NOTIFY_EVENT_MAX <= event)
-+		return SBI_EINVAL;
-+
-+	sbi_list_for_each_entry_safe(entry, tmp, &domain_notifier_list, node) {
-+		if (entry->fn == fn && entry->event == event && entry->priv == priv) {
-+			sbi_list_del(&entry->node);
-+			sbi_free(entry);
-+			return SBI_OK;
-+		}
-+	}
-+
-+	return SBI_ENODEV;
-+}
-+
-+static int sbi_domain_notify_all(struct sbi_domain *dom, enum sbi_domain_notify_event event)
-+{
-+	struct sbi_domain_notify_entry *entry, *tmp;
-+	int rc;
-+
-+	sbi_list_for_each_entry_safe(entry, tmp, &domain_notifier_list, node) {
-+		if (entry->event == event) {
-+			rc = entry->fn(dom, event, entry->priv);
-+			if (rc)
-+				return rc;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- struct sbi_domain *sbi_hartindex_to_domain(u32 hartindex)
- {
- 	struct sbi_scratch *scratch;
-@@ -719,6 +787,16 @@ int sbi_domain_register(struct sbi_domain *dom)
- 		return rc;
- 	}
- 
-+	/* Notify everyone */
-+	rc = sbi_domain_notify_all(dom, SBI_DOMAIN_NOTIFY_EVENT_REGISTER);
-+	if (rc) {
-+		sbi_printf("%s: domain notification failed for %s (error %d)\n",
-+			   __func__, dom->name, rc);
-+		sbi_domain_cleanup_state(dom);
-+		sbi_list_del(&dom->node);
-+		return rc;
-+	}
-+
- 	return 0;
+@@ -531,6 +531,21 @@ bool sbi_domain_check_addr_range(const struct sbi_domain *dom,
+ 	return true;
  }
+ 
++struct sbi_domain *sbi_domain_find_by_name(const char *name)
++{
++	struct sbi_domain *dom;
++
++	if (!name)
++		return NULL;
++
++	sbi_domain_for_each(dom) {
++		if (!sbi_strcmp(dom->name, name))
++			return dom;
++	}
++
++	return NULL;
++}
++
+ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
+ {
+ 	u32 i, j, k;
+@@ -645,11 +660,13 @@ int sbi_domain_register(struct sbi_domain *dom)
+ 	/*
+ 	 * Ensure that:
+ 	 *  1) Domain not already registered
++	 *  2) Domain name is unique
+ 	 *  2) Initialization order is unique
+ 	 */
+ 	sbi_domain_for_each(tdom) {
+ 		if (tdom == dom ||
+-		    tdom->init_order == dom->init_order)
++		    tdom->init_order == dom->init_order ||
++		    !sbi_strcmp(tdom->name, dom->name))
+ 			return SBI_EALREADY;
+ 	}
  
 -- 
 2.43.0
