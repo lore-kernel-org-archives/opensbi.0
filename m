@@ -4,67 +4,103 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id BD82FC9832F
-	for <opensbi@archiver.kernel.org>; Mon, 28 Sep 2026 03:24:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 4392DC9833E
+	for <opensbi@archiver.kernel.org>; Mon, 28 Sep 2026 08:35:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=C+EQDvV4GAXd59DtDgVlifSC3lDmE7rCh/lhhGrjVy0=; b=anZFHxbQeqybeF
-	zXPsPOSZpaC+84C+i+ebnvpVifOQCbyOydDV29TdXEMEHbUQWNDTDoWa0NWJAbFsuaBhOYCmTXF+k
-	sKJQMRn8e2yY3la4OapvDDFeKqg/CiBJsgbsmZ64Lsi20mOfo0kocZoNMz7T6sLctM6bJl40yY7fM
-	E0BhXi4Yt85UFiZx7VKIMCEvJczzgo7oiNXCxPwZH1N4P7wwAsqT5RrNd1mqGPKjdbmIZelPAwtPu
-	B/24rYuatIueuHlZlz5wkXZPzpOSDoEJOEuGIyIY6TyB9iFSQkMUiEeTWEDboJ53sVkuAs35+Zbpp
-	m5oE/u302HH+z0bup+0w==;
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=NzBv0q/cLLcakille/SwNziZ85z4NUXZ1IDD9ldZEiU=; b=02m/YxEtphg9Wz
+	BahELua4tjVaLYz1vD4gt4Q8vd5lb/gFc+Ycs1sZjm1JbZGgz9tpLbLgslijTriUrfW0dxpRt35cL
+	WdO62QQf/XNztFot+32RMbJt14HNREsjg/B/etjjGBpqAsEz/96S2tjTfnEjU0GOk1mA+0YclCcjm
+	GG7HyxDxLjUcy1D22GKVJ6uzrYLD5mBsVvEPfR9jwl9Nu7ridldZBjCIqxYj1Io2PRuDNFYFFiaJ/
+	QZkJAc4VakILpNiht+s9fYncnnzHCf//V6NKlWPqaZ2+1bWRr+utjiHStAe7IbxeQpsOTNTDlCt7L
+	DXE8v8zeFcw3Obskd25g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xB1yX-0000000HFkb-2Dnw;
-	Mon, 28 Sep 2026 03:24:21 +0000
-Received: from smtp21.cstnet.cn ([159.226.251.21] helo=cstnet.cn)
+	id 1xB6pr-000000006OB-44zA;
+	Mon, 28 Sep 2026 08:35:43 +0000
+Received: from mail-wm2-x10.google.com ([2a00:1450:4864:31::10])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xB1yU-0000000HFkC-0xY2
+	id 1xB6po-000000006NL-0gEo
 	for opensbi@lists.infradead.org;
-	Mon, 28 Sep 2026 03:24:20 +0000
-Received: from imini.taila1aac7.ts.net (unknown [36.110.52.2])
-	by APP-01 (Coremail) with SMTP id qwCowADXqOze3blqCLs_CQ--.19084S2;
-	Mon, 28 Sep 2026 11:24:15 +0800 (CST)
-From: Zhongyi Cheng <zhongyicheng241@mails.ucas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: samuel.holland@sifive.com,
-	anup.patel@oss.qualcomm.com,
-	minda.chen@starfivetech.com,
-	hal.feng@starfivetech.com,
-	weiliang.lim@starfivetech.com,
-	vulab@iscas.ac.cn
-Subject: [PATCH] platform: generic/starfive: deny S-mode access to the JH7110 firmware alias
-Date: Mon, 28 Sep 2026 11:24:14 +0800
-Message-ID: <20260928032414.4125686-1-zhongyicheng241@mails.ucas.ac.cn>
-X-Mailer: git-send-email 2.54.0
+	Mon, 28 Sep 2026 08:35:41 +0000
+Received: by mail-wm2-x10.google.com with SMTP id 5b1f17b1804b1-4a00713639cso2994825e9.1
+        for <opensbi@lists.infradead.org>; Mon, 28 Sep 2026 01:35:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790584538; cv=none;
+        d=google.com; s=arc-20260327;
+        b=YJ4rdinLjiYEbnISnd7TeNPLWkfJ88TWt129EDTyhZvQP6uK8LiejspaJ1Ts6d9fhC
+         PzDuuUkIsJyxBOi4LXUN8CyJvVjyDJ9FklrV2KeWfNlbqFLtkknyBFTWdaeFKoCNEhEm
+         t81vYJNzY4r3emonBo/kwVJ/RBJDZLnCuWqlN4W79K3pYCOuReuINYLzew3NKtAFb4Ys
+         pGUE91vRp9EHtKdlaJX5whz5/GY41LMmJ1LokBkmhYo6dQZFC8Le0KbiiTVyQfvgT+Od
+         pQSVPIHXgSwrAGkOi1NV06Kfik+8SquC/wBKAo9JjEJFh64g9bZ4ZSRVXCq/xXs/Xo6l
+         9hxw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=d5vWs7f6qZOsy4/ZQI2zj8mB1VvUPIdUVZUnYV2BCBE=;
+        fh=KrX0cB6SQZaa7uS5x1bblriTTCtEIAYg1Fj8pKLq+4o=;
+        b=af8iyx/dMzYnN45gj1hdOc6LozprKneYV3CwCzdUgg2RiaSB/x33NSaCttdrUAfXVr
+         e5UpKBfOKsZWHGTKwTZaFROYJg89jMg1g2LmU3e/bzPQ+YE9UQbXfYfhNrtxrSZjF36r
+         kGTR+g6+A4lW3Jp7TFkoRdByGY5SivuuMtesqxV5vq1vA/eMHiaU4s3dJIcK9XALTjFV
+         MNrjONjBzjU0DFxDmbVmxpEV67gg8LcKAweLm4bfNbI/328aqxANCGY7gOTRVicPHGs+
+         dciwU6LjGCkdopB86hCTk9/IOPa3YMjTLeuJHkSqhwfN61Wj1azkPNmct+GmJczC6TmN
+         OfCA==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault.org; s=google; t=1790584538; x=1791189338; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=d5vWs7f6qZOsy4/ZQI2zj8mB1VvUPIdUVZUnYV2BCBE=;
+        b=F8IKF/Plxq34cpYam9UbF5NnoyGhorhzRiz9BsvncbYFtFMSQGfeUfTBi5Ikz9n/a4
+         t3vq01TX/1yclgmdPcsoP0LTGyJgtqwd+VBwQW/nw3uEdm1LBR/ISKcONObQqbUpWLzu
+         lwLMMn5fJLIyXmkQLivLbxpORCQe+bwUUT8BNcOvFrtvDn7/LcUMIlxy1rVKCjWjFW5a
+         //QNmqGg1MICowcuGnEd34beOLcpYdF7pMYlJggpi5y29Q+2S7LszZhS2AcA+rcBj6K1
+         15pdfdMYk+NYLhBvoDEfkaycvadH/VNQLiZ26dSDtejXq1eZtcQng3NwRGuf7Zshv/lx
+         amaQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790584538; x=1791189338;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=d5vWs7f6qZOsy4/ZQI2zj8mB1VvUPIdUVZUnYV2BCBE=;
+        b=Qvsyzkw1R9PauEsdj92EnKA2nrfEJJ3Yl0zLtfNKJ9FHq268X9bw4/SYoCGlYSif24
+         VfEy/yVKvINjplFgTY05kHsl8Y4EfJJwcbNQHEmPSAkkJL/fp0G8ARoqLeTfD3nKJKtS
+         2ebCL6GbGHXSY9/F4FLz+Bgwjk4xsaz9yDcKQvy9RvDJ7bniA/+eue5yjOkqcOpvuiDB
+         1MF1N2z30NZLJswcbAxKpljjKShSythFA+NfxtcMMQ2F7PeSWiHXHtLY7qmK9NlmWD+H
+         UekH7Sa9UPAqsxuttq+7gKxHLUbekOeJJIPDBa9xTLnQkg+aL+CiGI6clObXI9pdPxOY
+         ANBg==
+X-Gm-Message-State: AFuF++nH4vDO8ls91V+mbPrByFhtRKyu72gH1Vs1hwDALI0xloDCiGdK
+	Cbu1Ch+kHGJ85mic4J+nfRXuBz/k3xOuN3r7iQTl5IE+YKwm4CiUTxJnnF6r9EF6+A059aGi2GY
+	gmh6EuDQeUGpga5gtuPQzfqfVFGE+OejYjfssS+vnEXm5tBaK72MEPYs=
+X-Gm-Gg: AYBFou2huqJ9Yy4moamJYWtVuJ7WIb1+ntImpnmjUkd6pQiMpMScCWjGYw8+g3mUqty
+	Nijni2DC7eb74q7+H6T3tOYuIKOYpMuEJPNp/ieI3OpCn4jFu+0wDO6pe8MrhdvYSO2Z8aeHKna
+	YPUqUmdu+GPbiZe+6KrzJwvYfCo6uh14nDfeZTWMQfQzo5G8NfMjnu6Qw1f90w8+fBX91i4w1m1
+	FGeB/ZVGa6D1coxiBGOGm/l2hr2MPpZ0DtTZ8rnZF1/lL1j6CATgF8Y3eh2SHrawRiFXTSx5DWU
+	3+a9NYnPOQIR81ZwsMn9c02dG8hMCPnrwZEAPIu4KgzjxqFATnnLG6ZZ+ZWSK2voCQcjI1lwFft
+	Kw6Ds771e93zAvY0GtYptwheDNFCuXYsXVgqNyRhVVSQjt2Suh7JNiP7fxbFYHwljX5ZTpyP4Ng
+	A=
+X-Received: by 2002:a05:600c:1d28:b0:49c:fc6e:8cbd with SMTP id
+ 5b1f17b1804b1-49fe66fc677mr237030305e9.33.1790584537661; Mon, 28 Sep 2026
+ 01:35:37 -0700 (PDT)
 MIME-Version: 1.0
-X-CM-TRANSID: qwCowADXqOze3blqCLs_CQ--.19084S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxJw48CFWDuF47uFWrCrW7urg_yoWrGF43pa
-	s8CFZxGr4kKFyxWayxKF1qvF4fCw4kA3yUJr129F1vyw1rXwn8XrWkZ3WFgFnrGrWfZw15
-	KF42vrWrCF45Z3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUvvb7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I2
-	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
-	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xII
-	jxv20xvEc7CjxVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVAFwI0_Cr1j6rxdM28EF7xvwV
-	C2z280aVCY1x0267AKxVW0oVCq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x0
-	82IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUAVWUtw
-	Av7VC2z280aVAFwI0_Gr0_Cr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48J
-	MxkF7I0En4kS14v26r126r1DMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r
-	4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF
-	67AKxVWUAVWUtwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2I
-	x0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2
-	z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVWUJVW8JbIYCTnIWIevJa73Uj
-	IFyTuYvjxUyU7aUUUUU
-X-Originating-IP: [36.110.52.2]
-X-CM-SenderInfo: x2kr0wx1lfxvtqjskio6pdxz3voxutnvoduhdfq/
+References: <20260923-makefile_extension_grep-v2-0-0eb97b8ac076@baylibre.com>
+In-Reply-To: <20260923-makefile_extension_grep-v2-0-0eb97b8ac076@baylibre.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Mon, 28 Sep 2026 14:05:24 +0530
+X-Gm-Features: AclHuK-lITznwSvIS7bJAlx987xxwKBLcYzjzSnpk3FQLDWZzrHk4GcVVcG3RfY
+Message-ID: <CAAhSdy3pwXC1-gNJWGe+B5eVMHHmoG_E7QBUtvB17Oj-1B=NRw@mail.gmail.com>
+Subject: Re: [PATCH v2 0/3] Makefile: fix support checks that use grep
+To: Trevor Gamblin <tgamblin@baylibre.com>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260927_202418_649964_070BED5C 
-X-CRM114-Status: GOOD (  13.68  )
+X-CRM114-CacheID: sfid-20260928_013540_234874_BB8A01F3 
+X-CRM114-Status: GOOD (  25.21  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -76,116 +112,64 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-The JH7110 DDR controller folds physical addresses beyond the 8GB DDR
-window back into DRAM: PA (X + 0x200000000) resolves to the same cells
-as PA X. PMP entries match the presented address, so an aliased S-mode
-access to the firmware region bypasses the entry protecting the
-firmware and matches the allow-everything root region, letting root
-read and write the firmware through the alias.
-
-Add a root domain memory region covering the alias of the firmware
-image (fw_start + 0x200000000 .. fw_start + fw_size) with M-mode-only
-permissions, in platform early_init() so that it is in place before
-sbi_domain_finalize(). The region sorts before the allow-everything
-region, so it gets a lower PMP entry index and denies S/U-mode access
-to the firmware alias. The rest of the alias window is left untouched.
-
-This follows the same approach as the RZ/Five ILM/DLM protection.
-
-Verified on QEMU riscv64 (root region list and PMP encodings) and on a
-VisionFive 2 board: S/U-mode accesses to both the alias (0x240000000)
-and the firmware region (0x40000000) fault as expected after this
-patch, while normal boot is unaffected.
-
-Reported-by: Zhongyi Cheng <zhongyicheng241@mails.ucas.ac.cn>
-Signed-off-by: Zhongyi Cheng <zhongyicheng241@mails.ucas.ac.cn>
----
- platform/generic/starfive/jh7110.c | 38 ++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
-
-diff --git a/platform/generic/starfive/jh7110.c b/platform/generic/starfive/jh7110.c
-index 7008386a..07fbed5e 100644
---- a/platform/generic/starfive/jh7110.c
-+++ b/platform/generic/starfive/jh7110.c
-@@ -10,9 +10,12 @@
- 
- #include <libfdt.h>
- #include <platform_override.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_bitops.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_math.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_timer.h>
-@@ -69,6 +72,13 @@ static u32 selected_hartid = -1;
- 
- #define I2C_APB_CLK_ENABLE_BIT		BIT(31)
- 
-+/*
-+ * Physical addresses beyond the 8GB DDR window fold back into DRAM on
-+ * the JH7110 DDR controller: PA (X + JH7110_DRAM_ALIAS_OFFSET) resolves
-+ * to the same cells as PA X (for X in the DDR window).
-+ */
-+#define JH7110_DRAM_ALIAS_OFFSET	0x200000000UL
-+
- static int pm_system_reset_check(u32 type, u32 reason)
- {
- 	switch (type) {
-@@ -283,6 +293,33 @@ err:
- 	return rc;
- }
- 
-+/*
-+ * Deny S/U-mode access to the alias of this firmware image.
-+ *
-+ * PMP entries match the presented address, so without extra protection
-+ * an S/U-mode access through the alias window bypasses the entry
-+ * protecting the firmware and matches the allow-everything root region.
-+ * Add a root domain region covering firmware_alias_base .. fw_end so
-+ * that it sorts before the allow-everything region and denies S/U-mode
-+ * access to the firmware alias, while leaving the rest of the alias
-+ * window untouched.
-+ */
-+static int starfive_jh7110_early_init(bool cold_boot)
-+{
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
-+	int rc;
-+
-+	rc = generic_early_init(cold_boot);
-+	if (rc || !cold_boot)
-+		return rc;
-+
-+	return sbi_domain_root_add_memrange(
-+			scratch->fw_start + JH7110_DRAM_ALIAS_OFFSET,
-+			scratch->fw_size,
-+			1UL << log2roundup(scratch->fw_size),
-+			SBI_DOMAIN_MEMREGION_M_RWX);
-+}
-+
- static int starfive_jh7110_final_init(bool cold_boot)
- {
- 	if (cold_boot) {
-@@ -316,6 +353,7 @@ static int starfive_jh7110_platform_init(const void *fdt, int nodeoff,
- 	}
- 
- 	generic_platform_ops.cold_boot_allowed = starfive_jh7110_cold_boot_allowed;
-+	generic_platform_ops.early_init = starfive_jh7110_early_init;
- 	generic_platform_ops.final_init = starfive_jh7110_final_init;
- 
- 	return 0;
--- 
-2.54.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gVGh1LCBTZXAgMjQsIDIwMjYgYXQgMjo1MuKAr0FNIFRyZXZvciBHYW1ibGluIDx0Z2FtYmxp
+bkBiYXlsaWJyZS5jb20+IHdyb3RlOgo+Cj4gV2hlbiBidWlsZGluZyBPcGVuU0JJIGluIGVudmly
+b25tZW50cyB3aGVyZSBleHRlbnNpb25zIGZyb20gdGhlIElTQSBhcmUKPiB1c2VkIHRvIGdlbmVy
+YXRlIGJ1aWxkIHBhdGhzIChlLmcuIFlvY3RvIFByb2plY3QpLCB0aGUgTWFrZWZpbGUgY2hlY2tz
+Cj4gd2hpY2ggdXNlIGdyZXAgdG8gbG9vayBmb3IgcGF0dGVybnMgY2FuIGluY29ycmVjdGx5IG1h
+dGNoIGFnYWluc3QgdGhlCj4gYnVpbGQgcGF0aHMsIHJhdGhlciB0aGFuIHRoZSBjb21tYW5kJ3Mg
+ZXhpdCBzdGF0dXMuIFRoaXMgbWVhbnMgYQo+IHdvcmthcm91bmQgaXMgbmVlZGVkIHRvIGhhbmRs
+ZSBjaGVja2luZyBmb3IgZXh0ZW5zaW9ucyBsaWtlIHppY3NyIGFuZAo+IHppZmVuY2VpLiBJbnN0
+ZWFkLCBtYWtlIHRoZSBmb2xsb3dpbmcgdmFyaWFibGUgYXNzaWdubWVudHMgdXNlIHRoZSBzYW1l
+Cj4gZXhpdCBzdGF0dXMgcGF0dGVybiBhcyBPUEVOU0JJX0xEX1BJRToKPgo+IENDX1NVUFBPUlRf
+WklDU1JfWklGRU5DRUkKPiBDQ19TVVBQT1JUX1NUUklDVF9BTElHTgo+IENDX1NVUFBPUlRfU0FW
+RV9SRVNUT1JFCj4KPiBUZXN0ZWQgYnkgYnVpbGRpbmcgYSBmdWxsIGltYWdlIGluIFlvY3RvIGlu
+Y2x1ZGluZyBPcGVuU0JJIGFuZCBib290aW5nCj4gaXQgaW4gUUVNVS4KPgo+IE5vdGUgdGhhdCBv
+bmx5IHRoZSBmaXJzdCBwYXRjaCAoZm9yIENDX1NVUFBPUlRfWklDU1JfWklGRU5DRUkpIGlzIG5l
+ZWRlZAo+IHRvIGZpeCB0aGUgWW9jdG8gUUVNVSBjYXNlLCBidXQgSSd2ZSBzdWJtaXR0ZWQgdGhl
+IHJlbWFpbmluZyB0d28gZm9yCj4gY29uc2lzdGVuY3kuIEFsc28gc2luY2Ugc3VibWl0dGluZyB0
+aGUgZmlyc3QgdmVyc2lvbiBvZiB0aGlzIHNlcmllcyB0d28KPiBhZGRpdGlvbmFsIHVzZXMgb2Yg
+Z3JlcCBoYXZlIGFwcGVhcmVkIGluIHRoZSBNYWtlZmlsZSwgYnV0IEkndmUgb3B0ZWQKPiBub3Qg
+dG8gY2hhbmdlIHRoZW0gc2luY2UgdGhleSBkb24ndCBhcHBlYXIgdG8gcmVzdWx0IGluIHRoZSBz
+YW1lIGlzc3VlCj4gb2JzZXJ2ZWQgaW4gWW9jdG8uCj4KPiBTZWUgYWxzbzogaHR0cHM6Ly9idWd6
+aWxsYS55b2N0b3Byb2plY3Qub3JnL3Nob3dfYnVnLmNnaT9pZD0xNTg5Nwo+Cj4gQXMgYW4gZXhh
+bXBsZSwgaW4gbXkgWW9jdG8gYnVpbGQgZW52aXJvbm1lbnQsIHZhbHVlcyBsaWtlIENDIGZvciBP
+cGVuU0JJCj4gYXJlIHNldCBsaWtlOgo+Cj4gfGV4cG9ydCBDQz0icmlzY3Y2NC1wb2t5LWxpbnV4
+LWdjYyAtbWFyY2g9cnY2NGltYWZkY196aWNzcl96aWZlbmNlaSAtbWFiaT1scDY0ZCAtV2wsLU8x
+IC1XbCwtLWhhc2gtc3R5bGU9Z251IC1XbCwtLWFzLW5lZWRlZCAtV2wsLXoscmVscm8sLXosbm93
+IC1mc3RhY2stcHJvdGVjdG9yLXN0cm9uZyAgLU8yIC1EX0ZPUlRJRllfU09VUkNFPTIgLVdmb3Jt
+YXQgLVdmb3JtYXQtc2VjdXJpdHkgLVdlcnJvcj1mb3JtYXQtc2VjdXJpdHkgLS1zeXNyb290PS9o
+b21lL3RnYW1ibGluL3dvcmtzcGFjZS95cGJ1aWxkcy9wb2t5LXFlbXVyaXNjdjY0L2J1aWxkL3Rt
+cC93b3JrL3Jpc2N2NjRpbWFmZGNfemljc3JfemlmZW5jZWktcG9reS1saW51eC9vcGVuc2JpLzEu
+OS9yZWNpcGUtc3lzcm9vdCIKPgo+IGFuZCB0aGUgYnVpbGQgZXJyb3I6Cj4KPiB8IC90bXAvY2Nu
+cGFqajMuczogQXNzZW1ibGVyIG1lc3NhZ2VzOgo+IHwgL2hvbWUvdGdhbWJsaW4vd29ya3NwYWNl
+L3lwYnVpbGRzL3Bva3ktcWVtdXJpc2N2NjQvYnVpbGQvdG1wL3dvcmsvcmlzY3Y2NGltYWZkY196
+aWNzcl96aWZlbmNlaS1wb2t5LWxpbnV4L29wZW5zYmkvMS45L3NvdXJjZXMvb3BlbnNiaS0xLjkv
+bGliL3NiaS9zYmlfdGxiLmM6MTc2Ogo+IHwgRXJyb3I6IHVucmVjb2duaXplZCBvcGNvZGUgYGZl
+bmNlLmknLCBleHRlbnNpb24gYHppZmVuY2VpJyByZXF1aXJlZAo+Cj4gQ2hlY2tpbmcgdGhlIGV4
+aXQgc3RhdHVzIGRpcmVjdGx5IGF2b2lkcyBhIHBvc2l0aXZlIG1hdGNoIGFzIGhhcHBlbnMKPiB3
+aXRoIGdyZXAuCj4KPiBTaWduZWQtb2ZmLWJ5OiBUcmV2b3IgR2FtYmxpbiA8dGdhbWJsaW5AYmF5
+bGlicmUuY29tPgo+Cj4gLS0tCj4gQ2hhbmdlcyBpbiB2MjoKPiAtIFJlYmFzZWQgb250byBsYXRl
+c3QgbWFzdGVyLCByZW1vdmVkIG9sZCBDQyAodGhlaXIgY2hhbmdlcyBtZXJnZWQKPiAgIGFscmVh
+ZHkpLCBubyBmdW5jdGlvbmFsIGNoYW5nZXMKPiAtIExpbmsgdG8gdjE6IGh0dHBzOi8vcGF0Y2gu
+bXNnaWQubGluay8yMDI2MDkxMC1tYWtlZmlsZV9leHRlbnNpb25fZ3JlcC12MS0wLWIzYWUwZDQ1
+NmE2ZUBiYXlsaWJyZS5jb20KPgo+IC0tLQo+IFRyZXZvciBHYW1ibGluICgzKToKPiAgICAgICBN
+YWtlZmlsZTogZG9uJ3QgZ3JlcCB3aGVuIHNldHRpbmcgQ0NfU1VQUE9SVF9aSUNTUl9aSUZFTkNF
+SQo+ICAgICAgIE1ha2VmaWxlOiBkb24ndCBncmVwIHdoZW4gc2V0dGluZyBDQ19TVVBQT1JUX1NU
+UklDVF9BTElHTgo+ICAgICAgIE1ha2VmaWxlOiBkb24ndCBncmVwIHdoZW4gc2V0dGluZyBDQ19T
+VVBQT1JUX1NBVkVfUkVTVE9SRQoKTEdUTS4gWW91IG1heSBhbHNvIHdhbnQgdG8gdXBkYXRlIEND
+X1NVUFBPUlRfVkVDVE9SIGFuZApDQ19TVVBQT1JUX1dUSFJFQURfU0FGRVRZX1BPSU5URVIgaW4g
+dG9wLWxldmVsIE1ha2VmaWxlLgoKUmV2aWV3ZWQtYnk6IEFudXAgUGF0ZWwgPGFudXBAYnJhaW5m
+YXVsdC5vcmc+CgpBcHBsaWVkIHRoaXMgc2VyaWVzIHRvIHRoZSByaXNjdi9vcGVuc2JpIHJlcG8u
+CgpUaGFua3MsCkFudXAKCgo+Cj4gIE1ha2VmaWxlIHwgNiArKystLS0KPiAgMSBmaWxlIGNoYW5n
+ZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKPiAtLS0KPiBiYXNlLWNvbW1pdDog
+NWExNzUwMTcyNjFhZjk3ZTkxMjJmY2I5ZDkwMTI0ODFjZGI1YWE0MQo+IGNoYW5nZS1pZDogMjAy
+NjA5MDktbWFrZWZpbGVfZXh0ZW5zaW9uX2dyZXAtNGY5ZmNlYTg5NGNkCj4KPiBCZXN0IHJlZ2Fy
+ZHMsCj4gLS0KPiBUcmV2b3IgR2FtYmxpbiA8dGdhbWJsaW5AYmF5bGlicmUuY29tPgo+CgotLSAK
+b3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
+aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
