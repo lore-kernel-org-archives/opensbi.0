@@ -4,104 +4,104 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 91402CA5FAB
-	for <opensbi@archiver.kernel.org>; Wed, 30 Sep 2026 05:42:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3F695C9830E
+	for <opensbi@archiver.kernel.org>; Wed, 30 Sep 2026 05:42:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=pyEB5Dn1C63+sfOcSHZW8v5a7/qOUbANSc+54U4qV+c=; b=Oj2OMCDmtF5vqh
-	1bDLc/vGs1zDZax32pR4gATGjqNn/HhS7PYJyWxoLS7muS3cvaa+EpHKN02zt5TtRtwoWnSKdFr+o
-	ZppHynh3lTuQMjmCWc+gIk/k72Zh452TQRCccg99DBHdj4rxwWaDhoTDvKJWSckgUyuEe+stxpLMI
-	xeYvs72jLh0Y1laf3yEa2BvoyQveyfEclF5LJtvmlWFEKS2xLnjNZvYB6+9Zwtsy0z18e611Q7CVC
-	1XzPpQc6v/n8dlia2d4C7QKuQsjksJ4a7vb5zcdiWZMIbE0b9UKl+oDwsOMnQ35UkFe/udagXLPdS
-	RZQldYQIOv0bv64idu/A==;
+	List-Owner; bh=qFpUkDcw2tkttYnEX5DqWX+GAd9phO/jSXX9k6Q+yt8=; b=fmdCrfNN3RCoNb
+	eHR9hz1gKTX+L+e4XJoElWxMg9nwFYp3V9bxiY/0mqb7zm4WOzpkwNZYB++175BcjiQiLojKwq8Qo
+	mPRku2qiKHjdQWs6n1PgX5JmDZ+6SWG7fBKk5MNoOQ+QQxcZw5K+hS0PyweB+opWrs/6hvTEffGY6
+	+iat6DXrsyvLOc+gY5OZwYhoX6Z8CiZ1MZwnW3AvXVr/g4YHKYfCfJLVE2ip20Kv0b7dbuQo8uEfI
+	hcFTkdF+e/b3EVfIaIiEBSdirHfjae94wqPkbIvmfaL8T/dP8NgS/zVqAgk1Zdteb+afS1CQTIkhC
+	H78yv3NPL9Bu966T+3Zw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xBn5R-000000054I2-0hQ9;
+	id 1xBn5R-000000054Ho-0Nqy;
 	Wed, 30 Sep 2026 05:42:37 +0000
 Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xBn5L-000000054Fu-1uji
+	id 1xBn5K-000000054FD-0Czr
 	for opensbi@bombadil.infradead.org;
-	Wed, 30 Sep 2026 05:42:32 +0000
+	Wed, 30 Sep 2026 05:42:30 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
 	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=dGtIDCda8qNFrHqwuArbdoGdrxhrJ+C2XkZ4JzJrS6g=; b=mL0AtFcivnGgva0w13a1b3zqZ1
-	cQhRhS+7H+fdQQCSyRK3Q68RlCBDYBehtmWthByxpbJyCjpyLIvLUdo7L4BXLDEWU5EvRNNSFwZMu
-	WjbiyqZYS07as4L7odjaE0P30xlMtusUl4RmfuebZsADA4xVoxw4mKD8LNSZ/gLQ4ygmgNp2MJi/V
-	N5yvHOaRviX9xSxWKtR8yjeKJXJVqRkoPr8E9wdK3zv9urzEB/MBJP3NuKB+DHqw1E9GHJMXlaeOp
-	uCgr0ZLy+Fx271YzgWRvfzu7TVu0KnqiyogxcnVf48KY5SZxhK/kkC4zfBRCku1TjuPMHNcLGi+e2
-	6aDd5ZNg==;
-Received: from mail-dy1-x132b.google.com ([2607:f8b0:4864:20::132b])
+	bh=ZdNV/gMmCQOgnQ0XX2gNwvXXDTqxEyd4Yknna8+UXlg=; b=b/vOeqpqccwW3mHktPujFytMFH
+	DLfN0eXnm8CbkaSfKbclz7f822mgnm8wcIlMc020t7lDc5bkRsrrLj5TVWXaxLVYxzO7G44gPTKv3
+	cDK2UM/HXiLEVX+WSnkC7anV4rTfWzX0zJhInr9bgauAjyRiwlJ2ti35fnSS84eXw6uMpLtAqvPr/
+	KgIHGO6jJ2jzqNH5KhzTBhcTw+tb55y5UY/Iu5HBWJL8pJoaUs10YVwY2tmas16aDsP1HQKWa76dN
+	qw2mVuTY5MFKuoph1grRjM2n98Y6Xjmf3H2ehwBZmEpuLWmTmnwm6uL7dUxukhka5eLjbHPmfgYsr
+	wGTRZ2Ig==;
+Received: from mail-dy2-x0d.google.com ([2607:f8b0:4864:36::d])
 	by desiato.infradead.org with esmtps (Exim 4.99.2 #2 (Red Hat Linux))
-	id 1xBn5I-00000003Nus-2cnr
+	id 1xBn5H-00000003Nul-1AZ8
 	for opensbi@lists.infradead.org;
-	Wed, 30 Sep 2026 05:42:30 +0000
-Received: by mail-dy1-x132b.google.com with SMTP id 5a478bee46e88-343479e6005so1045985eec.0
-        for <opensbi@lists.infradead.org>; Tue, 29 Sep 2026 22:42:27 -0700 (PDT)
+	Wed, 30 Sep 2026 05:42:29 +0000
+Received: by mail-dy2-x0d.google.com with SMTP id 5a478bee46e88-34cde269e1bso145783eec.0
+        for <opensbi@lists.infradead.org>; Tue, 29 Sep 2026 22:42:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1790746946; x=1791351746; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1790746945; x=1791351745; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=dGtIDCda8qNFrHqwuArbdoGdrxhrJ+C2XkZ4JzJrS6g=;
-        b=fuT3NQZ1SFo7KLlBOtDGC0y0q7erBmVcZ3dFUCCxHZwaUDpqXLmg2HWGMC4B1aS2ef
-         FGkxzemf4aErL3sex1F0gQM2EyJO1G6hoEFqGO2udJtcQDCYxquQ6PbCf7LenIbQnZUX
-         J3l5dYWSQCGD/N+FYXFObaNYHaF644LM9lyYK/ij+HA6j8bERjWlP5v9mFRiDoDj3RVF
-         PSVo7WiFjcA5aKuC3uT3INq5CKiPV1S7uCe74lpU/tsxp0sGiRzindIOU9a3RDjDw42S
-         nZqVnLP+1zB4Ju0DBDqBdrFrXAV5QrJBWVpowzCTJxJVZdds8YjNVIBu2qd2UO855EK4
-         Iacg==
+        bh=ZdNV/gMmCQOgnQ0XX2gNwvXXDTqxEyd4Yknna8+UXlg=;
+        b=I9REZoFnye2RFFps+aHfMiOno+SpaIwBAkZo+DmdEBnu3Tn+XIdRJXg0bTAzSEv9Vr
+         yC7jZjmpgo9tTQI10yoxVCEnaO6osPZASedJyfFNU++YTuUzuiHTlDyeRgofX/5YBpYw
+         SicYJ5UbB/5MAgvFhRqZ/leCALv88yAj3idiLmx8nAKBiGgJEp0c8zzNgBm7dWPUZCQT
+         56J7jIRMkSlVnuBfpmaclCVEShkRNudZLjZFdUDstqb5xl6eIsOnmXCq2Enmt0/kdpTn
+         z7iPLE0rDbTp+cFs/v2Rwak3Bk8e80R2+CRbRU0WkaQlrKbymZLb2V6bSsXFWstoWlPf
+         1nBA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790746946; x=1791351746;
+        d=1e100.net; s=20260707; t=1790746945; x=1791351745;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=dGtIDCda8qNFrHqwuArbdoGdrxhrJ+C2XkZ4JzJrS6g=;
-        b=cSFM7u8efjgG6Ha22jknc2n2SGieLD5yUtx8PVuOi2eyk597MIcC6fQ2/7UOQltrHd
-         3InrYRAyEKfFxkFvNTW04uQjICUJW5p2SnGfR+juUDhmQCEFPYAHJJujHzPVIv98OnS/
-         QQhQFEKmzrqJpmABk96AhP54AagYIxOzni4zL051TaZo1e9bKDp0nXrJ3kYwsrXcgAQK
-         r1USv07f5fTci1zkBoHHtadu8AyHEKyY8V6sNAWh5dSTOswlQhhk0wVynRBSKus+Mm49
-         C+fmLtS/ng0V8Ce543YvoAoOqGNXfY0w+RRXU8MgtzmFFQsBszaiF/ETRcYS+D6EEkcB
-         sTBw==
-X-Gm-Message-State: AFq9FYI8cW58pdM31VkQg3jgLNswlbGeiIXF7s8A0xJeBpkcAKPdnrVq
-	4AKE+FY2p9c5A4UZ6O0Ay5xhAyxDrZkJX8ZH85DXPPscG2grjVPHKSJq2CcVisJFxG+RVAGhb24
-	TclcjEMTRMTQtXiwcozdNUNXcIkBENvGc9jav1xSlaGSRpnjT0MbPIfWWWKUHl/4R95qsFIbZaI
-	xJkoArsMUs3aESiNUeNNJyTVJSKTOQmFyxsyr2IqMzkwYPRD7bqeI=
-X-Gm-Gg: AYBFou3XlvQI6EVKuVTPS8aiNLG1rdoaUGW30BYd7/5SBfQBi33kZLX4f6/98Nen0qE
-	MX0UNx7022sB97BZ/EIuBaLpPdzLgopsSWhJxtJ3eIsU09ORYq/tdfrBHS+F0EtiA2pFbNUFnkA
-	g4l5NuXQTQpIY/xrS7z0mVZrKfCCdDWcCBViuyoXAEZE93F5/9bmnRC83wETp26fOTrIu5grDOp
-	XuDfgQxCfSG/a6aC0sRM7lVlxVT/xoysETDoGKuoaNxmsecX+4e8FohHEtCGcI9SSsYirDaqAeN
-	XL+jSvqkAVuwXAoyZlxCEBHqjHesXWGWfHLJLR0tkP119bifTvm2D0n9Bntpn69b0/i0F6VLtVL
-	XbTCZr3st0xU09355l9AESzIg6moPlySbqJRsw4j3C4OdRFe5hBfBzR2y1xjxmpz/yTJ55/InqA
-	vmmQKJTmWm2gtc28odW/w0TuhCVhwkR49VueHtDoI9YoaZfrKfrbGnjloMzEGUZGWTkXQot31uD
-	C/fXGWTTP9G3w==
-X-Received: by 2002:a05:693c:608d:b0:347:49d2:db76 with SMTP id 5a478bee46e88-34cdd98b8e5mr654700eec.7.1790746946019;
-        Tue, 29 Sep 2026 22:42:26 -0700 (PDT)
+        bh=ZdNV/gMmCQOgnQ0XX2gNwvXXDTqxEyd4Yknna8+UXlg=;
+        b=0qpYio3DHxmxz39OGf8JzJo6eOCFGaUet/9hUxGo3JsvKGjubFjoorcv4UaMMPCL7T
+         O5sly3YPwJhVkOSY7Z3Hndo3Mt45w9SouwkJn/rU7msIJdNKAil3fqGwCWgsr17J9Gug
+         ZwIW/LhGNS4nHPfoc3kgR/TRDvchJ5ALd9SCLxnXX9GHj29v+oQohKKlDgHoj3gbZUl5
+         nD4AmNB69qIdB6JCZbGc2cjSGV3sjTFJ0ZAX7S/g+f8jgZSoZ6tqHYjj8oD/Dum1KXjO
+         YJr2EvXd4a3Ji3cUbD656Gm2Yv1KQrESsRb714egEavqt4trcG7d32IJE+9RLmbj9aRB
+         4zIQ==
+X-Gm-Message-State: AFq9FYKq1WBZyOC0Jbch9PWzQ9twnFw2Y7Pp+tiBBvi37PZ6FABFfUmS
+	kX8JYzpPUH5NRRENWZKitreUhANyG/+IXAcwTwM9W3gjtHH5IrJP2uTIpNsIgctUOZ7X4bc9xej
+	6YGhJzkA+ohibyeESJR6VunzGDw/pJSIZ1EmWGaavMjnrfDl4GuX+0Sn+DXXzBJK+KmKm+QWfy/
+	XIgsK4cmXB+HP0sSOcr7ZGEGfin6dTLWHGOIzWWgItNIbMlGAamlY=
+X-Gm-Gg: AYBFou0uNdP5ZFn+OpqOWxy+x+Aq05/VX8R4p0uaQO22Gp/QJ3mrEDs/T2hZO/b5JoA
+	of0XZ4a/cq3dXD8bkeSUfFDfIJ9AK1oI/E3lREqILOtZZU5WCVhPfEPNHtq9WFj/TIiOaab+2Oj
+	zvoi5xC2KKk2zHFq6y9HzD6o41wjr7NR9UJf3afmjz1FNiBRfTO27i8HFUv+YSNECTp3iBa0psM
+	PPhflmr5lmYY3SBvcaEd69wuQRo4mNgFsZNsYLCSF55TNjszx2OIoWTFK1bUw7FNJ5JR6Y5QZFn
+	MogwjDqlQT4N0g3Z81oW2htK7G+ZWZ4+UGZnbLHkm/85q741ctfp6eOJ50giu2TW589457GyGYw
+	cxU/Ilp+fct9AlLf5XcsObXMQ0zuyr8anVZd9UL8v8SvvrCvB2kerrbl1b1DR1Ld4yvyTr71MWq
+	wwYhh3sKWm+Vf4LP8L8QlHDj7TvwdqNhVyZwrWwIOdPb0CCYg2upVwA2ic+p9qyeOxsS/xVFDE5
+	8DYsqo9kyV6vQ==
+X-Received: by 2002:a05:7301:fa0e:b0:34c:fedf:ec64 with SMTP id 5a478bee46e88-34cfedff2aemr439771eec.30.1790746944761;
+        Tue, 29 Sep 2026 22:42:24 -0700 (PDT)
 Received: from sw08.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34cf4a60283sm910797eec.6.2026.09.29.22.42.24
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34cf4a60283sm910797eec.6.2026.09.29.22.42.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Sep 2026 22:42:25 -0700 (PDT)
+        Tue, 29 Sep 2026 22:42:24 -0700 (PDT)
 From: Leo Yu-Chi Liang <leo.liang@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: zong.li@sifive.com,
 	nick.hu@sifive.com,
 	samuel.holland@sifive.com,
 	leo.liang@sifive.com
-Subject: [PATCH 5/5] platform: generic: eswin: Add feature_config_init op for L1_HWPF override
-Date: Tue, 29 Sep 2026 22:42:10 -0700
-Message-ID: <20260930054210.3498806-6-leo.liang@sifive.com>
+Subject: [PATCH 4/5] platform: generic: Enable feature-configuration support
+Date: Tue, 29 Sep 2026 22:42:09 -0700
+Message-ID: <20260930054210.3498806-5-leo.liang@sifive.com>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260930054210.3498806-1-leo.liang@sifive.com>
 References: <20260930054210.3498806-1-leo.liang@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20260930_064228_858733_34F7A5F4 
-X-CRM114-Status: GOOD (  14.69  )
+X-CRM114-CacheID: sfid-20260930_064227_462371_491A44DC 
+X-CRM114-Status: GOOD (  12.33  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -118,127 +118,83 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Introduce a feature_config_init operation for the eic770x platform
-that delegates to generic_feature_config_init() for the vendor
-defaults and overrides the HW prefetcher bits on top via
-sbi_hart_feature_config_set().
+Add generic_feature_config_init(), wired as the generic platform's
+feature_config_init operation, which calls feature_config_probe() to
+match the current hart against a registered vendor driver.
 
-Remove the direct, unconditional writes to the FEAT0/FEAT1/L1_HWPF/
-L2_HWPF CSRs from eswin_eic7700_final_init(), now handled through the
-feature_config_init operation instead.
+An unrecognised vendor or core leaves the subsystem inactive and boots
+normally.
 
-Drop the platform-local EIC770X_CSR_* macros, now redundant with the
-shared definitions in sifive_feature_config.h, and switch
-eic770x_hart_stop() to use SIFIVE_CSR_FEATURE_CONFIG in place of
-EIC770X_CSR_FEAT0.
+Enable the SiFive driver in the default configuration.
+
+This completes the feature-configuration framework: the generic
+platform can now apply vendor CSR values to supported cores without
+platform-specific code, and a platform needing different values can
+override them from its own feature_config_init operation after
+delegating to generic_feature_config_init() for the defaults.
 
 Signed-off-by: Leo Yu-Chi Liang <leo.liang@sifive.com>
 Assisted-by: LLM
 ---
- platform/generic/eswin/eic770x.c         | 36 +++++++++++++++---------
- platform/generic/include/eswin/eic770x.h |  7 -----
- 2 files changed, 22 insertions(+), 21 deletions(-)
+ platform/generic/configs/defconfig           | 2 ++
+ platform/generic/include/platform_override.h | 1 +
+ platform/generic/platform.c                  | 7 +++++++
+ 3 files changed, 10 insertions(+)
 
-diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
-index c71198a8..ceefb50f 100644
---- a/platform/generic/eswin/eic770x.c
-+++ b/platform/generic/eswin/eic770x.c
-@@ -6,15 +6,19 @@
-  */
- 
- #include <platform_override.h>
-+#include <sbi/riscv_asm.h>
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_system.h>
- #include <sbi/sbi_math.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_hart_feature_config.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_ipi.h>
- #include <sbi/sbi_hart_pmp.h>
- #include <sbi/sbi_hart_protection.h>
-+#include <sbi/sbi_platform.h>
-+#include <sbi_utils/feature/sifive_feature_config.h>
- #include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
- #include <eswin/eic770x.h>
- #include <eswin/hfp.h>
-@@ -51,13 +55,13 @@ static int eic770x_hart_stop()
- 	 * When some or all warm boot harts haven't gone under at least 1
- 	 * cycle of hsm start/stop, (happens if reset is issued in pre-
- 	 * boot environment u-boot/UEFI where all warm boot harts are
--	 * pending start), the FEAT0 CSR still holds the SoC reset values,
--	 * and disableDCacheClockGate is set. A CEASE instruction executed
--	 * when disableDCacheClockGate=1 will not properly reflect its
--	 * ceased status in mcput_cease_from_tile_x. Thus, clear it before
--	 * CEASE.
-+	 * pending start), the FEATURE_CONFIG CSR still holds the SoC reset
-+	 * values, and disableDCacheClockGate is set. A CEASE instruction
-+	 * executed when disableDCacheClockGate=1 will not properly reflect
-+	 * its ceased status in mcput_cease_from_tile_x. Thus, clear it
-+	 * before CEASE.
- 	 */
--	csr_clear(EIC770X_CSR_FEAT0, 0x1);
-+	csr_clear(SIFIVE_CSR_FEATURE_CONFIG, 0x1);
- 
- 	sifive_cease();
- }
-@@ -368,18 +372,21 @@ static int eswin_eic7700_final_init(bool cold_boot)
- 
- 	sbi_hart_pmp_set(PMP_RESERVED_B, PMP_L, 0,
- 			 log2roundup(EIC770X_MEMPORT_LIMIT));
--	/**
--	 * These must come after the setup of PMP, as we are about to
--	 * enable speculation and HW prefetcher bits
--	 */
--	csr_write(EIC770X_CSR_FEAT0, CONFIG_ESWIN_EIC770X_FEAT0_CFG);
--	csr_write(EIC770X_CSR_FEAT1, CONFIG_ESWIN_EIC770X_FEAT1_CFG);
--	csr_write(EIC770X_CSR_L1_HWPF, CONFIG_ESWIN_EIC770X_L1_HWPF_CFG);
--	csr_write(EIC770X_CSR_L2_HWPF, CONFIG_ESWIN_EIC770X_L2_HWPF_CFG);
- 
- 	return 0;
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 98829884..252fd8fa 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -86,3 +86,5 @@ CONFIG_FDT_MPXY_RPMI_PERFORMANCE=y
+ CONFIG_FDT_MPXY_RPMI_SYSMSI=y
+ CONFIG_FDT_MPXY_RPMI_MM=y
+ CONFIG_FDT_MPXY_RPMI_LOGGING=y
++CONFIG_FEATURE_CONFIG=y
++CONFIG_FEATURE_CONFIG_SIFIVE=y
+diff --git a/platform/generic/include/platform_override.h b/platform/generic/include/platform_override.h
+index 1b8127cb..8e7657a4 100644
+--- a/platform/generic/include/platform_override.h
++++ b/platform/generic/include/platform_override.h
+@@ -17,6 +17,7 @@
+ bool generic_cold_boot_allowed(u32 hartid);
+ int generic_nascent_init(void);
+ int generic_early_init(bool cold_boot);
++int generic_feature_config_init(bool cold_boot);
+ int generic_final_init(bool cold_boot);
+ int generic_extensions_init(bool cold_boot);
+ int generic_domains_init(void);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 1df0280d..0ea5dfb7 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -23,6 +23,7 @@
+ #include <sbi_utils/fdt/fdt_fixup.h>
+ #include <sbi_utils/fdt/fdt_helper.h>
+ #include <sbi_utils/fdt/fdt_pmu.h>
++#include <sbi_utils/feature/feature_config.h>
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/irqchip/imsic.h>
+ #include <sbi_utils/mpxy/fdt_mpxy.h>
+@@ -234,6 +235,11 @@ int generic_early_init(bool cold_boot)
+ 	return fdt_cmo_init(cold_boot);
  }
  
-+static int eic770x_feature_config_init(bool cold_boot)
++int generic_feature_config_init(bool cold_boot)
 +{
-+	int rc = generic_feature_config_init(cold_boot);
-+
-+	if (rc)
-+		return rc;
-+
-+	return sbi_hart_feature_config_set(current_hartindex(), SIFIVE_CSR_HWPF_CONFIG,
-+					   CONFIG_ESWIN_EIC770X_L1_HWPF_CFG, false);
++	return feature_config_probe();
 +}
 +
- static int eswin_eic7700_pmp_configure(struct sbi_scratch *scratch,
- 				       struct sbi_domain *dom)
+ int generic_final_init(bool cold_boot)
  {
-@@ -486,6 +493,7 @@ static int eswin_eic7700_platform_init(const void *fdt, int nodeoff,
- 	const struct eic770x_board_override *board_override = match->data;
- 
- 	generic_platform_ops.early_init = eswin_eic7700_early_init;
-+	generic_platform_ops.feature_config_init = eic770x_feature_config_init;
- 	generic_platform_ops.final_init = eswin_eic7700_final_init;
- 	generic_platform_ops.single_fw_region = eswin_eic7700_single_fw_region;
- 
-diff --git a/platform/generic/include/eswin/eic770x.h b/platform/generic/include/eswin/eic770x.h
-index 9c80b589..58d317d0 100644
---- a/platform/generic/include/eswin/eic770x.h
-+++ b/platform/generic/include/eswin/eic770x.h
-@@ -16,13 +16,6 @@ struct eic770x_board_override {
- 
- void eic770x_cease_other_harts(void);
- 
--/* CSRs */
--#define EIC770X_CSR_BRPREDICT	0x7c0
--#define EIC770X_CSR_FEAT0	0x7c1
--#define EIC770X_CSR_FEAT1	0x7c2
--#define EIC770X_CSR_L1_HWPF	0x7c3
--#define EIC770X_CSR_L2_HWPF	0x7c4
--
- /* Hart ID to core/die conversion */
- #define CPU_CORE_BITS		2
- #define CPU_CORE_MASK		((1 << CPU_CORE_BITS) - 1)
+ 	void *fdt = fdt_get_address_rw();
+@@ -338,6 +344,7 @@ struct sbi_platform_operations generic_platform_ops = {
+ 	.cold_boot_allowed	= generic_cold_boot_allowed,
+ 	.nascent_init		= generic_nascent_init,
+ 	.early_init		= generic_early_init,
++	.feature_config_init	= generic_feature_config_init,
+ 	.final_init		= generic_final_init,
+ 	.extensions_init	= generic_extensions_init,
+ 	.domains_init		= generic_domains_init,
 -- 
 2.43.7
 
