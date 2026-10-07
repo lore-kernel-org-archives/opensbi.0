@@ -4,49 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 59274CA6004
-	for <opensbi@archiver.kernel.org>; Wed,  7 Oct 2026 21:14:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id DC480CA5FFF
+	for <opensbi@archiver.kernel.org>; Wed,  7 Oct 2026 21:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
 	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=AFfrgdjiiE+qmRLAqwcvJidZDq8lg+e8Urp8FfASR8o=; b=ZC+14Lsxi0WWyz
-	tb1vG7Lmb0aWXgLMGMYI18dqYCiCo4fOQVWHRSvwB2Jf5ZSfVpQAmv3b4Legun22liIbuE6FdIiO2
-	DFnHFzzbx/sGQfhEwHrQFriPeRF4HIDfRr2uQhANZgCkzVZxfhis7NF80q5lRpiaMbL2vn+JrmIE7
-	3F53G+QYr/LOUi/7N3B1Z/DrP7p+czD/Io1knPzUMHHFMy7EDwxCERZIs2GZMODlj1/gMLTbaCacb
-	C0oSVU4Oyp0OqmSvjOe/HeKPsJ38bnNIrBFigPWU5bDh/2mlBNegPdMZ8HQHp787fXaRp1IbdZKo0
-	VRoyeLV/sNKUiZzh9FKg==;
+	List-Owner; bh=/SiLOu7yLuk6YjYlg+c7t9PfNXWzGy321HElRAHp5do=; b=Nfe1BtsA+BaFj1
+	XvpGIATTgYs+D+6KihrdlBxeTPHyRTxqS79h6dDaND9+0vYMRkRifxhWmMFNhUjHsg6HJIUMR3sY/
+	nx/oRimbCy5VhL9l+6vexaST+FAmmk77O7FMFuz6MnUdpJLzrZgGwY6zNBHbXnMfD/U3fb24rleLh
+	TGrj2Vk6qhg0u96VsM7xJqgaNOZUqLKJe2nJJuVp3qKMqTz/NOd/4kdiIadY3NkpX51t6qMHJi1bj
+	Mpkc+WYFJsVxjPWsSjJrIgBYXQbiTusXViuAEws5/2+MbTIIIJ95AoOsKmebR3aBqls7vXm5puUk/
+	uCcTeUXMoT8csfa1RgxQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xEYy3-00000003Ax6-2ADh;
-	Wed, 07 Oct 2026 21:14:27 +0000
-Received: from freeshell.de ([2a01:4f8:231:482b::2])
+	id 1xEZ4K-00000003BXZ-0MVR;
+	Wed, 07 Oct 2026 21:20:56 +0000
+Received: from freeshell.de ([116.202.128.144])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xEYxz-00000003Awl-3JL4
+	id 1xEZ4H-00000003BXC-0BqT
 	for opensbi@lists.infradead.org;
-	Wed, 07 Oct 2026 21:14:26 +0000
+	Wed, 07 Oct 2026 21:20:54 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=freeshell.de;
-	s=s2025; t=1791407648;
-	bh=y61NpfOBavXrJSoZQuzdMorzKQNHxGrr+bGZPbpB1/w=;
+	s=s2025; t=1791408039;
+	bh=J4m7+C8BunLeMJAxpGIlYrtgy3hbwZqoX8snoQKpKTk=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=CUc6k35dRAfTTXsoTvJb1UNe/D9weHeZRtwIDuPLs6MHL6WSyKhbYXcVSTg9K631b
-	 +M3ttg9632ZUnxayH1kah0v1wT5fw+CFOtF63rAEDq/xuidsLaIgEy28OYO7IcZ8rT
-	 b2mUnQVEYnVf8iOmy0Z89SFQHOWUkQX/J6zb2DGJPxE8Ox6hICFud8EJL787TOI3OK
-	 EKXlli9p490t+XB+X6TLrrs3n1K1xQYt6oJLhwDhMKzXWfOcJ0nn5QIlZsVbSt0HCl
-	 FnpPcg+/hF4d3PpYCotJU5jfpclzDIvj4xJxADkczyTkqjBaD2xVyrsu0uJTi81sND
-	 ym4Tag9yDcLow==
+	b=LfLhv0WZ9Thx82MkaMnH5RXTd8KAdAmF97ENuhGv6dYVhGSjMa08PrQe+NcwdscyV
+	 CpYmy1iOX5ScjXkmOk/1RI8f99gVGIYInlXZmrNdW9CVOU37iCDTdGAHWV5VdZlG0j
+	 wPja6iGHzkWU+u2MLrW5GU7/tZ5uKgNBDI7CiAQPS7fwm14IRTMOQky89mNotftUPs
+	 d5gDPZx3kwzmtmzIOYoJhClU2LASsNunQx6bcVxh5xBZYHPjiarwqSE4pndFMMNdfe
+	 ZnBxhvGl7YVXpdhHxWoFwdi6573Ljktw3uhoC4iDMU0iXitM/xHLZor6Jl5CQN3dNS
+	 AjoBduNNVS7VQ==
 Received: from [IPV6:2605:59ca:364f:d400:1b91:6b30:22c2:fffc] (unknown [IPv6:2605:59ca:364f:d400:1b91:6b30:22c2:fffc])
 	(Authenticated sender: e)
-	by freeshell.de (Postfix) with ESMTPSA id 252FFB22016D;
-	Wed,  7 Oct 2026 23:14:06 +0200 (CEST)
-Message-ID: <914fcfdb-289f-4aef-a223-2d7303498972@freeshell.de>
-Date: Wed, 7 Oct 2026 14:14:05 -0700
+	by freeshell.de (Postfix) with ESMTPSA id 19859B220381;
+	Wed,  7 Oct 2026 23:20:37 +0200 (CEST)
+Message-ID: <1cc1b11e-7e2b-4129-879e-b7213b02c224@freeshell.de>
+Date: Wed, 7 Oct 2026 14:20:36 -0700
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 3/6] platform: generic: spacemit: k1: move hart init to
- nascent hook
+Subject: Re: [PATCH v4 2/6] platform: generic: spacemit: k1: rename cache
+ flush operation
 To: Troy Mitchell <troy.mitchell@linux.spacemit.com>,
  opensbi@lists.infradead.org
 Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
@@ -55,13 +55,13 @@ Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
  Heinrich Schuchardt <heinrich.schuchardt@canonical.com>,
  Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>
 References: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
- <20260910-spacemit-k3-v4-3-0793b62329f6@linux.spacemit.com>
+ <20260910-spacemit-k3-v4-2-0793b62329f6@linux.spacemit.com>
 Content-Language: en-US
 From: E Shattow <e@freeshell.de>
-In-Reply-To: <20260910-spacemit-k3-v4-3-0793b62329f6@linux.spacemit.com>
+In-Reply-To: <20260910-spacemit-k3-v4-2-0793b62329f6@linux.spacemit.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261007_141424_277339_694FB768 
-X-CRM114-Status: GOOD (  15.81  )
+X-CRM114-CacheID: sfid-20261007_142053_247405_C831CB12 
+X-CRM114-Status: GOOD (  14.19  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -81,66 +81,60 @@ Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 Hi Troy,
 
 On 9/10/26 07:00, Troy Mitchell wrote:
-> cold_boot_allowed() is a policy query and should not modify per-hart
-> state. The K1 callback currently programs ML2SETUP as a side effect.
+> From: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
 > 
-> Move the ML2SETUP programming to nascent_init(), which runs on every
-> hart before common initialization. Chain generic_nascent_init() to keep
-> the generic per-hart setup intact.
+> MRAOP_ICACHE_INVALID is used to flush the local D-cache before a hart
+> stops, so the name incorrectly describes I-cache invalidation. Rename
+> it to MRAOP_CACHE_FLUSH without changing its encoded value.
 > 
-> Fixes: 1f84ec2ac22e ("platform: generic: spacemit: add K1")
-> Reported-by: Bo Gan <ganboing@gmail.com>
-> Link: https://lore.kernel.org/r/56220293-88e3-451f-833e-8251656a83d9@gmail.com
+> Signed-off-by: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>
+> Co-developed-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 > Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-> Reviewed-by: Bo Gan <ganboing@gmail.com>
 > ---
->  platform/generic/spacemit/k1.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
+>  lib/utils/hsm/fdt_hsm_spacemit.c       | 2 +-
+>  platform/generic/include/spacemit/k1.h | 4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> diff --git a/platform/generic/spacemit/k1.c b/platform/generic/spacemit/k1.c
-> index 7ee5f17a..19a9b27c 100644
-> --- a/platform/generic/spacemit/k1.c
-> +++ b/platform/generic/spacemit/k1.c
-> @@ -8,6 +8,7 @@
->   */
+> diff --git a/lib/utils/hsm/fdt_hsm_spacemit.c b/lib/utils/hsm/fdt_hsm_spacemit.c
+> index 868e49bf..99c52335 100644
+> --- a/lib/utils/hsm/fdt_hsm_spacemit.c
+> +++ b/lib/utils/hsm/fdt_hsm_spacemit.c
+> @@ -92,7 +92,7 @@ static int spacemit_hart_stop(void)
+>  	asm volatile ("fence iorw, iorw");
 >  
->  #include <platform_override.h>
-> +#include <sbi/riscv_asm.h>
->  #include <sbi/riscv_io.h>
->  #include <sbi/sbi_hsm.h>
->  #include <spacemit/k1.h>
-> @@ -86,16 +87,23 @@ static int spacemit_k1_early_init(bool cold_boot)
->  	return 0;
->  }
+>  	/* flush local dcache */
+> -	csr_write(CSR_MRAOP, MRAOP_ICACHE_INVALID);
+> +	csr_write(CSR_MRAOP, MRAOP_CACHE_FLUSH);
+>  	asm volatile ("fence iorw, iorw");
 >  
-> -static bool spacemit_cold_boot_allowed(u32 hartid)
-> +static int spacemit_k1_nascent_init(void)
->  {
-> -	csr_set(CSR_ML2SETUP, 1 << (hartid % PLATFORM_MAX_CPUS_PER_CLUSTER));
-> +	csr_set(CSR_ML2SETUP,
-> +		1 << (current_hartid() % PLATFORM_MAX_CPUS_PER_CLUSTER));
+>  	/* disable dcache */
+> diff --git a/platform/generic/include/spacemit/k1.h b/platform/generic/include/spacemit/k1.h
+> index 7095bc08..ac727b04 100644
+> --- a/platform/generic/include/spacemit/k1.h
+> +++ b/platform/generic/include/spacemit/k1.h
+> @@ -20,8 +20,8 @@
+>  /* ECC enable */
+>  #define MSETUP_ECCE				BIT(16)
+>  
+> -/* icache invalidation */
+> -#define MRAOP_ICACHE_INVALID			GENMASK(1, 0)
+> +/* cache flush */
 
-I think use BIT macro here for bitwise left-shift unless some reason not to?
+There is no mystery about the symbol name this comment describes, to
+need a comment. If you want to explicitly write the comment as "D-cache
+flush" that adds to the readability. Otherwise it appears to be a
+redundant comment. Expand the description in comment so it adds value or
+drop the comment, please.
 
-> +
-> +	return generic_nascent_init();
-> +}
+> +#define MRAOP_CACHE_FLUSH			GENMASK(1, 0)
 >  
-> +static bool spacemit_cold_boot_allowed(u32 hartid)
-> +{
->  	return !hartid;
->  }
->  
->  static int spacemit_k1_platform_init(const void *fdt, int nodeoff,
->  				     const struct fdt_match *match)
->  {
-> +	generic_platform_ops.nascent_init = spacemit_k1_nascent_init;
->  	generic_platform_ops.early_init = spacemit_k1_early_init;
->  	generic_platform_ops.cold_boot_allowed = spacemit_cold_boot_allowed;
+>  #define PMU_AP_BASE				0xd4282800
 >  
 > 
 
--E
+With that,
+
+Reviewed-by: E Shattow <e@freeshell.de>
 
 -- 
 opensbi mailing list
