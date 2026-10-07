@@ -4,45 +4,65 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id A8B6ECA5FED
-	for <opensbi@archiver.kernel.org>; Tue,  6 Oct 2026 19:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 30F0DCA600A
+	for <opensbi@archiver.kernel.org>; Wed,  7 Oct 2026 20:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=OBWdUUjbcBJq5P53ThKTWx1RCEK+ywUQaQIaCAUntSM=; b=hhgiehLh0D3bad
-	5T8o8HxlFp8ofhHyPDNJxiPiF0xRCq+sKWE3axyZ60sSj5l6kEWANH+dMZOEUo/W4NR1DymsaLBGo
-	hmcyTpqdrDIsf4HrCRNoPAOPUS6VOfm0F8dqs/05VS3zAzRaGODh49TPhBO53GO9bmJjN6SUPud/6
-	l6xlrwcOxp9cOPKUAXBw/yykY3rAiZWO+5K2hvj4AVnVBJd/1UZCoZ8s1AGuJYRFPfbIi5ZFK6SeT
-	FrkuVrOBawtNDuzQB0vemJ2vu9u+tgMr+oZN7CmVMazrnXlj2fRlKj8YwAy4ItM6J7jkKIyGgYKZh
-	CQaO4blZFuAWzzvh/dXg==;
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
+	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=FaB4EqJDls562Lf/+tZNs87M+nOXG4+4uuaYEhXJh8Q=; b=hvconNn9xyIwk3
+	6nDznSxQlwvhSlcTz6nO7X2GF9qCXVhlFlmVSMgt6lWXF6eQyt7QQTfSI4+ZPBW3L5r0bpYblP6QA
+	X6mz7OQ0lIH0E8cZv3nh6nzTlL1YsqR+fir7rqfRUbh17OJGP/dd+Jed40UHXIXuZPPCePKSUqPvz
+	NrblL03PiDWvEf23cBSn13biCr6p17EfTUIWMVTKzR5TykXdM8dfSb/bm+jFhkRn+0TGd+S7IVezw
+	SXXnt9vCo/H+ik64FGOOlEKkrwGdtLGb7rQeuoVjMessF3TgtWckaDdepWsTMwgqMcLjj4VNMrWTp
+	5b3zYDnjxI0S6LBisSEw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xEAxv-00000001KIE-3U9Y;
-	Tue, 06 Oct 2026 19:36:43 +0000
-Received: from outgoing2021.csail.mit.edu ([128.30.2.78])
+	id 1xEYjZ-00000003AJa-3Srg;
+	Wed, 07 Oct 2026 20:59:29 +0000
+Received: from freeshell.de ([2a01:4f8:231:482b::2])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xEAxq-00000001KHI-2u86
+	id 1xEYjW-00000003AJ2-2f2j
 	for opensbi@lists.infradead.org;
-	Tue, 06 Oct 2026 19:36:41 +0000
-Received: from escalante.csail.mit.edu ([128.52.128.198])
-	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
-	(envelope-from <nickolai@csail.mit.edu>)
-	id 1xEAxp-0070c2-Ud;
-	Tue, 06 Oct 2026 15:36:38 -0400
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-To: opensbi@lists.infradead.org
-Cc: Nickolai Zeldovich <nickolai.zeldovich@gmail.com>
-Subject: [PATCH] lib: sbi: Refresh the root memregion count after sanitize_domain()
-Date: Tue,  6 Oct 2026 15:36:36 -0400
-Message-ID: <20261006193637.735638-1-nickolai@csail.mit.edu>
-X-Mailer: git-send-email 2.53.0
+	Wed, 07 Oct 2026 20:59:29 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=freeshell.de;
+	s=s2025; t=1791406751;
+	bh=v4I3ZfuVS3Hbxbu059wTxn4Dnnx/cOKIbdaYqIuNrCg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=Pt7k/aEzrwLBUDx3sYKecqHwWSR6KKeRJzvlfV7bmgt3+ZJeP8Y0PM17LHMCZtpJ2
+	 eBocCH7ltEu5glAm++MRUKyNbg+IFIqbq+9sDFxTQPhvS6c+BhmdXk3+5SHLsiQa6F
+	 EREVLRmumj0AAgKjCTe6q5RU5RtDlfoGmJ4Pi1yUoml/ii3BB1buLnmFMf1FOjdG3Y
+	 dinAeFqQjRJfiv44ulsxAFHoqU7XeJLMZEB2PkMKzT5rGP4KdekHZ/rF37Tn2JF8Pk
+	 crqS1sZB2QMaHzqibFzM59wdY6IdYlusRX57wv4Zx1CLUEykyp1QPXc14JKxLwotH1
+	 3hDnHxZBfztQw==
+Received: from [IPV6:2605:59ca:364f:d400:1b91:6b30:22c2:fffc] (unknown [IPv6:2605:59ca:364f:d400:1b91:6b30:22c2:fffc])
+	(Authenticated sender: e)
+	by freeshell.de (Postfix) with ESMTPSA id 46785B221E82;
+	Wed,  7 Oct 2026 22:59:09 +0200 (CEST)
+Message-ID: <210d8f61-6efd-413d-a7d4-87a214f50c01@freeshell.de>
+Date: Wed, 7 Oct 2026 13:58:54 -0700
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 6/6] platform: generic: spacemit: k3: override
+ cold_boot_allowed for hart 0 only
+To: Troy Mitchell <troy.mitchell@linux.spacemit.com>,
+ opensbi@lists.infradead.org
+Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
+ Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>,
+ Samuel Holland <samuel.holland@sifive.com>,
+ Heinrich Schuchardt <heinrich.schuchardt@canonical.com>,
+ Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>,
+ Valentin Haudiquet <valentin.haudiquet@canonical.com>
+References: <20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com>
+ <20260910-spacemit-k3-v4-6-0793b62329f6@linux.spacemit.com>
+Content-Language: en-US
+From: E Shattow <e@freeshell.de>
+In-Reply-To: <20260910-spacemit-k3-v4-6-0793b62329f6@linux.spacemit.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261006_123638_743152_CDE9FD8A 
-X-CRM114-Status: GOOD (  16.98  )
+X-CRM114-CacheID: sfid-20261007_135927_157341_4CD68742 
+X-CRM114-Status: GOOD (  12.65  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -54,104 +74,51 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-RnJvbTogTmlja29sYWkgWmVsZG92aWNoIDxuaWNrb2xhaS56ZWxkb3ZpY2hAZ21haWwuY29tPgoK
-cm9vdF9hZGRfbWVtcmVnaW9uKCkgY291bnRzIHRoZSByZWdpb25zIG9uY2UsIGJ1dCBzYW5pdGl6
-ZV9kb21haW4oKQpyZW1vdmVzIGNvdmVyZWQgcmVnaW9ucyBvbiBldmVyeSBpdGVyYXRpb24sIHNv
-IHRoZSBtZXJnZSBzdGVwJ3MgbWVtbW92ZQp1c2VzIGEgc3RhbGUgY291bnQgYW5kIHJ1bnMgcGFz
-dCB0aGUgdGVybWluYXRpbmcgZW50cnkuICBJdCBzdGF5cyBpbgpib3VuZHMgdG9kYXkgb25seSBi
-ZWNhdXNlIHRoZSBhcnJheSBoYXMgUk9PVF9SRUdJT05fTUFYICsgMSBzbG90cy4KClJlY29tcHV0
-ZSB0aGUgY291bnQgYWZ0ZXIgZWFjaCBzYW5pdGl6ZV9kb21haW4oKS4KCkZpeGVzOiAwZDU2Mjkz
-ODE3MzEgKCJsaWI6IHNiaTogRml4IHNiaV9kb21haW5fcm9vdF9hZGRfbWVtcmVnaW9uKCkgZm9y
-IG1lcmdpbmcgbWVtcmVnaW9ucyIpClNpZ25lZC1vZmYtYnk6IE5pY2tvbGFpIFplbGRvdmljaCA8
-bmlja29sYWkuemVsZG92aWNoQGdtYWlsLmNvbT4KQ28tQXV0aG9yZWQtQnk6IENsYXVkZSBGYWJs
-ZSA1LjEgPG5vcmVwbHlAYW50aHJvcGljLmNvbT4KLS0tClRoaXMgYnVnIHdhcyBmb3VuZCBpbiB0
-aGUgcHJvY2VzcyBvZiBmb3JtYWxseSB2ZXJpZnlpbmcgdGhlIGNvcnJlY3RuZXNzCm9mIE9wZW5T
-Qkkgb24gdG9wIG9mIHRoZSBTYWlsIFJJU0MtViBzZW1hbnRpY3MgdXNpbmcgTGVhbi4KClN1bW1h
-cnk6Cgpyb290X2FkZF9tZW1yZWdpb24oKSBjb21wdXRlcyByb290X21lbXJlZ3NfY291bnQgb25j
-ZSwgdGhlbiBsb29wcwpzYW5pdGl6ZV9kb21haW4oKSArIG1lcmdlLiBzYW5pdGl6ZV9kb21haW4o
-KSBjYW4gcmVtb3ZlIHJlZ2lvbnMgKGFueQpyZWdpb24gY292ZXJlZCBieSBhIHN1cGVyc2V0IHJl
-Z2lvbiBpcyBkcm9wcGVkIGFuZCB0aGUgYXJyYXkgc2hpZnRlZApkb3duKSwgYnV0IHRoZSBsb2Nh
-bCBjb3VudCBpcyBuZXZlciByZWZyZXNoZWQsIHNvIHRoZSBtZXJnZSBzdGVwJ3MKc2JpX21lbW1v
-dmUobnJlZzEsIG5yZWcxICsgMSwgc2l6ZW9mKCpucmVnMSkgKiAocm9vdF9tZW1yZWdzX2NvdW50
-IC0KaTEpKSBtb3ZlcyBtb3JlIGVudHJpZXMgdGhhbiBleGlzdCBhbmQgcnVucyBwYXN0IHRoZSBh
-cnJheSdzIHRlcm1pbmF0aW5nCmVudHJ5LiBUb2RheSB0aGlzIHN0YXlzIGluc2lkZSB0aGUgYWxs
-b2NhdGlvbiBvbmx5IGJlY2F1c2UgdGhlIGFycmF5IGlzCmFsbG9jYXRlZCB3aXRoIFJPT1RfUkVH
-SU9OX01BWCArIDEgc2xvdHMgYW5kIHRoZSBzdGFsZSBjb3VudCBpcyBib3VuZGVkCmJ5IFJPT1Rf
-UkVHSU9OX01BWC4gUmVjb21wdXRlIHRoZSBjb3VudCBhZnRlciBlYWNoIHNhbml0aXplX2RvbWFp
-bigpLgoKQW4gZXhlY3V0aW9uIHRoYXQgdHJpZ2dlcnMgaXQ6CgpzdHJ1Y3Qgc2JpX2RvbWFpbl9t
-ZW1yZWdpb24gaXMgMjQgYnl0ZXMgKG9yZGVyLCBiYXNlLCBmbGFncyk7IHRoZSByb290CmFycmF5
-IGhhcyAzMyBzbG90cyAoc2JpX2NhbGxvYyjigKYsIFJPT1RfUkVHSU9OX01BWCArIDEpKSwgdGhl
-IGxhc3Qgb25lCnRoZSBhbGwtemVybyB0ZXJtaW5hdG9yIChvcmRlciA9PSAwKS4KCjEuIER1cmlu
-ZyBzYmlfZG9tYWluX2luaXQoKSBhbmQgdGhlIGRyaXZlciBjb2xkLWluaXRzLCByZWdpb25zIGFy
-ZSBhZGRlZAogICBvbmUgYXQgYSB0aW1lIHRocm91Z2ggc2JpX2RvbWFpbl9yb290X2FkZF9tZW1y
-ZWdpb24oKS4gU3VwcG9zZSBOCiAgIHJlZ2lvbnMgYXJlIHJlZ2lzdGVyZWQgc28gZmFyICh0aGUg
-dmlydCBwbGF0Zm9ybSByZWdpc3RlcnMgNyBieSB0aGUKICAgZW5kIG9mIGJvb3Q6IGZpcm13YXJl
-IFJXL1JYLCBVQVJULCBDTElOVCBNU1dJLCBDTElOVCBNVElNRVIsIFBMSUMgaW4KICAgdHdvIHBp
-ZWNlcywgdGhlIGFsbC1SQU0gY2F0Y2gtYWxsOyBOIGdyb3dzIHRvIDcpLgoyLiBBIGNhbGxlciBh
-ZGRzIGEgcmVnaW9uIFIgdGhhdCBzdHJpY3RseSBjb3ZlcnMgYW4gZXhpc3RpbmcgcmVnaW9uIFMK
-ICAgKHNhbWUgZmxhZ3MsIFMgaW5zaWRlIFIpLiBUaGUgQUNMSU5UIGRyaXZlciBkb2VzIHRoaXMg
-b24gdmlydDogaXQKICAgcmVnaXN0ZXJzIHRoZSBNU1dJIHdpbmRvdyAweDIwMDAwMDAvMHg0MDAw
-IGFuZCB0aGUgTVRJTUVSIHdpbmRvdwogICAweDIwMDQwMDAvMHhjMDAwIHNlcGFyYXRlbHksIGFu
-ZCBzYW5pdGl6ZV9kb21haW4oKSBtZXJnZXMgdGhlbSB3aGVuIGEKICAgY292ZXJpbmcgMl4xNiBD
-TElOVCByZWdpb24gYXBwZWFycy4gT24gZW50cnkgcm9vdF9tZW1yZWdzX2NvdW50ID0gTgogICAo
-c2F5IDcpIGFuZCByb290LnJlZ2lvbnNbN10gaXMgdGhlIHRlcm1pbmF0b3IuCjMuIHJvb3RfYWRk
-X21lbXJlZ2lvbigpIGFwcGVuZHMgUiBhdCBpbmRleCA3LCBpbmNyZW1lbnRzIHRoZSBsb2NhbCBj
-b3VudAogICB0byA4IGFuZCB3cml0ZXMgdGhlIHRlcm1pbmF0b3IgYXQgaW5kZXggOC4KNC4gc2Fu
-aXRpemVfZG9tYWluKCkgc29ydHMsIHRoZW4gZmluZHMgUyBjb3ZlcmVkIGJ5IFIgYW5kIHJlbW92
-ZXMgaXQ6CiAgIHNiaV9tZW1tb3ZlKCZyZWdpb25zW2ldLCAmcmVnaW9uc1tpKzFdLCAyNCAqIChj
-b3VudCAtIGkpKSB3aXRoIGl0cwogICBPV04gcmVjb21wdXRlZCBjb3VudCwgc2hpZnRpbmcgdGhl
-IHRhaWwgKGluY2x1ZGluZyB0aGUgdGVybWluYXRvcikKICAgZG93biBieSBvbmUuIFRoZSBhcnJh
-eSBub3cgaG9sZHMgNyBsaXZlIHJlZ2lvbnMgYW5kIHRoZSB0ZXJtaW5hdG9yIGF0CiAgIGluZGV4
-IDcuIHJvb3RfYWRkX21lbXJlZ2lvbigpJ3MgbG9jYWwgcm9vdF9tZW1yZWdzX2NvdW50IGlzIHN0
-aWxsIDguCjUuIFRoZSBtZXJnZSBsb29wIChzYmlfZG9tYWluX2Zvcl9lYWNoX21lbXJlZ2lvbiwg
-d2hpY2ggc3RvcHMgYXQgdGhlCiAgIHRlcm1pbmF0b3IpIGZpbmRzIHR3byBhZGphY2VudCBzYW1l
-LW9yZGVyIHNhbWUtZmxhZyByZWdpb25zIGF0CiAgIGluZGljZXMgaTEgLSAxIGFuZCBpMSBhbmQg
-bWVyZ2VzIHRoZW06IG5yZWctPm9yZGVyKyssIHRoZW4KICAgc2JpX21lbW1vdmUobnJlZzEsIG5y
-ZWcxICsgMSwgMjQgKiAocm9vdF9tZW1yZWdzX2NvdW50IC0gaTEpKS4gV2l0aAogICB0aGUgc3Rh
-bGUgOCB0aGlzIGNvcGllcyA4IC0gaTEgZW50cmllcyBzdGFydGluZyBhdCBpbmRleCBpMSArIDEs
-IGkuZS4KICAgdXAgdG8gYW5kIGluY2x1ZGluZyBpbmRleCA4LCB3aGlsZSB0aGUgbGl2ZSBkYXRh
-IHBsdXMgdGVybWluYXRvciBlbmQKICAgYXQgaW5kZXggNy4gSXQgcmVhZHMgb25lIGVudHJ5IGJl
-eW9uZCB0aGUgdGVybWluYXRvciAoaW5kZXggOCwgaW5zaWRlCiAgIHRoZSAzMy1zbG90IGFsbG9j
-YXRpb24sIGFsbCB6ZXJvIGFmdGVyIGNhbGxvYykgYW5kIHdyaXRlcyBpdCBvdmVyCiAgIGluZGV4
-IDcuCjYuIFJlc3VsdDogbm90aGluZyB2aXNpYmx5IHdyb25nICp0b2RheSosIGJlY2F1c2UgdGhl
-IG92ZXItcmVhZCBsYW5kcyBvbgogICBhIHplcm9lZCBzbG90IGluc2lkZSB0aGUgYWxsb2NhdGlv
-biBhbmQgY29weWluZyB6ZXJvcyBvdmVyIHRoZQogICB0ZXJtaW5hdG9yJ3MgcG9zaXRpb24gbGVh
-dmVzIGEgdGVybWluYXRvciB0aGVyZS4gRXZlcnkgZXh0cmEgcmVtb3ZhbAogICB3aWRlbnMgdGhl
-IGdhcCBieSBvbmUgc2xvdC4gVHdvIGNvbmRpdGlvbnMgdHVybiBpdCBpbnRvIGEgcmVhbCBmYXVs
-dDoKICAgKGEpIDMyIHJlZ2lzdGVyZWQgcmVnaW9ucywgd2hlcmUgaW5kZXggMzIgaXMgdGhlIHRl
-cm1pbmF0b3IgYW5kIHRoZQogICBvdmVyLXJlYWQgcmVhY2hlcyBpbmRleCAzMywgcGFzdCB0aGUg
-c2JpX2NhbGxvYyBibG9jaywgcHVsbGluZyBoZWFwLQogICBuZWlnaGJvdXIgYnl0ZXMgaW50byB0
-aGUgcmVnaW9uIHRhYmxlIChhIG5vbi16ZXJvIG9yZGVyIHRoZXJlIGV4dGVuZHMKICAgdGhlIHRh
-YmxlIHdpdGggYSBib2d1cyByZWdpb24gdGhhdCBsYW5kcyBpbiB0aGUgUE1QIGNvbmZpZ3VyYXRp
-b24gb2YKICAgZXZlcnkgaGFydCk7IChiKSBhIGNoYW5nZSB0aGF0IGRyb3BzICsgMSBmcm9tIHRo
-ZSBhbGxvY2F0aW9uIG9yCiAgIHJldXNlcyB0aGUgc2xvdCwgd2hpY2ggdGhlIGN1cnJlbnQgY29k
-ZSBzaWxlbnRseSBkZXBlbmRzIG9uLgoKVGhlIGZpeCByZWNvbXB1dGVzIHRoZSBjb3VudCBmcm9t
-IHRoZSBhcnJheSAoc2JpX2RvbWFpbl91c2VkX21lbXJlZ2lvbnMpCmFmdGVyIGV2ZXJ5IHN1Y2Nl
-c3NmdWwgc2FuaXRpemVfZG9tYWluKCkgc28gdGhlIG1lbW1vdmUgY292ZXJzIGV4YWN0bHkKdGhl
-IHJlbWFpbmluZyByZWdpb25zIHBsdXMgdGhlIHRlcm1pbmF0b3IuCgpWZXJpZmljYXRpb246CgpQ
-cm92ZWQ6IHNiaV9kb21haW5fcm9vdF9hZGRfbWVtcmFuZ2UoKSBvbiB0aGUgdmlydCBwbGF0Zm9y
-bSdzIHJlZ2lvbgpzZXF1ZW5jZSBzYXRpc2ZpZXMgaXRzIGNvbnRyYWN0IGFnYWluc3QgYSBtb2Rl
-bCBvZiB0aGUgcmVnaW9uIGFycmF5LiBUaGUKcHJvb2YgaGFkIHRvIGNhcnJ5IHRoZSBvdXQtb2Yt
-cmFuZ2UgdGFpbCBieXRlcyBleHBsaWNpdGx5IHRvIGdvIHRocm91Z2gKb24gdGhlIHVuZml4ZWQg
-Y29kZTsgd2l0aCB0aGUgZml4IHRoZSBtZW1tb3ZlJ3MgcmFuZ2UgaXMgdGhlIGxpdmUgYXJyYXku
-CgpsaWIvc2JpL3NiaV9kb21haW4uYyB8IDYgKysrKysrIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2Vy
-dGlvbnMoKykKCkZZSSwgdGhlIHNhbWUgY2hhbmdlIGlzIGFsc28gZmlsZWQgYXMgR2l0SHViIHB1
-bGwgcmVxdWVzdCAjNDI4OgpodHRwczovL2dpdGh1Yi5jb20vcmlzY3Ytc29mdHdhcmUtc3JjL29w
-ZW5zYmkvcHVsbC80MjgKCmRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9kb21haW4uYyBiL2xpYi9z
-Ymkvc2JpX2RvbWFpbi5jCmluZGV4IGIzZjU4OTJkLi40OTI0ZTFiMSAxMDA2NDQKLS0tIGEvbGli
-L3NiaS9zYmlfZG9tYWluLmMKKysrIGIvbGliL3NiaS9zYmlfZG9tYWluLmMKQEAgLTc0OCw2ICs3
-NDgsMTIgQEAgc3RhdGljIGludCByb290X2FkZF9tZW1yZWdpb24oY29uc3Qgc3RydWN0IHNiaV9k
-b21haW5fbWVtcmVnaW9uICpyZWcpCiAJCQlyZXR1cm4gcmM7CiAJCX0KIAorCQkvKgorCQkgKiBz
-YW5pdGl6ZV9kb21haW4oKSBtYXkgaGF2ZSBkcm9wcGVkIHJlZ2lvbnMgY292ZXJlZCBieQorCQkg
-KiBhbm90aGVyIHJlZ2lvbiwgc28gdGhlIGNvdW50IGlzIHN0YWxlIGF0IHRoaXMgcG9pbnQuCisJ
-CSAqLworCQlyb290X21lbXJlZ3NfY291bnQgPSBzYmlfZG9tYWluX3VzZWRfbWVtcmVnaW9ucygm
-cm9vdCk7CisKIAkJLyogTWVyZ2UgY29uc2VjdXRpdmUgbWVtcmVnaW9ucyB3aXRoIHNhbWUgb3Jk
-ZXIgYW5kIGZsYWdzICovCiAJCXJlZ19tZXJnZWQgPSBmYWxzZTsKIAkJc2JpX2RvbWFpbl9mb3Jf
-ZWFjaF9tZW1yZWdpb24oJnJvb3QsIG5yZWcpIHsKLS0gCjIuNTUuMAoKCi0tIApvcGVuc2JpIG1h
-aWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJh
-ZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+On 9/10/26 07:00, Troy Mitchell wrote:
+> From: Valentin Haudiquet <valentin.haudiquet@canonical.com>
+> 
+> Only hart 0 is powered at reset on K3; secondary harts are started later
+> through HSM. Restrict cold-boot eligibility to hart 0 instead of using
+> the generic DT-configured hart mask, matching K1.
+> 
+> Signed-off-by: Valentin Haudiquet <valentin.haudiquet@canonical.com>
+> Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+> ---
+>  platform/generic/spacemit/k3.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/platform/generic/spacemit/k3.c b/platform/generic/spacemit/k3.c
+> index 967d09bf..7922ab11 100644
+> --- a/platform/generic/spacemit/k3.c
+> +++ b/platform/generic/spacemit/k3.c
+> @@ -102,11 +102,17 @@ static int spacemit_k3_early_init(bool cold_boot)
+>  	return generic_early_init(cold_boot);
+>  }
+>  
+> +static bool spacemit_k3_cold_boot_allowed(u32 hartid)
+> +{
+> +	return !hartid;
+> +}
+> +
+>  static int spacemit_k3_platform_init(const void *fdt, int nodeoff,
+>  				     const struct fdt_match *match)
+>  {
+>  	spacemit_k3_hart_init(current_hartid());
+>  	generic_platform_ops.early_init = spacemit_k3_early_init;
+> +	generic_platform_ops.cold_boot_allowed = spacemit_k3_cold_boot_allowed;
+>  
+>  	return 0;
+>  }
+> 
+
+Reviewed-by: E Shattow <e@freeshell.de>
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
