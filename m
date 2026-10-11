@@ -4,88 +4,46 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id C6D05CA9EBD
-	for <opensbi@archiver.kernel.org>; Sun, 11 Oct 2026 04:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 232B7CA9EC7
+	for <opensbi@archiver.kernel.org>; Sun, 11 Oct 2026 22:21:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=XJ0jbbAlu92DdkxzLlK4vpghaLkgU37z9BqGWLWUeyw=; b=jSQu7HK36kWa+n
-	NVdGe5pAiuA/Re37shCBl5TZFoIyf0Ip1ZSXAOG74/pQrQDoB8aF4RSoFEQImmJiNgdzecZt/LSti
-	BirPDTF4kjAzMia03BLjM8mpUdH2Mkbq7f0YJFl/f65TYg9q+Azc35fyol/HNfbBAmvVP/YvUrm1G
-	WTt2jNN93BbYhv1jcZ6Tyu5qias8YjKcFSSNiFXhiKyQQspDvwCMK+NY1VA5Zhhn8kWgRPBmfcoab
-	FXjUKsDFQaLfjiyIXXF9tz9CENb4vrZTbTWTxCPa8QVFdXagsiLnNsSbnnxqtL23sgiQFhBPIhtSp
-	w1JMbuoeSqGREmSdayIQ==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=DluJtKEbRBrFYkrKBbJBUpMHmc66+zv5GUpP42tpuf4=; b=uo+Xs2Ihh61NmO
+	k882svNlL15e8K6wGWRaCJboZq/xVso6KR824s9WkbtHLm4jwho6/tuNIvFRP+eLjrOFNMw7hg/CE
+	pwtNu/46H934kHcNggr+OyZRmYxUwdJyMhq7zRe+Y/TXc0x604VLM7OqLFJ02V/DT9FnNrPN3dRYy
+	jQE3ID+0O2zB52iFouGBslvxvo6xtTtXSWZ2+B6YiYM5VqQzolCMHW+Un4U+4QBl8CwoBSlODqpkA
+	TVwpEfM/dooF0oan16+tFC/+JPrQBtGGzko3BWRPoyzzi7d1LeVvmBTky4a7ynRQtsP2Okaa4GTAh
+	+/cnX2j+Ot19IL60GwHA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xFkzj-00000008hYa-0rlh;
-	Sun, 11 Oct 2026 04:17:07 +0000
-Received: from mail-vk1-xa32.google.com ([2607:f8b0:4864:20::a32])
+	id 1xG1v5-00000009S6w-2Hvl;
+	Sun, 11 Oct 2026 22:21:27 +0000
+Received: from outgoing2021.csail.mit.edu ([128.30.2.78])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xFkzh-00000008hYH-0yII
+	id 1xG1v0-00000009S6b-1WXg
 	for opensbi@lists.infradead.org;
-	Sun, 11 Oct 2026 04:17:06 +0000
-Received: by mail-vk1-xa32.google.com with SMTP id 71dfb90a1353d-5e948e56af3so36e0c.2
-        for <opensbi@lists.infradead.org>; Sat, 10 Oct 2026 21:17:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791692224; x=1792297024; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=lUVdyafbp8wjMMxznjYTgybCfuHVNTqAtuWVfLw41qQ=;
-        b=OQhNAEPURSeWo7hAnm3fR2qkzCfOdM9yeUGujzgeMQ9alphfqXc8+8Kdon4H9UraUz
-         1BD7tVpP4xQ/sdRS/PiH8zGuCbhFeO8mtVepxdJbFwUE1LM2/xt+ci6Bprwm0U0s10/5
-         6H/JrHKmTcJGxaiqE/Ed+npqQvDKSC38EGYB8h9Pu579ig/+SmFkqgu7dhz+iXydpKeY
-         VA/SdSRiKUCz92m99WdnJC0fno+3w6SqdBxkc1UJufymykOVNp4MWqAyuiIZydHvPVRF
-         yvN8VH6LpOYAIW2mOuAWCFjQesD5gmXk3EGLZVBp4ONfm4KWZt+WQeCT0+O7omXke0I4
-         3tnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791692224; x=1792297024;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=lUVdyafbp8wjMMxznjYTgybCfuHVNTqAtuWVfLw41qQ=;
-        b=jK/BdkELBIeO4Ho+p7q47w7hNtX8QyC5jDlCJJrsZVc6v8vxlECjrJBQ77kQKB968R
-         kMTzftX3WlkOYDvM/D62b8NpNqJKj4lEKgOVVuUXVxDQXv/cwFkIMXwFm2vTZa7EoeLs
-         FEK+yylkEo4Rm8QhW1RtB8mJ2dYXyvTmDetfGqUMHKOtxKr+N61RB+at7LCArLiu7cPT
-         zv9V4bHIIZFNnNHvqi4cGCiiI7hLl5hloHKt6ShKQ7VVUGHGExShEmpxN47Qwb1EUZSr
-         twqaGuMaiKwc7qNnoUzmF0HVQDAkf8VC4H21uG64KlQ18YQZH9Au5BoJm8iSY+rZNRZN
-         1F3Q==
-X-Gm-Message-State: AFq9FYLKDnn5QAN/+gdW0ZnfzabTS6/B75MWB+0XGcA8PJwCsqlFVVBw
-	2O+OJWePk+Fpp+U7J3lA3lm3ziirahuouH6Xbq9qsvaRIU7tug+ntFWEjaNj5M6jUlBxpA==
-X-Gm-Gg: AYBFou2FVF0bkmY0jy1DPRz4n3QnWoTHCHEIMaTBhunKsvgQQ3UinD1qzWWpagoIr88
-	UAmUQG66JzWf3DLPcqAbFKpEfoppkoa7RWz9UVZ4uOXqIgoVdRHLTKdJeTCVVg/pXJ5WHYqpNKJ
-	VeL7bm4eZ0D5Vu6Cyukc01y9R60f0l0Xi1iO/0Z0TMamGJaxU5HgrhE0qgNhcmPgkLwBxQbthJQ
-	e75+Boy/JPr/Bbu/UqXBHF5o9QyB8HETg55iN51ooxLNwXql5FIxhjeHaWESgGoBk3niJNnfXmD
-	lXhZsgbATYZn7i56grO+i8FU1chpkKcaBvL2yZaZjw0SC20ccAd1Ckip2Cq2BzYL/32bmy+jKB7
-	0Aya1fgQrsFuDxYAwNmGz+w+tC8KPtk1DEHbeV81e63NEL2WG3JUqeLnR0H3O0T77lIxWj9iZD5
-	PzMdFrz2TFAY8KlIuG38gD/X5u8r6w5btXbdDiG3oVeNxHWFLlU96lRfHVKq8uQHmW7LXh+5yDB
-	3CMsj6VifpKpklRRJC2DYXGXohndcaSLO6xFRfybcmXG0Ie/CMlhDpHw9H3mTk2fgwLhe9KVw==
-X-Received: by 2002:a05:6122:3a06:b0:5c9:a60d:327d with SMTP id 71dfb90a1353d-5e91f518afamr1967613e0c.17.1791692223835;
-        Sat, 10 Oct 2026 21:17:03 -0700 (PDT)
-Received: from localhost.localdomain ([186.151.100.62])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5e92f300f42sm3316106e0c.0.2026.10.10.21.17.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 10 Oct 2026 21:17:02 -0700 (PDT)
-From: Sebastian Alba Vives <sebasjosue84@gmail.com>
+	Sun, 11 Oct 2026 22:21:23 +0000
+Received: from escalante.csail.mit.edu ([128.52.128.198])
+	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
+	(envelope-from <nickolai@csail.mit.edu>)
+	id 1xG1ut-00BxTP-8Y;
+	Sun, 11 Oct 2026 18:21:15 -0400
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
 To: opensbi@lists.infradead.org
-Cc: ganboing@gmail.com,
-	anup@brainfault.org,
-	apatel@ventanamicro.com,
-	Sebastian Alba Vives <sebasjosue84@gmail.com>
-Subject: Re: [PATCH] lib: sbi_trap_v_ldst: fix mask buffer overflow on VLEN > 128
-Date: Sat, 10 Oct 2026 22:17:00 -0600
-Message-ID: <20261011041700.809827-1-sebasjosue84@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260922030633.10886-1-sebasjosue84@gmail.com>
-References: <20260922030633.10886-1-sebasjosue84@gmail.com>
+Cc: Anup Patel <anup@brainfault.org>,
+	Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: [PATCH] lib: sbi_pmu: Do not return uninitialized stack data on FW read errors
+Date: Sun, 11 Oct 2026 18:21:14 -0400
+Message-ID: <20261011222115.769450-1-nickolai@csail.mit.edu>
+X-Mailer: git-send-email 2.53.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261010_211705_280920_E83BAAFB 
-X-CRM114-Status: UNSURE (   5.07  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20261011_152122_405729_6B21E799 
+X-CRM114-Status: GOOD (  14.05  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -102,17 +60,80 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Ping.
+sbi_ecall_pmu_handler() passes the uninitialized local temp to
+sbi_pmu_ctr_fw_read() and copies it into out->value unconditionally.
+sbi_pmu_ctr_fw_read() only writes *cval on success, so every error
+return of SBI_EXT_PMU_COUNTER_FW_READ (e.g. a hardware or inactive
+counter index) hands an M-mode stack word to the supervisor in a1.
+SBI_EXT_PMU_COUNTER_FW_READ_HI does the same with the upper half of
+temp on RV32.
 
-This is a stack buffer overflow in M-mode reachable from S-mode or
-U-mode on any hart with VLEN > 128, which covers most vector-capable
-hardware shipping today.
+Initialize temp to zero so that the error paths return zero in
+sbiret.value; the success paths are unchanged.
 
-The fix is a unit conversion at two call sites. Happy to rework it if
-there's a preferred approach.
+Fixes: 1664d0efce0b ("lib: sbi_pmu: Replace sbi_pmu_ctr_read() with sbi_pmu_ctr_fw_read()")
+Fixes: 51951d9e9af8 ("lib: sbi_pmu: Implement sbi_pmu_counter_fw_read_hi")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+This bug was found in the process of formally verifying the correctness
+of OpenSBI on top of the Sail RISC-V semantics using Lean.
 
-Thanks,
-Sebastian
+Triggering execution: any S-mode caller,
+  a7 = 0x504D55 (PMU), a6 = 5 (COUNTER_FW_READ), a0 = 0 (mcycle).
+sbi_pmu_ctr_fw_read() returns SBI_EINVAL at its first range check
+without writing *cval, the handler copies the never-written temp into
+out->value, and sbi_ecall_handler() returns it in a1 next to
+a0 = SBI_ERR_INVALID_PARAM.  temp has its address taken, so it lives
+in a stack slot of the M-mode trap stack and a1 receives whatever the
+last M-mode code left there.  The same holds for a6 = 6 on RV32
+(upper half); the RV64 arm of fid 6 already returns 0.
+
+The same verification pass found that SBI_PMU_CFG_FLAG_SKIP_MATCH lets
+a supervisor pair a firmware counter with a hardware event (sbi_panic()
+via csr_write_num(0xb20)) or a hardware counter with a firmware event
+(an out-of-bounds fw_counters_data[] store); that is fixed by the
+pending "lib: sbi: reject PMU skip-match counter class mismatches"
+from Pengpeng Hou, so it is not repeated here.
+
+Testing:
+- make PLATFORM=generic LLVM=1 PLATFORM_RISCV_XLEN=64: builds, no
+  warnings.  PLATFORM_RISCV_XLEN=32 (rv32imac_zicsr_zifencei/ilp32):
+  sbi_ecall_pmu.c compiles without warnings; the 32-bit build as a
+  whole stops on an unrelated, pre-existing clang
+  -Wsometimes-uninitialized error in lib/sbi/sbi_trap_ldst.c that
+  origin/master has too.
+- A userspace model of the handler (fid 5/6, sbi_pmu_ctr_fw_read()
+  stubbed with the real "write *cval only on success" behaviour) shows
+  the stale word in a1 on the error path before the patch and 0 after.
+- Not run on QEMU (none available here).  Suggested check: from an
+  S-mode test payload (or kvm-unit-tests' SBI PMU test), call
+  sbi_ecall(0x504D55, 5, 0, ...) right after a successful fw read of
+  a firmware counter configured with COUNTER_CFG_MATCH; before the
+  patch a1 holds the previous call's counter value (whatever is in
+  the stack slot), after it a1 = 0.
+
+ lib/sbi/sbi_ecall_pmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
+index 41bb1624..0762cce5 100644
+--- a/lib/sbi/sbi_ecall_pmu.c
++++ b/lib/sbi/sbi_ecall_pmu.c
+@@ -22,7 +22,7 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
+ 				 struct sbi_ecall_return *out)
+ {
+ 	int ret = 0;
+-	uint64_t temp;
++	uint64_t temp = 0;
+ 
+ 	switch (funcid) {
+ 	case SBI_EXT_PMU_NUM_COUNTERS:
+
+base-commit: 6ad246a1494807ee91e36ffcf60e4c30bb309d45
+-- 
+2.53.0
+
 
 -- 
 opensbi mailing list
