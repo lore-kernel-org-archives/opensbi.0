@@ -4,46 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 232B7CA9EC7
-	for <opensbi@archiver.kernel.org>; Sun, 11 Oct 2026 22:21:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id A5294CA9ECF
+	for <opensbi@archiver.kernel.org>; Sun, 11 Oct 2026 22:24:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=DluJtKEbRBrFYkrKBbJBUpMHmc66+zv5GUpP42tpuf4=; b=uo+Xs2Ihh61NmO
-	k882svNlL15e8K6wGWRaCJboZq/xVso6KR824s9WkbtHLm4jwho6/tuNIvFRP+eLjrOFNMw7hg/CE
-	pwtNu/46H934kHcNggr+OyZRmYxUwdJyMhq7zRe+Y/TXc0x604VLM7OqLFJ02V/DT9FnNrPN3dRYy
-	jQE3ID+0O2zB52iFouGBslvxvo6xtTtXSWZ2+B6YiYM5VqQzolCMHW+Un4U+4QBl8CwoBSlODqpkA
-	TVwpEfM/dooF0oan16+tFC/+JPrQBtGGzko3BWRPoyzzi7d1LeVvmBTky4a7ynRQtsP2Okaa4GTAh
-	+/cnX2j+Ot19IL60GwHA==;
+	List-Owner; bh=sJyOTAFtA853vQ6U/xpVOdsYL4CVC7TxVLecYb7yGs8=; b=YmppllgwQDc76x
+	jTAxD+lJ/Ggxz3J3xRN8XAy5eloVsjQXzTdaUigjwjAbe/jRHndkAy6YOAXAhIgjekRG/Ad4l5oLn
+	BweGTs5vtBbGnNFIEe9PqCRz92yTgXwdkBrAZOBYBhifiiAjS1jKIF9yicVg2VBTOWKR7PpcT/Bhk
+	cTztjxCydyve1PAk3kQnfYyG8mnF2k6IP7qlo5OjoqXOUNwxBMW4kz3V5G4xOmRmluVhW6+y5KNtc
+	rfx7I+3fQzqzAVQglKUb2Pv+KUhcOXZixeiv7HzbclSPEwXtQEo6uF2SvKlwag8VjWsFHOBcza3xg
+	Xe8C4f/zhTIuphyD3BrQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xG1v5-00000009S6w-2Hvl;
-	Sun, 11 Oct 2026 22:21:27 +0000
+	id 1xG1xs-00000009SZD-0o3U;
+	Sun, 11 Oct 2026 22:24:20 +0000
 Received: from outgoing2021.csail.mit.edu ([128.30.2.78])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xG1v0-00000009S6b-1WXg
+	id 1xG1xm-00000009SYn-0rXu
 	for opensbi@lists.infradead.org;
-	Sun, 11 Oct 2026 22:21:23 +0000
+	Sun, 11 Oct 2026 22:24:18 +0000
 Received: from escalante.csail.mit.edu ([128.52.128.198])
 	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
 	(envelope-from <nickolai@csail.mit.edu>)
-	id 1xG1ut-00BxTP-8Y;
-	Sun, 11 Oct 2026 18:21:15 -0400
+	id 1xG1xl-00Bxgn-0s;
+	Sun, 11 Oct 2026 18:24:13 -0400
 From: Nickolai Zeldovich <nickolai@csail.mit.edu>
 To: opensbi@lists.infradead.org
 Cc: Anup Patel <anup@brainfault.org>,
+	Pengpeng Hou <pengpeng@iscas.ac.cn>,
 	Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: [PATCH] lib: sbi_pmu: Do not return uninitialized stack data on FW read errors
-Date: Sun, 11 Oct 2026 18:21:14 -0400
-Message-ID: <20261011222115.769450-1-nickolai@csail.mit.edu>
+Subject: [PATCH] lib: sbi_timer: Insert timer event before the later event
+Date: Sun, 11 Oct 2026 18:24:12 -0400
+Message-ID: <20261011222412.769530-1-nickolai@csail.mit.edu>
 X-Mailer: git-send-email 2.53.0
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261011_152122_405729_6B21E799 
-X-CRM114-Status: GOOD (  14.05  )
+X-CRM114-CacheID: sfid-20261011_152414_251557_17B1ECB0 
+X-CRM114-Status: GOOD (  18.69  )
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -60,75 +61,91 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_ecall_pmu_handler() passes the uninitialized local temp to
-sbi_pmu_ctr_fw_read() and copies it into out->value unconditionally.
-sbi_pmu_ctr_fw_read() only writes *cval on success, so every error
-return of SBI_EXT_PMU_COUNTER_FW_READ (e.g. a hardware or inactive
-counter index) hands an M-mode stack word to the supervisor in a1.
-SBI_EXT_PMU_COUNTER_FW_READ_HI does the same with the upper half of
-temp on RV32.
+The per-HART event list is kept sorted by expiry time: the head is the
+event programmed into the timer device by __sbi_timer_update_device(),
+and sbi_timer_process() stops at the first unexpired entry.
 
-Initialize temp to zero so that the error paths return zero in
-sbiret.value; the success paths are unchanged.
+__sbi_timer_event_start() finds the first event that expires after the
+new one, but then inserts the new event with sbi_list_add(), i.e. after
+that event instead of before it.  Starting an event at time 50 while an
+event at time 1000 is pending yields the list [1000, 50]: the device is
+programmed for 1000 and the earlier event fires 950 ticks late.
 
-Fixes: 1664d0efce0b ("lib: sbi_pmu: Replace sbi_pmu_ctr_read() with sbi_pmu_ctr_fw_read()")
-Fixes: 51951d9e9af8 ("lib: sbi_pmu: Implement sbi_pmu_counter_fw_read_hi")
+Today each HART only ever has its S-mode timer event on the list, so
+the misordering needs a second timer event user to show up.  Once there
+is one, on HARTs without Sstc an S-mode timer programmed while a later
+M-mode event is pending is delivered only when that later event
+expires.
+
+Use sbi_list_add_tail() so the new event goes in front of next_ev.
+
+Fixes: b7fa8a246cba ("lib: sbi_timer: Add support for timer events")
 Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 ---
 This bug was found in the process of formally verifying the correctness
 of OpenSBI on top of the Sail RISC-V semantics using Lean.
 
-Triggering execution: any S-mode caller,
-  a7 = 0x504D55 (PMU), a6 = 5 (COUNTER_FW_READ), a0 = 0 (mcycle).
-sbi_pmu_ctr_fw_read() returns SBI_EINVAL at its first range check
-without writing *cval, the handler copies the never-written temp into
-out->value, and sbi_ecall_handler() returns it in a1 next to
-a0 = SBI_ERR_INVALID_PARAM.  temp has its address taken, so it lives
-in a stack slot of the M-mode trap stack and a1 receives whatever the
-last M-mode code left there.  The same holds for a6 = 6 on RV32
-(upper half); the RV64 arm of fid 6 already returns 0.
+__sbi_timer_event_start() walks event_list for the first tev with
+next_event < tev->time_stamp and then calls
+sbi_list_add(&ev->head, &next_ev->head), which links ev after next_ev
+(__sbi_list_add(new, head, head->next)).  Every later consumer assumes
+the list is sorted: __sbi_timer_update_device() programs the head's
+time_stamp and sbi_timer_process() breaks at the first unexpired head.
+With [A@1000] pending, starting B@50 gives [A@1000, B@50], so B fires
+at 1000.  Inserting at the tail when no later event exists was already
+correct.
 
-The same verification pass found that SBI_PMU_CFG_FLAG_SKIP_MATCH lets
-a supervisor pair a firmware counter with a hardware event (sbi_panic()
-via csr_write_num(0xb20)) or a hardware counter with a firmware event
-(an out-of-bounds fw_counters_data[] store); that is fixed by the
-pending "lib: sbi: reject PMU skip-match counter class mismatches"
-from Pengpeng Hou, so it is not repeated here.
+In-tree each HART has only smode_ev on its list (and
+sbi_timer_event_start() unlinks an event before re-inserting it), so
+the list never has two entries today.  The proposed SBI watchdog
+extension (Prajwal N, "[PATCH 3/4] lib: sbi: Add SBI watchdog
+framework", 2026-10-02) adds two more per-HART events; on a HART
+without Sstc, an S-mode timer set while the watchdog event is pending
+would then be delayed until the watchdog event expires.
+
+This is independent of Pengpeng Hou's pending "lib: sbi_timer: Restart
+events from the restart list" (2026-08-31), which fixes the restart
+loop in sbi_timer_process(); the two patches touch different hunks and
+apply in either order.  Re-armed events go through the same insertion,
+so they need both.
 
 Testing:
 - make PLATFORM=generic LLVM=1 PLATFORM_RISCV_XLEN=64: builds, no
-  warnings.  PLATFORM_RISCV_XLEN=32 (rv32imac_zicsr_zifencei/ilp32):
-  sbi_ecall_pmu.c compiles without warnings; the 32-bit build as a
-  whole stops on an unrelated, pre-existing clang
-  -Wsometimes-uninitialized error in lib/sbi/sbi_trap_ldst.c that
-  origin/master has too.
-- A userspace model of the handler (fid 5/6, sbi_pmu_ctr_fw_read()
-  stubbed with the real "write *cval only on success" behaviour) shows
-  the stale word in a1 on the error path before the patch and 0 after.
-- Not run on QEMU (none available here).  Suggested check: from an
-  S-mode test payload (or kvm-unit-tests' SBI PMU test), call
-  sbi_ecall(0x504D55, 5, 0, ...) right after a successful fw read of
-  a firmware counter configured with COUNTER_CFG_MATCH; before the
-  patch a1 holds the previous call's counter value (whatever is in
-  the stack slot), after it a1 = 0.
+  warnings (also with Pengpeng Hou's patch applied on top).
+- PLATFORM_RISCV_XLEN=32 (rv32imac_zicsr_zifencei/ilp32): sbi_timer.o
+  builds without warnings; the full rv32 build stops in
+  lib/sbi/sbi_trap_ldst.c (-Wsometimes-uninitialized on 'val'), which
+  fails the same way on unpatched master.
+- Userspace harness: include/sbi/sbi_list.h plus copies of
+  __sbi_timer_event_start(), __sbi_timer_event_stop() and
+  sbi_timer_process() with stubs.  Starting 50 while 1000 is pending:
+  master gives [1000, 50], patched gives [50, 1000].  A callback
+  re-arming at 110 with an event pending at 1000: with only the
+  restart-list fix the result is [1000, 110], with both [110, 1000].
+- Not run on QEMU or hardware.  To see it there, start two M-mode timer
+  events on one HART, the later one first, e.g. from a platform
+  final_init on a non-Sstc CPU (qemu-system-riscv64 -M virt
+  -cpu rv64,sstc=off): sbi_timer_event_start(&a, now + 10 * freq);
+  sbi_timer_event_start(&b, now + freq); b's callback runs after 10 s
+  on master and after 1 s with this patch.
 
- lib/sbi/sbi_ecall_pmu.c | 2 +-
+ lib/sbi/sbi_timer.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_ecall_pmu.c b/lib/sbi/sbi_ecall_pmu.c
-index 41bb1624..0762cce5 100644
---- a/lib/sbi/sbi_ecall_pmu.c
-+++ b/lib/sbi/sbi_ecall_pmu.c
-@@ -22,7 +22,7 @@ static int sbi_ecall_pmu_handler(unsigned long extid, unsigned long funcid,
- 				 struct sbi_ecall_return *out)
- {
- 	int ret = 0;
--	uint64_t temp;
-+	uint64_t temp = 0;
- 
- 	switch (funcid) {
- 	case SBI_EXT_PMU_NUM_COUNTERS:
+diff --git a/lib/sbi/sbi_timer.c b/lib/sbi/sbi_timer.c
+index 78aaa32e..1f13a3b1 100644
+--- a/lib/sbi/sbi_timer.c
++++ b/lib/sbi/sbi_timer.c
+@@ -205,7 +205,7 @@ static void __sbi_timer_event_start(struct timer_state *tstate,
+ 	ev->hart_index = current_hartindex();
+ 	ev->time_stamp = next_event;
+ 	if (next_ev)
+-		sbi_list_add(&ev->head, &next_ev->head);
++		sbi_list_add_tail(&ev->head, &next_ev->head);
+ 	else
+ 		sbi_list_add_tail(&ev->head, &tstate->event_list);
+ }
 
 base-commit: 6ad246a1494807ee91e36ffcf60e4c30bb309d45
 -- 
