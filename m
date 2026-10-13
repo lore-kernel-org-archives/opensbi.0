@@ -4,84 +4,89 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 28B73CA9ECF
-	for <opensbi@archiver.kernel.org>; Mon, 12 Oct 2026 02:20:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 182D9CA9ED0
+	for <opensbi@archiver.kernel.org>; Tue, 13 Oct 2026 04:42:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
-	List-Owner; bh=+aHsxz1PYqXtFCKQIGEY48AkMxbdC0/5klTjvswcyVM=; b=jU5gJk88dJQ2ah
-	/+whSQ+sNwY8W2OHqVL/kQVtIDgHCvaxyaZ9vhktSySrJOJxxBQvwWS1H6jZ5/gd7bjePNBh0TTYl
-	nJEXFiFWOb1d8rWbP6xIIAHQUWpcT2pT+AUfueOJS/XwVYJSk5j6IHQFA4ZEfjTrBHCuk7GDNpqnr
-	O/g4+4+B2jyQVzyh+YxIkRO/dkB7z5xFVlFNgouuacBjZsx2z3M40zWOe9SOXdc6MwlpAK8kK99Tc
-	EUb/yfyBJ8Qt6dZMgkR+5+sjZl3dfFpcK11+XhimqTl5vRIPeVoZzeypiVeX6qkGLQQ2KRvh5epwY
-	uttzvAJxErliGY8VEJ+g==;
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=RLnOznS9CBnbYtqHiXQPN08apJwdCJZ7+rDGz/yeMCU=; b=kEkFXGxYU58bF1
+	nNhnF7je/11dhsgcye8Xu2TreaAQXV9sMfniNdCuUSYdCPGUQ0d9zE5J8N4nk91Kq023Bb1qGOixi
+	gNr5/CHzAkAG16eP/tCeWDJWAFYYnL4y2DcG3EplG7zItguQno6eUucKSo/y7r5nA9qEPLy1iHuN7
+	4JGiK44yDUkBZY+GaO4T7tBy8cTeXMvqCTW+8kP8VgOYhGbjbw4APueT2utgcGYzJpe+yTyrBXl4V
+	kL9zMIbdJjidB5hEy4nCbwaMzRmHel9JOKVbdu/dXMBwL0FsDqo/IfR0Jaw+qjSTEF/WUsR/uMP+W
+	Zw+1Up8+FAaNWfnHq+Ow==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xG5ef-00000009ZfY-1Kt1;
-	Mon, 12 Oct 2026 02:20:45 +0000
-Received: from mail-vk1-xa31.google.com ([2607:f8b0:4864:20::a31])
+	id 1xGULi-0000000ByyU-3c3e;
+	Tue, 13 Oct 2026 04:42:50 +0000
+Received: from mail-vk1-xa34.google.com ([2607:f8b0:4864:20::a34])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xG5ed-00000009Zf6-1XqK
+	id 1xGULg-0000000ByxX-2Cud
 	for opensbi@lists.infradead.org;
-	Mon, 12 Oct 2026 02:20:44 +0000
-Received: by mail-vk1-xa31.google.com with SMTP id 71dfb90a1353d-5da7a39e584so491712e0c.2
-        for <opensbi@lists.infradead.org>; Sun, 11 Oct 2026 19:20:42 -0700 (PDT)
+	Tue, 13 Oct 2026 04:42:49 +0000
+Received: by mail-vk1-xa34.google.com with SMTP id 71dfb90a1353d-5e948e56af3so637916e0c.2
+        for <opensbi@lists.infradead.org>; Mon, 12 Oct 2026 21:42:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791771642; x=1792376442; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=bmijAwB2/P3Gv+dIIYAnw9lJeMbwwpaI+GhJxhb1WPg=;
-        b=hir/vMmIh/1zaEY/UIqeYSe8RJWdUbMH7VJAg8mIqgpM/aXzDrv30x8vymXJ1WdloU
-         rx9Kv5Rp0fz3dEjzH3V+Mt40dSqexitIoyDdXysN9vLK7BwQ5qPiTFIUeLCptn/mK4zi
-         87ngIjs9f6X9DHmew7RVebhQ2aSPShrpzF2Nx9UaoNQ/6bEJv17r2/IEgc02+ajW9qYR
-         fBfcwkPdFBibEzfbPCLtcM8RI189z7T+rbiYdAxivRBK3VKH3Ru7KEi8hGRSdPi/uaTH
-         rVH3VCt5eXmS0HaCMf/JwJg+I6QXQRA4fFz2Ea44MWRyLVcZommERCQsG10Gm10b3LFW
-         l85A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791771642; x=1792376442;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1791866566; x=1792471366; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=bmijAwB2/P3Gv+dIIYAnw9lJeMbwwpaI+GhJxhb1WPg=;
-        b=T6oJyE2NrkON04PE8HU8aydD/pgOtfyFiFXCLqXe7/wI6qNs9/ur4yYCbUn0MSN+pu
-         ziyR20Z4KFQnwMQdZIK8qTGna8R7yYB2i3E6t/o6XMJ2lpEepxGQ7vyCIIpbiK19Ufei
-         DfgBY/93o78IbkFHkjnshLrNBoqZxqZ5CnzqY2B6RKWs5homZnoeUrU+yJr7nltZV6yG
-         1BbhWol5lOzFBzxBp2es41+Q1VrY2z17X7EiQ+wk6TqKUVOJo2fcuNfpk4q/gFdqv8i6
-         6b+fMHiYNdCcIgFD5YAtw76wIhIYuVf3zyny3NdCY1ITVforxHZSyDWrQwEqB0xyDR23
-         JkiA==
-X-Gm-Message-State: AFq9FYIQXh0Ch6seLR0C2fePO6TtQRLkRAhDBByPSdQJjfbPqpyqd1IV
-	1Gahb4okcX6zbYX6RImXwf8Ae8wEVLlGuEF9dRNRjvhjwlchL8sVSH050UyU7bVViGS+JQ==
-X-Gm-Gg: AYBFou3WxAM9TH0ROByyK+7r1g0il9AeqkJc5auCVg7+nwip4G2q1odzrU5K3fnZbrP
-	KrkP4bm5g3wVuh1joE50JsAqbmPOVgyodCAvDXaL5V08aFB+mkXjRdMu9pKr5Dc6W3WdQ5GStnv
-	TV3Rmqt2W/zEwJwM4kV/or4CyOdfaQI2ziFwQOgiNHyQ3h4gOJOqwd8IIdGkyyAqVBQoNDDPCdr
-	54ihVjI7A9XOIoXEY8z6fQbKL6RGRa4jEb7vQv02TqyT2gwz8XYHxKX1g0llNhETw0Gfy9YSU94
-	Tw0JfcDpL//M+xtxUgtxUZGNTPdDbXHOMSnwfOgOKBXnwe3wCmoxA/JZKsLNKAVS2R+CkqcjAKv
-	7ih8vFaYOdWuSrrbP2I27JH21D8Jfp1vkYZzQKXpyWdXvUGYZV7NzqMV2pemvBuWNx3o5HEwOJO
-	BZSGsbUiIKSJ/OOs8LGX6KHlPFFqdQtJT83R+wWIZ/PBXGwcvGnOiDgTetpqVa/i7TkCWQWu/T+
-	DOvhk9AufNpR1zw7LFmwFhB+cwXedh3P3qzKi+GbeaCvL2BLUAW/c8EnhMuBdU=
-X-Received: by 2002:a05:6123:91:b0:5c9:a60b:e5c8 with SMTP id 71dfb90a1353d-5e91f4aae07mr2403577e0c.11.1791771641723;
-        Sun, 11 Oct 2026 19:20:41 -0700 (PDT)
+        bh=dJcOwkMI8GgUEmS7fMJJyTzNN3YJU88kVPe2CgC8Cg8=;
+        b=G2iTPW9EyF72c0To8pLk3L0EEU12w56xcyrc6nOpWBs44lepEQXW5/ij+hVa1Q7cQX
+         nE87hLhWa6CwwlTAkZtBL+fxmSUZW10FsiWGmX9ESeNwUoMOqMMB/PnbYUlv38XGfU8f
+         fwUHUOybxHQ7q+T2w7fMBhitTsBlcaYY3ju6v4OaDiWdYlb1kHqnEqieit9dYh9D9xT/
+         ZCHqzZ3kSoJm0KX/weGpmctb+HhLYDJOagDgKDvKrdWCtkRQK0vGEFr71Vv2Rk6eCCOf
+         MLsm+krjxqxBvPKOZzsWWmP33tbeSfeUG4HUR15HLvt0VCGzlh4Cg5PMvVEtfv8Qz9tR
+         sykA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791866566; x=1792471366;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dJcOwkMI8GgUEmS7fMJJyTzNN3YJU88kVPe2CgC8Cg8=;
+        b=QvAEAx2MBJWK33X3R4eHOgX218SI0hteU4DLFH4cRFCpM6pGmD9J4whQvTSwguH1z0
+         V22U+FhweM92ok4U1vxB8dWfyit7159bN5eh0xb5gIelw05T/81jJ8szMiENhuQbGoex
+         JOYmzPdotcEqRmSjh94WQCIlhaPWAUmBme0e5wT6XH+K5Uu4bZ+lmpTFd8P65rP3Jz7+
+         yrXLz9L+1OakNcfbrPBhWSR/zh9iXcHM8fgGYF2/PVkd3nV/yjGW5pGTKPOO2HVEpRIj
+         ZPXc67TlmoBpp0iZwk8IJLPGQttKdbJYFoDNguqmVsQt+dS9vbbq1AtYRyVLyKRl550U
+         p9ew==
+X-Forwarded-Encrypted: i=1; AKwUvByxPGpc8mivoSJx166trU/oNnYP1xqW5Y19t7atwKLhZaQ5q6HqMzs5Pj+VDCyss3kHNROM6nUz@lists.infradead.org
+X-Gm-Message-State: AFq9FYL16TBl8pQbMZGkdmKjKRpOsSCEsy2ckxe5D+UFdv65jmdPdxKc
+	QdNO9qaWxgw6jG+10a9ngtMwjnLsLZ0QGCzFa2Gr/k7i38+T2R9qQN8S
+X-Gm-Gg: AYBFou3hYLwY96oqAxGgry4uptS7lAGTJTwwkvZGY49akQrdjlxI9WMUlvB1WyGEiRp
+	u97FPyKIXr/DYSMqjJGKVXlJnrUgMO2WPWh46MwEfEq+PcsPbOJkwIbhN6xYuU9cf90gITLJHsM
+	fyWAGN//Zn4YIrQSW57+EFVbb64maTmkmhYHxCxypvEjf/S+sErNzhnpjl5WJhg4kvKHuQDMLO2
+	igouFK3PUFpHwZx5n1KCyqJSCMdtQkxAt3xdnK7eupAhIHqYRIt086lzl07q/yCpd1eJUF31xQH
+	K1prsH2Bz2m1le+5oSihf8rp8yOV7Zkbo47noqr1mt9YOSlr27aVRfXRAv+JqDcZcJeiV1kGmKD
+	QTLEDP5zJ6feFlXect8Z/iaeTTEPBhC+iCA+A4XQiLEAM+TvNFYTihE/5MiCPzjqU/XiNUODriq
+	O/ijj0sO12QcXiQ4KKbPsifNDUuqgt328E07nEnnOIbuZwvygDfRa5MAHB2Fe4ipUfCuQ5JqqMR
+	RGbQx/ywhVB6ztcw+C89lcn9cXoH3ibUK+du1hdca6fUTDl2NnGwhW3rrEU20E=
+X-Received: by 2002:a05:6122:179d:b0:5c9:a60d:3276 with SMTP id 71dfb90a1353d-5e91f4989a6mr3223546e0c.10.1791866566373;
+        Mon, 12 Oct 2026 21:42:46 -0700 (PDT)
 Received: from localhost.localdomain ([186.151.100.62])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5e91cbf7fccsm6102828e0c.15.2026.10.11.19.20.39
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5e91cab499esm8269732e0c.4.2026.10.12.21.42.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 11 Oct 2026 19:20:40 -0700 (PDT)
+        Mon, 12 Oct 2026 21:42:45 -0700 (PDT)
 From: Sebastian Alba Vives <sebasjosue84@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
+To: pengpeng@iscas.ac.cn
+Cc: anup.patel@oss.qualcomm.com,
 	atishp@rivosinc.com,
-	david.garcia@aheadcomputing.com,
+	opensbi@lists.infradead.org,
 	Sebastian Alba Vives <sebasjosue84@gmail.com>
-Subject: [PATCH] lib: sbi_pmu: unmap shared memory on the early exit in event_get_info
-Date: Sun, 11 Oct 2026 20:20:33 -0600
-Message-ID: <20261012022033.1165060-1-sebasjosue84@gmail.com>
+Subject: Re: [PATCH] lib: sbi: reject PMU skip-match counter class mismatches
+Date: Mon, 12 Oct 2026 22:42:21 -0600
+Message-ID: <20261013044221.1563754-1-sebasjosue84@gmail.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260827115718.50124-1-pengpeng@iscas.ac.cn>
+References: <20260827115718.50124-1-pengpeng@iscas.ac.cn>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261011_192043_468349_F33F6BB4 
-X-CRM114-Status: GOOD (  24.57  )
+X-CRM114-CacheID: sfid-20261012_214248_575259_462A88CD 
+X-CRM114-Status: UNSURE (   6.84  )
+X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,122 +103,32 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-sbi_pmu_event_get_info() maps the caller's shared memory into M-mode with
-sbi_hart_protection_temp_map_range(). The must-be-zero check added inside the
-event loop returns straight to the supervisor without reaching the matching
-temp_unmap_range() at the end of the function, so the mapping is left behind.
+Hi Pengpeng,
 
-This has a security impact beyond leaking a mapping. Under Smepmp the
-temporary mapping is a single reserved PMP entry, SBI_SMEPMP_RESV_ENTRY.
-sbi_hart_smepmp_temp_map_range() refuses to reprogram that entry while it is
-already enabled:
+I reproduced this independently in both directions, before and after your
+patch, using a bare-metal M-mode payload that issues the ecalls directly
+under QEMU. Base was master 6ad246a1 rather than the 4e79fd7d you list;
+the patch applied cleanly there. QEMU 8.2.2, gcc 13.3.0. Smepmp was not
+required.
 
-	if (sbi_hart_is_pmp_enabled(SBI_SMEPMP_RESV_ENTRY))
-		return SBI_ENOSPC;
+  direction              tree                  result
+  FW event, HW counter   master 6ad246a1       M-mode store access fault
+  FW event, HW counter   master + this patch   SBI_ENOTSUPP (-2), survives
+  HW event, FW counter   master 6ad246a1       M-mode illegal instruction
+  HW event, FW counter   master + this patch   SBI_ENOTSUPP (-2), survives
 
-and no caller in the tree checks that return value. sbi_pmu.c, sbi_sse.c,
-sbi_mpxy.c, sbi_dbtr.c and sbi_ecall_dbcn.c all discard it. So once the entry
-is left behind, every later shared memory ecall on that hart runs with PMP 0
-still covering the previous region, and M-mode faults the first time it
-dereferences the new buffer.
+On the first direction the fault is consistent with the underflow you
+describe. ctr_idx is int and num_hw_ctrs is uint32_t, so ctr_idx -
+num_hw_ctrs is evaluated as unsigned: it does not go negative, it wraps,
+and the fw_counters_data[] access lands far outside the hart state rather
+than just before it.
 
-A supervisor triggers this with one ecall carrying a reserved bit in the first
-event_idx. The next SBI_EXT_DBCN_CONSOLE_WRITE then takes an M-mode load
-access fault on the console buffer and the firmware stops making forward
-progress, taking DBCN, SSE, MPXY and DBTR down with it on that hart. It also
-breaks the Smepmp invariant that M-mode does not retain standing access to
-supervisor memory.
+Tested-by: Sebastian Alba Vives <sebasjosue84@gmail.com>
 
-Confirmed on qemu virt with a bare metal S-mode payload, QEMU 8.2.2:
+Happy to send the reproducer to the list if that is useful.
 
-  build                 -cpu                protection   result
-  master 6ad246a1       rv64                pmp          completes
-  master 6ad246a1       rv64,smepmp=true    epmp         firmware dies
-  master + this patch   rv64,smepmp=true    epmp         completes
-
-The middle row leaves this as the last entry in the QEMU exception trace,
-where the epc is inside nputs() in M-mode and the tval is the supervisor
-console buffer:
-
-  cause:0000000000000005, epc:0x000000008000204c,
-  tval:0x0000000080500000, desc=fault_load
-
-Without Smepmp the map and unmap pair compiles down to nothing, which is why
-the first row survives.
-
-This only affects master. v1.9 and earlier have the same map and unmap pair
-but no return between them, so no released version needs a backport.
-
-Route the early exit through the existing unmap.
-
-Fixes: d97cfb33ae1a ("lib: sbi_pmu: Return invalid param error for reserved event_idx bits")
-Signed-off-by: Sebastian Alba Vives <sebasjosue84@gmail.com>
----
-
-A note that came out of the same audit but does not belong in the commit
-message, since it is a design question rather than part of this fix.
-
-Every call site of sbi_hart_protection_temp_map_range() in the tree discards
-the return value. There are eleven of them, in sbi_pmu.c, sbi_dbtr.c,
-sbi_mpxy.c and sbi_ecall_dbcn.c. The function can return SBI_ENOSPC when the
-reserved entry is already in use, and when that happens the caller goes on to
-dereference the buffer with no mapping covering it, which is how the bug above
-turns into a dead hart rather than an error code.
-
-I checked the rest of the acquire and release pairs on the ecall paths while I
-was there. sbi_dbtr_update_trig(), sbi_dbtr_install_trig(), the mpxy attribute
-handlers and the SSE event get and put pairs are all balanced on every exit,
-including the ones inside loops, so event_get_info() is the only unbalanced
-path I found. The discarded return values are what makes that single slip
-fatal instead of visible, so it may be worth deciding whether the callers
-should check, or whether the helper should fail loudly on its own.
-
-I am happy to send a follow up for whichever shape you prefer.
-
- lib/sbi/sbi_pmu.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index e79f6b60..3cc1fc4b 100644
---- a/lib/sbi/sbi_pmu.c
-+++ b/lib/sbi/sbi_pmu.c
-@@ -1075,7 +1075,7 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 			   unsigned long num_events, unsigned long flags)
- {
- 	unsigned long shmem_size = num_events * sizeof(struct sbi_pmu_event_info);
--	int i, j, event_type;
-+	int i, j, event_type, ret = 0;
- 	struct sbi_pmu_event_info *einfo;
- 	struct sbi_pmu_hart_state *phs = pmu_thishart_state_ptr();
- 	uint32_t event_idx;
-@@ -1112,8 +1112,10 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 	for (i = 0; i < num_events; i++) {
- 		event_idx = einfo[i].event_idx;
- 		/* Any must-be-zero event_idx bits set should return INVALID_PARAM per-spec */
--		if (event_idx & SBI_PMU_EVENT_IDX_MBZ_MASK)
--			return SBI_ERR_INVALID_PARAM;
-+		if (event_idx & SBI_PMU_EVENT_IDX_MBZ_MASK) {
-+			ret = SBI_ERR_INVALID_PARAM;
-+			goto out_unmap;
-+		}
- 		event_type = pmu_event_validate(phs, event_idx, einfo[i].event_data);
- 		if (event_type < 0) {
- 			einfo[i].output = 0;
-@@ -1154,9 +1156,10 @@ int sbi_pmu_event_get_info(unsigned long shmem_phys_lo, unsigned long shmem_phys
- 		}
- 	}
- 
-+out_unmap:
- 	sbi_hart_protection_temp_unmap_range(shmem_phys_lo, shmem_size);
- 
--	return 0;
-+	return ret;
- }
- 
- static void pmu_reset_event_map(struct sbi_pmu_hart_state *phs)
--- 
-2.43.0
-
+Thanks,
+Sebastian
 
 -- 
 opensbi mailing list
