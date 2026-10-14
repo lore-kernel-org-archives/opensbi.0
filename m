@@ -4,86 +4,102 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id E760FCC6B1D
-	for <opensbi@archiver.kernel.org>; Wed, 14 Oct 2026 11:31:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 7CECACC6B2D
+	for <opensbi@archiver.kernel.org>; Wed, 14 Oct 2026 11:31:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=wTJPbS8VZ4Rb11OKdJy2ByjxY6vbky7Mfup5WuelZrc=; b=1zNePe2W65F7Rc
-	OeeLwV7seqzB5CPCLuXhgx9a2vsee58GEWFHyIrV2M2SNhmUrh1f/Fi2BE3d4/JrQMhDrKdnV6M67
-	yV9UhkakMHvn8TvEPwSGoz5OqcUkK+8Df30QJlyIYsKLGs9zKUqwJ2rDAUf94UTWKphNvO8Ew2Sh4
-	pCZOb5rUu8WrIjBrp15pII9UL4nUOqblxY4mAbaJ+PkppnfiKdFWu8sxhHQJwzeFNHeFEcKqsmOIs
-	PgZCmrmFXdSGnAKCLLX5YPW1ai+4XQDyZUJhe8LmkAcgLE3JtinvhHFe7Mq8I0Qfh/z8eSraTHm92
-	LgKuV3sXxUKAIlk0WeXQ==;
+	List-Owner; bh=AkRu5pPuKLESE5VXp/81QGIF3FBSmzh6m7JMHL+1s2M=; b=nMfkngHGC9zOwW
+	7dRj0+nVFB5yFoaszg2fbMgowJX63kiuzLhFxiWYZSxifzkwOT0U2WtDLDmX6ABZ2DKwO7RbPEMuA
+	n2EvERVpHkYZm62A0vL4fNjw3/05YLmk9RV6zImqKzJLC+/QuGRdyA0PGACnXCq0N24d2G/V/CzJ1
+	sbQweM0N7wLQxdeRgN81iaFESYNBBtjHGJNh4+QwLA/l3ubKFcbq7XLl5IZdnBU58wayFmXLriAxN
+	2/xP0N+F/1AsuSsPt9K1dNBeNclN6Gcq8Uut/QjuUm05z7reRvh/zsiY3CMRj8F84RWJqu1hU0h95
+	Tg2qIzI4J7LYbotsrHIA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xGxCN-0000000FLNF-3a5d;
-	Wed, 14 Oct 2026 11:31:07 +0000
-Received: from mail-dl1-x1235.google.com ([2607:f8b0:4864:20::1235])
+	id 1xGxCS-0000000FLR7-2ZtM;
+	Wed, 14 Oct 2026 11:31:12 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xGxCL-0000000FLM4-2d4p
+	id 1xGxCQ-0000000FLOL-0uiT
+	for opensbi@bombadil.infradead.org;
+	Wed, 14 Oct 2026 11:31:10 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
+	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=cyEhkUZiehan0JDiqsNdV1kcc+hp8W6RksLAKn/tXTI=; b=UKJFdPuamw8lOAOojUuV7wiihA
+	GzdpBCN36fgOd5wiGz4nuLMpRHGJmMGV/Kmm9gOKaAhqNymIa4LC40v86wePA/1x9POMW6p9d05KN
+	FkwEBuhPVp6WXimgNvBP4Gv9BSaIyaMxx3WS3M5kZGrLMZCh5YNy21WBlZHLSWV1kQyQtL1w1c3pf
+	/s16nDLu2ISnvPItTBPrCQV1PV9jmEwqq1Lkyb9NHG+dM7JVLZyzUYXdfC7aeDA4iT0JAiO+x3Jc9
+	ZlX1rl03klLpvjKFEIdXpDauH1wnIyReeCmVZ5pJZAJI0om1ev273kJg9itPxvECCmXnCwPH/BCER
+	6svANu2w==;
+Received: from mail-dl1-x122e.google.com ([2607:f8b0:4864:20::122e])
+	by desiato.infradead.org with esmtps (Exim 4.99.5 #2 (Red Hat Linux))
+	id 1xGxCN-0000000Ggxv-187f
 	for opensbi@lists.infradead.org;
-	Wed, 14 Oct 2026 11:31:06 +0000
-Received: by mail-dl1-x1235.google.com with SMTP id a92af1059eb24-1419d3416ceso1378976c88.0
-        for <opensbi@lists.infradead.org>; Wed, 14 Oct 2026 04:31:05 -0700 (PDT)
+	Wed, 14 Oct 2026 11:31:08 +0000
+Received: by mail-dl1-x122e.google.com with SMTP id a92af1059eb24-170135e43c7so1319615c88.0
+        for <opensbi@lists.infradead.org>; Wed, 14 Oct 2026 04:31:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1791977465; x=1792582265; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1791977464; x=1792582264; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=XIYJn4pGfm4cDjQoj6P9Xrvv/PVFG6t+Xt41mDUf+E4=;
-        b=mSo0zcbioo5iAJfYtTkcEnjHtlCw2seqVuugFRU9YDAdmXgWZzFo2XQx/iCBLL7Bcd
-         Ph3MD/7if6nR7SaITAHuD6hLvWbKaJHdxO2G9pKzq7iL4LppK4via0ABoDfdxUAF7bxX
-         0/a3ufYPQN9xYsQocaG/RdT0arp0TWmm58xxT4RbegOl4hilxq7cz9VoY8nLR7X8nbNT
-         7Js14pMNe8tTSPDEtZQVlJg5i/wNZzOEyp0+X+SclA/BMSwBmIxX6CpVxpQF+DD/3uBx
-         /hjUSwsAP6oZMcCNEf+IvThY96dRq+ZhuZX9KBJkBFLOD7SeSCncjVq29kDbRe0Q/3e5
-         W6HA==
+        bh=cyEhkUZiehan0JDiqsNdV1kcc+hp8W6RksLAKn/tXTI=;
+        b=ckY6fdZm2m9Gubexk78Z8O0nwxW/IjyKbcxF0Iw9hl00IgTYK3791zNIxIVLC5gp4p
+         oYJDpnSVM0QmSp84jJT6FPijhzN9Eyt8ClTx+/2f68IM0s5iGbg3BHWydtyjEMJJRgcQ
+         7c4hfry+Gir3UBqkBffGeK0xd0zBT80y5jwUYLIPq9KiEq9/5WAp7TQ/qOtGjrth5rUP
+         FMtzbz/YQMhhGnPuJutApTToL4cWfdxw0+XWWLoTrm/NFnIhGW3QOZRGKdU5XOBX04/O
+         K02xYN1r6ZWimy/dERv1eU6tUxNuK+4961P1n257ILHR6f3ySkQMywpy97uvXWgx+1WT
+         QkGQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791977465; x=1792582265;
+        d=1e100.net; s=20260707; t=1791977464; x=1792582264;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=XIYJn4pGfm4cDjQoj6P9Xrvv/PVFG6t+Xt41mDUf+E4=;
-        b=QqKq73yQQqeJMENlEalciYo3qZmVETUvChL2m5CeJfvj2lTVVrZpacRjXmkxzDNfLQ
-         gkyC5P3Ils63F0lj7hwItLcwZCJUcngwkr5ivDwXYNaoGhybRhjYCYnnif7XBg2eWx7R
-         FaXzMlyhflgtDR2uvfSrylJTfbA8Gh6PlMTAaJe+hWaBaKt9ZX5e8YsGgiFScQv9Qbw2
-         dbHON9QbAME1LQLOarwbsdJ0v+bQRVA1bDBxessEp7Y0n19bJDGjj3irolTKM2bUVzB1
-         0PIhGVDcfbZ9jICc6Y6qbdXvVoeYo/zXe/6+zZiThViJF1LZBQVNbcqTUB9e6Ub2fayb
-         5ZxA==
-X-Gm-Message-State: AFq9FYKkaB8F6Q25FD8eF3y8Yc0WvZcavF05cJ96Rxnnm0+KW53Jk6rL
-	Ef34wFKCm763SoOKQ+t/yplw9JVkV/5b1iIp7chEfEmUHD3edknVVig6yFSumX713a94KdhOmeW
-	9rQNiiqp75t/ci6TujOvFhEvhMdSfIUb81h2nZj9s0+nWFOec2f/qtJ2nL/HNUCjWFKs1v9jf3W
-	xf6qzMDQwWPzVxs1Mp/+AasnNEYVPQak1EIUYCvo3BaeO+5yoXohjkm4s=
-X-Gm-Gg: AYBFou1ykq63CTQ2vJXZHw6c7juMZBynLyOG6myIHcSJt509miIHQlaCU0z0gwlWq+H
-	/krGbsO6BS1DaZYZHtHmqTJig2+OcJ2HV22lfG7YPoX098rMS7F5x33BaSzJ5+4rtUAEmJ5W2yj
-	DibVjh8FaYkh9r7dIvhMIdEVG4d2lfv+tm7oPUHfubnFt66oJQrQ1P2ZgeTHXxfMkyhSNd1mjmy
-	MRI62fzdBaNFvAbeLilm1pllhKjAbDvhfkwh2v1m6Yo6EYFY14LsdHRx6gIqbruDjtwBXh/Sf77
-	tCM2u6jBKjKydbbVumqz/7qjq+VW68fRiESxg+I2JIzzlaqZ4fGjALZLZfRnXZXGdIY8hiqFFtu
-	UYlbK2pVJ4KO9tihPhU/9oE2ka0jjHbFIWU4B9Em7abuNhr7Y989Js3LonZse0eYKTfxz1fYQNF
-	+bSKSCWlETbPcY7dPB8S6gNVzGagcevByVCeiYGDZt4D7vGwBHwHMB/A3W7KFw7cHUgnyrbr5q1
-	axFrsAvbCNT3lZ9EF0Q
-X-Received: by 2002:a05:7022:43a3:b0:14f:b5ac:ace4 with SMTP id a92af1059eb24-16a62ea9574mr28114847c88.44.1791977464581;
-        Wed, 14 Oct 2026 04:31:04 -0700 (PDT)
+        bh=cyEhkUZiehan0JDiqsNdV1kcc+hp8W6RksLAKn/tXTI=;
+        b=eZPOulQaEsc5DyNYu/B10eY3ppwQU6BUhZP/7Xyo4wi2721YH28BWD1+czlgKg1cDr
+         A0xCm9qapOGXjKTVRfCuKk9lYHIC7Y/6yqwuxUiXwi2cPwV+uu5C1Thct+gUoQYqiqKP
+         8FW4y/sQE3GEGs0+LzlI/kclRJ3sTehaVVbGfGjgKuWdj0pZglSZvR8/4+9LRbyRwYZn
+         57k4ZYLXcBy41IoeOB3gGxH+rKjLDICzsg165Xd2prKElxO4OyLFoXg8zLCCb53xSlB8
+         QLoIlBUxJcEEupukiph+Zb+vWT3Qrttu6XStlyoGzPy4XcKdrvADFrcyQxUhcsjaOLlP
+         1ocw==
+X-Gm-Message-State: AFq9FYKJE5oB7EMflJp7cI0R+l8uZ4trm8+XUwcs/eT4Lw6mEbpqBhte
+	OXNZ9aFKxHNVT8vfWY53stoxLUPB1g3hAOdoByMMhz2vTpPsloy48pTR93R8LpXH0TkTJKAwgph
+	YnWA2MdXjglWdj6YAls0NDdsekBdHotp4V+N6Vtt0HfqlPbX4j3o4ZT7l3JlaD4caR5Sa9ZRTRu
+	QTSnVvblEY/8PDiN0hrRhVuLWzT+y6K5E3ocKoZaoYt1nWH1juvquULBA=
+X-Gm-Gg: AYBFou2S2XShJmytrpLEj8JQ5JLod+RLtzvCq/nzzvXCep4JAXvAv4ih6BaMwDf5Shl
+	n/qM1PAO4TfdkvSuLxQdtPWG9B2z2jO8eO7stul7ArjqfEvnoZoXkV27Wkt8HIBsJ3BeccrZ6Nl
+	GhtbepWNJIakaExL83i5iYy6ChBx35GFsyH+Sf3icTUCHyq4wO3h4wI1PiKGPqxM69F99T/u1lb
+	yoq1ReD7kBM1JStsUkkQ4BZmG8uCMgFEEFI+VvKpcClzWiLTDgdXZ1Hbl9OeTTTlcC5iplvGr6F
+	35dhgmBg1rQmYswWDbu3pXXlwmeU34zsqNs6H+wSXvehquG65Z/7mGOm+SNKHatevpI4oCEv3yp
+	FE+RqJclDRIsT1UWg/EipWwszROweDjb8F704W0B6i7FeBWmF7X+JSl3hPL+iHeYQ/AXs4QtSg9
+	/L3lmLfxp9zQnX77hN8KX4vc4ZIw6mHJnY2Nl5iVTKynUwbqsiuhwkCNbGbIYCxupZ3PCABFsJk
+	vFS3f91roRXDhL16N6F
+X-Received: by 2002:a05:701b:2411:b0:165:aced:1fde with SMTP id a92af1059eb24-16a4f2527efmr21305046c88.0.1791977463573;
+        Wed, 14 Oct 2026 04:31:03 -0700 (PDT)
 Received: from sw06.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-169a442ac67sm71207996c88.18.2026.10.14.04.31.04
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-169a442ac67sm71207996c88.18.2026.10.14.04.31.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Oct 2026 04:31:04 -0700 (PDT)
+        Wed, 14 Oct 2026 04:31:03 -0700 (PDT)
 From: Samuel Holland <samuel.holland@sifive.com>
 To: opensbi@lists.infradead.org
-Cc: Samuel Holland <samuel.holland@sifive.com>
-Subject: [PATCH v3 2/7] lib: utils: Include more headers directly
-Date: Wed, 14 Oct 2026 04:30:19 -0700
-Message-ID: <20261014113100.2192229-3-samuel.holland@sifive.com>
+Cc: Samuel Holland <samuel.holland@sifive.com>,
+	Anup Patel <anup@brainfault.org>
+Subject: [PATCH v3 1/7] lib utils/fdt: Drop fdt_parse_max_enabled_hart_id()
+Date: Wed, 14 Oct 2026 04:30:18 -0700
+Message-ID: <20261014113100.2192229-2-samuel.holland@sifive.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20261014113100.2192229-1-samuel.holland@sifive.com>
 References: <20261014113100.2192229-1-samuel.holland@sifive.com>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261014_043105_671576_0E34DADC 
-X-CRM114-Status: UNSURE (   9.61  )
+X-CRM114-CacheID: sfid-20261014_123107_466512_01F31BC5 
+X-CRM114-Status: UNSURE (   9.26  )
 X-CRM114-Notice: Please train this message.
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -101,225 +117,73 @@ Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
 
-Most drivers include fdt_helper.h, which pulls in sbi_domain.h. This
-pulls in several other headers like sbi_bitops.h. Include the required
-headers directly from each driver so that they will still compile after
-fdt_helper.h stops including sbi_domain.h.
+This function is not used anywhere.
 
+Reviewed-by: Anup Patel <anup@brainfault.org>
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 ---
 
-Changes in v3:
- - New patch for v3
+(no changes since v1)
 
- include/sbi_utils/serial/uart8250.h           | 1 +
- lib/utils/cache/fdt_cmo_helper.c              | 1 +
- lib/utils/cache/fdt_sifive_ec.c               | 1 +
- lib/utils/cache/fdt_sifive_pl2.c              | 1 +
- lib/utils/cppc/fdt_cppc_rpmi.c                | 1 +
- lib/utils/hsm/fdt_hsm_andes_atcsmu.c          | 1 +
- lib/utils/hsm/fdt_hsm_sifive_tmc0.c           | 1 +
- lib/utils/i2c/fdt_i2c_spacemit.c              | 1 +
- lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c    | 1 +
- lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c           | 1 +
- lib/utils/mpxy/fdt_mpxy_rpmi_mm.c             | 1 +
- lib/utils/regmap/fdt_regmap_syscon.c          | 1 +
- lib/utils/reset/fdt_reset_atcwdt200.c         | 1 +
- platform/generic/eswin/eic770x.c              | 9 +++++----
- platform/generic/sifive/sifive_dev_platform.c | 1 +
- 15 files changed, 19 insertions(+), 4 deletions(-)
+ include/sbi_utils/fdt/fdt_helper.h |  2 --
+ lib/utils/fdt/fdt_helper.c         | 31 ------------------------------
+ 2 files changed, 33 deletions(-)
 
-diff --git a/include/sbi_utils/serial/uart8250.h b/include/sbi_utils/serial/uart8250.h
-index 78c0e614..ed13418a 100644
---- a/include/sbi_utils/serial/uart8250.h
-+++ b/include/sbi_utils/serial/uart8250.h
-@@ -10,6 +10,7 @@
- #ifndef __SERIAL_UART8250_H__
- #define __SERIAL_UART8250_H__
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 75a564d1..1246ab69 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -48,8 +48,6 @@ bool fdt_node_is_enabled(const void *fdt, int nodeoff);
  
-+#include <sbi/sbi_bitops.h>
- #include <sbi/sbi_types.h>
+ int fdt_parse_hart_id(const void *fdt, int cpu_offset, u32 *hartid);
  
- #define UART_CAP_UUE	BIT(0)	/* Check UUE capability for XScale PXA UARTs */
-diff --git a/lib/utils/cache/fdt_cmo_helper.c b/lib/utils/cache/fdt_cmo_helper.c
-index 3ab8abe6..bdc5fe19 100644
---- a/lib/utils/cache/fdt_cmo_helper.c
-+++ b/lib/utils/cache/fdt_cmo_helper.c
-@@ -6,6 +6,7 @@
+-int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid);
+-
+ int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long  *cbom_block_size);
  
- #include <libfdt.h>
- #include <sbi/sbi_error.h>
-+#include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi_utils/cache/fdt_cache.h>
- #include <sbi_utils/cache/fdt_cmo_helper.h>
-diff --git a/lib/utils/cache/fdt_sifive_ec.c b/lib/utils/cache/fdt_sifive_ec.c
-index dda0d10d..3ab863f0 100644
---- a/lib/utils/cache/fdt_sifive_ec.c
-+++ b/lib/utils/cache/fdt_sifive_ec.c
-@@ -6,6 +6,7 @@
+ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 747ba028..f78ea39e 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -274,37 +274,6 @@ int fdt_parse_cbom_block_size(const void *fdt, int cpu_offset, unsigned long *cb
+ 	return 0;
+ }
  
- #include <libfdt.h>
- #include <sbi/riscv_io.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_platform.h>
- #include <sbi_utils/cache/fdt_cache.h>
-diff --git a/lib/utils/cache/fdt_sifive_pl2.c b/lib/utils/cache/fdt_sifive_pl2.c
-index 8069e96a..3f8a294b 100644
---- a/lib/utils/cache/fdt_sifive_pl2.c
-+++ b/lib/utils/cache/fdt_sifive_pl2.c
-@@ -6,6 +6,7 @@
- 
- #include <libfdt.h>
- #include <sbi/riscv_io.h>
-+#include <sbi/sbi_bitops.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
- #include <sbi_utils/cache/fdt_cache.h>
-diff --git a/lib/utils/cppc/fdt_cppc_rpmi.c b/lib/utils/cppc/fdt_cppc_rpmi.c
-index 15c89351..9945286d 100644
---- a/lib/utils/cppc/fdt_cppc_rpmi.c
-+++ b/lib/utils/cppc/fdt_cppc_rpmi.c
-@@ -10,6 +10,7 @@
- #include <libfdt.h>
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_cppc.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_timer.h>
-diff --git a/lib/utils/hsm/fdt_hsm_andes_atcsmu.c b/lib/utils/hsm/fdt_hsm_andes_atcsmu.c
-index 2885a983..267f64fc 100644
---- a/lib/utils/hsm/fdt_hsm_andes_atcsmu.c
-+++ b/lib/utils/hsm/fdt_hsm_andes_atcsmu.c
-@@ -8,6 +8,7 @@
- #include <libfdt.h>
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
-diff --git a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-index 2690a638..911f55b1 100644
---- a/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-+++ b/lib/utils/hsm/fdt_hsm_sifive_tmc0.c
-@@ -14,6 +14,7 @@
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_hsm.h>
- #include <sbi/sbi_ipi.h>
-+#include <sbi/sbi_list.h>
- #include <sbi_utils/cache/fdt_cmo_helper.h>
- #include <sbi_utils/fdt/fdt_driver.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-diff --git a/lib/utils/i2c/fdt_i2c_spacemit.c b/lib/utils/i2c/fdt_i2c_spacemit.c
-index 9009b6b6..a8a0d832 100644
---- a/lib/utils/i2c/fdt_i2c_spacemit.c
-+++ b/lib/utils/i2c/fdt_i2c_spacemit.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <sbi/riscv_io.h>
-+#include <sbi/sbi_bitops.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_timer.h>
-diff --git a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-index cf975658..0c256bd4 100644
---- a/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-+++ b/lib/utils/mailbox/fdt_mailbox_rpmi_shmem.c
-@@ -11,6 +11,7 @@
- 
- #include <libfdt.h>
- #include <sbi/sbi_console.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_timer.h>
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-index 825ac9b3..e08c080e 100644
---- a/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mbox.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <libfdt.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_mm.c b/lib/utils/mpxy/fdt_mpxy_rpmi_mm.c
-index 7185f3f3..dd907bbb 100644
---- a/lib/utils/mpxy/fdt_mpxy_rpmi_mm.c
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_mm.c
-@@ -8,6 +8,7 @@
-  *   Sunil V L <sunilvl@oss.qualcomm.com>
-  */
- 
-+#include <sbi/sbi_domain.h>
- #include <sbi_utils/mpxy/fdt_mpxy_rpmi_mbox.h>
- #include <sbi_utils/mailbox/rpmi_mailbox.h>
- 
-diff --git a/lib/utils/regmap/fdt_regmap_syscon.c b/lib/utils/regmap/fdt_regmap_syscon.c
-index 59cd5ee5..b5764312 100644
---- a/lib/utils/regmap/fdt_regmap_syscon.c
-+++ b/lib/utils/regmap/fdt_regmap_syscon.c
-@@ -11,6 +11,7 @@
- #include <sbi/riscv_asm.h>
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_byteorder.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-diff --git a/lib/utils/reset/fdt_reset_atcwdt200.c b/lib/utils/reset/fdt_reset_atcwdt200.c
-index 5dad8ac9..7cd31cad 100644
---- a/lib/utils/reset/fdt_reset_atcwdt200.c
-+++ b/lib/utils/reset/fdt_reset_atcwdt200.c
-@@ -9,6 +9,7 @@
- #include <sbi/sbi_ecall_interface.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hart.h>
-+#include <sbi/sbi_scratch.h>
- #include <sbi/sbi_system.h>
- #include <sbi_utils/fdt/fdt_driver.h>
- #include <sbi_utils/fdt/fdt_helper.h>
-diff --git a/platform/generic/eswin/eic770x.c b/platform/generic/eswin/eic770x.c
-index c71198a8..ca48b39e 100644
---- a/platform/generic/eswin/eic770x.c
-+++ b/platform/generic/eswin/eic770x.c
-@@ -8,13 +8,14 @@
- #include <platform_override.h>
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_console.h>
--#include <sbi/sbi_system.h>
--#include <sbi/sbi_math.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_hart.h>
--#include <sbi/sbi_hsm.h>
--#include <sbi/sbi_ipi.h>
- #include <sbi/sbi_hart_pmp.h>
- #include <sbi/sbi_hart_protection.h>
-+#include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_ipi.h>
-+#include <sbi/sbi_math.h>
-+#include <sbi/sbi_system.h>
- #include <sbi_utils/hsm/fdt_hsm_sifive_inst.h>
- #include <eswin/eic770x.h>
- #include <eswin/hfp.h>
-diff --git a/platform/generic/sifive/sifive_dev_platform.c b/platform/generic/sifive/sifive_dev_platform.c
-index 579d4651..a8d2889a 100644
---- a/platform/generic/sifive/sifive_dev_platform.c
-+++ b/platform/generic/sifive/sifive_dev_platform.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include <platform_override.h>
-+#include <sbi/sbi_domain.h>
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_scratch.h>
- 
+-int fdt_parse_max_enabled_hart_id(const void *fdt, u32 *max_hartid)
+-{
+-	u32 hartid;
+-	int err, cpu_offset, cpus_offset;
+-
+-	if (!fdt)
+-		return SBI_EINVAL;
+-	if (!max_hartid)
+-		return 0;
+-
+-	*max_hartid = 0;
+-
+-	cpus_offset = fdt_path_offset(fdt, "/cpus");
+-	if (cpus_offset < 0)
+-		return cpus_offset;
+-
+-	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
+-		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+-		if (err)
+-			continue;
+-
+-		if (!fdt_node_is_enabled(fdt, cpu_offset))
+-			continue;
+-
+-		if (hartid > *max_hartid)
+-			*max_hartid = hartid;
+-	}
+-
+-	return 0;
+-}
+-
+ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq)
+ {
+ 	const fdt32_t *val;
 -- 
 2.52.0
 
