@@ -1,159 +1,122 @@
-Return-Path: <opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org>
-X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
-	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.lore.kernel.org (Postfix) with ESMTPS id 1C5E5CCF2D3
-	for <opensbi@archiver.kernel.org>; Mon, 19 Oct 2026 05:49:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36858606A331
+	for <opensbi@archiver.kernel.org>; Wed, 21 Oct 2026 09:43:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=MUPaAn3D;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=spacemit.com header.i=@spacemit.com header.a=rsa-sha256 header.s=feishu2303021642 header.b=IZaa6gHC
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:Reply-To:List-Subscribe:List-Help:
-	List-Post:List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:
-	In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Content-ID:Content-Description
-	:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Owner; bh=xZ9WsEH19RpbKB+kJjW44kIp6cO19HBuKYU2qdcLwTM=; b=y511hJezar2KXz
-	X2ZgY70gP15F4SleIn462bzxR+G7v9yCP7IMngHeBNdTe2jR9cl/avIIjwoWU436RKYLSmNZxSjk0
-	yLitfBbR6C/+dYoSfQnbezULEK6+aNRB5p96yixxSMabSLIF3ctfYt8QGqnlgTge1VD0e7DM7bD90
-	EXXsCGQaymB4cr2zpw6DK2u+Svp2z4e6DrFWZqmxZK9P8+CpNSmmAfBYxxAoioXbnAUoxJSN7tDGq
-	voH3VP1VvJKWA5+XDulAmv/KjVQ8k+Ef0u2jq/OLgq3wegAr6AhQhJcpnKnL5yILhVU8edqWUcMNL
-	yhWkL2cbZC5N6VZqTcgA==;
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:Message-Id:From:Cc:To:Mime-Version:Date
+	:Subject:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=ZCDO9mpBO7MVud4Y2Ckkbb4zzgbUL7gSs0OnBxJkvwo=; b=MUPaAn3DqGX0e/
+	GyQrmdggqn6pwcU6VfSgqFBXegt/2oyeI79Io4B5jso2WsSG74jXx7k/v6sN+RqGjKzWkD6ua2oQA
+	dQh6GAIokpGX55fLaiEi3pMrTXv7Pz13s2rCRVKw0nmsXUbx02IRaJKsGSYaM5vhAHkfxo1QhdxwM
+	C5zUMEGS3q+lF263OakrfVc8qRFe5bFWnWSh6znWNsWoFhvoU3ZB1rMcgww5Lggj0AHh7AdKn5gfj
+	hw7hpVK2hMngu57elT7jphCrWFkyv1AhDaIHsPod8IddvPGT8p/RMZXJb5cMrlH9SlFmBqjYHgsYH
+	alqvIMDK3GDFRyNz4T0w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xIgF7-00000006emO-2TlF;
-	Mon, 19 Oct 2026 05:49:05 +0000
-Received: from smtpbguseast1.qq.com ([54.204.34.129])
+	id 1xJSqf-0000000BVue-1aqG;
+	Wed, 21 Oct 2026 09:43:05 +0000
+Received: from va-2-28.ptr.blmpb.com ([209.127.231.28])
 	by bombadil.infradead.org with esmtps (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1xIgEw-00000006ekl-2Bpj
+	id 1xJSqd-0000000BVuC-0Fgp
 	for opensbi@lists.infradead.org;
-	Mon, 19 Oct 2026 05:49:03 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1792388920;
-	bh=zdRaa5ZWxeSEVtodjQEMbSRnto7kVZoWxJSGUAmxt5E=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=i9f/FJUBlGEjXFbqelsl9bU93HvigCqQ4qWTxyOuj3pYCXMnLHW6lxZAHB19CcqLR
-	 R8MvyZeIv6//Cqkoi2Iph8MN8fcs8tTjibuLvKxCd+snNmpZwiV4l1jmwimj/gucYy
-	 eebCObtM35jEioS6C3fYPDXfXHHzr4DEvcxCt9Hs=
-X-QQ-mid: esmtpgz14t1792388919t12dce0ef
-X-QQ-Originating-IP: uvckAKW1jD/XQ7cmUEB+gG5KY401g+HtG6Mt1GSq9TA=
-Received: from LT-WUHUAMAO.dc.com ( [123.158.48.41])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Mon, 19 Oct 2026 13:48:36 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 10135495343581998043
-From: Huamao Wu <huamao.wu@linux.spacemit.com>
-To: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
-Cc: opensbi@lists.infradead.org, Anup Patel <anup.patel@oss.qualcomm.com>,
- Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>,
- Huamao Wu <huamao.wu@spacemit.com>, lufei.zheng@spacemit.com
-Subject: Re: [RFC PATCH v5 0/4] Add Smsdid and Smmpt supervisor domain protection
-Date: Mon, 19 Oct 2026 13:48:36 +0800
-Message-ID: <6701264D162D4F00+179238891654.72905.12844513368292585993@linux.spacemit.com>
-In-Reply-To: <20260918030955.3902993-1-rahul.pathak@oss.qualcomm.com>
-References: <20260918030955.3902993-1-rahul.pathak@oss.qualcomm.com>
-MIME-Version: 1.0
-X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz5b-1
-X-QQ-XMAILINFO: Mpz5OzLmVFcJwMWrbU6rUo3a2F3HOoLl3YyC/ztGkvPjqTFBqBsFXdPy
-	uL/JB6sgRFjw2nP5VPkBtlcozv82V2/T5IFHoOYuemz0A1DbrlPbkgZoXi7qScsSq6DfAOp
-	u8bE+rkjKRZXPjUgw9S5nE7cCP3lh4BjbBVPNH4eJypx9Q+LqWKo2+0/kmqnGDbmNfJ4SaI
-	nYZzD/HEju4EeIva0E6qM1lepmjOCdZHLyIqmgw2xSkyeLm/5CYEdZmbYt5bmjrvaqBzWgC
-	O/jVTH1bn6QywHHplLQji30yAXEiFtgZA7YCtGkQCLZ9k9QR7cdEf1HAbe0EeiVH3iGtNgY
-	Rs55JBkOF3sPG8Wz0GrcFHM7slSpEPOLz/fXJ1L3QDyud31sdZGGslutwDWJ59pV9Ml7din
-	jz78rjo11PNGZk45QorEVcLezVMAr4Q2bI1K5Wvh/ThB4Jv8e2leXja8+6srD877WvxuKp/
-	YtS/A1eu612sCQ/joKu/5wRH4zaXEFG9xjzS/K9+rW/3d1XiQczRow/yo9PSLagJyNxfdJ8
-	mzIcVyuWg5JhGpZnr3lNHW72oaKgQQMLvFgtQjuwH7H4jExF98sj9p7AQ0pe6auX4OGk+0Q
-	hYvS5+g2SlfVQ2VF8RpTIztj26kX/iPZhcY7693+KKZk9SObM/ddWEpV5pI7Hha9hWqXylv
-	a9FMNK20CvlPio3LwDsmteZgvZSyTYTljMcDbxjA+AK7zDtsyWfMNKuMGrhrcNUWj7w1KMq
-	j+fW7HCDGT23Hs9X1axPLtgG0AYmz8spBKC9v/zpwVIIVWLDiDE3H548rK6s/wAKEgUBE9s
-	cM4zNXnXIsxEDdrElz39DuyggEatkq4DzY8oV3G8kXBu/nytU2/pj+RVRH5MvUncqgPn/dD
-	rE431g2VlvvlCcBU7I1UjeMK2GX8w+pTqXJd6F8fadVEWXh/+duUWcsLcoR4mpYpX2IoRMz
-	Vzbi0JMvflB81wgwkY/c6lk7xucGcqnrqsEQ0keNpwKZRMUt/mAtp6wLC/8MzWC8XFx9sA5
-	foBjCpuRP9BWbdiaX2i9L1TIKZ/k8/Y4I0cjND2iQ7QhvGTiH6sP624mr8nNMlNgVYa3SRL
-	dWWN8Wo4gYR
-X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
-X-QQ-RECHKSPAM: 0
+	Wed, 21 Oct 2026 09:43:04 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2303021642; d=spacemit.com; t=1792575771; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=TQvdD0XWukfF6dJMcFXnp8gKPjEbGdQqdxdEzgotwbs=;
+ b=IZaa6gHCXeI+s5hpXBlGJKUx9LAhcEeJI63+5znxMAS/svLe4Wc2QIeJ9kVlTMYaZuPuYv
+ XU3uV4/70957oIxTLsoTp2DiQ8yKWhCkIivFr7RjMIbwsfMEu/czCvgkHOF5BQnk+vMQLJ
+ J7CKv8U2CO2gwgOo+AOgt7M1lvc0Qvm9ImQ4vxRukNsHF0kcHyJe7FN0I3cbT9IoVapvoa
+ oYq15/oO9FlXknOG/stbpN17YmwOcF/QMQ+YY0ziKCTuAUqpRwL2apGOCOWM/XgkXvKECm
+ pO6tciUwipqCoLWjNWCDmWEmJmi9MvqCdb55em4nslac1YDEImDqZXCxOYxdtQ==
+Subject: [PATCH] include: mailbox: correct RPMI CPPC request field ordering
+X-Original-From: wuliwen <liwen.wu@spacemit.com>
+Date: Wed, 21 Oct 2026 17:42:43 +0800
+X-Archived-By: <archiver.kernel.org>
+Mime-Version: 1.0
+To: <opensbi@lists.infradead.org>
+Cc: "wuliwen" <liwen.wu@spacemit.com>
+From: "wuliwen" <liwen.wu@spacemit.com>
+X-Lms-Return-Path: <lba+26ad88918+62b240+lists.infradead.org+liwen.wu@spacemit.com>
+Message-Id: <20261021094243.2395130-1-liwen.wu@spacemit.com>
+X-Mailer: git-send-email 2.34.1
+Received: from snode5.. ([120.237.158.181]) by smtp.feishu.cn with ESMTPS; Wed, 21 Oct 2026 17:42:47 +0800
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261018_224855_390740_27F619C3 
-X-CRM114-Status: GOOD (  11.02  )
+X-CRM114-CacheID: sfid-20261021_024303_170109_F5C18F5F 
+X-CRM114-Status: UNSURE (   8.92  )
+X-CRM114-Notice: Please train this message.
+X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
 List-Id: <opensbi.lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/opensbi>,
- <mailto:opensbi-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/opensbi/>
 List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Reply-To: Huamao Wu <huamao.wu@linux.spacemit.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-Errors-To: opensbi-bounces+opensbi=archiver.kernel.org@lists.infradead.org
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=4.0.1
+X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
+	aws-us-west-2-korg-listserv-alma10-1
 
-Hi Rahul,
-
-One design point on the SDID assignment.
-
-mpt_state_setup() currently allocates one SDID per SBI domain, at domain
-registration time, taking the first free bit:
-
-    for (sdid = 0; sdid < ctrl->max_domains; sdid++)
-            if (bitmap_test(ctrl->sdid_bitmap, sdid))
-                    break;
-    if (sdid >= ctrl->max_domains)
-            return SBI_ENOSPC;
-
-SDIDLEN is implementation defined and may be as small as 1, i.e. two SDIDs in
-total. OpenSBI domains are also used for purposes unrelated to MPT (per-hart
-PMP partitioning, per-domain MPXY channels, IPI grouping), so a platform can
-easily have more domains than SDIDs while only one or two of them actually
-need a separate MPT. On such hardware the current binding turns a
-configuration choice into a boot failure: SBI_ENOSPC propagates from
-mpt_state_setup() to sbi_domain_finalize() and sbi_init() ends up calling
-sbi_hart_hang(). Note that sbi_mpt_init() already treats missing Smmpt
-hardware as non-fatal (returns SBI_ENODEV and sbi_hart_init() ignores it), so
-"not enough SDIDs" is handled more strictly than "no Smmpt at all".
-
-Proposal: make the SDID assignment opt-in per domain instead of implicit for
-every domain.
-
- - Add an optional u32 property "sdid" to the opensbi,domain,instance node.
-   When absent, the domain runs under SDID 0, i.e. under the root domain's
-   MPT, and relies on PMP for its own isolation.
- - The MPT of SDID N is built from the memregions of the domain that owns N.
-   SDID 0 is always owned by the root domain and its tree is built once.
-   Domains aliasing to an already-owned SDID do not get a tree of their own.
- - An explicit "sdid" must be < 2^SDIDLEN and unique across domains.
- - A domain aliasing to SDID N must still program mmpt explicitly on
-   activation. Right now sbi_mpt_hart_activate_for_domain() returns 0 when
-   !sd->valid and sbi_mpt_hart_deactivate() is empty, so a hart switched away
-   from an MPT-backed domain keeps the previous SDID in mmpt and would run
-   under the previous domain's MPT. Today every domain has a valid tree so
-   this is not reachable, but with opt-in assignment it becomes the normal
-   path.
- - When SDIDLEN is smaller than the number of explicitly requested SDIDs,
-   report it and continue with the domains that fit rather than hanging.
-
-This keeps the common case (PMP-only platform, Smmpt capable hart) working
-without any MPT memory, and lets a platform with SDIDLEN=1 run root plus one
-protected domain.
-
-The assumption behind defaulting to SDID 0 is that PMP/ePMP remains the
-primary memory protection for domains without their own SDID; Smmpt is
-layered on top (sbi_hart_protection_configure() applies the TYPE_MEMORY
-protection and the TYPE_ID protections independently, so the effective
-permission of such a domain is its PMP entry set intersected with the SDID 0
-MPT). If the intent is for Smmpt to replace PMP on some platforms, then
-sharing SDID 0 is not safe and this proposal does not apply.
-
-Regards,
-Huamao Wu
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+UGVyIHRoZSBSUE1JIHNwZWNpZmljYXRpb24sIENQUENfUFJPQkVfUkVHLCBDUFBDX1JFQURfUkVH
+LCBhbmQNCkNQUENfV1JJVEVfUkVHIHJlcXVpcmUgUkVHX0lEIGluIHdvcmQgMCBhbmQgSEFSVF9J
+RCBpbiB3b3JkIDEuDQoNClRoZSBjdXJyZW50IHJlcXVlc3Qgc3RydWN0dXJlcyBoYXZlIHRoZXNl
+IGZpZWxkcyBzd2FwcGVkLCBjYXVzaW5nDQppbmNvbXBhdGliaWxpdHkgd2l0aCBzcGVjLWNvbXBs
+aWFudCBSUE1JIHNlcnZlcnMuDQoNClN3YXAgdGhlIGZpZWxkcyB0byBtYXRjaCB0aGUgc3BlY2lm
+aWNhdGlvbi4NCg0KU2lnbmVkLW9mZi1ieTogd3VsaXdlbiA8bGl3ZW4ud3VAc3BhY2VtaXQuY29t
+Pg0KLS0tDQogaW5jbHVkZS9zYmlfdXRpbHMvbWFpbGJveC9ycG1pX21zZ3Byb3QuaCB8IDYgKysr
+LS0tDQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkNCg0K
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvc2JpX3V0aWxzL21haWxib3gvcnBtaV9tc2dwcm90LmggYi9p
+bmNsdWRlL3NiaV91dGlscy9tYWlsYm94L3JwbWlfbXNncHJvdC5oDQppbmRleCA3YWU0YWJlMC4u
+NDhmNmFjNjEgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL3NiaV91dGlscy9tYWlsYm94L3JwbWlfbXNn
+cHJvdC5oDQorKysgYi9pbmNsdWRlL3NiaV91dGlscy9tYWlsYm94L3JwbWlfbXNncHJvdC5oDQpA
+QCAtNTM5LDggKzUzOSw4IEBAIGVudW0gcnBtaV9jcHBjX3NlcnZpY2VfaWQgew0KIH07DQogDQog
+c3RydWN0IHJwbWlfY3BwY19wcm9iZV9yZXEgew0KLQl1MzIgaGFydF9pZDsNCiAJdTMyIHJlZ19p
+ZDsNCisJdTMyIGhhcnRfaWQ7DQogfTsNCiANCiBzdHJ1Y3QgcnBtaV9jcHBjX3Byb2JlX3Jlc3Ag
+ew0KQEAgLTU0OSw4ICs1NDksOCBAQCBzdHJ1Y3QgcnBtaV9jcHBjX3Byb2JlX3Jlc3Agew0KIH07
+DQogDQogc3RydWN0IHJwbWlfY3BwY19yZWFkX3JlZ19yZXEgew0KLQl1MzIgaGFydF9pZDsNCiAJ
+dTMyIHJlZ19pZDsNCisJdTMyIGhhcnRfaWQ7DQogfTsNCiANCiBzdHJ1Y3QgcnBtaV9jcHBjX3Jl
+YWRfcmVnX3Jlc3Agew0KQEAgLTU2MCw4ICs1NjAsOCBAQCBzdHJ1Y3QgcnBtaV9jcHBjX3JlYWRf
+cmVnX3Jlc3Agew0KIH07DQogDQogc3RydWN0IHJwbWlfY3BwY193cml0ZV9yZWdfcmVxIHsNCi0J
+dTMyIGhhcnRfaWQ7DQogCXUzMiByZWdfaWQ7DQorCXUzMiBoYXJ0X2lkOw0KIAl1MzIgZGF0YV9s
+bzsNCiAJdTMyIGRhdGFfaGk7DQogfTsNCi0tIA0KMi4zNC4xDQoKVGhpcyBtZXNzYWdlIGFuZCBh
+bnkgYXR0YWNobWVudCBhcmUgY29uZmlkZW50aWFsIGFuZCBtYXkgYmUgcHJpdmlsZWdlZCBvciBv
+dGhlcndpc2UgcHJvdGVjdGVkIGZyb20gZGlzY2xvc3VyZS4gSWYgeW91IGFyZSBub3QgYW4gaW50
+ZW5kZWQgcmVjaXBpZW50IG9mIHRoaXMgbWVzc2FnZSwgcGxlYXNlIGRlbGV0ZSBpdCBhbmQgYW55
+IGF0dGFjaG1lbnQgZnJvbSB5b3VyIHN5c3RlbSBhbmQgbm90aWZ5IHRoZSBzZW5kZXIgaW1tZWRp
+YXRlbHkgYnkgcmVwbHkgZS1tYWlsLiBVbmludGVuZGVkIHJlY2lwaWVudHMgc2hvdWxkIG5vdCB1
+c2UsIGNvcHksIGRpc2Nsb3NlIG9yIHRha2UgYW55IGFjdGlvbiBiYXNlZCBvbiB0aGlzIG1lc3Nh
+Z2Ugb3IgYW55IGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIG1lc3NhZ2UuIEVtYWlscyBj
+YW5ub3QgYmUgZ3VhcmFudGVlZCB0byBiZSBzZWN1cmUgb3IgZXJyb3IgZnJlZSBhcyB0aGV5IGNh
+biBiZSBpbnRlcmNlcHRlZCwgYW1lbmRlZCwgbG9zdCBvciBkZXN0cm95ZWQsIGFuZCB5b3Ugc2hv
+dWxkIHRha2UgZnVsbCByZXNwb25zaWJpbGl0eSBmb3Igc2VjdXJpdHkgY2hlY2tpbmcuIAogCuac
+rOmCruS7tuWPiuWFtuS7u+S9lemZhOS7tuWFt+acieS/neWvhuaAp+i0qO+8jOW5tuWPr+iDveWP
+l+WFtuS7luS/neaKpOaIluS4jeWFgeiuuOiiq+aKq+mcsue7meesrOS4ieaWueOAguWmgumYgeS4
+i+ivr+aUtuWIsOacrOmCruS7tu+8jOaVrOivt+eri+WNs+S7peWbnuWkjeeUteWtkOmCruS7tuea
+hOaWueW8j+mAmuefpeWPkeS7tuS6uu+8jOW5tuWwhuacrOmCruS7tuWPiuWFtuS7u+S9lemZhOS7
+tuS7jumYgeS4i+ezu+e7n+S4reS6iOS7peWIoOmZpOOAguWmgumYgeS4i+W5tumdnuacrOmCruS7
+tuWGmeaYjuS5i+aUtuS7tuS6uu+8jOaVrOivt+WIh+WLv+S9v+eUqOOAgeWkjeWItuOAgeaKq+mc
+suacrOmCruS7tuaIluWFtuS7u+S9leWGheWuue+8jOS6puivt+WIh+WLv+S+neacrOmCruS7tuaI
+luWFtuS7u+S9leWGheWuueiAjOmHh+WPluS7u+S9leihjOWKqOOAgueUteWtkOmCruS7tuaXoOaz
+leS/neivgeaYr+S4gOenjeWuieWFqOWSjOS4jeS8muWHuueOsOS7u+S9leW3rumUmeeahOmAmuS/
+oeaWueW8j++8jOWPr+iDveS8muiiq+aLpuaIquOAgeS/ruaUueOAgeS4ouWkseaIluaNn+Wdj++8
+jOaUtuS7tuS6uumcgOiHquihjOi0n+i0o+WBmuWlveWuieWFqOajgOafpeOAggotLSAKb3BlbnNi
+aSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
