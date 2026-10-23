@@ -2,12 +2,12 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1852606A319
-	for <opensbi@archiver.kernel.org>; Fri, 23 Oct 2026 02:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDD73606A31B
+	for <opensbi@archiver.kernel.org>; Fri, 23 Oct 2026 02:44:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=MPL74d9D;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=desiato.20200630 header.b=UeDoiJxf;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=KQCLQ6/d
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=x1/xK9il;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=desiato.20200630 header.b=hE5VxSeA;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=ipDp8Jhc
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -15,93 +15,93 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=L2p2mGj9nxHYCgpjIO/vYdmuskDJQQ7qcR8SkyCCRbo=; b=MPL74d9DWyCK7IfcMuFww/rL3L
-	dsSr8yHw/L7IYw7vSPSfnimoZ+zRdnah1+kIA2Ii4R1HBK6Ru6NSn0YujVQmjoh84wO8930/XUZlu
-	pESeFZE6HgQ+c4MHf8f0qaiiCQS2FlfxSVpFQ+stUrczOKNkXQ/IxYQQg9uB/06NuRgdd85jtYsls
-	Z66epAnSrm8ekqLNnCdI2v28fCatbOI8Jwn4AdIcA4ybEJhWDShQmevCHgPyXrBd0wISuAoWfKppS
-	eckgB1Xz2sajubgj1zLVH7RDDwjxDzJ9sfIbO1oZEgSvGOGT1NdpMK8NAy+AWyIIj0DlFnjZMt9wa
-	C7veW7Eg==;
+	bh=xXmdqQWI+nr/j2hKihMxZivPm+ur1rK2h9tX5IU9pGY=; b=x1/xK9ilqXomygw//gcyXcoYDZ
+	WSTN+VjDfcD3ZxMx9+cCIFI15+TU5Fm3yQAuwpfMEWuEKtpYRyn8tKUvpvEQit8JPOsWA1wMukvgV
+	P/6vUQ+eFQ6UPbdGfc4A3Ttzi8Oq0nmoqML4VeA1bKKp6LwyIDAsmUGxmLN6T+s7znFG6kOyBWY1d
+	Dx+If8ZVjxSlgYag0Tnd7eSna1zFbogNYg7Jj3r0lLxkF7zFMO9lf6xygamheAgdq38C4xtwdz7IU
+	k5a+IPM8DPYCiaik1I2R859ose0YsLinVh88l3Q3WUach6HVeDqCLWep1v7Gh+jmCMwEyIAoDkiqU
+	lC/FOLJg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK5GK-0000000FL6O-2pTu;
-	Fri, 23 Oct 2026 02:44:08 +0000
+	id 1xK5GP-0000000FL89-3CRm;
+	Fri, 23 Oct 2026 02:44:13 +0000
 Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK5GI-0000000FL5v-4BFP
+	id 1xK5GN-0000000FL7L-2SCb
 	for opensbi@bombadil.infradead.org;
-	Fri, 23 Oct 2026 02:44:07 +0000
+	Fri, 23 Oct 2026 02:44:11 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
 	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=YoGSYa/aHzVsd+2Ic3EaAY8wR7R0mGw0C3L9pPOEIBk=; b=UeDoiJxfg1AKoD4ImkQ4R2V3tp
-	zlAa0uJhqeZXConMBYBnU2EsFMP7egE8UHfpUIlquWfBXgIM3ItoZ7rbDKUcMVn8uOopz4pYsNiRk
-	yrCYqTLrgq7bi3GvoG7ZGo4TV701U+1u7ff/HFQINd5uQa+85QdPu7+UrAOmY30uyTU4Kk/5N9jvU
-	XZ3ruxbDe979CaFlFg01fafEJK5yni9JV/UnH1y2Z+cXOTvC2D/Dy7rgfnX7Nx2c6tknCarr/jixf
-	LmFMMbV6H/30yp0JOs1UYTHryayEg7z48vMi2zR8YeGp45AP/hAzrlKEotpAvskbOmeZr4ZjIHNtT
-	+0bLD6PQ==;
-Received: from mail-dl1-x122a.google.com ([2607:f8b0:4864:20::122a])
+	bh=XhF26oX8RR5rK1fb6iLJB0Tq6y7U9BqkVyOe8EJNLcM=; b=hE5VxSeAnAb1mUkIVD45/zUsj/
+	u81+GRo3n2RqvbdQpcTKf1n8a8nUro+zfQQW0i+SLHTAocyoV5M0afL6ARdx5Gzv2KomjgGAOinOa
+	kFuTGjeHwLXmIJwAWx+bLu7oQ29yNGGoA8D4r3hdt/XGoKJ3D47ixByb9XNzexYXFmTXTwCFE8HSN
+	IiDdCT7Db16/96lDKu96nVw+6OczPz0LsEpeJvrnUlimKCTZ+PvFWIjrXqWSOvrNrfxxulNZmQFAR
+	xw0mUQYCAAJH/kuzDASb0rXhnzdOWekab05qULNdJR8xfsZlZUERNSYdfxeXm/2bpoIUcLd/NbKFT
+	DCxOEjYw==;
+Received: from mail-dl1-x1236.google.com ([2607:f8b0:4864:20::1236])
 	by desiato.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK5G9-00000008Ycc-2WyB
+	id 1xK5GC-00000008YdI-3nFo
 	for opensbi@lists.infradead.org;
-	Fri, 23 Oct 2026 02:43:59 +0000
-Received: by mail-dl1-x122a.google.com with SMTP id a92af1059eb24-1846bc43c28so477660c88.0
-        for <opensbi@lists.infradead.org>; Thu, 22 Oct 2026 19:43:56 -0700 (PDT)
+	Fri, 23 Oct 2026 02:44:09 +0000
+Received: by mail-dl1-x1236.google.com with SMTP id a92af1059eb24-156cbe59524so412884c88.1
+        for <opensbi@lists.infradead.org>; Thu, 22 Oct 2026 19:44:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792723435; x=1793328235; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1792723439; x=1793328239; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=YoGSYa/aHzVsd+2Ic3EaAY8wR7R0mGw0C3L9pPOEIBk=;
-        b=KQCLQ6/dARjaKTzoIl0l0gV+ehMhscP7lBWS/sBCsNjWzfdUyTXsMEQ9PoTMxaWAsV
-         cQ7DIjldW1gqPxoaCIjxJxEKXUiyTlbOTmgw9Bcg+JcgS2QqDiG2k2nBs0EwqUVdWM6V
-         /rpUzaOjHCWmp7jqiLYGZpRzS2j/iPhfTV9TNB4B9BBjsxC1UP2b+u123NwT70hTm2Rz
-         fXL3rvdATiCXRB9nR+25Q/H8uLRsmqvGcgL53EE0dLcX9v5V8/hjPGI/fGs0oTIiOKIP
-         Zb6ZA6KgUX13E/9EwctZ4nPceQp1mR/NvQCMGE1iI+CvjJoKdgRki4hlEExhLLZf8XIX
-         qMFw==
+        bh=XhF26oX8RR5rK1fb6iLJB0Tq6y7U9BqkVyOe8EJNLcM=;
+        b=ipDp8Jhc5oNFaSC/+M3f1MeMS2KM6rpF8hg9evIjVO8FRJqCzNxQkt3HFhtM+wJE5j
+         DT6PAlMyUC9LovZlnrgebP0OEfuoP6ukbH1wVum/JDY6LJoGnqZm86K1EQoclUp/SFF5
+         N+X+nLQxi5BZ7U68E4z0gevqsFRZMu6lHIykfk0aR0sAYxoE5RCgXYh+EWPKnRaFmClS
+         NKxNvOY/ie3Ky8Fb2kerFyB0VE+/1EWiY8vLf6TeZhOhfeTBzv0J3vH8rVLNmvPvsFI0
+         hZzslr9y3d8LedkNj0kJp79FUtyyqAoEV35Pk2ARPBEfpZAa8kn90uBEY68dnWUjA3cx
+         Vrjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792723435; x=1793328235;
+        d=1e100.net; s=20260707; t=1792723439; x=1793328239;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=YoGSYa/aHzVsd+2Ic3EaAY8wR7R0mGw0C3L9pPOEIBk=;
-        b=OGEHOYf8v3Q09Xnc8pKX2G7ZXwES52wgTaollzU+VtdRfhrmY2mpw2FY1XDr0pO0Ou
-         9dPrB2UF7Ish2yoBH7f0KLHPxVf9nngRJQARNMrbckpnpytdlwdsm8U6XJc8MOsVBrJx
-         jG+T2aTae8b3FfwJ4VtHjHDJzTSJ5U2lYVd80W71SkQe+hoaNAqIQgCqSUC3g2XkhV/j
-         wNg+JVw7sdtR2FzSecfYSrr9bLaItHEYDdANiIyKkUGUHkEnUSJgWpfXa6rIqs2tKVQO
-         iqHIiEMrhUtQAT7LqSPH4ZTsPzJKT2OysTh8zc/yb6xRaUvmEjbu3rYfM9fq2ycWB9HE
-         O/DA==
-X-Gm-Message-State: AFq9FYL/sYknQOxlrn6TSNkCj4iWZULyEEybwirSKjgeX0LMZ7ek26Gt
-	HNJiWYW5inP50GAG6Hk0HXYIzL/oUxDmvP37mvD54+NP3f7Ax2TqyAkGHbR3QBWe
-X-Gm-Gg: AYBFou2ovArMcMdQDmZikh/a4kfe3jzeRUvqQH66bjEbKf2FMcHK6dohLaAnP1l+kba
-	vEsYH62TS8XlZQBJMjQhGWj0yHf+B3dNFwm/5eJJuQ41+fS6hyDNn5S3KpppTuJBDz41ckiS53m
-	IjOdXaEp8AXCS7m4aClMjDYfS8mn4/2apuxnLSz7cWHUZJR3DCbPgm+a0EAQg6KX2Ja7zUksX+M
-	sIoickczCMgroETKjfXDoi1WvZjhKtc67ZrwWvydNeBOQbcuIRbfmYQMI54gWQggVmxTkDlT28B
-	POjra1z3BANdQKE1fE9Tc6eWtbKLrUehS1HHSnoy7pMwDm83+xtVSuGynMDv0H1yF9vQiKnxXch
-	x7e1ODmBpnYMdpy6TU7rj7yUiLewhfwl626/YKZ8Tllzb6xQf788MTmL2n80FCLHBj3fdyf2cL9
-	/z5V/7YQrXxqtGIqCPCAvTRkkJZFI4PQKcLAmLmFVSpBqVLbooO4UjP+QMoKWDgHxIM/UnXExgF
-	wmxE//95uEgbHqMgy42tPNfIe2iDnjWw68zf3nUwzdX8ngoaCRX2bZq8/U4+jlGBAtKW/nP1+vz
-	3HuaCdpTT6Ng7o+xbmEBadD6v74EReExoEiHfih/9kvgzc39O/7lDAQgWg==
-X-Received: by 2002:a05:701b:2059:20b0:136:c443:80e5 with SMTP id a92af1059eb24-195c0180d2dmr1345134c88.6.1792723435232;
-        Thu, 22 Oct 2026 19:43:55 -0700 (PDT)
+        bh=XhF26oX8RR5rK1fb6iLJB0Tq6y7U9BqkVyOe8EJNLcM=;
+        b=M5e4UAuGNbTEaV9rKM4z4Hwo+COfhNJVL0hy627TlBma+t0D44WrHuB/Jn1KArf90C
+         NOw7ZQ+JHU1mkP7aWJDgeeew66HvsGvIqMeptiSxfrtPIvCLK3C/l2x2in+44hJogmiu
+         TS0fKjzkO1H4dkozhqTQjUAVwbbpkzqxlNP1V0Uf6YbvOf1H9qMZXRIvoM1aKRyG9L1p
+         rYfZae0zVNYzBaTcR9iYrfPWyXEZtMoB5DAa5rAArI3qDOmWCr1Ek4qhmjWSGMFU1Yti
+         EQyii1b35tZeym4a8WIwE0vU4JGIC2zMxfP/sF+iaRSVfJ3iHJ7TZUq8W6+7Qny1uPoy
+         +3/Q==
+X-Gm-Message-State: AFq9FYIQldeakEINZS/J5sCIkmN5FyD7bp45ckm/YpejidyWRnbPjS5D
+	94qsJHNH+6E9QDfgVC9b/o/HdNYgxo1sD+7cnoQj6KrE85ZrLu2EwS3vLup3rrBV
+X-Gm-Gg: AYBFou3QpWkzMcAYlb/OojILk80kYPAslqNUy4d+2ecOnTlNoSNrTtZ79mwH27Ozz3v
+	jKEg/SF6vi7iQNT7zaCOoLywWlkw0GzDqL1U60WBQg4j/FkKPLtkH+JlcUiEoNyIAst+rz4i9be
+	I7UFONlHwD9F1Zv/Pxw78a1YsQbgWLcFT5N6xVY/t+Jo3r6wuPCRJiF1VxyVk1nvnUrCLwcipgo
+	PHqJ9m++RqQx6xpknLQOIP42UI6npYyTA/mo2xo0DnsAnlADQthZifMLb7/XNNv6wNsvDiAEqy+
+	d3tdzxt0IWB5HulZG5PM8ixSl0si5d92DHSct07t3gQYwWG9pJZH3rM23Gk37Xm1eHmnkMaNPTo
+	qbsWGme5QzjCdzs1nnWoUh5Kb8m3fKSo1UoMh5f6mDrlZhxzwAr8z8JHFsRFj3CcYmfIGbYdBYm
+	Fa4ZzBHjQyVjz4lYt8yi2yc/1fPY4KP/hIVfUEDW3q3kJEpdiWrIjyku/0bx6mUBXZ4U84P8rg3
+	VeyiRHPcygFDbGVEZyaZsIZh9dFfkl0t59TqEZpC2lBDIwYSYt8yBXskxw3QS1JibGHj2SYZ2e7
+	ReQpE8uIA5BojadXJhTEcsCIKHitsD5+i62a32yA9XIOzPF+t42BA7a3MA==
+X-Received: by 2002:a05:701b:260a:b0:144:e246:a0b2 with SMTP id a92af1059eb24-195c9483107mr1118799c88.44.1792723438550;
+        Thu, 22 Oct 2026 19:43:58 -0700 (PDT)
 Received: from aster-MS-7D31.tail5febd7.ts.net (209-147-138-26.nat.asu.edu. [209.147.138.26])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-195eb6c3fb2sm2877233c88.13.2026.10.22.19.43.54
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-195eb6c3fb2sm2877233c88.13.2026.10.22.19.43.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Oct 2026 19:43:54 -0700 (PDT)
+        Thu, 22 Oct 2026 19:43:58 -0700 (PDT)
 From: whensun <theodoruswensanfebruanto025@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
-Subject: [RFC PATCH 1/5] lib: sbi: Preserve stimecmp across domain switches
-Date: Thu, 22 Oct 2026 19:43:41 -0700
-Message-ID: <20261023024345.16779-2-theodoruswensanfebruanto025@gmail.com>
+Subject: [RFC PATCH 5/5] lib: sbi: Preserve the supervisor indirect CSR selector
+Date: Thu, 22 Oct 2026 19:43:45 -0700
+Message-ID: <20261023024345.16779-6-theodoruswensanfebruanto025@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261023024345.16779-1-theodoruswensanfebruanto025@gmail.com>
 References: <20261023024345.16779-1-theodoruswensanfebruanto025@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261023_034358_133713_C61C87E6 
-X-CRM114-Status: GOOD (  10.49  )
+X-CRM114-CacheID: sfid-20261023_034405_404708_B27D7359 
+X-CRM114-Status: GOOD (  10.67  )
 X-Spam-Score: 0.1 (/)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -126,50 +126,40 @@ X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 
 From: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
 
-The Sstc extension provides a supervisor timer comparison register.
-Without preserving this value, another domain can replace the
-previous domain's timer deadline.
+Save the supervisor indirect CSR selector when Sscsrind is available.
 
-Keep a per-domain timer comparison value and initialize new domains
-to a future deadline to avoid immediate timer interrupts.
+The sireg windows refer to different backing state depending on
+siselect. This change preserves the selector only and does not save
+the indirect backing state, IMSIC files, or CTR records.
 
 Link: https://github.com/riscv-software-src/opensbi/issues/433
 Signed-off-by: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
 ---
- lib/sbi/sbi_domain_context.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/sbi/sbi_domain_context.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 0861d541..26980658 100644
+index 0541bf8e..15e9f543 100644
 --- a/lib/sbi/sbi_domain_context.c
 +++ b/lib/sbi/sbi_domain_context.c
-@@ -50,6 +50,8 @@ struct hart_context {
- 	unsigned long senvcfg;
- 	/** Supervisor resource management configuration register */
- 	unsigned long srmcfg;
-+	/** Supervisor timer comparison register */
-+	u64 stimecmp;
+@@ -73,6 +73,8 @@ struct hart_context {
+ 	u64 stimecmp;
+ 	/** Supervisor counter inhibit configuration */
+ 	unsigned long scountinhibit;
++	/** Supervisor indirect CSR selector */
++	unsigned long siselect;
  
  	/** Float context state */
  	struct sbi_fp_context fp_ctx;
-@@ -145,6 +147,8 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSQOSID))
- 		ctx->srmcfg	= csr_swap(CSR_SRMCFG, dom_ctx->srmcfg);
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSTC))
-+		ctx->stimecmp = csr_swap64(CSR_STIMECMP, dom_ctx->stimecmp);
+@@ -207,6 +209,8 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	    (csr_read64(CSR_MENVCFG) & ENVCFG_CDE))
+ 		ctx->scountinhibit = csr_swap(CSR_SCOUNTINHIBIT,
+ 						 dom_ctx->scountinhibit);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND))
++		ctx->siselect = csr_swap(CSR_SISELECT, dom_ctx->siselect);
  
  	/* Eager context switch for float */
  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_F) ||
-@@ -206,6 +210,8 @@ static int hart_context_init(u32 hartindex)
- 		if (!ctx)
- 			return SBI_ENOMEM;
- 
-+		ctx->stimecmp = ~0ULL;
-+
- 		if (sbi_hart_has_extension(sbi_scratch_thishart_ptr(),
- 					   SBI_HART_EXT_V)) {
- 			vec_size = sbi_vector_context_size();
 -- 
 2.43.0
 
