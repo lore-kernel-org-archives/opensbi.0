@@ -2,107 +2,103 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA02606A319
-	for <opensbi@archiver.kernel.org>; Fri, 23 Oct 2026 03:39:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E172606A319
+	for <opensbi@archiver.kernel.org>; Fri, 23 Oct 2026 03:46:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=KTr+59v+;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=desiato.20200630 header.b=chTwhLHB;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=HL9LVQ7k
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=dZN2JBFs;
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.a=rsa-sha256 header.s=mxsw2412 header.b=RayFjvJb
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
+	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=E9cjnysCxj0pAXn6nM94EW/RX+3B9/bgMuGPbFP7gCk=; b=KTr+59v+/fwflGKTyMDrnOKpBK
-	2dLCqqvjkSzxH6MkGgZx1slYas0PfdhuCrJ6KLLWgKdiVYi+b50oiNVlkQq3yjOdQrbQb2AHWpe0C
-	S2/MgwPIl5jeuh9oMaA4wtGp4b0yC2KzF+CH/NB6utwfCoijas4E1MB/sIl5f+qWTheQZ0Vu9GYkv
-	mdqfZ2N2PbJ9h+1baO0GVPMvU84BNqTGDEpriyZJdHJOgqq9qXj41XvmHrUO+S/xIR0x/YZhGTySV
-	HV7wksZ8fZ1OtFo0t1ASzX7zC6R8jjHBznnu5/sRs39FlJbT4/2o47HO/1P0Nbj5NBjssKY5byo+d
-	rC+z0l3A==;
+	bh=JAmlP8+vHBeCstdPmiXxtG+OqK5Ogk74gXyZ5sEx4tw=; b=dZN2JBFsVRBe7eMezow7VkmLMB
+	sW0hfw3P7rk3ZxApl4VgPDiaKzAlDtkIvLT//YIJl/U23eko6E98Rs5YGgn5MrHixHt8eDszUKZMQ
+	Dk0auJk340l5f7DdQgEB36ehKnR5C57FQHVDLFmMia6MyhJgTvdly0uNZHCKqmW6zf6vCl4K/sRwZ
+	2KoCTxadfjfsiqnoGLPbzPCQG0i6wIo9Etg3le3eCb4a1nPRCtH7RqVHlJ82u5AyyGRCLzp8M7fj0
+	fBnSKWQyM58/X9tYSJdS4pgwzmvk9/Hv3I688/qh/vQfdqT/Zmz91MSPpTeA1ArHw8yNGyFg6bFhg
+	YtN9x3bA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK67O-0000000FQuT-0gPa;
-	Fri, 23 Oct 2026 03:38:58 +0000
-Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+	id 1xK6EJ-0000000FRZI-40MW;
+	Fri, 23 Oct 2026 03:46:07 +0000
+Received: from bg4.exmail.qq.com ([43.154.221.58])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK67M-0000000FQt6-3EMs
-	for opensbi@bombadil.infradead.org;
-	Fri, 23 Oct 2026 03:38:56 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
-	:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=mKyS4R99EYK0BUrcIQ9wA622zbROCwz7+X8nyNQbBfw=; b=chTwhLHBW6iuFQ51cL1APOVJaU
-	RktrJ5cgeBSrhCgd87t6ILGuIX+ae2+0YHOTYdgjwxn9l3G55aDUIEvsrvI9rIEMVR0Zp5ApQ0mNx
-	H3r9T1qlRj1mQkYomZnLdHQk2yv9ZIpXuWnG9PaM73DKJQEfw8XKOxk8iaWjfWgAkuRMO2JbEvrSB
-	arsOIBUQNPQDZvH6bOfoXPLi1NTbcZji9fedFIu5s8hczkHyXIKjTlkT2Wr37xM29hMfl2LfZcbAQ
-	qVQn3lcCRw1Vfca657LmCmyDxSVFi7JrRueByZ8zLD1T7IitmtlbvRV1EIbPbu8Hb/iih4JfYkzi0
-	S+lBJvEw==;
-Received: from mail-dy1-x1331.google.com ([2607:f8b0:4864:20::1331])
-	by desiato.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK67I-00000008emX-0REd
+	id 1xK6EG-0000000FRYU-1R7Z
 	for opensbi@lists.infradead.org;
-	Fri, 23 Oct 2026 03:38:55 +0000
-Received: by mail-dy1-x1331.google.com with SMTP id 5a478bee46e88-35b2c599f43so1081992eec.0
-        for <opensbi@lists.infradead.org>; Thu, 22 Oct 2026 20:38:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792726730; x=1793331530; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=mKyS4R99EYK0BUrcIQ9wA622zbROCwz7+X8nyNQbBfw=;
-        b=HL9LVQ7kGI3ftb3te8A5P2+DDk/gsDBdqdolE8yCEUziMV9f8ezXC1GC/Q4HGgGqag
-         qui9+IyAv5d31ZYLl6eea9dwNfHXjduPHz1UWe6NOytyvgYkMZPyMX2yyGQwzz7KaWbn
-         zT4viRHHw5w81efM8eooH9HUFcVacjSSad/s5V5vCNurBvs7UGSBjHlHFB1yC3dflegs
-         JfeWjKw+xNpnPtPWnCYlyxVoSsECORSIuB5VWSyEwBTf3Dv4IABfjo61kMMf80GTIRIN
-         vCGYq49VD2uSNU30njXX6o/rsyij2d6z4BTa8P/nqXcBVDdQEYGSFmNLXg6TDHXIts7Y
-         mzhw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792726730; x=1793331530;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=mKyS4R99EYK0BUrcIQ9wA622zbROCwz7+X8nyNQbBfw=;
-        b=Sk/4JzKThxvrEU5PoxaLCDSZKA7xNSiNaIXkuT1HUzOD3JeqxXNnIBI1h44P8uyd12
-         gkj2IZoFnXloYizrSkqfrvN3QMMJ4cjDghDewqy+IH0yb7mCE/w6f4MRwnibmaoToHmy
-         3G9niXBulBLGnerh7kU9yaD1RLlRfHYsoXYoPXNlXaCSCQbaMVF9BZkhYVDur7hwwIfA
-         S1Z5YQflqXYSWFIYVtRIMm33gnXt6MsKzo21x/4O4ks3uZDqXeQgVil+7RGh+ISELtQE
-         2G/NhvyT+c1L5vf4MaqsaeI9lyrD7u0uRJGAjFl975t8wOfQKoZIzdO2RiIgbG2TXNIi
-         R/MA==
-X-Gm-Message-State: AFq9FYI2s6zau/7/S+lHruqrrO6svGKpbCeSOxPzQNs/jshs2yctdatn
-	uuSnNvyQRmYeGOzK6GRJy1eYRHiIf2FfWYIonka1nMmZciacdzlHr5i0ghhPQ+PU
-X-Gm-Gg: AYBFou3L+HYxsRNbVqhVLJmoPwakDzmj8ON7yOBHcBfh83hIIiI0y4My3slBqnhi2qg
-	ilY0nN77H3V4AhGL97X1AS0t/jSv1hECegcBSgzIhcpdl1KK2jAQddRLgQ2+ix6llfMLcil7S2C
-	34OM2NwLEm+q6NV+5ubgy+YUMiL4wSjaZhsg3YSEWamwX56J60bA+oM5PfOIs/DL3+9Hk1RaYrL
-	hLIrZdXAvyOf7nUGPBW4+nBXTSDs+Mg/Muy27i5+5U5aU0f4FLhdK7jauGCXPy5UuFWbqkmGfdv
-	1TQNacmCOembFUciOfnWh3js28FgFkQLDrrTlRSRew0jwDXxpZriivrSyW69NggqNWgJT2k3PWv
-	sv40PbrGre3NkXlZONdWp1NPDWLpHc+LChCavmE9yJWIUmRl4Ii0LkclQw7bMOjefYQFAXx38sD
-	ZD4rmxtweOv+jFuI26RSFHV2lkVDQ1HCZSuSn0CkjUGYgJE9qUk5Q5e5CEwZeeYmEfNSNBPPchh
-	MZe6p2BLpXNArilSr4LOklekDP9lDoBhDPRmyq6pDB7KE1FEB/2YvM6/iKFWqa7vU2lDLNNpjbo
-	EefQ4jtwZMPkb2JA9td8yZYW6MwfxofhCcyPvmQIMkC5BFKfoi8L8fpMRg==
-X-Received: by 2002:a05:693c:6391:10b0:369:d6ed:f2b5 with SMTP id 5a478bee46e88-369d985c947mr1333045eec.39.1792726729614;
-        Thu, 22 Oct 2026 20:38:49 -0700 (PDT)
-Received: from aster-MS-7D31.tail5febd7.ts.net (209-147-138-26.nat.asu.edu. [209.147.138.26])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-369d9c15883sm2746414eec.3.2026.10.22.20.38.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Oct 2026 20:38:49 -0700 (PDT)
-From: whensun <theodoruswensanfebruanto025@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
-Subject: [RFC PATCH 1/2] lib: sbi: Preserve supervisor AIA interrupt priorities
-Date: Thu, 22 Oct 2026 20:38:44 -0700
-Message-ID: <20261023033845.89152-2-theodoruswensanfebruanto025@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261023033845.89152-1-theodoruswensanfebruanto025@gmail.com>
-References: <20261023033845.89152-1-theodoruswensanfebruanto025@gmail.com>
+	Fri, 23 Oct 2026 03:46:06 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
+	s=mxsw2412; t=1792727105;
+	bh=tc24JJXkM3MxdHb8xCBSM0osbkWbu4tm3dAfyIkUVbs=;
+	h=From:Date:Subject:MIME-Version:Message-Id:To;
+	b=RayFjvJbI5e4SaOCO9x1+CrEGJbC37WNO+ewCwWzkGMEKNAwQT38/BWAtclfJdOvT
+	 q2IHeeH2Mnea/xHbyd2gAsz92MwB7uuQ/8OJ3DEVurMr/9g6OQSg+gYuz58l358NXE
+	 0Fj2nCo92TXX+EAHbFAGaj2Y6wEgfAHQ6dwtxOz0=
+X-QQ-mid: esmtpgz16t1792727099t732f9adb
+X-QQ-Originating-IP: /R5oSncePt5DfLZ5ORre8bCWlawanksA+12WakENsrU=
+Received: from = ( [183.48.246.89])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Fri, 23 Oct 2026 11:44:57 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 2167279151076700464
+EX-QQ-RecipientCnt: 10
+From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
+Date: Fri, 23 Oct 2026 11:44:41 +0800
+Subject: [PATCH v5 1/6] lib: sbi: select expected trap handler per hart
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
+Message-Id: <20261023-spacemit-k3-v5-1-c5ddfc72caa4@linux.spacemit.com>
+References: <20261023-spacemit-k3-v5-0-c5ddfc72caa4@linux.spacemit.com>
+In-Reply-To: <20261023-spacemit-k3-v5-0-c5ddfc72caa4@linux.spacemit.com>
+To: opensbi@lists.infradead.org
+Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
+ Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>, 
+ Samuel Holland <samuel.holland@sifive.com>, 
+ Heinrich Schuchardt <heinrich.schuchardt@canonical.com>, 
+ Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>, 
+ Troy Mitchell <troy.mitchell@linux.spacemit.com>, 
+ Alvin Chang <alvinga@andestech.com>, E Shattow <e@freeshell.de>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=10081;
+ i=troy.mitchell@linux.spacemit.com; h=from:subject:message-id;
+ bh=RutGLzgXGYlYwwmAwh7C4mTuxXuh3oST72Hq7RlewrQ=;
+ b=owGbwMvMwCU2g/N9w09jE33G02pJDFm3bmg/LmK48//Py6LZuU02ryZ98LE7NvVx6c0jq/8se
+ O/s+o7HpqOUhUGMi0FWTJGl+wHPtgKfKNsCgUJfmDmsTCBDGLg4BWAiFScY/icurfHYm7p6slzF
+ U6EGwaZXpy4c2tl3WEHibKz8Ktt3jfcZ/sc+f/v4pYuX7cToLR3nputrPnte4zG5dO/z/aUpLxw
+ 06ngB
+X-Developer-Key: i=troy.mitchell@linux.spacemit.com; a=openpgp;
+ fpr=3FE5535CF1B0E658E57DB59BAE1C2FBEA7DB42E1
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
+X-QQ-XMAILINFO: Mp9DoNiQyQ7K6aurlP7h2h3ElMY7JGQ0f/w+hNqL+VdO4i+q0JhccGMg
+	xE4H6BMjnZYEq08gOopZLjlr/iJiDq1EqbEo3Py4Dz6yIkKKdUzS4Y9qbLPOV8X2Zb2Icpq
+	5qtvNi+JCGPaWvo8f83tt1u8+ohGaoLzG0RUX9ZCbonSUuPH5WljYcjk2y94tbS9gwbwITA
+	oApXceBXzoBajA2/3eUmG68tzOo6YMHfhMsMELSTLlqB7KpqLXYfbuHVpG4ElGcIk2E1iVJ
+	yhKSqcqcWsksuFt5ze0gKB4Dktl91WOTqr3MvdKKBokKvH2DZasxbbMiBKNQq/SBRo35Y1Y
+	4gKY6t+8xjPniXcVYNc7mATVZAtighWrGUbZycPqoiAee5dpyVzIXrmZBz7gYtM/NZqKN3c
+	LdUMpxwL7ligMwQJNudGIcTBc8XypWEINwYwyZU2q3IHIncaL7sD9WnX+/awt7CzrA88h4L
+	8DW+S6CAJ1MpbxKqPHs8N2Yi+mXKnets8Ac9Dxz9uK5d+sup/HYjpDtPl7FKgft9lY7+xKD
+	hr8AcY12x/Nmg9N28U+Un52TGmhWewLN+IY46/PkxghevcBUhRv/Zw0ed8xOnLiwTt5mBZn
+	EC5iDdEyAwXcR6/hiU440J+kJJ5DcZUwdxSS6HivIg5lSEfmPNTWA6do66yS81QWcY3PD6K
+	xAwyXN1ClbYLeWVdPhtswybn8WkIXIxKkAlptPz2dI5tEGwd0+b6x15HVmhqz67KIhWQTET
+	X/ZFv++x5Q9tXg3raNhZHgjgvMsDF1lXaxCqofFU7rQOI637e0qownhMsWZ3clvRT83ApPk
+	r/Kh8Uz7LuGEpW5XT1XvXajyho/zm8MkHxlxuT7aPCHzpN/jTwJwRZMV54l64l0nlVQ3FUf
+	4pe70k6jN1AiV7vXIpsMYkF9CQ5Ax85cduj1aCvBPkp3B+bTvnQgQgLBUHkai4Pk9CXxYZg
+	jBAl694tgj4hXv+dRBfPSU9rdtg/M2EGW1a2SZKEZASYWxE7OiyvMj7PCfshWPTg6AQMmKT
+	c1Ghfjys+C+doZjnc5/pvJhcot4nxDLkv+fvrM5zgjgbqZttpZCEI583GJu96t/Iz+ZUaPs
+	y1YE6ktceLE8j1JRBg9UxUI2q+Ue3MjLVQVE9azG+JN433zj/2NDt0EkvQ9cE6Vm3pSdQXv
+	IXFNiapReV2p6YmvxLS1sV1jbidpMH8ndfqZyHDGe2MmE7PD6iVj9ejKkAREpCDnCut5Qg2
+	BhrYKshtpHqPBZmYagvN9J2utmAZj
+X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
+X-QQ-SPAM: true
+X-QQ-RECHKSPAM: 3
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261023_043853_693808_B2325231 
-X-CRM114-Status: GOOD (  13.80  )
-X-Spam-Score: 0.1 (/)
+X-CRM114-CacheID: sfid-20261022_204605_171736_3EFD18A6 
+X-CRM114-Status: GOOD (  16.26  )
+X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -115,89 +111,254 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,
-	DKIM_ADSP_CUSTOM_MED,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=4.0.1
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-From: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
+The expected trap handler is selected once by the cold boot hart. This
+breaks heterogeneous systems where the cold boot hart implements H but
+another hart does not, because the H-aware handler accesses mtval2 and
+mtinst.
 
-The siselect/sireg window exposes supervisor interrupt priority state
-at selector values 0x30 through 0x3f.  Save and restore the implemented
-bank across domain switches when Smaia is available.
+Select the handler from each hart's MISA at entry to sbi_init(), before
+platform hooks can probe CSRs, and store its address in that hart's
+scratch space. Load the address directly at each use. This avoids an
+accessor call and its stack-protector instrumentation in the CSR probing
+and unprivileged memory access paths.
 
-Only sireg is accessed in this selector range.  The other sireg windows
-can trap and must not be read.  IMSIC indirect registers at 0x70-0xff
-are not handled in this change.
+Align scratch allocations after the enlarged fixed scratch area so that
+the new field preserves the allocator's cache-line alignment guarantee.
 
-Link: https://github.com/riscv-software-src/opensbi/issues/433
-Signed-off-by: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
+Fixes: 1de66d170e71 ("lib: Optimize unpriv load/store implementation")
+Reported-by: Bo Gan <ganboing@gmail.com>
+Link: https://lore.kernel.org/r/e702f291-dde8-4b99-a65e-182d2b847720@gmail.com
+Suggested-by: Bo Gan <ganboing@gmail.com>
+Cc: Alvin Chang <alvinga@andestech.com>
+Link: https://lore.kernel.org/r/20260831022156.2060561-1-alvinga@andestech.com
+Tested-by: E Shattow <e@freeshell.de>
+Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
 ---
- lib/sbi/sbi_domain_context.c | 30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ include/sbi/sbi_csr_detect.h | 4 ++--
+ include/sbi/sbi_hart.h       | 5 ++++-
+ include/sbi/sbi_scratch.h    | 7 ++++++-
+ lib/sbi/sbi_hart.c           | 8 --------
+ lib/sbi/sbi_illegal_atomic.c | 4 ++--
+ lib/sbi/sbi_init.c           | 7 +++++++
+ lib/sbi/sbi_scratch.c        | 4 ++++
+ lib/sbi/sbi_unpriv.c         | 6 +++---
+ 8 files changed, 28 insertions(+), 17 deletions(-)
 
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 15e9f543..14927ff5 100644
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -75,6 +75,8 @@ struct hart_context {
- 	unsigned long scountinhibit;
- 	/** Supervisor indirect CSR selector */
- 	unsigned long siselect;
-+	/** AIA supervisor interrupt priority register bank */
-+	unsigned long siprio[16];
+diff --git a/include/sbi/sbi_csr_detect.h b/include/sbi/sbi_csr_detect.h
+index 097c31c8..31e50db9 100644
+--- a/include/sbi/sbi_csr_detect.h
++++ b/include/sbi/sbi_csr_detect.h
+@@ -16,9 +16,9 @@
  
- 	/** Float context state */
- 	struct sbi_fp_context fp_ctx;
-@@ -120,6 +122,26 @@ static void hart_context_set(struct sbi_domain *dom, u32 hartindex,
- 	hart_context_get(sbi_domain_thishart_ptr(),			\
- 			 current_hartindex())
+ #define csr_read_allowed(csr_num, trap)					\
+ 	({								\
++	register ulong mtvec = sbi_hart_expected_trap_addr();		\
+ 	register ulong tinfo asm("a3") = (ulong)trap;			\
+ 	register ulong ttmp asm("a4");					\
+-	register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
+ 	register ulong ret = 0;						\
+ 	((struct sbi_trap_info *)(trap))->cause = 0;			\
+ 	asm volatile(							\
+@@ -35,9 +35,9 @@
  
-+static void hart_aia_iprio_save(struct hart_context *ctx)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < 16; i += __riscv_xlen / 32) {
-+		csr_write(CSR_SISELECT, 0x30 + i);
-+		ctx->siprio[i] = csr_read(CSR_SIREG);
-+	}
-+}
-+
-+static void hart_aia_iprio_restore(const struct hart_context *ctx)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < 16; i += __riscv_xlen / 32) {
-+		csr_write(CSR_SISELECT, 0x30 + i);
-+		csr_write(CSR_SIREG, ctx->siprio[i]);
-+	}
-+}
-+
+ #define csr_write_allowed(csr_num, trap, value)				\
+ 	({								\
++	register ulong mtvec = sbi_hart_expected_trap_addr();		\
+ 	register ulong tinfo asm("a3") = (ulong)trap;			\
+ 	register ulong ttmp asm("a4");					\
+-	register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
+ 	((struct sbi_trap_info *)(trap))->cause = 0;			\
+ 	asm volatile(							\
+ 		"add %[ttmp], %[tinfo], zero\n"				\
+diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
+index 543393bb..f0a4be61 100644
+--- a/include/sbi/sbi_hart.h
++++ b/include/sbi/sbi_hart.h
+@@ -12,6 +12,7 @@
+ 
+ #include <sbi/sbi_types.h>
+ #include <sbi/sbi_bitops.h>
++#include <sbi/sbi_scratch.h>
+ 
+ /** Possible privileged specification versions of a hart */
+ enum sbi_hart_priv_versions {
+@@ -135,7 +136,9 @@ struct sbi_scratch;
+ int sbi_hart_reinit(struct sbi_scratch *scratch);
+ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot);
+ 
+-extern void (*sbi_hart_expected_trap)(void);
++/* Keep the load free of function calls, including stack-protector code. */
++#define sbi_hart_expected_trap_addr() \
++	(sbi_scratch_thishart_ptr()->expected_trap)
+ 
+ unsigned int sbi_hart_mhpm_mask(struct sbi_scratch *scratch);
+ void sbi_hart_delegation_dump(struct sbi_scratch *scratch,
+diff --git a/include/sbi/sbi_scratch.h b/include/sbi/sbi_scratch.h
+index 06097c8a..20e7dcd0 100644
+--- a/include/sbi/sbi_scratch.h
++++ b/include/sbi/sbi_scratch.h
+@@ -46,8 +46,10 @@
+ #define SBI_SCRATCH_OPTIONS_OFFSET		(14 * __SIZEOF_POINTER__)
+ /** Offset of hartindex member in sbi_scratch */
+ #define SBI_SCRATCH_HARTINDEX_OFFSET		(15 * __SIZEOF_POINTER__)
++/** Offset of expected_trap member in sbi_scratch */
++#define SBI_SCRATCH_EXPECTED_TRAP_OFFSET		(16 * __SIZEOF_POINTER__)
+ /** Offset of extra space in sbi_scratch */
+-#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(16 * __SIZEOF_POINTER__)
++#define SBI_SCRATCH_EXTRA_SPACE_OFFSET		(17 * __SIZEOF_POINTER__)
+ /** Maximum size of sbi_scratch (4KB) */
+ #define SBI_SCRATCH_SIZE			(0x1000)
+ 
+@@ -91,6 +93,8 @@ struct sbi_scratch {
+ 	unsigned long options;
+ 	/** Index of the hart */
+ 	unsigned long hartindex;
++	/** Address of the expected trap handler for this HART */
++	unsigned long expected_trap;
+ };
+ 
  /**
-  * Switches the HART context from the current domain to the target domain.
-  * This includes changing domain assignments and reconfiguring PMP, as well
-@@ -209,8 +231,14 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 	    (csr_read64(CSR_MENVCFG) & ENVCFG_CDE))
- 		ctx->scountinhibit = csr_swap(CSR_SCOUNTINHIBIT,
- 						 dom_ctx->scountinhibit);
--	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND))
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND) ||
-+	    sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
- 		ctx->siselect = csr_swap(CSR_SISELECT, dom_ctx->siselect);
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
-+		hart_aia_iprio_save(ctx);
-+		hart_aia_iprio_restore(dom_ctx);
-+		csr_write(CSR_SISELECT, dom_ctx->siselect);
-+	}
+@@ -113,6 +117,7 @@ assert_member_offset(struct sbi_scratch, tmp0, SBI_SCRATCH_TMP0_OFFSET);
+ assert_member_offset(struct sbi_scratch, tmp1, SBI_SCRATCH_TMP1_OFFSET);
+ assert_member_offset(struct sbi_scratch, options, SBI_SCRATCH_OPTIONS_OFFSET);
+ assert_member_offset(struct sbi_scratch, hartindex, SBI_SCRATCH_HARTINDEX_OFFSET);
++assert_member_offset(struct sbi_scratch, expected_trap, SBI_SCRATCH_EXPECTED_TRAP_OFFSET);
  
- 	/* Eager context switch for float */
- 	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_F) ||
+ /** Possible options for OpenSBI library */
+ enum sbi_scratch_options {
+diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
+index bee88557..61c5f945 100644
+--- a/lib/sbi/sbi_hart.c
++++ b/lib/sbi/sbi_hart.c
+@@ -22,11 +22,6 @@
+ #include <sbi/sbi_string.h>
+ #include <sbi/sbi_trap.h>
+ 
+-extern void __sbi_expected_trap(void);
+-extern void __sbi_expected_trap_hext(void);
+-
+-void (*sbi_hart_expected_trap)(void) = &__sbi_expected_trap;
+-
+ unsigned long hart_features_offset;
+ 
+ static void mstatus_init(struct sbi_scratch *scratch)
+@@ -712,9 +707,6 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+ 	csr_write(CSR_MIP, 0);
+ 
+ 	if (cold_boot) {
+-		if (misa_extension('H'))
+-			sbi_hart_expected_trap = &__sbi_expected_trap_hext;
+-
+ 		hart_features_offset = sbi_scratch_alloc_offset(
+ 					sizeof(struct sbi_hart_features));
+ 		if (!hart_features_offset)
+diff --git a/lib/sbi/sbi_illegal_atomic.c b/lib/sbi/sbi_illegal_atomic.c
+index 977a9ad0..30f5118e 100644
+--- a/lib/sbi/sbi_illegal_atomic.c
++++ b/lib/sbi/sbi_illegal_atomic.c
+@@ -30,7 +30,7 @@ int sbi_illegal_atomic(ulong insn, struct sbi_trap_regs *regs)
+ 	{									\
+ 		register ulong tinfo asm("a3");					\
+ 		register ulong mstatus = 0;					\
+-		register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
++		register ulong mtvec = sbi_hart_expected_trap_addr();		\
+ 		type ret = 0;							\
+ 		trap->cause = 0;						\
+ 		asm volatile(							\
+@@ -57,7 +57,7 @@ int sbi_illegal_atomic(ulong insn, struct sbi_trap_regs *regs)
+ 	{									\
+ 		register ulong tinfo asm("a3");					\
+ 		register ulong mstatus = 0;					\
+-		register ulong mtvec = (ulong)sbi_hart_expected_trap;		\
++		register ulong mtvec = sbi_hart_expected_trap_addr();		\
+ 		type ret = 0;							\
+ 		trap->cause = 0;						\
+ 		asm volatile(							\
+diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
+index 9bb1a37e..76b4fd91 100644
+--- a/lib/sbi/sbi_init.c
++++ b/lib/sbi/sbi_init.c
+@@ -36,6 +36,9 @@
+ #include <sbi/sbi_version.h>
+ #include <sbi/sbi_unit_test.h>
+ 
++extern void __sbi_expected_trap(void);
++extern void __sbi_expected_trap_hext(void);
++
+ #define BANNER                                              \
+ 	"   ____                    _____ ____ _____\n"     \
+ 	"  / __ \\                  / ____|  _ \\_   _|\n"  \
+@@ -585,6 +588,10 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
+ 	u32 hartid			= current_hartid();
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 
++	/* Platform hooks may probe CSRs before sbi_hart_init(). */
++	scratch->expected_trap = misa_extension('H') ?
++		(ulong)&__sbi_expected_trap_hext : (ulong)&__sbi_expected_trap;
++
+ 	switch (scratch->next_mode) {
+ 	case PRV_M:
+ 		next_mode_supported = true;
+diff --git a/lib/sbi/sbi_scratch.c b/lib/sbi/sbi_scratch.c
+index bb14a1a2..88ef1547 100644
+--- a/lib/sbi/sbi_scratch.c
++++ b/lib/sbi/sbi_scratch.c
+@@ -97,6 +97,10 @@ unsigned long sbi_scratch_alloc_offset(unsigned long size)
+ 
+ 	spin_lock(&extra_lock);
+ 
++	/* The fixed scratch fields need not end on a cache-line boundary. */
++	extra_offset = (extra_offset + scratch_alloc_align - 1) &
++		       ~(scratch_alloc_align - 1);
++
+ 	if (SBI_SCRATCH_SIZE < (extra_offset + size))
+ 		goto done;
+ 
+diff --git a/lib/sbi/sbi_unpriv.c b/lib/sbi/sbi_unpriv.c
+index 60becedc..1550d111 100644
+--- a/lib/sbi/sbi_unpriv.c
++++ b/lib/sbi/sbi_unpriv.c
+@@ -33,9 +33,9 @@ union sbi_unpriv_data {
+ 	type sbi_load_##type(const type *addr,                                \
+ 			     struct sbi_trap_info *trap)                      \
+ 	{                                                                     \
++		register ulong mtvec = sbi_hart_expected_trap_addr();         \
+ 		register ulong tinfo asm("a3") = (ulong)trap;                 \
+ 		register ulong mstatus = 0;                                   \
+-		register ulong mtvec = (ulong)sbi_hart_expected_trap;         \
+ 		type ret = 0;                                                 \
+ 		trap->cause = 0;                                              \
+ 		asm volatile(                                                 \
+@@ -58,9 +58,9 @@ union sbi_unpriv_data {
+ 	void sbi_store_##type(type *addr, type val,                           \
+ 			      struct sbi_trap_info *trap)                     \
+ 	{                                                                     \
++		register ulong mtvec = sbi_hart_expected_trap_addr();         \
+ 		register ulong tinfo asm("a3") = (ulong)trap;                 \
+ 		register ulong mstatus = 0;                                   \
+-		register ulong mtvec = (ulong)sbi_hart_expected_trap;         \
+ 		trap->cause = 0;                                              \
+ 		asm volatile(                                                 \
+ 			"csrrw %[mtvec], " STR(CSR_MTVEC) ", %[mtvec]\n"      \
+@@ -207,7 +207,7 @@ ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap)
+ 	register ulong tinfo asm("a3");
+ 	register ulong ttmp asm("a4");
+ 	register ulong mstatus = 0;
+-	register ulong mtvec = (ulong)sbi_hart_expected_trap;
++	register ulong mtvec = sbi_hart_expected_trap_addr();
+ 	ulong insn = 0;
+ 
+ 	trap->cause = 0;
+
 -- 
-2.43.0
+2.55.0
 
 
 -- 
