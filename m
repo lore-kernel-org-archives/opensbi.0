@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D1F5606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EFB2606A31E
 	for <opensbi@archiver.kernel.org>; Fri, 23 Oct 2026 07:09:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=oIP2i6cB;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=Nob4Ri2L
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=SI1BCD8G;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=Q1omTnYF
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,79 +14,78 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-ID:Date:Subject:To:From:Reply-To:Cc:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=mmwGMPy0jYWnK3uy2KiUUvESB582GHIBbk1+5OEELNo=; b=oIP2i6cBZPF8e8xaTMM3zzg3X1
-	OIOk13HC3qZbrFBnUxzK0t11l33flmMNIJokI3joJTh3k8JX/2/bosRS8ABBj5iN7XowYIYH0fGXU
-	uvyT/1VLOubZm7kTFr5Q8qMXYF5asArCW7c6WFdrYc6WEJSFQ7L+fSC7YsjpmRxzpQ7+vq0g6cVcP
-	/rH50zMMZJF95afE7HTDBpII1lk3OJFZBV5RXRc3+ktQzxMmE1wdo0ujpzWD5DuOig8eIZ0VxMtB/
-	c+cVQHkJ+Q2QFTKRdtIPx8cV9F4mspcZtwsLwi8PKEiH8AvqO7vcPnPn6PWTbO1k75CQayVlvNqQZ
-	U2boZndQ==;
+	bh=WqnQF1CKxiqCoSRfA6Ir0CLbnCuBqEUccmiwDif2jCU=; b=SI1BCD8G5SgIrru6t6n/jRy30p
+	+bgZ/VZTNaA3CoV6UYRZ4A6+5bYTxwIVAQfi5criuOz08xY5ScLvXytmCzhnb0wS4pXEv/5IqTYrf
+	GP+6neHk14z7AlxhVUJkKZjH7I/aS5TM9Cw/WoA/O74pVZn9FMkOP2svCNK4Dp26nJnOy6eNFwWeF
+	+EWEwYgzgV1DOL3CctRcPSJA56VyJQt03MMIzytNPtF+33tbV3XmLvlkNiDl/8agp7+9TutctwvWx
+	krT4uf02QrvgeQ4GgnCCuDVvS+lU8bRk8imSP4erOVCntBfIOH56+nSxTvv6Zd/dCiI8PgHQ9hZoH
+	woCKZjgg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK9PJ-0000000FijN-2ETF;
+	id 1xK9PJ-0000000Fiji-324B;
 	Fri, 23 Oct 2026 07:09:41 +0000
-Received: from mail-dy1-x1331.google.com ([2607:f8b0:4864:20::1331])
+Received: from mail-dy1-x132f.google.com ([2607:f8b0:4864:20::132f])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xK9PE-0000000FieX-2VaM
+	id 1xK9PG-0000000Fig7-3gxe
 	for opensbi@lists.infradead.org;
-	Fri, 23 Oct 2026 07:09:37 +0000
-Received: by mail-dy1-x1331.google.com with SMTP id 5a478bee46e88-3645f0f3fcdso1027195eec.0
-        for <opensbi@lists.infradead.org>; Fri, 23 Oct 2026 00:09:36 -0700 (PDT)
+	Fri, 23 Oct 2026 07:09:40 +0000
+Received: by mail-dy1-x132f.google.com with SMTP id 5a478bee46e88-3645f0f3fcdso1027237eec.0
+        for <opensbi@lists.infradead.org>; Fri, 23 Oct 2026 00:09:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792739376; x=1793344176; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1792739378; x=1793344178; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=r6o45wUYBbGNKgK4Mzuz9aLQ9qrzf8dUYaBNbz5ioG0=;
-        b=Nob4Ri2L5ctM5VAXnFyXbF+DzYapCgporoRm3h9MppqyfUsHyLcaO8K6uN2CEmAl7W
-         md/eD5suO6GGs90If3EiEjL45OWZYr8hTwxEF8kzUSB45dNOEsPy3LzqX9oNBLb4aPQ/
-         pbihR+9/5P3pKz7y3uLp0wkKCNOwhZhoolZENxJfI3DQ1xFzBuDKzTubllJ4oc2wWyFr
-         W8z6TI0fOBis4I+6NNHcHrFcIYxn9xuKFTe6LeFDyuXFMiLhnZHACuMEVKgHPlvImPFs
-         iBWY6h5JYs50mDCs2H3ilDgaqyW8v5+zvsOclGciYwmoSQ/goA5IhoiujVivDlOEUWcK
-         SXKg==
+        bh=t7p45VnwdrZdB4Hdkhe6b3HCfYJKbJIotQGak0VMpl8=;
+        b=Q1omTnYFJOddtCCBRlWWVy6kBO+s0QUuYBZkxkwUzHUmj3/caLG+iGvbsCSCr1A+xE
+         P5t4zGWx4/daoEiDCSiXdKT99g1mn9Zvhv2/YOpUvGXUbobFpczMJRxgvbgiqT5x4fwb
+         aU74oScA7oUyCq22TWrH/imqp56FFJ0/ge8sskfJDQ279zW9d1hCcMFDfclgkVuXhtX1
+         3SEA6VCs04S2o6DzVvVXSdgf2ze6iJiPMiYqSLQwmnz5J5hSooebKRiQMtRUZFEDN+Ni
+         0MJ+oZa6xtXi27OhT0Xv9b8Y07mHrhb+/49hvCB+rXu5mWs+G/aajm9DuZCfuHoytlET
+         zlaQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792739376; x=1793344176;
+        d=1e100.net; s=20260707; t=1792739378; x=1793344178;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=r6o45wUYBbGNKgK4Mzuz9aLQ9qrzf8dUYaBNbz5ioG0=;
-        b=kzFK4RyEexulxT6Fd6M9jNtXbr39LW/6ieV7LYm3K6J6861U1h0E4WFpZQw2tB7mzc
-         vnzev4V5/Tklx6OtiJrp1JXUpaDjzVGbRtOBSb2OCrs+DFWfbJuCD2bqCjT1nGlEGTXx
-         ee788TCbiyGzLlmxbBSANN8pEdOgtBuB1kn5bx4uWYlaANL+QqwRQFdygAmIwh8IOeYp
-         F3m2z2VxIZurKHnd6Tdb/u1msmdO2dhW1VYe+RgjIPMmSxBasuPB0e7q+041qtzS9DSq
-         q178F3C54upOIKkVH7ypScxbgX+mEXFaEDLDrRSd/THbNYCZMT4v8qr5CkqGokbmyFWc
-         DEJQ==
-X-Gm-Message-State: AFq9FYLIqdGu2q+YbKOTgMACRlQ7uGqT89nkPQxthsCmeRnpvxyzhVZd
-	CgHya5ta71nPkbrTh6gW6dbyYe4mwTOwwIqaS+eiix7po/owd6BZFiu3r0IvI9o1
-X-Gm-Gg: AYBFou1+y3x0q5EpjVCcWrzNSTOe59sgiBNyu8TNLQ3T5HhhinNa23Md+qqE7AW+RK6
-	y/ZukmuDg6US5BI76qvWMuSE6Tsazu436UOJZUOdAMw0BaIH0FFVV8u0j65K2fjvYBa6pxEf306
-	MRXx+aeJSB38G6/CUWbCojfbP0QNNoimljwer5+1izI4X27IzCl5XsiZKSedlLOXYtTKZPZtCCS
-	x2uBF8E1vYX5rK5xcj+1dvY0JgOZ68COqlD3RdMuRiu9Evl2IvpE6cj7p0HN/gDQf/F98miEdTS
-	AvSQg5YHzHKGsVt8WlL2T4UiCXA1WlpVKR5Ba5dxnwYAgYYnXl3iE2Dl42h/dVHodINIlxjcGSI
-	jjWfarbNdsIZgIQI3nvewWA7iyeRnp1JUDKn6J5VLsKa/AaRbkpvYQ0h1ON8y6k5t6RwznpO7NU
-	QjonaC/nPQfixoRGxZghq1xy+ddMrf0/1jQzo6OHVTGzBz/jIkScJlDaCcFh7FXPMyq7MssmAFu
-	saTYmqcQsBtNR0rQ/AGhPtn7nTVblnlxveoLpSORvm/0frQe16Daqm6Tj2dSgq1eUfz2917Litu
-	xv5qn/v9IupLzwvKNmoRNmc0zz+qSkcQozy6PEuW0n42zFTfRBwGKEH/mg==
-X-Received: by 2002:a05:693c:8084:b0:351:7ec1:a92c with SMTP id 5a478bee46e88-369d9809322mr2186631eec.28.1792739375809;
-        Fri, 23 Oct 2026 00:09:35 -0700 (PDT)
+        bh=t7p45VnwdrZdB4Hdkhe6b3HCfYJKbJIotQGak0VMpl8=;
+        b=cKi/V6qpVa/VdS3Ygz6+4A0kHfpKMLn7ZWFTnnoHIkgdUeR100Ia678awu8tNtRv6y
+         U/3U7tDzmEPUIcd5A32OathgPwDTzfgOfUu3y6K0vP9xhveM1e8QFPLebqm+k7sB560q
+         1saYk3F0JzpKvdfNvAhLr+boffj6OJ4dYIT2H3l6dLQi8sQVy88Hx/27IkERf636yaL3
+         kTelCoFHwpImoeIJZjPo/HWvwXZ2bUINv+ifoJV2S7CLSS3RL9OCqwcG4uwpAWsfI9ta
+         6YG8h20XY3zZnCrXNSaxSKqo63VinZAA5Ob9LHcb0TEieUKcggOhSQsPhynOSRQyMZFC
+         G0Eg==
+X-Gm-Message-State: AFq9FYLCuInuYXULyn7qJZhqfh0Eu4KOkI4f9hDmYP4G1iOBBc3+XZIg
+	DXlbq+fGDJxhXPhJP3Ua/2yUaJR5OqmRsV9LTqTud6rJgPALZp6vcFqN7w+otTA6
+X-Gm-Gg: AYBFou15M21AAeNRACGsh9ErXa88TYnqZ9C8tTsE2weHxNLq34nUJDRea7/Xi1x1k6j
+	FFccGjsUQQY40e6X6pwJEDc4z9eJVdS4srX+DvPk8xC4PUbVon97jkT+KtPjmK2Vl4bj80/6x2X
+	wX9YfPacmXATcPeCuJdfPzaWBJHwejLYWVTXDwEO5uC76ksWqRsRv0aYS1jYNOvBTanjfiay1CL
+	lM/Bv7sWUctSn958eoqyz6DzvQupABl/yoVr5+3FIEy1Nm76Wm8SHcYQs8wGpI94roQio/e3HQl
+	MVSOLD8vHrGkX7ubJ3EFLOT3W2f1zLgPDDru4mSD+SWXpzXHPAtCMYJTMcnns2/7baNK0wmql6p
+	lYOhrQ8gqLjhpsUWrJuoa+d3Meiy72YJD6sMFCzp3gxOQDzF7o0Vu4TTkK9oYaeW2FPrJr+HDDX
+	mPRHtjTrUzLbuAXHU7K59iRqI7B9atBzMz9YLRHQc4IBvr8Kyh/sN91EV9vjjOiJlEcdEehxXTC
+	sc+86TnnWGtpwCGfcQQX/EoXQhANQrDPgQFBWJ/OeKv+2XwN574rpwDMiUQeNUSeit8Sx43tcty
+	BBkQL68FBOEbV86Or05012D/ZPDGWq8OXenl9On6iCg5bE7JNBHK5qzoUQ==
+X-Received: by 2002:a05:7300:c01a:10b0:355:fdc0:a811 with SMTP id 5a478bee46e88-369d9868651mr2127654eec.37.1792739377944;
+        Fri, 23 Oct 2026 00:09:37 -0700 (PDT)
 Received: from aster-MS-7D31.tail5febd7.ts.net (209-147-138-26.nat.asu.edu. [209.147.138.26])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-369d9e10da4sm3863206eec.26.2026.10.23.00.09.35
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-369d9e10da4sm3863206eec.26.2026.10.23.00.09.37
         for <opensbi@lists.infradead.org>
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2026 00:09:35 -0700 (PDT)
+        Fri, 23 Oct 2026 00:09:37 -0700 (PDT)
 From: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
 To: opensbi@lists.infradead.org
-Subject: [RFC PATCH v2 4/8] lib: sbi: Preserve supervisor count inhibit configuration
-Date: Fri, 23 Oct 2026 00:09:21 -0700
-Message-ID: <20261023070925.241680-5-theodoruswensanfebruanto025@gmail.com>
+Subject: [RFC PATCH v2 6/8] lib: sbi: Preserve supervisor AIA interrupt priorities
+Date: Fri, 23 Oct 2026 00:09:23 -0700
+Message-ID: <20261023070925.241680-7-theodoruswensanfebruanto025@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261023070925.241680-1-theodoruswensanfebruanto025@gmail.com>
 References: <20261023070925.241680-1-theodoruswensanfebruanto025@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261023_000936_643043_A82B3E17 
-X-CRM114-Status: UNSURE (   9.87  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20261023_000938_928056_810EB70D 
+X-CRM114-Status: GOOD (  12.34  )
 X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -109,40 +108,73 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Preserve the delegated counter inhibit configuration across domain
-switches when Ssccfg is available and menvcfg.CDE is enabled.
+The siselect/sireg window exposes supervisor interrupt priority state
+at selector values 0x30 through 0x3f.  Save and restore the implemented
+bank across domain switches when Smaia is available.
 
-The extra CDE guard avoids accessing scountinhibit while counter
-delegation is disabled. scountinhibit aliases delegated parts of
-mcountinhibit, so this is not a complete PMU state virtualization fix.
+Only sireg is accessed in this selector range.  The other sireg windows
+can trap and must not be read.  IMSIC indirect registers at 0x70-0xff
+are not handled in this change.
 
 Link: https://github.com/riscv-software-src/opensbi/issues/433
 Signed-off-by: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
 ---
- lib/sbi/sbi_domain_context.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/sbi/sbi_domain_context.c | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
 diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 33c19d04..9b4a4f5a 100644
+index 961fd182..34d1bc76 100644
 --- a/lib/sbi/sbi_domain_context.c
 +++ b/lib/sbi/sbi_domain_context.c
-@@ -89,6 +89,8 @@ struct hart_context {
- 	/** Supervisor resource management configuration register */
- 	unsigned long srmcfg;
- 	struct hart_context_sstc sstc;
-+	/** Supervisor counter inhibit configuration */
-+	unsigned long scountinhibit;
+@@ -93,6 +93,8 @@ struct hart_context {
+ 	unsigned long scountinhibit;
+ 	/** Supervisor indirect CSR selector */
+ 	unsigned long siselect;
++	/** AIA supervisor interrupt priority register bank */
++	unsigned long siprio[16];
  
  	/** Float context state */
  	struct sbi_fp_context fp_ctx;
-@@ -243,6 +245,10 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 			ctx->sstc.vstimecmp = csr_swap64(CSR_VSTIMECMP,
- 						 dom_ctx->sstc.vstimecmp);
- 	}
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCCFG) &&
-+	    (csr_read64(CSR_MENVCFG) & ENVCFG_CDE))
-+		ctx->scountinhibit = csr_swap(CSR_SCOUNTINHIBIT,
-+						 dom_ctx->scountinhibit);
+@@ -138,6 +140,26 @@ static void hart_context_set(struct sbi_domain *dom, u32 hartindex,
+ 	hart_context_get(sbi_domain_thishart_ptr(),			\
+ 			 current_hartindex())
+ 
++static void hart_aia_iprio_save(struct hart_context *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < 16; i += __riscv_xlen / 32) {
++		csr_write(CSR_SISELECT, 0x30 + i);
++		ctx->siprio[i] = csr_read(CSR_SIREG);
++	}
++}
++
++static void hart_aia_iprio_restore(const struct hart_context *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < 16; i += __riscv_xlen / 32) {
++		csr_write(CSR_SISELECT, 0x30 + i);
++		csr_write(CSR_SIREG, ctx->siprio[i]);
++	}
++}
++
+ /**
+  * Switches the HART context from the current domain to the target domain.
+  * This includes changing domain assignments and reconfiguring PMP, as well
+@@ -251,8 +273,14 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+ 	    (csr_read64(CSR_MENVCFG) & ENVCFG_CDE))
+ 		ctx->scountinhibit = csr_swap(CSR_SCOUNTINHIBIT,
+ 						 dom_ctx->scountinhibit);
+-	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND))
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND) ||
++	    sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA))
+ 		ctx->siselect = csr_swap(CSR_SISELECT, dom_ctx->siselect);
++	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
++		hart_aia_iprio_save(ctx);
++		hart_aia_iprio_restore(dom_ctx);
++		csr_write(CSR_SISELECT, dom_ctx->siselect);
++	}
  
  	/* Eager context switch for float */
  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_F) ||
