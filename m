@@ -2,71 +2,92 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A402F606A31A
-	for <opensbi@archiver.kernel.org>; Sun, 25 Oct 2026 14:49:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF741606A31A
+	for <opensbi@archiver.kernel.org>; Sun, 25 Oct 2026 14:53:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=AivAc89K;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=freeshell.de header.i=@freeshell.de header.a=rsa-sha256 header.s=s2025 header.b=VhyCDBT4
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=LXiT3Ze6;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=Ro70G0wf
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
-	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=ZPsAt1r6HZ7IqvFecVUhaIJFOZ2yqnebb+7ZhAchFQQ=; b=AivAc89KEb/RTgAlt/SnpKFzo0
-	BBHsd07CxB+1bd2Qgi/DJrgxFwKnweSE6T9HYraHfNZiyHVJysOj8mnWVId2rDOq0XEmPTkzU49CE
-	e2AGJqKAdKP61qbeU8p/mMBdTtanRzmo2bOH6GZX6YpP9v/8hNqf+8RhD/6t4Y/ROrHtvV0MK/cfm
-	ZRidvkX8S+hUHm9h2is4ZP2RHbc08KFE89Xj+RbFW+hov5Bjp1N1cSvivrRo5QsWuL3rjv5qH456q
-	HlJnJt41yT+oHe25nd7bakvLF9kl2TyXgOHb2v/dEtWDc7BLlMC8KNkBK0vbDphN4st1yfZW0tmSI
-	yCBqkAkQ==;
+	bh=11/gv6NZylkmVTgOgvSrtXq+3F2Nr+vWYA2GVzAfRLY=; b=LXiT3Ze6sIxAxPYEhbOcapnonr
+	LDyz6X8KY8cdfsnR8lXt8SvMh7C7WfhW+Rm9H1V2RrBiMO6W4QZZCSJKOWU7rBkOvahKccmFYbZCv
+	cha92efu9y7CLi8MwsrcgDp7seqYf0SiJpyuZL3A8R38Y0lOSNRSZnYnKdSj9a1PwD/NWJhpbIXHH
+	BUbp8PpvZfo2qI3uvpeWIHQatzkZvZHXWH0Flp72hwQHe2o1fxv53IEka8UPcXyc2X3iLKdPMZYDt
+	2hJOH2ihWIal3Fg/CekmDGXueZm7bzXiO8QewXgibU+U5RHsNy2kutBM85JTZSOTPcBHr3+QKL06a
+	+FNjTY+w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xKzXD-000000018Mf-0CoR;
-	Sun, 25 Oct 2026 14:49:19 +0000
-Received: from freeshell.de ([2a01:4f8:231:482b::2])
+	id 1xKzbd-000000018sR-2FtF;
+	Sun, 25 Oct 2026 14:53:53 +0000
+Received: from mail-vk1-xa34.google.com ([2607:f8b0:4864:20::a34])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xKzX8-000000018LG-2Izj
+	id 1xKzbb-000000018rm-1iUY
 	for opensbi@lists.infradead.org;
-	Sun, 25 Oct 2026 14:49:17 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=freeshell.de;
-	s=s2025; t=1792939720;
-	bh=JZRWjAhjLmOvbqVvazHEblOgjCHinJiWHzOShsQCwCs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VhyCDBT4gd4uQ3BkJmm3z1P8E1/M0zuruK1V78wtZXtBiyC7XVOpPnKPp5OIFupEr
-	 cT/XftSFP7RYdBRh5zRkMULaK2etneYaKiWAsaVoe5v/cg+/SJVtlE6TXK/WEI2h/g
-	 wu67NZ3NPurWzNuVhHQvfuJX/7B+oeteVlsf+SXMPvOT+u4gvcOuIfTTMeq2ZdBEEs
-	 3zpULrP9OUSMIior326GxUIFYG2uj0ac2TJSeM0veexWBlchaR3EeSiAc6N7BsAoFu
-	 bVEp3Axn4xiNT0A7mkK0Q+iwbiwAh77cKD9PS4lgaHR2xxWtxyx4DFfSbpo0jj6Bo9
-	 d8t/tVyKErxAQ==
-Received: from [IPV6:2605:59ca:364f:d400:1b91:6b30:22c2:fffc] (unknown [IPv6:2605:59ca:364f:d400:1b91:6b30:22c2:fffc])
-	(Authenticated sender: e)
-	by freeshell.de (Postfix) with ESMTPSA id B07C0B2286E7;
-	Sun, 25 Oct 2026 15:48:38 +0100 (CET)
-Message-ID: <8d6a4820-683f-4260-ab77-f7bc4094ccb0@freeshell.de>
-Date: Sun, 25 Oct 2026 07:48:35 -0700
+	Sun, 25 Oct 2026 14:53:53 +0000
+Received: by mail-vk1-xa34.google.com with SMTP id 71dfb90a1353d-5c9e7731b34so1716202e0c.2
+        for <opensbi@lists.infradead.org>; Sun, 25 Oct 2026 07:53:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792940030; x=1793544830; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=8TNCCFBgea6F63K3kfOUp7XQxeoDrw/uRPH+nrwxBUc=;
+        b=Ro70G0wfFbQvoxYYpzOfOQaZd/X4fncp3Yechz1bZ8j81l7UYWplJlZbpWzBcSR26X
+         5QDnSCQiK+gOrOS8Ark/ki1qrWE0VApSIpEy2BLe536/PVQv2rCYyHZGHsLUxHjp+l+Q
+         oXXzTehtIZ3Pa7m5h1Rfd3rvoHVlhFMdFuQD0a/ElqX2OSv0WvV6TyM3lbGj2vVimqAo
+         SShFdy7nUSmybg2HIlMEQ5FNDZEEEk/aWLlb0lWa3jgdh/d57TjvpOIq+jB85ZN313FC
+         WhbMLt7v4G+PHvgLZz/noP+g4R2SR2RLyCGgYp3hTvo0iF1mXj5/o1XcqZoUbqBU+fXL
+         qmlg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792940030; x=1793544830;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8TNCCFBgea6F63K3kfOUp7XQxeoDrw/uRPH+nrwxBUc=;
+        b=Dg0hwOb9bFkfoYJmaKvz6m/zr9MdknrArdeBQlebLIMN8elPn0pTVfWkMBvVOIahkB
+         lKNL2Df+SSqVlXMErhbM8thk/KzmSb7IpAIQioPv8KL3YcXzivJCKII33O7VyhoY9jib
+         vXq0ETC5T7fPutZKMI7x+1dY+HznBUjw8wQzA+Qb6T2CGHyK6CwyzIHNSd7GQYmdPxgx
+         qmJyM4KjUz8wZwP0avmLjmRSl/IvNzGVDq86kJfzlbsTLBzQ7zvS9wdoujEXru+mKtnw
+         97hYfOAV027C7c+UAUghSUlg8wOtMVDvoePp38qfvcp1/XlbbkI+dIqCR6nlXTcZgYtT
+         4TdA==
+X-Gm-Message-State: AFq9FYI8lbBYWWp2b4OU0Lpbru7X4hChnGdDUSZEclrrkI9Ngj/VlsXB
+	Ji+3cYqn5SrWfcJ1DBbBopGG9ossf+oo4Ie6EDWyKxzFLRJ7Tg+81SqU0F/nPA==
+X-Gm-Gg: AYBFou2O3uTiSYIuHYdvZuwuGIo/rvI7d1wL+FaJ6+QL7ZMN0F4+uvNGVa20BRGzq+N
+	+673U7h3ZfYdPahfxMN8+lCMGJ1PF0DZ5Tv5t8cwVpij5ImEEgj3j7Pvws30nLHZybHOZoVnHN+
+	KKicb40qu+JyNjNjqjs8ggU+AqoM8l4j9EgndMWzPKurIaAe21tXtbsXEaWQHusCRLmtxD9grWj
+	v31VM9n2Mp/9yh0l9wv6woFntmQ8iw03/bbq5QjMi4nGpb92vxGwOxWCAVoLOuVxzvEUAgDmocn
+	g7Fgpx2VpweH8fwDV1gJ7y6kMYLbAkfmqj5e0Kob4fiZ2SxLS6aL94krdJ+n+bY8KAclhXytsIR
+	yfVtj8Kmaosjh+Cmud0P1g0Jqb5DGNCcpuFNkADn54gPO5axwnNWRXIpv5nR1oygUzlyf6IdDB1
+	TiR3e49eW2QOay8/wKa2wAtaBKkl7CAMS0dsnKD5r0p+p5Jd28lBmTd2CK97+vIy/WuhtswvZk2
+	kJ3oKnRV5+8diGvgcbVf9B3aRJsSu1A1+4m0OAkg/vVDxPZRqLXm9cn+gk/0hC2kt0nO+tS5p3L
+	yIjrusieiCwGvNkoehtBEqBwHA4TD3caiJNLJl8lGqGD
+X-Received: by 2002:a05:6122:e449:b0:5e5:1be6:e12c with SMTP id 71dfb90a1353d-5ec23321cadmr1445241e0c.21.1792940029877;
+        Sun, 25 Oct 2026 07:53:49 -0700 (PDT)
+Received: from localhost.localdomain ([186.151.100.62])
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ec234add5dsm5501237e0c.16.2026.10.25.07.53.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 25 Oct 2026 07:53:49 -0700 (PDT)
+From: Sebastian Alba Vives <sebasjosue84@gmail.com>
+To: opensbi@lists.infradead.org
+Cc: anup.patel@oss.qualcomm.com,
+	pengpeng@iscas.ac.cn,
+	hppiscas@163.com,
+	Sebastian Alba Vives <sebasjosue84@gmail.com>
+Subject: [PATCH v2 0/2] lib: sbi_pmu: propagate hardware counter errors
+Date: Sun, 25 Oct 2026 08:53:36 -0600
+Message-ID: <20261025145338.2569358-1-sebasjosue84@gmail.com>
+X-Mailer: git-send-email 2.43.0
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 0/6] platform: generic: spacemit: add K3 platform
- support
-To: Troy Mitchell <troy.mitchell@linux.spacemit.com>,
- opensbi@lists.infradead.org
-Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
- Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>,
- Samuel Holland <samuel.holland@sifive.com>,
- Heinrich Schuchardt <heinrich.schuchardt@canonical.com>,
- Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>,
- Alvin Chang <alvinga@andestech.com>,
- Valentin Haudiquet <valentin.haudiquet@canonical.com>
-References: <20261023-spacemit-k3-v5-0-c5ddfc72caa4@linux.spacemit.com>
-Content-Language: en-US
-From: E Shattow <e@freeshell.de>
-In-Reply-To: <20261023-spacemit-k3-v5-0-c5ddfc72caa4@linux.spacemit.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261025_074915_067665_4169BAC7 
-X-CRM114-Status: GOOD (  25.37  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261025_075351_469804_BE30EDE5 
+X-CRM114-Status: UNSURE (   7.73  )
+X-CRM114-Notice: Please train this message.
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -79,89 +100,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Hi Troy,
+The two patches Anup asked for in the thread for Pengpeng Hou's
+SKIP_MATCH class check. v1 is at
 
-On 10/22/26 19:42, Troy Mitchell wrote:
->> I did suggest the change to be included by the vendor as a pull request:
->>
->> https://github.com/spacemit-com/uboot-2022.10/pull/5
->>
->> However I do not expect this to be considered, as the vendor uses their
->> own fork of OpenSBI.
-> 
-> I've already passed your PR to the team responsible for our U-Boot tree
-> for review.
-> 
+  https://lore.kernel.org/r/20261025062836.2445655-1-sebasjosue84@gmail.com
 
-Good report, thanks.
+Changes in v2:
+ - patch 1: propagate SBI_EALREADY_STARTED as well, per Anup's review.
+   An already running counter may have been configured for a different
+   event previously, so the configure must not report success. The
+   commit message was reworked around that and the special case is gone.
+ - patch 2: unchanged except for the context line that patch 1 touches.
+   Picked up Anup's Reviewed-by.
 
->> [...]
->>
->> Although I was unable boot a Linux userland from vendor 'FSBL.bin' plus
->> the mainline in-development 'u-boot.itb' the Linux kernel appears mostly
->> functional and does output some messages up to the point of 'init'.
->> There is no dependency on any SPI NOR flash content at all, it can be
->> fully erased and the 'esos' 'FSBL' 'opensbi' 'uboot' NOR flash regions
->> are not involved in testing when loading in-development for mainline
->> U-Boot (including mainline OpenSBI fw_dynamic.bin) 'u-boot.itb' and
->> whatever SPL (currently the vendor SDK/BSP 'FSBL.bin' SPL) is required
->> by that.
-> 
-> My COM260 test reached a shell with the SDK U-Boot and a minimal
-> initramfs. Could you share the full boot log, U-Boot and kernel
-> revisions, and the DT and kernel command line you used?
-> 
+They stay a series because both touch the same if block in
+sbi_pmu_ctr_cfg_match() and the second does not apply without the first.
 
-That software stack you describe works on Pico-ITX equally well for me.
+Built clean for rv64 and rv32, PLATFORM=generic, no new warnings.
 
-I did not get to Linux userland with mainline OpenSBI (this series)
-bundled into mainline U-Boot u-boot.itb FIT image, and the SDK SPL
-FSBL.bin as the DRAM init and U-Boot loader.
+Sebastian Alba Vives (2):
+  lib: sbi_pmu: do not ignore pmu_ctr_start_hw() error in cfg_match
+  lib: sbi_pmu: reject out-of-bounds counter index in pmu_ctr_write_hw()
 
-The commits for mainline U-Boot support of Pico-ITX landed to U-Boot
-v2027.01 development cycle and are corresponding to Linux v7.3
-devicetree-rebasing. Network support is functional in U-Boot for
-Pico-ITX so we have the convenience of "wget" in U-Boot to load data
-quickly for testing. There is no driver enabled yet for
-USB/MMC/UFS/NVMe. I'll post more about this testing methodology to the
-U-Boot mailing list soon.
+ lib/sbi/sbi_pmu.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
->> [...]
->>
->> I did read through all the patches in this series for any obvious style
->> problems. For the series with no endorsement of suitability for what the
->> code does or how it does so, okay to apply my R-by tag (and/or
->> Tested-by) and with or without any trivial style corrections as requested.
-> 
-> I've dropped the redundant cache-flush comment in patch 2 and used BIT()
-> in the K1 nascent hook in patch 3.
-> 
-> Thanks for the review, testing and tags.
-> 
-> 
-On 10/22/26 20:44, Troy Mitchell wrote:
-> This series adds basic K3 platform initialization and start-only HSM
-> support. Secondary harts are started directly through the SoC PMU. RPMI
-> support for the vendor kernel is outside the scope of this series; the
-> upstream Linux boot path does not depend on ESOS.
-...
-> Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-> ---
-> Changes in v5:
-> - drop the redundant cache-flush comment in the K1 rename patch
-> - use BIT() for the K1 ML2SETUP bit in nascent_init()
-> - collect review and test tags from E Shattow
-> - Link to v4: https://patch.msgid.link/20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com
-
-Looks good to me, thanks for implementing the changes. -E
+-- 
+2.43.0
 
 
 -- 
