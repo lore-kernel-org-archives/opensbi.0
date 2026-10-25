@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE4A606A31A
-	for <opensbi@archiver.kernel.org>; Sun, 25 Oct 2026 14:53:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31D59606A327
+	for <opensbi@archiver.kernel.org>; Sun, 25 Oct 2026 14:53:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=WAd1ndZu;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=pKj3cDxg
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=C/X0Fwgk;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=jZXbBcDi
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,81 +14,82 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=WfgCJ1awtjr1ulcHF3U4BRzZLHmukoAqhTgZoGA3gaA=; b=WAd1ndZupDINXt2K6905a9GVZh
-	6lhYJ6BWPZznayYGvWaEEXa6fqy7QNNT48G9aeP0ITQHzQQs/gOdF64LZk5IWO3hF37KWB2MbRVmd
-	Fwn2XC5G4HUU+KnbUABBvOQ3QvX3D1RzqMMWYKszc4ejVNsmV5gXo+PuZLNTk5KSRoQb8Dagxht2+
-	XxFFUTKVoXa7MLQ+5/idUv3+VFASkaCrb2iuDdteprjq3YQfE/Yf9R3JbF6GLkavmcIGI+0JajkJQ
-	jAlMSF/HmDvyJQIkegFjfjYhTOYEhr9hN9+37X3lWilWxtBMPirpW00VIY/JqBcU125mNPPxyL9ml
-	gL3M8gaQ==;
+	bh=PHuOMhjh94kZhs7nqROzJRweIsQulXReZpmG1IwM+Ik=; b=C/X0FwgkziGfo31AEhR7SUKMDw
+	fkr+2IlHHu6ce1A9riLUa2mIytBhtJpjYsWlA0wpyCGBOY0IjddTRpfolm4hGoWQElUUUjyVnQM45
+	QcSi2yJamQrr7h7l3F6rDOhsCADUlyVujUX0dqRLyR2bWO221qN+V7iZpTmxjIkV2gP6Wp5Xt9yi3
+	PUGaP4+8vnbRp4qR9Lf4aQy5Adz6Bb0HhKgrmRGkADbJgYmQhHq4fkcs46ECN0kE0dj5UPb+/dS9h
+	+xANrt+TCmYwntEB29H6EhT4kq9Kr46eDjykQkB7x0DxZ8/m9qvNWKHfBiBGADF7irsVcee/eA1yM
+	h1uWt7hw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xKzbe-000000018tJ-2pfx;
-	Sun, 25 Oct 2026 14:53:54 +0000
-Received: from mail-vk1-xa2e.google.com ([2607:f8b0:4864:20::a2e])
+	id 1xKzbf-000000018tu-3ElH;
+	Sun, 25 Oct 2026 14:53:55 +0000
+Received: from mail-vk1-xa34.google.com ([2607:f8b0:4864:20::a34])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xKzbc-000000018s3-22Kz
+	id 1xKzbd-000000018sI-28GB
 	for opensbi@lists.infradead.org;
-	Sun, 25 Oct 2026 14:53:53 +0000
-Received: by mail-vk1-xa2e.google.com with SMTP id 71dfb90a1353d-5ec20398b05so851947e0c.1
-        for <opensbi@lists.infradead.org>; Sun, 25 Oct 2026 07:53:52 -0700 (PDT)
+	Sun, 25 Oct 2026 14:53:54 +0000
+Received: by mail-vk1-xa34.google.com with SMTP id 71dfb90a1353d-5ec20398b05so851958e0c.1
+        for <opensbi@lists.infradead.org>; Sun, 25 Oct 2026 07:53:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792940031; x=1793544831; darn=lists.infradead.org;
+        d=gmail.com; s=20251104; t=1792940032; x=1793544832; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=n1QXvRmwT8pyTn5QQai4AJZM4oxlccr2kc+IArIPBKU=;
-        b=pKj3cDxgunkIr5yrTRgQpRk8/Wbo+7tv3oEUUc/OpBQG9zsoK8oYUFjsW3Ys1bFETX
-         dcpW5tOd+8JcwKljuDgsVr79cRLhWRD69om5IzHcPyTHN/QTRo7YVGDHHZZWiMqV5zGY
-         K2XD8QmAVCgUl6LmylpCK74U/Lv/f/JTcF/9YzAEsAMCJZd7p7e49v5S0NXkd2l6x1WY
-         Va/CY6BBbtEt+PAryk31D3UvvRqWqUGuCSez/WNtoQ9eDKvI2Z7YS69SzkXakMWvdDqM
-         Med3i2f+5ztGOik3ZUfxzYyTxogE2/FUn1Pq/h+g59q4BxfgaoRyIV7CEn6IHa+MLAnh
-         TF1Q==
+        bh=9QKORYeUYf/hTJ/MGITsUPXl2onEvAHmNQAdrz1h0qI=;
+        b=jZXbBcDiGVKaGP+aWOR7KBx4SmXfCE5JFwzXEi7Uw0WOKPlsvU6HnerOCSGGAe53ia
+         do6TpFB+g6envz8P4DHnobvG1h8Kz4ibysI9ul9wlLPti6NCrMK/YQrg8DK1bi/ZgZrc
+         Jwq7GfS7Gbr3TDDln1ZXrOIXqNVJg5Q0zjcNCCGoqAkXMuVjHmwvGvk7RmXbFQ3+YzVr
+         5NYriplrIhUJJ7WimzqvcTR6ALef1wSXaYdyr0A6wuBiYsoXws1rKQBdCi/MDzIg7/1r
+         3nTJZWSYSgyKtwaGlTyf8mrxZew7zPNkpDCTdVU32ZFa4b9FkdPfHGq/TqjNSV4SeBYA
+         wJGg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792940031; x=1793544831;
+        d=1e100.net; s=20260707; t=1792940032; x=1793544832;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=n1QXvRmwT8pyTn5QQai4AJZM4oxlccr2kc+IArIPBKU=;
-        b=tQUojiYujc1oCsm66oQZ7RDAPz8jHmGTY/KFWVy1MYyBLXbJuclp8yu2px1INRZ1vK
-         hX7/YV1JGQ9kvejFBubxtkz2eUeKVlqXkkh/vH8xloUNuQJ5bzpNDVlPmNH6k/EO43qz
-         RTVkiXt35B9wo5J2z36FZmwK1hOjFx8OdZhouW+r8iO58sjso42vdcXNelJMgM9dElW7
-         cj5AXo38PKfxWGQCYEoF9rptgOsJborYnpSbADde9amZWD1Ji25JTqQpW8TgXL8lEXso
-         Y+s53jvJBy4m9kQeXIH1hce+bQTe9hdnuMGQs6mrX5v/tuo8bpELYI3ToCPdvnTKnocW
-         Oq4w==
-X-Gm-Message-State: AFq9FYJcNdjDC25mLeqyyRLU9pIkgChCqVfhowDdFqgAVQLvRH/bisrN
-	Ab3FHvezHZm/L5g3v4+VNnrmLvh/Vg07fA/UPDsucbidgVGM/jK3kY/yB5Yeyw==
-X-Gm-Gg: AYBFou1N+A8jtQr6YuPoZfXy3VU8D7REnMyFYMtIXvJ8aQr8ibWJcMh+z4o/NgRjG55
-	WenATep8qJA3rzDFZyllrm1sKd4bHUmGjofnGCk4hwsBzM1xpK2hA9qeGW2almxBeNscHQE5IOs
-	NICHVWkpQTxCjGbL5x1sU8n0Zhgio9206dPKaq0IKkEPt5nNwDAWhVdEJ43FWExz8S/8cAAd5s7
-	/6vmH0MDFKGGnetRq0k0WeMevzkl/7wZgJgS2KJYxBjnf3Jl5BxOey/StxvX2t48yg2vuHzTdnJ
-	T8339v5Csx+wA7gBgDKwcI5dPcQjSNR/pk6OceQl6amkr4sJ7MGjQeM7Tm/hg0SlPuShZ9ypuZ2
-	pVFiIPAe6cz0M1OyifcZouFvG3ujYdGHnZL7fc2BcdK0EHdAF1z1NG7QUjw+psi0GUY8x6xHR+K
-	aF5yYrfTqtTpOftIqwUjhPT9DJRAW787iZ1+/PugX1bX5kuFGIhPFz86UEQoB0Isx3EJ4gkIJlX
-	HBQJxmrGdx6EbInR5oYFk2ivqVZTqQt1G5olux1nYmCS0y8mcODb+dmbfs6xt8FdqmssRBGLGqD
-	MNjPKYu/3ekB2CN+54zKrHqwj/ibVVIwBQNfGvtQWD1D
-X-Received: by 2002:a05:6122:2886:b0:5ea:d2fa:c2e6 with SMTP id 71dfb90a1353d-5ec232dc158mr1384876e0c.14.1792940031251;
-        Sun, 25 Oct 2026 07:53:51 -0700 (PDT)
+        bh=9QKORYeUYf/hTJ/MGITsUPXl2onEvAHmNQAdrz1h0qI=;
+        b=c+6Cz/fF06ooguIAJAclbtBUgBFVMF5gGgDLzq/cXJ68CTuUXfLbnGhsdrPJ2sbUZD
+         7o+xshFxQELEPnUF6uQPKS3mRAuZiMA3FYyvoQQpb/eN6ifZL7gSUQGKzKKFWs7Qygj3
+         JP6Zhe0PdBnUyGJ2RLazeJ5nVpy9bN8tuyQqZXeG+8DshEvP5qQgw8FB4WGOKp0VQUzR
+         LOoHfGw6vR3Oq61tsF6dBZzehnQ6zbCfo4cnq8DvNvmnuxHugP0NtySES66si9Xyjfje
+         3KtOXhkf7C46yURHQzJGCizh4BqYxHbuild3Ez5NvMjMU3E+87XYlm4G3HCXDOpw21oS
+         9mZg==
+X-Gm-Message-State: AFq9FYJfawBLYhiFKjtuxUxDWVhJG3/bhxTp5eRao7Bf7MreptnChxx7
+	6D3ZjhB/lvWrSKBa0DizXx5NmICfzmluJwmwXwpcxov/LvWW6/IJPtesbcePQQ==
+X-Gm-Gg: AYBFou2c1XURsFd0e6eohMC/yLL8qcVT4frpIbjfJn0RbrNadRqLM1UgMYc54kNO6B8
+	2ikPROQ0bvGhgyu93+IhZuF4eHhMjfRTEvjPowLXBrtNON7QUpjuHm/OgkaSmoIm8uewV+vs5wm
+	LZyJ2rwFr9576FjFRgBy6KOBTY4yRIFuKa7V5+dGghdM8rA+KVhxODTOPv4Zy90m55UQ7tPS8GV
+	kdqzg5oE6Av49/YNBTQSKSW+LbOv6+1Fr8O0+oN+1TN6xYUCTp/PQCuwPGY5wSx1nXe0O3jlN/m
+	btdeDjmxQEtLM1HYRPm5W+M7vCHpXKSNCptcdaO+q1soZq6ecJ2EE4MTsGStqXJAyxlk5s2dMOV
+	9iTt4IV6zQheUAUbVULYEopet3ofoINl5iZOuAM0ALr8iR1j45/C0Mk73h5lQEcz8gvX/n59bwn
+	hykAcg51b4Lgpzyuf3BSTpvOH1bRwMxiAVDFApdj6tpnRz76C0hHBDkCSmxmL7klOQlNUZT2Wg0
+	5cq+33Dz5ZCKyEIR1m8atb/MuI/edU043LVMyihMo/sY2YHkbRdM3vwelozL5Pj0ddfO8MOrrNW
+	BERVLaglsDoXtkmfmznj/Dx9GtBv+sdK5guDcq4DwQe39A==
+X-Received: by 2002:a05:6122:d1a:b0:5ea:c37b:450 with SMTP id 71dfb90a1353d-5ec23319ce7mr1443558e0c.20.1792940032538;
+        Sun, 25 Oct 2026 07:53:52 -0700 (PDT)
 Received: from localhost.localdomain ([186.151.100.62])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ec234add5dsm5501237e0c.16.2026.10.25.07.53.50
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ec234add5dsm5501237e0c.16.2026.10.25.07.53.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 25 Oct 2026 07:53:50 -0700 (PDT)
+        Sun, 25 Oct 2026 07:53:52 -0700 (PDT)
 From: Sebastian Alba Vives <sebasjosue84@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup.patel@oss.qualcomm.com,
 	pengpeng@iscas.ac.cn,
 	hppiscas@163.com,
-	Sebastian Alba Vives <sebasjosue84@gmail.com>
-Subject: [PATCH v2 1/2] lib: sbi_pmu: do not ignore pmu_ctr_start_hw() error in cfg_match
-Date: Sun, 25 Oct 2026 08:53:37 -0600
-Message-ID: <20261025145338.2569358-2-sebasjosue84@gmail.com>
+	Sebastian Alba Vives <sebasjosue84@gmail.com>,
+	Anup Patel <anup@brainfault.org>
+Subject: [PATCH v2 2/2] lib: sbi_pmu: reject out-of-bounds counter index in pmu_ctr_write_hw()
+Date: Sun, 25 Oct 2026 08:53:38 -0600
+Message-ID: <20261025145338.2569358-3-sebasjosue84@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261025145338.2569358-1-sebasjosue84@gmail.com>
 References: <20261025145338.2569358-1-sebasjosue84@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261025_075352_531079_8253705F 
-X-CRM114-Status: GOOD (  12.48  )
+X-CRM114-CacheID: sfid-20261025_075353_568751_A08D7B60 
+X-CRM114-Status: GOOD (  12.79  )
 X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -110,55 +111,72 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-sbi_pmu_ctr_cfg_match() calls pmu_ctr_start_hw() for the AUTO_START
-flag and drops the result. pmu_ctr_start_hw() carries its own index
-guard
+pmu_ctr_write_hw() writes CSR_MCYCLE + cidx with no check on cidx,
+while its sibling pmu_ctr_start_hw() guards the same index space:
 
 	if (cidx >= num_hw_ctrs || cidx == 1)
 		return SBI_EINVAL;
 
-and can also return SBI_EALREADY_STARTED when the counter is already
-running. Both are reported to the caller as a successful configure.
+A cidx at or above num_hw_ctrs addresses an mhpmcounter the platform
+need not implement, and cidx == 1 addresses 0xb01, which is not
+assigned. Either one traps in M-mode instead of returning an error.
 
-Neither is benign. A rejected index means nothing was configured, and
-an already running counter may have been configured for a different
-event previously, so the supervisor must not be told its configure
-succeeded.
+Give the function the same guard and a return value. The guard is
+copied from pmu_ctr_start_hw() rather than limited to the upper
+bound, so that the two functions accept exactly the same index space.
 
-This is also the only one of the three start paths in the file that
-discards the error. sbi_pmu_ctr_start() propagates it:
-
-	ret = pmu_ctr_start_hw(cidx, ival, bUpdate);
-	if (ret)
-		return ret;
-
-and the firmware branch directly below this call site propagates the
-error from pmu_dev->fw_counter_start() as well.
+Only the call site in sbi_pmu_ctr_cfg_match() propagates the error.
+The two call sites inside pmu_ctr_start_hw() run after the identical
+guard in that function, so they cannot fail and are left unchanged.
 
 Fixes: 13d40f21d588 ("lib: sbi: Add PMU support")
 Signed-off-by: Sebastian Alba Vives <sebasjosue84@gmail.com>
+Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_pmu.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_pmu.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/lib/sbi/sbi_pmu.c b/lib/sbi/sbi_pmu.c
-index bf43ad89..c68a675a 100644
+index c68a675a..96438599 100644
 --- a/lib/sbi/sbi_pmu.c
 +++ b/lib/sbi/sbi_pmu.c
-@@ -982,8 +982,11 @@ skip_match:
+@@ -389,8 +389,12 @@ static int pmu_ctr_enable_irq_hw(int ctr_idx)
+ 	return 0;
+ }
+ 
+-static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
++static int pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
+ {
++	/* Make sure the counter index lies within the range and is not TM bit */
++	if (cidx >= num_hw_ctrs || cidx == 1)
++		return SBI_EINVAL;
++
+ #if __riscv_xlen == 32
+ 	csr_write_num(CSR_MCYCLE + cidx, 0);
+ 	csr_write_num(CSR_MCYCLEH + cidx, ival >> BITS_PER_LONG);
+@@ -398,6 +402,8 @@ static void pmu_ctr_write_hw(uint32_t cidx, uint64_t ival)
+ #else
+ 	csr_write_num(CSR_MCYCLE + cidx, ival);
+ #endif
++
++	return 0;
+ }
+ 
+ static int pmu_ctr_start_hw(uint32_t cidx, uint64_t ival, bool ival_update)
+@@ -980,8 +986,11 @@ skip_match:
+ 	    event_type == SBI_PMU_EVENT_TYPE_HW_CACHE ||
+ 	    event_type == SBI_PMU_EVENT_TYPE_HW_RAW ||
  	    event_type == SBI_PMU_EVENT_TYPE_HW_RAW_V2) {
- 		if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
- 			pmu_ctr_write_hw(ctr_idx, 0);
--		if (flags & SBI_PMU_CFG_FLAG_AUTO_START)
--			pmu_ctr_start_hw(ctr_idx, 0, false);
-+		if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
-+			ret = pmu_ctr_start_hw(ctr_idx, 0, false);
+-		if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
+-			pmu_ctr_write_hw(ctr_idx, 0);
++		if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE) {
++			ret = pmu_ctr_write_hw(ctr_idx, 0);
 +			if (ret)
 +				return ret;
 +		}
- 	} else if (event_type == SBI_PMU_EVENT_TYPE_FW) {
- 		if (flags & SBI_PMU_CFG_FLAG_CLEAR_VALUE)
- 			phs->fw_counters_data[ctr_idx - num_hw_ctrs] = 0;
+ 		if (flags & SBI_PMU_CFG_FLAG_AUTO_START) {
+ 			ret = pmu_ctr_start_hw(ctr_idx, 0, false);
+ 			if (ret)
 -- 
 2.43.0
 
