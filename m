@@ -2,69 +2,85 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A735606A31B
-	for <opensbi@archiver.kernel.org>; Mon, 26 Oct 2026 06:10:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B111E606A31A
+	for <opensbi@archiver.kernel.org>; Mon, 26 Oct 2026 06:59:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=lV+cZY9k
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=15J6SqQA;
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.a=rsa-sha256 header.s=mxsw2412 header.b=v4jbisVk
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	Content-Transfer-Encoding:Content-Type:Reply-To:List-Subscribe:List-Help:
+	List-Post:List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:
+	In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Content-ID:Content-Description
+	:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=3EYOG+VxsWB05Q/KYpbVzlkuFke/5ZTRNZx9E6QL0gM=; b=lV+cZY9kQUkri0n16XJH3SZDHn
-	f8TmNhp2WSXRzJSZzI/IsN2jAWlEzyzAyncOboE4R5e7KkyPO8Y7UdgKa8rvlhqJk54E/z7t3kmoV
-	wS0mmKqbz4j2tR542t5a5s//vrxGxqiva0CFtO3lG5Spa+1dp4/bLV+r6iBMc4JyV0f/Gcg5HWc8B
-	b2+fHUkYHkZ/k2gSPBIe2KRLohVAC0UawPeUBRJks4nrEljVRXfERTG9p+2APJO3W9dE/EU2fTcQJ
-	c9o1p8gypot7/Go86C1X3KluLdda4CQhEE3CaEMu4Mfey6CuopTb7w3SZwhFRg17WFwFVAXSVqWlT
-	GlHqMw7g==;
+	bh=4AagyFm76Bu7JMLzv/Kd/oeyEzwptReUCTxWuJbDezs=; b=15J6SqQAzhQ5uC8SoEuRAzh5By
+	nWIcAwr+O7HO36kgNJfkJ0R9QwT62YloLobMZ/ut+2secJPFpvx2IArCGj17aqHJzHTmMu5x4k98X
+	6J+0kB0Zh1GPbc00K+EY753OERTuVfVvsFCvK1KqcGmgdOdxU8LTMo1CPjViu4WKqbmmWJ5vYzHv8
+	CAn3sFXpBuYBMSdOlBXOKiSIqPYjfat4Nc1nCnZXZh4DdsNaFeHOoV4Hcj8FzfwUBnlEeZ1cumL8D
+	aFrN44L0kHnO+lJFp7DDNij5rPlL/iKfNbqhKzMd+6J3PWUeX0aJOTVVds/X4YhjN8t/Ms3rFd/It
+	N4ERjLCw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLDuZ-00000001mQD-3seA;
-	Mon, 26 Oct 2026 06:10:23 +0000
-Received: from smtp21.cstnet.cn ([159.226.251.21] helo=cstnet.cn)
+	id 1xLEfj-00000001oj6-2GJ4;
+	Mon, 26 Oct 2026 06:59:07 +0000
+Received: from smtpbguseast1.qq.com ([54.204.34.129])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLDuV-00000001mPq-46Dq
+	id 1xLEff-00000001oiA-2ZbZ
 	for opensbi@lists.infradead.org;
-	Mon, 26 Oct 2026 06:10:22 +0000
-Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-01 (Coremail) with SMTP id qwCowAAX6u3G7t5qpyC8Cw--.46901S2;
-	Mon, 26 Oct 2026 14:10:14 +0800 (CST)
-From: liutong <liutong@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	liutong <liutong@iscas.ac.cn>
-Subject: Re: [PATCH v3 4/4] lib: sbi_mpxy: fix integer overflow in attribute range endpoint
-Date: Mon, 26 Oct 2026 06:10:04 +0000
-Message-Id: <20261026061004.2955544-1-liutong@iscas.ac.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <CAAhSdy15MDJB09AUCuMuG1xtPxAyJUHtM5jDcquZ3t_2PvGMOA@mail.gmail.com>
-References: <20260910052629.3359493-1-liutong@iscas.ac.cn> <CAAhSdy15MDJB09AUCuMuG1xtPxAyJUHtM5jDcquZ3t_2PvGMOA@mail.gmail.com>
+	Mon, 26 Oct 2026 06:59:06 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
+	s=mxsw2412; t=1792997931;
+	bh=4MtZqlZQ7GGmKCJqkIuJ888K5qcalVyxpG9+F4T2Yq4=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version;
+	b=v4jbisVkMNW6J8HBkX67RtcyFjDWGS0mZgWw9IOy3ygjf9rTMApkrL102/Euj1rZG
+	 IEBFtid3mdeawZ3GqsxdWznoZ9GdRZ4IwLWCH0yX56XLVzE8lDCinNkwIptDI7ossK
+	 +5RTuLRiXkQD9ZOaLCr6EfVTzGmVoeJ/QiQjNgKc=
+X-QQ-mid: esmtpgz10t1792997930t9f3ea943
+X-QQ-Originating-IP: 0pboDGgqolt9ELKaMdv6Oyg484SswQ/xCyrR+XlgoM4=
+Received: from LT-WUHUAMAO.dc.com ( [101.70.125.129])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Mon, 26 Oct 2026 14:58:47 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 2340601674227610625
+From: Huamao Wu <huamao.wu@linux.spacemit.com>
+To: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+Cc: opensbi@lists.infradead.org, Anup Patel <anup.patel@oss.qualcomm.com>,
+ Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>,
+ Huamao Wu <huamao.wu@spacemit.com>, lufei.zheng@spacemit.com
+Subject: Re: [RFC PATCH v5 0/4] Add Smsdid and Smmpt supervisor domain protection
+Date: Mon, 26 Oct 2026 14:58:47 +0800
+Message-ID: <8A0577AD97FB8F43+179299792743.101634.17380907132485094149@linux.spacemit.com>
+In-Reply-To: <CAFR3w35wL+7hCQ_CCkC+M01G6bAZM_iMqFUBs6jti+Xk0ATW5g@mail.gmail.com>
+References: <20260918030955.3902993-1-rahul.pathak@oss.qualcomm.com>
+ <CAFR3w35wL+7hCQ_CCkC+M01G6bAZM_iMqFUBs6jti+Xk0ATW5g@mail.gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID: qwCowAAX6u3G7t5qpyC8Cw--.46901S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrtF17XFWrWryxKw4fGr17ZFb_yoWktFg_ur
-	4Fgwn8Ka1UKFWqqasxtw1YkFs5Grs2yas8XwnYqF17ZryqyFy0qa1Iy3s5ArnrJasFy3Z5
-	Gwn3WrWxuwnIyjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbwxFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s
-	1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0
-	cI8IcVAFwI0_Jw0_WrylYx0Ex4A2jsIE14v26F4UJVW0owAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAKI48J
-	MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwV
-	AFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUXVWUAwCIc40Y0x0EwIxGrwCI42IY6xIIjxv2
-	0xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4
-	v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AK
-	xVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvjfUFNVyUUUUU
-X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz5b-1
+X-QQ-XMAILINFO: NBUSIVIw0bNzwMy8qBh4PLyBlvAT4wWdtD+oBLQk+UWegEaYP7zGh+DZ
+	DQRtu0dWHeUVX2s4zNJujwkiPoHPxdBRp+ATiVON384hcMYPlhalmhOG0e7yhkVF4jD0ox1
+	3dLIQ8VIBBKGtZNpzTHzYSIFMpPmAKgcD/h0OzIXprgn05pHJwmMbkiqj5rlWUUrh/xLfJ+
+	FJIhR1n8r8Hg+34p9BBenxHzCEIFUT7EewNOEflJV9oNGt36j2EmUn5fNaiAf/PXJYlDJhm
+	DP6ydyYonfayyLfs3GOtC6e9JZ5NnC3ijE6+JidkHMjY7H3U4F6pAt98z3q1UyNKUaTAAZT
+	dhKzHgQg0NmsS09GBRD0Kp25z9qNRcNIIbaDF/l2nDvMOv/7W+W8vEhxvYR8eTVV77/Za8x
+	hd4j6/0VKVeQejMAGbC+VCNavQuwurILYnnNMnqNbSxy+8TLiHOXeATuXjL9zOw2OxKtNBe
+	ZobhnK7Ckfyi58+ltgW4++osi9AJmz9TVOra3Vwk/AGoBpgzmI6ykPSEukylhZYMupRgGet
+	VfjJjcPTpAIchkO3KFuAdDACn2LT2O+t+epsKS2YijniBOzRxdBc+i4PxxHc/NlLOzgNxyV
+	OL4ogzcDAhK67/A1FaewXT6ZZZqUhIhER3DqZVCmzdoy8WthdKhV8Gf/rUgaRAu8ivVBFcu
+	5i5GzySwCVuPhURUDYi5w2EEB4uxdvxLvabkPJb49xSZPVEEnOzZOyvMDVDdqg/nLa3Og3v
+	kiTB8WT6hQQur/3Ntb/BXBbDUAlJy0YU1msqiOFc6uphRBWTI6FtXXhpkLrNAc1VubnkYk4
+	tDMupSbidTUaYHjc1YCqNQvL6O+KcPc+KYLLYfnE1bTl27PdKvFCpHbjqVhshsuSFneyF5X
+	kjzQ4Vq6ymVN/HS0ndMssV3T1jPFblqYcQcZX9m06mMAiGZPNKLsv+j44wyWNayvD74//pe
+	XoK97+6GJYaLTNVm70lRy99PMbNGt0aeOZfFuG5Sxy1SqKXIj6mb2gRa/QCqTWMhgvQpLLp
+	d6lN4f3NvDzdQW0G5onMQ2aNRebMrUg1J2Id18VjVjvyROrldnu4z/uRNLhQ0=
+X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+X-QQ-RECHKSPAM: 0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261025_231020_387474_EBFC04BA 
-X-CRM114-Status: UNSURE (   7.05  )
-X-CRM114-Notice: Please train this message.
-X-Spam-Score: -4.2 (----)
+X-CRM114-CacheID: sfid-20261025_235904_494719_425D6852 
+X-CRM114-Status: GOOD (  40.40  )
+X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -74,52 +90,165 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
+Reply-To: Huamao Wu <huamao.wu@linux.spacemit.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Hi Anup,
+Hi Rahul,
 
-Thanks for applying these. Before this one goes out, please hold it -
-as sent it does not actually fix the overflow.
+Thanks, agreed on making the SDID shortage diagnosable and on moving SDID
+into the DT node. Comments inline.
 
-Widening end_id is not enough. base_attr_id and attr_count are both
-u32, so
+On Sun, Oct 25, 2026 at 10:36 AM Rahul Pathak <rahul.pathak@oss.qualcomm.com> wrote:
 
-	end_id = base_attr_id + attr_count - 1;
+> Hi,
+>
+> Thanks for the feedback, I have comments inline
+>
+> On Mon, Oct 19, 2026 at 11:19 AM Huamao Wu <huamao.wu@linux.spacemit.com> wrote:
+> >
+> > Hi Rahul,
+> >
+> > One design point on the SDID assignment.
+> >
+> > mpt_state_setup() currently allocates one SDID per SBI domain, at domain
+> > registration time, taking the first free bit:
+> >
+> >     for (sdid = 0; sdid < ctrl->max_domains; sdid++)
+> >             if (bitmap_test(ctrl->sdid_bitmap, sdid))
+> >                     break;
+> >     if (sdid >= ctrl->max_domains)
+> >             return SBI_ENOSPC;
+> >
+> > SDIDLEN is implementation defined and may be as small as 1, i.e. two SDIDs in
+> > total. OpenSBI domains are also used for purposes unrelated to MPT (per-hart
+> > PMP partitioning, per-domain MPXY channels, IPI grouping), so a platform can
+> > easily have more domains than SDIDs while only one or two of them actually
+> > need a separate MPT. On such hardware the current binding turns a
+> > configuration choice into a boot failure: SBI_ENOSPC propagates from
+> > mpt_state_setup() to sbi_domain_finalize() and sbi_init() ends up calling
+> > sbi_hart_hang(). Note that sbi_mpt_init() already treats missing Smmpt
+> > hardware as non-fatal (returns SBI_ENODEV and sbi_hart_init() ignores it), so
+> > "not enough SDIDs" is handled more strictly than "no Smmpt at all".
+>
+> A sensible hardware designed with SMMPT will need to make sure that
+> there are sufficient SDIDLEN to support the use cases for which that
+> hardware is meant for. It is exactly like having a system with 0 PMP entries
+> though its allowed but the RISC-V ISA.
+>
+> The current design keeps 1:1 mapping between the SBI domain and the MPT domain.
+> Which means each SBI domain will have a MPT domain along with a SDID assigned.
+> From a memory-isolation standpoint, a SBI domain is the software construct that
+> SMMPT enforces in hardware.
 
-is evaluated in 32-bit arithmetic and wraps there; the already-wrapped
-result is then widened on assignment. With base_attr_id = 0xffffffff
-and attr_count = 2 the expression still yields 0, and the msgproto
-range check still passes.
+The tree is a function of the memregions alone. mpt_state_finalize() builds
+it from the domain's memregions plus "index == 0" for the firmware deny, and
+never reads the assigned HARTs, so two domains declared with one memory view
+map the same ranges at the same XWR. They remain two SBI domains by every
+other measure - separate next-addr, next-arg1, PMP entries, MPXY channels -
+and one MPT describes both of them exactly. Sharing the SDID between them is
+not a weaker isolation model; it is the same enforcement with one tree.
+>
+> This keeps the design and isolation model simple and avoids all sorts
+> of problems
+> which you have highlighted.
+>
+> The current error handling is the result of design assumptions plus
+> what spec states-
+>
+> - If the SMMPT + SMSDID both are not present then the system can
+> function without it
+> and SBI domain backed by PMP/ePMP will work.
+>
+> - If the SMMPT + SMSDID are present then any error in the
+> initialization which also
+> includes not having sufficient SDIDs should result in a fatal error. Otherwise
+> SBI domain backed by (PMP/ePMP + MPT) will be the enforcer.
+>
+> The cost of sharing SDID is huge which involves a system wide mfence resulting
+> in performance issues. If two domains share an SDID but have different
+> MPT tables
+> then the SDID tagged MPT/TLB caching forces a mfence of that SDID on every
+> domain switch between them which discards the optimization the SDID tag exists
+> for and making the switch slower.
 
-	u64 end_id = base + cnt - 1       -> 0x0
-	u64 end_id = (u64)base + cnt - 1  -> 0x100000000
+If two domains do share an SDID, neither condition of that paragraph is met
+when their memory view is identical: the tree never differs, so a switch
+rewrites mmpt with the same encoding and there is no new MPT to make
+visible. The fence is paid either way - sbi_mpt_hart_activate() writes mmpt
+and fences the SDID on every domain switch - so sharing adds no fence that
+1:1 does not already have. Two SDIDs on one tree would not help either: it
+saves the table but not the SDID, which is the scarce resource, and the code
+cannot express it - mpt_state_finalize() allocates a root unconditionally
+per domain, and sbi_mpt_share_region() copies region entries into the second
+tree rather than pointing the second SDID at the first.
+>
+> I will change the current handling of caase where SDIDs are not sufficient
+> and make it diagnosable instead of making is fatal silently rather than
+> make SDID assignment opt-in. I will also make SDID part of the DT nodes
+> for SBI domains.
 
-The fix is a cast at both sites, lines 500 and 653:
+Then the binding has to say what an absent sdid means, since that decides
+whether "more domains than SDIDs" is describable at all:
 
-	-	end_id = base_attr_id + attr_count - 1;
-	+	end_id = (u64)base_attr_id + attr_count - 1;
+  a) derived from the domain index, so 1:1 holds for every DT and a
+     too-small SDIDLEN stays an intended fatal error;
+  b) the domain owns no MPT and relies on PMP/ePMP.
 
-I checked that the wider value cannot escape into an index or a loop
-bound. In write_attrs() the two loops over attr_id are only reached
-after end_id >= SBI_MPXY_ATTR_STD_ATTR_MAX_IDX has been rejected, and
-the msgproto branch passes base_attr_id and attr_count to the driver
-rather than end_id. read_attrs() has no loop over it.
-
-Happy to send this as a follow-up patch, or you can fold it in with the
-2/4 comments, whichever suits you. Sorry for not catching it before
-sending.
+Under (a) the property only picks a number and that platform stays
+undescribable; under (b) it becomes describable, while a DT that sets sdid
+for every domain behaves exactly as today. Either way please document the
+property as optional. And where two domains may share an sdid, require their
+memregion sets to be equal, EINVAL otherwise - sanitize_domain() has already
+sorted each set and dropped covered regions, so it is a count and array
+compare. There is no sdid property today, so the check has to arrive with the
+property, not after it.
+>
+> >
+> > Proposal: make the SDID assignment opt-in per domain instead of implicit for
+> > every domain.
+> >
+> >  - Add an optional u32 property "sdid" to the opensbi,domain,instance node.
+> >    When absent, the domain runs under SDID 0, i.e. under the root domain's
+> >    MPT, and relies on PMP for its own isolation.
+> >  - The MPT of SDID N is built from the memregions of the domain that owns N.
+> >    SDID 0 is always owned by the root domain and its tree is built once.
+> >    Domains aliasing to an already-owned SDID do not get a tree of their own.
+> >  - An explicit "sdid" must be < 2^SDIDLEN and unique across domains.
+> >  - A domain aliasing to SDID N must still program mmpt explicitly on
+> >    activation. Right now sbi_mpt_hart_activate_for_domain() returns 0 when
+> >    !sd->valid and sbi_mpt_hart_deactivate() is empty, so a hart switched away
+> >    from an MPT-backed domain keeps the previous SDID in mmpt and would run
+> >    under the previous domain's MPT. Today every domain has a valid tree so
+> >    this is not reachable, but with opt-in assignment it becomes the normal
+> >    path.
+> >  - When SDIDLEN is smaller than the number of explicitly requested SDIDs,
+> >    report it and continue with the domains that fit rather than hanging.
+> >
+> > This keeps the common case (PMP-only platform, Smmpt capable hart) working
+> > without any MPT memory, and lets a platform with SDIDLEN=1 run root plus one
+> > protected domain.
+> >
+> > The assumption behind defaulting to SDID 0 is that PMP/ePMP remains the
+> > primary memory protection for domains without their own SDID; Smmpt is
+> > layered on top (sbi_hart_protection_configure() applies the TYPE_MEMORY
+> > protection and the TYPE_ID protections independently, so the effective
+> > permission of such a domain is its PMP entry set intersected with the SDID 0
+> > MPT). If the intent is for Smmpt to replace PMP on some platforms, then
+> > sharing SDID 0 is not safe and this proposal does not apply.
+> >
+> > Regards,
+> > Huamao Wu
 
 Regards,
-liutong
-
+Huamao Wu
 
 -- 
 opensbi mailing list
