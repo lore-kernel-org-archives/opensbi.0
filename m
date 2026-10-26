@@ -2,112 +2,101 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F82606A31A
-	for <opensbi@archiver.kernel.org>; Mon, 26 Oct 2026 08:17:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 550F6606A31D
+	for <opensbi@archiver.kernel.org>; Mon, 26 Oct 2026 16:14:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=pq+vyy1e;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=ep3rr8El
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=XGGoWqtw;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=mz0uPQQJ
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=2amWoMAt5Z1pquhik8cgLWMr/Gj1PHhmGSOmQR6QMZc=; b=pq+vyy1eHjiPwtv89QAz7v3vss
-	2hfhY/JbtGSBbbDPWXROvXfjQQ13DcGdAfcxDPlKQxtXfW82bQlypI1Vz9V6ngXkNIQ+sKxD46PiC
-	Pn1cEcYVypYnQF47U4i1zn3QZGUhf1UjMpvZbxAO/NdbU2If2l5vV1Hla0bpdjoTrXms2ppHrvD7X
-	05rw7ro6n055jWxmMFuIw0hh2BIzyzzqtElRygsRqG705osGLQrwPJe7qD6nzoGuwMmyeGHqAzK1j
-	H8fIGzaVsQgnmyNlpDxEm6CiNo3/ydxX9IzZdHdY0GgaF3srsZS8zsO6q/PyGHG40w3cpFg6XPQhK
-	HEkqVorA==;
+	bh=gz3VsJ4SdmDdaGhDXNWP/wE88/S1FYl6DXNM0P5Jtuk=; b=XGGoWqtw5AUOe3VklBDRSyYEpH
+	kaLT6nPKNsaKKChOVe/RYz+FQL0IEA9McAd2LfTVce8uc7RnIMrsQoHGBhE58X7OB84bSrT+opQrK
+	6D4hO2auXPcyhrp7gEvSB4Yy1qYEF9JOFsn/20r0U+JUXj9WkQZWeAjA+YXmje2dx3IDBiV+HAV/s
+	igN1XVqbn6CtPKd7lNug9HsmiWVP0QuzlwfU2/eI9RlHjyuJLTEZJ401Ar79BSPoHWk6t5//6Td/D
+	qtE1+O28IUkm/5vXWI+ghUbU89Os+Bb9wyORgEUmZwfPkLYOL92ybt02wxXhfqZ90ALthGXPEbVai
+	/ituPP4g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLFtH-00000001vzP-2vX1;
-	Mon, 26 Oct 2026 08:17:11 +0000
-Received: from mail-wm1-x329.google.com ([2a00:1450:4864:20::329])
+	id 1xLNLb-00000002r1w-1nLC;
+	Mon, 26 Oct 2026 16:14:55 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLFsw-00000001vyo-1p62
+	id 1xLNLY-00000002r0j-3MYn
 	for opensbi@lists.infradead.org;
-	Mon, 26 Oct 2026 08:17:10 +0000
-Received: by mail-wm1-x329.google.com with SMTP id 5b1f17b1804b1-4a20bde60a0so21882065e9.3
-        for <opensbi@lists.infradead.org>; Mon, 26 Oct 2026 01:16:49 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1793002608; cv=none;
-        d=google.com; s=arc-20260327;
-        b=R9Zm9PiY6eiLCk8Xwyc4gFJVuMtzNZdfKOA8vLoKadW/Mbu5FWEbkZ9wTjDtC3riGp
-         eK77dR6CGdu2whC5RGBRGlCoJae9w/WPQqvj8ek+P4JJDd74vE3Y2B/Qs0v7XtmIbklY
-         9GTxTjGUZPSS4AMeleJCpEiApHFsBmodLdw84PZe9KUkZhBv9BD9CxKNHpMfWWpFYbIA
-         AhTMdB+T7PUlFJG5mBTViVtleV4fS/ENidVHl5SMmVag2nQ/EyC392e7b/SBg5l35heY
-         /8qt6SDQAdDmzYmdotpFnU7gNm/v8Ao7dhb/yikK6snJVeVdHFl1gZQSB/xf2SrR4PuA
-         LXSw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=ImBHwn+KxvVMshK6bbuNaNXAtu0oUR6JIFvjb3u/ml8=;
-        fh=ptzNB7g9a30gS3iMdXy8hchchj5+04tEpHu43QD535Q=;
-        b=K/GlmHy2uobodo1Dc5zOkRAbjW3nSwW0R1JJLRQ6IMzs7Rzd7hBpEWAaXVAbSfiLCw
-         Q+hHjZ9rNY3MT48kcuvU7nrOiUXDX5K5EXrMqT6HijDzOI3upwlmpGRGSjEbcJV+mWfW
-         99wrkVyM5Gx7g5gDb25d6hDrOHRxEbML481M4zqzkvKyaErPEd/FTAd+RbYA6yeP3hQa
-         7Wg9H8gaeiXHTKyXI6NljcsSBaMU2o+RKBkebltqQVlMVRZrFmMba/Nf9REmfw5GFflA
-         B9k2j00ye6bdRd1f5xVJU7pgdjsruWjo6E1cNvsVTzfVjFQg3szbd3u6lvhYiAZ1+YZw
-         4jPg==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault.org; s=google; t=1793002608; x=1793607408; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=ImBHwn+KxvVMshK6bbuNaNXAtu0oUR6JIFvjb3u/ml8=;
-        b=ep3rr8EliFJyAOT8e5MlP6veB1Ocnxn2PFNsAIJE1mgI7VL5ORUt/HQ3iwVPVQsUag
-         Vu65d5T9cdR4RURPkbbOd65loVigetD3wTCNIWWkwEETgGPyLnzRQvPPUwHdIOisalll
-         X3nmrwMrG1MDJfSs3IbRFnPbmiG4nkd516BnhP3Ihq/VtdBqkKsXysmt3KA3dGGP+a6b
-         NABcIwP8/jb6CvLmSJh0xbnn3yff1vJB43MVUCk7VWpKsqPgGrbIHxPq7Sp2rtoAJu9N
-         za6j9mr+1c1lqaB7BRfPCHaNUih1tLFhOZ1a/jtGbF+Io7/unk1lIHgmZHiwMYCYHttV
-         qe+Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793002608; x=1793607408;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ImBHwn+KxvVMshK6bbuNaNXAtu0oUR6JIFvjb3u/ml8=;
-        b=yGQa8ufgbUmTCcLZzEQ1Su2Aidda6gJ7nCGiSVCFK+hpuOm8oGdQtujwKB9meoBAgN
-         EM80x/LGtF1722aTl2w+sK75PbLooWGAWhwFS3RJve7OzJAal4rH7CHBc9x2uzeUoB1A
-         k5Zn/jXymp/3cQ7V5VP3n9cs+NkTJFKxWK283OPLPCozc8wIwk1lws1KvekNJIMvxcl+
-         /hw9TQ5qGiun6eiBgHyXliUcRk/EIY5XhaHK4I1yxyf0bnloNc0xma576xbC+8ewqZzO
-         bwWJJA9dz/SN6FNS40MZeLroti722X6J1jvTrlm01P2hvvjkUwYQ8GVyoClbDYTihKt1
-         zRzQ==
-X-Gm-Message-State: AFq9FYLrt1rvzeRsQwGFIpSIDFmJc5Ntr5trh8fheLS5Nn/pzdDXmz1x
-	rQ5il6vBGB62LlDdSNj5SciBvfaoaxiHTE6Y61vFXhQcU0Y2Zf8p4QoSjEktcR1SNU2Yfjvyxvn
-	B5lYFX3qfNXkQ3WZJJ7Q3hMIS1wXWgJ5X/BZUXMuENCBUY5djVm0vfRw=
-X-Gm-Gg: AYBFou0t7kDjNotta/ChdEYguAPVTDG+q3+rcRsxh1fBSqFw1r9eHREe/9dE/1oJKas
-	Gx3BJz83cXkN3jNdzN378oPGrSh1m+XxuWhkuoviimJxcP6/EZYkLVH+ShEeh7suKRbZPbv41yj
-	iFb//b1UMScGtLUEmzb/0yZi7lIg5TmLPVC0GSR7rbfVaDpqBeNi4QTjaz7Zgd4VyG5JE2gtntH
-	edAR3d0bIV0sAiMTNT9QYwkmn77/A2PKosGgRa6Y5CjTz4JP33UCCzPy4ZA59tzyp3GVJpnlQ6v
-	bYSxKy4WwKchzBsrEbvvvO+1vQIWjtGWIrdgCNHN1+CLgVKt3dSQfK3zzm8OmbfU1oEGrsaqNUY
-	KE59kgLsj/6nDxOaZOMtDZ6oDELTOIhwM7ItQ4A3LVMmN2zn8XdzfVWfMF7pCoENVpIRWkKmo2G
-	EjD3Eyt/Ljy0MAROYnsNaAbnozx+ny2UEwpnHWnxikwWHVEXNJcBON0c0BKnmmO8i6cvrExyZeA
-	TtrTA==
-X-Received: by 2002:a05:600c:8183:b0:4a1:d893:263e with SMTP id
- 5b1f17b1804b1-4a35acaa170mr91203225e9.28.1793002607546; Mon, 26 Oct 2026
- 01:16:47 -0700 (PDT)
+	Mon, 26 Oct 2026 16:14:54 +0000
+Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69QEvg5A2544128;
+	Mon, 26 Oct 2026 16:14:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=N35KfDRzewb
+	a7JTFkDJnuSGD+XJ/ZFBZXqIltWYaoQc=; b=mz0uPQQJHY+9x7dSs7hGEkNUCC0
+	QDL0vVxAv3owfjpGVzpl+nfRKl4mDOcwW9dHuEYXdkPo/8xdYwHzbpV6bq78YKbz
+	2Qnwlqa1gtEw690Na//VEgfKEWskMTqG2xxPUw4JxG0azOmEtBJNaxS3bIUABg+L
+	nCnoTIEkW6DbuST9v5Wp9qbLmdLwx3plqqxScNLp3jWBoJD6xxrxVEAGPSCbfvAT
+	Ayu8Po2Z0Q/aPO2FMnGkjvMoYWRHXaKXs/KWtSHFYNh5hOec5WI+Q6WLG6qTphCz
+	ndLxwMOAdUH2//DrOkO0o3Y9IcJYwGFWXGA2RDhrA46BuVftymJu5/yLH6Q==
+Received: from nalasppmta04.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hj8smrd48-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 26 Oct 2026 16:14:51 +0000 (GMT)
+Received: from pps.filterd (nalasppmta04.qualcomm.com [127.0.0.1])
+	by NALASPPMTA04.qualcomm.com (8.18.1.11/8.18.1.11) with ESMTP id 69QGEo4C3768495;
+	Mon, 26 Oct 2026 16:14:50 GMT
+Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
+	by NALASPPMTA04.qualcomm.com (PPS) with ESMTPS id 69QGEnF73768480
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 26 Oct 2026 16:14:49 +0000 (GMT)
+Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
+	id CBAF5229B3; Mon, 26 Oct 2026 09:14:49 -0700 (PDT)
+From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
+To: opensbi@lists.infradead.org, Anup Patel <anup@brainfault.org>
+Cc: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+Subject: [PATCH v6 1/3] sbi_utils: mailbox: add RPMI REQUEST_FORWARD service group definitions
+Date: Mon, 26 Oct 2026 09:14:46 -0700
+Message-ID: <20261026161448.938375-2-pawandeep.oza@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261026161448.938375-1-pawandeep.oza@oss.qualcomm.com>
+References: <20261026161448.938375-1-pawandeep.oza@oss.qualcomm.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-References: <20260910052629.3359493-1-liutong@iscas.ac.cn> <CAAhSdy15MDJB09AUCuMuG1xtPxAyJUHtM5jDcquZ3t_2PvGMOA@mail.gmail.com>
- <20261026061004.2955544-1-liutong@iscas.ac.cn>
-In-Reply-To: <20261026061004.2955544-1-liutong@iscas.ac.cn>
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 26 Oct 2026 13:46:35 +0530
-X-Gm-Features: AclHuK_Qgdg4EwnmQK4q56NMJ9yE0szl2Mx7mbj_jcFFrsbC2nCmcYMMo3o2xGU
-Message-ID: <CAAhSdy3+Mj7mOQW3uYLFcDjJP6Ew0B8o+rX0NCZZoBXjcr-gkw@mail.gmail.com>
-Subject: Re: [PATCH v3 4/4] lib: sbi_mpxy: fix integer overflow in attribute
- range endpoint
-To: liutong <liutong@iscas.ac.cn>
-Cc: opensbi@lists.infradead.org
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-QCInternal: smtphost
+X-QCInternal: smtphost
+X-Proofpoint-ORIG-GUID: u9LfIoSUhR6CxHOGLCnPx6chvThiaLjg
+X-Authority-Analysis: v=2.4 cv=Sfti5fRu c=1 sm=1 tr=0 ts=6adf7c7b cx=c_pps
+ a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
+ a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=yx91gb_oNiZeI1HMLzn7:22 a=EUspDBNiAAAA:8 a=2o_taVJjGYtXnc9YsGQA:9
+X-Proofpoint-GUID: u9LfIoSUhR6CxHOGLCnPx6chvThiaLjg
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI2MDA2NCBTYWx0ZWRfX3psJYK8C5Lor
+ CXYlpGmiK5p/foTq3ulTITIOGk2VYDJtKQLzo9I9aCL2AO0iKYHYuViq/lz0GMu9aWwEdZBNfwf
+ xf5tMvTE6K1zsWC+CeQACnyyFBaTWA0=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI2MDA2NCBTYWx0ZWRfXxPRiKihRvkCB
+ KW04sGh61S/v15MXS1CvpdzckLYFXVzhuTWfM/2TtPyuOex0oeEQkS8Oksh9PkmexLIzaAgmR7L
+ TpCKLdB+3vCa3pRFmJFYoDLehBxaYk7Wy1vXBvGU6mrSeMVg0jUgL9ZbdSvV4kezFzd65Gljqys
+ 72QvpwBQ9YAi1rbdfc/OpOONzjRUL1GW3j9PuKKdZF1krqoEUeI35OEIe5pBJfMgUdeHTuNJLhP
+ xb3g9BZz9OMmd2YYr13FJLfB0DuWkwKCKqX4pN1yfBBYHfs/6X65A9VCfKh/IdVvRuXVyGGANRA
+ qrU3R6GLluG0hKJHKFtBvwT9/t/iFplD37T0aTSiq1dWeTVNfSycpEWHzXpk/g9y3apC/J1QxYT
+ +YnlRsDUxgrudhS10AOzsS1rf2oOCEmoKcxYlVljbfX43DUkxkw6EnbVC2xwW3igr8BQbseIONq
+ ZkzX47uO/Qs9gW+7IDA==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-26_03,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 bulkscore=0 clxscore=1015 adultscore=0 priorityscore=1501
+ malwarescore=0 lowpriorityscore=0 impostorscore=0 spamscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610260064
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261026_011650_494713_CC679452 
-X-CRM114-Status: GOOD (  14.96  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261026_091452_952938_2A0A6245 
+X-CRM114-Status: GOOD (  11.82  )
+X-Spam-Score: -2.7 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -117,39 +106,81 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-T24gTW9uLCBPY3QgMjYsIDIwMjYgYXQgMTE6NDDigK9BTSBsaXV0b25nIDxsaXV0b25nQGlzY2Fz
-LmFjLmNuPiB3cm90ZToKPgo+IEhpIEFudXAsCj4KPiBUaGFua3MgZm9yIGFwcGx5aW5nIHRoZXNl
-LiBCZWZvcmUgdGhpcyBvbmUgZ29lcyBvdXQsIHBsZWFzZSBob2xkIGl0IC0KPiBhcyBzZW50IGl0
-IGRvZXMgbm90IGFjdHVhbGx5IGZpeCB0aGUgb3ZlcmZsb3cuCj4KPiBXaWRlbmluZyBlbmRfaWQg
-aXMgbm90IGVub3VnaC4gYmFzZV9hdHRyX2lkIGFuZCBhdHRyX2NvdW50IGFyZSBib3RoCj4gdTMy
-LCBzbwo+Cj4gICAgICAgICBlbmRfaWQgPSBiYXNlX2F0dHJfaWQgKyBhdHRyX2NvdW50IC0gMTsK
-Pgo+IGlzIGV2YWx1YXRlZCBpbiAzMi1iaXQgYXJpdGhtZXRpYyBhbmQgd3JhcHMgdGhlcmU7IHRo
-ZSBhbHJlYWR5LXdyYXBwZWQKPiByZXN1bHQgaXMgdGhlbiB3aWRlbmVkIG9uIGFzc2lnbm1lbnQu
-IFdpdGggYmFzZV9hdHRyX2lkID0gMHhmZmZmZmZmZgo+IGFuZCBhdHRyX2NvdW50ID0gMiB0aGUg
-ZXhwcmVzc2lvbiBzdGlsbCB5aWVsZHMgMCwgYW5kIHRoZSBtc2dwcm90bwo+IHJhbmdlIGNoZWNr
-IHN0aWxsIHBhc3Nlcy4KPgo+ICAgICAgICAgdTY0IGVuZF9pZCA9IGJhc2UgKyBjbnQgLSAxICAg
-ICAgIC0+IDB4MAo+ICAgICAgICAgdTY0IGVuZF9pZCA9ICh1NjQpYmFzZSArIGNudCAtIDEgIC0+
-IDB4MTAwMDAwMDAwCj4KPiBUaGUgZml4IGlzIGEgY2FzdCBhdCBib3RoIHNpdGVzLCBsaW5lcyA1
-MDAgYW5kIDY1MzoKPgo+ICAgICAgICAgLSAgICAgICBlbmRfaWQgPSBiYXNlX2F0dHJfaWQgKyBh
-dHRyX2NvdW50IC0gMTsKPiAgICAgICAgICsgICAgICAgZW5kX2lkID0gKHU2NCliYXNlX2F0dHJf
-aWQgKyBhdHRyX2NvdW50IC0gMTsKPgo+IEkgY2hlY2tlZCB0aGF0IHRoZSB3aWRlciB2YWx1ZSBj
-YW5ub3QgZXNjYXBlIGludG8gYW4gaW5kZXggb3IgYSBsb29wCj4gYm91bmQuIEluIHdyaXRlX2F0
-dHJzKCkgdGhlIHR3byBsb29wcyBvdmVyIGF0dHJfaWQgYXJlIG9ubHkgcmVhY2hlZAo+IGFmdGVy
-IGVuZF9pZCA+PSBTQklfTVBYWV9BVFRSX1NURF9BVFRSX01BWF9JRFggaGFzIGJlZW4gcmVqZWN0
-ZWQsIGFuZAo+IHRoZSBtc2dwcm90byBicmFuY2ggcGFzc2VzIGJhc2VfYXR0cl9pZCBhbmQgYXR0
-cl9jb3VudCB0byB0aGUgZHJpdmVyCj4gcmF0aGVyIHRoYW4gZW5kX2lkLiByZWFkX2F0dHJzKCkg
-aGFzIG5vIGxvb3Agb3ZlciBpdC4KPgoKSSBoYXZlIHNxdWFzZWQgdGhlIHU2NCB0eXBlLWNhc3Qg
-Zm9yIGVuZF9pZCBhc3NpZ25tZW50IGJlZm9yZQpwdXNoaW5nIHRvIHRoZSB1cHN0cmVhbSByZXBv
-IHNvIG5vdGhpbmcgdG8gYmUgZG9uZSBmb3IgeW91ciBzaWRlLgoKUmVnYXJkcywKQW51cAoKLS0g
-Cm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
-bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+From: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+
+Add message protocol definitions for the RPMI REQUEST_FORWARD service
+group (SERVICEGROUP_ID: 0x000D).
+
+The following are introduced:
+
+  - enum rpmi_request_forward_service_id: service IDs for the
+    REQUEST_FORWARD service group:
+      - REQFWD_ENABLE_NOTIFICATION  (0x01)
+      - REQFWD_RETRIEVE_CURRENT_MESSAGE (0x02)
+      - REQFWD_COMPLETE_CURRENT_MESSAGE (0x03)
+
+  - struct rpmi_request_forward_resp: response structure for
+    REQFWD_RETRIEVE_CURRENT_MESSAGE (SERVICE_ID 0x02) carrying
+    status, remaining bytes, returned bytes and a flexible array
+    member for the inline message data.
+
+  - struct rpmi_request_complete_resp: response structure for
+    REQFWD_COMPLETE_CURRENT_MESSAGE (SERVICE_ID 0x03) carrying
+    status and the number of pending forwarded messages.
+
+These definitions are used by the MPXY bridge driver to implement
+the RPMI REQUEST_FORWARD protocol for inter-domain message passing
+over the SBI MPXY extension.
+
+Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+---
+ include/sbi_utils/mailbox/rpmi_msgprot.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index 7ae4abe0..c5d564ac 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -1064,4 +1064,24 @@ struct rpmi_logging_log_data_resp {
+ 	s32 status;
+ };
+ 
++/** RPMI REQUEST_FORWARD ServiceGroup Service IDs */
++enum rpmi_request_forward_service_id {
++	REQFWD_ENABLE_NOTIFICATION = 0x01,
++	REQFWD_RETRIEVE_CURRENT_MESSAGE = 0x02,
++	REQFWD_COMPLETE_CURRENT_MESSAGE,
++};
++
++struct rpmi_request_forward_resp {
++	u32 status;
++	u32 remaining;
++	u32 returned;
++	u8 data[];
++};
++
++/** RPMI MM ServiceGroup Communicate response struct */
++struct rpmi_request_complete_resp {
++	u32 status;
++	u32 num_of_messages;
++};
++
+ #endif /* !__RPMI_MSGPROT_H__ */
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
