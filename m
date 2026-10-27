@@ -2,78 +2,127 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB78A606A31B
-	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 10:45:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3E82606A31B
+	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 12:09:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=pC5+EUWu;
-	dkim=temperror header.d=mobileye.com header.i=@mobileye.com header.a=rsa-sha256 header.s=MoEyIP header.b=rUyFeMkd
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=fdczVjuU;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=desiato.20200630 header.b=Vay21i5u;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=UIVyfg8V
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
-	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=1cYd6XEh8K33E4A+ypZg3pNBAv2u0tvsDOO8y5lxFDY=; b=pC5+EUWu6uBdnNq4DzYQEE/8IQ
-	B9oVA/iV4W0ZQfWPjLsHsUe2/mDFigpqrdglB/KIKxP3Sl1NGTnkC6CU4+qA2oLZYIfjsHEg2M50T
-	shHzGliLFf3hdybH5E1lDTti/fV9KdvCgwlpiiBLLgadj3wMwy8AIeLKbJ/0YNYyRLL/tSHrEJ5lq
-	Zpkh2BAOMJ71+hUBgbZ4hZb9IzO/TRRCwgp/O2BGeYGRdQt6ICHDQKU3kGb8BGdCkBC0Bujrp+g56
-	DG9H5k/0PHGQVgr7qCTHzsj904A7FeAyjm8hSkcXf76g/sNixLCi9uM839vtBWPw8hYIBtvOBLRfD
-	IHJFxRFg==;
+	bh=jfk+MTgVjb2grh22D+y5FS8a7frYVdaFlS4bnioz4H0=; b=fdczVjuUuNkQayWgFM2+jKyedD
+	MIWXHW7P368OpMdw5Hz43qSti0oKtOh34p/nrjXpx5KhG5l22qu55Teq6NHibuaPp8+N7FOujSRTi
+	g+0PbcfBqatb+3To7wotILQl+iczVZsJJirQ8jjwhQxuY5iD7wftOjCrpYtzepB+UPw21qrTNczYM
+	ZvboGSbiTAxV8BMFBbgNNLu6UolIJb/rJddM63H8BqOMYwDZ3HTAgevr3rH6czdn0tb1fD70WfaLD
+	VxfVnRTgw4P0vPLKAylOC+qI0QF/y9ZymZhZ9xJmQXv4ixPJwNqJ/Yg9PsAXw8W381krZxJcG7bav
+	K6313aJA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLegD-00000004Ks2-0sl2;
-	Tue, 27 Oct 2026 10:45:21 +0000
-Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
+	id 1xLfzV-00000004ZiX-3cGA;
+	Tue, 27 Oct 2026 12:09:21 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLegA-00000004Ko5-1yFf
+	id 1xLfzV-00000004ZiG-0KB7
+	for opensbi@bombadil.infradead.org;
+	Tue, 27 Oct 2026 12:09:21 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
+	:Cc:To:Subject:Message-ID:Date:From:In-Reply-To:References:MIME-Version:
+	Sender:Reply-To:Content-ID:Content-Description;
+	bh=2JZXxzQWapsO6L7Tj1Eo+FFOc2TvdumNX0cfNdX1eTc=; b=Vay21i5u1tr/APRGO6n+eUHqZ4
+	JdMv7WPbBnuPpU6sC9hPoZpetacYMpKYaksymJu7Y5t/Fg9GmGsjC1KDcjDGFRzN5fU6zI57NU7Pe
+	AyI5IgVF8g7/IVIigNFrOMUJ2nqCQvy4CmITsqZjJkY2wJxPvu/u6fsJrqpOxBnlGSRDLrCgzVO32
+	uc3n/BOAWTyp144pVn/jqAaqtKGkLADRiXuMGAMgmfg7042wy6BiRvgtJJ1NQ0/hVwz9OpaohmdF5
+	Z7Hua3wZi5QhSYZOkucg30niFjh41oExrGQL2CkggW+5Fc2XHduoenJduh6yP8bQaV+iFe4NBHuc/
+	EgiLS4Qw==;
+Received: from mail-wr1-x42d.google.com ([2a00:1450:4864:20::42d])
+	by desiato.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
+	id 1xLfzR-0000000EuMW-46q1
 	for opensbi@lists.infradead.org;
-	Tue, 27 Oct 2026 10:45:19 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1793097918; x=1824633918;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=N901Q0u3KDtzG64eOG9YNUPaGa5G60HjFtHVNbHw2a4=;
-  b=rUyFeMkdoEgUWtkwzVHjjsNZ8snbn7N3/dQCOm5jsL5bSA4uuW3RweM0
-   TuYckGYYQxahMPp9OKeyIr1gaKn3VEYiXNLlEZghJL9V6XG/854/l1G08
-   aGh5ANE5Vxd/apk5g8F+h7ZOX5cHrpS+40H1n17MJsBEgiRBQMhR3i4Xq
-   DottToHu713iNHdYzS7VHye33UENcCKneaVVSZR+DYtKedJQcAKTShyG2
-   3hN7aMBxoTtgv//XoABGbNGcnMQzpeb8ojui7F7aVg2tYLBXEsY4cAk/e
-   y9wuZkeSkzMCoA0NT0sVIIFSnKagh3YwSIY+UQtcrfaqnKnYRl6XsgaSm
-   A==;
-X-CSE-ConnectionGUID: ZO61DUcvRM+B4e2+cNDssQ==
-X-CSE-MsgGUID: ASv9OL+yTT69/Ze0MFTOOg==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces04_data.me-crop.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2026 12:45:12 +0200
-X-CSE-ConnectionGUID: GCbS6LwFRLuUBz1O6pZlAA==
-X-CSE-MsgGUID: rYxfPX0WRkiJD7y+q4rSng==
-Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
-  by ces04_data.me-crop.lan with SMTP; 27 Oct 2026 12:52:57 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Tue, 27 Oct 2026 12:45:11 +0200
-From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Date: Tue, 27 Oct 2026 12:44:36 +0200
-Subject: [PATCH 2/2] platform: generic: mips: p8700: Emulate S-mode access
- to CM PMU registers
+	Tue, 27 Oct 2026 12:09:19 +0000
+Received: by mail-wr1-x42d.google.com with SMTP id ffacd0b85a97d-48df4e9d2d4so2417355f8f.3
+        for <opensbi@lists.infradead.org>; Tue, 27 Oct 2026 05:09:17 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793102956; cv=none;
+        d=google.com; s=arc-20260327;
+        b=sRkVZ4V3daq8pFesHfWNK0Aq6o1dNKg38osNG5cJSpJxF7wd6JKXpHwqkb47b3krw/
+         L5DABrlmraJGufIXeCj9GTPGEsP2I5X91lG7fw/6upKx68hN0jPTOwMheT64OWYICeGH
+         JP0QeelFbmjYojplAmkmiVbz+t8xLIkzjSz/vhMMb+E3DzeGCB3h9bV4PwD/ZZj0yghd
+         cDYw97+etXNGOCV5myEh5t35tCOzpm02t6EzN/6k6QYZ/iUOu28qAyW75Tj3Em5IHPgf
+         ndob+2e8EhiSCIzIygeyXEvA/5ekmTJyCrg6gjkrpZ/L7BgJNy2rDjm/vduUSQJRPHXW
+         K1gA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=2JZXxzQWapsO6L7Tj1Eo+FFOc2TvdumNX0cfNdX1eTc=;
+        fh=qxHRvThAguVz85f9a94novwCNuCNTJG/S+nmMisKmkw=;
+        b=oNzjtSR9NLukuzz5uQ/Q3ImUqFuQXSKIXImjKbLnPrT9yvU+Fm57gl7D2pso97h3Sr
+         THANgRFaQGyWYBWoSv5cGqjXvn0oBstFWJ4j2FNLGnUyNuDnxG92lsdtLTkvOCBRST4j
+         T0EiujiOoNlqW3Wyf0bnUOxL5WcO+DBjOjezjznrGD5+RWVf9fSyehTEcpXJIGXDL/+v
+         kf+pp9Lco7hppAoEjRqm/tgYjobkFZqc7Hn5L48tntCQhDSPOwhS6g8aIXCAvY+AnUo5
+         VmPAc14Lqo4ISEnOI5vuLI16QuY/rF772TU1BJidMVKPkP9Pro/Max1eIPQmu2Q7wZA2
+         Uh6g==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault.org; s=google; t=1793102956; x=1793707756; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=2JZXxzQWapsO6L7Tj1Eo+FFOc2TvdumNX0cfNdX1eTc=;
+        b=UIVyfg8ViD/OmuY+Ls5A0czMs0xgUfpM0RAzQ1oKxRNjuYp2Owhp/JyD/CfCiS9yAZ
+         BMr2XBJiI7qQ+U5yNhN8f86UprfcBbZsNwrPngzvYP7EMgDjrtThg7SlVnzDbzt14DCT
+         j6aHpp1QvdUVwzQRd26Z9SVYRLcHWcU38PGJHLwLhou5k+SD3akriVftNy5rnD85OfK7
+         ShJj3onpvsrEPJZNXTs8tiIBaKbxsEYWqPMzrKjglwqhb2moKxSUwa9qgijhl/KBhsah
+         pYp6XOjPLmd/o3OktDKrQWbVvJhGfjK7vg79zaUIjikFNxIEUjzHmOsdNkHvu6iiX9Tp
+         WtnQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793102956; x=1793707756;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=2JZXxzQWapsO6L7Tj1Eo+FFOc2TvdumNX0cfNdX1eTc=;
+        b=0AoIzIbn5b7yYPPOmNH+HrZ5CSMjlRMxhfnJs9sCeWqAvKZao05eNzJEffXniA49fC
+         u77YVZhPRKSpgW+5lgmfdpVz5ldDwdTi1rO/+F+jOPcyyqgVMG+ig9WanwhHs6EzI5Si
+         j0FX+XWOuKhcvPcbgu8EEu/FQ6Oj2kXOkZU4YVK+4B2gYDIQcDhNLWqI7kMdyRxYZoS5
+         fABoTQkrazfM+BnbKUbzTCAYYNJu2r5bBXX1ZMm+OawzZUeQbjHzZwy/+MzSaFopX4gq
+         W8qpVaV0NtdL1ObeOY1obArZVTk2wIrbTklL9Vt5AaZM6kP3pYqpg4JGIX3PWHHfGWhp
+         3ZiA==
+X-Gm-Message-State: AFq9FYInp3lxEdinJNWt/1/aEp5qqan2SU+I+cLsY1CxGjDIlOg/1iYE
+	NwE/1z+kU6lfgktb7wjSGTOmkPq3+jacXddf5waR+b3jO3I0PDFyc00JIhx/p8LTJq5TvKacmQ5
+	8rnnzIMOgiu8uDXshKhxZGgdbnxT6dQtHS4Ov4WYRvYf5PdkQxUSZ
+X-Gm-Gg: AYBFou2W+xpZJJfkzCha/lSzZVKhaP6h20Oy8ygxBMJJiu0fyuZGLC2UzrOV73KbXj3
+	8YmRgCpGxMqXwHp0BuemERb/kh7g85f4JMtrtB0slrtbeQfASf12u+0+rMBRVUs7t+jhjulEqBa
+	d6ObLWxVPNZIbVxFtG1vH83Od6FIfhfNBq2xBuxvZyMZnlxs6YHoGQbRxNnOi1/OrZhGnsSDj9K
+	LwDla4LcVGQFyZaWManBt6MzhbpsDf7OJwmnUghz7xnN8/P0KNWV05Q4Jsy3w0wlWG8+icFziPe
+	JY/zjrYhQ3zGJKwXAKrmXj85L3u0ofjvrnmSID2WgzMNssBJ+anSqbKB5LuVAj23UP/WHU191Sr
+	3RDaoyVLfqXbVPNfWC5Rqt3zGkkkiZqkj99CqiOtDmOKCs66sztCl/xTubJufBjHw2OtTc36FFN
+	5kVNIBa1NNKOffj5eDgMMdgI17QlPSXBPHZR4bcgPbycvLgio3SsGuIaI=
+X-Received: by 2002:a05:6000:25fd:b0:48e:5071:420 with SMTP id
+ ffacd0b85a97d-48e507104famr11307625f8f.2.1793102955498; Tue, 27 Oct 2026
+ 05:09:15 -0700 (PDT)
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Message-Id: <20261027-p8700-cm-pmu-v1-2-580515e4bf39@mobileye.com>
-References: <20261027-p8700-cm-pmu-v1-0-580515e4bf39@mobileye.com>
-In-Reply-To: <20261027-p8700-cm-pmu-v1-0-580515e4bf39@mobileye.com>
-To: Anup Patel <anup@brainfault.org>, Atish Patra <atishp@rivosinc.com>, 
- Bo Gan <ganboing@gmail.com>, Samuel Holland <samuel.holland@sifive.com>, 
- =?utf-8?q?Cl=C3=A9ment_L=C3=A9ger?= <cleger@rivosinc.com>, 
- Xiang W <wxjstz@126.com>, Chao-ying Fu <icebergfu@gmail.com>, 
- =?utf-8?q?Beno=C3=AEt_Monin?= <benoit.monin@bootlin.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>, opensbi@lists.infradead.org, 
- Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-X-Mailer: b4 0.16.0
+References: <CAK0z5OmA2vwJP3bM+cBjcTxNb_5zFpwAaY5ttdtVo9CLDUsYAQ@mail.gmail.com>
+In-Reply-To: <CAK0z5OmA2vwJP3bM+cBjcTxNb_5zFpwAaY5ttdtVo9CLDUsYAQ@mail.gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 27 Oct 2026 17:39:04 +0530
+X-Gm-Features: AclHuK88K0vuvMzYdNzitGrco1wQCrWE_wXa3HrSYHTEU8c7Rwupg6d_CAPf-Sg
+Message-ID: <CAAhSdy0qxUSiKiaCL6iBb7iOn5UtGok6o5RPNM8E9gCDJS_HKQ@mail.gmail.com>
+Subject: Re: [PATCH] lib: sbi: pmu: Validate reserved bits in counter config
+ match flags
+To: Moksh Panicker <mokshpanicker.7@gmail.com>
+Cc: opensbi@lists.infradead.org, security@rustsbi.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261027_034518_802056_8FA966AE 
-X-CRM114-Status: GOOD (  27.83  )
-X-Spam-Score: -4.0 (----)
+X-CRM114-CacheID: sfid-20261027_120918_115165_970F5032 
+X-CRM114-Status: UNSURE (   8.06  )
+X-CRM114-Notice: Please train this message.
+X-Spam-Score: -0.2 (/)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -83,256 +132,21 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-The CM3 performance counter registers (GCR.Debug block at offset 0x900)
-are used by the Linux mips_p8700_cm_pmu driver, but they share a PMP
-granule with GCR registers that must stay M-mode only, so the whole GCR
-block is closed to S-mode. S-mode loads and stores to it therefore trap
-to M-mode as access faults.
-
-Implement the emulate_load/emulate_store platform hooks in a new
-p8700_access.c. The faulting S-mode virtual address is translated with
-sbi_va_to_pa(), checked to be a naturally aligned 32 or 64-bit
-access fully inside the PMU register range of one of the CM instances
-described by p8700_cm_info, and then performed on behalf of S-mode.
-A cheap page-offset check rejects anything outside the PMU window
-before the page table walk. All other accesses are refused and
-redirected to S-mode as a genuine access fault.
-
-Add the PMU register offsets to p8700.h, mirroring the Linux driver,
-and hook the emulators up for eyeq7h.
-
-Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
----
- platform/generic/include/mips/p8700.h |  34 +++++++++
- platform/generic/mips/eyeq7h.c        |   2 +
- platform/generic/mips/objects.mk      |   2 +-
- platform/generic/mips/p8700_access.c  | 126 ++++++++++++++++++++++++++++++++++
- 4 files changed, 163 insertions(+), 1 deletion(-)
-
-diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index e64c62e17037..95144cf81152 100644
---- a/platform/generic/include/mips/p8700.h
-+++ b/platform/generic/include/mips/p8700.h
-@@ -179,6 +179,22 @@ extern const struct p8700_cm_info *p8700_cm_info;
- #define GCR_MMIO_BOTTOM_DIS_RQ_LIM	BIT(1)
- #define GCR_MMIO_BOTTOM_EN		BIT(0)
- 
-+/*
-+ * GCR.Debug performance counter (CM PMU) registers, offsets from GCR base.
-+ * Keep in sync with linux/drivers/perf/mips_p8700_cm_pmu.c.
-+ */
-+#define GCR_PC_CTL			0x0900
-+#define GCR_PC_OV			0x0920
-+#define GCR_PC_EVENT			0x0930
-+#define GCR_PC_CYCL			0x0980
-+#define GCR_PC_QUAL0			0x0990
-+#define GCR_PC_CNT0			0x0998
-+#define GCR_PC_COUNTER_STRIDE		0x10
-+#define GCR_PC_MAX_PROG_COUNTERS	2
-+/* Range of the PMU block that S-mode is allowed to access via emulation */
-+#define GCR_PMU_OFFSET			GCR_PC_CTL
-+#define GCR_PMU_SIZE			0x100
-+
- /* CPC Block offsets */
- #define CPC_PWRUP_CTL		0x0030
- #define CPC_TIMECTL		0x0058
-@@ -224,4 +240,22 @@ int mips_p8700_add_memranges(void);
- struct fdt_match;
- int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match);
- 
-+/*
-+ * S-mode access to CM PMU registers (p8700_access.c). The GCR block is
-+ * PMP-protected from S-mode; S-mode accesses trap to M-mode and are
-+ * emulated by these platform hooks for the PMU register range only.
-+ */
-+union sbi_ldst_data;
-+struct sbi_trap_context;
-+
-+/** platform specific handler to fixup load fault
-+ *  Refer to comments at sbi_platform_emulate_load */
-+int mips_p8700_emulate_load(ulong insn, int rlen, ulong addr, union sbi_ldst_data *out_val,
-+			    struct sbi_trap_context *tcntx);
-+
-+/** platform specific handler to fixup store fault
-+ *  Refer to comments at sbi_platform_emulate_store */
-+int mips_p8700_emulate_store(ulong insn, int wlen, ulong addr, union sbi_ldst_data in_val,
-+			     struct sbi_trap_context *tcntx);
-+
- #endif
-diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index f08b51972236..5cc05542ff7f 100644
---- a/platform/generic/mips/eyeq7h.c
-+++ b/platform/generic/mips/eyeq7h.c
-@@ -458,6 +458,8 @@ static int eyeq7h_platform_init(const void *fdt, int nodeoff, const struct fdt_m
- 	generic_platform_ops.final_init = eyeq7h_final_init;
- 	generic_platform_ops.nascent_init = eyeq7h_nascent_init;
- 	generic_platform_ops.pmp_set = mips_p8700_pmp_set;
-+	generic_platform_ops.emulate_load = mips_p8700_emulate_load;
-+	generic_platform_ops.emulate_store = mips_p8700_emulate_store;
- 
- 	return 0;
- }
-diff --git a/platform/generic/mips/objects.mk b/platform/generic/mips/objects.mk
-index 14524aadc12f..77278d434720 100644
---- a/platform/generic/mips/objects.mk
-+++ b/platform/generic/mips/objects.mk
-@@ -5,7 +5,7 @@
- ifeq ($(PLATFORM_RISCV_XLEN), 64)
- carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700_EYEQ7H) += mips_p8700_eyeq7h
- carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700_BOSTON) += mips_p8700_boston
--platform-objs-$(CONFIG_CPU_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
-+platform-objs-$(CONFIG_CPU_MIPS_P8700) += mips/p8700.o mips/p8700_access.o mips/mips_warm_boot.o
- platform-objs-$(CONFIG_PLATFORM_MIPS_P8700_EYEQ7H) += mips/eyeq7h.o
- platform-objs-$(CONFIG_PLATFORM_MIPS_P8700_BOSTON) += mips/boston.o
- endif
-diff --git a/platform/generic/mips/p8700_access.c b/platform/generic/mips/p8700_access.c
-new file mode 100644
-index 000000000000..004d21f45552
---- /dev/null
-+++ b/platform/generic/mips/p8700_access.c
-@@ -0,0 +1,126 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2026 Mobileye
-+ *
-+ * S-mode access to selected CM (GCR) registers.
-+ *
-+ * The CM PMU registers share a PMP granule with M-mode only GCR registers,
-+ * so the whole GCR block is closed for S-mode by PMP. S-mode loads/stores
-+ * to it trap into M-mode as access faults, and sbi_trap_ldst.c forwards
-+ * them here. We translate the faulting S-mode virtual address to a
-+ * physical address, check that it falls in the PMU register range of one
-+ * of the CM instances and, if so, perform the access on behalf of S-mode.
-+ * Anything else is rejected and redirected to S-mode as a real fault.
-+ */
-+
-+#include <sbi/riscv_io.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_trap_ldst.h>
-+#include <sbi/sbi_unpriv.h>
-+#include <mips/p8700.h>
-+
-+/**
-+ * Check whether an access of @len bytes at physical address @pa is an
-+ * access to the CM PMU registers of one of the CM instances.
-+ */
-+static bool p8700_smode_reg_allowed(ulong pa, int len)
-+{
-+	unsigned int i;
-+	ulong off;
-+
-+	if (!p8700_cm_info)
-+		return false;
-+
-+	/* Only naturally aligned 32/64-bit accesses, as the PMU driver does */
-+	if ((len != 4 && len != 8) || (pa & (len - 1)))
-+		return false;
-+
-+	for (i = 0; i < p8700_cm_info->num_cm; i++) {
-+		if (pa < p8700_cm_info->gcr_base[i])
-+			continue;
-+		off = pa - p8700_cm_info->gcr_base[i];
-+		if (off >= GCR_PMU_OFFSET && off + len <= GCR_PMU_OFFSET + GCR_PMU_SIZE)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+/*
-+ * Fast reject: the page offset is translation invariant, so if it cannot
-+ * be a PMU register there is no point in walking the page tables.
-+ */
-+static bool p8700_page_off_may_be_pmu(ulong va)
-+{
-+	ulong off = va & ~PAGE_MASK;
-+
-+	return off >= GCR_PMU_OFFSET && off < GCR_PMU_OFFSET + GCR_PMU_SIZE;
-+}
-+
-+int mips_p8700_emulate_load(ulong insn, int rlen, ulong addr,
-+			    union sbi_ldst_data *out_val,
-+			    struct sbi_trap_context *tcntx)
-+{
-+	ulong pa;
-+	int rc;
-+
-+	/* rlen == 0 is a vector/custom instruction; not supported */
-+	if (!rlen)
-+		return SBI_ENOTSUPP;
-+	if (!p8700_page_off_may_be_pmu(addr))
-+		return SBI_EDENIED;
-+
-+	rc = sbi_va_to_pa(&tcntx->regs, addr, &pa);
-+	if (rc)
-+		return rc;
-+	if (!p8700_smode_reg_allowed(pa, rlen))
-+		return SBI_EDENIED;
-+
-+	switch (rlen) {
-+	case 4:
-+		out_val->data_u32 = readl_relaxed((void *)pa);
-+		break;
-+	case 8:
-+		out_val->data_u64 = readq_relaxed((void *)pa);
-+		break;
-+	default:
-+		return SBI_ENOTSUPP;
-+	}
-+
-+	/* >0: caller writes rd from out_val and advances mepc */
-+	return 1;
-+}
-+
-+int mips_p8700_emulate_store(ulong insn, int wlen, ulong addr,
-+			     union sbi_ldst_data in_val,
-+			     struct sbi_trap_context *tcntx)
-+{
-+	ulong pa;
-+	int rc;
-+
-+	if (!wlen)
-+		return SBI_ENOTSUPP;
-+	if (!p8700_page_off_may_be_pmu(addr))
-+		return SBI_EDENIED;
-+
-+	rc = sbi_va_to_pa(&tcntx->regs, addr, &pa);
-+	if (rc)
-+		return rc;
-+	if (!p8700_smode_reg_allowed(pa, wlen))
-+		return SBI_EDENIED;
-+
-+	switch (wlen) {
-+	case 4:
-+		writel_relaxed(in_val.data_u32, (void *)pa);
-+		break;
-+	case 8:
-+		writeq_relaxed(in_val.data_u64, (void *)pa);
-+		break;
-+	default:
-+		return SBI_ENOTSUPP;
-+	}
-+
-+	/* >0: caller advances mepc */
-+	return 1;
-+}
-
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+SGkgTW9rc2ggUGFuaWNrZXIsCgpPbiBTYXQsIFNlcCAyNiwgMjAyNiBhdCAzOjA54oCvUE0gTW9r
+c2ggUGFuaWNrZXIKPG1va3NocGFuaWNrZXIuN0BnbWFpbC5jb20+IHdyb3RlOgo+Cj4gUGF0Y2gg
+YXR0YWNoZWQgYmVsb3cuCj4gLS0KPiBvcGVuc2JpIG1haWxpbmcgbGlzdAo+IG9wZW5zYmlAbGlz
+dHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlz
+dGluZm8vb3BlbnNiaQoKUGxlYXNlIHNlbmQgeW91ciBwYXRjaCB1c2luZyAiZ2l0IHNlbmQtZW1h
+aWwiIHNvIHRoYXQgZXZlcnlvbmUgY2FuIHJldmlldy4KClJlZ2FyZHMsCkFudXAKCi0tIApvcGVu
+c2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
