@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7BD606A324
-	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 08:35:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46015606A321
+	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 08:35:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=W7TtdmDw;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=Lv+UHY7S
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=h3Y0f3DX;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=YPEDrJLO
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,65 +14,66 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=v/XzOy6qwGpRAmf+NyrhRmGeQre6SVEj4Ux1kjxmgx8=; b=W7TtdmDwEK2C3dQ18DOAjQYV88
-	d4qSlNeySOzpTtdVyF47hMQeH1b/KLi85RT3EvwyecqfoJzaA5Xg7VLECR1bITSRtd8cTgr1eB8y/
-	KENTrCrY4mgCyX4r8WuJkP9EtsnB3M8+zS0djvGRY1QmslKQk2i9tFkm4cQQRNH+ZTBYh7kTHDuG7
-	N93qKOF4Xm3fCLKRYNgaKxohmylYdrK/86Z7rVO71qiM6w4J7x+BUhU4PbejadIrT+EoEa1Jaryaq
-	WjMoWw48t7Mg8QaNH9Egrs5QZ09VUPdYR2uA2zDikYG9nQ01vqT+3tIE+r44j2xGIgbunxOZc+qle
-	xrgpTJ2w==;
+	bh=KPSK30VN9Hi0V8xyc1tWkm4ZxmHhNuW6MAEF9zLP8PU=; b=h3Y0f3DXx4u3AnnossxRc/22So
+	jUK1tGPu/BU3SGG//VJEKmqnmmTNvuNoGhSeMSKJkfalYCesJSkUEeslmQhn+ftAZnVfRys1pRu4m
+	VAfNMPsQeY0swpXfNHWtmNs0bG9frNwMNxfKXt2gJnHZG0njzVvru2xLv9+rLiYvhCNFh1o0vPptX
+	0pxMpzgBhIZKl+0fagMhX6svqLKX/QwttWOgw/q+Yj+xczjE3+BBc+60ZslMLtkgXtEEiaYzqAfi8
+	ByHAP8KmaXzBf8JbGPKnLJYl6+q59nqX48ekvotnjAJx/0FkjR6qSf66C8QaLR0JpS4D7V4Q2Earv
+	V8Eat0ug==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLcet-000000042RN-0LkI;
-	Tue, 27 Oct 2026 08:35:51 +0000
-Received: from mail-pj1-x1030.google.com ([2607:f8b0:4864:20::1030])
+	id 1xLceu-000000042Ru-0gRy;
+	Tue, 27 Oct 2026 08:35:52 +0000
+Received: from mail-pf1-x435.google.com ([2607:f8b0:4864:20::435])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLcep-000000042Q2-2nfO
+	id 1xLces-000000042Qq-0lWG
 	for opensbi@lists.infradead.org;
-	Tue, 27 Oct 2026 08:35:49 +0000
-Received: by mail-pj1-x1030.google.com with SMTP id 98e67ed59e1d1-3ab2cb8d577so2726826a91.1
-        for <opensbi@lists.infradead.org>; Tue, 27 Oct 2026 01:35:47 -0700 (PDT)
+	Tue, 27 Oct 2026 08:35:51 +0000
+Received: by mail-pf1-x435.google.com with SMTP id d2e1a72fcca58-8a06e79e152so1895315b3a.0
+        for <opensbi@lists.infradead.org>; Tue, 27 Oct 2026 01:35:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793090147; x=1793694947; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1793090149; x=1793694949; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Vp47AOiOmOEzB/VZ//MB/4LywSrXEsAKEdiU/6WZ03s=;
-        b=Lv+UHY7SvouXkF3rigemZwGRUscB4YawRsnNvT2p8VUEja2DHNvaKCozhWFeU9MOjp
-         ELEb0y3SEzCOOONPH7l5i5d/V+kpG02wHpPvf44xtgDMpaLU/2xNsVj+UkdlEU2c71nL
-         yyygh9rzsMsJPEhAIjcOt1ep/E5H2SpSTZL32t4PGOKCBc7PmEh63KoKGz7M2sQmssi1
-         v5Lv6x83zlRXAhhi3oc0VtgqLJ8WN8qpADbu4onothzpdbKmREDo+1wgr1OmiuPAIdxO
-         4ng1MWwEWyFpXdP7ZKD0ytkDrzevnQtAbSJN4p/bM3emrhCEIqYKzrVh4x//ZMgpEBAF
-         8spQ==
+        bh=ZYpfwBjxbglE2xeUtcNpSQs5QdVN70Lgde8EFvXEos8=;
+        b=YPEDrJLOzhCfxFuWjuNdFa5T3RL5SJDerVcs9YNXMSV8W6KUXf/crkTBVog1MMJefy
+         Vc+mJi2cHTQe6t9Fe/1hd4HXjW6NKZNIPwd/6cyThNGylci9O9cdvidDsnq6jpUBIClV
+         1GcCwYJc8JUbgC8ZrQc6VqlkI7bs0+ZAcsyWUkK6lBy9u8qOF6dQv06F1ywqjX6AKO8X
+         olW7qLtDHX7Mv0qnvwIyuILlDxy773l/rQoMzCUp8hnO4/xrOkxOnk0xb7fQ95b/htmV
+         rq4glq+xVeDt6JGEIBC7K8FG7w1v7O/9uV7EvZd7Ilpdgil6uWmWtDJzzwN/oxeOlYor
+         QMtg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793090147; x=1793694947;
+        d=1e100.net; s=20260707; t=1793090149; x=1793694949;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Vp47AOiOmOEzB/VZ//MB/4LywSrXEsAKEdiU/6WZ03s=;
-        b=HqUG5RiwlnVkPGGbxLh3wbNJ4WcSmCg906p2hIl8OFvB1VPZS+84Hnywj+TOIpwUkR
-         dkTEngjxEGjgtaVUhd1nS2Gyq9CcpMNHH0tW+F2Ts/PZk/P420WJHvap+cYZsle5qBtT
-         DlDq5b7WmOYTj+MbLWm9E9Ho93hiIvjjAmrA39YEaNHdpa0z3W4xWDKME2H65GoPQ34Q
-         Grk+OcaYNcuvP0iBefLRa6Z4yGE4beSKd/yktO5lUp6SZx3C3EczWQDQfoDHCuYGSJ5N
-         fk/obs/drCqLZsHeIlZiqti1TYqNGR3jPxdYjSZ8yrLa70sxc+9pYzi3hrKK8hdBgpoV
-         Jj9g==
-X-Gm-Message-State: AFq9FYLgNsu/DJvB0+8GnrHCblNs7e3UbuXBKJOnvyY5bkdwKm5MgOVz
-	5PR9tDh0EMdx20ybnGhbRLhVMQ0w6ibFqi8xsB/+SQ6UA3BFNsF2C+zXGHfdTJ+hOUOdXayrhF5
-	cKeclPnAvt6mqvxkmYIoPwEs3VMfo/ghuVegywSrb4hx3uxVlC0cjHsa3gm7tZgJUIxrRVHHjmS
-	OiKJIfywVCEHSwS9kxrLXKaa+yZt8t3b67FUUoQ0J/6F9WLWuj
-X-Gm-Gg: AYBFou0dvsMvX2YvetlZYmnQlhkGefjzP0/s8bN3p6rM610O136/UjdL/ZrsWi33BsA
-	Qt2EUcQhh71r9BboFaw1Ch4i4ddN/2P+9KI/BZzY3SVa5gq5YylrlePrw8shlPjnWt9u2uxDqef
-	zNh+8nDCI+Q3goGvxMm7FfD7GW/+nBDy7vxNAQYbdV+pWtCnLhLqARu64KEBhCSNoGLGcSATQwQ
-	hUKTrLZSo8BCCDn4fPOMe7TPnxGEP53JP+ACWVBprawob7btZrVif2vJQQmqRlP3hlJH9vZa/Zx
-	9+lFuXW/NtmTYRRxrNZhSeITOmZSzOi7Q6BuQ3Bca6lydV6qXklD0RP72yA+FCLXCjNtr220YrI
-	gstb6DH2epAZd0ufcJyEs27LXi3ZMqaGI5qtuCN1TL+JXyxGbshYpYTN/U6RTT8H4wF69KPEnOS
-	iCYlrwYmZY3LvzvnO1+DmVR1FXqYx11JzIwuLTYUP/WBGleVrTmssjRZWi7G8nteUjzk4U5onzk
-	PWeOmhzXG/GJxEMVGVJXHAo7tPwhYhImElUDSo1kJaRq4X1XkSTGw==
-X-Received: by 2002:a17:90b:5210:b0:3ac:ffb8:183b with SMTP id 98e67ed59e1d1-3adeaf9a70cmr7187472a91.51.1793090146657;
-        Tue, 27 Oct 2026 01:35:46 -0700 (PDT)
+        bh=ZYpfwBjxbglE2xeUtcNpSQs5QdVN70Lgde8EFvXEos8=;
+        b=T2QYLbT6cGVVAlh20W0F+e6rq1L1eUPBXC1JloYPLtIFv9Wsvf3h3O05kx+tbkEniT
+         AuUgmK2Ir+waaKp9jqfQDXZjL4KO7eoHH1YjnqTLnE/lyZY5K3z+PCVdVuRUwcWv13qO
+         VBoVUPjk1Y2oTbIREtJrRNu2KTHtvh34tOxGZe4aWz6P775w5tBCceQCc777cKBm2vdm
+         a/F3PehvojxuUIzIo0dCnt8ayOO+IPhpFv0tUnYTvRM4iGpUYXjYeA+u+8VgsoihHekb
+         3dXBC8WiYRAMXKOppB4kxpCrP8fylZLO7rnUsFuLEylnUsrIDn/KOUFKQYFg0BzfNFM/
+         nhrw==
+X-Gm-Message-State: AFq9FYJdqmkIyk6MYZcFvdzZQPhP1obHxZdCIH1K7BhofTAc6YKuWmq+
+	08+1s5NAEAl16GcZ+xQhokGnSPNqQ45CBGk4W+gUMbZWlCNlFH7uqVtjKCT0zpe3cI25kHd1FFi
+	+QQ33PXoHFV6JVmMdN2fZ6XocFnAatB7QKLr5WibRKGOB68X07u/T4nHuheYeoRWkBOzXli6sxM
+	ieLRGmtGyd4EQKIJfeg5ypUstzwlPKP2C7EKkdSc2mkXiPlvTpbdA=
+X-Gm-Gg: AYBFou3dyPWd3VEd/XlFYis2pPwZ+Z94pIr3txxF9e1y9h4/yAl8ZhAI4s/qxuQN1i5
+	lvefNLQxdSOWlmklNhaL3rDEwtn5/qcJfeZaItI86GvP8aURTc+R9bZi4xWVcBrIDbVb2Ij/0aM
+	PxyD3mfNJGCdRXiFUj90f+cFezcQV9FgvHCnVsyjwQ+NS+/YXMqKX5K36hJEQbGWzzGiQoIQq4c
+	d8hVv97dH+rQemoLXxeyQGKpnGVeLTivy6jOfijfB3oMixevTvKub6jQuRFqyD0FyqvH5xDAvp6
+	SBRpVYCXwI2T5xd2I8G63wY8FOdByXKlWBSnlNSvd3t1KOWhblM+ymbz9D019Qc+EjySxVdITdG
+	qcqQ3XYFv9XDtarlWXw/tDeTit94icyuY2n3lUw8+zSNp2+00qhmj0QElAZ81fbjDugrHOnEFjS
+	YTXV7mey2jF+/vV2vXZSfXM2fUTNl/mbGdWKF1LqpbRIEN1uLnMUmTI/Vnp9tn07tsaDNy8s9Tx
+	91womQADt7gSGVudLPpQdhotGA+dp9skmmqkLQPHX3s/j0aqgSrMMOADMnw+zXzW+dhmNrkwsvF
+	UNX+7jCJ7dsUUrE61bEr2hePhw7M
+X-Received: by 2002:a05:6a00:3685:b0:88d:3f61:20e9 with SMTP id d2e1a72fcca58-8a369737d1cmr6472473b3a.48.1793090149085;
+        Tue, 27 Oct 2026 01:35:49 -0700 (PDT)
 Received: from localhost ([136.226.240.181])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae40427782sm2784783a91.4.2026.10.27.01.35.46
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8a36bb29546sm2001210b3a.33.2026.10.27.01.35.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Oct 2026 01:35:46 -0700 (PDT)
+        Tue, 27 Oct 2026 01:35:48 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -84,18 +85,17 @@ Cc: anup@brainfault.org,
 	zong.li@sifive.com,
 	greentime.hu@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH v3 1/9] lib: sbi_hart: detect RISC-V Worlds ISA extensions
-Date: Tue, 27 Oct 2026 16:35:01 +0800
-Message-Id: <20261027083509.1076577-2-peter.lin@sifive.com>
+Subject: [PATCH v3 2/9] lib: utils: fdt_helper: parse RISC-V Worlds per-hart WID properties
+Date: Tue, 27 Oct 2026 16:35:02 +0800
+Message-Id: <20261027083509.1076577-3-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20261027083509.1076577-1-peter.lin@sifive.com>
 References: <20261027083509.1076577-1-peter.lin@sifive.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261027_013547_735080_8A45E060 
-X-CRM114-Status: UNSURE (   9.97  )
-X-CRM114-Notice: Please train this message.
+X-CRM114-CacheID: sfid-20261027_013550_226870_F18CA4A7 
+X-CRM114-Status: GOOD (  14.96  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -116,119 +116,186 @@ X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Add CSR definitions for RISC-V Worlds (mwid, mlwid, mlwidlist,
-mwiddeleg, slwid) and detect Worlds extensions via CSR probes
-in hart_detect_features().
+Add fdt_parse_worlds_all_harts() to parse platform-defined DT
+properties in the /cpus/cpu@X:
+- riscv,pmwid: M-mode World ID
+- riscv,pmwidlist: bitmap of permitted M-mode WIDs
+- riscv,pmlwidlist: bitmap of permitted lower-privilege WIDs
+Store parsed values in struct sbi_hart_features.
+
+These platform-defined values serve as the root-of-trust constraints
+for per-domain WID assignment during domain creation and context
+switching.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-Reviewed-by: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 ---
 Change v2->v3:
-- No change
+- Drop has_pmwidlist presence flag and check pmwidlist directly.
 ---
- include/sbi/riscv_encoding.h | 12 ++++++++++++
- include/sbi/sbi_hart.h       | 10 ++++++++++
- lib/sbi/sbi_hart.c           | 26 ++++++++++++++++++++++++++
- 3 files changed, 48 insertions(+)
+ include/sbi/sbi_hart.h             |  5 ++
+ include/sbi_utils/fdt/fdt_helper.h |  2 +
+ lib/utils/fdt/fdt_helper.c         | 90 ++++++++++++++++++++++++++++++
+ platform/generic/platform.c        | 13 ++++-
+ 4 files changed, 109 insertions(+), 1 deletion(-)
 
-diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-index ffe7666c..e0262bfc 100644
---- a/include/sbi/riscv_encoding.h
-+++ b/include/sbi/riscv_encoding.h
-@@ -400,6 +400,9 @@
- /* Supervisor Resource Management Configuration CSRs */
- #define CSR_SRMCFG			0x181
- 
-+/* Supervisor lower-privilege mode World ID CSR (Sswid) */
-+#define CSR_SLWID			0x190
-+
- /* Machine-Level Control transfer records CSRs */
- #define CSR_MCTRCTL                     0x34e
- 
-@@ -520,6 +523,15 @@
- #define CSR_MTINST			0x34a
- #define CSR_MTVAL2			0x34b
- 
-+/* Machine World ID CSRs (Smwid, Smlwid, Smlwidlist, Smwiddeleg) */
-+#define CSR_MLWID			0x390
-+#define CSR_MWID			0x749
-+#define CSR_MWIDDELEG			0x748
-+#define CSR_MLWIDLIST			0x74A
-+
-+/* mwid lock bit */
-+#define MWID_LOCK			(_UL(1) << (__riscv_xlen - 1))
-+
- /* Machine Memory Protection */
- #define CSR_PMPCFG0			0x3a0
- #define CSR_PMPCFG1			0x3a1
 diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 543393bb..2941809e 100644
+index 2941809e..a1860a9c 100644
 --- a/include/sbi/sbi_hart.h
 +++ b/include/sbi/sbi_hart.h
-@@ -95,6 +95,16 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_F,
- 	/** Hart has D extension */
- 	SBI_HART_EXT_D,
-+	/** Hart has Smwid extension */
-+	SBI_HART_EXT_SMWID,
-+	/** Hart has Smlwid extension */
-+	SBI_HART_EXT_SMLWID,
-+	/** Hart has Smlwidlist extension */
-+	SBI_HART_EXT_SMLWIDLIST,
-+	/** Hart has Smwiddeleg extension */
-+	SBI_HART_EXT_SMWIDDELEG,
-+	/** Hart has Sswid extension */
-+	SBI_HART_EXT_SSWID,
- 
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
-diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 8e4c36d0..38a761ac 100644
---- a/lib/sbi/sbi_hart.c
-+++ b/lib/sbi/sbi_hart.c
-@@ -360,6 +360,11 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(v, SBI_HART_EXT_V),
- 	__SBI_HART_EXT_DATA(f, SBI_HART_EXT_F),
- 	__SBI_HART_EXT_DATA(d, SBI_HART_EXT_D),
-+	__SBI_HART_EXT_DATA(smwid, SBI_HART_EXT_SMWID),
-+	__SBI_HART_EXT_DATA(smlwid, SBI_HART_EXT_SMLWID),
-+	__SBI_HART_EXT_DATA(smlwidlist, SBI_HART_EXT_SMLWIDLIST),
-+	__SBI_HART_EXT_DATA(smwiddeleg, SBI_HART_EXT_SMWIDDELEG),
-+	__SBI_HART_EXT_DATA(sswid, SBI_HART_EXT_SSWID),
+@@ -135,6 +135,11 @@ struct sbi_hart_features {
+ 	unsigned int pmp_log2gran;
+ 	unsigned int mhpm_mask;
+ 	unsigned int mhpm_bits;
++	u32 pmwid;
++	u64 pmwidlist;
++	u64 pmlwidlist;
++	bool has_pmwid;
++	bool has_pmlwidlist;
  };
  
- _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
-@@ -647,9 +652,30 @@ __pmp_skip:
- 	/* Detect if hart support sdtrig (debug triggers) */
- 	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
- 			CSR_TSELECT, SBI_HART_EXT_SDTRIG);
-+	/* Detect if hart supports Smwid */
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_MWID, SBI_HART_EXT_SMWID);
-+	/* Detect if hart supports Smlwid */
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_MLWID, SBI_HART_EXT_SMLWID);
-+	/* Detect if hart supports Smlwidlist */
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_MLWIDLIST, SBI_HART_EXT_SMLWIDLIST);
-+	/* Detect if hart supports Smwiddeleg */
-+	__check_ext_csr(SBI_HART_PRIV_VER_UNKNOWN,
-+			CSR_MWIDDELEG, SBI_HART_EXT_SMWIDDELEG);
+ extern unsigned long hart_features_offset;
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 75a564d1..3f3d091b 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -56,6 +56,8 @@ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
  
- #undef __check_ext_csr
+ int fdt_parse_isa_extensions_all_harts(const void *fdt);
  
-+	/*
-+	 * slwid traps on access when mwiddeleg=0 (reset state), so
-+	 * Sswid presence is inferred from Smwiddeleg.
-+	 */
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWIDDELEG)) {
-+		__sbi_hart_update_extension(hfeatures,
-+					    SBI_HART_EXT_SSWID, true);
++int fdt_parse_worlds_all_harts(const void *fdt);
++
+ int fdt_parse_gaisler_uart_node(const void *fdt, int nodeoffset,
+ 				struct platform_uart_data *uart);
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 747ba028..4701606d 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -457,6 +457,96 @@ int fdt_parse_isa_extensions_all_harts(const void *fdt)
+ 	return 0;
+ }
+ 
++int fdt_parse_worlds_all_harts(const void *fdt)
++{
++	u32 hartid;
++	const fdt32_t *val;
++	struct sbi_scratch *scratch;
++	struct sbi_hart_features *hfeatures;
++	int err, cpu_offset, cpus_offset, len;
++
++	if (!fdt)
++		return SBI_EINVAL;
++
++	cpus_offset = fdt_path_offset(fdt, "/cpus");
++	if (cpus_offset < 0)
++		return cpus_offset;
++
++	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
++		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
++		if (err)
++			continue;
++
++		if (!fdt_node_is_enabled(fdt, cpu_offset))
++			continue;
++
++		scratch = sbi_hartid_to_scratch(hartid);
++		if (!scratch)
++			return SBI_ENOENT;
++
++		hfeatures = sbi_hart_features_ptr(scratch);
++		if (!hfeatures)
++			return SBI_ENOENT;
++
++		val = fdt_getprop(fdt, cpu_offset, "riscv,pmwid", &len);
++		if (val && len == sizeof(fdt32_t)) {
++			hfeatures->pmwid = fdt32_to_cpu(*val);
++			hfeatures->has_pmwid = true;
++		}
++
++		val = fdt_getprop(fdt, cpu_offset, "riscv,pmwidlist", &len);
++		if (val && len == 2 * sizeof(fdt32_t)) {
++			hfeatures->pmwidlist = ((u64)fdt32_to_cpu(val[0]) << 32) |
++						fdt32_to_cpu(val[1]);
++			if (!hfeatures->pmwidlist) {
++				sbi_printf("%s: hart%u riscv,pmwidlist is empty\n",
++					   __func__, hartid);
++				return SBI_EINVAL;
++			}
++		}
++
++		val = fdt_getprop(fdt, cpu_offset, "riscv,pmlwidlist", &len);
++		if (val && len == 2 * sizeof(fdt32_t)) {
++			hfeatures->pmlwidlist = ((u64)fdt32_to_cpu(val[0]) << 32) |
++						 fdt32_to_cpu(val[1]);
++			hfeatures->has_pmlwidlist = true;
++		}
++
++		/* Sanity checks */
++#if __riscv_xlen == 32
++		if (hfeatures->pmwidlist &&
++		    (hfeatures->pmwidlist >> 32)) {
++			sbi_printf("%s: hart%u riscv,pmwidlist has bits beyond XLEN\n",
++				   __func__, hartid);
++			return SBI_EINVAL;
++		}
++
++		if (hfeatures->has_pmlwidlist &&
++		    (hfeatures->pmlwidlist >> 32)) {
++			sbi_printf("%s: hart%u riscv,pmlwidlist has bits beyond XLEN\n",
++				   __func__, hartid);
++			return SBI_EINVAL;
++		}
++#endif
++
++		if (hfeatures->has_pmwid &&
++		    hfeatures->pmwid >= __riscv_xlen) {
++			sbi_printf("%s: hart%u riscv,pmwid (%u) exceeds max WID\n",
++				   __func__, hartid, hfeatures->pmwid);
++			return SBI_EINVAL;
++		}
++
++		if (hfeatures->pmwidlist && hfeatures->has_pmwid &&
++		    !(hfeatures->pmwidlist & BIT_ULL(hfeatures->pmwid))) {
++			sbi_printf("%s: hart%u riscv,pmwid (%u) not in pmwidlist\n",
++				   __func__, hartid, hfeatures->pmwid);
++			return SBI_EINVAL;
++		}
 +	}
 +
- #define __check_csr_existence(__csr, __csr_id)				\
- 	csr_read_allowed(__csr, &trap);					\
- 	if (!trap.cause)						\
++	return 0;
++}
++
+ static int fdt_parse_uart_node_common(const void *fdt, int nodeoffset,
+ 				      struct platform_uart_data *uart,
+ 				      unsigned long default_freq,
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 1df0280d..51e9f342 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -255,11 +255,22 @@ int generic_final_init(bool cold_boot)
+ 
+ int generic_extensions_init(bool cold_boot)
+ {
++	int rc;
++
+ 	if (!cold_boot)
+ 		return 0;
+ 
+ 	/* Parse the ISA string from FDT and enable the listed extensions */
+-	return fdt_parse_isa_extensions_all_harts(fdt_get_address());
++	rc = fdt_parse_isa_extensions_all_harts(fdt_get_address());
++	if (rc)
++		return rc;
++
++	/* Parse RISC-V Worlds CPU properties from FDT */
++	rc = fdt_parse_worlds_all_harts(fdt_get_address());
++	if (rc)
++		return rc;
++
++	return 0;
+ }
+ 
+ int generic_domains_init(void)
 -- 
 2.43.7
 
