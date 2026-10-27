@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02090606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41E44606A32F
 	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 08:36:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=spWQ62nz;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=T1P6wO06
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=y37s/H6w;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=RUuFB3JB
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,65 +14,65 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=tpkJAmYTUn9vWiP+1M+U0+j26vS02EuZ4LiI1p5uR/A=; b=spWQ62nzMCBMu+jCgIopygvldI
-	wHOeEMH/AlkDA7jvKu22YaS4w6C0g/FExyGcQwRHxqHfuGP1Lwegw4gbVP/6zR8WlrTJnoIBhS1MD
-	hoRI2URfncuMZyzqTe1GHLQa18zNDAldX9SRGsSRv5CEa6EhHkJ0FVMAK3SW9528sib+nNOCTx1iC
-	2M23WMJPPsieMrZAQ95TNQq7yP1Z3Yswa0OMvVxvkFiU412FnFrAEfzisC0iUjxgokk+MyqcXAg+R
-	3x2kqJvnylCBJyZEEpbRky7kJD2XJF5v5/dBMCTkA0B3v4oURcEgZiiVLb6UpZMMSJgUxYaHQvf9X
-	dr1C8oeg==;
+	bh=bzT1clmHN3vIX9Gg/jvJcZuYDda0WJUNUpbYroANq3s=; b=y37s/H6wv0pEbxBCNHtnJkzoPs
+	WCEZpM/UqehC/U2sw51iSFqdTCnXLWu0gpVEiR/ExRfwVALzj2+WnJTWM5iWtEFyTeu/g3TRarPXU
+	01HqyxGQJFnToTeCPe9dDkpONptR6s8b4EPg1Et8CCdEM8q5BCF6GPOTKJAkP5446Ioy9YsuU5CIm
+	a+TKSxIL7H/ugIhSgFzHDpuC0Muz5ALVQbVavFbFyqhRnzcx3LMBGDpQ8jsNBK0yfdEZblNi9FUiq
+	0TiLX5mzsks7msh5whkE0mgvd/946VSTi/KLKucceKjVXJPHk/ltOgHTty9/hJ19DvX33qS9vrTdJ
+	H+BTz2GQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLcfK-000000042o4-0oHg;
+	id 1xLcfK-000000042oF-1Mgv;
 	Tue, 27 Oct 2026 08:36:18 +0000
-Received: from mail-pg1-x52a.google.com ([2607:f8b0:4864:20::52a])
+Received: from mail-pg1-x533.google.com ([2607:f8b0:4864:20::533])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLcfD-000000042ig-0lvE
+	id 1xLcfG-000000042ky-0qII
 	for opensbi@lists.infradead.org;
-	Tue, 27 Oct 2026 08:36:16 +0000
-Received: by mail-pg1-x52a.google.com with SMTP id 41be03b00d2f7-cc7d154ec4fso1586054a12.0
-        for <opensbi@lists.infradead.org>; Tue, 27 Oct 2026 01:36:10 -0700 (PDT)
+	Tue, 27 Oct 2026 08:36:17 +0000
+Received: by mail-pg1-x533.google.com with SMTP id 41be03b00d2f7-cc4c02ddd62so2560071a12.0
+        for <opensbi@lists.infradead.org>; Tue, 27 Oct 2026 01:36:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793090170; x=1793694970; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1793090173; x=1793694973; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=6xUdXvZDPiiHdSYdcqbl49Nv/YphVHRoPTNPUCozcHs=;
-        b=T1P6wO06Y//mjMaAeCjjKzeQkZCXqMRdO4qc2pSdGQGhgQTGgarNZOv/YcZF46DoA/
-         pZ7f//5WesFzzFpov/F3+GKGy38wu0dStNdPzJJwwuF2J+1FiDLKMKaBAWs1okGCvLyN
-         I7fF+W03GqO3u9gP9F7p+CURAUhFmVc0w0WhgrdLS4FKMDOt+7PmDfl/hYy76+om/mZo
-         aoXnk7lULDBqyphxVH3gpbbnArjdIZNxu9XeKQXPRxHc0cidn/lZJvU+LROFNLeX2lfj
-         eyKGGc5T8FfX2bKj0W5vRj6LRa+v70M+2Owav7sv89U9YEh/wHiIhd8BLXPRGdaXpLNF
-         Wdlw==
+        bh=JUkNxr4kojPbLJn+zg5CTTWJXJGTfzHKedyEO6X9CxM=;
+        b=RUuFB3JB4FoBYtKLDKr+SsXMSUWBNr+JYWOiYiSyiyCpczE6aeAIuhz9gcpLLdvDQF
+         wdSoT6D9/w7P554KX/XvJs88pYAvgrLtEAiIFgFmIIiCjK/DQ1t+6RsS3bDkn8ikQV8l
+         2SnoH21SLpx0FaawRm3XVNUW2CeFprVBlDwS++kvh6cT+205AoQEWWnAA/RaAYbDIbjq
+         TvMNyBHTnq5R8Q8h3+fgGZhC5ZsWVXfo0VhWlxTHzsM0C8wTePh1WNzK+xkHmr87PJia
+         8/hS0R48mj1v0qA0DqZoBLIkfIyp7mcAvGGn0mrRBFGvPiA/gb174Q26i8Y4fyhkvhqz
+         gRgQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793090170; x=1793694970;
+        d=1e100.net; s=20260707; t=1793090173; x=1793694973;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=6xUdXvZDPiiHdSYdcqbl49Nv/YphVHRoPTNPUCozcHs=;
-        b=OCp/Td8CuJ1zA0KrNW6QOTsqKZkslT5Aineg+MpsKaZL1W3TC1PQ+klYNxsfhHY1cD
-         LWTT56YTF4IflAoMUVg6fZUnsWRS2rXocPhvR7Is7IIqyz1RK74c0h8gzsfY8kQl4b8u
-         ooL2D2uf4+mPj0wck8ncY824mIY4+tGscC9GM/9PJT/Yd8QsMN9PlArTaxpx3Z2Jib8q
-         9Li8KizywxFrfIJkc7x49F5C5+Xd9u+9tMtTtA70YJjxZrw9EwIOIyWcG8srl0fSjS90
-         8h3M4CeIP9Pq8BMvlN3uyFet168koizuAHJoMXS/cVOzMzPct5WsWB4i22Vbr03oHRMx
-         G6Ag==
-X-Gm-Message-State: AFq9FYIZ0i+1E8MD31mbDO4be6hOEequm3yZCOp5WTodwpxVT2nYEszd
-	v96B4z3URgZbsZV4b2b/sLVEi2knj7kW5OtOtzJujpP/uaSZ8azspXfaIliS5sqaVSXpQe4hUCC
-	5AjAM5XXMCM6U2sshUa9qeyM1eNad1rbEF37xMwv6ywNggOho/Vjk0MMJkqd7scP/UFbzwQQ43B
-	xSmw/du7p7ZXe/yp+LmiXJO307377NPKphpFhslKE+Pno25OOBFys=
-X-Gm-Gg: AYBFou0/eV8O67+e8IKUbXKxrB2k67DYwURVAoghOVHCTsPNqrBA6/EOKS2RHa2c9VK
-	pX4aX9GYDUu//uZGnBNB9DkQK1oXAAvajoL0lfe9jALXzOp4QUAOHa/EM6hYIGEkI5oCnwmmcgs
-	mACpE0GD8doLACxdf3RpbEjtgLyRxOIa0yIxnss/MGK6I/1OBjoR6gP6Wi2j/8iNjrlWU7RGkfp
-	a1qK8wTL8rwF5Eu74GU3XJ3CYr9yKzHCcP8hoMlKU2DTY+ppE6A3YoCYWOKvwhU9+0OHbmrvDoE
-	Dl4E29hBD491o/W4gXe1uRGnFT12W8solRj+qH7kmqtcF7O/yZxZKCnfCSduET+sGosvJLBSf/H
-	yHD6lslWhGaoHEC1rHcNpqQv0joqP5VT6P5qWmOoNpCR0WGYjTMGtbTuwiaJYXWv617Ai6tFHvl
-	Kuc7tP4vBiY/qmvMwIyFL2FACyAsNrpByze7IBl4LSqWkDG0hiA2/8Flq3daARg93MaSi6GXBnf
-	HG2mr27ePhgcMVltAfRxBOULYFACLI77Tq/3fJgUTZdAucXAaAviw==
-X-Received: by 2002:a17:90b:54c4:b0:3ab:884b:65a8 with SMTP id 98e67ed59e1d1-3adead57d38mr6246116a91.26.1793090169933;
-        Tue, 27 Oct 2026 01:36:09 -0700 (PDT)
+        bh=JUkNxr4kojPbLJn+zg5CTTWJXJGTfzHKedyEO6X9CxM=;
+        b=aqVLbbORN957PnaCCQPFd2azCMwHeMy7FR47HNM4v/7bqYmntmI7s6wpc/5Oh5MarN
+         BYHqW8gQnkBVQBu/b3hg1h6RwuvVYF6NkfEIbmwEsYHxBcpIcvZDzNc3Ae+txoilmvVU
+         gk078iBD+BwKVViszDu0SBWrTR+HmU1yOwb4K9eabpxt8nSd5g3/smdBGjMqYj1oI1mS
+         z68+R04C++EC4Ze3IIHSpgY04FIgTMxX06K2cq9o4KLyMG7XL/HWvUgcyB5+3CNf4fhs
+         if3x9jgezXBPH6XWlPOj6piPEacjdR3IfAyE+cpfH5/KpsA93emlUXYXJ4BUjPDxOJyJ
+         phwA==
+X-Gm-Message-State: AFq9FYIxNSJ8dxT2b0q1vbSB+Rt4FRaj9cwJkPdMohjmvCHlHF7izuSi
+	TbeVbrvuB0gUdMtXrizujGXj6xcHEllduRr3DC0CwBy9D4AarB0yGedEOjHZXz2GJ94vZrq+/sD
+	YzJGOTgXH1XIbulEfg++5NKsqvIKUmNU3tx++Obt2DwoT8a8c9qKJ0GG13pAXqmlgHcC3Fst65x
+	4vK+ecReC4FJwvWJZraeRXxUTwZRo44Lf8ES0dIOEI37GmsYnL7BY=
+X-Gm-Gg: AYBFou1ZVpiUrb3OKzIdmbindU1K3QllIRngVXX86SYKlBQABhS3e+zgZYqapcaNc5e
+	LMwOB3qQQ/55HTMZQrnjDHk+NUM3vlRGaCz17SIYyW2wsd54VEB7fP08xj70xdTWEcW2Sg7a7hR
+	dOt95ALSwcmfSwKsM3E7WeBX3R6tqsbCoDquhrlivv7hj4fjfLor98jzhpvVp7//17QD7iRQDSL
+	AVmy+okKUAtGXZ2gnXKomn7XReD87ut4uDu4TNk/Wv9GwVqqbaHec/YuUQRJf65jheVzaswz7H/
+	rY/6WOQSOFOM7c7DBnoglKCFDKjxZs62L7950LiSJkXlFw11OSG2svXPzd4sWsqFvoIJvBb6NTD
+	SFoiDOWcBQ/lHoGuA9lrQqmznMu/ioiaHXcgm1vX/VZYXWwk+Am4UZ6FnQDmF44TBLNSlr7t61g
+	5pZatR9tdYCff6R270Dbb+sgsHE5t3+SpXWr35AXDvGt/ywyI4mPg4VkEOO1+cbY3viYgVgFCVu
+	xcq5itYMcCLiZLn7SAL/kBoPl+z/o6n0ld7HhDWooXSAhOupGnxeA==
+X-Received: by 2002:a17:90b:2688:b0:3a8:cb54:e135 with SMTP id 98e67ed59e1d1-3adea899125mr7039642a91.19.1793090172996;
+        Tue, 27 Oct 2026 01:36:12 -0700 (PDT)
 Received: from localhost ([136.226.240.181])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cd8ccc682d8sm2461393a12.18.2026.10.27.01.36.08
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae406153fesm2756254a91.5.2026.10.27.01.36.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Oct 2026 01:36:09 -0700 (PDT)
+        Tue, 27 Oct 2026 01:36:12 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -84,17 +84,17 @@ Cc: anup@brainfault.org,
 	zong.li@sifive.com,
 	greentime.hu@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH v3 8/9] lib: sbi: display World ID configuration at boot
-Date: Tue, 27 Oct 2026 16:35:08 +0800
-Message-Id: <20261027083509.1076577-9-peter.lin@sifive.com>
+Subject: [PATCH v3 9/9] docs: document WID DT properties
+Date: Tue, 27 Oct 2026 16:35:09 +0800
+Message-Id: <20261027083509.1076577-10-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20261027083509.1076577-1-peter.lin@sifive.com>
 References: <20261027083509.1076577-1-peter.lin@sifive.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261027_013611_249917_7D952F29 
-X-CRM114-Status: GOOD (  10.81  )
+X-CRM114-CacheID: sfid-20261027_013614_288123_E4DAA27A 
+X-CRM114-Status: GOOD (  15.37  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -115,92 +115,110 @@ X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Print per-domain Wid/Widdeleg and boot HART's M-mode
-World ID (mwid/pmwid fallback).
+Add "wid" and "widdeleg" properties to domain instance node
+documentation and example DT. Add a "Root Domain Node" section
+describing the "root" subnode under the domain configuration
+node for root domain WID configuration
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 ---
 Change v2->v3:
-- Display dom->wid directly when Smlwid is present.
+- Mark 'wid' property as mandatory when Smlwid is present for both root
+  and domain instance nodes.
+- Remove mention of M-mode WID fallback when 'wid' is absent.
 ---
- lib/sbi/sbi_domain.c | 18 ++++++++++++++++++
- lib/sbi/sbi_init.c   | 13 +++++++++++++
- 2 files changed, 31 insertions(+)
+ docs/domain_support.md | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index be9020d0..f92ebc2f 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -10,6 +10,7 @@
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_hart.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_hsm.h>
-@@ -613,6 +614,7 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 	u32 i, j, k;
- 	unsigned long rstart, rend;
- 	const struct sbi_domain_memregion *reg;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index 51737218..54327e8d 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -56,6 +56,8 @@ has following details:
+   domain. This can be either S-mode or U-mode.
+ * **system_reset_allowed** - Is domain allowed to reset the system?
+ * **system_suspend_allowed** - Is domain allowed to suspend the system?
++* **wid** - World ID for the domain
++* **widdeleg** - World ID delegation bitmask for the domain
  
- 	sbi_printf("Domain%d Name        %s: %s\n",
- 		   dom->index, suffix, dom->name);
-@@ -691,6 +693,22 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 		break;
- 	}
+ The memory regions represented by **regions** in **struct sbi_domain** have
+ following additional constraints to align with RISC-V PMP requirements:
+@@ -98,6 +100,8 @@ following manner:
+   is the next mode for the ROOT domain
+ * **system_reset_allowed** - The ROOT domain is allowed to reset the system
+ * **system_suspend_allowed** - The ROOT domain is allowed to suspend the system
++* **wid** - Configurable World ID for the ROOT domain
++* **widdeleg** - Configurable World ID delegation bitmask for the ROOT domain
  
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWID)) {
-+		sbi_printf("Domain%d Wid         %s: %u\n",
-+			   dom->index, suffix, dom->wid);
-+	} else {
-+		sbi_printf("Domain%d Wid         %s: unsupported\n",
-+			   dom->index, suffix);
-+	}
+ Domain Effects
+ --------------
+@@ -131,6 +135,22 @@ The DT properties of a domain configuration DT node are as follows:
+ * **compatible** (Mandatory) - The compatible string of the domain
+   configuration. This DT property should have value *"opensbi,domain,config"*
+ 
++### Root Domain Node
 +
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWIDDELEG)) {
-+		sbi_printf("Domain%d Widdeleg    %s: 0x%" PRIx64 "\n",
-+			   dom->index, suffix, dom->widdeleg);
-+	} else {
-+		sbi_printf("Domain%d Widdeleg    %s: unsupported\n",
-+			   dom->index, suffix);
-+	}
++The root domain WID configuration is described in a **root** subnode under
++the domain configuration DT node. This subnode does not have a compatible
++string.
 +
- 	sbi_printf("Domain%d SysReset    %s: %s\n",
- 		   dom->index, suffix, (dom->system_reset_allowed) ? "yes" : "no");
- 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index acd2f8b6..f771f548 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -167,6 +167,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	int xlen;
- 	char str[256];
- 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	struct sbi_hart_features *hf = sbi_hart_features_ptr(scratch);
- 
- 	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
- 		return;
-@@ -199,6 +200,18 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_printf("Boot HART Debug Triggers    : %d triggers\n",
- 		   sbi_dbtr_get_total_triggers());
- 	sbi_hart_delegation_dump(scratch, "Boot HART ", "           ");
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWID)) {
-+		ulong mwid = csr_read(CSR_MWID);
++The DT properties of the root domain node are as follows:
 +
-+		sbi_printf("Boot HART M-mode World ID   : %lu (%s)\n",
-+			   mwid & ~MWID_LOCK,
-+			   (mwid & MWID_LOCK) ? "locked" : "unlocked");
-+	} else if (hf->has_pmwid) {
-+		sbi_printf("Boot HART M-mode World ID   : %u (pmwid)\n",
-+			   hf->pmwid);
-+	} else {
-+		sbi_printf("Boot HART M-mode World ID   : unsupported\n");
-+	}
- }
++* **wid** (Mandatory if Smlwid is present) - The 32-bit World ID for
++  lower-privilege modes (S/U-mode) for the ROOT domain. If the hart
++  supports the Smlwid extension, this property must be provided.
++* **widdeleg** (Optional) - The 64 bit World ID delegation bitmask for
++  the ROOT domain. If present, OpenSBI writes this value to **mwiddeleg**
++  when entering the ROOT domain (requires Smwiddeleg extension). If absent,
++  clears **mwiddeleg** to disable S-mode WID delegation.
++
+ ### Domain Memory Region Node
  
- static unsigned long coldboot_done;
+ The domain memory region DT node describes details of a memory region and
+@@ -205,6 +225,13 @@ The DT properties of a domain instance DT node are as follows:
+   whether the domain instance is allowed to do system reset.
+ * **system-suspend-allowed** (Optional) - A boolean flag representing
+   whether the domain instance is allowed to do system suspend.
++* **wid** (Mandatory if Smlwid is present) - The 32-bit World ID for
++  lower-privilege modes (S/U-mode) for the domain instance. If the hart
++  supports the Smlwid extension, this property must be provided.
++* **widdeleg** (Optional) - The 64 bit World ID delegation bitmask for
++  the domain instance. If present, OpenSBI writes this value to **mwiddeleg**
++  on context switch into this domain (requires Smwiddeleg extension). If absent,
++  clears **mwiddeleg** to disable S-mode WID delegation.
+ 
+ ### Assigning HART To Domain Instance
+ 
+@@ -260,6 +287,11 @@ be done:
+                 order = <64>;
+             };
+ 
++            root {
++                wid = <3>;
++                widdeleg = <0x0 0x0>;
++            };
++
+             tdomain: trusted-domain {
+                 compatible = "opensbi,domain,instance";
+                 possible-harts = <&cpu0>;
+@@ -268,6 +300,8 @@ be done:
+                 next-arg1 = <0x0 0x0>;
+                 next-addr = <0x0 0x80100000>;
+                 next-mode = <0x0>;
++                wid = <1>;
++                widdeleg = <0x0 0x6>;
+                 system-reset-allowed;
+                 system-suspend-allowed;
+             };
+@@ -276,6 +310,8 @@ be done:
+                 compatible = "opensbi,domain,instance";
+                 possible-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
+                 regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x3f>;
++                wid = <0>;
++                widdeleg = <0x0 0x1>;
+             };
+         };
+     };
 -- 
 2.43.7
 
