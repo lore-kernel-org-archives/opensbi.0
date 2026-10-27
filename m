@@ -2,100 +2,80 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41E44606A32F
-	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 08:36:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D7EE606A320
+	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 10:45:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=y37s/H6w;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=RUuFB3JB
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=tuNQrU93;
+	dkim=temperror header.d=mobileye.com header.i=@mobileye.com header.a=rsa-sha256 header.s=MoEyIP header.b=K4RLi8im
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
+	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=bzT1clmHN3vIX9Gg/jvJcZuYDda0WJUNUpbYroANq3s=; b=y37s/H6wv0pEbxBCNHtnJkzoPs
-	WCEZpM/UqehC/U2sw51iSFqdTCnXLWu0gpVEiR/ExRfwVALzj2+WnJTWM5iWtEFyTeu/g3TRarPXU
-	01HqyxGQJFnToTeCPe9dDkpONptR6s8b4EPg1Et8CCdEM8q5BCF6GPOTKJAkP5446Ioy9YsuU5CIm
-	a+TKSxIL7H/ugIhSgFzHDpuC0Muz5ALVQbVavFbFyqhRnzcx3LMBGDpQ8jsNBK0yfdEZblNi9FUiq
-	0TiLX5mzsks7msh5whkE0mgvd/946VSTi/KLKucceKjVXJPHk/ltOgHTty9/hJ19DvX33qS9vrTdJ
-	H+BTz2GQ==;
+	bh=hKd9RBr6CRj7uLfREfaDKyg1hMTWNvypNr9Dq47QDtM=; b=tuNQrU93ZMk1eViWTh9kcYx3eS
+	/psaShoPxv3xHZZ5gp7wiFA5DZynPhkHaz1xYpN+wDzOPvWOqXImqc9qvaOR0iHGmdgE2sjNOModN
+	+2/U7CHWkpFM2TIIdiqic8WZwrLwYB1IxCJMElNJr7t6977T9cvotluXMZsCA2gz3aUSsNxLeNCA3
+	kOCuCbBcVcKc4jhc9fODGS6OAXs/UHCeU3JuDd54cKuWwAzrrZoW8IJ/k0sxAySyOU/Q/4ZYCWggE
+	731kT5ltYLK7N7j86KxQc3RZlX+uSmygKEh9N0dFsz2ordif7sLwcxkgZ9uVzdl9N0I21sygd5IYR
+	q+11Dr4w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLcfK-000000042oF-1Mgv;
-	Tue, 27 Oct 2026 08:36:18 +0000
-Received: from mail-pg1-x533.google.com ([2607:f8b0:4864:20::533])
+	id 1xLegA-00000004KqW-3puX;
+	Tue, 27 Oct 2026 10:45:18 +0000
+Received: from esa1.hc555-34.eu.iphmx.com ([23.90.104.144])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLcfG-000000042ky-0qII
+	id 1xLeg7-00000004Knl-1eBo
 	for opensbi@lists.infradead.org;
-	Tue, 27 Oct 2026 08:36:17 +0000
-Received: by mail-pg1-x533.google.com with SMTP id 41be03b00d2f7-cc4c02ddd62so2560071a12.0
-        for <opensbi@lists.infradead.org>; Tue, 27 Oct 2026 01:36:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793090173; x=1793694973; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=JUkNxr4kojPbLJn+zg5CTTWJXJGTfzHKedyEO6X9CxM=;
-        b=RUuFB3JB4FoBYtKLDKr+SsXMSUWBNr+JYWOiYiSyiyCpczE6aeAIuhz9gcpLLdvDQF
-         wdSoT6D9/w7P554KX/XvJs88pYAvgrLtEAiIFgFmIIiCjK/DQ1t+6RsS3bDkn8ikQV8l
-         2SnoH21SLpx0FaawRm3XVNUW2CeFprVBlDwS++kvh6cT+205AoQEWWnAA/RaAYbDIbjq
-         TvMNyBHTnq5R8Q8h3+fgGZhC5ZsWVXfo0VhWlxTHzsM0C8wTePh1WNzK+xkHmr87PJia
-         8/hS0R48mj1v0qA0DqZoBLIkfIyp7mcAvGGn0mrRBFGvPiA/gb174Q26i8Y4fyhkvhqz
-         gRgQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793090173; x=1793694973;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=JUkNxr4kojPbLJn+zg5CTTWJXJGTfzHKedyEO6X9CxM=;
-        b=aqVLbbORN957PnaCCQPFd2azCMwHeMy7FR47HNM4v/7bqYmntmI7s6wpc/5Oh5MarN
-         BYHqW8gQnkBVQBu/b3hg1h6RwuvVYF6NkfEIbmwEsYHxBcpIcvZDzNc3Ae+txoilmvVU
-         gk078iBD+BwKVViszDu0SBWrTR+HmU1yOwb4K9eabpxt8nSd5g3/smdBGjMqYj1oI1mS
-         z68+R04C++EC4Ze3IIHSpgY04FIgTMxX06K2cq9o4KLyMG7XL/HWvUgcyB5+3CNf4fhs
-         if3x9jgezXBPH6XWlPOj6piPEacjdR3IfAyE+cpfH5/KpsA93emlUXYXJ4BUjPDxOJyJ
-         phwA==
-X-Gm-Message-State: AFq9FYIxNSJ8dxT2b0q1vbSB+Rt4FRaj9cwJkPdMohjmvCHlHF7izuSi
-	TbeVbrvuB0gUdMtXrizujGXj6xcHEllduRr3DC0CwBy9D4AarB0yGedEOjHZXz2GJ94vZrq+/sD
-	YzJGOTgXH1XIbulEfg++5NKsqvIKUmNU3tx++Obt2DwoT8a8c9qKJ0GG13pAXqmlgHcC3Fst65x
-	4vK+ecReC4FJwvWJZraeRXxUTwZRo44Lf8ES0dIOEI37GmsYnL7BY=
-X-Gm-Gg: AYBFou1ZVpiUrb3OKzIdmbindU1K3QllIRngVXX86SYKlBQABhS3e+zgZYqapcaNc5e
-	LMwOB3qQQ/55HTMZQrnjDHk+NUM3vlRGaCz17SIYyW2wsd54VEB7fP08xj70xdTWEcW2Sg7a7hR
-	dOt95ALSwcmfSwKsM3E7WeBX3R6tqsbCoDquhrlivv7hj4fjfLor98jzhpvVp7//17QD7iRQDSL
-	AVmy+okKUAtGXZ2gnXKomn7XReD87ut4uDu4TNk/Wv9GwVqqbaHec/YuUQRJf65jheVzaswz7H/
-	rY/6WOQSOFOM7c7DBnoglKCFDKjxZs62L7950LiSJkXlFw11OSG2svXPzd4sWsqFvoIJvBb6NTD
-	SFoiDOWcBQ/lHoGuA9lrQqmznMu/ioiaHXcgm1vX/VZYXWwk+Am4UZ6FnQDmF44TBLNSlr7t61g
-	5pZatR9tdYCff6R270Dbb+sgsHE5t3+SpXWr35AXDvGt/ywyI4mPg4VkEOO1+cbY3viYgVgFCVu
-	xcq5itYMcCLiZLn7SAL/kBoPl+z/o6n0ld7HhDWooXSAhOupGnxeA==
-X-Received: by 2002:a17:90b:2688:b0:3a8:cb54:e135 with SMTP id 98e67ed59e1d1-3adea899125mr7039642a91.19.1793090172996;
-        Tue, 27 Oct 2026 01:36:12 -0700 (PDT)
-Received: from localhost ([136.226.240.181])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae406153fesm2756254a91.5.2026.10.27.01.36.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Oct 2026 01:36:12 -0700 (PDT)
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	pawandeep.oza@oss.qualcomm.com,
-	rkrcmar@qti.qualcomm.com,
-	raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com,
-	samuel.holland@sifive.com,
-	zong.li@sifive.com,
-	greentime.hu@sifive.com,
-	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH v3 9/9] docs: document WID DT properties
-Date: Tue, 27 Oct 2026 16:35:09 +0800
-Message-Id: <20261027083509.1076577-10-peter.lin@sifive.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261027083509.1076577-1-peter.lin@sifive.com>
-References: <20261027083509.1076577-1-peter.lin@sifive.com>
+	Tue, 27 Oct 2026 10:45:17 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
+  t=1793097922; x=1824633922;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=I988GpikzMxTObXba+1l6H5bDJ1UnK/Rh0V3gEK55pY=;
+  b=K4RLi8imT1I4dJ40yqQz+SEfKGwYBikjL9YY/rJm5W3mcQ9R2XwgghVV
+   m8SWbmrY3nRGMoxtW9DcpwskU5PMwOwl3ohec+8OvRjxbVEKBSFjbN1lG
+   wrXjI55UV0T7qqR9vcsYKycvgmWJxWiS2O2u1evm6JophXWJp0mt+EOmU
+   Vz0cyLZQohqH8kogEwsuv5XpZMoFyTWN9H+J4EJmx+y2HLmJ/9mk0YHYf
+   AmiJPVFK1os4sMHY6JkdEjx9eJl/aVn6Xg1HXGdTS7QL1ASZqKSOFLweU
+   OiIU5FJsIsjXzVBvhl6momnB2aL4OB0CxI1RPOOMFTDfgnzJWd55DLvju
+   w==;
+X-CSE-ConnectionGUID: MAhW0KqDQy2/jWTHv+VX7A==
+X-CSE-MsgGUID: vxsMd+jxRG+utgJBjMT8lg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from unknown (HELO ces01_data.me-corp.lan) ([146.255.191.134])
+  by esa1.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2026 12:45:17 +0200
+X-CSE-ConnectionGUID: rzVS6KLdQSKx2H23aIik/w==
+X-CSE-MsgGUID: IC1cglk1Q5Ctm1K1Hv6VEA==
+Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
+  by ces01_data.me-corp.lan with SMTP; 27 Oct 2026 12:53:02 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Tue, 27 Oct 2026 12:45:09 +0200
+From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+Subject: [PATCH 0/2] platform: mips: p8700: S-mode access to the CM
+ performance counters
+Date: Tue, 27 Oct 2026 12:44:34 +0200
+Message-Id: <20261027-p8700-cm-pmu-v1-0-580515e4bf39@mobileye.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
+X-B4-Tracking: v=1; b=H4sIAJKA4GoC/yXMQQqDMBBA0avIrB2YZNFIr1Jc6GTUKSQNiYog3
+ r1pXb7F/ycUySoFns0JWXYt+okVpm2AlyHOguqrwZJ9GLIOU+eIkAOmsKE1nhwL+85PUJOUZdL
+ jv3v1t8s2voXX3wOu6wsDEw5kcAAAAA==
+X-Change-ID: 20261027-p8700-cm-pmu-21d07cecd8df
+To: Anup Patel <anup@brainfault.org>, Atish Patra <atishp@rivosinc.com>, 
+ Bo Gan <ganboing@gmail.com>, Samuel Holland <samuel.holland@sifive.com>, 
+ =?utf-8?q?Cl=C3=A9ment_L=C3=A9ger?= <cleger@rivosinc.com>, 
+ Xiang W <wxjstz@126.com>, Chao-ying Fu <icebergfu@gmail.com>, 
+ =?utf-8?q?Beno=C3=AEt_Monin?= <benoit.monin@bootlin.com>
+Cc: Andrew Jones <ajones@ventanamicro.com>, opensbi@lists.infradead.org, 
+ Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+X-Mailer: b4 0.16.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261027_013614_288123_E4DAA27A 
-X-CRM114-Status: GOOD (  15.37  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261027_034515_907716_61D04D7B 
+X-CRM114-Status: GOOD (  12.65  )
+X-Spam-Score: -4.0 (----)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -115,112 +95,52 @@ X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Add "wid" and "widdeleg" properties to domain instance node
-documentation and example DT. Add a "Root Domain Node" section
-describing the "root" subnode under the domain configuration
-node for root domain WID configuration
+The MIPS P8700 Coherence Manager (CM3) has a small performance counter
+block (GCR.Debug, offsets 0x900-0x9ff of the GCR) which Linux drives
+through the mips_p8700_cm_pmu perf driver. These registers live in the
+same PMP granule as GCR registers that must stay M-mode only (L2 cache
+operations, MMIO region programming, coherence control, ...), so the
+whole GCR block is closed to S-mode and the PMU is unreachable from
+Linux.
 
-Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
----
-Change v2->v3:
-- Mark 'wid' property as mandatory when Smlwid is present for both root
-  and domain instance nodes.
-- Remove mention of M-mode WID fallback when 'wid' is absent.
----
- docs/domain_support.md | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+A vendor SBI extension would solve this but needs vendor-specific code
+in Linux. Instead, this series uses trap-and-emulate: S-mode accesses
+to the GCR already arrive in M-mode as load/store access faults, and
+OpenSBI forwards them to the platform emulate_load/emulate_store hooks.
+The platform translates the faulting address, checks it is inside the
+PMU block of one of the CM instances, and performs the access on behalf
+of S-mode. Everything else is redirected to S-mode as a genuine fault.
+The Linux driver is a plain MMIO driver and needs no changes.
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 51737218..54327e8d 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -56,6 +56,8 @@ has following details:
-   domain. This can be either S-mode or U-mode.
- * **system_reset_allowed** - Is domain allowed to reset the system?
- * **system_suspend_allowed** - Is domain allowed to suspend the system?
-+* **wid** - World ID for the domain
-+* **widdeleg** - World ID delegation bitmask for the domain
- 
- The memory regions represented by **regions** in **struct sbi_domain** have
- following additional constraints to align with RISC-V PMP requirements:
-@@ -98,6 +100,8 @@ following manner:
-   is the next mode for the ROOT domain
- * **system_reset_allowed** - The ROOT domain is allowed to reset the system
- * **system_suspend_allowed** - The ROOT domain is allowed to suspend the system
-+* **wid** - Configurable World ID for the ROOT domain
-+* **widdeleg** - Configurable World ID delegation bitmask for the ROOT domain
- 
- Domain Effects
- --------------
-@@ -131,6 +135,22 @@ The DT properties of a domain configuration DT node are as follows:
- * **compatible** (Mandatory) - The compatible string of the domain
-   configuration. This DT property should have value *"opensbi,domain,config"*
- 
-+### Root Domain Node
-+
-+The root domain WID configuration is described in a **root** subnode under
-+the domain configuration DT node. This subnode does not have a compatible
-+string.
-+
-+The DT properties of the root domain node are as follows:
-+
-+* **wid** (Mandatory if Smlwid is present) - The 32-bit World ID for
-+  lower-privilege modes (S/U-mode) for the ROOT domain. If the hart
-+  supports the Smlwid extension, this property must be provided.
-+* **widdeleg** (Optional) - The 64 bit World ID delegation bitmask for
-+  the ROOT domain. If present, OpenSBI writes this value to **mwiddeleg**
-+  when entering the ROOT domain (requires Smwiddeleg extension). If absent,
-+  clears **mwiddeleg** to disable S-mode WID delegation.
-+
- ### Domain Memory Region Node
- 
- The domain memory region DT node describes details of a memory region and
-@@ -205,6 +225,13 @@ The DT properties of a domain instance DT node are as follows:
-   whether the domain instance is allowed to do system reset.
- * **system-suspend-allowed** (Optional) - A boolean flag representing
-   whether the domain instance is allowed to do system suspend.
-+* **wid** (Mandatory if Smlwid is present) - The 32-bit World ID for
-+  lower-privilege modes (S/U-mode) for the domain instance. If the hart
-+  supports the Smlwid extension, this property must be provided.
-+* **widdeleg** (Optional) - The 64 bit World ID delegation bitmask for
-+  the domain instance. If present, OpenSBI writes this value to **mwiddeleg**
-+  on context switch into this domain (requires Smwiddeleg extension). If absent,
-+  clears **mwiddeleg** to disable S-mode WID delegation.
- 
- ### Assigning HART To Domain Instance
- 
-@@ -260,6 +287,11 @@ be done:
-                 order = <64>;
-             };
- 
-+            root {
-+                wid = <3>;
-+                widdeleg = <0x0 0x0>;
-+            };
-+
-             tdomain: trusted-domain {
-                 compatible = "opensbi,domain,instance";
-                 possible-harts = <&cpu0>;
-@@ -268,6 +300,8 @@ be done:
-                 next-arg1 = <0x0 0x0>;
-                 next-addr = <0x0 0x80100000>;
-                 next-mode = <0x0>;
-+                wid = <1>;
-+                widdeleg = <0x0 0x6>;
-                 system-reset-allowed;
-                 system-suspend-allowed;
-             };
-@@ -276,6 +310,8 @@ be done:
-                 compatible = "opensbi,domain,instance";
-                 possible-harts = <&cpu1 &cpu2 &cpu3 &cpu4>;
-                 regions = <&tmem 0x0>, <&tuart 0x0>, <&allmem 0x3f>;
-+                wid = <0>;
-+                widdeleg = <0x0 0x1>;
-             };
-         };
-     };
--- 
-2.43.7
+Patch 1 adds sbi_va_to_pa() to libsbi. The hooks receive the
+S-mode virtual address (mtval) and RISC-V has no way to translate an
+address on behalf of another mode, so this walks the satp page tables
+with M-mode physical loads. It is generic (Sv32 and Sv39/48/57) and
+usable by any platform emulator.
+
+Patch 2 implements the P8700 hooks and enables them for EyeQ7H.
+
+Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
+---
+Vladimir Kondratiev (2):
+      lib: sbi: Add sbi_va_to_pa() to translate S/U-mode addresses
+      platform: generic: mips: p8700: Emulate S-mode access to CM PMU registers
+
+ include/sbi/riscv_encoding.h          |  28 ++++++++
+ include/sbi/sbi_unpriv.h              |  23 +++++++
+ lib/sbi/sbi_unpriv.c                  |  78 +++++++++++++++++++++
+ platform/generic/include/mips/p8700.h |  34 +++++++++
+ platform/generic/mips/eyeq7h.c        |   2 +
+ platform/generic/mips/objects.mk      |   2 +-
+ platform/generic/mips/p8700_access.c  | 126 ++++++++++++++++++++++++++++++++++
+ 7 files changed, 292 insertions(+), 1 deletion(-)
+---
+base-commit: bcf587a987573057968a11b941729d70799947f4
+change-id: 20261027-p8700-cm-pmu-21d07cecd8df
+
+Best regards,
+--  
+Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 
 
 -- 
