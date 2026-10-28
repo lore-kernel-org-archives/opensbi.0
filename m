@@ -2,10 +2,10 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13051606A31E
-	for <opensbi@archiver.kernel.org>; Wed, 28 Oct 2026 11:00:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5279B606A31A
+	for <opensbi@archiver.kernel.org>; Wed, 28 Oct 2026 11:04:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=QIFVnX7H
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=KVZLTtqI
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -13,54 +13,54 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=wmNIwM/aD7fQwxrtCCky8pH4Q7xS0iAFt3KiDn7j2OU=; b=QIFVnX7Hy8uqlYJMPE1eQVId45
-	j0ewWP2eyQPzQgQx3gX5NT548ow3Qtbtt8dcMXT6CGO99YGKoai1NBvN9Xw52O5QeAc4VVkfH3Jic
-	DqHSkG49DeueDcKykiR6JQ5LWnToM5pHiYCsfJFx0jrHGLKbYtP+1Ak/1QKZT0CfEmgpAvosg2ad/
-	i9CX67Lq7NP0+jFi07QjhIdXDf+a4/bJV9+yfn672Y3fiZLVcWHI93xeXbgP8E+l7uj5fgv6PZfhR
-	mFhT5+CSy+ylUErY6dA40U4ruukQFLhMW2eso0HpnjDC2G5BcgjEoGlZ9v0L603Yq7rHyiTRYTNRo
-	bKJWA4WA==;
+	bh=eLah9p0GlWfmZ5KuCNtb6BHk1FSyBdRMBs7pP7f2Uwc=; b=KVZLTtqIF/e4Iz/zvGpauFaKXO
+	6ZWqZ6Ct4kX1njo8o3K8j0KE7wdaEKulZ060K6691ZUGOAHiuaBv9o4pYdyf0MpJ8Ie7v1JWN3h4w
+	FtSQhHvcKJ2qU4XXqNgRwVmLlfdkAN1Z4olqpmoKFHGiNg6hExu1reYQWCrLLdzuQILmyxDzHj9xI
+	FZ7rrgu072IedbeAGns5ep24ebJpUszDVktTUqEIx+zf5DSKGybwmVZnPCsS1ozdjRhKyWzgzJUMA
+	Z3H7RRu772tl5uiYsvbU+zmaXgHBQQ7+kCPUxBGi1OtzsruEecRwUI6lnLvBWtQXD3ig5Z5mshegK
+	NQSw+mtA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xM1OH-00000006ooF-1ZMM;
-	Wed, 28 Oct 2026 11:00:21 +0000
+	id 1xM1SI-00000006pAo-130s;
+	Wed, 28 Oct 2026 11:04:30 +0000
 Received: from atcsqr.andestech.com ([220.128.198.184])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xM1OE-00000006omw-0fPx
+	id 1xM1SF-00000006pAT-26l3
 	for opensbi@lists.infradead.org;
-	Wed, 28 Oct 2026 11:00:20 +0000
-Received: from mail.andestech.com (atcpcs55.andestech.com [10.0.1.155])
-	by Atcsqr.andestech.com with ESMTPS id 69SB0365088596
+	Wed, 28 Oct 2026 11:04:28 +0000
+Received: from mail.andestech.com (atcpcs54.andestech.com [10.0.1.154])
+	by Atcsqr.andestech.com with ESMTPS id 69SB4K8G091789
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Wed, 28 Oct 2026 19:00:03 +0800 (+08)
+	Wed, 28 Oct 2026 19:04:20 +0800 (+08)
 	(envelope-from randolph@andestech.com)
-Received: from ATCPCS34.andestech.com (10.0.1.134) by atcpcs55.andestech.com
- (10.0.1.155) with Microsoft SMTP Server (version=TLS1_2,
+Received: from ATCPCS34.andestech.com (10.0.1.134) by atcpcs54.andestech.com
+ (10.0.1.154) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Wed, 28 Oct
- 2026 19:00:03 +0800
+ 2026 19:04:21 +0800
 Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS34.andestech.com
  (10.0.1.134) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Wed, 28 Oct
- 2026 19:00:03 +0800
+ 2026 19:04:20 +0800
 From: Randolph Lin <randolph@andestech.com>
 To: <opensbi@lists.infradead.org>
 CC: Randolph Lin <randolph.sklin@gmail.com>,
         Randolph Lin
 	<randolph@andestech.com>
-Subject: [PATCH] platform: generic/andes: flush data caches before setting PMA regions
-Date: Wed, 28 Oct 2026 18:59:56 +0800
-Message-ID: <20261028105956.484721-1-randolph@andestech.com>
+Subject: [PATCH v2] platform: generic/andes: flush data caches before setting PMA regions
+Date: Wed, 28 Oct 2026 19:04:12 +0800
+Message-ID: <20261028110412.495997-1-randolph@andestech.com>
 X-Mailer: git-send-email 2.34.1
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-ClientProxiedBy: ATCPCS33.andestech.com (10.0.1.100) To
  ATCPCS34.andestech.com (10.0.1.134)
-X-DKIM-Results: atcpcs55.andestech.com; dkim=none;
+X-DKIM-Results: atcpcs54.andestech.com; dkim=none;
 X-DNSRBL: 
 X-SPAM-SOURCE-CHECK: pass
-X-MAIL: Atcsqr.andestech.com 69SB0365088596
+X-MAIL: Atcsqr.andestech.com 69SB4K8G091789
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261028_040018_651268_433AA10D 
-X-CRM114-Status: GOOD (  13.02  )
+X-CRM114-CacheID: sfid-20261028_040427_997843_1B938119 
+X-CRM114-Status: GOOD (  13.94  )
 X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -74,10 +74,10 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
@@ -94,7 +94,11 @@ are per hart, so a caller that sets a region on every hart also
 flushes every L1 data cache.
 
 Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Randolph Lin <randolph@andestech.com>
 ---
+Changes in v2:
+- Add the missing Signed-off-by.
+
  platform/generic/andes/andes_pma.c | 21 +++++++++++++++++++++
  1 file changed, 21 insertions(+)
 
