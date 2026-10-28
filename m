@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE915606A31A
-	for <opensbi@archiver.kernel.org>; Tue, 27 Oct 2026 23:46:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C058B606A31F
+	for <opensbi@archiver.kernel.org>; Wed, 28 Oct 2026 00:03:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=MVij80Ll;
-	dkim=fail reason="signature verification failed" (4096-bit key, unprotected) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=RgG6cSQ8
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=KI3ml4XP;
+	dkim=fail reason="signature verification failed" (4096-bit key, unprotected) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=ldHapmGl
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,56 +14,57 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=mIzUqQPb67f0gIQx93md1tZucaHnEcbZlWZ5ttptpmE=; b=MVij80LllxgdQ5Rj6+BR//S4fZ
-	NabjBqgFRZ0hHAtglKQRTgdnMGwtHMIpkfQ7MDAcwgTviGmT0dDNTMaBAnBYl97yTt4eM57go97wa
-	1jVm0scF2kML19cVxRqHLVrKH/lq2wIbgy7ZW8ivi7WnwOSJukU9Oy75+l2rg0a+gm1IqAVjZQXJX
-	tLJh98BoJ5EFIZe/oHUVq1P0WVsQvIvug00JmFkUtNEm17x+FxmK2UrSDZ8jxFKmL/rp3YOJEqPCD
-	FctMahVGM2Y3gu+VX1vYcTbUPA7dU0dpdxt2lzc3Gg7kzABgXdLoR9QUyFXd67VKF/m3ydJ/vpgDB
-	zzyJJewg==;
+	bh=hYtu+DCAo45rtYuoyLmMIKCAx+qKlQi7TMCCMzHbRRA=; b=KI3ml4XPnebgUwVeHOkrQFq05b
+	E4ZBfTZh6TPAObGAYAoeJ4F1Unxud1a37hUHyxQg0K82sC+htnShNyn+xxha//KbTf6HMJqwFqSlE
+	4hfKLTkxT/DruzcEMmLsIZtbBFMOCv00JVoUpShVvO/ZUde2mRcjoxjhOosS6iVELZS9NbBV9Yc3P
+	QqFEUhFMKzEIcXAFPkg2xPbf4Il16s8AZOB50ylhMQMjgQtR8bWiQz9eE9h9L4qjIij+gB8i9oPnV
+	Ub6v8r/tBudhKjgh988Wod8sWVrGvWp8QNd0d2YZdalDLe1EAT6fe4iraMlXV1Qo5qoVJd+ZXXfYg
+	l8bH60yw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLqsM-00000005xFQ-01iV;
-	Tue, 27 Oct 2026 23:46:42 +0000
-Received: from smtp-relay-canonical-0.canonical.com ([185.125.188.120])
+	id 1xLr8u-00000005yHR-3nYt;
+	Wed, 28 Oct 2026 00:03:48 +0000
+Received: from smtp-relay-canonical-1.canonical.com ([185.125.188.121])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLqsI-00000005xF6-2UW1
+	id 1xLr8r-00000005yH3-3YO1
 	for opensbi@lists.infradead.org;
-	Tue, 27 Oct 2026 23:46:40 +0000
+	Wed, 28 Oct 2026 00:03:47 +0000
 Received: from LT03 (host-209-35-187-178.broadbandcancun.mx [209.35.187.178])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 335583F7C2;
-	Tue, 27 Oct 2026 23:46:33 +0000 (UTC)
+	by smtp-relay-canonical-1.canonical.com (Postfix) with ESMTPSA id 83B7D3F115;
+	Wed, 28 Oct 2026 00:03:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-	s=20251003; t=1793144794;
-	bh=iwwP9Dobos5Yq1xCg1HUZzXhygvgOopncMLCp03kW3k=;
+	s=20251003; t=1793145822;
+	bh=SqRHJTysFkp3OYMqGz18o961My7hNT8RKjT8e977uTQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version;
-	b=RgG6cSQ8jefF5sx+i3w0K/26fidTBygnxnSVW/g+21kGMPiQZ7DrNuHNyqZ8z5OKR
-	 H++bNOATU76SGnBktBJCEaQ+XhH0x+0GxtIjUTlehyx2Yahh/gMepnm8HZhrIzoIWx
-	 DppqdqkYTrmP+qzOMPAD8HcSEO6FWFvcFmkI5OHlQyX7+Brw3oNXesVf9QtHuZaDNv
-	 sNtSC62ehOMy0MK3BMqOx/J5u/auIUsL2+gVLQ9QwPRE0kFcUunP00VqyPpjyekhoT
-	 PwpTH2tamzSElijfQb8DTeKaziAVHMueLZWFu+7Q05+WDqKZbn5849OcESeUj4NxKA
-	 qvis1yav+K0YBwe4Nz9bHuU/0Oj1+5vQAPM6zkQVSZqDWUX0J/MSU3hBEGXvfN4gQN
-	 JmePXZtznk4ViGv336YesIHKphwL4hvCg9JzA8EtWCbSPIgHjpgY5he9+yjY/tIdOw
-	 5pxjRuBfIF+548v+lLnR9vvCklX8uSUyiB1pzpoyVvo91gSAS5IT1/8huVgX0ZTM9r
-	 1TzahNXOFWiRPAeKClwXoX3jn81lzwzlhxKFHvdeR4spNPTLtF/Zfi3Gmxcjcl0Onj
-	 nRZeTViPslYyJQcOr+izEr0UZk3VvqTvs6Mp12ecBQmSZyeke2bcAJjFHffQ7HEp2c
-	 MQVPAJHEAaTlYboxpFxqiB6k=
+	b=ldHapmGl2lbY39WQxJbI/lrIAPYk7Vl4ucdiQfmc6aMLVqL5yARNdqxET83yOetHV
+	 Mw+X6BzByng3C2BK8G6eChb+PT9hDeFosD8MA82ynhwtXb2/61DeoCFuILHN6zMDnW
+	 rNxzksfAu7CHH8XzkEDTlDIqycPJI+HbC1XtlyOPlKXudm5qj8bBoJYvs5rqNHubY1
+	 y7aBwcrcNX6pqwv7x0V1ZwQhlI1MsGC/OHSybekVtNGxgrXphxPmCyWs/LYOVGeoQM
+	 irrTHXEXTYN9dmjpw8jHwVnD/uCfPi0JGWIVlUkYdCxIPq/Ra2YK/Y0PCr73fKnvo9
+	 k7w+RFebRjn+Z/xd2gFT6kJxBOmJmXEWxdIKJBYBw9shn0N2KeXgOMRZMT3mjgrEf2
+	 7jQAklLNl/R8qEImCNhNwOVh3S3fW69ke3Pvyxk2dbPPMXxjn7N52WFwYXOdmRh0rC
+	 xhL+yHHukrRYKIxNCgZ1/SrA6WN4twizUrLMqcCrZDD2m4a3m+l1Z/9A34M8sCDe1f
+	 ya3cwmk37OhNHZ2dZIB7VDHQMqCLeKrqds8eK2AyZG/OoYa/w6ZEgEvehxdShJIHLH
+	 s0y6ZaP/LOOkgKSRCXlxNJpZACFgkJJYKbIzNu+2bT0C4Hho/K37P4TZrNhHAi5CHB
+	 Wa5RG8JfB2Fa11iscBDVJ284=
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 To: Atish Patra <atishp@atishpatra.org>,
 	Anup Patel <anup@brainfault.org>
 Cc: opensbi@lists.infradead.org,
 	Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Subject: [PATCH 1/1] sbi_domain: correct loops in sanitize_domain()
-Date: Wed, 28 Oct 2026 00:46:15 +0100
-Message-ID: <20261027234615.503835-1-heinrich.schuchardt@canonical.com>
+Subject: [PATCH 1/1] lib: sbi_domain: logical constraints in sbi_domain_context_exit()
+Date: Wed, 28 Oct 2026 01:03:29 +0100
+Message-ID: <20261028000329.504700-1-heinrich.schuchardt@canonical.com>
 X-Mailer: git-send-email 2.53.0
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261027_164639_081513_6F9727AD 
-X-CRM114-Status: GOOD (  11.54  )
+X-CRM114-CacheID: sfid-20261027_170346_163236_3C4895E5 
+X-CRM114-Status: UNSURE (   9.59  )
+X-CRM114-Notice: Please train this message.
 X-Spam-Score: -4.4 (----)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -84,39 +85,32 @@ X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-If sbi_domain_used_memregions() were to return 0, (count - 1) would
-evaluate to UINT_MAX and a buffer overrun would occur.
+We check that tmp is non-NULL in one statement and in a later statement
+we happily dereference it.
 
-We don't expect this to happen. But we should be prudent in our code.
+If hart_context_get() returns NULL, the hart-domain combination is
+obviously invalid and we should simply continue in the loop.
 
-Addresses-Coverity-ID: 1680796 ("Illegal address computation")
+Addresses-Coverity-ID: 1680795 ("Dereference after null check")
+Fixes: 55b6b73435ec ("lib: sbi_domain: Introduce domain intialization order")
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
- lib/sbi/sbi_domain.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_domain_context.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 42fe5632..73686da3 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -493,7 +493,7 @@ static int sanitize_domain(struct sbi_domain *dom)
- 	}
+diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
+index 987ac7fa..88afbb63 100644
+--- a/lib/sbi/sbi_domain_context.c
++++ b/lib/sbi/sbi_domain_context.c
+@@ -307,7 +307,7 @@ int sbi_domain_context_exit(void)
+ 				continue;
  
- 	/* Sort the memory regions */
--	for (i = 0; i < (count - 1); i++) {
-+	for (i = 0; i + 1 < count; i++) {
- 		reg = &dom->regions[i];
- 		for (j = i + 1; j < count; j++) {
- 			reg1 = &dom->regions[j];
-@@ -506,7 +506,7 @@ static int sanitize_domain(struct sbi_domain *dom)
- 	}
+ 			tmp = hart_context_get(dom, hartindex);
+-			if (tmp && tmp->initialized)
++			if (!tmp || tmp->initialized)
+ 				continue;
  
- 	/* Remove covered regions */
--	for (i = 0; i < (count - 1);) {
-+	for (i = 0; i + 1 < count;) {
- 		is_covered = false;
- 		reg = &dom->regions[i];
- 
+ 			if (!dom_ctx || tmp->dom->init_order < dom_ctx->dom->init_order)
 -- 
 2.53.0
 
