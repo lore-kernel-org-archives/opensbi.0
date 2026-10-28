@@ -2,107 +2,105 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCBE606A31A
-	for <opensbi@archiver.kernel.org>; Wed, 28 Oct 2026 12:57:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82A2E606A31A
+	for <opensbi@archiver.kernel.org>; Wed, 28 Oct 2026 13:03:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=bqbmuirD;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.a=rsa-sha256 header.s=mxsw2412 header.b=fyzTnbsA
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=lyCNlNp3;
+	dkim=fail reason="signature verification failed" (4096-bit key, unprotected) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=pTcDuqi/
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:MIME-Version:Message-Id:Date:
-	Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=cWsVhx4hely2f9JxP1oKN3STEvF3sShpJ7d0PHsF034=; b=bqbmuirDAqkW62i3PnBoZOk1cE
-	iFzq4+U0A9XJYha9+FibTn0PV/T8dBJlBhXWR53Se3iQ9gUb1GS63BbHzV/YLXK2vjP7CMEDbmh3b
-	cNZCmjk7/rAj6tdAMBLqvZ9DZ4ZkQPqZHTlYQkNH1iD0IgFTQwWEr/zZlJOOBM1CkHEuzbOsZMySc
-	Gx63VaF0u0pqG21IrQopqY1XZxc09BMd1bNoHemxv0GWdRwQlceIOHsbQnEQCwEJA3p8X3p4Vg3mx
-	R8xJ7ES62RRd13CV+guwX9V3B0jSBJrhkMUJSV2tFM1eDCeSywSqtakbUur2wDN+YxqeaQGlxo9Zw
-	XbqgU/sQ==;
+	bh=T6jqCPhHHn+xg+XNREOlYHhPhTeyWSWCxo6AI1ee+Ic=; b=lyCNlNp3ryAhOA+283MuDc2W+2
+	V/idObBpnBX6Y3d+C/MBKd1c0zZFZpdLErUsUiyfVZhSME7FkF2bTeAueas7xhsdE06qHRlwGeGvK
+	+4vpnWm8vGCKYcX2C5pLUIjwObiSGlr+Tb6QnUtvKi6h7n4HXlvXzUCMdPcxjjImGiNMYrsf5R4V8
+	Fvk1i0uVhrxV7MV5rbvCgKv2YdzXWKyEtkcziXfVV+JusoCPVihAofY/sRPE7w75DjISD/ctKzxk2
+	BONCKT2wJCcJdPXflOAHqffHzZMJW4LFuY+u46CxAhuJMzMfc24WFXyNFrkX8FpZbobvD8W8eheDy
+	wLQF0E8A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xM3Dp-00000006zg7-23yk;
-	Wed, 28 Oct 2026 12:57:41 +0000
-Received: from smtpbgau1.qq.com ([54.206.16.166])
+	id 1xM3Jr-000000070UH-3vNU;
+	Wed, 28 Oct 2026 13:03:55 +0000
+Received: from smtp-relay-internal-0.canonical.com ([185.125.188.122])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xM3Dm-00000006zcS-2wur
+	id 1xM3Jo-000000070Tc-23UP
 	for opensbi@lists.infradead.org;
-	Wed, 28 Oct 2026 12:57:41 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1793192187;
-	bh=WW9VqGCP8Szf19rFZdHxSoSIyo7e+f0jFUs1+/ngEQI=;
-	h=From:Subject:Date:Message-Id:MIME-Version:To;
-	b=fyzTnbsACceThZvOphC4bSXdQ/MrHrDHb+i64FClP/DXw9UAvZdueW2MJwAlxyjzd
-	 eJZeIaUe3ZyyveHMQTRJI7nwnTSysXujKNRoQXku3k0/bo1f/PWJ+0P816cuiufdoS
-	 EaE/ItgjDtqmMXo5qXqWzjDkgsARVN4ogL/4mBJc=
-X-QQ-mid: esmtpgz10t1793192185tc8927ad4
-X-QQ-Originating-IP: VCGMv65cziSUuOFHZ99zgcrd55clajLBoRKaEEvy5f4=
-Received: from = ( [58.254.69.131])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Wed, 28 Oct 2026 20:56:22 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 8044979064814662444
-EX-QQ-RecipientCnt: 11
-From: Troy Mitchell <troy.mitchell@linux.spacemit.com>
-Subject: [PATCH v6 0/6] platform: generic: spacemit: add K3 platform
- support
-Date: Wed, 28 Oct 2026 20:56:03 +0800
-Message-Id: <20261028-spacemit-k3-v6-0-01d984f60941@linux.spacemit.com>
+	Wed, 28 Oct 2026 13:03:55 +0000
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com [209.85.128.72])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id C9CB63F67C
+	for <opensbi@lists.infradead.org>; Wed, 28 Oct 2026 13:03:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+	s=20251003; t=1793192629;
+	bh=ta6FBJVc23CZtkQm3pDGvJSxxRzB8QdBlwYOIxCgz9g=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type;
+	b=pTcDuqi/Id0v0Jk4NOiRHCivlDVJHh6llve0O8hdlpM+3rpcxR04Uwsl/hYLqvQAK
+	 wuTi0RSFRGxCO7QTv1/03x8elF1cU0heSTxsgdNLIdFGi2EUSfopM/S8CDpjhZqvJG
+	 mx21rwcCMHlb7sZke6pKlkV4KASenupjJCsKID3NAnbI5EQKuKzJM05g5/ic9SZzeP
+	 QegMTq6w7HNnQtY3KPeSRVS6c2VZsZ996tfqcOLfyE+WnF9e7bPC7NDVyu/YMNJrR8
+	 QqI8AxkqsxnvwTn8CXy6pDXkcGLSdG4xrZR34qTb67lnC4wuy4hXO7ec5E6xXVF0Vj
+	 VQIv+YXmCEFs+4QYIq07EdToW+I3mefWTSaleTjh8XIwZaOckcVE76sTfY5lBN52wl
+	 4lRPWxOwWTKJ+Va876FNS3Wx+l3/6Z0trwn4erZgIzmz2bVo8NNrwG1xk29dCKRmjS
+	 qGhXok2itYQ8/idTPhpaQXKypC2IQQ21JXjOHebVb9vYXhjedXgLyF+EauEAVsyfME
+	 aQQ2xNavhkYBtvDkly1PxvWW6Q9ETYfBj2Z6sYeTic/ALiIkBSQvFB/uP2HBEM+vqH
+	 ndReSo0gg4gaz8TtQpoOxFckjhio4/rNZVKo28oULXACRkuu21fxBPPGeucQxgE/Yb
+	 +9RufnPT8Y7kM+PNmm7V6eQY=
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a009f82bedso6880995e9.0
+        for <opensbi@lists.infradead.org>; Wed, 28 Oct 2026 06:03:49 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793192629; x=1793797429;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ta6FBJVc23CZtkQm3pDGvJSxxRzB8QdBlwYOIxCgz9g=;
+        b=c7m4RDkMu7ekZj5dnSBF14pjHtQTRM+kxwzJrfSU0vb3mXilrCHOBksRmY/2NeWB/l
+         U1lUlM744GCMt6iV4rGD1bEOMu9uGMipUooyBOBRGnJICqFlGEPMwdDTs8ysndXzCyKg
+         s/u1iokhIQALUK1VQzN9ONg1kAffwor7LrD2/4/PRt3rJuCGHNWSZDPiycFL80lV49mG
+         8nMDcm0Xqsuo6Z4PSNahZOc8/LAp4hopQkKCuuRTo4eApgMY05yKPNyec8W+ifzLQifj
+         BRcEcSjYuDRS8sBwoSlfr//jhukXG8Z+kQaWXHkNJLjMyAvON+xQkuFZojTIVpO/XOrJ
+         0MhQ==
+X-Gm-Message-State: AFq9FYLsUG+epbs6KngdkREWWahokd6DZ40+9oX7c1NwQ24sYHG1K3g7
+	DTvPBcdjRjO9k0sdWEiKXnCpzQHMFLb9h5XvJ9eydl7yhfqnkYJ2rkXtUFC6aJ89Y5kxw4z31TA
+	h8VN4kqWmaJ5usTyTeA5bbXngWdkfVbrliIJQrZJQ+GmcOWYMerFq74T0S+BmT8W6I/oPAX+ids
+	oNjkAdYmdQ0tWAv1Y=
+X-Gm-Gg: AYBFou3ksJfRAe24G0J5517TahtgDNS0PW6CTi34KcbFqad1a3s9BPy0xNNopRY62lx
+	KuDrPtYHBVesFNhLAnPp4qCkHsp6YDFvDTSoS3+exxf+jaChRhANicAUFy4rinEhSMlLo9zPpVU
+	fmwL3DoFHEkmqcwDBvLl/TfIsLFQ8xeoWlMn0TPXXoxM0an1OfKBZU3lcEKB+7Ecg+Xfqs4gc2P
+	v3NysatmPpS46a67byPf9Lrid8K8F269OWJOLaYsb5Lfpl2Cj22aZR8OrigDC3ORhcQcSb/fNqj
+	pSFbr51AMqQgvGicRk0OSaR+DaEKNy2cYHe+z0BxqQXQLkVIZnra40ADxJF2iKlpGBS0tCaTvfb
+	5OkueFvkwHMHAcBLy3d0sLHnhCplHBTS80DyBjA9vLnDye5o9JAomahWx0LTqiiXDEZUMdkIohu
+	ygEsLe13pJKBcJBEVSNIML3Ait9Cg=
+X-Received: by 2002:a05:600c:524c:b0:4a2:86b7:b76e with SMTP id 5b1f17b1804b1-4a9661ab517mr45608315e9.13.1793192629233;
+        Wed, 28 Oct 2026 06:03:49 -0700 (PDT)
+X-Received: by 2002:a05:600c:524c:b0:4a2:86b7:b76e with SMTP id 5b1f17b1804b1-4a9661ab517mr45607815e9.13.1793192628830;
+        Wed, 28 Oct 2026 06:03:48 -0700 (PDT)
+Received: from [10.148.245.15] ([46.255.74.148])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a977edc08fsm43131675e9.4.2026.10.28.06.03.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 28 Oct 2026 06:03:48 -0700 (PDT)
+Message-ID: <ccc05b39-807b-4619-8819-4644133c73f4@canonical.com>
+Date: Wed, 28 Oct 2026 14:03:38 +0100
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/3XQy2rDMBAF0F8JWldBnpE0clb9j9KFXm7UNnawH
- JES/O+VE/pwaZYX7pwLc2E5jilmtttc2BhLymnoa9APG+b3tn+JPIWaGQjQggB5PlofD2nib8i
- NJBCWXFQYWL04jrFL56v29HzL+eReo58WYmnsU56G8eM6V2Dp3WTTmJVcgIvKe0dEaKVpHt9Tf
- zpvvzpbPxzYMlHwFwK0RrAiKpjgnDYK23AXkT9I24g1IisiqEWnAaHt9F1EfSON+POooiriVQi
- dJ/DWyn+ReZ4/AVltHCCQAQAA
-X-Change-ID: 20260723-spacemit-k3-84720a7be53d
-To: opensbi@lists.infradead.org
-Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>, 
- Anup Patel <anup@brainfault.org>, Bo Gan <ganboing@gmail.com>, 
- Samuel Holland <samuel.holland@sifive.com>, 
- Heinrich Schuchardt <heinrich.schuchardt@canonical.com>, 
- Kevin Zhang <zhangmeng.kevin@linux.spacemit.com>, 
- Troy Mitchell <troy.mitchell@linux.spacemit.com>, 
- Alvin Chang <alvinga@andestech.com>, E Shattow <e@freeshell.de>, 
- Valentin Haudiquet <valentin.haudiquet@canonical.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=10500;
- i=troy.mitchell@linux.spacemit.com; h=from:subject:message-id;
- bh=ofEmumPsYvH1QFQ5dR19Pk0qPuQv7EAJhEJwPa7/aIE=;
- b=owGbwMvMwCU2g/N9w09jE33G02pJDFkPP7w1+fSmY5bPOUaLidoTPvvkFp//5WmUOSfofH/f6
- 95l4v/+d5SyMIhxMciKKbJ0P+DZVuATZVsgUOgLM4eVCWQIAxenAEzEoImRYfPuyA2ng7drSPJ5
- +JR1TOg/yvBYTDJn3t19N84eZFjxIo/hf4HL8zMrew+eut+8432C9Nfb4eIVd9Pd9WfPXOWtFL9
- eixMA
-X-Developer-Key: i=troy.mitchell@linux.spacemit.com; a=openpgp;
- fpr=3FE5535CF1B0E658E57DB59BAE1C2FBEA7DB42E1
-X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
-X-QQ-XMAILINFO: NYwmM76ehjewbDgwEcrH+dDOwkY2KjuiBqSeojEuuu51MwAFqo0frxTt
-	A6yJ5eLMWxgm7fILToETujYF18MT/gxKjs4ZAez4cPMOzDagxHpNQcOL1o0fEcpewoipcv9
-	gkbRygsvtgq7IUx2any8l+P0w9P6DunwBDsI/0CSw3X0hJLl2mYDjgC6nx/eUGUIlu8lsLv
-	id9yB0k7sCEi62whgwfeW9XF8R0a+d1RpgiCDuTipZ6/gQHhT5XE/998jo0IcHfJwG4trA0
-	929EKKNQvGTqZSIWNuuzQBm49VSuBkIYNIIjpEDUE8kzSxf7Wv91eV0K/hRxCcND1Dcg5Ih
-	RXvEhbxVx5Zv9lUpRdecFK4FMjY3jrSKldKEIHDTyVHmtnvtbtVreHSLOJUFvQxER93z2gY
-	fxajbJB2DUYwO4P0+WjSkUB8PPr2xfeefDj0mEYQtMLREHPl3M4d0YkJetTc9LroJQdWxnU
-	wceIkeVuQphbocNMfM1zINmmLK/XP+y5dXtM5uDjljlNuBDOaD0f0q6bJIQOzmhMC/PhBRB
-	ghgpzuYE6VdOpjC8R+hZ8v1AGBayuVrMoM7nORV+EGR+CttrOyKd2UZ593u8kJ4yqCbFoiw
-	CQ5xv+YQJtZPB2MY/cf7vT55ySn8aIC33ntbjEJZcgeMkbOyK78rdVGsSoxmQxLzY41jZCm
-	JzBmWKn0j/ljfyJkmaNm1VvwJp/HwMoHFFOpPyjl4QDkIfaEulPz2OuTtjICjl607eLuOfV
-	h05640fJfJA7JXX+Pibq5UMH6oxsgJuwtQopL5tqVAg+60Q83zjenfpkGbzdNvQ1FqjIezY
-	DetCvqoDuXtTlz5rq8yxIFywg6UL60u3/+xtjAxyO8RKuBM4My2fKgJM64twbaGnJ8XWDdS
-	a6c+D/KyCqDOcI2mQ3lzb/bjvoys3PHuneuqv1/ZFCvya9y8LfhED3Bznxm/912cs2ppKMk
-	zInfcuMX7DMWCGTDbiCfQ2mxXCY5q8lL13A6gHrQOss5UHu1uGrkS+e8KDIrxDLazxjDwwo
-	Ys1m7SCW5mgzGz3OVXZzCjuMwfYYglhItxMEMRlwHQQVeVymJZFefEmKZIq0iwBlw0gQPqO
-	mFY0XPt0Boke7q+rfl/yGj3YnQc5n5K24d6DOFVFudvrbyNnydSMOI7xRTnP6KDY8QiNojt
-	Z3CY5LJPvSJQo+68GIPJ7j8RsQ==
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
-X-QQ-RECHKSPAM: 0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/1] libfdt: error handling fdt_open_into()
+To: Atish Patra <atishp@atishpatra.org>, Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org
+References: <20261028002152.506228-1-heinrich.schuchardt@canonical.com>
+Content-Language: en-US
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+In-Reply-To: <20261028002152.506228-1-heinrich.schuchardt@canonical.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261028_055739_278433_2F131572 
-X-CRM114-Status: GOOD (  24.93  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261028_060353_962565_A8D7ABD1 
+X-CRM114-Status: GOOD (  14.75  )
+X-Spam-Score: -4.4 (----)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -112,251 +110,57 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-21.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-This series adds basic K3 platform initialization and start-only HSM
-support. Secondary harts are started directly through the SoC PMU. RPMI
-support for the vendor kernel is outside the scope of this series; the
-upstream Linux boot path does not depend on ESOS.
+On 10/28/26 01:21, Heinrich Schuchardt wrote:
+> fdt_num_mem_rsv() may return -FDT_ERR_TRUNCATED.
+> 
+> fdt_open_into() should handle this error condition instead of blindly
+> continuing.
+> 
+> Addresses-Coverity-ID: ("1595097 Overflowed integer argument")
+> Fixes: e2ce15cb3be9 ("platform: Add libfdt support.")
+> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
-K3 has eight X100 harts and eight A100 harts across four clusters. X100
-implements H with a 256-bit VLEN; A100 has no H and a 1024-bit VLEN. The
-existing expected-trap handler is chosen by the cold-boot hart, which
-fails if that hart implements H and another does not. Store the handler
-in the per-hart feature data and load it without function calls. Early
-M-mode CSR probes use the non-H handler until that data is initialized.
-Other extension and vector state is already maintained or queried per hart.
+We should better apply the upstream fix which corrects more issues:
 
-Only hart 0 is powered at reset. The HSM backend clears the requested
-hart's core and cluster power-down votes and wakes it on demand. PMA,
-cache and X100 H-extension setup precede the common warm-boot entry.
-Cold boot programs the cluster reset vectors and enables CCI-550 snoop
-and DVM requests before secondary harts start.
+47d7c01ba8a1 ("libfdt: Fix bugs with unchecked usage of fdt_num_mem_rsv()")
 
-The shared SpacemiT code is limited to common register definitions and
-the CCI-550 helper. K1 retains its topology, boot flow and HSM behavior.
+Or should we upgrade the whole of libfdt to v1.8.1?
 
-I tested this on a K3 COM260 with Linux v7.3-rc1 and only the v5 CPU PLL
-rate table patch [1] applied, using the unmodified upstream
-k3-com260-ifx.dtb and a minimal initramfs. The board booted from SPI NOR
-using the public SDK FSBL and U-Boot, with OpenSBI installed as a
-separate FIT using the procedure below.
+Best regards
 
-OpenSBI used the SDK's 16-hart DT and booted on hart 0. Linux brought up
-the eight X100 harts described by its DT and reached a shell. I did not
-reproduce the hang Valentin reported with Linux 7.2 and an eight-CPU
-kernel DT [2].
+Heinrich
 
-Build-tested with RV64 generic (CONFIG_STACK_PROTECTOR_ALL) and RV32
-generic. SpacemiT platform objects are excluded from RV32 builds.
-
-Firmware installation
----------------------
-
-The following NOR installation steps use the public K3 SDK v1.0.7:
-
-  manifests:
-    https://github.com/spacemit-com/manifests
-    6d767b42fdbd759dc9511b8a13523c3de42aaa5a
-  scripts:
-    https://github.com/spacemit-com/scripts
-    96418825a37a1cf07d3275c13d9d3329934224f0
-  U-Boot:
-    https://github.com/spacemit-com/uboot-2022.10
-    676971d3a61f2583dfd53d8f7dfbc9607cea74b7
-  ESOS and esos-lite:
-    https://github.com/spacemit-com/esos
-    eaf9afd83b27583b9bcafe0153028b32219518f5
-    https://github.com/spacemit-com/esos-lite
-    df4b2665cd4f3af563538cb41ba85c85dd39de7c
-
-The SDK is used to build the boot firmware; the Linux kernel and root
-filesystem are built separately. The commands below assume the SDK is
-configured for K3, with its host toolchain available in output/k3/host.
-
-Before building U-Boot, update UART0 in
-bsp-src/uboot-2022.10/arch/riscv/dts/k3.dtsi. This DT is passed to OpenSBI:
-
-  uart0: uart@d4017000 {
-          ...
-          compatible = "spacemit,k1-uart", "intel,xscale-uart",
-                       "ns16550";
-          ...
-  };
-
-The compatible order makes OpenSBI select UART_CAP_UUE and preserve
-UART_IER_UUE (bit 6); matching only "ns16550" writes 0x00 to UART_IER and
-stops serial output. Rebuild U-Boot and use the FSBL, bootinfo, and U-Boot
-FIT produced by the same SDK build:
-
-  K3_SDK_DIR=/path/to/k3-sdk
-  make -C "$K3_SDK_DIR/output/k3" uboot-rebuild
-
-This produces the following files under output/k3/images:
-
-  FSBL.bin
-  bootinfo_spinor.bin
-  u-boot.itb
-
-From the OpenSBI source directory, build with the SDK toolchain at the
-address used by the SDK, then wrap fw_dynamic.bin in the SDK's standalone
-OpenSBI FIT:
-
-  SDK_CROSS_COMPILE="$K3_SDK_DIR/output/k3/host/bin/riscv64-unknown-linux-gnu-"
-  make -j24 O=build-k3 CROSS_COMPILE="$SDK_CROSS_COMPILE" \
-       PLATFORM=generic PLATFORM_RISCV_ISA=rv64gc \
-       FW_TEXT_START=0x100000000
-  FW_DIR="$PWD/build-k3/platform/generic/firmware"
-  cp "$K3_SDK_DIR/bsp-src/opensbi/platform/generic/spacemit/fw_dynamic.its" \
-     "$FW_DIR/"
-  (cd "$FW_DIR" && \
-   "$K3_SDK_DIR/output/k3/build/uboot-custom/tools/mkimage" \
-     -f fw_dynamic.its fw_dynamic.itb)
-
-There are two ways to enter U-Boot fastboot. On a provisioned board, hold
-`s` during U-Boot startup and run:
-
-  => fastboot 0
-
-Alternatively, extract factory/FSBL.bin and u-boot.itb from
-Bianbu-Minimal-K3-20260728010729.tar.gz. Hold FEL while resetting the
-board to enter BROM fastboot, then run on the host:
-
-  fastboot stage factory/FSBL.bin
-  fastboot continue
-  sleep 8
-  fastboot stage u-boot.itb
-  fastboot continue
-
-COM260 boots from SPI NOR and uses partition_4M.json from the Bianbu image
-for its firmware layout. Select that MTD layout before writing a firmware
-partition:
-
-  fastboot flash mtd partition_4M.json
-
-If the installed FSBL and U-Boot already match the prerequisites above,
-only the OpenSBI partition needs updating:
-
-  fastboot flash opensbi "$FW_DIR/fw_dynamic.itb"
-  fastboot reboot
-
-For an older boot firmware, update the boot-chain components from the
-pinned SDK build in the same fastboot session before rebooting:
-
-  SDK_IMAGES="$K3_SDK_DIR/output/k3/images"
-  fastboot flash bootinfo "$SDK_IMAGES/bootinfo_spinor.bin"
-  fastboot flash fsbl "$SDK_IMAGES/FSBL.bin"
-  fastboot flash uboot "$SDK_IMAGES/u-boot.itb"
-  fastboot flash opensbi "$FW_DIR/fw_dynamic.itb"
-  fastboot reboot
-
-An existing system can be kept when updating the boot firmware. Flashing
-the full Bianbu Minimal system image is only needed for a board without
-a usable system.
-
-Link: https://lore.kernel.org/all/20260907-k3-pll5-pll8-1800mhz-v5-1-5cc96d716b0a@linux.spacemit.com/ [1]
-Link: https://lore.kernel.org/all/CAPEPrSMsnbuPOUuvj06+PtczdokK42vSpy8n_0hCLh0cEO-QkQ@mail.gmail.com/ [2]
-
-Signed-off-by: Troy Mitchell <troy.mitchell@linux.spacemit.com>
----
-Changes in v6:
-- move the expected-trap handler into sbi_hart_features, leaving the fixed
-  scratch layout and allocator unchanged, as requested by Anup
-- retain call-free handler lookup and use the non-H handler for early CSR
-  probes until per-hart feature data is initialized
-- drop the patch 1 Tested-by tag pending retest of the new storage path
-- Link to v5: https://patch.msgid.link/20261023-spacemit-k3-v5-0-c5ddfc72caa4@linux.spacemit.com
-
-Changes in v5:
-- drop the redundant cache-flush comment in the K1 rename patch
-- use BIT() for the K1 ML2SETUP bit in nascent_init()
-- collect review and test tags from E Shattow
-- Link to v4: https://patch.msgid.link/20260910-spacemit-k3-v4-0-0793b62329f6@linux.spacemit.com
-
-Changes in v4:
-- use per-hart scratch for the expected-trap handler, avoiding accessor
-  calls and their stack-protector instrumentation; initialize it before
-  platform hooks and preserve scratch allocation alignment
-- include Valentin Haudiquet's hart-0-only cold-boot restriction as a
-  separate patch after K3 platform support
-- update the cover letter's test environment, results, and support scope
-- Link to v3: https://patch.msgid.link/20260827-spacemit-k3-v3-0-5d8dbb68539d@linux.spacemit.com
-
-Changes in v3:
-  - select the HSM backend from the root compatible while preserving K1's
-    existing start and stop behavior
-  - start secondary harts on demand from the K3 HSM callback; remove the
-    cold-boot wake-all loop, WFI tables, and timeout
-  - perform PMA, cache, and H-extension setup before the common warm entry;
-    use the OpenSBI VMA and guest-translation fence helpers
-  - use assembler-safe constants shared by the C and assembly paths
-  - omit the 64-bit-only SpacemiT platform objects from RV32 builds
-  - clarify the boundary between the K3 HSM backend and ESOS services
-  - update the cover letter with the public SDK build and split NOR
-    validation procedure
-  - add Reviewed-by trailers from Bo Gan
-  - Link to v2: https://patch.msgid.link/20260818-spacemit-k3-v2-0-84cb7773a481@linux.spacemit.com
-
-Changes in v2:
-  - correct the K3 PMACFG0 CSR number from 0xbc0 to 0x7de
-  - select the expected-trap handler per hart for heterogeneous H support
-  - move K1 and K3 per-hart setup out of cold_boot_allowed()
-  - split the generic and K1 fixes into standalone patches, growing the
-    series from three patches to five
-  - document X100/A100 ISA and VLEN differences and the homogeneous-core
-    audit
-  - document OpenSBI/U-Boot packaging, the UART compatible adjustment,
-    and the USB fastboot test procedure
-  - Link to v1: https://lore.kernel.org/r/20260724-spacemit-k3-v1-0-f0e49329feb8@linux.spacemit.com
-
----
-Troy Mitchell (2):
-      lib: sbi: select expected trap handler per hart
-      platform: generic: spacemit: k1: move hart init to nascent hook
-
-Valentin Haudiquet (1):
-      platform: generic: spacemit: k3: override cold_boot_allowed for hart 0 only
-
-Xianbin Zhu (3):
-      platform: generic: spacemit: k1: rename cache flush operation
-      platform: generic: spacemit: k1: refactor platform support
-      platform: generic: spacemit: k3: add platform support
-
- include/sbi/sbi_csr_detect.h                 |   4 +-
- include/sbi/sbi_hart.h                       |  22 ++++-
- lib/sbi/sbi_hart.c                           |  17 ++--
- lib/sbi/sbi_illegal_atomic.c                 |   4 +-
- lib/sbi/sbi_unpriv.c                         |   6 +-
- lib/utils/hsm/fdt_hsm_spacemit.c             | 125 ++++++++++++++++++++------
- platform/generic/Kconfig                     |  11 +++
- platform/generic/configs/defconfig           |   1 +
- platform/generic/include/spacemit/common.h   |  90 +++++++++++++++++++
- platform/generic/include/spacemit/k1.h       |  96 ++++----------------
- platform/generic/include/spacemit/k3.h       | 127 ++++++++++++++++++++++++++
- platform/generic/include/spacemit/k3_asm.h   |  16 ++++
- platform/generic/include/spacemit/spacemit.h |  14 +++
- platform/generic/spacemit/k1.c               |  45 ++++------
- platform/generic/spacemit/k3.c               | 128 +++++++++++++++++++++++++++
- platform/generic/spacemit/k3_asm.S           |  52 +++++++++++
- platform/generic/spacemit/objects.mk         |   5 ++
- platform/generic/spacemit/spacemit.c         |  36 ++++++++
- 18 files changed, 646 insertions(+), 153 deletions(-)
----
-base-commit: c0f87f10d1bfb9e72a84ddfafb5604ee1bfe9d04
-change-id: 20260723-spacemit-k3-84720a7be53d
-
-Best regards,
---  
-Troy Mitchell <troy.mitchell@linux.spacemit.com>
+> ---
+>   lib/utils/libfdt/fdt_rw.c | 5 ++++-
+>   1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/lib/utils/libfdt/fdt_rw.c b/lib/utils/libfdt/fdt_rw.c
+> index b3b8e73c..207b5ffc 100644
+> --- a/lib/utils/libfdt/fdt_rw.c
+> +++ b/lib/utils/libfdt/fdt_rw.c
+> @@ -427,7 +427,10 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
+>   
+>   	FDT_RO_PROBE(fdt);
+>   
+> -	mem_rsv_size = (fdt_num_mem_rsv(fdt)+1)
+> +	mem_rsv_size = fdt_num_mem_rsv(fdt);
+> +	if (mem_rsv_size < 0)
+> +		return mem_rsv_size;
+> +	mem_rsv_size = (mem_rsv_size + 1)
+>   		* sizeof(struct fdt_reserve_entry);
+>   
+>   	if (can_assume(LATEST) || fdt_version(fdt) >= 17) {
 
 
 -- 
