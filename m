@@ -2,83 +2,109 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49FFA606A31C
-	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 06:39:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70165606A31A
+	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 08:23:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=1ac5Khgz;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.a=rsa-sha256 header.s=mxsw2412 header.b=CGMOL/8K
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=j79X5d1R;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=j+pHkj1u
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=sA5gJ9abOjrIGnNi3hVbMbdo4+NNLzp6QYkJlbtxLR4=; b=1ac5KhgzjbhwjW8NtiEQLaRwHR
-	Z+7DmTSXSso1mXXkJSqq9MDDLL6duDXxyiaOx2Xv9A48kcUl2YBLDVNkiYWvAoIsXaefZODWgbZ29
-	IJEwfTAdwi6KMi8Bv/t1fHwPj1NtPUCtnqj5bbz/Azgwv6j0kNmTccWWkgei1wh0rWePp8FhLSRiE
-	GzL6SeB3H4NBnxipKjNLu8CuMyhBLyzcZ5LrdyyIN5dO8i06a7ewW9yCc1xIuoQY0W91Qm8xfuLjC
-	4wRLjFQGP10QgvZh0nyuIG8sIlkShKeKhWwZ5phiM+ycV+TywEQZJGr1LXyOk4BQ+gZ1fBcEnf3KC
-	ymieCdRg==;
+	bh=ptmMpJG4OhkEo6BziwCjAPj0GenBP4j5ahvj7corwPQ=; b=j79X5d1RRMkYBWBppElnmghHwU
+	M6TAIg+F6hWqx13aIrs1C6Vgz8WGveWYdIJ6N2CHzdqZuQasVJilfulas9X3eHUW681+UNuQ0YqIY
+	/afyvOacBoOngJthYMHbyqCIXr9s+hDdMzaGsaQoKjlVZ/qj5Qix4PHAvtchPgvwRwwC+siYpPeH0
+	jnL54kspIlTyiiMhaRAj5c8fAQRLMYTfeTumxvItqLc/4vPNB/bGzNgARAkVIt8sNy9aVp+d7lZFD
+	zMBVNFL+xlGoJpVjPrQDmmnlrEzBpKzflXfjjEPAd7snvL9b08sXpIwP9ls6y/YDGCNIsbnEi17FX
+	BrxEnazg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMJmu-00000008UBg-10b5;
-	Thu, 29 Oct 2026 06:39:00 +0000
-Received: from smtpbgau2.qq.com ([54.206.34.216])
+	id 1xMLQQ-00000008iIK-1TkL;
+	Thu, 29 Oct 2026 08:23:54 +0000
+Received: from mail-wm1-x336.google.com ([2a00:1450:4864:20::336])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMJmn-00000008U9v-3jbF
+	id 1xMLQN-00000008iHW-2czm
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 06:38:56 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1793255920;
-	bh=4U9VkcUbjtVRQcvJAacHaGK3QDcrV0OvsgyALyCxQys=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=CGMOL/8KDJeJPwXj/vJg9t0+zs+gkclrjNqDLvyNL6rz5jYLLNSs/xsXEDTAyyLMe
-	 hBeP4SB/dWmdVnIQvWzInSaw8FTyJPIs0dQuhUccb16NiVZ+QgcZEOApSNS1yGe2Cx
-	 2srEAikMLV4GuDhnW1cDQVnmgkamC0wGhpFm1K+U=
-X-QQ-mid: esmtpgz10t1793255916tf3862e42
-X-QQ-Originating-IP: HxawBfNyR4o/XfVnLfc6c/JaqP57ZNM5kul6lYD72SY=
-Received: from LT-WUHUAMAO.dc.com ( [101.70.125.129])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 29 Oct 2026 14:38:35 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 8895853402943305644
-From: Huamao Wu <huamao.wu@linux.spacemit.com>
-To: opensbi@lists.infradead.org
-Cc: Anup Patel <anup.patel@oss.qualcomm.com>,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>,
-	Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
-Subject: [PATCH v2 2/2] lib: sbi_hsm: Serialize HART start against domain reassignment
-Date: Thu, 29 Oct 2026 14:38:29 +0800
-Message-ID: <2BBABD4FD63FC04E+20261029063829.783449-3-huamao.wu@linux.spacemit.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261029063829.783449-1-huamao.wu@linux.spacemit.com>
-References: <20261029063829.783449-1-huamao.wu@linux.spacemit.com>
+	Thu, 29 Oct 2026 08:23:53 +0000
+Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-4a140e7405dso19069015e9.3
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 01:23:50 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793262229; cv=none;
+        d=google.com; s=arc-20260327;
+        b=kTy6oJ4l+CIEQanuLt11izMJGWSbC21janDPz67Pfl92mrK/A192m9GyopEoaxdIP+
+         itVIPu5h/hFXqUVhEs879ng+slbQiAvTGuznITPgAbMHIgjvEdprcZLIghbdIxn/5cC/
+         IruTkMW4o5V47bdjjcsD87r/Ar+AHrRg5xVNNjSHjYfHmEQOB3FQOMe7z1SHm4Y+tJJo
+         9vMcPy5zkU06TKlU0aX8NBAte28z94WXeZhWMd8kgD/L8wdDd4nXyleaLabCNid7yOhw
+         Eic+HMmcyuFYimpJ9mylIr+SqS3bo5r239Jmz200dN7FyoUOsgY12zNmRU2MoUcG9mN3
+         drFg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=x4B4hPxBR1r74VG67VZ7ZCOWkQQSpP6X77WYXLvyhdc=;
+        fh=vIdEKAS85wJF4kVr1hPvqPxowGm5XGH5KR4fr+ORURk=;
+        b=hVYi7jjFycwZ22DHA4NmKa+pRAaGBah54X6HRSRfpMDHT3dSH253+2Mgm+vUklAdDp
+         H2GT0aRagZvMKTs/CjZNsqBlnpnxw2LBCKx6EKOfIVFzSMtsrY0hFh2+3zKa+4Vpg0l5
+         DB2eRt+4iR/66S7Pt84c3fXarkM/VJU6/K42JRAEskWh+O8sEqNxahavsriPKsaC66Fd
+         chWLV3CY+Kf5nthqiRJDp2zN0uhbKOYW6WSig+yHwD8dckEEHpIV4eJwadDHHEiEDeL8
+         tBeDEn0/ZL5UNNWBcI51YHmCqnJTV+c2UBGPkjezz0LnBtd1ygveSsdJR837m0gWrYd4
+         WrLg==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault.org; s=google; t=1793262229; x=1793867029; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=x4B4hPxBR1r74VG67VZ7ZCOWkQQSpP6X77WYXLvyhdc=;
+        b=j+pHkj1u8CeW3LsM+k+/Wti96GzTTLoRzWwPmJcxHPrmnPNqfv1NXbSPeoOAjJRr7l
+         OXsgVxluVX5Omi5SNfrhByhS2G79ZoyT41hz5fhTIL/ClJ37YbuBgTXt+vyle8D5KLla
+         dfvTDpjKTDwayw/yiT6/hUocKClUvoP1BiKWqG4XLITy1/VYa4ionS1r3OK6Zv+gLi7f
+         yMmwP4vSLGYYRGNPWkY0XFdX3qpyHb3XhJzgZJEfzt1I+Xko3Pl1Ycv76Q5mZ8Y+MKiP
+         fJuQJOLe+ruBsWQjkuk2qcZWyv6D5QUHEnV9wLvimmTGRT9FXH/5q/pwi6Aqa/pobsE/
+         dmsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793262229; x=1793867029;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=x4B4hPxBR1r74VG67VZ7ZCOWkQQSpP6X77WYXLvyhdc=;
+        b=YlnIR7N9x+AOObCIBQzoW86QdHaJHD9vMyMugvgjfsiIB+WCGh/YErcEEQqj4fQteY
+         Bq54bD8nGBYzB0P+Jq4SmXnsyJRvbNQztBg91XCAeicZ5qjslTJPlCsHq21aeQIJqDjO
+         cYf7b3bTTfKVzO0yhJu9kz0fIFncOnr1mSQN0Um/ZHk8vThibJyH4t8KCs261bMaQPAZ
+         3PC4HlP8oQauWsZJJ0KAk/J01Fp40mds0etL4TrUY1jGhHMYOtBNeKPZkgiqdJsY5eO/
+         vVOQud8dIMNZ6fqITP4DM8e0FUtSvBYfPKmzs6GVM5TBGQyYoFQ5gso9zYZQywf2RfdK
+         /lEA==
+X-Gm-Message-State: AFq9FYL63yLEqdrc1abDe+EsjOVYGWNL07x9mK65v874ztKGUlNi/87R
+	G7L6++PxZNFf5sBtWg4rad8YjVl38Io39JcaPq9N/L5vMLzydEwheMRipPM42eqwZGxS0HDdhQD
+	VUGGEb0+uGIFzaloEHdMvV6pu1gqLWN9kDtsyfXiMVg==
+X-Gm-Gg: AYBFou2PQ993kJqINPjouqG4zgBEF6+LRg8byi7wbFfSt14bt1hNo4bscraEvI6S1Ns
+	cGNHr+P/+0Sq+bhjTxZ0vUaIJAho1917/9lk4GKkbdkArrfOhqZtqgarBLtx/SVWWHxNt+obOgp
+	c8mlkssEujKS+etcaqzVBRukDV69dxdhxRGZjRlNRL4v0+4HNL3S1QlJ6IlFkrdypVrl146AAK9
+	viYf0TNSc/imoS73AAl5B+ZMTjn99FBRLIOTBDG77oMqfHYIgC7mSFz8hpTwBFqTmUIe5IfkPgu
+	Q+/mroHtV8D61b5Rsvi67L2ZiOCo7gMO99nUu7eJp4l2yfGhcdclyLB/Gp4vltgH1p+En7XMrjk
+	/LO34hnxsbZ+ElHOvE1pA0qc2/YnL1o1H/5z9uk7SpkP2GtDH5GD65zYKTN/LK/yDseZ604sv7m
+	b9y2syBdHLkmokzEHJFzcfIrWoEhTkzn3O2Z4MiZDW9hqZhT3uCQpaebPr
+X-Received: by 2002:a05:600c:83c5:b0:4a8:c6a0:c08f with SMTP id
+ 5b1f17b1804b1-4a967e8c05emr119860445e9.35.1793262228939; Thu, 29 Oct 2026
+ 01:23:48 -0700 (PDT)
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz5b-1
-X-QQ-XMAILINFO: MZQHZNohqAr1qSuUnt3VhB8YEr/NpxmMsBKgLZ7jWgtVQL6QKnLlC4+4
-	t0bNXv8BDvacNZ+H0OrCnS2bPHfMw5AJcoBSBkY6s7huo7DtlWpXlRp6GdrHdLg3qPzORLo
-	Gekcjl6VjOzCw3jxFnYPX1BTUW2FILwClA/jZvoyYqhLA4ZDoOfzkr00E3sHfVcvsAKSgAW
-	Xhj50jzWPq0klQtjaueKzxf+1W/Cw4gA0r3t+vgh1EbILPTVU7jJKI89mkYdrRStedSAXyN
-	C3xgrSPi2Gt/Gp06YjtZy/ZhWE0sAkpahpZkvbiJgd79foWmj4XTuRoi42mQeA1P2jSTSrH
-	4Roj/gtUBuM7NsdgPgcksesUCytfg9qqEYjtwd7Sx0knfIiuvSYIrg5zCiRqc5SMdMnwhU0
-	2KXylUlBN2mSuaYj7XF+1JhgGiQjxtn3NSlMW+BfjiNeyTr9j71WJ5zheTudQSTVYGQRLpa
-	CVj7X2OC70y3+QY0gwD1UhCw+ufHGjuLEA8lm2onKf4lZ3rGt6hGS/dJG9haGC6Ryho9h7S
-	whhg3cdftnlJw2QQ1pHxQDnn/0jI75fwQ7WLl8fmreLT5hBN1G/DQffMrGG7yN0E9g9ngis
-	neuJTugCcChwJoMIoqM7y12xIzQ0GgEBndW+qW/zDu+8wqZf4WDICfM5G5gly8/CSs15MR9
-	9zYGaL6SgmohQB8QpQ8KMwHyBlQYeFl6AzbwkQwIlm+D47XGHsh4gpzl/Y86en3QbAoNIz/
-	rarJcB1AcQmzCBQJZ1RBbkuhDM9wthcjDRia2OS1YuzaJ8/qsxZe2RKL7SuG1kZ5zyHPG+c
-	nrS+z6Ff93R125h3ODDoUt+WkXysxmSc4arLy0AeXOTbapJzJFEBnG1EgGJZniJfAQaoWUR
-	WvfeKSRJujOMG0nyvMyMvGsx55sZLWjv54ulzt0tTLHzhOKImejokStMYstZpS+rnYfg7fz
-	UfzalTVKjwi0+mduGVfnixWTc6NmDQTv73mFx6GUI2VzCQOWh79vtUOXTsKghRquW4u8=
-X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
-X-QQ-RECHKSPAM: 0
+References: <20261025145338.2569358-1-sebasjosue84@gmail.com>
+In-Reply-To: <20261025145338.2569358-1-sebasjosue84@gmail.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 29 Oct 2026 13:53:37 +0530
+X-Gm-Features: AclHuK_KoYburjXj8k95raiuKEQdtcA427jeZxq-x_IhRwG6RB7mYiZV2xNVCbY
+Message-ID: <CAAhSdy2fNFtZhxSmzzJqyJqUGcDJW8DpVQHTQMsbivzqzWofVg@mail.gmail.com>
+Subject: Re: [PATCH v2 0/2] lib: sbi_pmu: propagate hardware counter errors
+To: Sebastian Alba Vives <sebasjosue84@gmail.com>
+Cc: opensbi@lists.infradead.org, anup.patel@oss.qualcomm.com, 
+	pengpeng@iscas.ac.cn, hppiscas@163.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261028_233854_556259_BD24703B 
-X-CRM114-Status: GOOD (  14.11  )
+X-CRM114-CacheID: sfid-20261029_012351_876726_07C87702 
+X-CRM114-Status: GOOD (  11.59  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -89,114 +115,35 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-sbi_hsm_hart_start() validates that the target HART is assigned to the
-calling domain, then accepts the start request. The validation and the
-STOPPED -> START_PENDING transition are separate steps, so a concurrent
-reassignment of the target HART can complete in between: the request is
-accepted for a domain that no longer owns the HART.
-
-Hold domain_hart_assign_lock across the ownership check, the state check,
-and the state transition. The lock is released before the HART is
-actually started, since starting it may run code on the target HART.
-
-The check must use sbi_domain_is_assigned_hart() rather than
-sbi_hartindex_to_domain(), because the latter acquires the same lock.
-MUST_NOT_HOLD on the accessors makes the compiler reject the alternative.
-
-Signed-off-by: Huamao Wu <huamao.wu@linux.spacemit.com>
----
- lib/sbi/sbi_hsm.c | 35 ++++++++++++++++++++++++++++-------
- 1 file changed, 28 insertions(+), 7 deletions(-)
-
-diff --git a/lib/sbi/sbi_hsm.c b/lib/sbi/sbi_hsm.c
-index 0e5498d7..8cce94e5 100644
---- a/lib/sbi/sbi_hsm.c
-+++ b/lib/sbi/sbi_hsm.c
-@@ -318,19 +318,35 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	/* For now, we only allow start mode to be S-mode or U-mode. */
- 	if (smode != PRV_S && smode != PRV_U)
- 		return SBI_EINVAL;
--	if (dom && !sbi_domain_is_assigned_hart(dom, hartindex))
--		return SBI_EINVAL;
--	if (dom && !sbi_domain_check_addr(dom, saddr, smode,
--					  SBI_DOMAIN_EXECUTE))
--		return SBI_EINVALID_ADDR;
- 
- 	rscratch = sbi_hartindex_to_scratch(hartindex);
- 	if (!rscratch)
- 		return SBI_EINVAL;
- 
- 	hdata = sbi_scratch_offset_ptr(rscratch, hart_data_offset);
--	if (!hsm_start_ticket_acquire(hdata))
-+
-+	/*
-+	 * Serialize domain ownership validation with acceptance of this
-+	 * start request, so that a concurrent reassignment of the target
-+	 * HART cannot slip in between the check and the state transition.
-+	 *
-+	 * The lock is dropped before the HART is actually started because
-+	 * that may immediately run code on the target HART.
-+	 */
-+	spin_lock(&domain_hart_assign_lock);
-+	if (dom && !sbi_domain_is_assigned_hart(dom, hartindex)) {
-+		spin_unlock(&domain_hart_assign_lock);
-+		return SBI_EINVAL;
-+	}
-+	if (dom && !sbi_domain_check_addr(dom, saddr, smode,
-+					  SBI_DOMAIN_EXECUTE)) {
-+		spin_unlock(&domain_hart_assign_lock);
-+		return SBI_EINVALID_ADDR;
-+	}
-+	if (!hsm_start_ticket_acquire(hdata)) {
-+		spin_unlock(&domain_hart_assign_lock);
- 		return SBI_EINVAL;
-+	}
- 
- 	/*
- 	 * Ensure target hart is in correct state before updating
-@@ -339,7 +355,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	hstate = atomic_read(&hdata->state);
- 	if (hstate != SBI_HSM_STATE_STOPPED) {
- 		rc = hstate == SBI_HSM_STATE_STARTED ? SBI_EALREADY : SBI_EINVAL;
--		goto err;
-+		goto err_unlock;
- 	}
- 
- 	init_count = sbi_init_count(hartindex);
-@@ -356,6 +372,7 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- 	 */
- 	hstate = atomic_cmpxchg(&hdata->state, SBI_HSM_STATE_STOPPED,
- 				SBI_HSM_STATE_START_PENDING);
-+	spin_unlock(&domain_hart_assign_lock);
- 	if (hstate != SBI_HSM_STATE_STOPPED) {
- 		rc = hstate == SBI_HSM_STATE_STARTED ? SBI_EALREADY : SBI_EINVAL;
- 		goto err;
-@@ -377,6 +394,10 @@ int sbi_hsm_hart_start(struct sbi_scratch *scratch,
- err:
- 	hsm_start_ticket_release(hdata);
- 	return rc;
-+err_unlock:
-+	hsm_start_ticket_release(hdata);
-+	spin_unlock(&domain_hart_assign_lock);
-+	return rc;
- }
- 
- int sbi_hsm_hart_stop(struct sbi_scratch *scratch, bool exitnow)
--- 
-2.43.0
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gU3VuLCBPY3QgMjUsIDIwMjYgYXQgODoyM+KAr1BNIFNlYmFzdGlhbiBBbGJhIFZpdmVzCjxz
+ZWJhc2pvc3VlODRAZ21haWwuY29tPiB3cm90ZToKPgo+IFRoZSB0d28gcGF0Y2hlcyBBbnVwIGFz
+a2VkIGZvciBpbiB0aGUgdGhyZWFkIGZvciBQZW5ncGVuZyBIb3Uncwo+IFNLSVBfTUFUQ0ggY2xh
+c3MgY2hlY2suIHYxIGlzIGF0Cj4KPiAgIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL3IvMjAyNjEw
+MjUwNjI4MzYuMjQ0NTY1NS0xLXNlYmFzam9zdWU4NEBnbWFpbC5jb20KPgo+IENoYW5nZXMgaW4g
+djI6Cj4gIC0gcGF0Y2ggMTogcHJvcGFnYXRlIFNCSV9FQUxSRUFEWV9TVEFSVEVEIGFzIHdlbGws
+IHBlciBBbnVwJ3MgcmV2aWV3Lgo+ICAgIEFuIGFscmVhZHkgcnVubmluZyBjb3VudGVyIG1heSBo
+YXZlIGJlZW4gY29uZmlndXJlZCBmb3IgYSBkaWZmZXJlbnQKPiAgICBldmVudCBwcmV2aW91c2x5
+LCBzbyB0aGUgY29uZmlndXJlIG11c3Qgbm90IHJlcG9ydCBzdWNjZXNzLiBUaGUKPiAgICBjb21t
+aXQgbWVzc2FnZSB3YXMgcmV3b3JrZWQgYXJvdW5kIHRoYXQgYW5kIHRoZSBzcGVjaWFsIGNhc2Ug
+aXMgZ29uZS4KPiAgLSBwYXRjaCAyOiB1bmNoYW5nZWQgZXhjZXB0IGZvciB0aGUgY29udGV4dCBs
+aW5lIHRoYXQgcGF0Y2ggMSB0b3VjaGVzLgo+ICAgIFBpY2tlZCB1cCBBbnVwJ3MgUmV2aWV3ZWQt
+YnkuCj4KPiBUaGV5IHN0YXkgYSBzZXJpZXMgYmVjYXVzZSBib3RoIHRvdWNoIHRoZSBzYW1lIGlm
+IGJsb2NrIGluCj4gc2JpX3BtdV9jdHJfY2ZnX21hdGNoKCkgYW5kIHRoZSBzZWNvbmQgZG9lcyBu
+b3QgYXBwbHkgd2l0aG91dCB0aGUgZmlyc3QuCj4KPiBCdWlsdCBjbGVhbiBmb3IgcnY2NCBhbmQg
+cnYzMiwgUExBVEZPUk09Z2VuZXJpYywgbm8gbmV3IHdhcm5pbmdzLgo+Cj4gU2ViYXN0aWFuIEFs
+YmEgVml2ZXMgKDIpOgo+ICAgbGliOiBzYmlfcG11OiBkbyBub3QgaWdub3JlIHBtdV9jdHJfc3Rh
+cnRfaHcoKSBlcnJvciBpbiBjZmdfbWF0Y2gKPiAgIGxpYjogc2JpX3BtdTogcmVqZWN0IG91dC1v
+Zi1ib3VuZHMgY291bnRlciBpbmRleCBpbiBwbXVfY3RyX3dyaXRlX2h3KCkKCkFwcGxpZWQgdGhp
+cyBzZXJpZXMgdG8gdGhlIHJpc2N2L29wZW5zYmkgcmVwby4KClRoYW5rcywKQW51cAoKLS0gCm9w
+ZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
+dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
