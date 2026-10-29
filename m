@@ -2,98 +2,111 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A23C606A31C
-	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 16:00:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88FA606A31A
+	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 21:52:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=dL4PMnZc;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=YmmOfGFD
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=IWvJClfe;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=riscstar-com.20260707.gappssmtp.com header.i=@riscstar-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=XAO1cP+3
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=xc8JD0ybLK3qG0HQS3w60qE5+eaJgnvOOLofmylJYK4=; b=dL4PMnZcyQdjl/iRCMdLodAbJV
-	RoucOETiPWPhJ4HMjfcdNd5/mhfPQTaFvcfykyFz0auXnkUGOcLbwW5TERMaJR3Ov/xQisN6AewxG
-	6Y373rfnJtYC5pLCRjurrMzwub2RudMwzVgjpBnn6r1d78+N6aHPlzpmeCvQvq1m9Tuq9zoy3kbk3
-	JEvASlwLg9AfBulH/4xkD4hChb3n1uKNmWaYOKo92Y5Jpz42fHCZuSohqdQtnkIkSbCzjLsUkOd2B
-	/ZtZJ14DKoVrdFWIDSzjNOOoSg+lIGqldH+vU0OCc7XbXyeGDS6kBKNzRCHZgpj3JLNIPnnVlFS2L
-	LkHNasiw==;
+	bh=9n3jKykWzj+lXEzPnHuYwBji12T+hhRT5PLhAEsT2lE=; b=IWvJClfeEqDtfegtSA3iKqXT0o
+	eH/dlGvN76iS1H99B2XrT8sRRHIXxam9LiqqmXnaJlLOI154ef7oFZwgpJVx/VJGt1UKf89mc4+5f
+	Zg332RsYkTUmeAJDj5/tFXkVi0s6VsXRAyDo1rhoTZKjcEouLkrge18oRZQ7dBTRtwNdzj0tHJVoc
+	zzYDKD4xRRy3sL6d83mLt+7ww2kys21E1EPgTePhMc7ll7aa73e6Aw1W1ptgWiAAUAVzEn2c3g4Xk
+	2HezhdYZCtrzoRUAsmvRqmTX5mgutlxxY0ssOjEU17ehlWSvLdLNdwgBp5nxFfvhpzoQBWvqKWryN
+	T5KW14Hw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSYA-00000009ifA-0qHR;
-	Thu, 29 Oct 2026 16:00:22 +0000
-Received: from mail-qt1-x834.google.com ([2607:f8b0:4864:20::834])
+	id 1xMY30-0000000ARbB-0b4F;
+	Thu, 29 Oct 2026 21:52:34 +0000
+Received: from mail-vk1-xa30.google.com ([2607:f8b0:4864:20::a30])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSY7-00000009ibc-3DEU
+	id 1xMY2v-0000000ARaU-2qey
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 16:00:21 +0000
-Received: by mail-qt1-x834.google.com with SMTP id d75a77b69052e-53664b4860bso25720351cf.1
-        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 09:00:19 -0700 (PDT)
+	Thu, 29 Oct 2026 21:52:31 +0000
+Received: by mail-vk1-xa30.google.com with SMTP id 71dfb90a1353d-5ec3561b07dso88273e0c.1
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 14:52:27 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793310746; cv=none;
+        d=google.com; s=arc-20260327;
+        b=l3O0ZwzmQeI4TGvlLTIEZjPsusMIWo1ZxzaGhQSFuFmSTb5ZM1U31JEimN3PpqrO7l
+         sImcvdZq9WkHY605IXGClIoEFGPNkUKgg4jyx0DcixWNcU/yaXuE+RsBguWXYi1vwCDg
+         zFW4zwu0g7GLfS6Kk0nujT0MrOrVGmlQcofpNZGlcFnww7oTwBvkzf0aTpDYjAUsWLwL
+         BwxDd5Ldg4k5w8seSlCIQ0zt2aM/anw+9uvLrphJdVY8G7Ml35hY26JcTwOXf1BxuyWb
+         s2edamKu1y9N4mwN/3EHv3uJJeSHCwidiLPhKFTefNBXc9qOykNJoTEQPxH8W9RqHhTy
+         c3SA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=q9nll6/cGOCt3/Ga2kdm9Mpl741Nm3G9jmZ+bXdQUV4=;
+        fh=Xnhp7T+WQ/0cA1m5gAPDJJh5SpfK5uxUqTgkksRgshY=;
+        b=iI7E3rz7ot3TtctsqdZSkpnR8jhPGRHTq/+g5cva9H4zcqDFeL3ZxuxK9HHiTQEzGs
+         zFzfbZxabwFKcitGdpLpMjQMV6AwubBXjWMvA0NnUR9hH6d4LfZSwxK1NZhCTCyMqfk8
+         /JapAOtNmJHuwL+4mhW4+9dKSNYX9x7wDgR8oA+6lWLqof+lq72Sy2Sxw766TIc91jv1
+         mmXzSwn2BfhFJ8XHm21k9STawk5bKBL93iBq4sb3yhfj10j+9K21R/CllCwKyvCO+RX9
+         HHtdPP05sicPvgT6VgiLMlilCxk5epbJyn5pI3R8z/vPaPmerCMQgS2Tq4T5grNBu2bl
+         o2yw==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793289618; x=1793894418; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=hvoA0a/dCv/8bteYHYa9BK4H9hAe5PJC6QfkTDcUZmo=;
-        b=YmmOfGFDrFfNLPCmnisr4if7m/uZKqHdfdKnWMib7UxjahOnF8YY7mxYA+raOzhhkf
-         ObGL1tu/3zs77Tx7hNM5nbS2VIlfD+a4BATzaIW02PcRuBXKH2MxKvXnO0+ericxLMpK
-         2EXhXZyK7EL+lIvD5wl4L+K6b41ILzLOUuyUUj7shvmFHlwBAtX9H9AvcyDoS+bqoiw6
-         ukTanNz3ioh73y3aORBasSgNL+5fZ3j0ODovo6nb4Qm9TeGuEI3j3PX5x2IzD4Y4Z9Yb
-         ItP4buvfC9uLHpcLLghElv04aQBFlPqws4JtPsH8cIoRwcRzJBo8lhi6FSY2MXgUiGbk
-         Xz0A==
+        d=riscstar-com.20260707.gappssmtp.com; s=20260707; t=1793310746; x=1793915546; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=q9nll6/cGOCt3/Ga2kdm9Mpl741Nm3G9jmZ+bXdQUV4=;
+        b=XAO1cP+3IKS7lQI4d71Qz6Nd/orYZed31mHiJw17ocYEeXS3KLTjuiRQgkNcPKfcJw
+         QNjGTw9XJyljYINg9GrfteAiS/pgODk0lxS/LpK+ASP4U82UAG1D/AQ1Er0UYGyhjVGe
+         9HVdpQKO13fy2950+Zi9EGBj7P7Vx8t5fVMpy6e+BGo/lQy6mt+FhfE4GFv3B45gjaze
+         K2U5PUgwXcpFWxYw2SvehK8sWg3w5PESrgcX1++F1vRW4leIgmPz7SJBZEVIr8DDU/Tc
+         cvJoj/9N2fKjbf2K40qtgm/OTO0Q51G8rldS2yR15kmHpEcy1EWhKmvqwYL23HDmGIci
+         j4Hg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793289618; x=1793894418;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hvoA0a/dCv/8bteYHYa9BK4H9hAe5PJC6QfkTDcUZmo=;
-        b=JkP73Y9QnZIshhRtAqAc33RQ0xH8ldFqJNuTLabpxIIC52NaDkoj7D2EwF+t64w5X6
-         tUMMRorZB4CgmQwpGUsAIPKcUckuu8yS5ihPHIQAMcmPfvoXiGQWJKJmXJmIw8pY1VrB
-         81lZJ9LFDkAP0HEh7J4Sr8kjQvJ/jBWbAFgtgsn0xWcGpJHzP1xdRy/LbAFWEK6PL+gl
-         1hP8Oy+vN7/wWRClxIea0Hl5lBtUJ1QrikCzwoYU2RX7Dmh1F/ftBXS16DFSFH5AMHVE
-         TuuT6/DyuzPqAUHYRBeAIOw9tkvrtkpRidPhNy1M08j3SB5VNy5ZUJxeqbUGBH6hvjQ+
-         Duxw==
-X-Gm-Message-State: AFq9FYLI3vD3Wc3T5Uq7w6qA+KsxySy1jiepl4eHbV0EZYEfZ+0M0xep
-	t+cS1ao7FtDgDPmgvB5eVkVm6HbaYEV1FDND45nQG/akLcanEMGbHJnilXXqaA==
-X-Gm-Gg: AYBFou2DAHxT2pWaMX2DkV7zlZ+mhfItxLdj5VsFJPXUX3grvkQBD6LtaqtyzeAyZvB
-	Qsoh5B3jgpuaXHuO5vYzkLARLO53X2LSqDCJauipBZuYifyYPePI5jPpxOWYBcq70897RAeKSB1
-	P4JTQUz2RySn5aZ4xrStqSzops/INx8euhuHYjSYgP/Sf/sS8av4OfwBJ6PXp8J5yyOQjAGgMYK
-	oHRqCn6FLYHsuuhsMUEUxKwfksdCSRTGiw1shQ4ZwXG4kEL498FnyvP1Qt9siG2IQ0P0ILRphsF
-	d8XOTxec/TGhYVsRpvjNEnwtzCA/PhHCswE0o1LgB229a3xFBez+MfzgtyXLxZTY18LEeEsL1ya
-	/4ypFavE1DA702ENroqC5FYxDgYXKdf/Q57Gg/az/M93GNiOHrZDvytBI7L37zO0r7/Px/0cIuE
-	2ggq3czeZhy9y5FU4w0qmuYu5AVXHnFc/qH7dmT1M73SSkYvL8kOt3C2Rg7MFvypYhBqxke72Il
-	PD9xQKSKAvHuaWPs7qV8NCA2rRxGKh/gtCI3H4SUy+Lo91r22chqI+LlP4Xgu8JogpcDxPtKxU3
-	PQVO32hoFAs+/JbVVqqCJQeNP8XLTaHKNafCrmY9j9BfAWFtAQyObUg+buYeuZmrqHib6aYH6cB
-	1JAipTMwt9gW1rg==
-X-Received: by 2002:a05:622a:5e10:b0:531:17a2:4e4a with SMTP id d75a77b69052e-53fcc3cfdbamr86014441cf.47.1793289618105;
-        Thu, 29 Oct 2026 09:00:18 -0700 (PDT)
-Received: from ubuntu.localdomain (69-171-141-154.rdns.distributel.net. [69.171.141.154])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.09.00.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 09:00:16 -0700 (PDT)
-From: Raymond Mao <raymondmaoca@gmail.com>
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org,
-	anup.patel@oss.qualcomm.com,
-	scott@riscstar.com,
-	raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com,
-	samuel.holland@sifive.com,
-	peter.lin@sifive.com
-Subject: [PATCH v2 12/12] [NOT-FOR-UPSTREAM] platform: generic: Add sample dts overlays for testing hwirq/domain route rules
-Date: Thu, 29 Oct 2026 11:59:29 -0400
-Message-Id: <20261029155929.586597-13-raymondmaoca@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20261029155929.586597-1-raymondmaoca@gmail.com>
-References: <20261029155929.586597-1-raymondmaoca@gmail.com>
+        d=1e100.net; s=20260707; t=1793310746; x=1793915546;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=q9nll6/cGOCt3/Ga2kdm9Mpl741Nm3G9jmZ+bXdQUV4=;
+        b=uIAtwnCw6UT12BuOhXWIQ7nCxV19tvInXUY+Q+50/EtBzziMFIi54knAoCIjZVhEL1
+         SK3JgloFUonr+a5zhzBXpe5pOjFDpAhUKPJCSWfk/2IOYEdNdz/lE6yGGXM/4N2hWa+f
+         w0Elb6rNNU8l6GNWv/EiK8phCHgzuKjVOuT2iJ3tdzeOFRDMiyiSG7JoWnyiMdHk47xQ
+         4rOzRA3PyD+AUJtAjlYUohPtbLmdIIn42B2/R2QlaBReNFItXLG5/zzNJW+uud5+uzax
+         MOzSiln0ZtXTVJkZhajJgQZRMycJrrxAIib2cfcyeVAm2iXEsx3OxyEx27NvYiIUTQlb
+         lB6g==
+X-Forwarded-Encrypted: i=1; AKwUvByhB5c6MKeeA064AddG8QlrXWmcVcc447ea923oGhBQNF7pUdcVcMj0a/ewGy0t5Jb+LyJTmGfO@lists.infradead.org
+X-Gm-Message-State: AFq9FYJHTOjBUBU3BivelIJiuYokMMFVM2sBYTxQDWUixamv9RgvVbbR
+	R1kRpE+TtvAUGcOAqo29mu54/UsuZx0B3ZPL0U9+xVGfeYc1N+mBhvHYiGThSrccWfC3KDk4HJ5
+	OhCdL4VdRK1ayAdZp9MTXYsWuimCXc12dprqw75eHKA==
+X-Gm-Gg: AYBFou3VRuu8yPBkgDizfRB6S4O2s6L87h8HG4CSHZv7NAWr7OWNeCxbnk3eBVKiH9I
+	So93qcfJQ+Ltt0YdLZ2Qss86+BaIyD5g94IeQUzf9bNL+KwHGNA/TzsH2Pi9oqsV/CQA30bn/O4
+	Bgl/TfudMgs+BEwbSLn7xJbUqASsr9OfPNBQGun90y2dHw3lDqL0rn2aJfwl3Vmd8UUc5psPQCO
+	WCCWbvqTbsyH9m/mrZk2RFKJhpb+0aivvRMtSPq75Np+C5mWi5bpNo2bSkvpiHjA+UpRMXDczwy
+	nqkd4lMGpFqgKQD8G5KJy0I6Z5WnwK7Mqbv38HI99WFRwS2CzDywD9j+1htv/66lgsEvGbCsqNZ
+	Yfz712+cF7cD2ZijDrl3C5XIC4ZFdio02vPn2QQ==
+X-Received: by 2002:a05:6122:1d0d:b0:5ea:cb6c:6513 with SMTP id
+ 71dfb90a1353d-5ec6851651fmr215626e0c.1.1793310746459; Thu, 29 Oct 2026
+ 14:52:26 -0700 (PDT)
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
+References: <20260904162915.1092353-1-raymondmaoca@gmail.com> <auLLiQfr0bkMEx5z@plin-1878>
+In-Reply-To: <auLLiQfr0bkMEx5z@plin-1878>
+From: Raymond Mao <raymond.mao@riscstar.com>
+Date: Thu, 29 Oct 2026 17:52:15 -0400
+X-Gm-Features: AclHuK-jLcHiXLu5K1RuVTFsNKsK0Ae5juuZ5e9KG1x1ELQoBDzAwO_TbT2bF2w
+Message-ID: <CAMkFH18DbTVGM=B21qct2PjeNsJGetbxvuA+REe5qH9sH1fxWw@mail.gmail.com>
+Subject: Re: [PATCH v3 0/5] Add WorldGuard support with SiFive WG checker
+To: Yu-Chien Peter Lin <peter.lin@sifive.com>
+Cc: Raymond Mao <raymondmaoca@gmail.com>, opensbi@lists.infradead.org, 
+	anup.patel@oss.qualcomm.com, scott@riscstar.com, robin.randhawa@sifive.com, 
+	samuel.holland@sifive.com, zong.li@sifive.com, greentime.hu@sifive.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_090019_832753_FD495F51 
-X-CRM114-Status: GOOD (  15.52  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261029_145230_072828_AC234EEC 
+X-CRM114-Status: GOOD (  25.41  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -103,315 +116,187 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	DKIM_ADSP_CUSTOM_MED,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
+X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-From: Raymond Mao <raymond.mao@riscstar.com>
-
-Introduce rpmi_sysirq_intc nodes with interrupts-extended property
-for VIRQ testing.
-- Routing rules are derived from sysirq nodes by:
-      interrupts-extended =
-         <&aplic HWIRQx IRQ_TYPE>, // virq 0
-         <&aplic HWIRQy IRQ_TYPE>, // virq 1
-         ...;
-- VIRQ numbers are allocated from zero, implicit from the order
-  of the entries in the interrupts-extended property.
-
-During cold boot, route rules are converted and cached for VIRQ
-routing/couriering purpose, and DT IRQ entries activate courier delivery.
-
-hwirq_bind_domain.dts is for testing with a single domain/hart.
-Domain1 owns UART hwirq 10 via 'interrupts-extended'.
-
-hwirq_bind_domain_linux_bmapp.dts is for testing with multiple
-domains/harts. It models two BM domains alongside the root domain
-on 'QEMU virt -smp 4'. Domain1 and domain2 share hart2 as boot hart
-and each maps its own bm-app RAM region and the UART region;
-domain2 owns UART hwirq 10 via 'interrupts-extended'.
-Bind CPU hart2 to domain1 and set explicit init-order values to keep
-hart2 in domain1 for initial execution. Load the BM payloads at
-0x88000000 and 0x89000000 to exercise domain1 -> domain2 -> domain1.
-
-Keep the configured courier sources 10, 20 and 21 in the M-mode APLIC
-and delegate the remaining sources to its S-mode child. This preserves
-Linux interrupt delivery without delegating the BM domains' IRQs.
-
-Usage:
-1. Compile the overlay.
-   $ dtc -@ -I dts -O dtb -o <dto_file> \
-         platform/generic/virt/<dts_overlay_file>
-2. Dump the base dtb from QEMU via arg
-   '-machine dumpdtb=<dtb_qemu_base>'
-3. Apply the overlay on the base.
-   $ fdtoverlay -i <dtb_qemu_base> -o <dtb_qemu_merge> <dto_file>
-4. Re-run QEMU with adding argument '-dtb <dtb_qemu_merge>'
-
-Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
----
- platform/generic/virt/hwirq_bind_domain.dts   | 107 +++++++++++++++
- .../virt/hwirq_bind_domain_linux_bmapp.dts    | 125 ++++++++++++++++++
- 2 files changed, 232 insertions(+)
- create mode 100644 platform/generic/virt/hwirq_bind_domain.dts
- create mode 100644 platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
-
-diff --git a/platform/generic/virt/hwirq_bind_domain.dts b/platform/generic/virt/hwirq_bind_domain.dts
-new file mode 100644
-index 00000000..93f21d0b
---- /dev/null
-+++ b/platform/generic/virt/hwirq_bind_domain.dts
-@@ -0,0 +1,107 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/dts-v1/;
-+/plugin/;
-+
-+/ {
-+	/*
-+	 * Fragment 0: OpenSBI domain configuration under /chosen
-+	 */
-+	fragment@0 {
-+		target-path = "/chosen";
-+		__overlay__ {
-+			opensbi-domains {
-+				compatible = "opensbi,domain,config";
-+
-+				/*
-+				 * DRAM region for domain1 (2GB from 0x8000_0000).
-+				 * base is 64-bit: <hi lo>, order is log2(size).
-+				 */
-+				memregion_dram_2g: memregion_dram_2g {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x80000000>;
-+					order = <31>;
-+				};
-+
-+				/*
-+				 * UART MMIO region so S-mode payload can access UART registers
-+				 * without fault. 0x1000_0000 size 4KB.
-+				 */
-+				uart0_mmio: memregion_uart0 {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x10000000>;
-+					order = <12>;
-+				};
-+
-+				/*
-+				 * Domain instance:
-+				 * - possible-harts = <cpu0 phandle> (cpu@0 phandle is 1)
-+				 * - regions use label references (fdtoverlay will fixup phandles)
-+				 * - IRQ routing is defined by sysirq nodes under
-+				 *   /chosen/opensbi-domains
-+				 */
-+				domain1: domain1 {
-+					compatible = "opensbi,domain,instance";
-+
-+					/* cpu@0 phandle in base qemu dtb is 1 */
-+					possible-harts = <0x1>;
-+
-+					/*
-+					 * Keep permissive for test.
-+					 * access=0x3f: enable all M+SU R/W/X flags (test only).
-+					 */
-+					regions = <&memregion_dram_2g 0x3f>,
-+						  <&uart0_mmio 0x3f>;
-+
-+					/* Route rules are supplied via sysirq nodes. */
-+				};
-+
-+				rpmi_sysirq_intc: interrupt-controller {
-+					compatible = "opensbi,mpxy-sysirq";
-+					interrupt-controller;
-+					#interrupt-cells = <1>;
-+
-+					/*
-+					 * VIRQ numbers are allocated from zero, in order.
-+					 * Each entry: <&irqchip hwirq flags>
-+					 * flags: IRQ_TYPE_LEVEL_HIGH = 4
-+					 */
-+					/*
-+					 * Base DTB (qemu_linux_test.dtb) phandle:
-+					 * /soc/interrupt-controller@c000000 -> 0x09
-+					 */
-+					interrupts-extended =
-+						<0x09 10 4>, /* VIRQ 0: UART RX */
-+						<0x09 20 4>, /* VIRQ 1: test */
-+						<0x09 21 4>; /* VIRQ 2: test */
-+
-+					/* MPXY channel id allocated by system designer */
-+					opensbi,mpxy-channel-id = <4>;
-+
-+					/* Route VIRQs to domain1 */
-+					opensbi,domain = <&domain1>;
-+				};
-+			};
-+		};
-+	};
-+
-+	/*
-+	 * Fragment 1: Assign cpu0 to domain1 using label reference
-+	 */
-+	fragment@1 {
-+		target-path = "/cpus/cpu@0";
-+		__overlay__ {
-+			opensbi-domain = <&domain1>;
-+		};
-+	};
-+
-+	fragment@2 {
-+		target-path = "/soc/interrupt-controller@c000000";
-+		__overlay__ {
-+			/* Keep courier IRQs 10, 20 and 21 in the M-mode APLIC. */
-+			riscv,delegate = <0x0a 1 9>, <0x0a 11 19>,
-+					 <0x0a 22 96>;
-+			riscv,delegation = <0x0a 1 9>, <0x0a 11 19>,
-+					   <0x0a 22 96>;
-+		};
-+	};
-+};
-diff --git a/platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts b/platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
-new file mode 100644
-index 00000000..d26e4237
---- /dev/null
-+++ b/platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
-@@ -0,0 +1,125 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/dts-v1/;
-+/plugin/;
-+
-+/ {
-+	fragment@0 {
-+		target-path = "/chosen";
-+		__overlay__ {
-+			opensbi-domains {
-+				compatible = "opensbi,domain,config";
-+
-+				d1_uart_mmio: memregion_domain1_uart_mmio {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x10000000>;
-+					order = <12>;
-+					mmio;
-+				};
-+
-+				d1_bmapp_ram: memregion_domain1_bmapp_ram {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x88000000>;
-+					order = <24>;
-+				};
-+
-+				d2_bmapp_ram: memregion_domain2_bmapp_ram {
-+					compatible = "opensbi,domain,memregion";
-+					base  = <0x0 0x89000000>;
-+					order = <24>;
-+				};
-+
-+				/*
-+				 * Domain instance:
-+				 * - possible-harts uses CPU node phandles
-+				 * - regions use label references (fdtoverlay will fixup phandles)
-+				 */
-+				domain1: domain1 {
-+					compatible = "opensbi,domain,instance";
-+					init-order = <1>;
-+
-+					/*
-+					 * QEMU virt -smp 4 dumpdtb phandles:
-+					 * cpu@1 -> 0x05, cpu@2 -> 0x03
-+					 */
-+					possible-harts = <0x05 0x03>;
-+					boot-hart      = <0x03>;
-+
-+					/*
-+					 * Keep permissive for test.
-+					 * access=0x3f: enable all M+SU R/W/X flags (test only).
-+					 */
-+					regions = <&d1_bmapp_ram 0x3f>,
-+						  <&d1_uart_mmio 0x3f>;
-+
-+					next-addr = <0x0 0x88000000>;
-+					next-arg1 = <0x0 0x1>;
-+					next-mode = <0x1>;
-+				};
-+
-+				domain2: domain2 {
-+					compatible = "opensbi,domain,instance";
-+					init-order = <2>;
-+
-+					/*
-+					 * QEMU virt -smp 4 dumpdtb phandles:
-+					 * cpu@1 -> 0x05, cpu@2 -> 0x03
-+					 */
-+					possible-harts = <0x05 0x03>;
-+					boot-hart      = <0x03>;
-+
-+					regions = <&d2_bmapp_ram 0x3f>,
-+						  <&d1_uart_mmio 0x3f>;
-+
-+					next-addr = <0x0 0x89000000>;
-+					next-arg1 = <0x0 0x2>;
-+					next-mode = <0x1>;
-+				};
-+
-+				rpmi_sysirq_intc: interrupt-controller {
-+					compatible = "opensbi,mpxy-sysirq";
-+					interrupt-controller;
-+					#interrupt-cells = <1>;
-+
-+					/*
-+					 * VIRQ numbers are allocated from zero, in order.
-+					 * Each entry: <&irqchip hwirq flags>
-+					 * flags: IRQ_TYPE_LEVEL_HIGH = 4
-+					 */
-+					/*
-+					 * Base DTB (qemu_linux_test.dtb) phandle:
-+					 * /soc/interrupt-controller@c000000 -> 0x09
-+					 */
-+					interrupts-extended =
-+						<0x09 10 4>, /* VIRQ 0: UART RX */
-+						<0x09 20 4>, /* VIRQ 1: test */
-+						<0x09 21 4>; /* VIRQ 2: test */
-+
-+					/* MPXY channel id allocated by system designer */
-+					opensbi,mpxy-channel-id = <4>;
-+
-+					/* Route VIRQs to domain2 */
-+					opensbi,domain = <&domain2>;
-+				};
-+			};
-+		};
-+	};
-+
-+	fragment@1 {
-+		target-path = "/cpus/cpu@2";
-+		__overlay__ {
-+			opensbi-domain = <&domain1>;
-+		};
-+	};
-+
-+	fragment@2 {
-+		target-path = "/soc/interrupt-controller@c000000";
-+		__overlay__ {
-+			/* Keep courier IRQs 10, 20 and 21 in the M-mode APLIC. */
-+			riscv,delegate = <0x0a 1 9>, <0x0a 11 19>,
-+					 <0x0a 22 96>;
-+			riscv,delegation = <0x0a 1 9>, <0x0a 11 19>,
-+					   <0x0a 22 96>;
-+		};
-+	};
-+
-+};
--- 
-2.25.1
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+SGkgUGV0ZXIsCgpPbiBUaHUsIE9jdCAyOSwgMjAyNiBhdCAxMjoyOeKAr0FNIFl1LUNoaWVuIFBl
+dGVyIExpbgo8cGV0ZXIubGluQHNpZml2ZS5jb20+IHdyb3RlOgo+Cj4gSGkgUmF5bW9uZCwKPgo+
+IE9uIEZyaSwgU2VwIDA0LCAyMDI2IGF0IDEyOjI5OjEwUE0gLTA0MDAsIFJheW1vbmQgTWFvIHdy
+b3RlOgo+ID4gRnJvbTogUmF5bW9uZCBNYW8gPHJheW1vbmQubWFvQHJpc2NzdGFyLmNvbT4KPiA+
+Cj4gPiBUaGlzIHNlcmllcyBhZGRzIFdvcmxkR3VhcmQgc3VwcG9ydCBhY2NvcmRpbmcgdG8gdGhl
+IHdnY2hlY2tlcjIgRFQtCj4gPiBiaW5kaW5nIHByb3Bvc2FsIGZyb20gU2lGaXZlIFsxXSB3aXRo
+IFFFTVUgdmlydCBpbnRlZ3JhdGlvbi4KPiA+Cj4gPiBUaGUgaW1wbGVtZW50YXRpb246Cj4gPiAt
+IHJldXNlIHNiaV9oYXJ0X3Byb3RlY3Rpb24gZm9yIGhhcnQtbG9jYWwgcnVudGltZSByZWNvbmZp
+Z3VyYXRpb24KPiA+IC0gcmV1c2Ugc2JpX2RvbWFpbl9kYXRhIGZvciBwZXItZG9tYWluIFdvcmxk
+R3VhcmQgc3RhdGUKPiA+IC0ga2VlcCBXb3JsZEd1YXJkLXNwZWNpZmljIHNldHVwIGFuZCBjaGVj
+a2VyIHByb2dyYW1taW5nIGluIHBsYXRmb3JtCj4gPiAgIGNvZGUKPiA+Cj4gPiBBdCBib290LCB0
+aGUgZ2VuZXJpYyBwbGF0Zm9ybSBjb2RlIGludm9rZXMgYSBRRU1VIHZpcnQgV29ybGRHdWFyZAo+
+ID4gc2V0dXAgcGF0aCB3aGljaDoKPiA+IC0gcGFyc2VzIHdnY2hlY2tlcjIgY2hlY2tlciBpbnN0
+YW5jZXMKPiA+IC0gcGFyc2VzIHByb3ZpZGVyIHBhcnRpdGlvbkBOIGVudHJpZXMgYW5kIHByb2dy
+YW1zIGNoZWNrZXIgTU1JTwo+ID4gLSBwYXJzZXMgcGVyLWhhcnQgQ1BVIGRlZmF1bHRzIGZyb20g
+L2NwdXMKPiA+IC0gcGFyc2VzIHBlci1kb21haW4gV29ybGRHdWFyZCBtZXRhZGF0YSB1bmRlciBo
+dy1pc29sYXRpb24KPiA+Cj4gPiBDaGVja2VyIHByb2dyYW1taW5nIGlzIHByb3ZpZGVyLWRyaXZl
+bi4gQ29uc3VtZXItc2lkZQo+ID4gYWNjZXNzLWNvbnRyb2xsZXJzIHJlZmVyZW5jZXMgYXJlIGNh
+cnJpZWQgZm9yIERULWJpbmRpbmcgYWxpZ25tZW50Lgo+ID4KPiA+IER1cmluZyBkb21haW4gdHJh
+bnNpdGlvbnMsIHRoZSBXb3JsZEd1YXJkIGhhcnQgcHJvdGVjdGlvbgo+ID4gaW1wbGVtZW50YXRp
+b24gcmVwcm9ncmFtcyBNTFdJRCBhbmQsIHdoZW4gYXZhaWxhYmxlLCBNTFdJRExJU1QsCj4gPiBN
+V0lEREVMRUcsIGFuZCBTTFdJRC4KPiA+Cj4gPiBUaGUgc2VyaWVzIGlzIHNwbGl0IGFzIGZvbGxv
+d3M6Cj4gPiAxLiBhZGQgcmV1c2FibGUgRkRUIGhlbHBlcnMgbmVlZGVkIGJ5IHRoZSBXb3JsZEd1
+YXJkIHBhcnNlcgo+ID4gMi4gYWRkIFdvcmxkR3VhcmQgQ1NSIGRlZmluaXRpb25zIGFuZCBoYXJ0
+IGV4dGVuc2lvbiBmbGFncwo+ID4gMy4gZG9jdW1lbnQgdGhlIGN1cnJlbnQgRFQgbGF5b3V0IGNv
+bnN1bWVkIGJ5IHRoZSBpbXBsZW1lbnRhdGlvbgo+ID4gNC4gYWRkIHRoZSB3Z2NoZWNrZXIyIC8g
+V29ybGRHdWFyZCBydW50aW1lIGFuZCBRRU1VIHZpcnQgaW50ZWdyYXRpb24KPiA+Cj4gPiBUZXN0
+ZWQgd2l0aDoKPiA+IC0gUUVNVSByaXNjdi13Zy12NC0yNjA4MjEgWzJdIHdpdGggYXJnICd3b3Js
+ZHM9b24nIGFuZCB0aGUgbWVyZ2VkCj4gPiAgIFdvcmxkR3VhcmQgdGVzdCBEVEIuCj4gPgo+ID4g
+WzFdIGR0LWJpbmRpbmdzOiByaXNjdjogQWRkIFJJU0MtViBXb3JsZHMgYW5kIFNpRml2ZSBXb3Js
+ZEd1YXJkIERUCj4gPiAgICAgYmluZGluZ3MKPiA+ICAgICBodHRwczovL2xvcmUua2VybmVsLm9y
+Zy9saW51eC1kZXZpY2V0cmVlLzIwMjYwODEyMTIyMTMxLjE1MzQ5MDYtMS1wZXRlci5saW5Ac2lm
+aXZlLmNvbS8KPiA+IFsyXSBodHRwczovL2dpdGh1Yi5jb20vY3dzaHUvcWVtdS90cmVlL3Jpc2N2
+LXdnLXY0LTI2MDgyMQo+Cj4gVGhhbmtzIGZvciB3b3JraW5nIG9uIHRoaXMgc2VyaWVzLiBDb3Vs
+ZCB3ZSBhbGlnbiB0aGUgaW1wbGVtZW50YXRpb24gd2l0aAo+IHRoZSBEVCBwcm9wb3NhbCBvbiBh
+IGZldyBrZXkgcG9pbnRzPwo+Cj4gMS4gRG9tYWluIFdJRHMgc2hvdWxkIHVzZSB3aWQgLyB3aWRk
+ZWxlZyBkaXJlY3RseSB1bmRlciBkb21haW4gbm9kZXMsIG5vdAo+ICAgIGh3LWlzb2xhdGlvbiB3
+aXRoIHNpZml2ZSx3Z2NoZWNrZXIyLgo+ICAgIE15IHBhdGNoZXMgYWxyZWFkeSBoYW5kbGUgdGhl
+IFdJRCBhc3NpZ25tZW50IGFuZCBzd2l0Y2hpbmcuCj4gICAgaHR0cHM6Ly9wYXRjaHdvcmsub3ps
+YWJzLm9yZy9wcm9qZWN0L29wZW5zYmkvcGF0Y2gvMjAyNjEwMjcwODM1MDkuMTA3NjU3Ny0xMC1w
+ZXRlci5saW5Ac2lmaXZlLmNvbS8KPiAyLiB3Z0NoZWNrZXIgaXMgYSBzdGF0aWMgZmlyZXdhbGwg
+Y29uZmlndXJlZCBvbmNlIGF0IGJvb3Q7IGJ5IGRlc2lnbiBpdCBkb2VzCj4gICAgbm90IHN1cHBv
+cnQgZWZmaWNpZW50IGR5bmFtaWMgcmVjb25maWd1cmF0aW9uLgo+IDMuIFVubGlrZSBzZXF1ZW50
+aWFsIGZpcnN0LW1hdGNoIFBNUCwgd2dDaGVja2VyIHNsb3RzIGFyZSBzdHJpY3RseSBhY2NyZXRp
+dmUKPiAgICAocGFyYWxsZWwgT1IpLCBzbyBvdmVybGFwcGluZyBydWxlcyBjYW5ub3QgcmVzdHJp
+Y3QgYWNjZXNzLiBpLmUuCj4KPiAgICAvKiBQTVAgKFByaW9yaXR5LWJhc2VkLCBzZXF1ZW50aWFs
+KTogKi8KPiAgICBmb3IgKGkgPSBOLTE7IGkgPj0gMDsgaS0tKSB7Cj4gICAgICAgIGlmIChwbXBb
+aV0ubWF0Y2hlcyhhZGRyKSkKPiAgICAgICAgICAgIHJldHVybiBwbXBbaV0ucGVybTsgICAgICAv
+LyBGSVJTVCBtYXRjaCB3aW5zCj4gICAgfQo+Cj4gICAgLyogd2dDaGVja2VyIChTdHJpY3RseSBh
+Y2NyZXRpdmUsIHBhcmFsbGVsKTogKi8KPiAgICBwZXJtID0gTk9fQUNDRVNTOwo+ICAgIGZvciAo
+aSA9IDA7IGkgPCBuc2xvdHM7IGkrKykgewo+ICAgICAgICBpZiAoc2xvdFtpXS5tYXRjaGVzKGFk
+ZHIpKQo+ICAgICAgICAgICAgcGVybSB8PSBzbG90W2ldLnBlcm1bd2lkXTsgLy8gT1IgYWxsIG1h
+dGNoZXMKPiAgICB9Cj4gICAgaWYgKHBlcm0gYWxsb3dzIGFjY2VzcykKPiAgICAgICAgZ3JhbnRf
+YWNjZXNzKCk7Cj4KPiAgICBUaGUgd2dDaGVja2VyIGRyaXZlciBzaG91bGQgYXV0b21hdGljYWxs
+eSBzZWxlY3QgYmV0d2VlbiBOQVBPVCBhbmQgVE9SCj4gICAgZW5jb2RpbmcgdG8gbWluaW1pemUg
+c2xvdCB1c2FnZS4KPgo+IDQuIE9wZW5TQkkgc2hvdWxkIHN1cHBvcnQgdXNlIGNhc2VzIGJlbG93
+IGFuZCBkdW1wIHRoZSB3Z0NoZWNrZXIgc2xvdCBpbmZvIGF0IGJvb3Q6Cj4KPiA9PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT0KPiBVc2UgQ2FzZSAxOiBTaW5nbGUtU2xvdCBQZXJpcGhlcmFsIFByb3RlY3Rpb24gKEZ1
+bGwgU3Vib3JkaW5hdGUgUmFuZ2UpCj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4KPiAweDAwMWNfMTAwMCAr
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKwo+ICAg
+ICAgICAgICAgIHwgcGFydGl0aW9uQDAgOiBbMHgwMDFjXzEwMDAsIDB4MDAxY18yMDAwKSAgICAg
+ICAgICB8Cj4gICAgICAgICAgICAgfCBzZXJpYWxAMWMxMDAwIHwgV0lEIDAsMyBSVyAocGVybSAw
+eGMzLCBjZmcgMHgxZikgIHwKPiAgICAgICAgICAgICB8IFNsb3QwMC4uMDEgIDogQT1UT1IgKFNs
+b3QwMCBiYXNlLCBTbG90MDEgdG9wKSAgICAgfAo+IDB4MDAxY18yMDAwICstLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rCj4KPiB1YXJ0OiBzZXJpYWxA
+MWMxMDAwIHsKPiAgICAgcmVnID0gPDB4MDAxYzEwMDAgMHgxMDAwPjsKPiAgICAgYWNjZXNzLWNv
+bnRyb2xsZXJzID0gPCZ3Z2MwIDA+Owo+IH07Cj4KPiB3Z2MwOiBhY2Nlc3MtY29udHJvbGxlckAx
+YzIwMDAgewo+ICAgICBjb21wYXRpYmxlID0gInFlbXUsd2djaGVja2VyMiIsICJzaWZpdmUsd2dj
+aGVja2VyMiI7Cj4gICAgIHJlZyA9IDwweDAgMHgwMDFjMjAwMCAweDAgMHgxMDAwPjsKPiAgICAg
+I2FjY2Vzcy1jb250cm9sbGVyLWNlbGxzID0gPDE+Owo+ICAgICAjYWRkcmVzcy1jZWxscyA9IDwx
+PjsKPiAgICAgI3NpemUtY2VsbHMgPSA8MD47Cj4KPiAgICAgcGFydGl0aW9uQDAgewo+ICAgICAg
+ICAgcmVnID0gPDA+Owo+ICAgICAgICAgc2lmaXZlLHdnLXJlZ2lvbiA9IDwweDAgMHgwMDFjMTAw
+MCAweDAgMHgwMDAwMTAwMD47Cj4gICAgICAgICBzaWZpdmUsc2xvdC1wZXJtaXNzaW9ucyA9IDww
+eDAgMHgwMDAwMDBjMz47Cj4gICAgICAgICBzaWZpdmUsc2xvdC1jb25maWcgPSA8MHgxZj47Cj4g
+ICAgIH07Cj4gfTsKPgo+IEV4cGVjdGVkIE9wZW5TQkkgYm9vdCBkdW1wOgo+IHdnQ2hlY2tlciBC
+YXNlICAgICAgIDogMHgxYzIwMDAKPiB3Z0NoZWNrZXIgU2xvdDAwICAgICA6IDB4MDAwMDAwMDAw
+MDFjMTAwMC0uLi4uLi4uLi4uLi4uLi4uLi4gMDA6IEE6MCBFUjoxIEVXOjEgSVI6MSBJVzoxIEw6
+MAo+IHdnQ2hlY2tlciBTbG90MDEgICAgIDogLi4uLi4uLi4uLi4uLi4uLi4uLTB4MDAwMDAwMDAw
+MDFjMjAwMCBjMzogQToxIEVSOjEgRVc6MSBJUjoxIElXOjEgTDoxCj4gd2dDaGVja2VyIFNsb3Qg
+VXNhZ2UgOiAxICh0b3RhbCksIDEgKHVzZWQpLCAwIChmcmVlKQo+Cj4gPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+Cj4gVXNlIENhc2UgMjogTXVsdGktUmVnaW9uIFBlcmlwaGVyYWwgUHJvdGVjdGlvbiAoRGlzam9p
+bnQgUmVnaXN0ZXIgR3JvdXBzKQo+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQo+Cj4gMHgwMDAxXzAwMDAgKy0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKPiAgICAg
+ICAgICAgICB8IHBhcnRpdGlvbkAwIDogWzB4MDAwMV8wMDAwLCAweDAwMDFfODAwMCkgKDMyIEtp
+QikgfAo+ICAgICAgICAgICAgIHwgcmVnWzBdIG1fbW9kZSB8IFdJRCAzIFJXICAgKHBlcm0gMHhj
+MCkgfCBTbG90MDEgICB8Cj4gMHgwMDAxXzgwMDAgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKPiAgICAgICAgICAgICA6ICAgICAgICAgICAgICAg
+ICAgKHVucmVmZXJlbmNlZCkgICAgICAgICAgICAgICAgICAgOgo+IDB4MDBhMF8wMDAwICstLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rCj4gICAgICAg
+ICAgICAgfCBwYXJ0aXRpb25AMSA6IFsweDAwYTBfMDAwMCwgMHgwMGEwXzQwMDApICgxNiBLaUIp
+IHwKPiAgICAgICAgICAgICB8IHJlZ1sxXSBzX21vZGUgfCBXSUQgMCwzIFJXIChwZXJtIDB4YzMp
+IHwgU2xvdDAyICAgfAo+IDB4MDBhMF80MDAwICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rCj4KPiBkZXZpY2VAMTAwMDAgewo+ICAgICByZWcgPSA8
+MHgwIDB4MDAwMTAwMDAgMHgwIDB4ODAwMD4sCj4gICAgICAgICAgIDwweDAgMHgwMGEwMDAwMCAw
+eDAgMHg0MDAwPjsKPiAgICAgcmVnLW5hbWVzID0gIm1fbW9kZSIsICJzX21vZGUiOwo+ICAgICBh
+Y2Nlc3MtY29udHJvbGxlcnMgPSA8JndnYzEgMD4sIDwmd2djMSAxPjsKPiB9Owo+Cj4gd2djMTog
+YWNjZXNzLWNvbnRyb2xsZXJAMzUwMDAgewo+ICAgICBjb21wYXRpYmxlID0gInFlbXUsd2djaGVj
+a2VyMiIsICJzaWZpdmUsd2djaGVja2VyMiI7Cj4gICAgIHJlZyA9IDwweDAgMHgwMDAzNTAwMCAw
+eDAgMHgxMDAwPjsKPiAgICAgI2FjY2Vzcy1jb250cm9sbGVyLWNlbGxzID0gPDE+Owo+ICAgICAj
+YWRkcmVzcy1jZWxscyA9IDwxPjsKPiAgICAgI3NpemUtY2VsbHMgPSA8MD47Cj4KPiAgICAgcGFy
+dGl0aW9uQDAgewo+ICAgICAgICAgcmVnID0gPDA+Owo+ICAgICAgICAgc2lmaXZlLHdnLXJlZ2lv
+biA9IDwweDAgMHgwMDAxMDAwMCAweDAgMHgwMDAwODAwMD47Cj4gICAgICAgICBzaWZpdmUsc2xv
+dC1wZXJtaXNzaW9ucyA9IDwweDAgMHgwMDAwMDBjMD47Cj4gICAgICAgICBzaWZpdmUsc2xvdC1j
+b25maWcgPSA8MHgwZj47Cj4gICAgIH07Cj4gICAgIHBhcnRpdGlvbkAxIHsKPiAgICAgICAgIHJl
+ZyA9IDwxPjsKPiAgICAgICAgIHNpZml2ZSx3Zy1yZWdpb24gPSA8MHgwIDB4MDBhMDAwMDAgMHgw
+IDB4MDAwMDQwMDA+Owo+ICAgICAgICAgc2lmaXZlLHNsb3QtcGVybWlzc2lvbnMgPSA8MHgwIDB4
+MDAwMDAwYzM+Owo+ICAgICAgICAgc2lmaXZlLHNsb3QtY29uZmlnID0gPDB4MGY+Owo+ICAgICB9
+Owo+IH07Cj4KPiBFeHBlY3RlZCBPcGVuU0JJIGJvb3QgZHVtcDoKPiB3Z0NoZWNrZXIgQmFzZSAg
+ICAgICA6IDB4MzUwMDAKPiB3Z0NoZWNrZXIgU2xvdDAwICAgICA6IDB4MDAwMDAwMDAwMDAwMDAw
+MC0uLi4uLi4uLi4uLi4uLi4uLi4gMDA6IEE6MCBFUjoxIEVXOjEgSVI6MSBJVzoxIEw6MAo+IHdn
+Q2hlY2tlciBTbG90MDEgICAgIDogMHgwMDAwMDAwMDAwMDEwMDAwLTB4MDAwMDAwMDAwMDAxODAw
+MCBjMDogQTozIEVSOjEgRVc6MSBJUjoxIElXOjEgTDowCj4gd2dDaGVja2VyIFNsb3QwMiAgICAg
+OiAweDAwMDAwMDAwMDBhMDAwMDAtMHgwMDAwMDAwMDAwYTA0MDAwIGMzOiBBOjMgRVI6MSBFVzox
+IElSOjEgSVc6MSBMOjAKPiB3Z0NoZWNrZXIgU2xvdDA0ICAgICA6IC4uLi4uLi4uLi4uLi4uLi4u
+Li0weDAwMDAwMDAwMDEwMDAwMDAgMDA6IEE6MCBFUjowIEVXOjAgSVI6MCBJVzowIEw6MAo+IHdn
+Q2hlY2tlciBTbG90IFVzYWdlIDogNCAodG90YWwpLCAyICh1c2VkKSwgMiAoZnJlZSkKPgo+ID09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PQo+IFVzZSBDYXNlIDM6IE11bHRpLURvbWFpbiBEUkFNIFNwYXRpYWwgUGFy
+dGl0aW9uaW5nIChIeWJyaWQgTkFQT1QgKyBUT1IpCj4gPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4KPiBPcGVu
+U0JJOiBXSUQzCj4gTGludXggIDogV0lEMAo+IE9QLVRFRSA6IFdJRDEKPgo+ICAgMHg4MDAwXzAw
+MDAgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsK
+PiAgICAgICAgICAgICAgIHwgcGFydGl0aW9uQDAgOiBbMHg4MDAwXzAwMDAsIDB4QzAwMF8wMDAw
+KSAoMTAyNE0pICB8Cj4gICAgICAgICAgICAgICB8IExpbnV4IC8gT3BlblNCSSB8IFdJRCAwLDEs
+MyBSVyAoMHhjZikgfCBTbG90MDEgQTozfAo+ICAgMHhDMDAwXzAwMDAgKy0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKPiAgICAgICAgICAgICAgIHwg
+cGFydGl0aW9uQDEgOiBbMHhDMDAwXzAwMDAsIDB4QzEwMF8wMDAwKSAoMTZNKSAgICB8Cj4gICAg
+ICAgICAgICAgICB8IE9QLVRFRSAvIE9wZW5TQkl8IFdJRCAxLDMgUlcgICAoMHhjYykgfCBTbG90
+MDIgQTozfAo+ICAgMHhDMTAwXzAwMDAgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLSsKPiAgICAgICAgICAgICAgIHwgcGFydGl0aW9uQDIgOiBbMHhD
+MTAwXzAwMDAsIDB4MV8wMDAwXzAwMDApICgxMDA4TSl8Cj4gICAgICAgICAgICAgICB8IExpbnV4
+IC8gT3BlblNCSSB8IFdJRCAwLDEsMyBSVyAoMHhjZikgfCBTbG90MDMuLjA0fAo+IDB4MV8wMDAw
+XzAwMDAgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0r
+Cj4KPiBtZW1vcnk6IG1lbW9yeUA4MDAwMDAwMCB7Cj4gICAgIHJlZyA9IDwweDAgMHg4MDAwMDAw
+MCAweDAgMHg4MDAwMDAwMD47Cj4gICAgIGFjY2Vzcy1jb250cm9sbGVycyA9IDwmd2djMiAwPiwg
+PCZ3Z2MyIDE+LCA8JndnYzIgMj47Cj4gfTsKPgo+IHdnYzI6IGFjY2Vzcy1jb250cm9sbGVyQDUw
+MDAwMDAwIHsKPiAgICAgY29tcGF0aWJsZSA9ICJxZW11LHdnY2hlY2tlcjIiLCAic2lmaXZlLHdn
+Y2hlY2tlcjIiOwo+ICAgICByZWcgPSA8MHgwIDB4NTAwMDAwMDAgMHgwIDB4MTAwMD47Cj4gICAg
+ICNhY2Nlc3MtY29udHJvbGxlci1jZWxscyA9IDwxPjsKPiAgICAgI2FkZHJlc3MtY2VsbHMgPSA8
+MT47Cj4gICAgICNzaXplLWNlbGxzID0gPDA+Owo+Cj4gICAgIHBhcnRpdGlvbkAwIHsKPiAgICAg
+ICAgIHJlZyA9IDwwPjsKPiAgICAgICAgIHNpZml2ZSx3Zy1yZWdpb24gPSA8MHgwIDB4ODAwMDAw
+MDAgMHgwIDB4NDAwMDAwMDA+Owo+ICAgICAgICAgc2lmaXZlLHNsb3QtcGVybWlzc2lvbnMgPSA8
+MHgwIDB4MDAwMDAwY2Y+Owo+ICAgICAgICAgc2lmaXZlLHNsb3QtY29uZmlnID0gPDB4MGY+Owo+
+ICAgICB9Owo+ICAgICBwYXJ0aXRpb25AMSB7Cj4gICAgICAgICByZWcgPSA8MT47Cj4gICAgICAg
+ICBzaWZpdmUsd2ctcmVnaW9uID0gPDB4MCAweGMwMDAwMDAwIDB4MCAweDAxMDAwMDAwPjsKPiAg
+ICAgICAgIHNpZml2ZSxzbG90LXBlcm1pc3Npb25zID0gPDB4MCAweDAwMDAwMGNjPjsKPiAgICAg
+ICAgIHNpZml2ZSxzbG90LWNvbmZpZyA9IDwweDBmPjsKPiAgICAgfTsKPiAgICAgcGFydGl0aW9u
+QDIgewo+ICAgICAgICAgcmVnID0gPDI+Owo+ICAgICAgICAgc2lmaXZlLHdnLXJlZ2lvbiA9IDww
+eDAgMHhjMTAwMDAwMCAweDAgMHgzZjAwMDAwMD47Cj4gICAgICAgICBzaWZpdmUsc2xvdC1wZXJt
+aXNzaW9ucyA9IDwweDAgMHgwMDAwMDBjZj47Cj4gICAgICAgICBzaWZpdmUsc2xvdC1jb25maWcg
+PSA8MHgwZj47Cj4gICAgIH07Cj4gfTsKPgo+IEV4cGVjdGVkIE9wZW5TQkkgYm9vdCBkdW1wOgo+
+IHdnQ2hlY2tlciBCYXNlICAgICAgICAgICAgICA6IDB4NTAwMDAwMDAKPiB3Z0NoZWNrZXIgU2xv
+dDAwICAgICAgICAgICAgOiAweDAwMDAwMDAwMDAwMDAwMDAtLi4uLi4uLi4uLi4uLi4uLi4uIDAw
+OiBBOjAgRVI6MSBFVzoxIElSOjEgSVc6MSBMOjAKPiB3Z0NoZWNrZXIgU2xvdDAxICAgICAgICAg
+ICAgOiAweDAwMDAwMDAwODAwMDAwMDAtMHgwMDAwMDAwMGMwMDAwMDAwIGNmOiBBOjMgRVI6MSBF
+VzoxIElSOjEgSVc6MSBMOjAKPiB3Z0NoZWNrZXIgU2xvdDAyICAgICAgICAgICAgOiAweDAwMDAw
+MDAwYzAwMDAwMDAtMHgwMDAwMDAwMGMxMDAwMDAwIGNjOiBBOjMgRVI6MSBFVzoxIElSOjEgSVc6
+MSBMOjAKPiB3Z0NoZWNrZXIgU2xvdDAzICAgICAgICAgICAgOiAweDAwMDAwMDAwYzEwMDAwMDAt
+Li4uLi4uLi4uLi4uLi4uLi4uIDAwOiBBOjAKPiB3Z0NoZWNrZXIgU2xvdDA0ICAgICAgICAgICAg
+OiAuLi4uLi4uLi4uLi4uLi4uLi4tMHgwMDAwMDAwMTAwMDAwMDAwIGNmOiBBOjEgRVI6MSBFVzox
+IElSOjEgSVc6MSBMOjAKPiB3Z0NoZWNrZXIgU2xvdDE2ICAgICAgICAgICAgOiAuLi4uLi4uLi4u
+Li4uLi4uLi4tMHgwMDAwMDAwMTAwMDAwMDAwIDAwOiBBOjAgRVI6MCBFVzowIElSOjAgSVc6MCBM
+OjAKPiB3Z0NoZWNrZXIgU2xvdCBVc2FnZSAgICAgICAgOiAxNiAodG90YWwpLCA0ICh1c2VkKSwg
+MTIgKGZyZWUpCj4KClRoYW5rcyBmb3IgdGhlc2UgY29tbWVudHMuIEluIHY0LCBJIHdpbGwgYWRk
+cmVzcyB0aGVtIGFuZCByZWJhc2Ugb24KeW91ciBzZXJpZXMgWzFdLgpIb3BlZnVsbHkgSSB3aWxs
+IHBvc3QgdjQgYWZ0ZXIgWzFdIGlzIG1lcmdlZCBpbnRvIHRoZSBtYWlubGluZS4KClJlZ2FyZHMs
+ClJheW1vbmQKClsxXSBodHRwczovL2xvcmUua2VybmVsLm9yZy9vcGVuc2JpLzIwMjYxMDI3MDgz
+NTA5LjEwNzY1NzctMS1wZXRlci5saW5Ac2lmaXZlLmNvbS8KCj4gQmVzdCByZWdhcmRzLAo+IFBl
+dGVyIExpbgoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFk
+Lm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
