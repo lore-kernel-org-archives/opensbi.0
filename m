@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42170606A31D
-	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 15:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41DFD606A31D
+	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 15:59:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=3r+AM0VX;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ms2PbPwP
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=MueYybvA;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=nVergKDp
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,65 +14,65 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=1AtVE4qN9C7pnN8+DD69i6mmMcWDYGat30/yQ6lV/iw=; b=3r+AM0VX0C/xGUdq7kYDC9YQkZ
-	gsshHGKyVyArl3FAveoTAyJbrTk9I72URJqQa8iI3K7HRmwi0E1sDt2ZHnYKWxgpTdRqK7qQlSK7/
-	qVhrZD4nNg9oqAEeaTnrPtO/q1TIZ2H2S5mIJkvnnMHGIj6JrKSkFKpmtt1fuNWhn5rvPDQa5lZqf
-	GqXgab7HUNRYkJNuXEg0RPEbYe2Smq6+o8imh4WzBFTI6beX8X86IUN/IypbgTa3QeuGBphojW/TD
-	dfUUhKJg7MqISQ1SH/rHZQQ5LszpTW59ilS/vObOWJ4oFV7iVhkExF5xcAPttuTXLQt3COh7+vsy2
-	U8LOvDfw==;
+	bh=H1i4W9bBxLpB/j/7tmGaEijHYWiq8M1AYY/zck8HbVE=; b=MueYybvAaT+BVkxOHvnBrCkKhu
+	7RecmwIioQAq80dz+2/eU6kG8g3s39086TaW+fCG0x16LoxQ2IrQREIcsHqhqczcXYIXOwXnUHXdP
+	YMBsf3uZVJDEBYYCi+yELqIfTE1w+ZhRTghKV9wsbqRfi6OcKKeaNw9aFkg46pjergcCdUYko7W2D
+	qpZn0OX7ilt+GUlIMbjaRCgnF2OY6JZQfU8Y+h759zaGVpANBhnasE4PjaP9ZsMoJaV9cxUaxHCBW
+	EUrGg+kZFPoNEbA2d0KaMH/QrMo/Gdn8MDU9dyx8d184FGESfl7HcOVF4ZGFtcqPMAmX/2DspvH+L
+	N0EnZMfA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSXj-00000009iHU-0Cxb;
-	Thu, 29 Oct 2026 15:59:55 +0000
-Received: from mail-qt1-x82b.google.com ([2607:f8b0:4864:20::82b])
+	id 1xMSXk-00000009iI5-0Ydh;
+	Thu, 29 Oct 2026 15:59:56 +0000
+Received: from mail-qt1-x836.google.com ([2607:f8b0:4864:20::836])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSXf-00000009iFE-3u8R
+	id 1xMSXh-00000009iGJ-321Y
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 15:59:53 +0000
-Received: by mail-qt1-x82b.google.com with SMTP id d75a77b69052e-5366ae57896so26845891cf.3
-        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 08:59:50 -0700 (PDT)
+	Thu, 29 Oct 2026 15:59:54 +0000
+Received: by mail-qt1-x836.google.com with SMTP id d75a77b69052e-53669f7b518so27006811cf.2
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 08:59:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793289590; x=1793894390; darn=lists.infradead.org;
+        d=gmail.com; s=20260707; t=1793289592; x=1793894392; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=feWrChgEHRsnKnWgkSFeYB2kuACZ93LvcF2PQQj5ucU=;
-        b=ms2PbPwPONcRjGWklBBWYq5rtW4s3C4NiUbGclHmqaadeQUGvfKuCRn9Mzd4mS0xt/
-         M91QXPuPe+W131+lnyIj6TZ/KcIHEvQcFmhRfsAm/B75OhSd5q99eg9rbWsotjzbXk3O
-         bBY4KP5MU3E0U6r2kE6HQ+FxJVKbz9M29DFONo7xrB26XkNpMKe6Fo6l0DD2quLjP1cW
-         po79B120MZ6dxL9vdUdXKt8r84wtsVuEqJzI3HZWRlGqGgbil67NhjC9oVEf/l66AvFm
-         PxfXJejsIEcYMNjXBf8ODiF53D4JK/EQxJE0oG9FEBtbbQai34MsL1OdOIQIjAGwHZ5j
-         gemQ==
+        bh=78vYuz5dcLj37VFrkjhgJsdk6jyw9i3RGCM7EWdmuIo=;
+        b=nVergKDpYqzFBLGMNlZ2PTLKNEALwLYZGXXrX6v45uXBUZD+oINC5mZ91Fcy6xrXdK
+         z0eXQWDFAr3KdjpY2gvTdwuoLUcvHBuh/gP7MkR45fyKBwjOCoc2xSJQFU1GiEcCKIKV
+         wyJVw0Gk3NW+DKuzpvXrSAwVzSV/lJn3EDuKaDPVvHs77w7Evo/e5qX76YqlgpdI3z1F
+         ezh/3gOrnXNLWiudP3JM28WSRbc5BySBjashJNuv69jTnbuN7BFKCh3qpWUvkgUK8b6T
+         e4jRno8+98iFzkNXotCcaO2VAdhe5G9eV0tUpRC1G3OiXXVmRy6nRqxiJuQ/1wid2i4B
+         xDLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793289590; x=1793894390;
+        d=1e100.net; s=20260707; t=1793289592; x=1793894392;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=feWrChgEHRsnKnWgkSFeYB2kuACZ93LvcF2PQQj5ucU=;
-        b=DgSCpNwpZJs8TNlXOCf5b72DowJGouWAzanhgj13jfsCy8D44wJOLSBbYkZoTP36lA
-         pLxnUWhFw69oP2Fm7lKvus5QuJSc3pO0o5ejviS/ZisWGOUTgRQ22fXUvuJVoCeHZLVh
-         4O4g655Ci0VUx+VEpVf8R3R4ITifqFDFX5QL5/t0yMIBAgpbsPKwZtcSA0jdxOoC7hUT
-         D+yz7jadQ5EREiB0NuamLZhEmq8hD5y1Uw5lvIa8iNaM4qPZCUDxfAQVlIZKgiCstWrS
-         yWRNmZMDu3SPPf9zfLCg2of6H9wjwej65tDfCBh2hP67Z3tcjLXmLlu1PVfIXwNjEdSP
-         /KdA==
-X-Gm-Message-State: AFq9FYJp+JgXMaVTAL+9kXXRsj7OLmrSJjDWeG7QOZElAlqwxCMB2Jmf
-	trLonNlhXix3KLvLVKv1MInxDjVClkh4xXoMfpc6bnYcBEu+HU1DxGuQgXyjnQ==
-X-Gm-Gg: AYBFou0rxGhVi+cho+XxVZNAE3b65UbXJW9BFmLGiKydDi4XG1kZ4/MDIjnH41sA8qL
-	JXnFnNumMYNscqUzO+03v3HCULA94O4QDWXeYxUdzsAo7Jmoa6EO+9pcAuHI7ngSpIrBlTPpZCQ
-	l6kiXHuOhOeRAu/jUkIlh8fIAPeOpuTQND0JvzPAhVidaev3V9QJ74mDG/wFknbjGZwskxtubBG
-	BUX0m8exzxVYESOkC4LdD++AUsdKlk/zyqF4jScXVXdRCBFEqnl3YZ985eyJcv/iDfbvat+5Od0
-	fCLDXorjjmmP02pjQs2kt8Tl62AgLiYxKL/aX1KgkjXBJON/r9osE4Q7vBZIl1KYkfrLPY4Xc3b
-	LDHpxuDcvXwqJtFwp2tZESE5AE254H9OPQZh+jN88J3fSMH/DcXqWJJkMVl9AX0jIhwyQ1Y2dEE
-	UyDTG5OlRlU41CYCIwDuzr4ILYBt5eEL41ijmHgh86tapd7hIHexCJFsieAxefiDXV4j0og4axd
-	2O9januY48qtisApUXNcXAIED0b262P9FWQUeX/HuJ52OkiwHYfkgaUn45ZkDkWORKW8M19b1he
-	TrG18aUHgSUB00UmweWPXtbjqGiyeHCpG95dd6e1f7qfAJe3l4JNeIsxsh6/kc9rdQOOQ1tNPJP
-	VPi/HhxlSvKpDxQ==
-X-Received: by 2002:a05:622a:654:b0:536:8f5a:628 with SMTP id d75a77b69052e-53fcbfdf4f6mr96710031cf.52.1793289589859;
-        Thu, 29 Oct 2026 08:59:49 -0700 (PDT)
+        bh=78vYuz5dcLj37VFrkjhgJsdk6jyw9i3RGCM7EWdmuIo=;
+        b=vTkjZ8n171ZWQJlg4gWuy7R72XzkJg/5PgpUYhgiQWt4KcuvS8BuEexHu3ereMcvyc
+         m1hZG77A4rjAlKTDzkGynamIqyYf+kMEazqXO144xxQxcl8vtdXzAmjNZVnqiPhB8UzW
+         Axa/o/r3ekCJr5Svpsma1fAy5m98wPsV7YmpRdR+7escjFLAHHhZQSqV4ErmqpvqP86C
+         De+bd/TjqU4LO440c0PReH/nXwxK8/z7xnZf0t2ssmCPEWlVR+yu4xTrx71zIOS60+8j
+         MyO19CW1hStkLqTpZkuu/kwtgyt0JS+ataTA8XSdQEJ5bkRV1PdtBS+nayXzfBR8dW7g
+         IW9g==
+X-Gm-Message-State: AFq9FYIi+Llt0hBeAMfVL4tgXPyswmzWoFkO9e2Q0cCfXxnBdJnYBeA3
+	V0xCQkUCY7SpVh2qSbicJGFsUUt9mwxxxVNAj5ud/dk0yB9QYbhXvNHp+WKz0A==
+X-Gm-Gg: AYBFou1ojgQ9K36y43b7B9iawMM9DKfWRBsmWB6qVnX/vZ71OF3+Z2Ltw4vDofx+8nG
+	YJrKpdX4+RMQ4B9rOTZfDvhLyqq4AMPQc8JWHkBXE7Qz4+YBQS1ZvwwQq4k/eVgQ+dmgjgmwE1f
+	3VS3COvY6gsrLQU996mC7CcbNlhe6rSnLjGIiN5nYIQDOCFWT3bCk1xdqaRubD4eiBSPVz/L73Z
+	csgCTCH43tAuoOepFfhmy+vPMRx85/ItpTwiOOhmSeYpALpJWpfLpNhbEURpwiDN14AkQSmhQr7
+	VKF3NrbPIm7qVPg+nyob7oYk8WOMFUfZLMMWqASPbuwKvCuNRSO5xdrpd8PKo7J+o7bVRJltOOj
+	LLHmHLTwjnHT6MMG3iUeVXBG30RiMX9I79KoY09FMGSAZRvC+JxcPBrWVl7klbDRZbVnxfhwNhn
+	lVwNlrwI+mU8l4aSwsejXKafQIHYY52tNWL7pavzvnNbkIyGnFM+SUM+HDmVX3hcdzxSmYuXJt7
+	IVsyVqMotyUPZa8TIwx+Zszwrd978SUhiweWeL4HfAPmV+rUvbdxhnqqVma619raww79VgPiqel
+	0a3pM+pBZwqtyPbe0cRTV3Pk+BSCVC93I87yxtifskQBBv3bCOLd4P6+Ws/MCVe36sCz2UcWFvJ
+	n2SuDE4Y0qb83iA==
+X-Received: by 2002:a05:622a:13cb:b0:535:bfc:329 with SMTP id d75a77b69052e-53fcc9c1a8cmr98463681cf.61.1793289591703;
+        Thu, 29 Oct 2026 08:59:51 -0700 (PDT)
 Received: from ubuntu.localdomain (69-171-141-154.rdns.distributel.net. [69.171.141.154])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.08.59.48
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.08.59.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 08:59:49 -0700 (PDT)
+        Thu, 29 Oct 2026 08:59:51 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -82,17 +82,17 @@ Cc: anup@brainfault.org,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 02/12] lib: sbi: add experimental Yield ECALL extension
-Date: Thu, 29 Oct 2026 11:59:19 -0400
-Message-Id: <20261029155929.586597-3-raymondmaoca@gmail.com>
+Subject: [PATCH v2 03/12] lib: irqchip: add S-mode notification helpers
+Date: Thu, 29 Oct 2026 11:59:20 -0400
+Message-Id: <20261029155929.586597-4-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261029155929.586597-1-raymondmaoca@gmail.com>
 References: <20261029155929.586597-1-raymondmaoca@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_085952_037836_8D8487ED 
-X-CRM114-Status: GOOD (  16.09  )
+X-CRM114-CacheID: sfid-20261029_085953_774024_0CC4F722 
+X-CRM114-Status: GOOD (  11.62  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -116,133 +116,92 @@ X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Add a Yield extension with EID 0x0800594c and FID 0.
-The ID is experimental and is not an official SBI assignment.
+Add irqchip helpers to set/clear S-mode notification (SEIP-based).
+In addition to set/clear, expose a get API to read the current
+notification state so upper layers can do edge-triggered notification.
 
-Complete the calling domain and hart's outstanding SYSIRQ batches
-using the same completion mechanism as the next CLAIM. Return the number
-completed, including partial progress on error, without claiming new IRQs.
-Ask the backend to consider a drained return only after completion
-succeeds.
+Allow raw handlers to return SBI_EALREADY when physical completion is
+deferred to the recipient, instead of issuing an immediate EOI. Preserve
+ordinary completion behavior for other handler results.
 
-Enable the extension with CONFIG_SBI_ECALL_YIELD and register it only
-when SYSIRQ channels exist.
+Release handler storage when unregistering an interrupt handler so failed
+courier setup can roll back without leaking memory.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi/sbi_ecall_interface.h |  6 +++++
- lib/sbi/Kconfig                   |  9 +++++++
- lib/sbi/objects.mk                |  3 +++
- lib/sbi/sbi_ecall_yield.c         | 42 +++++++++++++++++++++++++++++++
- 4 files changed, 60 insertions(+)
- create mode 100644 lib/sbi/sbi_ecall_yield.c
+ include/sbi/sbi_irqchip.h |  9 +++++++++
+ lib/sbi/sbi_irqchip.c     | 21 +++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
-diff --git a/include/sbi/sbi_ecall_interface.h b/include/sbi/sbi_ecall_interface.h
-index fd4e77ca..287d3151 100644
---- a/include/sbi/sbi_ecall_interface.h
-+++ b/include/sbi/sbi_ecall_interface.h
-@@ -39,6 +39,9 @@
- #define SBI_EXT_FWFT				0x46574654
- #define SBI_EXT_MPXY				0x4D505859
+diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
+index f5dbf1c7..174fa930 100644
+--- a/include/sbi/sbi_irqchip.h
++++ b/include/sbi/sbi_irqchip.h
+@@ -172,4 +172,13 @@ void sbi_irqchip_exit(struct sbi_scratch *scratch);
+ bool sbi_irqchip_is_hwirq_enabled(struct sbi_irqchip_device *chip,
+ 				   u32 hwirq);
  
-+/* SBI extension ID for Yield. */
-+#define SBI_EXT_YIELD				0x0800594c
++/** Notify S-mode for a pending virtual interrupt on this hart. */
++int sbi_irqchip_notify_smode_set(void);
 +
- /* SBI function IDs for BASE extension*/
- #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
- #define SBI_EXT_BASE_GET_IMP_ID			0x1
-@@ -122,6 +125,9 @@
- #define SBI_EXT_DBTR_TRIGGER_ENABLE	0x6
- #define SBI_EXT_DBTR_TRIGGER_DISABLE	0x7
++/** Clear S-mode notification for virtual interrupts on this hart. */
++void sbi_irqchip_notify_smode_clear(void);
++
++/** Read S-mode notification state for virtual interrupts on this hart. */
++bool sbi_irqchip_notify_smode_get(void);
++
+ #endif
+diff --git a/lib/sbi/sbi_irqchip.c b/lib/sbi/sbi_irqchip.c
+index 1664bd2d..f9afadc0 100644
+--- a/lib/sbi/sbi_irqchip.c
++++ b/lib/sbi/sbi_irqchip.c
+@@ -14,6 +14,7 @@
+ #include <sbi/sbi_list.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_scratch.h>
++#include <sbi/riscv_asm.h>
  
-+/* SBI function IDs for the Yield extension. */
-+#define SBI_EXT_YIELD_YIELD	0x0
-+
- /* SBI function IDs for FW feature extension */
- #define SBI_EXT_FWFT_SET		0x0
- #define SBI_EXT_FWFT_GET		0x1
-diff --git a/lib/sbi/Kconfig b/lib/sbi/Kconfig
-index 24132eaa..894ce22f 100644
---- a/lib/sbi/Kconfig
-+++ b/lib/sbi/Kconfig
-@@ -76,6 +76,15 @@ config SBI_ECALL_LEGACY
- 	bool "SBI v0.1 legacy extensions"
- 	default y
+ /** Internal irqchip hardware interrupt data */
+ struct sbi_irqchip_hwirq_data {
+@@ -191,9 +192,8 @@ int sbi_irqchip_raw_handler_default(struct sbi_irqchip_device *chip, u32 hwirq)
+ 	if (h->callback)
+ 		rc = h->callback(hwirq, h->priv);
  
-+config SBI_ECALL_YIELD
-+	bool "Yield extension"
-+	default y
-+	help
-+	  Enable the Yield ECALL extension.
-+	  Yield completes the calling domain and hart's claimed SYSIRQs.
-+	  A delivery backend may request a context return once work is drained.
-+	  Interrupt claiming still uses RPMI SYSTEM_IRQ through SBI MPXY.
-+
- config SBI_ECALL_VENDOR
- 	bool "Platform-defined vendor extensions"
- 	default y
-diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-index ae27d0c5..16c141fe 100644
---- a/lib/sbi/objects.mk
-+++ b/lib/sbi/objects.mk
-@@ -64,6 +64,9 @@ libsbi-objs-$(CONFIG_SBI_ECALL_SSE) += sbi_ecall_sse.o
- carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_MPXY) += ecall_mpxy
- libsbi-objs-$(CONFIG_SBI_ECALL_MPXY) += sbi_ecall_mpxy.o
+-	if (chip->hwirq_eoi)
++	if (chip->hwirq_eoi && rc != SBI_EALREADY)
+ 		chip->hwirq_eoi(chip, hwirq);
+-
+ 	return rc;
+ }
  
-+carray-sbi_ecall_exts-$(CONFIG_SBI_ECALL_YIELD) += ecall_yield
-+libsbi-objs-$(CONFIG_SBI_ECALL_YIELD) += sbi_ecall_yield.o
+@@ -471,6 +471,7 @@ int sbi_irqchip_unregister_handler(struct sbi_irqchip_device *chip,
+ 	}
+ 
+ 	sbi_list_del(&fh->node);
++	sbi_free(fh);
+ 	return 0;
+ }
+ 
+@@ -618,3 +619,19 @@ skip_migrate:
+ 	if (hd && hd->chip && hd->chip->process_hwirqs)
+ 		csr_clear(CSR_MIE, MIP_MEIP);
+ }
 +
- libsbi-objs-y += sbi_bitmap.o
- libsbi-objs-y += sbi_bitops.o
- libsbi-objs-y += sbi_console.o
-diff --git a/lib/sbi/sbi_ecall_yield.c b/lib/sbi/sbi_ecall_yield.c
-new file mode 100644
-index 00000000..fddc2d6c
---- /dev/null
-+++ b/lib/sbi/sbi_ecall_yield.c
-@@ -0,0 +1,42 @@
-+// SPDX-License-Identifier: BSD-2-Clause
-+/*
-+ * Copyright (c) 2026 RISCstar Solutions Corporation.
-+ *
-+ * Author: Raymond Mao <raymond.mao@riscstar.com>
-+ */
-+
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/sysirq/rpmi_sysirq.h>
-+
-+static int sbi_ecall_yield_handler(unsigned long extid, unsigned long funcid,
-+				   struct sbi_trap_regs *regs,
-+				   struct sbi_ecall_return *out)
++int sbi_irqchip_notify_smode_set(void)
 +{
-+	u32 completed = 0;
-+	int rc;
-+
-+	if (funcid != SBI_EXT_YIELD_YIELD)
-+		return SBI_ENOTSUPP;
-+	rc = rpmi_sysirq_complete_thishart(&completed);
-+	out->value = completed;
-+	return rc;
++	csr_set(CSR_MIP, MIP_SEIP);
++	return 0;
 +}
 +
-+struct sbi_ecall_extension ecall_yield;
-+
-+static int sbi_ecall_yield_register_extensions(void)
++void sbi_irqchip_notify_smode_clear(void)
 +{
-+	if (!rpmi_sysirq_available())
-+		return SBI_OK;
-+	return sbi_ecall_register_extension(&ecall_yield);
++	csr_clear(CSR_MIP, MIP_SEIP);
 +}
 +
-+struct sbi_ecall_extension ecall_yield = {
-+	.name = "yield",
-+	.extid_start = SBI_EXT_YIELD,
-+	.extid_end = SBI_EXT_YIELD,
-+	.register_extensions = sbi_ecall_yield_register_extensions,
-+	.handle = sbi_ecall_yield_handler,
-+};
++bool sbi_irqchip_notify_smode_get(void)
++{
++	return !!(csr_read(CSR_MIP) & MIP_SEIP);
++}
 -- 
 2.25.1
 
