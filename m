@@ -2,76 +2,77 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAFE1606A321
-	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 15:59:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36EA6606A324
+	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 15:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=ZeDPLiBp;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=luHjzsgz
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=QrBtvpPR;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=dHWdCJAr
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=wTwclHcsRJVhjJlH36rDObLtqHo8oRvpMdFoQpTsFb0=; b=ZeDPLiBp3/bNaMsDiJtFRe8Pxz
-	tMbElgIXWly75E0ine7rvS0QsuD9kAtwa2Xojwcn0QbbAcH5XxynYcA5plAIcrnzi5VXaBg6/bJtB
-	+yl9upl+iCTEHdxpm7D42WTSEH9yFswtWADGZJnKRRIOm/d9XbV6B9I2jItP0KHnQZwALLhCqmqRV
-	Zt/AdFsesUqARHvwrZ6yrmNEdM7Wg84/6k8mdghSelziaCxNeuLVtvQDzvtO+7YpJFPusouVblCBZ
-	2tPBAsgU2H66mX2eQ5DaFmDtCMqSLXfR8VsdpIon/osNtj/2tBvjmtbacW9Mh7QdXA47dThxHE7Wb
-	+O9/v7SA==;
+	bh=quRRLnv0KAZdCssC7/gqz9yadWW2OSIrvWAoHm6iKoo=; b=QrBtvpPR0PPXSPEVJme8XQd8kb
+	vE/WbKNpXLlu6kNUxAAirdRrSA0HYcQ0tio/r7uucW1Ikv9NRUE0N2Bf4XgAHjuHG7hnZShvojzIa
+	QB5PEIxTXaKaCagZiJIG94I6biazHIY2Z1poe7PWip/CtcIArPw9Bqg4jQQ+EZGqZ45oreyzb8tFE
+	mKuRxnvCD1ngEZSQAu9aqz4nR2q4/YlX0BWc+jovIM8wRA6P03AIbRFfaAY0YnUX7iHt9oSCWrXP4
+	GFmcAr/WRx/2P47kumj2q8CalmZ9ycrxtjkSL4dOycupZtSmNf1f7uJgBPDEGGTB/yvZz0kQ5V/7P
+	QHWIhTNw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSXd-00000009iEX-1NKM;
-	Thu, 29 Oct 2026 15:59:49 +0000
-Received: from mail-qt1-x834.google.com ([2607:f8b0:4864:20::834])
+	id 1xMSXf-00000009iFS-3vMd;
+	Thu, 29 Oct 2026 15:59:51 +0000
+Received: from mail-qt1-x82e.google.com ([2607:f8b0:4864:20::82e])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSXb-00000009iDM-0oFk
+	id 1xMSXd-00000009iEH-333N
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 15:59:49 +0000
-Received: by mail-qt1-x834.google.com with SMTP id d75a77b69052e-5364042eecfso31853021cf.2
-        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 08:59:45 -0700 (PDT)
+	Thu, 29 Oct 2026 15:59:51 +0000
+Received: by mail-qt1-x82e.google.com with SMTP id d75a77b69052e-53664b4860bso25714331cf.1
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 08:59:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793289585; x=1793894385; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=RwzHWEmDn+a1T+gpX3haqvk1ZoD7V4vO+nsrLCeIdvE=;
-        b=luHjzsgz2PQ2d2PT5fs+tstcaXDTVZ9mwtGKIdZO4xObdkKGoeHRmPz/8WXl5p3tcz
-         AXlsx9gTtRnTxVLh51KEi2XiyQ4n0Wl5KphsP71zy01NjTObGFNWLhYRPhiqnrVgv4lx
-         bIS5pXuU5Mfjqn8oXdyu31N0EyDhRcNIC453qhnef+e3Sq15a8c42hR9wICce7wooUcv
-         lCstkLbffOhdfuDFtQp2e+Dj+Iovp3EAjIX43QH8sZquNAP8bbDV9B+x/XbKSHBEF0pl
-         Q+7R25bB215BH2AOHNtkIihUSCbzuqw3/6Z5GGcbW6uw1/COQDazFqptTaqOFz0oAMlH
-         5yZg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793289585; x=1793894385;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1793289588; x=1793894388; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=RwzHWEmDn+a1T+gpX3haqvk1ZoD7V4vO+nsrLCeIdvE=;
-        b=TY2fCGojyBPqSle4+hnUZc2u980uzYnyXvu5Kqqk5mZ9SBrEn8RTtY0Ghkh55BW/0x
-         VBeI9qjMvxoKM3qXN7vwyGmPbOp5hEWc+3xRKFOu4tCROmhF+WLaxiUjhv1fYadoAJ4u
-         h80AzAi7WsTW3gYio0VWPPX2pRa+Mjmk7imqhQlWAWGnNgGu568rOKKgG3jPPQ2QQqcS
-         C7GoGyoRI79fcHQD80jvKdxYRX1R95wpY8saKEQ0IZ2D8lvDOkc/ALlsiXCJ+dXQ9aX3
-         RR/3vDSkNR9Oj+mk00jLwFPuDmtEurQAbQeavJEVx1fJR8iQPPKBwbbqbPIL3Ng0TgG4
-         YkVw==
-X-Gm-Message-State: AFq9FYIGP+DSqTTPSU2sCbR88vvKPdkZ7Xwg7opWlPT2LsEKsQgl8ZTX
-	Lvmq+QW8uzSbppOiwNdoB07x3p8LAuT2Uj09EWsWa7hn/oWanLuajGIzNUP13w==
-X-Gm-Gg: AYBFou21zpMaDr10DMd6Ryj0T/+/EiBNIjMqQ5zgm8QpWVih4HQdA2X9YMD1R3NhtWG
-	VfF1g5Xx5Zh1SGAKqKSah31NhG7PQb+rpd3xZz95XJ2DuIVpVH3HNUItp8Zaa60LjunfQyeTVsw
-	eWT8v40RnXFxP1zu3XSR/3bASUby61cuvrzkbNOx0aNxM8popw+QHi8dZnSZa26D2qtdwB3EySZ
-	ynVzvBmapetQTh1CcgY4k6B0GK6vmneQ+P2zR2qU/efKqU4swM5uJasv3tfX5RixHqHCqR0lat0
-	0DLz6J9qAQ/1sFdpK+069Q1n1Sdth5m+WRaft540T5s3+Vec2xjr2A4zw82ESIhn1QkbHLrnq5l
-	XsCh1ScYLNJrlVvemRP5nJF6xtMfQfYAa65HrgoCUqQ98IE2oJhaiptP1CJO+NpENy6T34OO/rm
-	rGMfnXKRz87c8c3jmRUml8rwVYXHf4XCXCIhtRObEChhGPFV3ROBZ4zd6B8SY49L1dx1mmX9WPX
-	Upz5rUaPYwl2MhBWM+9JQIGEaQs+Tv+93AXNq0faQ8bDBBOHpIYBfev6zW+XmiR+Gvt0ad3Vm3M
-	Ae1gEbyBiZlQaWerjfxb+Mp8nrWJI2m4e4E2blh9w1CX4qe+DTkZ5uFlfBstx4bSQ6CI/INbptd
-	or32JMy0/12DM1A==
-X-Received: by 2002:a05:622a:5285:b0:536:6c22:e346 with SMTP id d75a77b69052e-53fcd584ce7mr97645981cf.68.1793289584845;
-        Thu, 29 Oct 2026 08:59:44 -0700 (PDT)
+        bh=dhACzLG53dzJmE4ROk5Y4Z16otYJCMnqlw+/e0l5FjE=;
+        b=dHWdCJAr9nNdEAiLHvaRPkZO/yDsM2bsG/0VnZIl4FvoKfcZYMe9sWMXl2QyHfxWZ2
+         KXtwl6gL8JemItXwx22XXkxTHPNT3QQkDmuiAFOEjXlvilCPqFSDxk/p2yj0AChZi3tp
+         ooD6z5dTAVzWkMHpNep727huthJRpwuYZOVczRt64QfbANUEoMt297QCC6Il9+748a7H
+         8Wpg9zENRc2bQ6dSDTuz0d8eI8TluPZWFcSr9Cx0jrSCeyOhsn2N8BmkeJdMVl/OZm4e
+         0Iiuo2tqjkqv1cJzAhCaVNpnatdwniOWJlJp4Alac2HBAt9F+6qSTHpzd1fe85IQPV5u
+         jPOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793289588; x=1793894388;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dhACzLG53dzJmE4ROk5Y4Z16otYJCMnqlw+/e0l5FjE=;
+        b=LBIlHAaAGhHV8vhdulHnG2R5rKAr+EwoK0ydVGACvQKrMoCL4z5avYXuOt1OBeaOwN
+         +dv/ffyFUICGRfWR6joaL+1FikS4UeD/aiaba3zANRIlmt/hLcccI+RajPCa3XKME/uu
+         6VS6ASpiZSywUmgCW0n4u+CGsqnUs7CVvVeVKeqdsZkQEzI21aN2ZeeIzh/xS3KwA/hc
+         Px4wM518bFSSUD1FWp0Ep/uDJ5xkUJhZBDt7f9XDgkDah+oTlNTjYvV/tzrjy3Zr+2wL
+         tt1DfE5VOmHltTgHRNnfBJSiWGoizI261pcX3FX8/r3Ne/lJU9MzGxX4WGuOdvwG2Xq9
+         slUw==
+X-Gm-Message-State: AFq9FYKceAS0xxdEzPIotlsQ0GZ2wDT4IXN0mHS8XjQw7nwdMKmAmnLQ
+	iu7RIlB7s/IHOosbi4YYvrFXZSMgMlN2ITQjNVMM56WbrbDJuv0FS6B6axfbXg==
+X-Gm-Gg: AYBFou2gwv6J/TsuXe2n3uD2AFtBn0chE/5CMKCy/wGg9vOTvFJrHkNgMp+Kwt+jCDX
+	CBvW13GQowzflXKecD462/7F+j6ZCY01GDzAMukRiVzUOQ2/cOFscto6M2wZ1FK2tXqWRl3fp4Y
+	yhNHoVxuQy6tVnxQ+R9lrSScD5t+4qvZuDXCFImcSFO8ZGFE8pKbGazFw7u5WCqwity5jv8O+nM
+	79sNc6q0ICol5YxZitfp2q6nsdDlOCTnWadlFAjxyJ0+OXuHkXTxqrgfW2LyCUuOHBtUaeWdGHC
+	JKYyksKvg359cx23qClIeDLGGO9zHNmDO1od5fRd+MTilAM7+FyUzoPLgugbVhga14VDtKtfC0M
+	OaeE5ee6bZ3cbm8IRm1cIIjTPsv/jCTj+brcgL3OHssX8Z5xWl4QOB+JlenF/+fiS5Z6rkZgk8W
+	BRFrKPEW7uPwj/Pj/ci2CvNd/02Lknyis3Yg1sno/vPWK1fTlUZYDDR4VjyeMGXag5YJ79C0WMS
+	M5G+s7hCLcGSciqkyXeHLwxoaI5Tq2x564S88ptCzo0R0kRBGcvoHEtoQkjH5m7R5PeTOom4Urn
+	O08W+HSrETgQPnAciQW4M1kcM34xcqlZWXMNix//rRT15S7ye8l8ukskU+vFXwHP2mTIOEVOLM0
+	YZzGiMkjqm32nNw==
+X-Received: by 2002:a05:622a:5e10:b0:531:17a2:4e4a with SMTP id d75a77b69052e-53fcc3cfdbamr85992141cf.47.1793289587892;
+        Thu, 29 Oct 2026 08:59:47 -0700 (PDT)
 Received: from ubuntu.localdomain (69-171-141-154.rdns.distributel.net. [69.171.141.154])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.08.59.43
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.08.59.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 08:59:44 -0700 (PDT)
+        Thu, 29 Oct 2026 08:59:47 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -81,15 +82,17 @@ Cc: anup@brainfault.org,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 00/12] Introduce Virtual IRQ (VIRQ) framework
-Date: Thu, 29 Oct 2026 11:59:17 -0400
-Message-Id: <20261029155929.586597-1-raymondmaoca@gmail.com>
+Subject: [PATCH v2 01/12] lib: utils: add RPMI SYSTEM_IRQ service support
+Date: Thu, 29 Oct 2026 11:59:18 -0400
+Message-Id: <20261029155929.586597-2-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261029155929.586597-1-raymondmaoca@gmail.com>
+References: <20261029155929.586597-1-raymondmaoca@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_085947_250363_34AC68CE 
-X-CRM114-Status: GOOD (  14.82  )
+X-CRM114-CacheID: sfid-20261029_085949_803964_67AD1D8C 
+X-CRM114-Status: GOOD (  23.89  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -106,133 +109,398 @@ Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	DKIM_ADSP_CUSTOM_MED,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,
 	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-This series introduces a Virtual IRQ (VIRQ) framework for OpenSBI to
-support domain-aware wired interrupt couriering.
+Provide an SBI MPXY implementation of the RPMI SYSTEM_IRQ service
+group, version 2.0, with GET_ATTRIBUTES, GET_TARGET_ATTRIBUTES,
+GET_IRQ_ATTRIBUTES and SYSIRQ_CLAIM. Other services return NOTSUPP.
 
-The main use case is to let OpenSBI receive a host HWIRQ in M-mode,
-map it into a per-channel VIRQ number space, route it to a target
-domain, notify the target S-mode payload, and let that payload
-claim the pending VIRQs through RPMI SYSTEM_IRQ over SBI MPXY.
+Expose backend callbacks for claiming and completing IRQs, allowing
+delivery implementations to register domain-owned channels. Target
+indices enumerate possible harts and CLAIM is restricted to the
+calling domain and hart.
 
-The implementation is organized as follows:
+Keep claimed sources outstanding until the next valid CLAIM, after the
+payload has handled the previous batch. Preserve failed completion
+records for retry. This completion convention introduces no new RPMI
+service and leaves backend device handling outside the protocol layer.
 
-  - add RPMI SYSTEM_IRQ service support, including SYSIRQ_CLAIM
-  - add an optional experimental Yield ecall for explicit completion
-  - add irqchip helpers for S-mode pending notification
-  - extend domain context switching to support VIRQ-driven
-    cross-domain couriering and return-to-previous-domain flow
-  - add the core VIRQ mapping, routing, and per-(domain,hart)
-    pending queue framework
-  - parse sysirq routing rules from DT under /chosen/opensbi-domains
-  - derive APLIC target hart routing from sysirq nodes
-  - update the irqchip/APLIC path to support deferred completion and
-    per-HWIRQ APLIC targets
-  - select domain boot harts before activating physical sources
-  - document the DT binding and routing rules
-
-The DT routing model is based on "opensbi,mpxy-sysirq" nodes.
-Each interrupts-extended entry contributes one routed physical source,
-its entry index becomes the VIRQ number within the selected
-opensbi,mpxy-channel-id, and opensbi,domain selects the destination
-OpenSBI domain.
-
-Claimed sources remain masked while the payload handles their device
-conditions. The next valid CLAIM completes the previous batch, or the
-payload can complete it explicitly through Yield. Return to a previously
-interrupted domain is deferred until pending and claimed work is drained.
-The Yield EID is experimental and is not an official SBI assignment.
-
-This version reuses the existing irqchip infrastructure.
-
-Patch 12 contains sample DT overlays for reference only and is marked
-[NOT-FOR-UPSTREAM].
-
-The series are also placed at:
-https://gitlab.com/riseproject/riscv-optee/opensbi/-/tree/rp022-m1
-
-Test instructions are available at:
-https://riscv-optee-docs-c9fea0.gitlab.io/rp022/milestone1/
-
-Changes in v2:
-
-  - Rebase on master and adapt to its irqchip interfaces, dropping the
-    old scratch-local provider lookup workaround.
-  - Replace the private VIRQ POP/COMPLETE ecall extension with RPMI
-    SYSTEM_IRQ 2.0 services over SBI MPXY, including batched SYSIRQ_CLAIM.
-  - Add an optional experimental Yield ecall for explicit completion
-    after device handling; retain implicit completion through the next
-    valid CLAIM.
-  - Track outstanding claims per channel and target, preserve failed
-    completions for retry, and block return switches until all pending
-    and claimed work is drained.
-  - Keep SEPC separate from the M-mode trap frame's MEPC and preserve
-    the advanced ecall return state across domain switches.
-  - Key routes by (chip_uid, hwirq), allowing identical HWIRQ numbers
-    on different physical controllers without routing collisions.
-  - Select boot harts during domain finalization and activate couriers
-    only after boot-hart selection and all mapping/channel setup.
-  - Add irqchip-independent courier registration with DT IRQ flags,
-    target affinity and rollback; use APLIC IDC indices for affinity.
-  - Reject malformed DT argument lists, extra IRQ specifier cells and
-    invalid scalar properties; update the binding documentation.
-
-Raymond Mao (12):
-  lib: utils: add RPMI SYSTEM_IRQ service support
-  lib: sbi: add experimental Yield ECALL extension
-  lib: irqchip: add S-mode notification helpers
-  lib: sbi: domain: support VIRQ couriering domain context switch
-  lib: sbi: domain: ensure boot_hartid is assigned
-  lib: sbi: Add Virtual IRQ (VIRQ) subsystem
-  lib: sbi: domain: add domain lookup by name
-  lib: utils: irqchip: derive APLIC targets from sysirq nodes
-  lib: utils: irqchip: Add helper to register VIRQ courier handler
-  lib: utils: fdt: parse sysirq routing from DT
-  docs: domain: document sysirq VIRQ mapping and routing rules
-  [NOT-FOR-UPSTREAM] platform: generic: Add sample dts overlays for
-    testing hwirq/domain route rules
-
- docs/domain_support.md                        |   55 +
- include/sbi/sbi_domain.h                      |    7 +
- include/sbi/sbi_domain_context.h              |   24 +
- include/sbi/sbi_ecall_interface.h             |    6 +
- include/sbi/sbi_irqchip.h                     |    9 +
- include/sbi/sbi_virq.h                        |  513 +++++++
- include/sbi_utils/fdt/fdt_helper.h            |    8 +
- include/sbi_utils/irqchip/aplic.h             |    4 +
- include/sbi_utils/mailbox/rpmi_msgprot.h      |   25 +
- include/sbi_utils/sysirq/rpmi_sysirq.h        |   30 +
- lib/sbi/Kconfig                               |    9 +
- lib/sbi/objects.mk                            |    4 +
- lib/sbi/sbi_domain.c                          |   61 +
- lib/sbi/sbi_domain_context.c                  |  130 +-
- lib/sbi/sbi_ecall_yield.c                     |   42 +
- lib/sbi/sbi_irqchip.c                         |   21 +-
- lib/sbi/sbi_trap.c                            |   11 +
- lib/sbi/sbi_virq.c                            | 1235 +++++++++++++++++
- lib/utils/fdt/fdt_domain.c                    |  116 +-
- lib/utils/fdt/fdt_helper.c                    |   57 +-
- lib/utils/irqchip/aplic.c                     |   57 +-
- lib/utils/irqchip/fdt_irqchip_aplic.c         |  103 ++
- lib/utils/mpxy/objects.mk                     |    2 +
- lib/utils/sysirq/rpmi_sysirq.c                |  266 ++++
- platform/generic/virt/hwirq_bind_domain.dts   |  107 ++
- .../virt/hwirq_bind_domain_linux_bmapp.dts    |  125 ++
- 26 files changed, 3017 insertions(+), 10 deletions(-)
- create mode 100644 include/sbi/sbi_virq.h
+Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
+---
+ include/sbi_utils/mailbox/rpmi_msgprot.h |  25 +++
+ include/sbi_utils/sysirq/rpmi_sysirq.h   |  30 +++
+ lib/utils/mpxy/objects.mk                |   2 +
+ lib/utils/sysirq/rpmi_sysirq.c           | 266 +++++++++++++++++++++++
+ 4 files changed, 323 insertions(+)
  create mode 100644 include/sbi_utils/sysirq/rpmi_sysirq.h
- create mode 100644 lib/sbi/sbi_ecall_yield.c
- create mode 100644 lib/sbi/sbi_virq.c
  create mode 100644 lib/utils/sysirq/rpmi_sysirq.c
- create mode 100644 platform/generic/virt/hwirq_bind_domain.dts
- create mode 100644 platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
 
+diff --git a/include/sbi_utils/mailbox/rpmi_msgprot.h b/include/sbi_utils/mailbox/rpmi_msgprot.h
+index 7ae4abe0..f9d1d177 100644
+--- a/include/sbi_utils/mailbox/rpmi_msgprot.h
++++ b/include/sbi_utils/mailbox/rpmi_msgprot.h
+@@ -226,6 +226,7 @@ enum rpmi_servicegroup_id {
+ 	RPMI_SRVGRP_PERFORMANCE = 0x0000A,
+ 	RPMI_SRVGRP_MANAGEMENT_MODE = 0x000B,
+ 	RPMI_SRVGRP_LOGGING = 0x000E,
++	RPMI_SRVGRP_SYSTEM_IRQ = 0x000F,
+ 	RPMI_SRVGRP_ID_MAX_COUNT,
+ 
+ 	/* Reserved range for service groups */
+@@ -290,6 +291,30 @@ struct rpmi_base_get_platform_info_resp {
+ 	char plat_info[];
+ };
+ 
++/** RPMI System IRQ ServiceGroup Service IDs */
++enum rpmi_sysirq_service_id {
++	RPMI_SYSIRQ_SRV_ENABLE_NOTIFICATION = 0x01,
++	RPMI_SYSIRQ_SRV_GET_ATTRIBUTES = 0x02,
++	RPMI_SYSIRQ_SRV_GET_TARGET_ATTRIBUTES = 0x03,
++	RPMI_SYSIRQ_SRV_GET_IRQ_ATTRIBUTES = 0x04,
++	RPMI_SYSIRQ_SRV_SET_IRQ_STATE = 0x05,
++	RPMI_SYSIRQ_SRV_GET_IRQ_STATE = 0x06,
++	RPMI_SYSIRQ_SRV_SET_IRQ_TARGET = 0x07,
++	RPMI_SYSIRQ_SRV_GET_IRQ_TARGET = 0x08,
++	RPMI_SYSIRQ_SRV_CLAIM = 0x09,
++	RPMI_SYSIRQ_SRV_ID_MAX_COUNT,
++};
++
++struct rpmi_sysirq_claim_req {
++	u32 sys_target_index;
++};
++
++struct rpmi_sysirq_claim_resp {
++	s32 status;
++	u32 returned;
++	u32 sys_irq_index[];
++};
++
+ /** RPMI System MSI ServiceGroup Service IDs */
+ enum rpmi_sysmsi_service_id {
+ 	RPMI_SYSMSI_SRV_ENABLE_NOTIFICATION = 0x01,
+diff --git a/include/sbi_utils/sysirq/rpmi_sysirq.h b/include/sbi_utils/sysirq/rpmi_sysirq.h
+new file mode 100644
+index 00000000..0af2f33b
+--- /dev/null
++++ b/include/sbi_utils/sysirq/rpmi_sysirq.h
+@@ -0,0 +1,30 @@
++/* SPDX-License-Identifier: BSD-2-Clause */
++/*
++ * Copyright (c) 2026 RISCstar Solutions Corporation.
++ *
++ * Author: Raymond Mao <raymond.mao@riscstar.com>
++ */
++
++#ifndef __RPMI_SYSIRQ_H__
++#define __RPMI_SYSIRQ_H__
++
++#include <sbi/sbi_types.h>
++
++struct sbi_domain;
++
++/* Callbacks operate on the calling domain and hart; ops must remain valid. */
++struct rpmi_sysirq_ops {
++	int (*claim)(u32 channel_id, u32 *irqs, u32 max_count, u32 *count);
++	int (*complete)(u32 channel_id, u32 irq);
++	void (*drained)(void);
++};
++
++int rpmi_sysirq_register_channel(struct sbi_domain *dom, u32 channel_id,
++				u32 num_irqs, const struct rpmi_sysirq_ops *ops);
++
++bool rpmi_sysirq_available(void);
++
++/* Complete this domain/hart's batches, then ask backends to consider return. */
++int rpmi_sysirq_complete_thishart(u32 *completed);
++
++#endif
+diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
+index 1f1bf0a0..a59a7175 100644
+--- a/lib/utils/mpxy/objects.mk
++++ b/lib/utils/mpxy/objects.mk
+@@ -32,3 +32,5 @@ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_MM) += mpxy/fdt_mpxy_rpmi_mm.o
+ 
+ carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_LOGGING) += fdt_mpxy_rpmi_logging
+ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_LOGGING) += mpxy/fdt_mpxy_rpmi_logging.o
++
++libsbiutils-objs-y += sysirq/rpmi_sysirq.o
+diff --git a/lib/utils/sysirq/rpmi_sysirq.c b/lib/utils/sysirq/rpmi_sysirq.c
+new file mode 100644
+index 00000000..8fa37887
+--- /dev/null
++++ b/lib/utils/sysirq/rpmi_sysirq.c
+@@ -0,0 +1,266 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/*
++ * Copyright (c) 2026 RISCstar Solutions Corporation.
++ *
++ * Author: Raymond Mao <raymond.mao@riscstar.com>
++ */
++
++#include <sbi/sbi_byteorder.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_domain.h>
++#include <sbi/sbi_error.h>
++#include <sbi/sbi_heap.h>
++#include <sbi/sbi_mpxy.h>
++#include <sbi/sbi_scratch.h>
++#include <sbi/sbi_string.h>
++#include <sbi_utils/mailbox/rpmi_msgprot.h>
++#include <sbi_utils/sysirq/rpmi_sysirq.h>
++
++#define SYSIRQ_BATCH_MAX 63U
++#define SYSIRQ_MSG_MAX_LEN ((SYSIRQ_BATCH_MAX + 2) * sizeof(u32))
++#define SYSIRQ_ATTR_RESPONSE_LEN (8 * sizeof(u32))
++
++struct rpmi_sysirq_target {
++	u32 count;
++	u32 claimed[SYSIRQ_BATCH_MAX];
++};
++
++struct rpmi_sysirq_channel {
++	struct sbi_dlist node;
++	struct sbi_mpxy_channel channel;
++	const struct rpmi_sysirq_ops *ops;
++	u32 num_irqs;
++	struct rpmi_sysirq_target targets[];
++};
++
++static SBI_LIST_HEAD(sysirq_channels);
++
++static int sysirq_complete_batch(struct rpmi_sysirq_channel *sc,
++				 struct rpmi_sysirq_target *target,
++				 u32 *completed)
++{
++	u32 irq;
++	int rc;
++
++	while (target->count) {
++		irq = target->claimed[target->count - 1];
++		rc = sc->ops->complete(sc->channel.channel_id, irq);
++		if (rc)
++			return rc;
++		target->count--;
++		(*completed)++;
++	}
++	return SBI_OK;
++}
++
++bool rpmi_sysirq_available(void)
++{
++	return !sbi_list_empty(&sysirq_channels);
++}
++
++int rpmi_sysirq_complete_thishart(u32 *completed)
++{
++	struct sbi_domain *dom = sbi_domain_thishart_ptr();
++	struct rpmi_sysirq_channel *sc;
++	u32 index = 0, hidx;
++	int rc;
++
++	if (!dom || !completed)
++		return SBI_EINVAL;
++	*completed = 0;
++	sbi_hartmask_for_each_hartindex(hidx, dom->possible_harts) {
++		if (hidx == current_hartindex())
++			break;
++		index++;
++	}
++	if (index == sbi_hartmask_weight(dom->possible_harts))
++		return SBI_EINVAL;
++
++	sbi_list_for_each_entry(sc, &sysirq_channels, node) {
++		if (sc->channel.owner_domain != dom)
++			continue;
++		rc = sysirq_complete_batch(sc, &sc->targets[index], completed);
++		if (rc)
++			return rc;
++	}
++
++	/* Only consider return once every owned channel completed successfully. */
++	sbi_list_for_each_entry(sc, &sysirq_channels, node) {
++		if (sc->channel.owner_domain == dom && sc->ops->drained)
++			sc->ops->drained();
++	}
++	return SBI_OK;
++}
++
++static int sysirq_read_attributes(struct sbi_mpxy_channel *channel,
++				  u32 *out, u32 base, u32 count)
++{
++	u32 attrs[] = { RPMI_SRVGRP_SYSTEM_IRQ, RPMI_VERSION(2, 0), 0, 0 };
++	u32 index, i;
++
++	if (base < SBI_MPXY_ATTR_MSGPROTO_ATTR_START)
++		return SBI_EBAD_RANGE;
++	index = base - SBI_MPXY_ATTR_MSGPROTO_ATTR_START;
++	if (index >= array_size(attrs) || count > array_size(attrs) - index)
++		return SBI_EBAD_RANGE;
++
++	for (i = 0; i < count; i++)
++		out[i] = cpu_to_le32(attrs[index + i]);
++
++	return SBI_OK;
++}
++
++static u32 sysirq_target_hartindex(struct sbi_domain *dom, u32 target)
++{
++	u32 index = 0, hidx;
++
++	sbi_hartmask_for_each_hartindex(hidx, dom->possible_harts) {
++		if (index++ == target)
++			return hidx;
++	}
++
++	return -1U;
++}
++
++static int sysirq_send_message(struct sbi_mpxy_channel *channel,
++			       u32 msg_id, void *msg, u32 msg_len,
++			       void *response, u32 response_max_len,
++			       unsigned long *response_len)
++{
++	struct rpmi_sysirq_channel *sc =
++		container_of(channel, struct rpmi_sysirq_channel, channel);
++	struct sbi_domain *dom = channel->owner_domain;
++	struct rpmi_sysirq_target *target;
++	u32 *out = response;
++	u32 index = 0, hartindex, count, max_count, i, completed = 0;
++	s32 status = RPMI_SUCCESS;
++	int rc;
++
++	if (!response || !response_len || response_max_len < sizeof(u32))
++		return SBI_EINVAL;
++	*response_len = sizeof(u32);
++	if (sbi_domain_thishart_ptr() != dom) {
++		status = RPMI_ERR_DENIED;
++		goto done;
++	}
++
++	switch (msg_id) {
++	case RPMI_SYSIRQ_SRV_GET_ATTRIBUTES:
++		if (msg_len) {
++			status = RPMI_ERR_INVALID_PARAM;
++			break;
++		}
++		if (response_max_len < SYSIRQ_ATTR_RESPONSE_LEN)
++			return SBI_EINVAL;
++		sbi_memset(out, 0, SYSIRQ_ATTR_RESPONSE_LEN);
++		out[1] = cpu_to_le32(sbi_hartmask_weight(dom->possible_harts));
++		out[2] = cpu_to_le32(sc->num_irqs);
++		*response_len = SYSIRQ_ATTR_RESPONSE_LEN;
++		break;
++	case RPMI_SYSIRQ_SRV_GET_TARGET_ATTRIBUTES:
++	case RPMI_SYSIRQ_SRV_GET_IRQ_ATTRIBUTES:
++	case RPMI_SYSIRQ_SRV_CLAIM:
++		if (!msg || msg_len != sizeof(u32)) {
++			status = RPMI_ERR_INVALID_PARAM;
++			break;
++		}
++		/* MPXY uses the same shared buffer for request and response. */
++		index = le32_to_cpu(*(u32 *)msg);
++		if (msg_id == RPMI_SYSIRQ_SRV_GET_IRQ_ATTRIBUTES) {
++			if (index >= sc->num_irqs) {
++				status = RPMI_ERR_INVALID_PARAM;
++				break;
++			}
++			if (response_max_len < SYSIRQ_ATTR_RESPONSE_LEN)
++				return SBI_EINVAL;
++			sbi_memset(out, 0, SYSIRQ_ATTR_RESPONSE_LEN);
++			sbi_snprintf((char *)&out[3], 20, "virq%u", index);
++			*response_len = SYSIRQ_ATTR_RESPONSE_LEN;
++			break;
++		}
++		hartindex = sysirq_target_hartindex(dom, index);
++		if (!sbi_hartindex_valid(hartindex)) {
++			status = RPMI_ERR_INVALID_PARAM;
++			break;
++		}
++		if (msg_id == RPMI_SYSIRQ_SRV_GET_TARGET_ATTRIBUTES) {
++			if (response_max_len < SYSIRQ_ATTR_RESPONSE_LEN)
++				return SBI_EINVAL;
++			sbi_memset(out, 0, SYSIRQ_ATTR_RESPONSE_LEN);
++			out[2] = cpu_to_le32(sbi_hartindex_to_hartid(hartindex));
++			sbi_snprintf((char *)&out[3], 20, "hart%u",
++				     sbi_hartindex_to_hartid(hartindex));
++			*response_len = SYSIRQ_ATTR_RESPONSE_LEN;
++			break;
++		}
++		if (hartindex != current_hartindex()) {
++			status = RPMI_ERR_DENIED;
++			break;
++		}
++		if (response_max_len > channel->attrs.msg_data_maxlen)
++			response_max_len = channel->attrs.msg_data_maxlen;
++		if (response_max_len < 3 * sizeof(u32))
++			return SBI_EINVAL;
++		max_count = response_max_len / sizeof(u32) - 2;
++		target = &sc->targets[index];
++		if (max_count > array_size(target->claimed))
++			max_count = array_size(target->claimed);
++		/* A new CLAIM follows device handling of the previous batch. */
++		rc = sysirq_complete_batch(sc, target, &completed);
++		if (rc) {
++			status = RPMI_ERR_FAILED;
++			goto done;
++		}
++		rc = sc->ops->claim(channel->channel_id, target->claimed,
++				    max_count, &count);
++		if (rc) {
++			status = RPMI_ERR_FAILED;
++			break;
++		}
++		target->count = count;
++		out[1] = cpu_to_le32(count);
++		for (i = 0; i < count; i++)
++			out[i + 2] = cpu_to_le32(target->claimed[i]);
++		*response_len = (count + 2) * sizeof(u32);
++		break;
++	default:
++		status = RPMI_ERR_NOTSUPP;
++		break;
++	}
++
++done:
++	out[0] = cpu_to_le32((u32)status);
++	return SBI_OK;
++}
++
++int rpmi_sysirq_register_channel(struct sbi_domain *dom, u32 channel_id,
++				u32 num_irqs, const struct rpmi_sysirq_ops *ops)
++{
++	struct rpmi_sysirq_channel *sc;
++	int rc;
++
++	if (!dom || !dom->possible_harts || !num_irqs || !ops ||
++	    !ops->claim || !ops->complete)
++		return SBI_EINVAL;
++
++	sc = sbi_zalloc(sizeof(*sc) +
++			sbi_hartmask_weight(dom->possible_harts) * sizeof(sc->targets[0]));
++	if (!sc)
++		return SBI_ENOMEM;
++	sc->ops = ops;
++	sc->num_irqs = num_irqs;
++	sc->channel.channel_id = channel_id;
++	sc->channel.owner_domain = dom;
++	sc->channel.attrs.msg_proto_id = SBI_MPXY_MSGPROTO_RPMI_ID;
++	sc->channel.attrs.msg_proto_version = RPMI_VERSION(2, 0);
++	sc->channel.attrs.msg_data_maxlen = SYSIRQ_MSG_MAX_LEN;
++	sc->channel.read_attributes = sysirq_read_attributes;
++	sc->channel.send_message_with_response = sysirq_send_message;
++	rc = sbi_mpxy_register_channel(&sc->channel);
++	if (rc)
++		sbi_free(sc);
++	else
++		sbi_list_add_tail(&sc->node, &sysirq_channels);
++
++	return rc;
++}
 -- 
 2.25.1
 
