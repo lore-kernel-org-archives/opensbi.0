@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C5A606A31A
-	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 16:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A23C606A31C
+	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 16:00:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=I7yKZBSF;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=KjR81120
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=dL4PMnZc;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=YmmOfGFD
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,65 +14,65 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=sZhSoV89gb2BEnyEev9fJVe/ou3j29TqMryQmdrh3rM=; b=I7yKZBSFPdnSuwkeokAcwzc5qG
-	F1D79mk10z+FPp2jfoBVTs0OJxbm+g6Lt3yEXZD7jy6Mv8IhwjGxgLmJbroQpwEQzvG3Nqyb9H9Ab
-	Q1gg3FIKW87k5OzWcUWXl389ddZoxW7Eu9kf9Nj2bWbVFuTu84fW+LoUpwnYs6F8lx85IPcSkHSf5
-	Lx3IdFZnkhox44rZST79Ika5cm+gb0zX0aREH6SiVkPWbZZTHaGmW6EQfQBw6B6ZeCmoBOD2bTvwV
-	rVjZhLMu0NbvP6rX2R3ZWVRR0DtOEu4w47WPw5VE2/yWiucg2maQ+VuewSeF+pODsYdlh6ToFCzbp
-	9FPrB/4Q==;
+	bh=xc8JD0ybLK3qG0HQS3w60qE5+eaJgnvOOLofmylJYK4=; b=dL4PMnZcyQdjl/iRCMdLodAbJV
+	RoucOETiPWPhJ4HMjfcdNd5/mhfPQTaFvcfykyFz0auXnkUGOcLbwW5TERMaJR3Ov/xQisN6AewxG
+	6Y373rfnJtYC5pLCRjurrMzwub2RudMwzVgjpBnn6r1d78+N6aHPlzpmeCvQvq1m9Tuq9zoy3kbk3
+	JEvASlwLg9AfBulH/4xkD4hChb3n1uKNmWaYOKo92Y5Jpz42fHCZuSohqdQtnkIkSbCzjLsUkOd2B
+	/ZtZJ14DKoVrdFWIDSzjNOOoSg+lIGqldH+vU0OCc7XbXyeGDS6kBKNzRCHZgpj3JLNIPnnVlFS2L
+	LkHNasiw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSY7-00000009ibl-0QcE;
-	Thu, 29 Oct 2026 16:00:19 +0000
-Received: from mail-qt1-x832.google.com ([2607:f8b0:4864:20::832])
+	id 1xMSYA-00000009ifA-0qHR;
+	Thu, 29 Oct 2026 16:00:22 +0000
+Received: from mail-qt1-x834.google.com ([2607:f8b0:4864:20::834])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSY4-00000009iYX-3pzF
+	id 1xMSY7-00000009ibc-3DEU
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 16:00:18 +0000
-Received: by mail-qt1-x832.google.com with SMTP id d75a77b69052e-5364d86f7f0so31714771cf.1
-        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 09:00:15 -0700 (PDT)
+	Thu, 29 Oct 2026 16:00:21 +0000
+Received: by mail-qt1-x834.google.com with SMTP id d75a77b69052e-53664b4860bso25720351cf.1
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 09:00:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793289615; x=1793894415; darn=lists.infradead.org;
+        d=gmail.com; s=20260707; t=1793289618; x=1793894418; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Bvly4r7tnyw8cgrcMSBlqWfdCsSAj9cDTGQX/hVIbXg=;
-        b=KjR81120XxolVJ1PNo4qAIIylnKozx/atS9ir/Z87u3X0D8v5l0FlOy+ZKh2HlKQ8m
-         MdxDp7Ay+FhfM/LTcR2LujpcShE2k788o3WoKH3kRYronzd5mD/PPEAWON8fMZRqB3Z7
-         UOtNJFHTlOix25ko1bahhiyJFOVdJEP+bKNmh0MKwSD/HaR91K0eNcn98cj848d+SnLl
-         D6SdHLS/9E7xFdX/V+QwEn89hAq7t5Tkm6ObdB0MWEjpwHqwKgFUKy34Pi1b/+JvFmwC
-         o4tnl2MZXsjKA+aG+oRMUczUzd06rluU71uz1A0RxwXvfpYAAQydohpJT68q7c3DUNae
-         4DvA==
+        bh=hvoA0a/dCv/8bteYHYa9BK4H9hAe5PJC6QfkTDcUZmo=;
+        b=YmmOfGFDrFfNLPCmnisr4if7m/uZKqHdfdKnWMib7UxjahOnF8YY7mxYA+raOzhhkf
+         ObGL1tu/3zs77Tx7hNM5nbS2VIlfD+a4BATzaIW02PcRuBXKH2MxKvXnO0+ericxLMpK
+         2EXhXZyK7EL+lIvD5wl4L+K6b41ILzLOUuyUUj7shvmFHlwBAtX9H9AvcyDoS+bqoiw6
+         ukTanNz3ioh73y3aORBasSgNL+5fZ3j0ODovo6nb4Qm9TeGuEI3j3PX5x2IzD4Y4Z9Yb
+         ItP4buvfC9uLHpcLLghElv04aQBFlPqws4JtPsH8cIoRwcRzJBo8lhi6FSY2MXgUiGbk
+         Xz0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793289615; x=1793894415;
+        d=1e100.net; s=20260707; t=1793289618; x=1793894418;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Bvly4r7tnyw8cgrcMSBlqWfdCsSAj9cDTGQX/hVIbXg=;
-        b=rihmGwoluDlTTtM7NYcwdJ9tnK0Uh4oeW9SlTO6fpzRdHiTa5LonZnydNpnJqVbX0j
-         ZNAQg06YPeE4Hntvi/wd0ug7KbWFb05K+qfL6Qrm5Z4wAegVK42yVdapQrYFJeXmBU5J
-         7gtUkqYmWfgSwQONIKT9zgmewB2AeAdOA23CzQn+FTa+MSA2mOsclSx7VBsvcAXbTAsn
-         7u/zAP6ePFTSvk2ehTBNg8HUcaOP4jzR6MR+HfPcsfuNbbJqNP9dAZBhIicbzaM6+682
-         m52AImtXKT4yQZPr/2CuXcdi5+EPxniO9n1H+RQTJfMqf4Df3XREk4+Fl0l9/INh8zB4
-         Oy8g==
-X-Gm-Message-State: AFq9FYI6Z2BngexTcRMNqYSeq5+W4kQ44GbxcLxCjEZVcEnSrCKFSnlV
-	tkSCfLgQaXSrE9uS5gF98uS+xbsZ/PRFAuSpW3wAybtI3Aqa4cLYBqPBcH63yw==
-X-Gm-Gg: AYBFou2a+GZs3w4rb9u3j84/OsbtlcmhRTq79nWYEUg2AMLBUNWW7UHuZHXpWW5o6Hv
-	ajyZCcPzYWw9kvraPxYWYy93eUzxWaZQgtK+/0B5vBX1AYHsI18FQ4Syiuv8zIXWmvvDb62aQMa
-	k4oFGYU5feLdhGbxey9eGYsEn3nzAj+kiyjneSHa+82HQMa+RyV6Vr/7SOVQCkqtGaorTn7ogUY
-	XkCIUocnPj6mv7pjJK8XeSimq+wrtp/Uur2/cckt2TWiOZ2gQezL9Vxxzv76+KfdylTWHcZLO4G
-	WOaoXrZMZmDiTgBO93t/RSFwQHhOOq/VNWggCa8z4NHJ3bZENlOIDHH+LhkqlzJfKZ0Zrko1zSx
-	Oti3+rmEIu9ArZscQN/02pMMD7mjMMrsOU8iq6g4++wJvmpJQBu43oxeR9jFNECvCzWW7+jPwnE
-	KuqDr8N2ieie9KkBg5m1+UnJWmVcFW2Jln9/+0FBTDftt2jfWChrrb7fcLNgJm6awEFy0XTrzuH
-	Ekmx0/oEsGq1jaZVZxG3YU8xzxcrzGIi0bKBCca/c5UdyolHkl2JN20LoTPcfHFMz+fV1Or5Xx2
-	dqId29VZn7Sgtmto5rh0ReTcXgjCV1OuHEWHaB2piiKsCLP6ZRUDCtv1CAeweRQVIwLjXVHfocl
-	5kbEVKiBTKrJBHQ==
-X-Received: by 2002:a05:622a:1a88:b0:535:1393:a82e with SMTP id d75a77b69052e-53fcbee1fcamr98191291cf.23.1793289614865;
-        Thu, 29 Oct 2026 09:00:14 -0700 (PDT)
+        bh=hvoA0a/dCv/8bteYHYa9BK4H9hAe5PJC6QfkTDcUZmo=;
+        b=JkP73Y9QnZIshhRtAqAc33RQ0xH8ldFqJNuTLabpxIIC52NaDkoj7D2EwF+t64w5X6
+         tUMMRorZB4CgmQwpGUsAIPKcUckuu8yS5ihPHIQAMcmPfvoXiGQWJKJmXJmIw8pY1VrB
+         81lZJ9LFDkAP0HEh7J4Sr8kjQvJ/jBWbAFgtgsn0xWcGpJHzP1xdRy/LbAFWEK6PL+gl
+         1hP8Oy+vN7/wWRClxIea0Hl5lBtUJ1QrikCzwoYU2RX7Dmh1F/ftBXS16DFSFH5AMHVE
+         TuuT6/DyuzPqAUHYRBeAIOw9tkvrtkpRidPhNy1M08j3SB5VNy5ZUJxeqbUGBH6hvjQ+
+         Duxw==
+X-Gm-Message-State: AFq9FYLI3vD3Wc3T5Uq7w6qA+KsxySy1jiepl4eHbV0EZYEfZ+0M0xep
+	t+cS1ao7FtDgDPmgvB5eVkVm6HbaYEV1FDND45nQG/akLcanEMGbHJnilXXqaA==
+X-Gm-Gg: AYBFou2DAHxT2pWaMX2DkV7zlZ+mhfItxLdj5VsFJPXUX3grvkQBD6LtaqtyzeAyZvB
+	Qsoh5B3jgpuaXHuO5vYzkLARLO53X2LSqDCJauipBZuYifyYPePI5jPpxOWYBcq70897RAeKSB1
+	P4JTQUz2RySn5aZ4xrStqSzops/INx8euhuHYjSYgP/Sf/sS8av4OfwBJ6PXp8J5yyOQjAGgMYK
+	oHRqCn6FLYHsuuhsMUEUxKwfksdCSRTGiw1shQ4ZwXG4kEL498FnyvP1Qt9siG2IQ0P0ILRphsF
+	d8XOTxec/TGhYVsRpvjNEnwtzCA/PhHCswE0o1LgB229a3xFBez+MfzgtyXLxZTY18LEeEsL1ya
+	/4ypFavE1DA702ENroqC5FYxDgYXKdf/Q57Gg/az/M93GNiOHrZDvytBI7L37zO0r7/Px/0cIuE
+	2ggq3czeZhy9y5FU4w0qmuYu5AVXHnFc/qH7dmT1M73SSkYvL8kOt3C2Rg7MFvypYhBqxke72Il
+	PD9xQKSKAvHuaWPs7qV8NCA2rRxGKh/gtCI3H4SUy+Lo91r22chqI+LlP4Xgu8JogpcDxPtKxU3
+	PQVO32hoFAs+/JbVVqqCJQeNP8XLTaHKNafCrmY9j9BfAWFtAQyObUg+buYeuZmrqHib6aYH6cB
+	1JAipTMwt9gW1rg==
+X-Received: by 2002:a05:622a:5e10:b0:531:17a2:4e4a with SMTP id d75a77b69052e-53fcc3cfdbamr86014441cf.47.1793289618105;
+        Thu, 29 Oct 2026 09:00:18 -0700 (PDT)
 Received: from ubuntu.localdomain (69-171-141-154.rdns.distributel.net. [69.171.141.154])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.09.00.13
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.09.00.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 09:00:14 -0700 (PDT)
+        Thu, 29 Oct 2026 09:00:16 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -82,17 +82,17 @@ Cc: anup@brainfault.org,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 11/12] docs: domain: document sysirq VIRQ mapping and routing rules
-Date: Thu, 29 Oct 2026 11:59:28 -0400
-Message-Id: <20261029155929.586597-12-raymondmaoca@gmail.com>
+Subject: [PATCH v2 12/12] [NOT-FOR-UPSTREAM] platform: generic: Add sample dts overlays for testing hwirq/domain route rules
+Date: Thu, 29 Oct 2026 11:59:29 -0400
+Message-Id: <20261029155929.586597-13-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261029155929.586597-1-raymondmaoca@gmail.com>
 References: <20261029155929.586597-1-raymondmaoca@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_090016_968253_1AE87FAE 
-X-CRM114-Status: GOOD (  12.38  )
+X-CRM114-CacheID: sfid-20261029_090019_832753_FD495F51 
+X-CRM114-Status: GOOD (  15.52  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -116,84 +116,297 @@ X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Document the DT binding semantics for opensbi,mpxy-sysirq nodes,
-including how interrupts-extended entry order determines per-channel
-VIRQ numbers and how opensbi,domain selects the destination OpenSBI
-domain.
-Add a SYSIRQ node example under /chosen/opensbi-domains.
+Introduce rpmi_sysirq_intc nodes with interrupts-extended property
+for VIRQ testing.
+- Routing rules are derived from sysirq nodes by:
+      interrupts-extended =
+         <&aplic HWIRQx IRQ_TYPE>, // virq 0
+         <&aplic HWIRQy IRQ_TYPE>, // virq 1
+         ...;
+- VIRQ numbers are allocated from zero, implicit from the order
+  of the entries in the interrupts-extended property.
 
-Describe DT-driven courier registration and delivery to the owning
-domain's boot hart. Summarize interrupt notification, claiming,
-completion and deferred return domain switches.
+During cold boot, route rules are converted and cached for VIRQ
+routing/couriering purpose, and DT IRQ entries activate courier delivery.
+
+hwirq_bind_domain.dts is for testing with a single domain/hart.
+Domain1 owns UART hwirq 10 via 'interrupts-extended'.
+
+hwirq_bind_domain_linux_bmapp.dts is for testing with multiple
+domains/harts. It models two BM domains alongside the root domain
+on 'QEMU virt -smp 4'. Domain1 and domain2 share hart2 as boot hart
+and each maps its own bm-app RAM region and the UART region;
+domain2 owns UART hwirq 10 via 'interrupts-extended'.
+Bind CPU hart2 to domain1 and set explicit init-order values to keep
+hart2 in domain1 for initial execution. Load the BM payloads at
+0x88000000 and 0x89000000 to exercise domain1 -> domain2 -> domain1.
+
+Keep the configured courier sources 10, 20 and 21 in the M-mode APLIC
+and delegate the remaining sources to its S-mode child. This preserves
+Linux interrupt delivery without delegating the BM domains' IRQs.
+
+Usage:
+1. Compile the overlay.
+   $ dtc -@ -I dts -O dtb -o <dto_file> \
+         platform/generic/virt/<dts_overlay_file>
+2. Dump the base dtb from QEMU via arg
+   '-machine dumpdtb=<dtb_qemu_base>'
+3. Apply the overlay on the base.
+   $ fdtoverlay -i <dtb_qemu_base> -o <dtb_qemu_merge> <dto_file>
+4. Re-run QEMU with adding argument '-dtb <dtb_qemu_merge>'
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- docs/domain_support.md | 55 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ platform/generic/virt/hwirq_bind_domain.dts   | 107 +++++++++++++++
+ .../virt/hwirq_bind_domain_linux_bmapp.dts    | 125 ++++++++++++++++++
+ 2 files changed, 232 insertions(+)
+ create mode 100644 platform/generic/virt/hwirq_bind_domain.dts
+ create mode 100644 platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
 
-diff --git a/docs/domain_support.md b/docs/domain_support.md
-index 51737218..a2d40024 100644
---- a/docs/domain_support.md
-+++ b/docs/domain_support.md
-@@ -325,3 +325,58 @@ be done:
-         ...
-     };
- ```
+diff --git a/platform/generic/virt/hwirq_bind_domain.dts b/platform/generic/virt/hwirq_bind_domain.dts
+new file mode 100644
+index 00000000..93f21d0b
+--- /dev/null
++++ b/platform/generic/virt/hwirq_bind_domain.dts
+@@ -0,0 +1,107 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/dts-v1/;
++/plugin/;
 +
-+### SYSIRQ Node
++/ {
++	/*
++	 * Fragment 0: OpenSBI domain configuration under /chosen
++	 */
++	fragment@0 {
++		target-path = "/chosen";
++		__overlay__ {
++			opensbi-domains {
++				compatible = "opensbi,domain,config";
 +
-+The SYSIRQ node describes physical interrupts delivered to a domain through
-+an RPMI SYSTEM_IRQ channel over SBI MPXY. It should be placed under the
-+domain configuration node.
++				/*
++				 * DRAM region for domain1 (2GB from 0x8000_0000).
++				 * base is 64-bit: <hi lo>, order is log2(size).
++				 */
++				memregion_dram_2g: memregion_dram_2g {
++					compatible = "opensbi,domain,memregion";
++					base  = <0x0 0x80000000>;
++					order = <31>;
++				};
 +
-+The DT properties of a SYSIRQ node are as follows:
++				/*
++				 * UART MMIO region so S-mode payload can access UART registers
++				 * without fault. 0x1000_0000 size 4KB.
++				 */
++				uart0_mmio: memregion_uart0 {
++					compatible = "opensbi,domain,memregion";
++					base  = <0x0 0x10000000>;
++					order = <12>;
++				};
 +
-+* **compatible** (Mandatory) - The compatible string of the SYSIRQ node.
-+  This DT property should have value *"opensbi,mpxy-sysirq"*.
-+* **interrupt-controller** (Optional) - Marks the node as a virtual interrupt
-+  controller when it is referenced by other DT nodes.
-+* **#interrupt-cells** (Optional) - Must be <1> when the node is used as an
-+  interrupt controller. The interrupt specifier is the VIRQ number.
-+* **interrupts-extended** (Mandatory) - The physical interrupt sources,
-+  specified as <&irqchip hwirq flags> entries.
-+* **opensbi,mpxy-channel-id** (Mandatory) - The unique SBI MPXY channel ID.
-+  Each channel has its own VIRQ namespace.
-+* **opensbi,domain** (Mandatory) - The phandle of the destination domain
-+  instance node.
++				/*
++				 * Domain instance:
++				 * - possible-harts = <cpu0 phandle> (cpu@0 phandle is 1)
++				 * - regions use label references (fdtoverlay will fixup phandles)
++				 * - IRQ routing is defined by sysirq nodes under
++				 *   /chosen/opensbi-domains
++				 */
++				domain1: domain1 {
++					compatible = "opensbi,domain,instance";
 +
-+Each interrupts-extended entry maps a physical interrupt to a VIRQ number
-+starting from zero, in entry order. All entries in the node belong to the
-+specified domain. Physical sources are identified by the interrupt controller
-+and HWIRQ number; the same HWIRQ number on different controllers denotes
-+different sources. Each physical source can belong to only one channel.
-+The physical specifier must contain one HWIRQ cell and one flags cell.
-+Physical delivery targets the domain's finalized boot HART. The current
-+registration path supports wired M-mode interrupt controllers with masking
-+and affinity operations. The interrupt controller must be configured to
-+deliver these sources to M-mode rather than delegate them to S-mode.
++					/* cpu@0 phandle in base qemu dtb is 1 */
++					possible-harts = <0x1>;
 +
-+OpenSBI establishes the channel mappings and routing rules, then selects
-+domain boot HARTs before enabling physical delivery. It notifies the
-+destination domain through SEIP and switches to that domain if required.
-+The payload claims pending interrupts through SYSIRQ_CLAIM and handles the
-+device sources before completing them through the next CLAIM or the optional
-+Yield ECALL. Return to a previously interrupted domain is permitted only
-+after pending and claimed interrupts are drained. This completion and
-+return-switch convention is specific to OpenSBI's domain courier.
++					/*
++					 * Keep permissive for test.
++					 * access=0x3f: enable all M+SU R/W/X flags (test only).
++					 */
++					regions = <&memregion_dram_2g 0x3f>,
++						  <&uart0_mmio 0x3f>;
 +
-+For example, the following node maps physical interrupt 10 to VIRQ 0 in
-+channel 4 and delivers it to the boot HART of tdomain:
++					/* Route rules are supplied via sysirq nodes. */
++				};
 +
-+```dts
-+sysirq {
-+    compatible = "opensbi,mpxy-sysirq";
-+    interrupt-controller;
-+    #interrupt-cells = <1>;
-+    opensbi,mpxy-channel-id = <4>;
-+    opensbi,domain = <&tdomain>;
-+    interrupts-extended = <&aplic_m 10 4>;
++				rpmi_sysirq_intc: interrupt-controller {
++					compatible = "opensbi,mpxy-sysirq";
++					interrupt-controller;
++					#interrupt-cells = <1>;
++
++					/*
++					 * VIRQ numbers are allocated from zero, in order.
++					 * Each entry: <&irqchip hwirq flags>
++					 * flags: IRQ_TYPE_LEVEL_HIGH = 4
++					 */
++					/*
++					 * Base DTB (qemu_linux_test.dtb) phandle:
++					 * /soc/interrupt-controller@c000000 -> 0x09
++					 */
++					interrupts-extended =
++						<0x09 10 4>, /* VIRQ 0: UART RX */
++						<0x09 20 4>, /* VIRQ 1: test */
++						<0x09 21 4>; /* VIRQ 2: test */
++
++					/* MPXY channel id allocated by system designer */
++					opensbi,mpxy-channel-id = <4>;
++
++					/* Route VIRQs to domain1 */
++					opensbi,domain = <&domain1>;
++				};
++			};
++		};
++	};
++
++	/*
++	 * Fragment 1: Assign cpu0 to domain1 using label reference
++	 */
++	fragment@1 {
++		target-path = "/cpus/cpu@0";
++		__overlay__ {
++			opensbi-domain = <&domain1>;
++		};
++	};
++
++	fragment@2 {
++		target-path = "/soc/interrupt-controller@c000000";
++		__overlay__ {
++			/* Keep courier IRQs 10, 20 and 21 in the M-mode APLIC. */
++			riscv,delegate = <0x0a 1 9>, <0x0a 11 19>,
++					 <0x0a 22 96>;
++			riscv,delegation = <0x0a 1 9>, <0x0a 11 19>,
++					   <0x0a 22 96>;
++		};
++	};
 +};
-+```
+diff --git a/platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts b/platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
+new file mode 100644
+index 00000000..d26e4237
+--- /dev/null
++++ b/platform/generic/virt/hwirq_bind_domain_linux_bmapp.dts
+@@ -0,0 +1,125 @@
++// SPDX-License-Identifier: BSD-2-Clause
++/dts-v1/;
++/plugin/;
++
++/ {
++	fragment@0 {
++		target-path = "/chosen";
++		__overlay__ {
++			opensbi-domains {
++				compatible = "opensbi,domain,config";
++
++				d1_uart_mmio: memregion_domain1_uart_mmio {
++					compatible = "opensbi,domain,memregion";
++					base  = <0x0 0x10000000>;
++					order = <12>;
++					mmio;
++				};
++
++				d1_bmapp_ram: memregion_domain1_bmapp_ram {
++					compatible = "opensbi,domain,memregion";
++					base  = <0x0 0x88000000>;
++					order = <24>;
++				};
++
++				d2_bmapp_ram: memregion_domain2_bmapp_ram {
++					compatible = "opensbi,domain,memregion";
++					base  = <0x0 0x89000000>;
++					order = <24>;
++				};
++
++				/*
++				 * Domain instance:
++				 * - possible-harts uses CPU node phandles
++				 * - regions use label references (fdtoverlay will fixup phandles)
++				 */
++				domain1: domain1 {
++					compatible = "opensbi,domain,instance";
++					init-order = <1>;
++
++					/*
++					 * QEMU virt -smp 4 dumpdtb phandles:
++					 * cpu@1 -> 0x05, cpu@2 -> 0x03
++					 */
++					possible-harts = <0x05 0x03>;
++					boot-hart      = <0x03>;
++
++					/*
++					 * Keep permissive for test.
++					 * access=0x3f: enable all M+SU R/W/X flags (test only).
++					 */
++					regions = <&d1_bmapp_ram 0x3f>,
++						  <&d1_uart_mmio 0x3f>;
++
++					next-addr = <0x0 0x88000000>;
++					next-arg1 = <0x0 0x1>;
++					next-mode = <0x1>;
++				};
++
++				domain2: domain2 {
++					compatible = "opensbi,domain,instance";
++					init-order = <2>;
++
++					/*
++					 * QEMU virt -smp 4 dumpdtb phandles:
++					 * cpu@1 -> 0x05, cpu@2 -> 0x03
++					 */
++					possible-harts = <0x05 0x03>;
++					boot-hart      = <0x03>;
++
++					regions = <&d2_bmapp_ram 0x3f>,
++						  <&d1_uart_mmio 0x3f>;
++
++					next-addr = <0x0 0x89000000>;
++					next-arg1 = <0x0 0x2>;
++					next-mode = <0x1>;
++				};
++
++				rpmi_sysirq_intc: interrupt-controller {
++					compatible = "opensbi,mpxy-sysirq";
++					interrupt-controller;
++					#interrupt-cells = <1>;
++
++					/*
++					 * VIRQ numbers are allocated from zero, in order.
++					 * Each entry: <&irqchip hwirq flags>
++					 * flags: IRQ_TYPE_LEVEL_HIGH = 4
++					 */
++					/*
++					 * Base DTB (qemu_linux_test.dtb) phandle:
++					 * /soc/interrupt-controller@c000000 -> 0x09
++					 */
++					interrupts-extended =
++						<0x09 10 4>, /* VIRQ 0: UART RX */
++						<0x09 20 4>, /* VIRQ 1: test */
++						<0x09 21 4>; /* VIRQ 2: test */
++
++					/* MPXY channel id allocated by system designer */
++					opensbi,mpxy-channel-id = <4>;
++
++					/* Route VIRQs to domain2 */
++					opensbi,domain = <&domain2>;
++				};
++			};
++		};
++	};
++
++	fragment@1 {
++		target-path = "/cpus/cpu@2";
++		__overlay__ {
++			opensbi-domain = <&domain1>;
++		};
++	};
++
++	fragment@2 {
++		target-path = "/soc/interrupt-controller@c000000";
++		__overlay__ {
++			/* Keep courier IRQs 10, 20 and 21 in the M-mode APLIC. */
++			riscv,delegate = <0x0a 1 9>, <0x0a 11 19>,
++					 <0x0a 22 96>;
++			riscv,delegation = <0x0a 1 9>, <0x0a 11 19>,
++					   <0x0a 22 96>;
++		};
++	};
++
++};
 -- 
 2.25.1
 
