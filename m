@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06C26606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C5A606A31A
 	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 16:00:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=AQCa6rNG;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=02wq4DYW
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=I7yKZBSF;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=KjR81120
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,65 +14,65 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=fy0MG0P+Vq5E3XGuQyFhbBuyijbU36O70iFxqqK76yI=; b=AQCa6rNGCdrOgpTYBEbSgo93hJ
-	dKMkluzgiCGb4H/1FCeKyLxE3yP0oFqgmu4URtTrP154cfrtZVg8ZDGLperyXkYRXA0in4+1yuDV2
-	47slbLIhwp3oaqJ9AgVYXL+0poCwb3qdBPnlTRAYw0HtShCpZRHoIdyZP+nbp/CWwYdbBM9BPC1pv
-	vag5j0pE8TIjFo8qb1uyYW/QW2caXnXNjuOi9Jsycqta/Cz9oW0SeuGZoT4V67/P2xsKhQiWik17A
-	zK7BrbjtZS/YaOnGyaxv07xDvieu/MuTgIMGyJM/YitQwd6NNi+WjstSadQJhDsSNiSV17JTTPQs6
-	7SvPjp2g==;
+	bh=sZhSoV89gb2BEnyEev9fJVe/ou3j29TqMryQmdrh3rM=; b=I7yKZBSFPdnSuwkeokAcwzc5qG
+	F1D79mk10z+FPp2jfoBVTs0OJxbm+g6Lt3yEXZD7jy6Mv8IhwjGxgLmJbroQpwEQzvG3Nqyb9H9Ab
+	Q1gg3FIKW87k5OzWcUWXl389ddZoxW7Eu9kf9Nj2bWbVFuTu84fW+LoUpwnYs6F8lx85IPcSkHSf5
+	Lx3IdFZnkhox44rZST79Ika5cm+gb0zX0aREH6SiVkPWbZZTHaGmW6EQfQBw6B6ZeCmoBOD2bTvwV
+	rVjZhLMu0NbvP6rX2R3ZWVRR0DtOEu4w47WPw5VE2/yWiucg2maQ+VuewSeF+pODsYdlh6ToFCzbp
+	9FPrB/4Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSY5-00000009iZr-3j1z;
-	Thu, 29 Oct 2026 16:00:17 +0000
-Received: from mail-qt1-x82d.google.com ([2607:f8b0:4864:20::82d])
+	id 1xMSY7-00000009ibl-0QcE;
+	Thu, 29 Oct 2026 16:00:19 +0000
+Received: from mail-qt1-x832.google.com ([2607:f8b0:4864:20::832])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSY3-00000009iXY-1E0c
+	id 1xMSY4-00000009iYX-3pzF
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 16:00:16 +0000
-Received: by mail-qt1-x82d.google.com with SMTP id d75a77b69052e-53cd0c8614eso22178741cf.0
-        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 09:00:14 -0700 (PDT)
+	Thu, 29 Oct 2026 16:00:18 +0000
+Received: by mail-qt1-x832.google.com with SMTP id d75a77b69052e-5364d86f7f0so31714771cf.1
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 09:00:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793289613; x=1793894413; darn=lists.infradead.org;
+        d=gmail.com; s=20260707; t=1793289615; x=1793894415; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=X/c6ysFCDDyurbI4bTi7NsSGi8Ef6b5bXzOoEgTpO5E=;
-        b=02wq4DYWkZ//rHSIoaL+4uXToXNN+0wjOWqx0tRxtZ0inDLUR4LqnZnwx1CG33fvDo
-         LZY/iHiw6py2P0scSYaPXsHySm0E7rVndUWAyoAbE8P8zRXLMxNleUg5ZTseeUq0C63h
-         JEIVXO06YjgzNYIyMNyx0nnSfhJ+FYLlrGFTLy8mUPYHLwjh1IW8+SkkP+KM6OAe2mqz
-         zZzSr01boUIOhT1iQlPyPLydidp3q2KdMZEcFfgN00UyZN96uJSiOa0lMaaVUgynlS/x
-         zKHokRcgkl9tCNfrbmS2lfORVp3weOlRugA+J+HM9KYGNkB/cG2KNJjYjEbaZEnNMlqf
-         43lw==
+        bh=Bvly4r7tnyw8cgrcMSBlqWfdCsSAj9cDTGQX/hVIbXg=;
+        b=KjR81120XxolVJ1PNo4qAIIylnKozx/atS9ir/Z87u3X0D8v5l0FlOy+ZKh2HlKQ8m
+         MdxDp7Ay+FhfM/LTcR2LujpcShE2k788o3WoKH3kRYronzd5mD/PPEAWON8fMZRqB3Z7
+         UOtNJFHTlOix25ko1bahhiyJFOVdJEP+bKNmh0MKwSD/HaR91K0eNcn98cj848d+SnLl
+         D6SdHLS/9E7xFdX/V+QwEn89hAq7t5Tkm6ObdB0MWEjpwHqwKgFUKy34Pi1b/+JvFmwC
+         o4tnl2MZXsjKA+aG+oRMUczUzd06rluU71uz1A0RxwXvfpYAAQydohpJT68q7c3DUNae
+         4DvA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793289613; x=1793894413;
+        d=1e100.net; s=20260707; t=1793289615; x=1793894415;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=X/c6ysFCDDyurbI4bTi7NsSGi8Ef6b5bXzOoEgTpO5E=;
-        b=QwxaW+ot7KyrGKR6F/hNtXAtNie7QUU3JLu4SHe7InxiTZ3Z+COBdITPQRTKXCSx6Q
-         aLMyHrQfvbkv6WT9CjzVjCEJ/6O2yojSZvYrwgmLuNZfyYLgn3fU7oyak1KSh2y9vX+l
-         miGvxwwpPPPGSgH/4xZd0VItcIZ0Qi/7MYvXntRRrZluwak4t0axAAyuIbMWwS5xLc7j
-         Iwocjzo4AMrOs83AM6v7PxKLv4Et3uICv4rrYWVSpQ80J7AM9M3lN2yB4MDkkPkRG4QM
-         RvTgYVQL45IuFiuT8qN85XXc73cyLzcu0gCxBpScu1lkVL0RKT0NS1jYfHL5rMDciUZg
-         pXGA==
-X-Gm-Message-State: AFq9FYINOK/Xh3E0iDHx2+CsmkPHWSmyecc0Vk/vv0eOn5EKumu0CwZ2
-	DBH2ytdsl7EfdOyIYeHwQ8AFaEuYiKCB4/A7TAH6d2LigSzdioyToPX6tNhgBg==
-X-Gm-Gg: AYBFou3yuONG1hZpZ72EXS2OrfuTkHh7VlvwYDSovVIsWDCZADU5VwgDb0LbtpmWSEo
-	EfzCSzo/Y25Un3Pl6O96D9O9zZLkqVEdCP5liRqJcBxyZmRYEBTtDw1mz3viN2r2rgJRfnQX0Bx
-	2A0kxYWRdWekJAekJXXmOPWFIIXVU3OQRU0wZCPWGvb692KrAkgLNbVeUaYHywTrz4SOac+DSaY
-	qLByYyGGn6Ta5wuBSgcivjhK/hWECSy4pMmeXNzQgey4YRbr3gcSx3La2bFib7ZYaziHEOFRAia
-	PUiDnTowC+8AgvH2OQoELYrY4/8I/Z5znlkJ2YkCJp6gFck4ZhG9VxCVT7g+RtvwCkJIfJL/09l
-	0HQC/1+zjVmc3KC/rh5id+gpNyF990ULQXg/X0gOXOArBv3qzBkgp5FysVWL+o+6vXLZkEnXLif
-	ff8hzeR7MrbdicmaLFUBobj27JrANjhSYgrqiUcD1ZnGKhFyxKXgrsk7/SpnbywoEMLkUQq5H1D
-	HMc3Uai5EHIWi0urayUgA52Mqb7zj4uG7nv9lhNKsj1LhmuGt0WAMlhxBFWsYID7u+Rt/kw+CKQ
-	S3APRZ8DVHNGxR1IyQk3dJ3OtXC6hSaQmmdM+KCxqRSzCUjEqAzti43IsuC6stPP0ZQzO06XS2x
-	7iX1qWMUnlYLpDQ==
-X-Received: by 2002:a05:622a:1a92:b0:536:24e4:d8ab with SMTP id d75a77b69052e-53fcc3d0bb1mr96066121cf.55.1793289612476;
-        Thu, 29 Oct 2026 09:00:12 -0700 (PDT)
+        bh=Bvly4r7tnyw8cgrcMSBlqWfdCsSAj9cDTGQX/hVIbXg=;
+        b=rihmGwoluDlTTtM7NYcwdJ9tnK0Uh4oeW9SlTO6fpzRdHiTa5LonZnydNpnJqVbX0j
+         ZNAQg06YPeE4Hntvi/wd0ug7KbWFb05K+qfL6Qrm5Z4wAegVK42yVdapQrYFJeXmBU5J
+         7gtUkqYmWfgSwQONIKT9zgmewB2AeAdOA23CzQn+FTa+MSA2mOsclSx7VBsvcAXbTAsn
+         7u/zAP6ePFTSvk2ehTBNg8HUcaOP4jzR6MR+HfPcsfuNbbJqNP9dAZBhIicbzaM6+682
+         m52AImtXKT4yQZPr/2CuXcdi5+EPxniO9n1H+RQTJfMqf4Df3XREk4+Fl0l9/INh8zB4
+         Oy8g==
+X-Gm-Message-State: AFq9FYI6Z2BngexTcRMNqYSeq5+W4kQ44GbxcLxCjEZVcEnSrCKFSnlV
+	tkSCfLgQaXSrE9uS5gF98uS+xbsZ/PRFAuSpW3wAybtI3Aqa4cLYBqPBcH63yw==
+X-Gm-Gg: AYBFou2a+GZs3w4rb9u3j84/OsbtlcmhRTq79nWYEUg2AMLBUNWW7UHuZHXpWW5o6Hv
+	ajyZCcPzYWw9kvraPxYWYy93eUzxWaZQgtK+/0B5vBX1AYHsI18FQ4Syiuv8zIXWmvvDb62aQMa
+	k4oFGYU5feLdhGbxey9eGYsEn3nzAj+kiyjneSHa+82HQMa+RyV6Vr/7SOVQCkqtGaorTn7ogUY
+	XkCIUocnPj6mv7pjJK8XeSimq+wrtp/Uur2/cckt2TWiOZ2gQezL9Vxxzv76+KfdylTWHcZLO4G
+	WOaoXrZMZmDiTgBO93t/RSFwQHhOOq/VNWggCa8z4NHJ3bZENlOIDHH+LhkqlzJfKZ0Zrko1zSx
+	Oti3+rmEIu9ArZscQN/02pMMD7mjMMrsOU8iq6g4++wJvmpJQBu43oxeR9jFNECvCzWW7+jPwnE
+	KuqDr8N2ieie9KkBg5m1+UnJWmVcFW2Jln9/+0FBTDftt2jfWChrrb7fcLNgJm6awEFy0XTrzuH
+	Ekmx0/oEsGq1jaZVZxG3YU8xzxcrzGIi0bKBCca/c5UdyolHkl2JN20LoTPcfHFMz+fV1Or5Xx2
+	dqId29VZn7Sgtmto5rh0ReTcXgjCV1OuHEWHaB2piiKsCLP6ZRUDCtv1CAeweRQVIwLjXVHfocl
+	5kbEVKiBTKrJBHQ==
+X-Received: by 2002:a05:622a:1a88:b0:535:1393:a82e with SMTP id d75a77b69052e-53fcbee1fcamr98191291cf.23.1793289614865;
+        Thu, 29 Oct 2026 09:00:14 -0700 (PDT)
 Received: from ubuntu.localdomain (69-171-141-154.rdns.distributel.net. [69.171.141.154])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.09.00.11
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.09.00.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 09:00:12 -0700 (PDT)
+        Thu, 29 Oct 2026 09:00:14 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -82,17 +82,17 @@ Cc: anup@brainfault.org,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 10/12] lib: utils: fdt: parse sysirq routing from DT
-Date: Thu, 29 Oct 2026 11:59:27 -0400
-Message-Id: <20261029155929.586597-11-raymondmaoca@gmail.com>
+Subject: [PATCH v2 11/12] docs: domain: document sysirq VIRQ mapping and routing rules
+Date: Thu, 29 Oct 2026 11:59:28 -0400
+Message-Id: <20261029155929.586597-12-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261029155929.586597-1-raymondmaoca@gmail.com>
 References: <20261029155929.586597-1-raymondmaoca@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_090015_359264_0921056F 
-X-CRM114-Status: GOOD (  21.46  )
+X-CRM114-CacheID: sfid-20261029_090016_968253_1AE87FAE 
+X-CRM114-Status: GOOD (  12.38  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -116,311 +116,84 @@ X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Parse mpxy-sysirq nodes under /chosen/opensbi-domains, pre-size
-per-channel VIRQ maps, and add physical interrupt routes from
-interrupts-extended. Mark sysirq domains to allow SEIP-based VIRQ
-notification.
+Document the DT binding semantics for opensbi,mpxy-sysirq nodes,
+including how interrupts-extended entry order determines per-channel
+VIRQ numbers and how opensbi,domain selects the destination OpenSBI
+domain.
+Add a SYSIRQ node example under /chosen/opensbi-domains.
 
-Initialize VIRQ on demand and register each domain-owned RPMI
-SYSTEM_IRQ channel using its channel ID and interrupt entry count.
-Store the physical controller, HWIRQ and IRQ flags in each route.
-Activate courier handlers during domain finalization after boot HART
-selection, setting affinity to the destination domain's final boot HART.
-Complete mapping and channel setup before activating physical sources.
-
-Reject malformed phandle argument lists and insufficient IRQ flag
-buffers instead of truncating interrupt specifiers. Require one HWIRQ
-cell and one flags cell for SYSIRQ sources, and validate scalar
-channel and domain properties.
+Describe DT-driven courier registration and delivery to the owning
+domain's boot hart. Summarize interrupt notification, claiming,
+completion and deferred return domain switches.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi_utils/fdt/fdt_helper.h |   8 ++
- lib/sbi/sbi_domain.c               |   3 +
- lib/utils/fdt/fdt_domain.c         | 116 ++++++++++++++++++++++++++++-
- lib/utils/fdt/fdt_helper.c         |  57 +++++++++++++-
- 4 files changed, 179 insertions(+), 5 deletions(-)
+ docs/domain_support.md | 55 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
-diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
-index 75a564d1..342cf738 100644
---- a/include/sbi_utils/fdt/fdt_helper.h
-+++ b/include/sbi_utils/fdt/fdt_helper.h
-@@ -12,6 +12,7 @@
- 
- #include <sbi/sbi_types.h>
- #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_irqchip.h>
- 
- struct fdt_match {
- 	const char *compatible;
-@@ -38,6 +39,13 @@ int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
- 				const char *prop, const char *cells_prop,
- 				int index, struct fdt_phandle_args *out_args);
- 
-+int fdt_parse_interrupts_extended_entry(const void *fdt, int nodeoff,
-+					int index,
-+					struct sbi_irqchip_device **out_chip,
-+					u32 *out_hwirq,
-+					u32 *out_flags,
-+					u32 *out_flags_count);
+diff --git a/docs/domain_support.md b/docs/domain_support.md
+index 51737218..a2d40024 100644
+--- a/docs/domain_support.md
++++ b/docs/domain_support.md
+@@ -325,3 +325,58 @@ be done:
+         ...
+     };
+ ```
 +
- int fdt_get_node_addr_size(const void *fdt, int node, int index,
- 			   uint64_t *addr, uint64_t *size);
- 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 16df5533..36b64b32 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -930,6 +930,9 @@ int sbi_domain_finalize(struct sbi_scratch *scratch)
- 
- 	/* Select stable boot HARTs before programming physical IRQ targets. */
- 	domain_select_boot_harts();
-+	rc = sbi_virq_setup_couriers();
-+	if (rc)
-+		return rc;
- 
- 	/*
- 	 * Set the finalized flag so that the root domain
-diff --git a/lib/utils/fdt/fdt_domain.c b/lib/utils/fdt/fdt_domain.c
-index 575fbdf0..4d38d402 100644
---- a/lib/utils/fdt/fdt_domain.c
-+++ b/lib/utils/fdt/fdt_domain.c
-@@ -15,7 +15,9 @@
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_irqchip.h>
- #include <sbi/sbi_scratch.h>
-+#include <sbi/sbi_virq.h>
- #include <sbi_utils/fdt/fdt_domain.h>
- #include <sbi_utils/fdt/fdt_helper.h>
- 
-@@ -291,7 +293,6 @@ static int __fdt_parse_region(const void *fdt, int domain_offset,
- 
- 	return 0;
- }
--
- static int __fdt_parse_domain(const void *fdt, int domain_offset, void *opaque)
- {
- 	u32 val32;
-@@ -488,12 +489,123 @@ fail_free_domain:
- 	return err;
- }
- 
-+static int __fdt_parse_mpxy_sysirq_node(const void *fdt, int nodeoff)
-+{
-+	const fdt32_t *val;
-+	int len, rc, doff;
-+	u32 channel_id;
-+	u32 index, num_irqs;
-+	struct sbi_domain *dom;
++### SYSIRQ Node
 +
-+	if (!fdt || nodeoff < 0)
-+		return SBI_EINVAL;
++The SYSIRQ node describes physical interrupts delivered to a domain through
++an RPMI SYSTEM_IRQ channel over SBI MPXY. It should be placed under the
++domain configuration node.
 +
-+	val = fdt_getprop(fdt, nodeoff, "opensbi,mpxy-channel-id", &len);
-+	if (!val || len != sizeof(*val))
-+		return SBI_EINVAL;
-+	channel_id = fdt32_to_cpu(*val);
++The DT properties of a SYSIRQ node are as follows:
 +
-+	val = fdt_getprop(fdt, nodeoff, "opensbi,domain", &len);
-+	if (!val || len != sizeof(*val))
-+		return SBI_EINVAL;
++* **compatible** (Mandatory) - The compatible string of the SYSIRQ node.
++  This DT property should have value *"opensbi,mpxy-sysirq"*.
++* **interrupt-controller** (Optional) - Marks the node as a virtual interrupt
++  controller when it is referenced by other DT nodes.
++* **#interrupt-cells** (Optional) - Must be <1> when the node is used as an
++  interrupt controller. The interrupt specifier is the VIRQ number.
++* **interrupts-extended** (Mandatory) - The physical interrupt sources,
++  specified as <&irqchip hwirq flags> entries.
++* **opensbi,mpxy-channel-id** (Mandatory) - The unique SBI MPXY channel ID.
++  Each channel has its own VIRQ namespace.
++* **opensbi,domain** (Mandatory) - The phandle of the destination domain
++  instance node.
 +
-+	doff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
-+	if (doff < 0)
-+		return doff;
++Each interrupts-extended entry maps a physical interrupt to a VIRQ number
++starting from zero, in entry order. All entries in the node belong to the
++specified domain. Physical sources are identified by the interrupt controller
++and HWIRQ number; the same HWIRQ number on different controllers denotes
++different sources. Each physical source can belong to only one channel.
++The physical specifier must contain one HWIRQ cell and one flags cell.
++Physical delivery targets the domain's finalized boot HART. The current
++registration path supports wired M-mode interrupt controllers with masking
++and affinity operations. The interrupt controller must be configured to
++deliver these sources to M-mode rather than delegate them to S-mode.
 +
-+	dom = sbi_domain_find_by_name(fdt_get_name(fdt, doff, NULL));
-+	if (!dom)
-+		return SBI_ENOENT;
-+	dom->virq_seip_notify = true;
++OpenSBI establishes the channel mappings and routing rules, then selects
++domain boot HARTs before enabling physical delivery. It notifies the
++destination domain through SEIP and switches to that domain if required.
++The payload claims pending interrupts through SYSIRQ_CLAIM and handles the
++device sources before completing them through the next CLAIM or the optional
++Yield ECALL. Return to a previously interrupted domain is permitted only
++after pending and claimed interrupts are drained. This completion and
++return-switch convention is specific to OpenSBI's domain courier.
 +
-+	/* Pre-allocate VIRQ map based on interrupts-extended count */
-+	for (index = 0; ; index++) {
-+		rc = fdt_parse_interrupts_extended_entry(fdt, nodeoff, index,
-+							 NULL, NULL,
-+							 NULL, NULL);
-+		if (rc == SBI_ENOENT)
-+			break;
-+		if (rc)
-+			return rc;
-+	}
++For example, the following node maps physical interrupt 10 to VIRQ 0 in
++channel 4 and delivers it to the boot HART of tdomain:
 +
-+	if (!sbi_virq_is_inited()) {
-+		rc = sbi_virq_init(index);
-+		if (rc)
-+			return rc;
-+	}
-+	rc = sbi_virq_map_ensure_cap(channel_id, index);
-+	if (rc)
-+		return rc;
-+	num_irqs = index;
-+
-+	for (index = 0; ; index++) {
-+		struct sbi_irqchip_device *chip = NULL;
-+		u32 hwirq = 0, flags, flags_count = 1;
-+
-+		rc = fdt_parse_interrupts_extended_entry(fdt, nodeoff, index,
-+							 &chip, &hwirq,
-+							 &flags, &flags_count);
-+		if (rc == SBI_ENOENT)
-+			break;
-+		if (rc)
-+			return rc;
-+		if (!chip)
-+			return SBI_ENODEV;
-+		if (flags_count != 1)
-+			return SBI_ENOTSUPP;
-+
-+		rc = sbi_virq_map_set(channel_id, chip->id, hwirq, index);
-+		if (rc)
-+			return rc;
-+
-+		rc = sbi_virq_route_add(dom, chip->id, hwirq, flags, channel_id);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return sbi_virq_sysirq_add_channel(dom, channel_id, num_irqs);
-+}
-+
-+static int __fdt_parse_mpxy_sysirq_nodes(const void *fdt)
-+{
-+	int poffset, noff, rc;
-+
-+	if (!fdt)
-+		return SBI_EINVAL;
-+
-+	poffset = fdt_path_offset(fdt, "/chosen");
-+	if (poffset < 0)
-+		return 0;
-+	poffset = fdt_node_offset_by_compatible(fdt, poffset,
-+						"opensbi,domain,config");
-+	if (poffset < 0)
-+		return 0;
-+
-+	fdt_for_each_subnode(noff, fdt, poffset) {
-+		if (fdt_node_check_compatible(fdt, noff,
-+					      "opensbi,mpxy-sysirq"))
-+			continue;
-+		rc = __fdt_parse_mpxy_sysirq_node(fdt, noff);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
- int fdt_domains_populate(const void *fdt)
- {
-+	int err;
-+
- 	/* Sanity checks */
- 	if (!fdt)
- 		return SBI_EINVAL;
- 
- 	/* Iterate over each domain in FDT and populate details */
--	return fdt_iterate_each_domain_ro(fdt, NULL, __fdt_parse_domain);
-+	err = fdt_iterate_each_domain_ro(fdt, NULL, __fdt_parse_domain);
-+	if (err)
-+		return err;
-+
-+	return __fdt_parse_mpxy_sysirq_nodes(fdt);
- }
-diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
-index 747ba028..21c78279 100644
---- a/lib/utils/fdt/fdt_helper.c
-+++ b/lib/utils/fdt/fdt_helper.c
-@@ -10,6 +10,7 @@
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_hartmask.h>
-+#include <sbi/sbi_irqchip.h>
- #include <sbi/sbi_platform.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_hart.h>
-@@ -47,6 +48,8 @@ int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
- 	list = fdt_getprop(fdt, nodeoff, prop, &len);
- 	if (!list)
- 		return SBI_ENOENT;
-+	if (len % sizeof(*list))
-+		return SBI_EINVAL;
- 	list_end = list + (len / sizeof(*list));
- 
- 	while (list < list_end) {
-@@ -57,13 +60,13 @@ int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
- 		list++;
- 
- 		val = fdt_getprop(fdt, pnodeoff, cells_prop, &len);
--		if (!val)
--			return SBI_ENOENT;
-+		if (!val || len != sizeof(*val))
-+			return SBI_EINVAL;
- 		pcells = fdt32_to_cpu(*val);
- 		if (FDT_MAX_PHANDLE_ARGS < pcells)
- 			return SBI_EINVAL;
- 		if (list + pcells > list_end)
--			return SBI_ENOENT;
-+			return SBI_EINVAL;
- 
- 		if (index > 0) {
- 			list += pcells;
-@@ -80,6 +83,54 @@ int fdt_parse_phandle_with_args(const void *fdt, int nodeoff,
- 	return SBI_ENOENT;
- }
- 
-+int fdt_parse_interrupts_extended_entry(const void *fdt, int nodeoff,
-+					int index,
-+					struct sbi_irqchip_device **out_chip,
-+					u32 *out_hwirq,
-+					u32 *out_flags,
-+					u32 *out_flags_count)
-+{
-+	struct fdt_phandle_args args;
-+	struct sbi_irqchip_device *chip;
-+	u32 flags_cap = 0, flags_cnt = 0;
-+	int rc, i;
-+
-+	if (!fdt || nodeoff < 0)
-+		return SBI_EINVAL;
-+
-+	rc = fdt_parse_phandle_with_args(fdt, nodeoff, "interrupts-extended",
-+					 "#interrupt-cells", index, &args);
-+	if (rc)
-+		return rc;
-+
-+	if (args.args_count < 1)
-+		return SBI_EINVAL;
-+
-+	if (out_hwirq)
-+		*out_hwirq = args.args[0];
-+
-+	if (out_flags_count) {
-+		flags_cap = *out_flags_count;
-+		flags_cnt = (args.args_count > 1) ? (args.args_count - 1) : 0;
-+		*out_flags_count = flags_cnt;
-+		if (out_flags && flags_cap < flags_cnt)
-+			return SBI_EBAD_RANGE;
-+		if (out_flags) {
-+			for (i = 0; i < (int)flags_cnt; i++)
-+				out_flags[i] = args.args[i + 1];
-+		}
-+	}
-+
-+	if (out_chip) {
-+		chip = sbi_irqchip_find_device((u32)args.node_offset);
-+		if (!chip)
-+			return SBI_ENODEV;
-+		*out_chip = chip;
-+	}
-+
-+	return 0;
-+}
-+
- static int fdt_translate_address(const void *fdt, uint64_t reg, int parent,
- 				 uint64_t *addr)
- {
++```dts
++sysirq {
++    compatible = "opensbi,mpxy-sysirq";
++    interrupt-controller;
++    #interrupt-cells = <1>;
++    opensbi,mpxy-channel-id = <4>;
++    opensbi,domain = <&tdomain>;
++    interrupts-extended = <&aplic_m 10 4>;
++};
++```
 -- 
 2.25.1
 
