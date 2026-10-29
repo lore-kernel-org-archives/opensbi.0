@@ -2,94 +2,109 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0346606A322
-	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 04:29:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B028606A31A
+	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 05:38:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=dHW83FEQ;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=bm3rI69f
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=FhwxNQmD;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=g1xZUYst
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=Da/UYrNNkyYgxbPgS2TIg1JX1ac6Xa13iUhD2CEEsCE=; b=dHW83FEQ6+5g26iUm9CuQt4EdR
-	QVC5Hi4oWfk9ERBoF868JBp/Htj2xzte3XDixWv7E/cj05twXO7gtBZ1WOOMI4ObST2z0WCx94DtA
-	KiwoPLBJOVEOeotms1cRdOWThXoHUHh+PuHJGyi3m5X8tZBRC0aXzWQPu0jRrJZE3LWXREi+RHso9
-	iL7xv/2YPUVp44MoCO9HsBPWWnXyMpmo0CGas2VzkBJ+Xpe0JqnQSlvofXx6Z9H7lGH9X5wJax48C
-	O7PN+h7lDQy9Ih3bBMu6Ym7esrwpWgVqZ2uSFFAd7UQ8XCiePeXBpFVVuf9ZqLjaSNfrp8qpH7tcu
-	um+5UH/g==;
+	bh=Eu95gngJRvGoiRBuRBXgpYnU3x34qhHKSnh1De6j144=; b=FhwxNQmD2yd3n2JX5o19dDTvlU
+	C+1YgIkU2TQMZ4RGo98dyPp8LFfTmhIYuifg3bbxZJ5uVDcZQLmsMJ+1wrRBkKiiOKlMvSIVz++55
+	7hu8VxoYt3WsQLv7XkeqXaQWqASlobtwcJBkXZyI42ZvTMkeOju0sg21V/O/pBgnNt6a67cSxRlRn
+	DPZdAq9tWcMrmXzrGOTC8boEymFaCtkLDJJA9CjhpEXxb+KIJ48ej1pB7o0XarvopkUk+siaTpkhl
+	4MKhihK3H46N0f7sJTy/nnKKjvtfxP7tvVcg6P4KzF5EuNMhRXgNPXzY+jrb86eOM5gh9bXF1n+ZQ
+	AgZ1AG1A==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMHlF-00000008KFF-18PM;
-	Thu, 29 Oct 2026 04:29:09 +0000
-Received: from mail-pg1-x531.google.com ([2607:f8b0:4864:20::531])
+	id 1xMIqD-00000008P4N-1Sis;
+	Thu, 29 Oct 2026 05:38:21 +0000
+Received: from mail-wr1-x42a.google.com ([2a00:1450:4864:20::42a])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMHlB-00000008KEr-3tPB
+	id 1xMIq9-00000008P3u-45eb
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 04:29:07 +0000
-Received: by mail-pg1-x531.google.com with SMTP id 41be03b00d2f7-cd62c570b5dso1059378a12.2
-        for <opensbi@lists.infradead.org>; Wed, 28 Oct 2026 21:29:04 -0700 (PDT)
+	Thu, 29 Oct 2026 05:38:19 +0000
+Received: by mail-wr1-x42a.google.com with SMTP id ffacd0b85a97d-48e4831c028so1421798f8f.0
+        for <opensbi@lists.infradead.org>; Wed, 28 Oct 2026 22:38:16 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793252295; cv=none;
+        d=google.com; s=arc-20260327;
+        b=k4LkUwOvmtsq75hMeZdxrWaCUvy8EDAvLMZDhYHVzcUaJrFVo7LE3DtcfVr0bLNJvU
+         Z6281tW+scak5F8ckzXJ6O8vjp0pBu327qzcStLsNtNDEOfG14ebjAQVxIk9juNuketa
+         PQCQ8DcQbONCQLr1/bPFrepRpYaed1vGy7+hYLe/qyYEOMCuFcENdXferMk1PGVjAHsA
+         E5aIx1IAfNM4gpwrymSKdUoS9ydIt5NN4xGfnRhCuafrpKL7llA71rWOvAovP2K1HLJg
+         z5HVtFmUW3wx+EEDOLztdiGHKi3QJimqG9R9TH88JicgEe5aFs8ItpsEmbQlvnKRurWI
+         yFjA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=S3wyQYQOukr8rGZwtbVmVBkSLLOqKBoynXwyi9b9cgk=;
+        fh=OdKzR+t4CGsmYABsmv9V2x5YhUYBlz3pjiLjfjRfoWQ=;
+        b=QI8n87rUun8ovfFjP45vzwQbsZZs6qLvg/RDOVjrWZSHn++UXsPRmypBTiIe57UOSz
+         9VFnLd0+e28eBaW1B9RX0X1FrWgwUnV89XNVON5mpoph4v9NbN05tuEH/rcBRV83w+qR
+         h6gJadgzJxtoXgYjJIyV5QRHlPN3lWhZ29UNfKMbLthDmI0z7BIQzDKRVfs29pPfMwgy
+         AbE3zrBEhkZkkzsWEYYSRUxfo5N1rmvDaUMHPDFgcSFqqB8A2xVnLlkDUg7jNkAHZS/l
+         FgtkEgYqZ7Ol/eZOoNcqHkcB9/Wfk+S2mPtZRx3LQnmmgw6wfHfgayIq0lUWlClTx7az
+         ks/w==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793248143; x=1793852943; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+        d=brainfault.org; s=google; t=1793252295; x=1793857095; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=xCKTrr4E6cvg1ewIkBPFRjYT0qCAPFbXy2O67VEwaM4=;
-        b=bm3rI69f5nWsgApupWySkL+geQSPoNZlZrsekqFrrp7gin3eJ5yYALSyKKVxzOS7je
-         FF2C/lwKOKo7uCDe3WnFMiRppcJwoJga4JIjP7KCSKoR1UCUS0+Lf9l0CWZQ/uMNzltd
-         Gyde+s7eEXI3RjtVeILboRI9WL7MRl+z0iWRBuzBKXhBf5jUtS19Mqf/kAp61MRKyIeE
-         TkLqM+YBaqPpHUozoDQPxSsSLpBrnp2Ea9/143d/iy/QBM1RLGt6GGGWzI73QK3Zq5Ok
-         ajSdsjaSbwo61nPwQ/XW7bj7iEdqMiLNSldnwjmQ74b78EdWDBsGNWy43aFg1fUghlRi
-         AI0w==
+        bh=S3wyQYQOukr8rGZwtbVmVBkSLLOqKBoynXwyi9b9cgk=;
+        b=g1xZUYstYhLQy/a3K8frfa6dvS6RU7cydjCdw3tSyX8HDkpfwgW903At2Xg2IAJ9Wx
+         2tEowltpO4peE1RChG9LxqZmeziU3pCE2bPiTdhSZTYauiM0j7VSHwMUW5/ySIe4AG1B
+         NPqRbKgCsR5P3KjpUM6rQZMWtaiRx8UmZoYrG2tSvkUbTz4ZrVnZGYcbK0IHjIEdyO3O
+         2G5t5bqUaPAGIujTlV3m4CTCpS8oIrnUvHPoG+CxJg4id3wFUPf5HgqdEmhFGxsuNb8Z
+         nd2OITm4qsFSgGGOgk7Y3KeNczRun1ZIBFvy4xhUeDui2oU14ytKcDgY/pufC+HOEXBo
+         WgTw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793248143; x=1793852943;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1793252295; x=1793857095;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=xCKTrr4E6cvg1ewIkBPFRjYT0qCAPFbXy2O67VEwaM4=;
-        b=UMbjaa1IKcQcid04m40k3BKgq/3y9qcmUAg1cIwpuwZ+WxkygxjCqMHr0XEppHs/N6
-         DNlwW5oykd2uHtcPyrzdSyQiiNfwJqfYUsX4FCe/FqB6/IGDK36NuqLDMrwkjgoUS6xM
-         geA3/e7GBfVyIwOn7p7Yb1L0rW2Yli2In2vnfP8gb/3r9Oji/cuzFwGY6NTPWAp+X4J3
-         3qVMWCDeo+geEWUw5SHvbli11zkJxRxfap6P9weFfj+YBD1qVGickYwc5ffYEoEIjfkh
-         vTnNfpxntpZs7hOUo0nOAqNeXYyT1VLozZFhYiPv9hYFA0p6KZ043P3O+rwcySJ+5cwo
-         ur/Q==
-X-Gm-Message-State: AFq9FYLQ96hzvaARS68DC/V7eygvP8/yAFKmmjIkImD7wtBnwoP2mzki
-	lpFndi6s9iVjsF2TDSLoaxuha0P1m0189odx4UgRKnHFh01r6hDTPGBCI3rckQ1OJjM=
-X-Gm-Gg: AYBFou1eAfQhmrmj7rhHQMlcxxyzXp+G8vKN98twwEvJo9XOPr69oA9Xty+y4nAT0RO
-	o2qY9MbAx0mOjEUw8eoqowRljMIn4fQw9vi5K4FVI5wC/OlSRex+a+u949tYUwOQjRi13q55Ts7
-	dALqb4yzCHEW9iKbY4FjDoVXxY5Cfo0szHD5k2YGO6k+QcZ4b0IHxBxVfSPHvErIJGAO5dL1xmu
-	VIaBEcYUQdUd1DOEoVxc1RJ/2sufhTxcc61aRxsZR/yfiL+N/toXQA4y5aax1swEam6F5HLK0qQ
-	gIA0H+MGZBQoNEcxPqTEPOYZJ5NvqUs+16lvnqmDirURE3BezNQ/eMx+7/G6hhfdTgnekTWywx7
-	+pDQ3TEcQV5JRMiciDfJjs5KwwEceNYhCNDCnbRaJBHBea5OZbuN+0+1zCs25Z52O3WKV9D7k7t
-	R6w2ehhk32iP97q1W11G3VpeEMCz1rMURQ4AGpnxM5BU9zx8i4U574p96jjGV5HbNXMEkDQLyDS
-	X6QXCBSwZEQTrKRRblnQfb2fT4bz1vi91s++5/bWcXBdcTlblXtvwelonqpPXhB4t0bSxU8p5lf
-	9tqn4x939kYYvfQfbNzxgdhDKjw=
-X-Received: by 2002:a17:90b:5346:b0:3ab:d45c:59da with SMTP id 98e67ed59e1d1-3ae58299f52mr3462430a91.40.1793248143499;
-        Wed, 28 Oct 2026 21:29:03 -0700 (PDT)
-Received: from plin-1878 ([136.226.240.177])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae6e949077sm2039005a91.9.2026.10.28.21.29.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2026 21:29:03 -0700 (PDT)
-Date: Thu, 29 Oct 2026 12:28:57 +0800
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-To: Raymond Mao <raymondmaoca@gmail.com>
-Cc: opensbi@lists.infradead.org, anup.patel@oss.qualcomm.com,
-	scott@riscstar.com, raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com, samuel.holland@sifive.com,
-	zong.li@sifive.com, greentime.hu@sifive.com
-Subject: Re: [PATCH v3 0/5] Add WorldGuard support with SiFive WG checker
-Message-ID: <auLLiQfr0bkMEx5z@plin-1878>
-References: <20260904162915.1092353-1-raymondmaoca@gmail.com>
+        bh=S3wyQYQOukr8rGZwtbVmVBkSLLOqKBoynXwyi9b9cgk=;
+        b=WcnnC+gbvo7DuSF+f7qYv4Zf9OLKdtWv4+Yif/XXiAKxtO0iqm4KwEUrf9lKfMN8lB
+         +ykSz/qYhjPCOaiu58PF+fv9sX5oF0TcvGXDxhJviBZQEacLhLXRmreHIWDc+rBRnMw8
+         u0TMssc19KYBMBUaVW8HhmEiVWZobb2QorUEfogtzWpNJZkzkjTrdPM7QsvX8P9TA//o
+         rrLcUwvthxgdowEu4uXzWV5peO8D+4TAVpi8y57XW+fBuhaRmQ6yDVyuRiREY2MgP+Ms
+         v058BaUO52zwut8lKBzWTgZxNy1tpN8YPf8OwOUwCZv7uC0cZP0JfBa++kH3omKoTHTY
+         2xtw==
+X-Gm-Message-State: AFq9FYIA/Q7hexQLzGzhedtZHwNnJ1Z6D27Dfpe8KsiqTjbMZz6d4UGd
+	+g1NQh93TcsBOaoDmFufSCN1Chk+Y0g3gLCBt+Y0P6gQduRqx5zvrH2Ph+X3JwPEklXF+FGDWPn
+	S/k6mpzPqJ2DQuSkqichLX5LnKQiWULJlnCtdOCbuFgQ0yaE0EdTJ
+X-Gm-Gg: AYBFou1n/E+DmA1L9+JQaircR4jJf32HGSuJDvNrrA35NuFK4VkKUdlRNkUh6W6IJ1u
+	GJGmSdgdrae6anJF+qg5EH6g6ARyzV0ouvdd+fKcF6sfKr0R0P967aTh7J3yJOcRHOfS+P9oReh
+	HRepYh7kF5zklsmm3R06eYhYTJSDRcbDXqYYpYJssjqtAbMEXdaykJDJIBxQqdvqHdo1sc8m+aj
+	YXFqrgqnWLj9FNe/9++OAPmefzyCt5M9sQrp1NkITNkkPczYd1h996OKLWtTg4+U5jCgwvTNTnd
+	NIaGk/q/IptXUrpMoOuispcO3rlvNfVHwiHU+cbZVpJnWfaNpSJqs1ogE5p6awkOzc/CJLLaEv3
+	y30zYGh+PoVMvGzUcJjMli8uaoHDckoh/OoOyWeTKYQWqces2RbYvEuN/oh7YJylNjKJjfE2BNN
+	s0lC85wXdSfpLl5GNQ4fmctyb5gnmC+0lU7EpfsTgRbpy4SqbWyzDjEwzwj4TeFNskAdEUO/MOC
+	BoY8A==
+X-Received: by 2002:a05:6000:1862:b0:48d:fbe1:bb17 with SMTP id
+ ffacd0b85a97d-48e5d4681femr10588138f8f.41.1793252294897; Wed, 28 Oct 2026
+ 22:38:14 -0700 (PDT)
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20260904162915.1092353-1-raymondmaoca@gmail.com>
+References: <SY8P300MB0041D04649621E79FE950B43B58E2@SY8P300MB0041.AUSP300.PROD.OUTLOOK.COM>
+In-Reply-To: <SY8P300MB0041D04649621E79FE950B43B58E2@SY8P300MB0041.AUSP300.PROD.OUTLOOK.COM>
+From: Anup Patel <anup@brainfault.org>
+Date: Thu, 29 Oct 2026 11:08:03 +0530
+X-Gm-Features: AclHuK9GUsqI9uILDpwuE98Ee382IfdeXzrRiJ8VKij3Pp-Lyv-r_cFQGDjib0Q
+Message-ID: <CAAhSdy3tTG4Kgz5ciJDzCxtLEbjG4kNOgWrNPL0-Mk_hqWBQGQ@mail.gmail.com>
+Subject: Re: [PATCH] lib: sbi_pmu: Fix fixed-counter events reported as unsupported
+To: Fengwei Tan <tfx2001@outlook.com>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261028_212905_996663_4E4618F3 
-X-CRM114-Status: GOOD (  18.65  )
+X-CRM114-CacheID: sfid-20261028_223818_038853_86F6A84C 
+X-CRM114-Status: GOOD (  18.72  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -100,242 +115,50 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Hi Raymond,
-
-On Fri, Sep 04, 2026 at 12:29:10PM -0400, Raymond Mao wrote:
-> From: Raymond Mao <raymond.mao@riscstar.com>
-> 
-> This series adds WorldGuard support according to the wgchecker2 DT-
-> binding proposal from SiFive [1] with QEMU virt integration.
-> 
-> The implementation:
-> - reuse sbi_hart_protection for hart-local runtime reconfiguration
-> - reuse sbi_domain_data for per-domain WorldGuard state
-> - keep WorldGuard-specific setup and checker programming in platform
->   code
-> 
-> At boot, the generic platform code invokes a QEMU virt WorldGuard
-> setup path which:
-> - parses wgchecker2 checker instances
-> - parses provider partition@N entries and programs checker MMIO
-> - parses per-hart CPU defaults from /cpus
-> - parses per-domain WorldGuard metadata under hw-isolation
-> 
-> Checker programming is provider-driven. Consumer-side
-> access-controllers references are carried for DT-binding alignment.
-> 
-> During domain transitions, the WorldGuard hart protection
-> implementation reprograms MLWID and, when available, MLWIDLIST,
-> MWIDDELEG, and SLWID.
-> 
-> The series is split as follows:
-> 1. add reusable FDT helpers needed by the WorldGuard parser
-> 2. add WorldGuard CSR definitions and hart extension flags
-> 3. document the current DT layout consumed by the implementation
-> 4. add the wgchecker2 / WorldGuard runtime and QEMU virt integration
-> 
-> Tested with:
-> - QEMU riscv-wg-v4-260821 [2] with arg 'worlds=on' and the merged
->   WorldGuard test DTB.
-> 
-> [1] dt-bindings: riscv: Add RISC-V Worlds and SiFive WorldGuard DT
->     bindings
->     https://lore.kernel.org/linux-devicetree/20260812122131.1534906-1-peter.lin@sifive.com/
-> [2] https://github.com/cwshu/qemu/tree/riscv-wg-v4-260821
-
-Thanks for working on this series. Could we align the implementation with
-the DT proposal on a few key points?
-
-1. Domain WIDs should use wid / widdeleg directly under domain nodes, not
-   hw-isolation with sifive,wgchecker2. 
-   My patches already handle the WID assignment and switching.
-   https://patchwork.ozlabs.org/project/opensbi/patch/20261027083509.1076577-10-peter.lin@sifive.com/
-2. wgChecker is a static firewall configured once at boot; by design it does
-   not support efficient dynamic reconfiguration.
-3. Unlike sequential first-match PMP, wgChecker slots are strictly accretive
-   (parallel OR), so overlapping rules cannot restrict access. i.e.
-
-   /* PMP (Priority-based, sequential): */
-   for (i = N-1; i >= 0; i--) {
-       if (pmp[i].matches(addr))
-           return pmp[i].perm;      // FIRST match wins
-   }
-   
-   /* wgChecker (Strictly accretive, parallel): */
-   perm = NO_ACCESS;
-   for (i = 0; i < nslots; i++) {
-       if (slot[i].matches(addr))
-           perm |= slot[i].perm[wid]; // OR all matches
-   }
-   if (perm allows access)
-       grant_access();
-   
-   The wgChecker driver should automatically select between NAPOT and TOR
-   encoding to minimize slot usage.
-
-4. OpenSBI should support use cases below and dump the wgChecker slot info at boot:
-
-========================================================================
-Use Case 1: Single-Slot Peripheral Protection (Full Subordinate Range)
-========================================================================
-
-0x001c_1000 +---------------------------------------------------+
-            | partition@0 : [0x001c_1000, 0x001c_2000)          |
-            | serial@1c1000 | WID 0,3 RW (perm 0xc3, cfg 0x1f)  |
-            | Slot00..01  : A=TOR (Slot00 base, Slot01 top)     |
-0x001c_2000 +---------------------------------------------------+
-
-uart: serial@1c1000 {
-    reg = <0x001c1000 0x1000>;
-    access-controllers = <&wgc0 0>;
-};
-
-wgc0: access-controller@1c2000 {
-    compatible = "qemu,wgchecker2", "sifive,wgchecker2";
-    reg = <0x0 0x001c2000 0x0 0x1000>;
-    #access-controller-cells = <1>;
-    #address-cells = <1>;
-    #size-cells = <0>;
-
-    partition@0 {
-        reg = <0>;
-        sifive,wg-region = <0x0 0x001c1000 0x0 0x00001000>;
-        sifive,slot-permissions = <0x0 0x000000c3>;
-        sifive,slot-config = <0x1f>;
-    };
-};
-
-Expected OpenSBI boot dump:
-wgChecker Base       : 0x1c2000
-wgChecker Slot00     : 0x00000000001c1000-.................. 00: A:0 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot01     : ..................-0x00000000001c2000 c3: A:1 ER:1 EW:1 IR:1 IW:1 L:1
-wgChecker Slot Usage : 1 (total), 1 (used), 0 (free)
-
-========================================================================
-Use Case 2: Multi-Region Peripheral Protection (Disjoint Register Groups)
-========================================================================
-
-0x0001_0000 +---------------------------------------------------+
-            | partition@0 : [0x0001_0000, 0x0001_8000) (32 KiB) |
-            | reg[0] m_mode | WID 3 RW   (perm 0xc0) | Slot01   |
-0x0001_8000 +---------------------------------------------------+
-            :                  (unreferenced)                   :
-0x00a0_0000 +---------------------------------------------------+
-            | partition@1 : [0x00a0_0000, 0x00a0_4000) (16 KiB) |
-            | reg[1] s_mode | WID 0,3 RW (perm 0xc3) | Slot02   |
-0x00a0_4000 +---------------------------------------------------+
-
-device@10000 {
-    reg = <0x0 0x00010000 0x0 0x8000>,
-          <0x0 0x00a00000 0x0 0x4000>;
-    reg-names = "m_mode", "s_mode";
-    access-controllers = <&wgc1 0>, <&wgc1 1>;
-};
-
-wgc1: access-controller@35000 {
-    compatible = "qemu,wgchecker2", "sifive,wgchecker2";
-    reg = <0x0 0x00035000 0x0 0x1000>;
-    #access-controller-cells = <1>;
-    #address-cells = <1>;
-    #size-cells = <0>;
-
-    partition@0 {
-        reg = <0>;
-        sifive,wg-region = <0x0 0x00010000 0x0 0x00008000>;
-        sifive,slot-permissions = <0x0 0x000000c0>;
-        sifive,slot-config = <0x0f>;
-    };
-    partition@1 {
-        reg = <1>;
-        sifive,wg-region = <0x0 0x00a00000 0x0 0x00004000>;
-        sifive,slot-permissions = <0x0 0x000000c3>;
-        sifive,slot-config = <0x0f>;
-    };
-};
-
-Expected OpenSBI boot dump:
-wgChecker Base       : 0x35000
-wgChecker Slot00     : 0x0000000000000000-.................. 00: A:0 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot01     : 0x0000000000010000-0x0000000000018000 c0: A:3 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot02     : 0x0000000000a00000-0x0000000000a04000 c3: A:3 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot04     : ..................-0x0000000001000000 00: A:0 ER:0 EW:0 IR:0 IW:0 L:0
-wgChecker Slot Usage : 4 (total), 2 (used), 2 (free)
-
-========================================================================
-Use Case 3: Multi-Domain DRAM Spatial Partitioning (Hybrid NAPOT + TOR)
-========================================================================
-
-OpenSBI: WID3
-Linux  : WID0
-OP-TEE : WID1
-
-  0x8000_0000 +---------------------------------------------------+
-              | partition@0 : [0x8000_0000, 0xC000_0000) (1024M)  |
-              | Linux / OpenSBI | WID 0,1,3 RW (0xcf) | Slot01 A:3|
-  0xC000_0000 +---------------------------------------------------+
-              | partition@1 : [0xC000_0000, 0xC100_0000) (16M)    |
-              | OP-TEE / OpenSBI| WID 1,3 RW   (0xcc) | Slot02 A:3|
-  0xC100_0000 +---------------------------------------------------+
-              | partition@2 : [0xC100_0000, 0x1_0000_0000) (1008M)|
-              | Linux / OpenSBI | WID 0,1,3 RW (0xcf) | Slot03..04|
-0x1_0000_0000 +-------------------------------------------------+
-
-memory: memory@80000000 {
-    reg = <0x0 0x80000000 0x0 0x80000000>;
-    access-controllers = <&wgc2 0>, <&wgc2 1>, <&wgc2 2>;
-};
-
-wgc2: access-controller@50000000 {
-    compatible = "qemu,wgchecker2", "sifive,wgchecker2";
-    reg = <0x0 0x50000000 0x0 0x1000>;
-    #access-controller-cells = <1>;
-    #address-cells = <1>;
-    #size-cells = <0>;
-
-    partition@0 {
-        reg = <0>;
-        sifive,wg-region = <0x0 0x80000000 0x0 0x40000000>;
-        sifive,slot-permissions = <0x0 0x000000cf>;
-        sifive,slot-config = <0x0f>;
-    };
-    partition@1 {
-        reg = <1>;
-        sifive,wg-region = <0x0 0xc0000000 0x0 0x01000000>;
-        sifive,slot-permissions = <0x0 0x000000cc>;
-        sifive,slot-config = <0x0f>;
-    };
-    partition@2 {
-        reg = <2>;
-        sifive,wg-region = <0x0 0xc1000000 0x0 0x3f000000>;
-        sifive,slot-permissions = <0x0 0x000000cf>;
-        sifive,slot-config = <0x0f>;
-    };
-};
-
-Expected OpenSBI boot dump:
-wgChecker Base              : 0x50000000
-wgChecker Slot00            : 0x0000000000000000-.................. 00: A:0 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot01            : 0x0000000080000000-0x00000000c0000000 cf: A:3 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot02            : 0x00000000c0000000-0x00000000c1000000 cc: A:3 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot03            : 0x00000000c1000000-.................. 00: A:0
-wgChecker Slot04            : ..................-0x0000000100000000 cf: A:1 ER:1 EW:1 IR:1 IW:1 L:0
-wgChecker Slot16            : ..................-0x0000000100000000 00: A:0 ER:0 EW:0 IR:0 IW:0 L:0
-wgChecker Slot Usage        : 16 (total), 4 (used), 12 (free)
-
-Best regards,
-Peter Lin
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gU3VuLCBTZXAgMjcsIDIwMjYgYXQgMTE6MjXigK9BTSBGZW5nd2VpIFRhbiA8dGZ4MjAwMUBv
+dXRsb29rLmNvbT4gd3JvdGU6Cj4KPiBPcGVuU0JJIGFzc2lnbnMgU0JJX1BNVV9IV19DUFVfQ1lD
+TEVTIGFuZCBTQklfUE1VX0hXX0lOU1RSVUNUSU9OUyB0bwo+IGZpeGVkIGNvdW50ZXJzIGR1cmlu
+ZyBQTVUgaW5pdGlhbGl6YXRpb24uIHNiaV9wbXVfY3RyX2NmZ19tYXRjaCgpCj4gcmVjb2duaXpl
+cyB0aGVzZSBldmVudHMgd2l0aG91dCBzZWFyY2hpbmcgaHdfZXZlbnRfbWFwW10uCj4KPiBIb3dl
+dmVyLCBzYmlfcG11X2V2ZW50X2dldF9pbmZvKCkgb25seSBjaGVja3MgaHdfZXZlbnRfbWFwW10g
+d2hlbgo+IGRldGVybWluaW5nIHdoZXRoZXIgYSBoYXJkd2FyZSBldmVudCBpcyBzdXBwb3J0ZWQu
+IEFzIGEgcmVzdWx0LCB0aGVzZQo+IGZpeGVkLWNvdW50ZXIgZXZlbnRzIGFyZSByZXBvcnRlZCBh
+cyB1bnN1cHBvcnRlZCB3aGVuIG5vIHJpc2N2LHBtdQo+IGRldmljZSB0cmVlIG5vZGUgaXMgcHJv
+dmlkZWQuCj4KPiBDaGVjayBmaXhlZC1jb3VudGVyIGV2ZW50cyBzZXBhcmF0ZWx5IHVzaW5nIHBt
+dV9jdHJfZmluZF9maXhlZF9odygpIGFuZAo+IHJlcG9ydCB0aGVtIGFzIHN1cHBvcnRlZC4KPgo+
+IEZpeGVzOiBlNDM0NTg0MjE2OGIgKCJsaWI6IHNiaV9wbXU6IEltcGxlbWVudCBTQkkgUE1VIGV2
+ZW50IGluZm8gZnVuY3Rpb24iKQo+IFNpZ25lZC1vZmYtYnk6IEZlbmd3ZWkgVGFuIDx0ZngyMDAx
+QG91dGxvb2suY29tPgoKTEdUTS4KClJldmlld2VkLWJ5OiBBbnVwIFBhdGVsIDxhbnVwQGJyYWlu
+ZmF1bHQub3JnPgoKQXBwbGllZCB0aGlzIHBhdGNoIHRvIHRoZSByaXNjdi9vcGVuc2JpIHJlcG8u
+CgpUaGFua3MsCkFudXAKCj4gLS0tCj4gIGxpYi9zYmkvc2JpX3BtdS5jIHwgMyArKysKPiAgMSBm
+aWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKQo+Cj4gZGlmZiAtLWdpdCBhL2xpYi9zYmkvc2Jp
+X3BtdS5jIGIvbGliL3NiaS9zYmlfcG11LmMKPiBpbmRleCBlNzlmNmI2MC4uYjRhYmZhMWUgMTAw
+NjQ0Cj4gLS0tIGEvbGliL3NiaS9zYmlfcG11LmMKPiArKysgYi9saWIvc2JpL3NiaV9wbXUuYwo+
+IEBAIC0xMTE5LDYgKzExMTksOSBAQCBpbnQgc2JpX3BtdV9ldmVudF9nZXRfaW5mbyh1bnNpZ25l
+ZCBsb25nIHNobWVtX3BoeXNfbG8sIHVuc2lnbmVkIGxvbmcgc2htZW1fcGh5cwo+ICAgICAgICAg
+ICAgICAgICAgICAgICAgIGVpbmZvW2ldLm91dHB1dCA9IDA7Cj4gICAgICAgICAgICAgICAgIH0g
+ZWxzZSBpZiAoZXZlbnRfdHlwZSA9PSBTQklfUE1VX0VWRU5UX1RZUEVfRlcpIHsKPiAgICAgICAg
+ICAgICAgICAgICAgICAgICBlaW5mb1tpXS5vdXRwdXQgPSAxOwo+ICsgICAgICAgICAgICAgICB9
+IGVsc2UgaWYgKGV2ZW50X3R5cGUgPT0gU0JJX1BNVV9FVkVOVF9UWVBFX0hXICYmCj4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgcG11X2N0cl9maW5kX2ZpeGVkX2h3KGV2ZW50X2lkeCkgPj0g
+MCkgewo+ICsgICAgICAgICAgICAgICAgICAgICAgIGVpbmZvW2ldLm91dHB1dCA9IDE7Cj4gICAg
+ICAgICAgICAgICAgIH0gZWxzZSB7Cj4gICAgICAgICAgICAgICAgICAgICAgICAgZm9yIChqID0g
+MDsgaiA8IG51bV9od19ldmVudHM7IGorKykgewo+ICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgdGVtcCA9ICZod19ldmVudF9tYXBbal07Cj4KPiAtLS0KPiBiYXNlLWNvbW1pdDogNWEx
+NzUwMTcyNjFhZjk3ZTkxMjJmY2I5ZDkwMTI0ODFjZGI1YWE0MQo+IGNoYW5nZS1pZDogMjAyNjA5
+MjctZml4LXBtdS1ldmVudC1nZXQtaW5mby1jNGE2ZTJjNTcxN2IKPgo+IEJlc3QgcmVnYXJkcywK
+PiAtLQo+IEZlbmd3ZWkgVGFuIDx0ZngyMDAxQG91dGxvb2suY29tPgo+Cj4gLS0KPiBvcGVuc2Jp
+IG1haWxpbmcgbGlzdAo+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQoKLS0gCm9wZW5zYmkgbWFp
+bGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
+ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
