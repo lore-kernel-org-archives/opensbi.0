@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0672D606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A48FB606A31A
 	for <opensbi@archiver.kernel.org>; Thu, 29 Oct 2026 16:00:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=MbOATr2p;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TyDw2B0l
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=H9TN4Q07;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OuOFkMGd
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,65 +14,65 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=5ziD82Xmn24nfQjZuhh44S0NVRMRaGkyuc4f4Wf+7wE=; b=MbOATr2pSQu/4hoGjx7Ti5WOhs
-	5Bj/Ic+kRC2io96dyQHtnq4mT/C8co+cc6cnFPpIfDoz8ZW5RJXKWuWZPiWWrG8T/psIlDwADLQY1
-	SiY+SXMWVeyElmZHa4ym988LnUEDWJuwubo7KmD215GEmnGsv22y22WvZ7h5HW16an7s7SeJkEE1e
-	qy+r0TphFM2AauVLY67VGQBx+wmBiPGkpvwubjSibdP2a9ZCGML0Q20ZxzgslIGsxB5pm5WoJcAvM
-	zOYvepaisbtV+CsTtqSeZYg4Iaj8vMdChxKpzL3338DqcK0L4Lgiqd9Ds7O+14XbAvVYPyCPAsYpg
-	Wcw1E17Q==;
+	bh=xsnG6KtamGAjHxDN0CwX+G4ZmDV5GKesNv//AgpIFRE=; b=H9TN4Q07I/cqgYpfn0VLpd5ewX
+	1XgYd9cV6tPpOlzSAxtM0NKj5TJXBROp6HR0LwpLSzV/puVPmhx1drUSgJ0BZ+DyPX3ewrXkvgXYH
+	OzyB1IQDVR9puvu1RAxYSHvk11fV/CdYDCqZViAe6L1u08NbRBwL9Xlce3NfcdBemCz9hod/PnH04
+	JJOqBaU5RpXEF5h5i6cpojkT7eWUyzoeHAaZI+FwQQ4915cJjcMKQeh1/1nver5HM+cpC1/KKjZlQ
+	80iQiuI9idn3FAy03lzi73Jd1UQceoWVaJQ5YVf62toYFH+CgJK2Y2y/k4Zk0fG7ZI0/vu/MYUVy7
+	LPDsVJ5w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSXm-00000009iK6-1YfW;
+	id 1xMSXm-00000009iKP-1wKd;
 	Thu, 29 Oct 2026 15:59:58 +0000
-Received: from mail-qt1-x835.google.com ([2607:f8b0:4864:20::835])
+Received: from mail-qt1-x834.google.com ([2607:f8b0:4864:20::834])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMSXj-00000009iHM-3THQ
+	id 1xMSXl-00000009iIJ-0Bq7
 	for opensbi@lists.infradead.org;
-	Thu, 29 Oct 2026 15:59:57 +0000
-Received: by mail-qt1-x835.google.com with SMTP id d75a77b69052e-53664b4860bso25715561cf.1
-        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 08:59:54 -0700 (PDT)
+	Thu, 29 Oct 2026 15:59:58 +0000
+Received: by mail-qt1-x834.google.com with SMTP id d75a77b69052e-53bb57f1310so27524081cf.2
+        for <opensbi@lists.infradead.org>; Thu, 29 Oct 2026 08:59:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793289594; x=1793894394; darn=lists.infradead.org;
+        d=gmail.com; s=20260707; t=1793289596; x=1793894396; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=88ANDKxRYku3hwg9pkR3BHCQ5Jq6DJr1f47jG54acqc=;
-        b=TyDw2B0lYTIAZk/bZDDoX9or8kMePDjGHdehaEsHq1WhX6enhUEsW6QsFnLZbtrn9I
-         Dc47xohccyEcXIaP7zvSgqkLjxVH9vswFbtUlMj2f1A7/W3fJDImT1FtVX8ul+uVQNrd
-         F66T6AkdoXO9OhWzKUdayffIGfvV8eq6Lpj00eTe9h4+yArxWmk56iQjxU/0msya5a0l
-         1FiKcznm0E3cd6wpECRuWKDjzvbcnKsd9aAVjMjV8qyv6VxyBQDHPLYNyXfaE/C99Bfd
-         UrokbEhN7HnttVWQhaFF1b+r6NcN22TdT6+v3sJJC7RQavIKrxmMEbh9LL31z7iQLORX
-         SJ2Q==
+        bh=P2mk3gX4A+SZDGjRraZHw5woOiBpSUvgwbk53y2w1Z4=;
+        b=OuOFkMGdChoutOBqzpF3NsbhyVIcazD+AMK0JwtU0r83dXsnKKZarPQ9dV4supLX+e
+         kWamkH4q6TDePzqLJbuZtw1wAY+8Qv8vKkwo+NbgMma9aIDK3yoGE3s6bWiGy54PNnrq
+         Yn/RZ1j/bzov5Eylan4MHGgyqdbQe7pS3W32FnjF3b8S7n/Tr3Mv6BF2BOYGtHUL2EqJ
+         NhGs4pQQ9IDKdaPfCvKgMndC7/FE+WzHV/9tcTJV/eJa/ZvT2vdddh/UPvFkLuXYLOFZ
+         MU1GmmlXpjsi4A6TIgMTU58SFyQt+2JfzLCv/o023EN4LI3XesNMhOk1b7y/8TToI7n8
+         XFaA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793289594; x=1793894394;
+        d=1e100.net; s=20260707; t=1793289596; x=1793894396;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=88ANDKxRYku3hwg9pkR3BHCQ5Jq6DJr1f47jG54acqc=;
-        b=I/rO+s8w2FQbasZgKd28TX9Unbg3kqwocnhHzV/Jxb5arsieKZWzZAA14gW7sVYHGU
-         d1DHTBBxa8xSJ2GeUM89J/Tm73ZyAzZ9Mvl/ple02wBZjJwZENrueKmusHzm7V2OJdHz
-         3UPYLdco2KczJpH5va93RBqz+5Tf0rOL3U0SkaceVym3HqSK0OaSeiFlYsF4VnRzFrRI
-         02/2WiIyvFof4LENLB60qCtHLKGAIeMnjy9zKXD9+gXG1fJrLKbBrHovhYK3vZNlCB9a
-         /nUIVdstxvScLCXFPm5kTMF3y+NC+gQdW6w75b2i0YPArneyoZoff10t65mr7wrAhMj0
-         yRmw==
-X-Gm-Message-State: AFq9FYLEghCA7pavH/yRRzlkl2LSvKQYPaeb2vPgWapg5jsvABQg4wIK
-	ViPn+xZq20wZhKGvaCKJpi/xlaMNkgbCP0ECyl+QV25mwr7sRzMeuUuUA6O1+Q==
-X-Gm-Gg: AYBFou3yqnuvc2gvYRHmNxSa4JSPHeJPrrDy2wuOf2qlV+/jzFZwyAq3HudoAStgqkf
-	957FH1k4Y7OMy9EeGENivl3UYfbt4sKqm+vFke+bu62vZdL0ENUnsQpXPIH/sJX/MBQxNwdxs8W
-	1/Y9qVfarEMjFj+TrPpKj/XLLxAhR3gNFnZBi2AIOoKTLUx71Ni0SNrtkOysonqCdECrpX27+o/
-	+4XjQq58iUNNtqaEvygXe3mL1bdPqmAzIqQ/rlPMIvD0Tn3ktc7oiBg9KktD6T0Qw6gAPnXlALY
-	dUFphG6C/dRv1+YOyapnnqszxSbBS/csb9DDtvZzVJQXY6rXZHKyHlDcfKC40SkjwW6JoBycTqY
-	NiEl/Kn4fiDbA8LwBi3VULkXBnOqDJarcSJ5AygvQAk/reaiy9xYg7/uRgApQsY88I85iPmhLQV
-	C5HrdgIhzZ/R8v1dus3uHHwuBH02TwLyz238QIF7Ely1LoV2JVF14SEfHs2Twpp5Uhi2Y9V38fb
-	DlK4oUWA4x2EBPPSGrNEMehjFVqenexJ45Ft2po5RQFvHLCmYYW4myiYy+7JpDFTJVbLPdLHkxr
-	1gm3kzJ5ZkW0dhYFs6mKU6mLw2TgcGuRifa7Du1ZoezTPuwgii/8tSZ5RtAxkX3LK9guxMqwASD
-	po9v2ya8zqs7YAQ==
-X-Received: by 2002:a05:622a:4d07:b0:536:6047:5223 with SMTP id d75a77b69052e-53fcc5ca98dmr89460471cf.49.1793289593744;
-        Thu, 29 Oct 2026 08:59:53 -0700 (PDT)
+        bh=P2mk3gX4A+SZDGjRraZHw5woOiBpSUvgwbk53y2w1Z4=;
+        b=bZhbbDA2ULTGKMatPs6vpsF2SYZu4xsG7kHWp6tlalPLVNC5tzZvW9lbsAnZ4IsqAb
+         bsIcEGOGcEdAaybgf3cHMcy9jO8XKWLy+Ee9KH0u5tb1hoTyMRgCvTeNSUf+m6jWJpmR
+         l9HJk2bmpQvX/5KezcQT1GxztJYpHH98K8Kg7Fk/xoSLIb2XfwcbQ4tBOX7DszJEDfS1
+         jogb8uqJLwsj+5qQAYB4DV0RE6whuYFGu6VfOKCN/TXlIkQlxzU1PDYkmwPmH3I+lwk5
+         WB6jR/6xXbDFut9dpT9+1q/9r1bO6ZuGSAjFaFK9hbmJyBYzmANBzCuSNVoShikc6fyh
+         dYzw==
+X-Gm-Message-State: AFq9FYJzSeNwNcD4hvFr+sKFkbdVOIsXfo1hre0LIQeHVHSTpQIA9h9o
+	ahlGlQKH9CnqdbaPXmAiUWG3+zIifgaMHSpIhHZWi0DI1vypsypfTa5WtZM2+Q==
+X-Gm-Gg: AYBFou2agCjsfr0f0zOUD4VPWCp5EwztlXndgJ9WNm2HJqjSkvBMMYGgtDcLQhqBDG5
+	eOJdDKAieMf0CgULgEeAkz6tqG69eLzBA9GmjQVErcG7uKBBN/5lxlSRd1qao/mOJ0lrIdhXtmZ
+	CGJHAxfRfjicgHFb8BSFcygjT/3zlCA9/eAjRRsQcUfA6rKxn9Hjp6NelkbuYNVEnMB/4C2Zrcf
+	yRo2zAibZve0vafYeNIxeH+mVzEPk0X5IFiiQp/RulfrX5oGgDD94JBcDaaccsWppKjWmvTRrh4
+	YON+XafO37+MP6Y/YDitr5U/yWNBRPiPk7BGaMwkQZrO9j72KlxZ/foxnKsEFjDRZenL92JqTpJ
+	HIBsakf4o3XCYjQBAP7z4WmuWrjgrnPbLdffYxl0iZlTPKwdiW6/u/oVeCpIYfAFDSC4DJGWW2F
+	zay9BdWPdIBDQcNUp2fVA/ih6npusJK1jlnFO7w4vSnGmO5hh84k+gNtYlzsPatm5eRYrhsvEh9
+	u9w0l0JRklZy6A/FGQ9AhjebwAY56kb45ibgE60/36XsVqK2sLT0YF6U5dZj5r4lroGZQam9j2x
+	hqyxIb30S5oSDGictUFeOga2DJC/DbwiciLhz0AnKQIJNcVyh/h9NWjCnxEVFEVtjKiWlWJAbva
+	bPIaLU9zJbUc1ZA==
+X-Received: by 2002:a05:622a:4290:b0:535:25db:17ae with SMTP id d75a77b69052e-53fc8db64d4mr101502521cf.11.1793289595693;
+        Thu, 29 Oct 2026 08:59:55 -0700 (PDT)
 Received: from ubuntu.localdomain (69-171-141-154.rdns.distributel.net. [69.171.141.154])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.08.59.52
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-538394f82cfsm133231001cf.13.2026.10.29.08.59.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 08:59:53 -0700 (PDT)
+        Thu, 29 Oct 2026 08:59:55 -0700 (PDT)
 From: Raymond Mao <raymondmaoca@gmail.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -82,17 +82,17 @@ Cc: anup@brainfault.org,
 	robin.randhawa@sifive.com,
 	samuel.holland@sifive.com,
 	peter.lin@sifive.com
-Subject: [PATCH v2 04/12] lib: sbi: domain: support VIRQ couriering domain context switch
-Date: Thu, 29 Oct 2026 11:59:21 -0400
-Message-Id: <20261029155929.586597-5-raymondmaoca@gmail.com>
+Subject: [PATCH v2 05/12] lib: sbi: domain: ensure boot_hartid is assigned
+Date: Thu, 29 Oct 2026 11:59:22 -0400
+Message-Id: <20261029155929.586597-6-raymondmaoca@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261029155929.586597-1-raymondmaoca@gmail.com>
 References: <20261029155929.586597-1-raymondmaoca@gmail.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_085955_923372_0C1D43EC 
-X-CRM114-Status: GOOD (  25.45  )
+X-CRM114-CacheID: sfid-20261029_085957_091265_55BFA322 
+X-CRM114-Status: GOOD (  12.18  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -116,337 +116,76 @@ X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 
 From: Raymond Mao <raymond.mao@riscstar.com>
 
-Prerequisite adaptations for introducing VIRQ couriering domain
-context switch.
+When boot_hartid points to a hart that is not in the domain's
+assigned hartmask (e.g. due to cold boot hart differences),
+the domain startup can skip starting the intended boot hart,
+leading to intermittent Linux boot failures.
+Scan the assigned hartmask and pick the first available hartid
+to provide a valid boot target when assigned HARTs are available.
 
-MIDELEG:
-- Save/restore MIDELEG in domain contexts and initialize per-domain
-  defaults.
-
-SEIP notification:
-- Add virq_seip_notify flag, and use it to enable SEIP delegation
-  for SEIP-notify domains.
-- Add smode_notify_pending and helper function to store the S-mode
-  notification status, and use it as a flag to fire the pending
-  notification after domain context switch.
-
-Return domain context switch:
-- Add sbi_domain_context_exit_to_prev() to return to the previous
-  domain without scanning for another candidate.
-- Introduce per-hart deferred return flags and APIs to request/consume
-  them.
-- Perform the actual return-to-prev at the end of sbi_trap_handler()
-  to avoid corrupting mepc during ecall handling.
-
-Additionally, fix return domain-switch issues:
-- When a domain switch occurs inside sbi_trap_handler(), return the
-  switched-to trap context from scratch instead of the original trap
-  entry context. This prevents the trap restore path from resuming with
-  stale state from the previous domain.
-- When returning to an S-mode target domain, copy the restored
-  CSR_SSTATUS SIE/SPIE/SPP bits into trap_ctx->regs.mstatus. The final
-  trap exit writes CSR_MSTATUS from the trap context, so stale mstatus
-  bits can otherwise clear S-mode interrupt enable and leave a pending
-  SEIP undelivered.
-- Keep SEPC independent of the M-mode trap frame's MEPC and preserve
-  the updated trap frame instead of replacing its return state with
-  live CSRs. This prevents a resumed domain from repeating an ECALL
-  whose result and advanced return PC have already been recorded.
+Select boot HARTs during domain finalization, after all domains have
+been registered, rather than changing them during startup. This keeps
+the selected target stable for physical interrupt affinity setup.
+Preserve the configured boot HART when no HART is initially assigned.
 
 Signed-off-by: Raymond Mao <raymond.mao@riscstar.com>
 ---
- include/sbi/sbi_domain.h         |   2 +
- include/sbi/sbi_domain_context.h |  24 ++++++
- lib/sbi/sbi_domain_context.c     | 130 ++++++++++++++++++++++++++++++-
- lib/sbi/sbi_trap.c               |  11 +++
- 4 files changed, 166 insertions(+), 1 deletion(-)
+ lib/sbi/sbi_domain.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/include/sbi/sbi_domain.h b/include/sbi/sbi_domain.h
-index 1f773e41..31cbe01e 100644
---- a/include/sbi/sbi_domain.h
-+++ b/include/sbi/sbi_domain.h
-@@ -219,6 +219,8 @@ struct sbi_domain {
- 	bool system_suspend_allowed;
- 	/** Identifies whether to include the firmware region */
- 	bool fw_region_inited;
-+	/** Whether to notify S-mode for VIRQ couriering */
-+	bool virq_seip_notify;
- };
- 
- /** The root domain instance */
-diff --git a/include/sbi/sbi_domain_context.h b/include/sbi/sbi_domain_context.h
-index 31a3a7f8..88450fcb 100644
---- a/include/sbi/sbi_domain_context.h
-+++ b/include/sbi/sbi_domain_context.h
-@@ -28,6 +28,30 @@ int sbi_domain_context_enter(struct sbi_domain *dom);
-  */
- int sbi_domain_context_exit(void);
- 
-+/**
-+ * Exit the current domain context and return to the previous context
-+ * if one exists. This will not attempt to start other domains.
-+ *
-+ * @return 0 on success and negative error code on failure
-+ */
-+int sbi_domain_context_exit_to_prev(void);
-+
-+void sbi_domain_context_request_return_to_prev(void);
-+bool sbi_domain_context_need_return_to_prev(void);
-+void sbi_domain_context_mark_switched(void);
-+bool sbi_domain_context_consume_switched(void);
-+
-+/**
-+ * Mark a pending S-mode notification for a target domain context.
-+ *
-+ * @param dom pointer to domain
-+ * @param hartindex hart index
-+ *
-+ * @return true if notification was already pending, false otherwise
-+ */
-+bool sbi_domain_context_pending_notify_smode(struct sbi_domain *dom,
-+					     u32 hartindex);
-+
- /**
-  * Initialize domain context support
-  *
-diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-index 987ac7fa..fe7c3ede 100644
---- a/lib/sbi/sbi_domain_context.c
-+++ b/lib/sbi/sbi_domain_context.c
-@@ -12,6 +12,7 @@
- #include <sbi/sbi_hart.h>
- #include <sbi/sbi_hart_protection.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_irqchip.h>
- #include <sbi/sbi_scratch.h>
- #include <sbi/sbi_string.h>
- #include <sbi/sbi_domain.h>
-@@ -44,6 +45,8 @@ struct hart_context {
- 	unsigned long sip;
- 	/** Supervisor address translation and protection register */
- 	unsigned long satp;
-+	/** Machine interrupt delegation register */
-+	unsigned long mideleg;
- 	/** Counter-enable register */
- 	unsigned long scounteren;
- 	/** Supervisor environment configuration register */
-@@ -62,9 +65,13 @@ struct hart_context {
- 	struct hart_context *prev_ctx;
- 	/** Is context initialized and runnable */
- 	bool initialized;
-+	/** Pending S-mode notification to deliver after switch */
-+	bool smode_notify_pending;
- };
- 
- static struct sbi_domain_state dcstate;
-+static unsigned long sbi_domain_defer_return_mask;
-+static unsigned long sbi_domain_switched_mask;
- 
- static inline struct hart_context *hart_context_get(struct sbi_domain *dom,
- 						    u32 hartindex)
-@@ -120,6 +127,7 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 
- 	current_dom = ctx->dom;
- 	target_dom = dom_ctx->dom;
-+
- 	/* Assign current hart to target domain */
- 	spin_lock(&current_dom->assigned_harts_lock);
- 	sbi_hartmask_clear_hartindex(hartindex, &current_dom->assigned_harts);
-@@ -131,7 +139,12 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 	sbi_hartmask_set_hartindex(hartindex, &target_dom->assigned_harts);
- 	spin_unlock(&target_dom->assigned_harts_lock);
- 
--	/* Save current CSR context and restore target domain's CSR context */
-+	/*
-+	 * Save current CSR context and restore target domain's CSR context.
-+	 *
-+	 * SEPC is the S-mode trap return PC, independent of the M-mode trap
-+	 * frame's MEPC. Preserve it even when switching from an S-mode handler.
-+	 */
- 	ctx->sstatus	= csr_swap(CSR_SSTATUS, dom_ctx->sstatus);
- 	ctx->sie	= csr_swap(CSR_SIE, dom_ctx->sie);
- 	ctx->stvec	= csr_swap(CSR_STVEC, dom_ctx->stvec);
-@@ -141,6 +154,8 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 	ctx->stval	= csr_swap(CSR_STVAL, dom_ctx->stval);
- 	ctx->sip	= csr_swap(CSR_SIP, dom_ctx->sip);
- 	ctx->satp	= csr_swap(CSR_SATP, dom_ctx->satp);
-+	if (misa_extension('S'))
-+		ctx->mideleg = csr_swap(CSR_MIDELEG, dom_ctx->mideleg);
- 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
- 		ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
- 	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
-@@ -163,8 +178,27 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 
- 	/* Save current trap state and restore target domain's trap state */
- 	trap_ctx = sbi_trap_get_context(scratch);
-+	/* ECALL/SSE handlers may have updated the frame beyond the live CSRs. */
- 	sbi_memcpy(&ctx->trap_ctx, trap_ctx, sizeof(*trap_ctx));
- 	sbi_memcpy(trap_ctx, &dom_ctx->trap_ctx, sizeof(*trap_ctx));
-+	if (target_dom->next_mode == PRV_S) {
-+		trap_ctx->regs.mstatus &= ~MSTATUS_MPP;
-+		trap_ctx->regs.mstatus |= (PRV_S << MSTATUS_MPP_SHIFT);
-+		trap_ctx->regs.mstatus &= ~(SSTATUS_SIE | SSTATUS_SPIE |
-+					    SSTATUS_SPP);
-+		trap_ctx->regs.mstatus |= csr_read(CSR_SSTATUS) &
-+					  (SSTATUS_SIE | SSTATUS_SPIE |
-+					   SSTATUS_SPP);
-+	}
-+	/* Keep CSR_MEPC aligned with the active trap context */
-+	csr_write(CSR_MEPC, trap_ctx->regs.mepc);
-+
-+	/* Deliver pending S-mode notification after switching context */
-+	if (dom_ctx->smode_notify_pending) {
-+		if (!sbi_irqchip_notify_smode_get())
-+			sbi_irqchip_notify_smode_set();
-+		dom_ctx->smode_notify_pending = false;
-+	}
- 
- 	/*
- 	 * Re-configure PMP settings for the new domain
-@@ -190,6 +224,7 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
- 		else
- 			sbi_hsm_hart_stop(scratch, true);
- 	}
-+	sbi_domain_context_mark_switched();
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index b3f5892d..604c5b7a 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -799,6 +799,38 @@ int sbi_domain_root_add_memrange(unsigned long addr, unsigned long size,
  	return 0;
  }
  
-@@ -222,6 +257,19 @@ static int hart_context_init(u32 hartindex)
- 
- 		/* Bind context and domain */
- 		ctx->dom = dom;
-+		/*
-+		 * Default MIDELEG policy: root domain keeps SEI delegated;
-+		 * non-root domains keep SEI delegated only when VIRQ uses
-+		 * mip.SEIP for notification.
-+		 */
-+		if (misa_extension('S')) {
-+			unsigned long mideleg = csr_read(CSR_MIDELEG);
++static void domain_select_boot_harts(void)
++{
++	u32 dhart;
++	struct sbi_domain *dom;
 +
-+			if (dom == &root || dom->virq_seip_notify)
-+				ctx->mideleg = mideleg | MIP_SEIP;
-+			else
-+				ctx->mideleg = mideleg & ~MIP_SEIP;
++	sbi_domain_for_each(dom) {
++		u32 boot_hartindex = sbi_hartid_to_hartindex(dom->boot_hartid);
++		bool boot_assigned = false;
++
++		if (sbi_hartindex_valid(boot_hartindex)) {
++			spin_lock(&dom->assigned_harts_lock);
++			boot_assigned = sbi_hartmask_test_hartindex(
++				boot_hartindex, &dom->assigned_harts);
++			spin_unlock(&dom->assigned_harts_lock);
 +		}
- 		hart_context_set(dom, hartindex, ctx);
++
++		if (!boot_assigned) {
++			u32 new_hartid = -1U;
++
++			spin_lock(&dom->assigned_harts_lock);
++			sbi_hartmask_for_each_hartindex(dhart, &dom->assigned_harts) {
++				new_hartid = sbi_hartindex_to_hartid(dhart);
++				break;
++			}
++			spin_unlock(&dom->assigned_harts_lock);
++
++			if (new_hartid != -1U)
++				dom->boot_hartid = new_hartid;
++		}
++	}
++}
++
+ int sbi_domain_startup(struct sbi_scratch *scratch, u32 cold_hartid)
+ {
+ 	int rc;
+@@ -873,6 +905,9 @@ int sbi_domain_finalize(struct sbi_scratch *scratch)
+ 		return rc;
  	}
  
-@@ -320,6 +368,86 @@ int sbi_domain_context_exit(void)
- 	return switch_to_next_domain_context(ctx, dom_ctx);
- }
- 
-+int sbi_domain_context_exit_to_prev(void)
-+{
-+	struct hart_context *ctx = hart_context_thishart_get();
-+	struct hart_context *dom_ctx;
++	/* Select stable boot HARTs before programming physical IRQ targets. */
++	domain_select_boot_harts();
 +
-+	if (!ctx)
-+		return SBI_EINVAL;
-+
-+	dom_ctx = ctx->prev_ctx;
-+	if (!dom_ctx)
-+		return SBI_ENOENT;
-+
-+	/*
-+	 * Returning to a previous domain implies it has already executed,
-+	 * so its context is runnable even if not marked initialized.
-+	 */
-+	dom_ctx->initialized = true;
-+
-+	/* Clear prev context to avoid unintended re-entry */
-+	ctx->prev_ctx = NULL;
-+
-+	return switch_to_next_domain_context(ctx, dom_ctx);
-+}
-+
-+void sbi_domain_context_request_return_to_prev(void)
-+{
-+	sbi_domain_defer_return_mask |= (1UL << current_hartindex());
-+}
-+
-+bool sbi_domain_context_need_return_to_prev(void)
-+{
-+	u32 hartindex = current_hartindex();
-+	bool need = !!(sbi_domain_defer_return_mask & (1UL << hartindex));
-+
-+	if (need)
-+		sbi_domain_defer_return_mask &= ~(1UL << hartindex);
-+
-+	return need;
-+}
-+
-+void sbi_domain_context_mark_switched(void)
-+{
-+	sbi_domain_switched_mask |= (1UL << current_hartindex());
-+}
-+
-+bool sbi_domain_context_consume_switched(void)
-+{
-+	u32 hartindex = current_hartindex();
-+	bool switched = !!(sbi_domain_switched_mask & (1UL << hartindex));
-+
-+	if (switched)
-+		sbi_domain_switched_mask &= ~(1UL << hartindex);
-+
-+	return switched;
-+}
-+
-+bool sbi_domain_context_pending_notify_smode(struct sbi_domain *dom,
-+					      u32 hartindex)
-+{
-+	struct hart_context *ctx;
-+	bool already;
-+
-+	if (!dom)
-+		return false;
-+
-+	ctx = hart_context_get(dom, hartindex);
-+	if (!ctx) {
-+		if (hart_context_init(hartindex))
-+			return false;
-+		ctx = hart_context_get(dom, hartindex);
-+		if (!ctx)
-+			return false;
-+	}
-+
-+	already = ctx->smode_notify_pending;
-+	ctx->smode_notify_pending = true;
-+
-+	return already;
-+}
-+
- int sbi_domain_context_init(void)
- {
- 	/**
-diff --git a/lib/sbi/sbi_trap.c b/lib/sbi/sbi_trap.c
-index 16774fd2..00905497 100644
---- a/lib/sbi/sbi_trap.c
-+++ b/lib/sbi/sbi_trap.c
-@@ -25,6 +25,7 @@
- #include <sbi/sbi_sse.h>
- #include <sbi/sbi_timer.h>
- #include <sbi/sbi_trap.h>
-+#include <sbi/sbi_domain_context.h>
- 
- static void sbi_trap_error_one(const struct sbi_trap_context *tcntx,
- 			       const char *prefix, u32 hartid, u32 depth)
-@@ -373,6 +374,16 @@ trap_done:
- 	if (sbi_mstatus_prev_mode(regs->mstatus) != PRV_M)
- 		sbi_sse_process_pending_events(regs);
- 
-+	if (sbi_domain_context_need_return_to_prev())
-+		sbi_domain_context_exit_to_prev();
-+
-+	if (sbi_domain_context_consume_switched()) {
-+		struct sbi_trap_context *newctx = sbi_trap_get_context(scratch);
-+
-+		sbi_trap_set_context(scratch, newctx->prev_context);
-+		return newctx;
-+	}
-+
- 	sbi_trap_set_context(scratch, tcntx->prev_context);
- 	return tcntx;
- }
+ 	/*
+ 	 * Set the finalized flag so that the root domain
+ 	 * regions can't be changed.
 -- 
 2.25.1
 
