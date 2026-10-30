@@ -2,78 +2,98 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 504B5606A321
-	for <opensbi@archiver.kernel.org>; Fri, 30 Oct 2026 03:06:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F388860A2615
+	for <opensbi@archiver.kernel.org>; Fri, 30 Oct 2026 10:45:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=DE/KgTyq;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=fB/g4XUZ
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=cNVNLfId;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=hKX1SzBJ
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Date:Subject:Cc:To:From:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=Au7t/GEo4TfjgJnWlNN3lC5phzl1b3m7ikJ/xAwt/hQ=; b=DE/KgTyqCX38jvbb3FFIVDbKOw
-	f6TVhLv4n23r+LxKRVI3eXMQ+0Nrys5YN5f0EjfeYtMvBPi4zQaRxTlsWLpG2GnS+2wUw8MWN5JyU
-	3ZhJuoaWHLj3rSgjpVz7QFFPaVlE1YKh3u5o4YNoPnrVfKM5NqcIAt8JbXCGiKMgcAqw8FWuxYrG3
-	PzbjQDOniOkJLJ19/yeG/66bedAYf0EvRsEf38k1Nx802Fh8hP2qEqhed00tkyN1bdoFXZwMlkTRa
-	LSWxhsxEbE5szi1tzgkPxzTmZ0HSyzyT35NZq9U/IfhSLSrvwl6pn2duT+uZPitenLTDDiEkt8Igg
-	mqiKI2eg==;
+	bh=rJKoqlWbOSM2vIjtI57hhmjjiHfLOSgKsLQuozMXqro=; b=cNVNLfIdz3lZY1FuOABCPa429v
+	96B4Y6WSKOMP+oFNO4nEsmmUDKBQP4E9G8DRG0cUDNu87PTFOEit6YTJ4qYggPyPW5vcB/D52gUkb
+	e6ImaD/K+MsPpM28bEq9Ao90w5F3pVzxL/vnggry4MpoCuCm4rlKI/c9IbQXmv4yfFQ93kpIGGiPM
+	P4vKVWPel6rD2VBNNRaViyklB+C1TGev1eEGwRtSzWzawB05HNJ/lxv1X0ruPsWBcG9KNOzA6lR1M
+	3WKuql8huOQlx6Zo8T4eGx9yqA+teY+tZagwu7AODI3OvJTmsURajFadbdBxSW02ffNTQCTj51Yt5
+	Cwh6ARUA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMcwl-0000000Ai0A-46lp;
-	Fri, 30 Oct 2026 03:06:28 +0000
-Received: from out203-205-221-209.mail.qq.com ([203.205.221.209])
+	id 1xMk6y-0000000BQZz-1YqH;
+	Fri, 30 Oct 2026 10:45:28 +0000
+Received: from mail-pf1-x432.google.com ([2607:f8b0:4864:20::432])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMcwh-0000000Ahxx-0VwI
+	id 1xMk6v-0000000BQZA-0sFK
 	for opensbi@lists.infradead.org;
-	Fri, 30 Oct 2026 03:06:25 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1793329580; bh=GGqWa07TfVclbOC55G82cxe7612/2OvaiO5oiHcVPqc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=fB/g4XUZb7Q/ffLNZuOmXu+YaWFtcGt29BYBXC1TR14iMZmzZ5dQateLQmmaNrkPC
-	 dy89r3OofqRu29Qkepmjob9D7F8lmJzlW7H/aBnGOga9rkgeXfrOFEttDP6JbngH1l
-	 JSOoZN92FOhp4RWnbD7aYIs09qrtQbJ/bRZO1rfc=
-Received: from zs-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan ([202.120.37.188])
-	by newxmesmtplogicsvrsza63-0.qq.com (NewEsmtp) with SMTP
-	id 18F8DE4F; Fri, 30 Oct 2026 11:06:15 +0800
-X-QQ-mid: xmsmtpt1793329578tdmkxmbc3
-Message-ID: <tencent_51917A6D560F01A5807180C13245E1717608@qq.com>
-X-QQ-XMAILINFO: MJf32pulH4816AsqjtSipC/ECK11gFgB0QiRFFNLO9mvM4J4sTpdrHn8IiV7Wj
-	 dJEW2wDCyBjYZWQwY47E6ZXHSGEVtLniRe2kWY2rDaWcOyw2Rj+mWDbQa0aunU8bdpFsMtQtEBar
-	 6to0ikoQir+NSzP0k6ReikRIlGkAUC9CkXfQeSBkkuOXRIbps0OcSqZ08GqLshsbpyRTh3XaMFZS
-	 yZQmn3+bNjhG2uchXWHyk7JMNPK9hFkXb0i8+U2SRHA6UpgkB3v26AEDxaaSdvS3VbRXHGOO8f6u
-	 Zef0khN7QI8m6iQYRhPTzp8H3GHOq8S0VNc/Wpv+cSzTyQiBtl+RGcIZy++htglRlTFPv8K0G3pB
-	 x8AgFs7lu1U8LkHmpXcCvP1RbqcuuJpPQ2srppePLp9G9b1KnhnKvlokYcPYRp/zCtbEl8gOXrDn
-	 HWeSSBDCYMD/knIu0hy2wq+EIo7yCPb61OKd8flufFjtwRIZcVhX13U+dlbSgPfpnMSXUx2txCIf
-	 ygDZbKB6t4jJ3tvyhKe4lfL7rJlkqrrHZ/P0PAwFF9gZ7sa5zpr42JeqdcTTQTD9TpyjfgzaRPIO
-	 xhW+KWv7dn+K9oBmbOyHZgX7E73BNso4AtFMaBv39JEsXNcOWJ4MHMELZSvXmQa9yVw/H6v8R9Bo
-	 iQq53F5Gliwy/Xn2kGt6bX7WDWXgOamxUVdiU6rs2j7myNRUOGULuVBa31MQMzOaAjlF+SrlD5qY
-	 N0aeDUX+aEt3bstD4kcO34pYsOATWN9x8K5yiUtQ+Uj+gRLNzu7ykXXwXQm0Nmfquf1AsUQ4aWmo
-	 wnuR+XQFSDHZy3nUB0q18DVgEfk6fqC1K/FeOh9Ae0+Tlmk4Is3YZg+s2ktDQzIKySOyw1NL89ck
-	 iBHE0+bxioPvuhcW2ZHo/XiHIf4sdjZYp40zK5pLUs3BAP9SWJkHHp5kgI4XCaN1Y0biHgpY6Lox
-	 X6T8tRrzwDeETcpxz7aG1VrTYHaTQHdPt4E+fouWQw5xSdSpZj1/0hr3YbPcL0VcNT9dWSYDv/Hh
-	 blQAIwMcAlPZXy/UpYeb/SjgSFuUeOvdTwNttg1zvvONAJEmerJU0PO22Kihkv+Chn+P4eZSyRDN
-	 Y45Tz33wQWdQGr8OuoLHdQ0exN8g==
-X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
-From: Shibo Zhu <3499129952@qq.com>
+	Fri, 30 Oct 2026 10:45:26 +0000
+Received: by mail-pf1-x432.google.com with SMTP id d2e1a72fcca58-8a052aff9e9so377097b3a.0
+        for <opensbi@lists.infradead.org>; Fri, 30 Oct 2026 03:45:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1793357123; x=1793961923; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ZymYE/91hr2fYoFxoQmG3lipdzK2cC7KxVS2H+xlwDg=;
+        b=hKX1SzBJ2mRn98m8+2IYZ2lAfz3QWFMDxdzk6q+qXs9/w775HoBkHmZlL/Kn1PJtgt
+         yufxgMpAEhBFH322syZq34U2SnVq0DA0kyE4kRh1lkvkKg0C51tecrQCI+hOYXYgAy2c
+         Q8Q4RAW10LK1lK7ngJWCVWCngE0FEFCn4S9MgGQGXdsJXPhbYT48nq6VDTJlBbTpCSZn
+         OZjzXrfMFDzQtED3xkUzxL5yTZ59sbBTXzHo6wB/zP5UOC4esO92eSgpnYg9mymo9jXZ
+         EE+Ik8R0j3wtP27tic0A5XVMFqaPUDV+e7N5Tmpfb8LMVGl/+1qXpUzCYm1jPR2jf30/
+         Rosw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793357123; x=1793961923;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ZymYE/91hr2fYoFxoQmG3lipdzK2cC7KxVS2H+xlwDg=;
+        b=LKRf4jfD2PCHJ7vwKUSj5RxGaHAHrAfoBl3Jvq8mCm83hhN9gfHbXUNfyD7d0qzZfg
+         uSafDoo3/OzgyKYgx6bt6D65Gl3czWNW6JeSvYIgFeZV8j2K1WvTYmIomfLHlSgsAgvU
+         VYOzufRfz5zHKSOX7byZD7/552KaTZ7Bb15D5hUtmIVO2OQnKm053D1c3vnmjhswSAXf
+         KVbPwUDwRrPicH6vqESnEDu2maapFpBppfGD3UK7wpeRcVzW4LJOygHwsMD5CzGazFS9
+         qIeuyXmrvrEVY26IvwuwhzVOcIMXA1WQWl2b7xCfPR0yT59SwDc4WobZvok2eszSaco5
+         4YbA==
+X-Gm-Message-State: AFq9FYKphmjahQbVCElkSiXqfC9hFw2Hhvmxc6jD2aq12zyY+KAkRC/W
+	Ko7B1FKFC9iL3iahDDjgc+evQIWUe/UNpfyQEK9Jow0jcj8SgzAFMbuxWCY1ZAzCx09xmYARapn
+	k/tWVVsDcSPFDpewPHkI2gfuiBmrSf8P2sF46b+hxXTUsOS6BNZprDwWGKlnw66ZQe8v/W8Ilmv
+	CsAKzTF8K6VLQjROXAooHi32vLZESiz+kIBeP4Xzg599ojv+2bU1A=
+X-Gm-Gg: AYBFou1Ebp2EhIdkYQRqGHqTxiYtEcGCYiYQZF/nTEsQkVp0AkJgBG9oU+vjrnRTFgk
+	Gwrs9Kx43QlgQM7v2AOQR1e8qi8TMV1mtbYnqj8KDKk42+enXip1rVR73MbNM89P9BTqzlJwOpE
+	OO3XLKRML/MFiGZCgtuqTrDhMrhpPKnqlY+mc5qTyFj1YkiRydrxrRwQAv/Cyq6ptFYcT61Omuz
+	XOuMKdIXPgGdILyIxA5o54BmZu37fVbF5GwryZIGtwuxlRF+Iycwso3v+pkPT39X4X2mGJROUhF
+	TL/Ab7Bh7UJw52Z8l66SG+Fjp7Tbd7gcL4XxzXZ3xfsXXhv98eOW0kO5g/gU4eODlw2A4drIuod
+	v40vwBy+0xRPUUywlxVYgIYWQ/n34t0x0xaEHtD99lNibCd4tVPlUn5Gd7Q3ZZSeCs3BPvn4HIf
+	tVSrv1F8XyTP+9i0NV3B57qNwz55MdleIezjvPvCTgvB60OU5UoyhD8dXtVBIh2F4AUpF6aye3Y
+	hbjWSpNqZgL0pQkn8QB8+7R4QoaAC4DjpopSY35BXuZ3tthN+WCFK7HVixNtI5b/Foz+Jd+Vu83
+	yi4u+acJD7pzCpTFGMXbWOYruGlcfsWfD+giHOSRHybWjZfG
+X-Received: by 2002:a05:6a20:6a05:b0:3e0:e60f:2e5b with SMTP id adf61e73a8af0-3e9289577c9mr1991929637.30.1793357122764;
+        Fri, 30 Oct 2026 03:45:22 -0700 (PDT)
+Received: from localhost ([136.226.240.163])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cdb09706f01sm548269a12.20.2026.10.30.03.45.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Oct 2026 03:45:21 -0700 (PDT)
+From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
-	atish.patra@linux.dev,
-	Shibo Zhu <3499129952@qq.com>
-Subject: [PATCH v2 2/2] lib: tests: Add HSM hart ID validation test
-Date: Fri, 30 Oct 2026 11:05:03 +0800
-X-OQ-MSGID: <20261030030503.334740-3-3499129952@qq.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261030030503.334740-1-3499129952@qq.com>
-References: <20261030030503.334740-1-3499129952@qq.com>
+	pawandeep.oza@oss.qualcomm.com,
+	rkrcmar@qti.qualcomm.com,
+	raymond.mao@riscstar.com,
+	robin.randhawa@sifive.com,
+	samuel.holland@sifive.com,
+	zong.li@sifive.com,
+	greentime.hu@sifive.com,
+	Yu-Chien Peter Lin <peter.lin@sifive.com>
+Subject: [PATCH v4 0/9] Add RISC-V Worlds ISA support to OpenSBI
+Date: Fri, 30 Oct 2026 18:45:09 +0800
+Message-Id: <20261030104518.3297875-1-peter.lin@sifive.com>
+X-Mailer: git-send-email 2.34.1
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261029_200623_491195_7E2B8C3D 
-X-CRM114-Status: GOOD (  12.74  )
-X-Spam-Score: -1.9 (-)
+X-CRM114-CacheID: sfid-20261030_034525_267629_0E515247 
+X-CRM114-Status: GOOD (  11.62  )
+X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -86,88 +106,79 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_EF,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=4.0.1
+X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Add SBIUnit coverage for HART_GET_STATUS with the current hart ID and,
-on RV64, the same ID with bit 32 set. Verify that the oversized value is
-rejected instead of aliasing the current hart.
+This patch series adds support for the RISC-V Worlds ISA extensions in
+OpenSBI, introducing a WID-based hart protection backend to enforce
+hardware isolation boundaries across domains.
 
-Signed-off-by: Shibo Zhu <3499129952@qq.com>
----
- lib/sbi/tests/objects.mk           |  3 +++
- lib/sbi/tests/sbi_ecall_hsm_test.c | 41 ++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
- create mode 100644 lib/sbi/tests/sbi_ecall_hsm_test.c
+Trust Model and Boot-time Roles
+-------------------------------
 
-diff --git a/lib/sbi/tests/objects.mk b/lib/sbi/tests/objects.mk
-index 40c441e1..dce2016e 100644
---- a/lib/sbi/tests/objects.mk
-+++ b/lib/sbi/tests/objects.mk
-@@ -16,6 +16,9 @@ libsbi-objs-$(CONFIG_SBIUNIT) += tests/riscv_locks_test.o
- carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += math_test_suite
- libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_math_test.o
- 
-+carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += hsm_test_suite
-+libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_ecall_hsm_test.o
-+
- carray-sbi_unit_tests-$(CONFIG_SBIUNIT) += ecall_test_suite
- libsbi-objs-$(CONFIG_SBIUNIT) += tests/sbi_ecall_test.o
- 
-diff --git a/lib/sbi/tests/sbi_ecall_hsm_test.c b/lib/sbi/tests/sbi_ecall_hsm_test.c
-new file mode 100644
-index 00000000..93901a6d
---- /dev/null
-+++ b/lib/sbi/tests/sbi_ecall_hsm_test.c
-@@ -0,0 +1,41 @@
-+/* SPDX-License-Identifier: BSD-2-Clause */
-+
-+#include <sbi/riscv_asm.h>
-+#include <sbi/sbi_ecall.h>
-+#include <sbi/sbi_ecall_interface.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi/sbi_trap.h>
-+#include <sbi/sbi_unit_test.h>
-+
-+static void hsm_hartid_test(struct sbiunit_test_case *test)
-+{
-+	struct sbi_ecall_extension *hsm_ext;
-+	struct sbi_ecall_return out = { 0 };
-+	struct sbi_trap_regs regs = { 0 };
-+
-+	hsm_ext = sbi_ecall_find_extension(SBI_EXT_HSM);
-+	SBIUNIT_ASSERT_NE(test, hsm_ext, NULL);
-+
-+	regs.a0 = current_hartid();
-+	SBIUNIT_ASSERT_EQ(test,
-+			  hsm_ext->handle(SBI_EXT_HSM,
-+					  SBI_EXT_HSM_HART_GET_STATUS,
-+					  &regs, &out),
-+			  SBI_OK);
-+
-+#if __riscv_xlen == 64
-+	regs.a0 |= 1UL << 32;
-+	SBIUNIT_EXPECT_EQ(test,
-+			  hsm_ext->handle(SBI_EXT_HSM,
-+					  SBI_EXT_HSM_HART_GET_STATUS,
-+					  &regs, &out),
-+			  SBI_EINVAL);
-+#endif
-+}
-+
-+static struct sbiunit_test_case hsm_tests[] = {
-+	SBIUNIT_TEST_CASE(hsm_hartid_test),
-+	SBIUNIT_END_CASE,
-+};
-+
-+SBIUNIT_TEST_SUITE(hsm_test_suite, hsm_tests);
+The implementation adheres to the two-phase M-mode trust model:
+
+- RoT M-mode phase: An earlier boot stage (e.g., ROM or SPL) may program
+  mwid and mlwidlist, locking mwid prior to handing off execution to
+  OpenSBI.
+
+- Regular M-mode phase (OpenSBI): OpenSBI treats the non-ISA platform
+  constraints (pmwid, pmwidlist, pmlwidlist) and CSR states (mwid,
+  mlwidlist) as immutable input policies from the hardware/RoT. It locks
+  mwid if still unlocked, preventing subsequent M-mode software from
+  altering its own WID, and programs per-domain mlwid and mwiddeleg based
+  on device tree configuration.
+
+Device Tree Bindings
+--------------------
+
+Per-hart properties defined in Linux kernel DT bindings v3 [1]:
+- riscv,pmwid: M-mode World ID
+- riscv,pmwidlist: M-mode permitted WID bitmap
+- riscv,pmlwidlist: S/U-mode permitted WID bitmap
+
+Per-domain properties (see docs/domain_support.md):
+- wid: World ID assigned to this domain for S/U-mode
+- widdeleg: WID delegation bitmap for this domain
+
+[1] https://patchwork.kernel.org/project/linux-riscv/cover/20260812122131.1534906-1-peter.lin@sifive.com/
+
+Yu-Chien Peter Lin (9):
+  lib: sbi_hart: add RISC-V Worlds ISA extensions
+  lib: utils: fdt_helper: parse RISC-V Worlds per-hart WID properties
+  lib: fdt_domain: parse domain WID properties
+  lib: sbi_hart: lock mwid CSR for RoT immutability
+  lib: sbi_domain_context: propagate error from
+    sbi_hart_protection_reconfigure
+  lib: sbi_hart_worlds: Implement WID hart protection backend
+  include: sbi_types: add PRIx64 format macro
+  lib: sbi: display World ID configuration at boot
+  docs: document WID DT properties
+
+ docs/domain_support.md        |  38 ++++++
+ include/sbi/riscv_encoding.h  |  12 ++
+ include/sbi/sbi_domain.h      |   6 +
+ include/sbi/sbi_hart.h        |  15 +++
+ include/sbi/sbi_hart_worlds.h |  24 ++++
+ include/sbi/sbi_types.h       |   2 +
+ lib/sbi/objects.mk            |   1 +
+ lib/sbi/sbi_domain.c          |  20 ++++
+ lib/sbi/sbi_domain_context.c  |   5 +-
+ lib/sbi/sbi_hart.c            |  17 +++
+ lib/sbi/sbi_hart_worlds.c     | 210 ++++++++++++++++++++++++++++++++++
+ lib/sbi/sbi_init.c            |  13 +++
+ lib/utils/fdt/fdt_domain.c    |  87 ++++++++++++++
+ lib/utils/fdt/fdt_helper.c    |  69 +++++++++--
+ 14 files changed, 511 insertions(+), 8 deletions(-)
+ create mode 100644 include/sbi/sbi_hart_worlds.h
+ create mode 100644 lib/sbi/sbi_hart_worlds.c
+
 -- 
-2.43.0
+2.43.7
 
 
 -- 
