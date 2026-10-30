@@ -2,11 +2,12 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A79C606A32D
-	for <opensbi@archiver.kernel.org>; Fri, 30 Oct 2026 10:45:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0DB1606A321
+	for <opensbi@archiver.kernel.org>; Fri, 30 Oct 2026 10:45:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=C+hCDbsB;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=ZyYbdmeV
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=iGBuuIDe;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=desiato.20200630 header.b=NHLmu+hN;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=CmoDH3qJ
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,66 +15,81 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=2wsw403b7wUm9TMypvz+VYIabL/XsnfcpCOLdJRFD5I=; b=C+hCDbsBljNOJIVMx5xqoUKfLm
-	dg0L7FwhPJxJ+mslM7tYRuVFUHuZ9ZhnD6VBJziTuJBZwWJ2XhzHciiA9l66T6LjbKnwaH6bD5oYV
-	ko0oftbjosqxVNspXueLj+v5u7++qsz57I0AvukHozvt7rY4rGior0ps2cPEhGgWES9eDb/UVBSDv
-	amlg5nYhGAHRcedNBytH+OY6ATt/uxfvoMUyH3ItSG80+kNvOyitqSjsHU0nmB7niw75Olz0pcEW0
-	lsvoJtMx/CwK+Gk0z3SqBl52u0PynM8iog5nnslsp5DGjVjJn+4lt0q+sf4e9xyGr6KmQFVQHphcr
-	DXZYl7Eg==;
+	bh=CAnQXNGh5kNCXgA5/1G4eiwSgRpxyHCocWejAZUvdpA=; b=iGBuuIDe5vJaEitLSEH4SLBK0p
+	JuedW+KO4BqHYu7P2c59YT4zLPcT4Ft9VZ8BHGX6gNBUvYUeHplp0AzITmlCH293QOO7i0Axy56LE
+	i++elMCTsr+hmBmn/JfUlzjvIHo20s1PpSqvbgNBoQ6VPWAsJcoyAM4bLaWC8fsKYzx3MklAK7WRD
+	SoDnSjzlT1TINTLki4mdNU96DKRffv4jZflabuVdZyW99bn2MZ4zVjvuVrI1/NQRNWisABkokw25T
+	m7PHi0VKsUBCA3jf35acL8a+NnJ86lpvHvWScDGH17gY2MBIi/Ti9FcLDJTW0AW9qoVpojkltJKkA
+	7rEtAVCQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMk7P-0000000BQrr-2oCq;
-	Fri, 30 Oct 2026 10:45:55 +0000
-Received: from mail-pg1-x52c.google.com ([2607:f8b0:4864:20::52c])
+	id 1xMk7R-0000000BQuP-3BUm;
+	Fri, 30 Oct 2026 10:45:57 +0000
+Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xMk7M-0000000BQo2-33rm
+	id 1xMk7Q-0000000BQrq-0rJ7
+	for opensbi@bombadil.infradead.org;
+	Fri, 30 Oct 2026 10:45:56 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
+	:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=cTDVZ09Euqu4XkeKdO94nm3CwCftAD4ZoaHLVchP3U8=; b=NHLmu+hNunMEH4NoppU5TKFiIf
+	f4dY9JhQMe2GJGkfnqPhFYodgQ9eYk3yutohrvIlGWpKrMjT8QcybGZ5aT7S1eB1ZINza9oXTIRC4
+	z7rmU3LAKUEgq/Dq5IxYUPZ7vr8z2SE3hMB+8AizlKcQRV5zhyVjUMQfb6x4OFZ0++TV+aeZiuw0W
+	AzmunaXZtvhnJY9y4zmucYyIkvgxjkKCs7st1iPxnM5E49zDstFKu6E2Fwif9efuRhVPSiF/EKQeh
+	5yDiViTPSRk3uyWeAyM9YmCO6TFHZNR0JO3NxRPM7DuoEI1HhV7hLSR98VU84Cr2/1fuJFvixFF9c
+	bB9ayWTw==;
+Received: from mail-pf1-x42b.google.com ([2607:f8b0:4864:20::42b])
+	by desiato.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
+	id 1xMk7K-00000000EqX-2Prw
 	for opensbi@lists.infradead.org;
-	Fri, 30 Oct 2026 10:45:53 +0000
-Received: by mail-pg1-x52c.google.com with SMTP id 41be03b00d2f7-cc52c1b8286so276666a12.1
-        for <opensbi@lists.infradead.org>; Fri, 30 Oct 2026 03:45:51 -0700 (PDT)
+	Fri, 30 Oct 2026 10:45:55 +0000
+Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-8a0880a46e7so289960b3a.1
+        for <opensbi@lists.infradead.org>; Fri, 30 Oct 2026 03:45:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793357151; x=1793961951; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1793357148; x=1793961948; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=bl4Q4pQk1Ce32x3I3tB3CnT6M4CLxD3+ugW9Vg7JOZA=;
-        b=ZyYbdmeV+JPyzu1z2CZ8Tngc3N8mvmxAAwMJcDAS6EIVi+emFwsmEn60LYIPlQPJI5
-         amwm3VHcqMyDd4ZP54IAhQzEdu5e+6CYfWg61Z9PpkRA8TSFr1zlYT88E2CEGSif3glZ
-         K0/xddOucrxcrb6IHwxI3bC3x0z54AyaWvvKMO3OhiVvmRrv6M1d521XfllpYCZG511q
-         +9Z3OuDZAzRdxAJot2g4//VtPRUi3C5n3btAduYq7ufaQX2RDYl45aj8GMsdKmuszH1H
-         hmPtlELdHWMor36bqUQJ4zopqy77t+3xaUrxazCx84VNBLgYWSv6T2yYlIcqoH3p98L7
-         xszw==
+        bh=cTDVZ09Euqu4XkeKdO94nm3CwCftAD4ZoaHLVchP3U8=;
+        b=CmoDH3qJZhWNC09HAKqh7mi3s2Yw+iu7ybnGrLDCAHpUrz5pVs2sChZllan0mD9tSf
+         qDnzT6wWweOxNsVLk0rS5SJcQcEbrOSsVs8SRCVoum2L3cwGztskSytQ7EDmSQ/iIMaY
+         Oah9qAzk8jval/OBfjcnDu/sPtmOQk4VPJbTTftDS8YWNdt6mqS1MYR7OhKzon5LvDRt
+         xNVSDJCoXaxDsn3lmyPrKskrSRvmCAnCDxq30yrMe8H/1hqmO3AI4VaIR4KMObyjc/xW
+         0LX7vOtYdW7ftJGbeLJBZ2NzkUgXXIIJoDDqWG1GAKYyLafI/GSAUCI/OcNzd7HZluq3
+         vItQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793357151; x=1793961951;
+        d=1e100.net; s=20260707; t=1793357148; x=1793961948;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=bl4Q4pQk1Ce32x3I3tB3CnT6M4CLxD3+ugW9Vg7JOZA=;
-        b=uoAejz6w7yyteRzvzuLciFKIbP0naAm+kBbhF3O64nrmk5hshgZok+kqB+bP/iKvKa
-         Cu4q4Oc8Avrv4M+TLgSPZwjzUNW0XrZ53h8JT6Tp+mr8ZhbLp+8idiea3jBUvkpSALeI
-         KoFFVg/pkTPoTJSMLmTOkUC+4Jbxvx56dPPwADVxsw5vqDb8dcx3IHijsEd1/kj8DdeR
-         Zs8TnNubJhBETBkmqQF7j/zTooKsmBCHGCFPhNrky1IRfdO6RFUj0zftymlRCPA24pZa
-         1cWzIJPTWZWRjmISbiFS6hZMmiab+veLI5BOCL/LtpzmfpaAEe9JeQQghkUcPFQagp1p
-         cLnw==
-X-Gm-Message-State: AFq9FYIp+ciP2awBql0vE1zbLHAV2lg7/x18WmJJULnD8DdY222LksVx
-	WkxyYfCf6o3/tvuq1ldN04j6QTlO6aBz/VV2sLnWOuU/ypJ2ZvwklaCerFzMe8QUT6ZYN2urJmK
-	0+vwuumkAd+ErqcXoIJxWfMqRutAt9xfnPj4VFF40w1zBvfcysJW7jL5WoLdpPWUST/fWH1Xlhm
-	O4adw4NDTJ9YEa8YpyEjklISPMcCOnEuZJejOUaK3yyPtdTJdO
-X-Gm-Gg: AYBFou3tOUyoDiV6vjpIrWj4dtJ5d9V2u6x4l+jCkYbQnrxjuJ6tsuu/A9T1VCYjRVq
-	HsKpM6Gmv04Pdc338GILMKEUvws+PZc4VBAqvIKibxDqpCCPbrIT1p6uMnM8Me7A17V/KrtFur8
-	U7UfOYOyeIgZdhXdAg3wBGV8UBK4c8OFu6ZWh5x7qrp6+Jw5ERZ4ZcQbGA+OtFDR7X8dddWWh/H
-	BcrFeEWFtq7CoS2OM8+v84A3v1rrl7PYo4J+sXRtnF/06heOtYKagVdvVAi1pZbfnNEOfIrvP1D
-	jZKKNJEPk9WhL8IxWkrGprFGyIY3T5GXaogPuBABV3gw57OkGYE3Wz1VwkbIgrbYVFRvDBFT9er
-	BLH3ZJtrYnvKSCmeBz28TYXykWYsZXLjqEdhag6XMEhIDzfHNcRMPuZgJFHSt2iaup+aY2RGUxn
-	V1v5DJghfuEIzVcCrgNxpPr+/1oQSU7mLVBvDTEZHj2kmwu95a3u0nQhA0ctwRK1CDKX10LG4hK
-	mDGEGLoc01kbox+os0d5Ed8AC8UdKYDJ6El1RMZsOke4+UzUjox0Y0NRu/YMeF3qijBh6xykh02
-	phgi8M8DWEtDm/9/ebjp2q7MUYQ=
-X-Received: by 2002:a17:90b:4c4c:b0:3a6:d2ac:74ce with SMTP id 98e67ed59e1d1-3ae8972b662mr977271a91.19.1793357151150;
-        Fri, 30 Oct 2026 03:45:51 -0700 (PDT)
+        bh=cTDVZ09Euqu4XkeKdO94nm3CwCftAD4ZoaHLVchP3U8=;
+        b=S5i7Zg3hZVoLhbaJygpq7ndjvy6zUtOj84INISSnoJrOJna9JuahUhk/CDw2TJVilm
+         d6vH7iF0y+g6h3p/0Efzk9AlRqKDoUYk3KF9Er7WvC+wrV+iTs1cDyb79NwlRNZL5EwM
+         Ph5EpH9Mkh4XJyWhc058mcwgGqVyEMbklAmEP3x76sGl11yIijfLNTarzG5x/MBhnVWQ
+         l6anRW62pmkEno6WemSveQYOg8q8KvykJ7FSo0t6iYjmBZK1Z1rhgxNqFvXx7zTvcp7s
+         M4X/8FNpMQd9k9/vBTyJjXwG5wb5ZXYoCPzU+pQqbKle0tZNU7iwxqYhpA4gLVqRv4Rz
+         OKaQ==
+X-Gm-Message-State: AFq9FYK6BD0G0tAvFU+BgqPia31lb1zMZJygMXv4Oqicv0amkgav08MJ
+	+L/FVzBYDPnYfB5p/xcYVgO6mLaSu9GFOe6cDOPh9Jp4EqbV+FVJXsmAzUJ2mGi9Zq08KGVm4gv
+	JbU3Q7m2V0oyfz1fm1wT0AYBquKsRwMMuxLePJSoWkxnjPY8sjiLYsOdOOuT3cwC15dD+LIQbzY
+	Ry2wWVwme9oiHWX0bxvJCafxaC0H9xGNpjsE2OlqG+0OBXVG5lUN0=
+X-Gm-Gg: AYBFou2AAiyJv7Wfg+QdfE8Eo9gCV4+U7FTXhh2amElIf3qOJrwkQvjuawA0loutPIa
+	BWMebOEwOwahgR2wUsQdrzl71YV1y+JNBh6EWLy1iyfNUx69Sm2DMaE0/q//sMUNy7GKnBsXLIr
+	2J81Oe7B1O/d7RpkzNqZ07gmoCh3tAdwiGSVdLd5k9Z2Zy+qQ7RIUZlF/WegFK3gBHGpJ39Dir8
+	ao91/FbxBStmUlUetHMiF5aRagWjcu4IiJIaYGxwOx2QX13HRRgHQMfN/IltV3UL4AZMlwIDMx7
+	H+XSLCM+X2aGleYeTucXS9Ec/o7fiKemfN7ab7X6OJfns9OcolPI7ddMwc8aH2wSBUKmOikVDfl
+	hMPwNJwASi2WyAkpgaFI1ZwSbAu4XzHXwrRMgIKf4I1NZX00KVVoaVCf04mRoGogp7tWG79CNNf
+	Yalo70flT+ABN4upWalFa8QXvOZ/doxvAOLeHlTcHF6+mfTNClACNDyX3XGpS+jzSI27iKZMQzC
+	iO/fqwVVHc/9g3EMOE6nFWOcI2lqVA11IYapbd7SI51+5sGWffrWBkKuMIoVpOaIpBT8GFNfi8U
+	hxmh4Eu9VaLOPdPzkLvEAhij1LzcGPVUz/1h64xVzhGaUpLT
+X-Received: by 2002:a05:6a00:2906:b0:89e:b19a:3bb5 with SMTP id d2e1a72fcca58-8a8317ddb5cmr3525575b3a.15.1793357147527;
+        Fri, 30 Oct 2026 03:45:47 -0700 (PDT)
 Received: from localhost ([136.226.240.163])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae845df666sm3619811a91.14.2026.10.30.03.45.49
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8a9eef96e53sm599116b3a.20.2026.10.30.03.45.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Oct 2026 03:45:49 -0700 (PDT)
+        Fri, 30 Oct 2026 03:45:46 -0700 (PDT)
 From: Yu-Chien Peter Lin <peter.lin@sifive.com>
 To: opensbi@lists.infradead.org
 Cc: anup@brainfault.org,
@@ -85,18 +101,19 @@ Cc: anup@brainfault.org,
 	zong.li@sifive.com,
 	greentime.hu@sifive.com,
 	Yu-Chien Peter Lin <peter.lin@sifive.com>
-Subject: [PATCH v4 8/9] lib: sbi: display World ID configuration at boot
-Date: Fri, 30 Oct 2026 18:45:17 +0800
-Message-Id: <20261030104518.3297875-9-peter.lin@sifive.com>
+Subject: [PATCH v4 7/9] include: sbi_types: add PRIx64 format macro
+Date: Fri, 30 Oct 2026 18:45:16 +0800
+Message-Id: <20261030104518.3297875-8-peter.lin@sifive.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20261030104518.3297875-1-peter.lin@sifive.com>
 References: <20261030104518.3297875-1-peter.lin@sifive.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261030_034552_777850_0AE7B1B8 
-X-CRM114-Status: GOOD (  10.26  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261030_104550_749749_0726F3BB 
+X-CRM114-Status: UNSURE (   8.26  )
+X-CRM114-Notice: Please train this message.
+X-Spam-Score: -0.2 (/)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -116,91 +133,36 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Print per-domain Wid/Widdeleg and boot HART's M-mode
-World ID (mwid/pmwid fallback).
+Add PRIx64 for portable 64-bit hex printing. Expands
+to 016lx on RV64 and 016llx on RV32, enabling consistent
+printf-style formatting of uint64_t values.
 
 Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
 Reviewed-by: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 Reviewed-by: Anup Patel <anup@brainfault.org>
 ---
- lib/sbi/sbi_domain.c | 18 ++++++++++++++++++
- lib/sbi/sbi_init.c   | 13 +++++++++++++
- 2 files changed, 31 insertions(+)
+ include/sbi/sbi_types.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index be9020d0..f92ebc2f 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -10,6 +10,7 @@
- #include <sbi/riscv_asm.h>
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_domain.h>
-+#include <sbi/sbi_hart.h>
- #include <sbi/sbi_hartmask.h>
- #include <sbi/sbi_heap.h>
- #include <sbi/sbi_hsm.h>
-@@ -613,6 +614,7 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 	u32 i, j, k;
- 	unsigned long rstart, rend;
- 	const struct sbi_domain_memregion *reg;
-+	struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
- 
- 	sbi_printf("Domain%d Name        %s: %s\n",
- 		   dom->index, suffix, dom->name);
-@@ -691,6 +693,22 @@ void sbi_domain_dump(const struct sbi_domain *dom, const char *suffix)
- 		break;
- 	}
- 
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWID)) {
-+		sbi_printf("Domain%d Wid         %s: %u\n",
-+			   dom->index, suffix, dom->wid);
-+	} else {
-+		sbi_printf("Domain%d Wid         %s: unsupported\n",
-+			   dom->index, suffix);
-+	}
-+
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWIDDELEG)) {
-+		sbi_printf("Domain%d Widdeleg    %s: 0x%" PRIx64 "\n",
-+			   dom->index, suffix, dom->widdeleg);
-+	} else {
-+		sbi_printf("Domain%d Widdeleg    %s: unsupported\n",
-+			   dom->index, suffix);
-+	}
-+
- 	sbi_printf("Domain%d SysReset    %s: %s\n",
- 		   dom->index, suffix, (dom->system_reset_allowed) ? "yes" : "no");
- 
-diff --git a/lib/sbi/sbi_init.c b/lib/sbi/sbi_init.c
-index acd2f8b6..f771f548 100644
---- a/lib/sbi/sbi_init.c
-+++ b/lib/sbi/sbi_init.c
-@@ -167,6 +167,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	int xlen;
- 	char str[256];
- 	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-+	struct sbi_hart_features *hf = sbi_hart_features_ptr(scratch);
- 
- 	if (scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS)
- 		return;
-@@ -199,6 +200,18 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
- 	sbi_printf("Boot HART Debug Triggers    : %d triggers\n",
- 		   sbi_dbtr_get_total_triggers());
- 	sbi_hart_delegation_dump(scratch, "Boot HART ", "           ");
-+	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMWID)) {
-+		ulong mwid = csr_read(CSR_MWID);
-+
-+		sbi_printf("Boot HART M-mode World ID   : %lu (%s)\n",
-+			   mwid & ~MWID_LOCK,
-+			   (mwid & MWID_LOCK) ? "locked" : "unlocked");
-+	} else if (hf->has_pmwid) {
-+		sbi_printf("Boot HART M-mode World ID   : %u (pmwid)\n",
-+			   hf->pmwid);
-+	} else {
-+		sbi_printf("Boot HART M-mode World ID   : unsupported\n");
-+	}
- }
- 
- static unsigned long coldboot_done;
+diff --git a/include/sbi/sbi_types.h b/include/sbi/sbi_types.h
+index b8a7e6cb..780a4c2a 100644
+--- a/include/sbi/sbi_types.h
++++ b/include/sbi/sbi_types.h
+@@ -34,12 +34,14 @@ typedef unsigned long		u64;
+ typedef long			int64_t;
+ typedef unsigned long		uint64_t;
+ #define PRILX			"016lx"
++#define PRIx64			"016lx"
+ #elif __riscv_xlen == 32
+ typedef long long		s64;
+ typedef unsigned long long	u64;
+ typedef long long		int64_t;
+ typedef unsigned long long	uint64_t;
+ #define PRILX			"08lx"
++#define PRIx64			"016llx"
+ #else
+ #error "Unexpected __riscv_xlen"
+ #endif
 -- 
 2.43.7
 
