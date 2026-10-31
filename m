@@ -2,12 +2,12 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 026B6606A31A
-	for <opensbi@archiver.kernel.org>; Sat, 31 Oct 2026 12:28:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19588606A31A
+	for <opensbi@archiver.kernel.org>; Sat, 31 Oct 2026 12:28:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=mC2EA/vm;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=MSv89lgh;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Udq/Wo3W
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=cStf6Hdn;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=RCLXDh65;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=LVQmQIgy
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -15,126 +15,122 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=pu84ZWyLAlO3uaUdodfM6aX57Oxz0affxqAmkxwIpMs=; b=mC2EA/vmPtX8DTtwP1C+t0+8Wd
-	bH42TBppQdiCq+gx+MAmYrlJaN5C9HdLrU94fiSiNRxFY55Z2C3CCfh1Np+Y4qaHJUxVrCAdOGR0L
-	DDhjpR2L4SdYpJt95D2e9CFV1CSOJBYOJnTSiFToGLna7ZAp1m4FJu9xHdKsh84Y6d7AuOmU6rfKf
-	n1GV5scnl2ysSrM67i0LdOtWxOyEfNGK/PjmvSWXbROMx7fCcuLUJOhIqY/3sUIsfuz1E5GDxmNFr
-	5QLEy4Cv54Jdgv5ZwGrZvaAKvqTd2ijV6Od8cTOlSZpprY2tiuHNFZUBFMI9o2TA54sXWqZKKOZnI
-	RdCsWGAQ==;
+	bh=YGKqghsvxew8b28cIKt+Ec7f2OYYKdj/Rpo/v1Nn5Vs=; b=cStf6Hdn3XS6TDNWMJrdoH0vsy
+	AmvGRggmSr8bDDsgr3hwlk0sLK0+7t2GWG+Kqc1vAgg545x2XmRQXpy6lALUKjL5/YXG2sS1JU8v3
+	SHCb8xCAa0lxdgCxC6PLD7iMOLOSyfOy00EmuLtot5lYhqTKP5r+/DWHFXQ4Do+diHkjSn7Orgbnj
+	V5/YrYtoPq2PPOnufAKSHLBPvL1JK8kiwAGy3JY9lI08b/9Le+18QHEEYZd2XLX6H0+rFQ7C+AS3K
+	xJu0MgL3aeu/2pmyUhbMaMWYWUj/+6piJd68sbDLKL8UbPyQThw8s1VrSXa0ilJLuLFu0+BngwrVd
+	vq50EFdg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xN8C4-0000000DIv3-3TBC;
-	Sat, 31 Oct 2026 12:28:20 +0000
+	id 1xN8C9-0000000DIxc-43Sx;
+	Sat, 31 Oct 2026 12:28:25 +0000
 Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xN8C2-0000000DIu7-0xK8
+	id 1xN8C7-0000000DIwW-2ScF
 	for opensbi@lists.infradead.org;
-	Sat, 31 Oct 2026 12:28:19 +0000
-Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69V4a6BB595305
-	for <opensbi@lists.infradead.org>; Sat, 31 Oct 2026 12:28:17 GMT
+	Sat, 31 Oct 2026 12:28:24 +0000
+Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69V4a5nR2142556
+	for <opensbi@lists.infradead.org>; Sat, 31 Oct 2026 12:28:23 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=tg1P+RBQgiz
-	SSukuaTnMFtKzAjEomiO8cXn2/5w7j1Y=; b=MSv89lghPWizt6oVqvPoG/1HNE5
-	mZF2hiDZJNPrHwQzuRhdDiXnAjxHnSRndTwdIuJcbKsUAU/N3sXT+kgm93yRrc2I
-	xlaK4ju1C+9jX2olfjJYBQLpa5+jWi0EH+lMRFCNTvYJm/iWbS6+s+AEr1Hp5NmD
-	mJ2D/gHu/vtOSeWG2Pr8ClF7sK4OHslirkwhxYL2iDS0ADEdrP4dM1a2xEANgSyR
-	CCs3lKT3EcXSx4RQTaqwljncSDERXxudDl3rrZI48jbSW+MXG80quZAGaVOKCiW9
-	Fhp8yK8PHoZq8TR+htj8pJTHCBzPjXh7W4KXDM9tFYkuKOSWf2RWcwkioKg==
+	:mime-version:references:subject:to; s=qcppdkim1; bh=0dpiNmOrWj4
+	5nhtAth4Rk7h4WQ9ImTq3xAB2QehWGAQ=; b=RCLXDh658YIHkqFB5y18b+pEtgm
+	nVQkcrB5MfdnEX/CfbM/4RZW4PKitVdv79VeBDPMCG5W3TXn5WAOG9GV/iaU+zh7
+	I7SKSxCqK+Nww2LlMXM11pE6mCw6AK3mA6D4MjImIDR3Ix7CrnMa4hFepqrkLaMH
+	lYNt9DSx2i6XzMu8/bvmEaxx2y+E5EMHzm6+knmyHXaOvWqZlJawXK9kIZkfFkK0
+	1w7Vmyc0Ets81YJsI6EtTX97mN1yB2ou1Y8LVNyuVwt7BtZ2TOLZFOaWw8pywnMy
+	O/BMaF56GnNfj8EV5+Kpekyq6xO15GlR7ynVYjmH+NWo/j+ZhUcpJRnvvBQ==
 Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hn93egymm-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hn61fsd4a-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Sat, 31 Oct 2026 12:28:17 +0000 (GMT)
-Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-30c0d568830so3119044eec.1
-        for <opensbi@lists.infradead.org>; Sat, 31 Oct 2026 05:28:17 -0700 (PDT)
+	for <opensbi@lists.infradead.org>; Sat, 31 Oct 2026 12:28:22 +0000 (GMT)
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-33c35f5ca6cso3604430eec.1
+        for <opensbi@lists.infradead.org>; Sat, 31 Oct 2026 05:28:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1793449697; x=1794054497; darn=lists.infradead.org;
+        d=oss.qualcomm.com; s=google; t=1793449702; x=1794054502; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=tg1P+RBQgizSSukuaTnMFtKzAjEomiO8cXn2/5w7j1Y=;
-        b=Udq/Wo3WwEjGwH+zpB7rVSZXdgxnu/oBSBWoWd013S8K03Mqus+KBE2/ITJOnAFW4A
-         kaour7PUEBUUFYoE7P9mORtMAEkqSNrzbS1iZ4uiU2eHZy6CRHcdmlVxqAumCqBN56Fr
-         4mQ5AGwAAo9344E8vsQuQjy3RDeeYx1IuJV8vX508jFTJi9fGwKVnPKZ5RzF0ZZavK30
-         HwMQVpM48OlC3h6PuJsZRiKwj2to2yWnCoJ02cRvG+KkgsdS4XiQqosc2UjfMb4NDtO3
-         FeHcRON1INEzwC+VAqdXg39h7OgspRbNlaBvfpFyOvNlu+O4zvCptGXQwUIcO3RrLQ4g
-         GS6A==
+        bh=0dpiNmOrWj45nhtAth4Rk7h4WQ9ImTq3xAB2QehWGAQ=;
+        b=LVQmQIgylDTe34T9Jvlw8gEl/7xjtUr/ya6ruBZXIGPzpo/kOhzg4pGl5BCRiZGkWd
+         RPkPTHg8fukPsSKWYj8CwRq1vdKKcILF/jdlO21wQ+C1pqUEbQKwQJLBvZrsNdbCHf8w
+         6NLhEVIcm1y6obDdSn9id/S5GbpC8LnzyAqbiv7WK73nDTNEe1yA/BV6grgtTQaCohks
+         9O8x+mIrc+qEEg3oh/50l7DjgIsNxaaxU8Qa0xcwebtpIH08aD12RHWUDvTkjIJBepdd
+         e52NfQf6e0T7uLwgGKwPMz9etw8PajiwLXavZapsILMMOkkVOLGQ+PjWgO8C+PYvZJdQ
+         Nw/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793449697; x=1794054497;
+        d=1e100.net; s=20260707; t=1793449702; x=1794054502;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=tg1P+RBQgizSSukuaTnMFtKzAjEomiO8cXn2/5w7j1Y=;
-        b=Rxl9bMh9w4X5Q5Rv3uT4TYGrrOHZ8wpNijwYzBUoyqWt7i2F+VpfNc+7U7IHI8O/sZ
-         k6uhpK+WTk+D/LyNk08p3HrxJOz8uuFPWiWrKMH5G9KZr71HHjoB/Yy6CvXQ2JI2rYuz
-         LEgzAj5QAQlMcySGzA/nCqMCCndDXh/sYJG2uBuyPHJUz/TB9b0M7Otxn4rojjS5fr55
-         PVybu/3UZJ7OhKyZF4oX0QMdk4EoVCXL79ynKlaO48uxsimnIBa2TNtSs8FLPYG/FnNf
-         sW6GThrHVwZfEd7g4468zsnZL7roBOPwzXO/eNlgUCLFuMSRaBYlgkZFDoUlBOU3h6fB
-         iNWA==
-X-Gm-Message-State: AFq9FYIkhInisudeK/yznO6jgSTSjouKIRsJx105bz7blN7IXYHT0mDA
-	BAJrKJ/LEJd3Xj+Z3rfd6flMAv+iorPPZzpvczHo/IaLH92RhAcdZypIrtWt4YlSq6KGbUoHiEL
-	nv3DmuZ1eOC+446Q3ELEC74PgRbzdib0rRRgKZAm09cCmTYHAQ/Pl3Edee8C0/3noRZ0sYVd32w
+        bh=0dpiNmOrWj45nhtAth4Rk7h4WQ9ImTq3xAB2QehWGAQ=;
+        b=HjXx9yjPHQgXWpeEK1pPGzXX6JOdPSOipW5ULZTdc/tLZrlFpCYTGlDGIXiqex4wNs
+         ms/72EZkb2uFgTAzPyuuwsmHvtJ2ycyjs8axeQKMPD1gjdxEDgVep+C1mkA1PeN6ciZ1
+         RAM15XCyRtSdcaKCtoB9IFPf1zPI3pJfDdXJR+WOejXchhx+QghrzLi3dm6GT8tQL4w1
+         au/WPDF/GpodvVV2xyoXDVtCYDuneZDC3rJLRvzhLAP2c4eCgC7zBFz3jHmPQqNEI6Kh
+         5f4xgL4VPRf2tV8AhRPR6sdvddxNQDBQmu+UYKVsGb7w0vDarQYqLohfDJIpEWxxQ85n
+         h8QA==
+X-Gm-Message-State: AFq9FYKWCVwZLs0yDtFlyBrc8S2w6jq9yo9gVKH4Wl/xBVkb+JhaSRu5
+	jvUk0v3WrrpnI6GYse05+NgD8W5p5ehTuTjksxbD8xqTViAw05ewTAHV1n8CJ/cmSwjXtgNvpBN
+	icbsGzhkyzFLZ+zkbQb/SmR1wyx7QvCLvidunzYiZSsyl+PRGnP43hksQXcv1lIgOwiLBFSglzg
 	==
-X-Gm-Gg: AYBFou04oeg1f5aUjiaHgCZMPVAxLHy05WRtpWq1csjwK2htgw3LFzcx9GUUoQCuIn3
-	n9Yhsey54uF2ZY9to5jKC7BQhpShanIwPHLC+qcimwOXJ/nwVW6bMkCxBO4I8YphkZcepP75HKw
-	qO8ZMzGhZ9LHZm+axO6tl81eD7i1nVsh3it16AJn3R1Fv361nLxf2LDAzrBKBjtf6Bq1Kc94lT0
-	tNdhCIHVT0rDkQvOXXNb2zg0E4OlPUgrjjQKWL0SlQEeeuhIXF3zQOxWqUTA4mNy8PqB5jAjdaa
-	/sLUPDF8a8Gvm+sUvl0RsuiXtZiseT2LmL7/XppMFCI5bK1Vp2m7N4a1KIcwDcs20eGYwE9gq6S
-	NNKe4iSCuKww7Z6YS/3dG1SgC89STeWEPWxhP8ncddI5AtVjEt7L6MWqPrUtx9AXqmkRjKSSrnZ
-	M6w/mppOjSAiyy8reh5L55TxX4QFJOU4mGBxCmWpLE5BqSZd34NrjsbQ4FREgDVO1aIT07
-X-Received: by 2002:a05:7300:cf92:b0:35d:ea6f:b85e with SMTP id 5a478bee46e88-36a42225501mr7621255eec.1.1793449697062;
-        Sat, 31 Oct 2026 05:28:17 -0700 (PDT)
-X-Received: by 2002:a05:7300:cf92:b0:35d:ea6f:b85e with SMTP id 5a478bee46e88-36a42225501mr7621209eec.1.1793449696305;
-        Sat, 31 Oct 2026 05:28:16 -0700 (PDT)
+X-Gm-Gg: AYBFou3GH5qh9SwGD5XpUEI7X8gkPeKzB5dnXRDKMUR+w3wp2C/X53DYsisajdtMFmf
+	/fsbAxxv8PbSU1ww0XM9rR4FYcjzLzoRjCxpV4+e5PhXmtwiwgQQEuz5sUaPksFnSCkkm9N2yTS
+	g2so4UMix2aXmB5Xhh5268ns10oDAiadqYchBKdA1Czogb11gaWHoiyLjg+12U/jv/nvsepVfVT
+	W2lKZnC8mGrNk5xCh4VQtRiiQANTIQgEIvKL9KWtW8Z3b3PQfdn2T+WKXv+4Gy/+D/FrMb6xaLH
+	I/GCMA9Ox3LJfPbk7yPLDSkRMc/hCsQmpzqVT2fGpWHLm0H88WMMDC4PoDAjT11uSsXIEAWiR62
+	z2tQfcYJmBG6YuFe3USlLumUQ04LsuAHK2z1DCciBtA/jBLiYEWHvFRk6EEUwCq4dU6TNtbGyId
+	XQ/YVQlEsfH3U6FZAsDJw5VdBBZRbIgtcc8QVsPXwiAZ9j8fDgeftwrSWi/e0f6VwtFxVm
+X-Received: by 2002:a05:693c:4154:10b0:369:f4d7:19fc with SMTP id 5a478bee46e88-36a424988abmr8578178eec.41.1793449702092;
+        Sat, 31 Oct 2026 05:28:22 -0700 (PDT)
+X-Received: by 2002:a05:693c:4154:10b0:369:f4d7:19fc with SMTP id 5a478bee46e88-36a424988abmr8578135eec.41.1793449701517;
+        Sat, 31 Oct 2026 05:28:21 -0700 (PDT)
 Received: from hu-rahupath-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a4293b651sm15515168eec.17.2026.10.31.05.28.13
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a4293b651sm15515168eec.17.2026.10.31.05.28.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 31 Oct 2026 05:28:15 -0700 (PDT)
+        Sat, 31 Oct 2026 05:28:21 -0700 (PDT)
 From: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
 To: opensbi@lists.infradead.org
-Cc: rahul.pathak@oss.qualcomm.com, rahul@summations.net,
-        Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>,
-        Ranbir Singh <ranbir.singh@oss.qualcomm.com>,
-        Anup Patel <anup@brainfault.org>
-Subject: [RFC PATCH v6 4/6] riscv: Add Smsd (supervisor domain) hart extensions
-Date: Sat, 31 Oct 2026 17:57:53 +0530
-Message-ID: <20261031122757.2572125-5-rahul.pathak@oss.qualcomm.com>
+Cc: rahul.pathak@oss.qualcomm.com, rahul@summations.net
+Subject: [RFC PATCH v6 6/6] lib: sbi: Initialize Smsd during coldboot
+Date: Sat, 31 Oct 2026 17:57:55 +0530
+Message-ID: <20261031122757.2572125-7-rahul.pathak@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261031122757.2572125-1-rahul.pathak@oss.qualcomm.com>
 References: <20261031122757.2572125-1-rahul.pathak@oss.qualcomm.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMxMDA0OSBTYWx0ZWRfX2PmrO0vOQcDK
- NOLIaNssqN+cUD/RJ3UAngaCf9VKwpR+fhXzgL7PsDo7ouezIAt/QmpZ1ZS+d/4bwVWiguyW74K
- pi71EKrTN6FicCmUwy1ppSH7/t8LUuFqtiz02Ztxj74UQKnPP04gtYS8r6SvqNA2DK/Fm8lSOUg
- HOdJYpjK0anP0UPYBWygzO3vBvyJDElEurh0iW37ExaeV4LtqQ6hCmuJgk5TbFpGYpjKbmC+9GN
- F5ALjftp+o1gqtu+ELauTKSEWCZGAxDYQEZmM8yQr2SVlxdfUNSIR+JkM8WBaSOtPc1TJS6APaw
- hAYT9lchsAbcdmmvwCHT+WOFLGaY0zqFVwqsb8V51egUE75hok9Qor1jGwJxZm/W0VFEjZVwFc6
- 2H0+mDG280LWPD+4V6xGf/2guq+xealSgq+hFgww1JRMmySqgzhw5L07EpytSjnV3ulW5jTuqe0
- WHR21f6eJ9zowc17z0w==
-X-Authority-Analysis: v=2.4 cv=FciiV5+6 c=1 sm=1 tr=0 ts=6ae5dee1 cx=c_pps
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMxMDA0OSBTYWx0ZWRfX4qIzeQxeUQvG
+ G9j4UPm9eeGoGkhLD+fiBwVTAvbZhx9kYbolKmkM98ZGNBr0HQs/vSo0byfvK60jXi2NL4cqYC5
+ GwFwb3wXzIWEsL/t99VVvH5KhW5oKwc=
+X-Authority-Analysis: v=2.4 cv=V/LoQuni c=1 sm=1 tr=0 ts=6ae5dee7 cx=c_pps
  a=cFYjgdjTJScbgFmBucgdfQ==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
  a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22 a=EUspDBNiAAAA:8
- a=W-_n0kkjAAAA:8 a=Di_9Og4mI3HmhrfaDXMA:9 a=scEy_gLbYbu1JhEsrz4S:22
- a=qeNa2pbTr82C0GpJEZFS:22
-X-Proofpoint-ORIG-GUID: qQPZusNaig2J0QEYtsvsn9WXnWUEpKog
-X-Proofpoint-GUID: qQPZusNaig2J0QEYtsvsn9WXnWUEpKog
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMxMDA0OSBTYWx0ZWRfXw7hV6lI4ljQQ
- lGvrtJGBezBPXe7abNWXIP1M0sI9FmEP/q8tO5cL/ggUDVrgbsKK1bse9obMBQSNMSqFkCQRtGM
- JNwoFwHXGXQpd4z6sCMEtuW821dc9Wo=
+ a=u7WPNUs3qKkmUXheDGA7:22 a=eoimf2acIAo5FJnRuUoq:22 a=EUspDBNiAAAA:8
+ a=YNo4ulahfpTerlih3WUA:9 a=scEy_gLbYbu1JhEsrz4S:22
+X-Proofpoint-GUID: L9ah65r9afm6YqoE7OUFmcxRW9-AWFUj
+X-Proofpoint-ORIG-GUID: L9ah65r9afm6YqoE7OUFmcxRW9-AWFUj
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMxMDA0OSBTYWx0ZWRfX64lpGqx1Sn2i
+ PZGYtzZ3i4ftVvMgjeFN7Q+FnwAPMtzDIHCIJ3PI3JF7BWaMyR7jNps6ZGOohlVafutE5jYAA0V
+ 3BArkYQgBMcEAKE6TFnjGainhO0KVer9MIVSvcCmBrIt4ACspouNKQpeyCgUBAlXn9om8taApTj
+ xb8P81o01byPyYz6lZzmT7NN6PlrQOY1+5FgSGIO1S2W0KueKx8s+PrZavaCaBKvk4qX2oytYkh
+ h2+zOMvKlarzjshiia73Eyo1lBRCA8Gu/vN2OjNhiinN3XbLhVAmkueLCokkQViNdJrc7NH8SAi
+ tJ4XxzHxct3lHANXdXUVQgv2ZQ3thPMPVdmyjWsesXhsuBSh4Xgp+qE064mdW22G87ruEuQBPQS
+ flElaKGPBMed7OAJ/tP/bTe8cSBwg3jwlZhf5yfNPhWqvNj3aUNwd9GI5bU0hTODvmO6qO3ffOY
+ oyDOhWyoUfjq288v7vQ==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-10-31_02,2026-10-21_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 bulkscore=0 impostorscore=0 suspectscore=0 malwarescore=0
- lowpriorityscore=0 priorityscore=1501 phishscore=0 adultscore=0 spamscore=0
+ malwarescore=0 impostorscore=0 priorityscore=1501 bulkscore=0 suspectscore=0
+ phishscore=0 spamscore=0 lowpriorityscore=0 clxscore=1015 adultscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2610310049
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261031_052818_271453_B9BF47C6 
-X-CRM114-Status: GOOD (  10.09  )
+X-CRM114-CacheID: sfid-20261031_052823_627480_6556796A 
+X-CRM114-Status: GOOD (  15.73  )
 X-Spam-Score: -2.8 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -155,43 +151,116 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Add hart extension identifiers for the RISC-V Smsd
-(supervisor domain) extension.
+Call sbi_mpt_init() function from coldboot path of
+sbi_hart_init() to initialize the Smsd core. It will
+create and the MPT tables for each SBI domain and maps
+its memregions with appropriate permissions in MPT tables.
 
-Reviewed-by: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-Reviewed-by: Ranbir Singh <ranbir.singh@oss.qualcomm.com>
-Reviewed-by: Anup Patel <anup@brainfault.org>
+Also each MPT table requires to memory to install tables
+so reserve more space in heap for MPT tables
+
 Signed-off-by: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
 ---
- include/sbi/sbi_hart.h | 2 ++
- lib/sbi/sbi_hart.c     | 1 +
- 2 files changed, 3 insertions(+)
+ lib/sbi/sbi_hart.c          |  6 ++++++
+ platform/generic/platform.c | 23 +++++++++++++++++++----
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/include/sbi/sbi_hart.h b/include/sbi/sbi_hart.h
-index 543393bba415..eb202750788c 100644
---- a/include/sbi/sbi_hart.h
-+++ b/include/sbi/sbi_hart.h
-@@ -95,6 +95,8 @@ enum sbi_hart_extensions {
- 	SBI_HART_EXT_F,
- 	/** Hart has D extension */
- 	SBI_HART_EXT_D,
-+	/** Hart has Smsd extension */
-+	SBI_HART_EXT_SMSD,
- 
- 	/** Maximum index of Hart extension */
- 	SBI_HART_EXT_MAX,
 diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-index 7fc49cf7a8d2..b80a13d16670 100644
+index b80a13d16670..d6e53e618677 100644
 --- a/lib/sbi/sbi_hart.c
 +++ b/lib/sbi/sbi_hart.c
-@@ -360,6 +360,7 @@ const struct sbi_hart_ext_data sbi_hart_ext[] = {
- 	__SBI_HART_EXT_DATA(v, SBI_HART_EXT_V),
- 	__SBI_HART_EXT_DATA(f, SBI_HART_EXT_F),
- 	__SBI_HART_EXT_DATA(d, SBI_HART_EXT_D),
-+	__SBI_HART_EXT_DATA(smsd, SBI_HART_EXT_SMSD),
- };
+@@ -16,6 +16,7 @@
+ #include <sbi/sbi_csr_detect.h>
+ #include <sbi/sbi_error.h>
+ #include <sbi/sbi_hart.h>
++#include <sbi/sbi_hart_mpt.h>
+ #include <sbi/sbi_hart_pmp.h>
+ #include <sbi/sbi_platform.h>
+ #include <sbi/sbi_pmu.h>
+@@ -733,6 +734,11 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
+ 		rc = sbi_hart_pmp_init(scratch);
+ 		if (rc)
+ 			return rc;
++
++		/* Smmpt is optional. Continue if the Smmpt is not present. */
++		rc = sbi_mpt_init();
++		if (rc && rc != SBI_ENODEV)
++			return rc;
+ 	}
  
- _Static_assert(SBI_HART_EXT_MAX == array_size(sbi_hart_ext),
+ 	return sbi_hart_reinit(scratch);
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 1df0280da61f..949e41bd95ca 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -33,7 +33,7 @@
+ /* List of platform override modules generated at compile time */
+ extern const struct fdt_driver *const platform_override_modules[];
+ 
+-static u32 fw_platform_calculate_heap_size(u32 hart_count)
++static u32 fw_platform_calculate_heap_size(u32 hart_count, bool has_smmpt)
+ {
+ 	u32 heap_size;
+ 
+@@ -42,10 +42,21 @@ static u32 fw_platform_calculate_heap_size(u32 hart_count)
+ 	/* For TLB fifo */
+ 	heap_size += SBI_TLB_INFO_SIZE * (hart_count) * (hart_count);
+ 
++	/*
++	 * MPT table budget, only when a hart implements Smsd.
++	 * 1 MiB memory for MPT allocated currently.
++	 *
++	 * TODO: Need better way to get the memory budget based on active
++	 * SMMPT mode.
++	 */
++	if (has_smmpt)
++		heap_size += 1024 * 1024;
++
+ 	return BIT_ALIGN(heap_size, HEAP_BASE_ALIGN);
+ }
+ 
+-static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count)
++static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count,
++				     bool has_smmpt)
+ {
+ 	int chosen_offset, config_offset, len;
+ 	const fdt32_t *val;
+@@ -64,7 +75,7 @@ static u32 fw_platform_get_heap_size(const void *fdt, u32 hart_count)
+ 		return BIT_ALIGN(fdt32_to_cpu(*val), HEAP_BASE_ALIGN);
+ 
+ default_config:
+-	return fw_platform_calculate_heap_size(hart_count);
++	return fw_platform_calculate_heap_size(hart_count, has_smmpt);
+ }
+ 
+ extern struct sbi_platform platform;
+@@ -149,6 +160,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 	int rc, root_offset, cpus_offset, cpu_offset, len;
+ 	unsigned long cbom_block_size = 0;
+ 	unsigned long tmp = 0;
++	bool has_smmpt = false;
+ 
+ 	root_offset = fdt_path_offset(fdt, "/");
+ 	if (root_offset < 0)
+@@ -177,6 +189,9 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 
+ 		generic_hart_index2id[hart_count++] = hartid;
+ 
++		if (fdt_cpu_has_extension(fdt, cpu_offset, SBI_HART_EXT_SMSD))
++			has_smmpt = true;
++
+ 		rc = fdt_parse_cbom_block_size(fdt, cpu_offset, &tmp);
+ 		if (rc)
+ 			continue;
+@@ -184,7 +199,7 @@ unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+ 	}
+ 
+ 	platform.hart_count = hart_count;
+-	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count);
++	platform.heap_size = fw_platform_get_heap_size(fdt, hart_count, has_smmpt);
+ 	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
+ 	platform.cbom_block_size = cbom_block_size;
+ 
 -- 
 2.53.0
 
