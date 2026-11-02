@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E61A260A2603
-	for <opensbi@archiver.kernel.org>; Mon,  2 Nov 2026 03:47:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA0A60A2604
+	for <opensbi@archiver.kernel.org>; Mon,  2 Nov 2026 03:47:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=bwywChI+;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=dc8uLqLu
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=FPkK9GGV;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=d3emDqZR
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,73 +14,73 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=iht/ejXmd39VfurYUN3xGEdKSMsMBvez5BU5zhuP6Gs=; b=bwywChI+mEzqZM+2lJ45hyzLT1
-	3zk+HAil72p9u3p2NL5qM9/GOEhXnEXu4+PDR4/pWlbLpRH8ViGYGY3bpWSyI2R7TzFvSyxvG9NJO
-	mIq0XzHgQD06pr51QKGSduofezbf0rO4sBi8sOeYPGHPJemNbih1eEVnAFDc1adaR7phondo++90s
-	JHPWpXtxJs5Mfdaf50dmBLo+c8+qXOzxw+W1exbgky6wMia3POeLgYr068wHS7psePXn6ioN+aURB
-	oTNwm6ddEfLk+xGjKhqP8HmC7NcRPpQKbsYT6HirhAL6uyS+lGiPHMjFKQNjXmGotzwj7lqiKfNiX
-	IcP5jMtQ==;
+	bh=cSXFgyiZPEqh9Nc7v/seHaJTgLoGMHEvTf0yZDzczS0=; b=FPkK9GGVKW/wYnzSVtdBEkjXCw
+	jxuHTqzjvhob5mDe9bQYFsKpNq0tR68DVJNvDjptoacnFuZEg782sQKfFRvsGX6E8qTFCJEVK70N6
+	hv79B9DcNis4rt1/Knf5VU4wPvWxaPmg/BK7FHdG/Ut9gvomj4mLWaBpTtSa2odcxXpjBbFI8fSoX
+	8L5tCiH6CHeXY4PmOFN3kwzdgcDaxKVKtDGQyZyiy6Nza/dm/gxDibOpgxkCPOtu5kIHrQ3bjEpnG
+	nlD41Pnd8ecswjanj/M++XRoGj87SVjkfgYrNcMcX0P77F57WKkrwlhJ2Ksplp+jYKRm4ihKuHe3J
+	YfgD7e7g==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xNj1J-0000000FTE4-33P7;
+	id 1xNj1J-0000000FTEP-3sEc;
 	Mon, 02 Nov 2026 03:47:41 +0000
-Received: from mail-dl1-x1229.google.com ([2607:f8b0:4864:20::1229])
+Received: from mail-dy1-x1329.google.com ([2607:f8b0:4864:20::1329])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xNj1F-0000000FTCC-4AW9
+	id 1xNj1H-0000000FTCu-1sZG
 	for opensbi@lists.infradead.org;
-	Mon, 02 Nov 2026 03:47:39 +0000
-Received: by mail-dl1-x1229.google.com with SMTP id a92af1059eb24-18cdcfc05ffso2822960c88.1
-        for <opensbi@lists.infradead.org>; Sun, 01 Nov 2026 19:47:37 -0800 (PST)
+	Mon, 02 Nov 2026 03:47:40 +0000
+Received: by mail-dy1-x1329.google.com with SMTP id 5a478bee46e88-35c76e9614aso3640014eec.0
+        for <opensbi@lists.infradead.org>; Sun, 01 Nov 2026 19:47:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793591257; x=1794196057; darn=lists.infradead.org;
+        d=sifive.com; s=google; t=1793591258; x=1794196058; darn=lists.infradead.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Zp/N6fRKBcgHV4VV0qiUuxb802BAQObQM0yTeQtetLg=;
-        b=dc8uLqLupYvzYkGZg/g5egidUrYTZsbo89lTr2JAKr/r2/ZxABHPszqiCUVHvDc6hg
-         66o63AJryixKmZhhcfeD7Xfx7pgWIPzEXJXyBB4xb69IOYiLxZcFB+U0B63v62KwNAPU
-         pgutAyJg+PhXFLFWK90ZoUeHtt2xIvroLINFJyoWbTnslxhjinyJf0so2M0/Y9gYBPCs
-         tuwioK1651hBOC4DMVAPrCQ5oANS+DxzdUg4PFJxX6JtemTL7GPjqZeUpbT35037gVJG
-         hDdOYQjqPzu35VAdt254utqsViDzaX2n0o+nWcRAM4PRHWnO0T4rmhwE8DuLkTWqj4/P
-         Bdew==
+        bh=9V36ZLOct/eaXAmVVF1HHBNmvf6Ss5/+aas4SuUDoDI=;
+        b=d3emDqZRIq5zcOGkeG5IAoj4x4jqmt65vSUMpUeA3MDLWTESbLgZMKkhiZgIfiy4LG
+         vhUSvXS5YrS8TbMwukOgqvRvTQXgz+9LnGLD3x2S2xaVrmDw8B3fnIGg2t+DcnWyL6my
+         WmaWuPQeomfJ5QqIFnuOyHf8WzCXkkC7xuSvKmZSQ/SDV03VBbUOe3gxOYF7pLldylne
+         kv3bvtek9Y8Elz4xiEcS8wY8zNvbHEpye/6itVv7nX0rFwZ3Vg8/+mU+CoI04ndXaCxC
+         jUHNepPR1fv6DVIL5BoPvAWyWYzTITHcpWm9rwpSkukCrPyByeBQOg4qqJOstv5UO0ky
+         4MLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793591257; x=1794196057;
+        d=1e100.net; s=20260707; t=1793591258; x=1794196058;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Zp/N6fRKBcgHV4VV0qiUuxb802BAQObQM0yTeQtetLg=;
-        b=O/7K5h+ipfPy69PSEbWGfirIqWK29LseR7q5MxQ2x/lxAaG4T6TTvPABrrI5SomMMH
-         IkJWZNLGrOd/XEmfWEGVqwN/rTPSIaDCuyu12Ii9D0aKOqavOPdx7tyQdMhvzLdQG77x
-         SNcgBb75pInt0S1S1r4WEYsciOtFcUSE2IthHitdjni8ABEojQ5yufkgQYMHw/ukAYTk
-         VsNbaFuNQgpo2KYnDvUJMHNQgwJonCDqgmoVrJnFfAIZJdzKqe+dinDmlHq0D7+wNJBp
-         x5ubAuxH7bfMH1dtnhlAKz+YoFHX2/X97I6mbPAdXtWyF4vFP1Gb9Okr4E6ZNgMR8RWL
-         NATg==
-X-Gm-Message-State: AFq9FYK+T2ENJ1An0lhmauKE742/MuoN+fqQsoJfbPefJ5tmrpybYNJN
-	aSXgxi+QVWIX6YTR0OYT0aGefibVngA/w8uMPgWfPgksrPYvxI+dpr9Lb5xXW8mj1Ys=
-X-Gm-Gg: AYBFou2j86y+IGCgl87ofgCTelFeA2/pBwxv7EOb/HA7tYeyuqLX+mtur8vNvQ+T2SZ
-	2sZwKLlFkCuQW9XM2URtNREPM0ESvoFbiHKl14StaGxBk1rMsMv5tLviztmZtHfvHTR+cYDF58H
-	EELLBDUo5cgDRIWZrnzKzMRE6Uv4DjIGhLGGJLVYChbScLbgHUqQ8r3sc9LMJ/9GmF5O4drUT6o
-	k82GeoX3zxyNaTBnS2DwfQ99kFubatG073CFcwRj9l6z05HqqAbpvSiMQkv7w68nL3htNC4kp5n
-	H+TkGQC/0wZjAUciKmZjYYE+dWqBAHN8HscwUsR44Y6c1uqir3Upml3YUUkwbszuj4kjJJC4Dhg
-	RhhFTC5oniBb9UnlDCLC+yd/65tYLBMe6NscgkdowGdJu4NKpTG43m3YN8VX6lmy2IteWWXwvpk
-	caw44H4pikqzMvJstXgkbYtyWBE+kcabHgqOa3XlyEfFGcLkKjR8OSfFztsygMGv0srbFyrFwiv
-	yk5c+5qGQNTlL72zj2qQkK5hQDfDsaC/TMbVuMg9SFsPUv4cX6Ln4xDvFjyfH3PMJgpGvNXMrMb
-	KCGaZFbKhDIxORnUJIUEyN0kpIUX7B8rdyYxRI0Yq1g5WNIXo8356/7a4315EilcpG98NvLGav0
-	E5Aa+Sfghl+Y5DqnVmsu4yt3iRY4=
-X-Received: by 2002:a05:7022:b059:10b0:169:9f67:a91b with SMTP id a92af1059eb24-1ac5bbba381mr14109371c88.12.1793591256833;
-        Sun, 01 Nov 2026 19:47:36 -0800 (PST)
+        bh=9V36ZLOct/eaXAmVVF1HHBNmvf6Ss5/+aas4SuUDoDI=;
+        b=Bfa4Y0rWSPWk5f6wtXM39XkPflGf4mQll3oIAjfUEzKTfl0EjBUZkoRNxzMv1ZXNyQ
+         gylxmqzvB//vSmwcHLlbkzbOZGkRgBNsgDjDa3nSlT/oX67ml+MvLtVPl3uFwNSbUNsF
+         Y2KSMVAuYw0OO044zV1V6WYe4KmGJFvFIbQ50mYSZAWhcQez2zEVzFvrE79VkCMV7Br6
+         sNO2eR6/fQWyzYpNdttgEy8es7FVcO8dR2ziXMLkwfNDgzPBQA7r5uX6gzCXLTkjzZH+
+         Et1KpHebrb1x0vwO0iDd1aFOUyIOqjcFbqAxetcBoCU5DcKvX4RsI3VlVAYWskjV3xvU
+         ckWA==
+X-Gm-Message-State: APuU4Z+K2z9Xa+3beF/GSu50LR3Q9m0tRz5KyncQCdRQOjq2LerFd4p3
+	7n9cAMhjIvqRgAy/nnSZGJRa9Vg0cQygCORYdXxQhl7O3Cqe2QzLNppjIl9JNtXT1Fo=
+X-Gm-Gg: AYBFou3PA1+3/FcoURg/Jmhzm9UPNEDBLCTGzncXV5Zyg3J9rOWcSQZKtcTyyxGYmaz
+	prVE+Wm7nAoJaMX48fg0pOGSwjLUmtRLOGF8RawcGBJ5DjcCHjEqItdhro0dJonIoYYVxJy5V8A
+	7+cXKd74nPGYq9DWr95EKqM6tubCxV5ro3vfqN08KA6102CcSrrVYIZI1no1RyHZO05bZkBShRP
+	EfhpNep0B5xcA/2Nh9z58cwnyduUHk2TejAoY+E8ej3RrckjVuAv/cAC3tD2nJEyva6Hd6GIvO4
+	I3VyUq27j+DddRalyf/Ws7p5CsATuTMoqhBrJ0MUpI6z//fGhCFa1/IzifICAiCpLG2z+AU7yBe
+	bkm0BXt7sooG/sZzAeMkyrIQy5y33jiQi75UNEQpU/KoX0A/4KMO/pmbryLpCb5tAHDDho+wAM9
+	D89rcpVX6tTGbHgO82dlbOt5jD4rOw4jZeBG6B/HsVcuXeE2I2KhWRpn3dlvpwPpZoEe9MKXiRV
+	iGf9jMmS8jpBBYCxiPZ5xVAIoWOqkMXvZ9awJQ6tG411a/7Kid0Ki2RSjLR2BSHyCNyZ4WSAuKE
+	KCB3KdyIQtZumMF/oXBWlyoxqeogSOQSVpPWL2gCGDqLJ7tYd1oZ9mGGlH3IdnA/6xikzDs2vdJ
+	qFeE+erfgJP+lx6+GPFFiTA5MidQ=
+X-Received: by 2002:a05:693c:69cd:b0:34d:96cb:d75e with SMTP id 5a478bee46e88-36a423bed39mr14472203eec.27.1793591258340;
+        Sun, 01 Nov 2026 19:47:38 -0800 (PST)
 Received: from sw07.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a428fa380sm30308670eec.12.2026.11.01.19.47.36
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a428fa380sm30308670eec.12.2026.11.01.19.47.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Nov 2026 19:47:36 -0800 (PST)
+        Sun, 01 Nov 2026 19:47:37 -0800 (PST)
 From: Nick Hu <nick.hu@sifive.com>
-Date: Sun, 01 Nov 2026 19:47:16 -0800
-Subject: [PATCH 2/5] lib: utils/mailbox: Unlink mailbox channel before
- freeing it
+Date: Sun, 01 Nov 2026 19:47:18 -0800
+Subject: [PATCH 4/5] lib: utils/irqchip/imsic: Fail MSI programming on
+ compose error
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Message-Id: <20261101-dev-nickh-msysmsi-dev-upstream-v1-2-117b2e075be0@sifive.com>
+Message-Id: <20261101-dev-nickh-msysmsi-dev-upstream-v1-4-117b2e075be0@sifive.com>
 References: <20261101-dev-nickh-msysmsi-dev-upstream-v1-0-117b2e075be0@sifive.com>
 In-Reply-To: <20261101-dev-nickh-msysmsi-dev-upstream-v1-0-117b2e075be0@sifive.com>
 To: opensbi@lists.infradead.org
@@ -88,8 +88,8 @@ Cc: anup@brainfault.org, greentime.hu@sifive.com,
  Nick Hu <nick.hu@sifive.com>
 X-Mailer: b4 0.16.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261101_194738_039405_0CE9D18F 
-X-CRM114-Status: GOOD (  11.07  )
+X-CRM114-CacheID: sfid-20261101_194739_512158_6824E962 
+X-CRM114-Status: GOOD (  13.60  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -110,47 +110,44 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Both mbox_controller_free_chan() and mbox_controller_remove() call the
-controller's free_chan() callback before removing the channel from the
-controller's channel list. The callback may free the memory backing the
-channel (e.g. rpmi_shmem_mbox_free_chan() frees the enclosing
-struct rpmi_srvgrp_chan), so the following sbi_list_del() then writes
-to freed memory through chan->node.
+If imsic_compose_msi_msg() fails, imsic_program_msi() only prints
+an error and still passes the message to sbi_irqchip_write_msi().
+Since the message is not initialized, the MSI controller may be
+programmed with uninitialized stack data and end up writing MSIs
+to an arbitrary address. Even if the child driver drops the message,
+success is still reported, so sbi_irqchip_set_affinity() records a
+hart_index that does not match the hardware.
 
-Remove the channel from the list first and only then call free_chan().
+Return the compose error so that the irqchip framework can roll back
+the handler registration or keep the previous affinity. Also
+zero-initialize the message so it is never passed on uninitialized.
 
-Fixes: ad846a7cb8cd ("lib: utils/mailbox: Add generic mailbox library")
 Signed-off-by: Nick Hu <nick.hu@sifive.com>
 ---
- lib/utils/mailbox/mailbox.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/utils/irqchip/imsic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/lib/utils/mailbox/mailbox.c b/lib/utils/mailbox/mailbox.c
-index b3f7e8b9..a617cc5d 100644
---- a/lib/utils/mailbox/mailbox.c
-+++ b/lib/utils/mailbox/mailbox.c
-@@ -51,9 +51,9 @@ void mbox_controller_remove(struct mbox_controller *mbox)
- 	while (!sbi_list_empty(&mbox->chan_list)) {
- 		chan = sbi_list_first_entry(&mbox->chan_list,
- 					    struct mbox_chan, node);
-+		sbi_list_del(&chan->node);
- 		if (mbox->free_chan)
- 			mbox->free_chan(mbox, chan);
--		sbi_list_del(&chan->node);
+diff --git a/lib/utils/irqchip/imsic.c b/lib/utils/irqchip/imsic.c
+index f6da9f7e..708e6754 100644
+--- a/lib/utils/irqchip/imsic.c
++++ b/lib/utils/irqchip/imsic.c
+@@ -454,7 +454,7 @@ static int imsic_program_msi(struct sbi_irqchip_device *chip,
+ 		      u32 eiid, u32 hart_index)
+ {
+ 	struct imsic_data *imsic;
+-	struct sbi_irqchip_msi_msg msg;
++	struct sbi_irqchip_msi_msg msg = {0};
+ 	int rc;
+ 
+ 	if (!chip)
+@@ -470,6 +470,7 @@ static int imsic_program_msi(struct sbi_irqchip_device *chip,
+ 				__func__,
+ 				(unsigned long)eiid,
+ 				(unsigned long)hart_index, rc);
++		return rc;
  	}
  
- 	sbi_list_del(&mbox->node);
-@@ -90,9 +90,9 @@ void mbox_controller_free_chan(struct mbox_chan *chan)
- 	if (!chan || !chan->mbox)
- 		return;
- 
-+	sbi_list_del(&chan->node);
- 	if (chan->mbox->free_chan)
- 		chan->mbox->free_chan(chan->mbox, chan);
--	sbi_list_del(&chan->node);
- }
- 
- int mbox_chan_xfer(struct mbox_chan *chan, struct mbox_xfer *xfer)
+ 	rc = sbi_irqchip_write_msi(chip, eiid, &msg);
 
 -- 
 2.43.7
