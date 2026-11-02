@@ -2,12 +2,12 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB24B606A324
-	for <opensbi@archiver.kernel.org>; Mon,  2 Nov 2026 04:34:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 363B1606A326
+	for <opensbi@archiver.kernel.org>; Mon,  2 Nov 2026 04:34:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=mWGihRHL;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=RsJJTEY5;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=imrt6u4a
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=QVp1+zaI;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=EcYXvSdy;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=fVdS4MdS
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -15,122 +15,122 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=wi1YYyFq03ggisAtOWcCA+FuGAI4gUZTwGx9IWhsPuc=; b=mWGihRHLbz6XwcJG1o0maCf9+3
-	HyeEUHtXyOqnptqgZJDg7YGs/dDJuUD1joEDjMN//aQYQy/p1VI1hs7XY3HbblvV5UAYs9D9qSTKR
-	CjKCRYF8ZwEZLS7QdECUAIGX6iUThmqxvYddhytFPlYOt0vUFuTefjSvU1Uebfgkl55c/RVmPgtPd
-	jtNaJ7uJM84ZGiCFzrBa2Us5rxYYLFImklsPCqbZ3UeLZiawbZsFlzyQ9upBPnkbq73WkdA2R0GDo
-	GGwe0VERi76vA72ZSpmCyj91JxAc0zCVWUgEUtJ/uBiFlExYBEIIgvD1WVPiHXnBjYrBjGEDnsNv3
-	6j8QC9Lw==;
+	bh=J8Ep9nbfHlTVzMBTZHTy2PYUKo1CvjPEm35snpYk2Fg=; b=QVp1+zaINSP82yBJsBSVIGF9wp
+	wenJaYdkhnL8l1VBKBfJOs7JAWEIyykFAXwCP8jYd/TkF1/+G3b4lofKkoBhI+pb8B+OazjM5SGzL
+	CUgWj68ujJcusBEM6WyDxeMEyHxnQcz437hXp36J18++FjOEWvhG74UvQ9zbcr5drXDWz/WOK6NJT
+	L0Im5vCv5XaqzLAE3S4tnH7tk4AKN4a38SG6scyi+CRDWHp0oAkGm8L1jt14/CH5iiKQ7hJPgMf3g
+	2QwnCXFEg+pICdIGJf869PZLH3F2zksxYB6rhkHMinr3UjehQ7WoZ1QgSarK4ICc+4ITd6khJqu30
+	5Sq0IwAQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xNjkV-0000000FW4j-3mzQ;
-	Mon, 02 Nov 2026 04:34:23 +0000
-Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
+	id 1xNjkW-0000000FW57-44fC;
+	Mon, 02 Nov 2026 04:34:24 +0000
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xNjkR-0000000FW3L-1RcE
+	id 1xNjkU-0000000FW4F-2SgX
 	for opensbi@lists.infradead.org;
 	Mon, 02 Nov 2026 04:34:23 +0000
-Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A23v7cG2752931
-	for <opensbi@lists.infradead.org>; Mon, 2 Nov 2026 04:34:18 GMT
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A23vUlg2192509
+	for <opensbi@lists.infradead.org>; Mon, 2 Nov 2026 04:34:22 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=hupoeRpCSEm
-	OrkwqJQtyFN7RKikmPsVDDW+gV2BX60g=; b=RsJJTEY528yeI7T4tBbTdgooVPk
-	RiIQnzA0v30emNXLY94hg6fuRgD4KMWqUoytdbNkDXwKrAmIWgdEr8Ru3BI0324n
-	OvwaLWHCHLbGcwNIzX5JbPCK4P6gp4yLlqHB+dCi0vhJdG6vlBtNx0fDKxyjFuel
-	DO/xt51E3AZjsj5yevgs4z92RQ9DABlNi1fspyLmgh5vKvOGccLr6Ery1ofqhDvT
-	HFAa4MauWPreX3EUOh7nOByX1NQg+nfyUUIh3UTlehh9OhyfJtta7JOyASeWteYg
-	gmI9uzmtig+iNkhUaWIB20lhQkIOqjJ8SEWWiji1jj1o0W3vq0vITULD/Rw==
-Received: from mail-dl1-f71.google.com (mail-dl1-f71.google.com [74.125.82.71])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hpg200k3f-1
+	:mime-version:references:subject:to; s=qcppdkim1; bh=tDuYcRMolVC
+	JyW/S6xymAYKB0IH+wL/LFYLB5RlDOqE=; b=EcYXvSdyiq/0SngeEDVfgHsGZK+
+	MzMs0/HdZWh0wk3/X5R0y5Ln05Di4cEYdfmQZnTqZLuovYLvOtfD1p2/+5s1VBnN
+	0bOJbnYlGVhkIkD6C/k7O4eclI0mwZgiTDTK1F0S+y3QFdULl2jVYZaWkUEQk3Gi
+	0AEKVgvoynSIKKsiNY5bLCZWqMS29i0yH4PWQigekuw6mGKMenhTuVG6EkueD6fl
+	GF7ktHwmcWtRdXdl9SWBLs3vzxLRqXx57NXNMsMbI02W7W4MYhO8t1F7x8BW/Eb9
+	Li0KVGqq7kf9My3UQ3TpvL9HS88jsS3wArDU5IXzUf4JJ1RxCmeF2QaWynQ==
+Received: from mail-dl1-f69.google.com (mail-dl1-f69.google.com [74.125.82.69])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hn93en02f-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Mon, 02 Nov 2026 04:34:18 +0000 (GMT)
-Received: by mail-dl1-f71.google.com with SMTP id a92af1059eb24-14373747468so2831332c88.1
-        for <opensbi@lists.infradead.org>; Sun, 01 Nov 2026 20:34:18 -0800 (PST)
+	for <opensbi@lists.infradead.org>; Mon, 02 Nov 2026 04:34:21 +0000 (GMT)
+Received: by mail-dl1-f69.google.com with SMTP id a92af1059eb24-1a71dd190b0so9300206c88.1
+        for <opensbi@lists.infradead.org>; Sun, 01 Nov 2026 20:34:21 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1793594057; x=1794198857; darn=lists.infradead.org;
+        d=oss.qualcomm.com; s=google; t=1793594061; x=1794198861; darn=lists.infradead.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=hupoeRpCSEmOrkwqJQtyFN7RKikmPsVDDW+gV2BX60g=;
-        b=imrt6u4a/oOTnBNoeSFMTsmrYRTdF5mRZ7aWZKY/Yo60YfEEyNCV4W4qYO/WJb5svR
-         C1khd3ZI28vJhEXt4HFzoX/CgteIhITZk+PI3CF9Yo+q5VdW/gsA+mM7yIk6R/00VNjs
-         hUacOqcB3QH/NXVKzP+AD5HM0277sExPTP//exWNso93dtOpR8dvJ/+EkwLbShGSRoxs
-         O1Km5MirWHBpwmQeqKN3+Z6tIi2K72apkbmQSjQAKkLrCwVupFUKUBHjadaQ4mUHz3Za
-         jutitoBTYFXcsOrDGmoVIljmDfBK+8uirYjDm73hzaQ3Iwyx1/2I7CU3h0/r/95JJEFw
-         FTtw==
+        bh=tDuYcRMolVCJyW/S6xymAYKB0IH+wL/LFYLB5RlDOqE=;
+        b=fVdS4MdSjepDYSlUsTbbnZlGhuRaIIzV2NAhp8GHaMPLkqNbgN38FJNQ5jVoIIJqyv
+         GEZV/4wDnrg8aR1KWXWj/Fh/znGx7nP9CfTTVUb0RzG2sokROJQRabmd+na4IukiTeCs
+         iuhXTqna4i0nR6yLLvDVDF+BMBaNkDS7fkgM034eXxIhmHgjjPNHa1YmLi07R4sUyqje
+         4HIlaxWoxDG7G4YPWMaYy8ELtz/SovGJ8d+ujjFegdIolU2RBEfotP4rRMSof8eCrKIu
+         7GRWDL8CvbjwBTQd32F779FbmfvYJ8XM+i7vENYL6k/f+s6kYmw+TTPV4wlYKQfJrwM0
+         yI6Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793594057; x=1794198857;
+        d=1e100.net; s=20260707; t=1793594061; x=1794198861;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hupoeRpCSEmOrkwqJQtyFN7RKikmPsVDDW+gV2BX60g=;
-        b=JR1nBuX8q9SikRAKiBnmpwIT0fR+ms4LlzZ7D8qt/kbJ4vDWbIDBlKQgvZpok7uxRi
-         gq9zT18V5sQHEmQGwFTDiJW90zUru2BfwHuiR+JAwEuIJEQQgKgWWwIIMTDlAywoC0T5
-         V5mGd3gkswEBfxZSauJC4dDUY/qkxyMQ5tbdrBLOtl4kS2s9YcE5JDrS6ZSLRova8WbT
-         aKiBrf61jZMCaegr7yACKWdpXKdtAFgkCR79AZ6dRMD7NvRQB5L1vDxfebJPwJcT/xNF
-         PJqmJIrOpxAb/py3ARgakmvvnKxnX46fK/w41CJVDTWA6aShSZRa4sQbRDfNIb+aYB1z
-         +Exw==
-X-Gm-Message-State: AFq9FYL6Q8wzr3OhSoI2T+OM5u/82Xhyw6/sJ6QYwQNVUH5upJwkC4OL
-	6u6M3OjdOR86JzVbR8+NxqP7Q/vFq3hoTgAuiHQ4ZNgGvpfg6bTzXxZpaoRDiHieb2zKXfifYqV
-	rqUQtWlrXfbfwXX0mcDcSpoe38hixWVuCqfE3LX9chywwg72vip29qsK6VwbaHCCiOP5lDT6FGw
+        bh=tDuYcRMolVCJyW/S6xymAYKB0IH+wL/LFYLB5RlDOqE=;
+        b=ujhh//pwZ/4t11A2lZZS9X6gc47y2uMb6iyVKs5e1hhI7sfaiamhw2WlrzcBnvYzqT
+         vVcI/yQyWBeYzMp2kGJKaRRvhAugyu+u6kXzofhZ/vuZAzbvR3lHsSwK6Ki6/TDwfN/F
+         pTWfKHBuTEb+fafi6/M0Po2CI7T1k8G7e2HM2RjXSMsav8TsWip0iGf4EhOk3WDBEe8D
+         cnhW9hHn7ZlG0GhKRwDAp+i9rjJqLRSOxG6K378Mtg6gZYroY4Ji06dmg53MtcKMJMM8
+         ShJ73xYkMhkj3EJrB0PBC5n5QJfh+5AkOl6L+VOsJPoaP9hA2yZb7wR9uqLhgdGZn7nq
+         m4Jg==
+X-Gm-Message-State: AFq9FYKs5VAI85V0VJLq8swdc/mgtTiKUUwz1I4E0XzZJzdtR7WYepNB
+	+u4XQI/PdAcicKzGj5a9iQRrCc7qhCa1bKyvU3MF/l76eKlDMoxneSXZI8U9NjN4GZePESRfegH
+	ViUEXmiGwuoszUDrKTWCYBJjiUZV60PRZlwIGEgpL/z7YBL1qU4ZJmJB+JhkINaodaH3a4QVfqQ
 	==
-X-Gm-Gg: AYBFou0Q1Q6Kc+5qWDMkC9eQLO9JP8JRwyJ2DEli4Tn47IBKKqnv/HtNQlBxalo9rtB
-	wjUAUuI2yghmD2XrWcnjUpkPzCPIQJhmFlNAqKr/roiztUyMhnefLEL0vvR3tfqCmSauNVuDueI
-	bLg2s6lguLRmu9Gf4IxGuAenN0Tkks4J/8VQ+n1x7IFZVYdsnqRiR+IZXN2LkuXE7AidLw9mPt9
-	4x1e1+1MwBOBFoEDvILBL5KeQmA4nagAzTkurO56TcIhzD9atu0HNJwXdK1sadspuC8GsmUfrJ/
-	Jl9O0ybBA2zntYeJTlQnZ0tQ+77PVUH83eVa8XC1l6Z4ZWRkTqmTyEnGoe0TNZbD0AMEf6nRWgO
-	licHR4nnZSTM/a7RKS4tq8GnDjC3wTzfS/JDyMmeBS85SJgsYCDsA6H/fGMOAivGq3/VdUKbbrR
-	u60XHe1j3iuGtpTVTrkZofkakS7+9CJSIcOPalMvRlfwDmslSFthBQ1N2Mj0BC4A1jzPCkJQ==
-X-Received: by 2002:a05:7023:903:b0:17f:7280:1332 with SMTP id a92af1059eb24-1ac5c92f6e4mr14891090c88.40.1793594056671;
-        Sun, 01 Nov 2026 20:34:16 -0800 (PST)
-X-Received: by 2002:a05:7023:903:b0:17f:7280:1332 with SMTP id a92af1059eb24-1ac5c92f6e4mr14891050c88.40.1793594055871;
-        Sun, 01 Nov 2026 20:34:15 -0800 (PST)
+X-Gm-Gg: AYBFou0T0T0NjxzkrQYL9OZy3OfRLi+2QAKY5+5vcYWe6BA1zFvfD0ftyxZdvRrLll5
+	nVJouVa3edK/f0kI8bjy4zb61taW8oWZdsC+DWo1ZkFlRzMZYHcWDoAMpzeF53BXI9daOSb35Ip
+	wCgEVz81cKvc4Ze2iAFQPvJgtwaR+HBik8fPaUTIB6KZpCTDKGrAlgb/oYQsJA9p1cIeS/DH2W5
+	+LEpxMxnBSl7/5xJkFOp3iIv8TkNg1WzobclLnA80kQibK/cVnxlZBl9vA+zJZAqKupOfD+1QDC
+	m9FTtJwgogQk4i/54zbmyBEu8oTj5L4ySMyOCJW1ZpYX+4TeHT67NgrLQB5r/2tg1j4qlqa3fBb
+	NxPCdmzYGagvQLSQNNN7SyaFMlFIOt83rW4+OTciRA9+fu/5TylHgTVZRv2nqcfptHeh5jim3I3
+	f435J+LFW4Y1QuBB1lRdPvEeQh2R/W4V4wfgOFPpWrHKK3J2puBoRsJETWz6BoOcbxgop2uQ==
+X-Received: by 2002:a05:7022:d8b:b0:195:c6c2:c6b with SMTP id a92af1059eb24-1ac5c273c3emr11952209c88.35.1793594061074;
+        Sun, 01 Nov 2026 20:34:21 -0800 (PST)
+X-Received: by 2002:a05:7022:d8b:b0:195:c6c2:c6b with SMTP id a92af1059eb24-1ac5c273c3emr11952172c88.35.1793594060362;
+        Sun, 01 Nov 2026 20:34:20 -0800 (PST)
 Received: from hu-rahupath-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1aed79b3dfcsm28014910c88.12.2026.11.01.20.34.14
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1aed79b3dfcsm28014910c88.12.2026.11.01.20.34.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Nov 2026 20:34:15 -0800 (PST)
+        Sun, 01 Nov 2026 20:34:19 -0800 (PST)
 From: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
 To: opensbi@lists.infradead.org
 Cc: rahul.pathak@oss.qualcomm.com, rahul@summations.net
-Subject: [RFC PATCH v7 1/6] lib: sbi_domain: Add finalize callback for per-domain state
-Date: Mon,  2 Nov 2026 10:03:52 +0530
-Message-ID: <20261102043400.287938-2-rahul.pathak@oss.qualcomm.com>
+Subject: [RFC PATCH v7 3/6] lib: utils: fdt: Add helper to check for an extension in DT
+Date: Mon,  2 Nov 2026 10:03:54 +0530
+Message-ID: <20261102043400.287938-4-rahul.pathak@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261102043400.287938-1-rahul.pathak@oss.qualcomm.com>
 References: <20261102043400.287938-1-rahul.pathak@oss.qualcomm.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-Proofpoint-GUID: RdMjcUvqtg0-kAbT_pNcAzW2_H8R3p78
-X-Authority-Analysis: v=2.4 cv=fZY4WEQF c=1 sm=1 tr=0 ts=6ae812ca cx=c_pps
- a=JYo30EpNSr/tUYqK9jHPoA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTAyMDAxNyBTYWx0ZWRfX9DktcDq2x13P
+ +PPfm3t+71DGWPccRQF/mutojuWnQkGmyaBGsQtjYts/u+HlGMo3eC78vH1gFaFz9aKz4yFfnuQ
+ X+FcCAC1coDPUnFvd8gBLCv3BT/mIvVVzBctAjcwwFpnL9v6Nu5mYQrD+g10rFqK1Ftcknlm1/H
+ 5fXUVuWcrZGBkF6Thj4avWYlzB2Sh0mqlSr1bJep6xgvYzJA4qhEg+sNTEBhsyLpDQ/zrdmbM2/
+ RrclTU1R/LhZPCAkdOxTUk+apvsVR9et1sQW1q3YnmJbqYFLEdWQIt/Go42vQ4Gqeke+yyy3aB7
+ VZvHnbKTWXTGPJnvSdgP1PrafV78BVLn7Txzf9P7mNBCRpyhZ6ppW2xvopv5bNRXewmfsuZx7Df
+ 4W2ZBxO+ruBMF6AKlUndvk9L54PiDOnUAeZsnShKfHMu3NMRMEiowVsY7kFM8j7/pRGHRP1QGhI
+ jFXbh6I5cnUHVKLSrGA==
+X-Authority-Analysis: v=2.4 cv=FciiV5+6 c=1 sm=1 tr=0 ts=6ae812cd cx=c_pps
+ a=kVLUcbK0zfr7ocalXnG1qA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
  a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22 a=EUspDBNiAAAA:8
- a=A3s7GLJBcYfuUOYuCAAA:9 a=Fk4IpSoW4aLDllm1B1p-:22
-X-Proofpoint-ORIG-GUID: RdMjcUvqtg0-kAbT_pNcAzW2_H8R3p78
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTAyMDAxNyBTYWx0ZWRfX9jrKi9V8PN/8
- 21nKO0Pyy0OwSjyut6JpVd30HwQeL/+oG7K4HiI6BEcFHeaKbTbUMb6ZVCo5zaUQA3GgAcr8Knb
- LpqT0cHYJiQm299aBK2bDMKNovpUAyOsojf21v01qslCJYUgJIPkSItGE/gDbikLrknuOuT82gk
- CB/+ROw9kp6WCGb4/t9yd4O7gFID1iDiVYEbnAuAY8dttoAPHl1DooTnkeqQGd3N7tJ7g2ij/zg
- ZfwcTjpAsEtdfh/CZtfvRCNuirMxtUONytOLaPccW/8kTk1TJU9MWEgxN1KGSLYvl4iAlCcResY
- agJY3JDbjHCCYQlqdnLqXhaShk3dtvTIP5GmydMavGVM/W1o0ADa4pRBOFaBo5UPn+EjfbThR5K
- gnMpCyMAsKelmqLCH0/+apGqH4OF7W5Y0o5t6G2ULrZV/LbTvmOJ0y6f64qZbOfmxoUlceTW2tL
- VwF9w1YOLP6OmdQVD1w==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTAyMDAxNyBTYWx0ZWRfX0ZIkBtmrd5WK
- FUBTGpCvWd+v12SwwSCCzwoZoupJjC5nIjnOpcamt+gS5FimES1HIUmPAMItZs8QQAFdzrp6tM4
- TFnU8SizOWtRLOVkKyj8dcuhyH17hVc=
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22 a=EUspDBNiAAAA:8
+ a=-3CqMY4tcljjevOultEA:9 a=vr4QvYf-bLy2KjpDp97w:22
+X-Proofpoint-ORIG-GUID: 5YXFnLdAqYbKHDLUfJGIemRR4xo42mnX
+X-Proofpoint-GUID: 5YXFnLdAqYbKHDLUfJGIemRR4xo42mnX
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTAyMDAxNyBTYWx0ZWRfX8VvyEWR1gsbc
+ suW8Cg5jKAdqQlngRKcNcPDdLoGyQ+Yj26p5HeY5onOSV5XaGm7fyP+LQ1ok6vKmopWzatmxxKS
+ myg5UfmgOzFQ8zrN2SZTYXDV1AOXxWI=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-02_02,2026-10-21_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 spamscore=0 impostorscore=0 adultscore=0 phishscore=0
- clxscore=1015 malwarescore=0 lowpriorityscore=0 bulkscore=0 suspectscore=0
+ clxscore=1015 bulkscore=0 impostorscore=0 suspectscore=0 malwarescore=0
+ lowpriorityscore=0 priorityscore=1501 phishscore=0 adultscore=0 spamscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2611020017
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261101_203419_515108_5B2E4E3C 
-X-CRM114-Status: GOOD (  19.61  )
+X-CRM114-CacheID: sfid-20261101_203422_625310_13E361C5 
+X-CRM114-Status: GOOD (  17.88  )
 X-Spam-Score: -2.8 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -151,129 +151,125 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Per-domain state is registered via sbi_domain_state in state_setup()
-but during that time the domain memory regions are not final.
-Add optional state_finalize() callback which is called
-from sbi_domain_finalize for each domain after all domains are
-registered and their memory regions are final.
+In the early boot stage a platform may need to
+check for an extension in DT. This early stage
+can be before the sbi_hart_init is called which
+later parses all extensions available on the harts.
+
+Add a new helper function for this detection.
 
 Signed-off-by: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
 ---
- include/sbi/sbi_domain_state.h | 22 ++++++++++++++++++++++
- lib/sbi/sbi_domain.c           | 16 ++++++++++++++++
- lib/sbi/sbi_domain_state.c     | 25 +++++++++++++++++++++++++
- 3 files changed, 63 insertions(+)
+ include/sbi_utils/fdt/fdt_helper.h |  4 ++
+ lib/utils/fdt/fdt_helper.c         | 61 +++++++++++++++++++++++-------
+ 2 files changed, 51 insertions(+), 14 deletions(-)
 
-diff --git a/include/sbi/sbi_domain_state.h b/include/sbi/sbi_domain_state.h
-index 72030380b357..6528a95b9b56 100644
---- a/include/sbi/sbi_domain_state.h
-+++ b/include/sbi/sbi_domain_state.h
-@@ -40,6 +40,18 @@ struct sbi_domain_state {
- 	/** Optional callback to setup domain state */
- 	int (*state_setup)(struct sbi_domain *dom,
- 			  struct sbi_domain_state *state, void *state_ptr);
-+	/**
-+	 * Optional callback to finalize domain state
-+	 *
-+	 * Called for each domain from sbi_domain_finalize() after all
-+	 * domains are registered and memory regions are final.
-+	 *
-+	 * State from the domain memory regions must be setup here instead
-+	 * of state_setup()
-+	 */
-+	int (*state_finalize)(struct sbi_domain *dom,
-+			      struct sbi_domain_state *state, void *state_ptr);
-+
- 	/** Optional callback to cleanup domain state */
- 	void (*state_cleanup)(struct sbi_domain *dom,
- 			     struct sbi_domain_state *state, void *state_ptr);
-@@ -64,6 +76,16 @@ void *sbi_domain_state_ptr(struct sbi_domain *dom, struct sbi_domain_state *stat
-  */
- int sbi_domain_setup_state(struct sbi_domain *dom);
+diff --git a/include/sbi_utils/fdt/fdt_helper.h b/include/sbi_utils/fdt/fdt_helper.h
+index 75a564d1fece..59e369780730 100644
+--- a/include/sbi_utils/fdt/fdt_helper.h
++++ b/include/sbi_utils/fdt/fdt_helper.h
+@@ -12,6 +12,7 @@
  
-+/**
-+ * Finalize all domain state for a domain
-+ * @param dom pointer to domain
-+ *
-+ * @return 0 on success and negative error code on failure
-+ *
-+ * Note: This function is used internally within domain framework.
-+ */
-+int sbi_domain_finalize_state(struct sbi_domain *dom);
-+
- /**
-  * Cleanup all domain state for a domain
-  * @param dom pointer to domain
-diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
-index 42fe56324a94..0214c5d43bbf 100644
---- a/lib/sbi/sbi_domain.c
-+++ b/lib/sbi/sbi_domain.c
-@@ -947,6 +947,7 @@ int sbi_domain_startup(struct sbi_scratch *scratch, u32 cold_hartid)
- int sbi_domain_finalize(struct sbi_scratch *scratch)
- {
- 	int rc;
-+	struct sbi_domain *dom;
- 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ #include <sbi/sbi_types.h>
+ #include <sbi/sbi_domain.h>
++#include <sbi/sbi_hart.h>
  
- 	/* Sanity checks */
-@@ -967,6 +968,21 @@ int sbi_domain_finalize(struct sbi_scratch *scratch)
- 	 */
- 	domain_finalized = true;
+ struct fdt_match {
+ 	const char *compatible;
+@@ -56,6 +57,9 @@ int fdt_parse_timebase_frequency(const void *fdt, unsigned long *freq);
  
-+	/*
-+	 * Finalize per-domain state of each domain. Now all domains
-+	 * are finalized already and their memory regions are final.
-+	 * State which is derived from the domain memory regions is
-+	 * set up below.
-+	 */
-+	sbi_domain_for_each(dom) {
-+		rc = sbi_domain_finalize_state(dom);
-+		if (rc) {
-+			sbi_printf("%s: domain state finalize failed for %s"
-+				   " (error %d)\n", __func__, dom->name, rc);
-+			return rc;
-+		}
-+	}
+ int fdt_parse_isa_extensions_all_harts(const void *fdt);
+ 
++bool fdt_cpu_has_extension(const void *fdt, int cpu_offset,
++			   enum sbi_hart_extensions ext);
 +
- 	return 0;
+ int fdt_parse_gaisler_uart_node(const void *fdt, int nodeoffset,
+ 				struct platform_uart_data *uart);
+ 
+diff --git a/lib/utils/fdt/fdt_helper.c b/lib/utils/fdt/fdt_helper.c
+index 747ba0285b37..d71b8c76a733 100644
+--- a/lib/utils/fdt/fdt_helper.c
++++ b/lib/utils/fdt/fdt_helper.c
+@@ -407,13 +407,56 @@ static void fdt_parse_isa_extensions_one_hart(const char *isa,
+ 	}
  }
  
-diff --git a/lib/sbi/sbi_domain_state.c b/lib/sbi/sbi_domain_state.c
-index 2d1f30e32169..f8ccab693764 100644
---- a/lib/sbi/sbi_domain_state.c
-+++ b/lib/sbi/sbi_domain_state.c
-@@ -84,6 +84,31 @@ int sbi_domain_setup_state(struct sbi_domain *dom)
- 	return 0;
- }
- 
-+int sbi_domain_finalize_state(struct sbi_domain *dom)
++static int fdt_parse_isa_extensions_cpu(const void *fdt, int cpu_offset,
++					unsigned long *extensions)
 +{
-+	struct sbi_domain_state *state;
-+	void *state_ptr;
-+	int rc;
++	const fdt32_t *val;
++	int len, err;
 +
-+	if (!dom)
-+		return SBI_EINVAL;
-+
-+	sbi_list_for_each_entry(state, &state_list, head) {
-+		if (!state->state_finalize)
-+			continue;
-+
-+		state_ptr = sbi_domain_state_ptr(dom, state);
-+		if (!state_ptr)
-+			continue;
-+
-+		rc = state->state_finalize(dom, state, state_ptr);
-+		if (rc)
-+			return rc;
++	val = fdt_getprop(fdt, cpu_offset, "riscv,isa-extensions", &len);
++	if (val && len > 0) {
++		fdt_parse_isa_extensions_one_hart((const char *)val,
++						  extensions, len);
++		return 0;
 +	}
 +
-+	return 0;
++	val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
++	if (!val || len <= 0)
++		return SBI_ENOENT;
++
++	err = fdt_parse_isa_one_hart((const char *)val, extensions);
++
++	return err;
 +}
 +
- void sbi_domain_cleanup_state(struct sbi_domain *dom)
++bool fdt_cpu_has_extension(const void *fdt, int cpu_offset,
++			   enum sbi_hart_extensions ext)
++{
++	int err;
++	bool is_ext;
++
++	DECLARE_BITMAP(extensions, SBI_HART_EXT_MAX);
++	bitmap_zero(extensions, SBI_HART_EXT_MAX);
++
++	if (!fdt || ext >= SBI_HART_EXT_MAX)
++		return false;
++
++	err = fdt_parse_isa_extensions_cpu(fdt, cpu_offset, extensions);
++	if (err)
++		return false;
++
++
++	is_ext = __test_bit(ext, extensions) ? true : false;
++
++	return is_ext;
++}
++
+ int fdt_parse_isa_extensions_all_harts(const void *fdt)
  {
- 	struct sbi_domain_state *state;
+ 	u32 hartid;
+-	const fdt32_t *val;
+ 	struct sbi_scratch *scratch;
+ 	struct sbi_hart_features *hfeatures;
+-	int err, cpu_offset, cpus_offset, len;
++	int err, cpu_offset, cpus_offset;
+ 
+ 	if (!fdt)
+ 		return SBI_EINVAL;
+@@ -438,18 +481,8 @@ int fdt_parse_isa_extensions_all_harts(const void *fdt)
+ 		if (!hfeatures)
+ 			return SBI_ENOENT;
+ 
+-		val = fdt_getprop(fdt, cpu_offset, "riscv,isa-extensions", &len);
+-		if (val && len > 0) {
+-			fdt_parse_isa_extensions_one_hart((const char *)val,
+-							  hfeatures->extensions, len);
+-			continue;
+-		}
+-
+-		val = fdt_getprop(fdt, cpu_offset, "riscv,isa", &len);
+-		if (!val || len <= 0)
+-			return SBI_ENOENT;
+-
+-		err = fdt_parse_isa_one_hart((const char *)val, hfeatures->extensions);
++		err = fdt_parse_isa_extensions_cpu(fdt, cpu_offset,
++						   hfeatures->extensions);
+ 		if (err)
+ 			return err;
+ 	}
 -- 
 2.53.0
 
