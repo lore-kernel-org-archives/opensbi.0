@@ -2,94 +2,136 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26D12606A333
-	for <opensbi@archiver.kernel.org>; Mon,  2 Nov 2026 03:47:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB24B606A324
+	for <opensbi@archiver.kernel.org>; Mon,  2 Nov 2026 04:34:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=omKj8jI2;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=kpIdIKvO
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=mWGihRHL;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=RsJJTEY5;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=imrt6u4a
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:In-Reply-To:References:Message-Id
-	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=9VyeN2D0jdWIxzCsBTnCVMo5G2nvOZ7iGkknvy+beJc=; b=omKj8jI2up966pjmjY6mhEKp/A
-	jdCuJDKruGA2/UQI0xFcDoRJ7xnBVHs0KSHEkmBk+wNHVbGGJAD9mGgwJ0UXzka+g9SSr6vwVOsSs
-	uvoBv92IxKfwPqe3RRENj2qVa1st064t5hqJfQ0Vr0I+7JAKBoQRu3PW6lJDi77vbba/6/4ocqcc0
-	d5Rbe683SIE/oZYZyeAimRl0obTH3OU/iLn2mvfvf7rxuKAB6JsEz9EXq/IzohXRS9RKAiNo0s2v1
-	xdwYbkiqT6FzvQ8Z7WTNUt/r6yCvweeeB9RKwBh8TF14XQ/q4KDEg+F/3urWVQ//6iSaAPoRy1hRc
-	wvPfpgRg==;
+	bh=wi1YYyFq03ggisAtOWcCA+FuGAI4gUZTwGx9IWhsPuc=; b=mWGihRHLbz6XwcJG1o0maCf9+3
+	HyeEUHtXyOqnptqgZJDg7YGs/dDJuUD1joEDjMN//aQYQy/p1VI1hs7XY3HbblvV5UAYs9D9qSTKR
+	CjKCRYF8ZwEZLS7QdECUAIGX6iUThmqxvYddhytFPlYOt0vUFuTefjSvU1Uebfgkl55c/RVmPgtPd
+	jtNaJ7uJM84ZGiCFzrBa2Us5rxYYLFImklsPCqbZ3UeLZiawbZsFlzyQ9upBPnkbq73WkdA2R0GDo
+	GGwe0VERi76vA72ZSpmCyj91JxAc0zCVWUgEUtJ/uBiFlExYBEIIgvD1WVPiHXnBjYrBjGEDnsNv3
+	6j8QC9Lw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xNj1N-0000000FTG8-0Onu;
-	Mon, 02 Nov 2026 03:47:45 +0000
-Received: from mail-dy1-x1334.google.com ([2607:f8b0:4864:20::1334])
+	id 1xNjkV-0000000FW4j-3mzQ;
+	Mon, 02 Nov 2026 04:34:23 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xNj1I-0000000FTDK-3A45
+	id 1xNjkR-0000000FW3L-1RcE
 	for opensbi@lists.infradead.org;
-	Mon, 02 Nov 2026 03:47:43 +0000
-Received: by mail-dy1-x1334.google.com with SMTP id 5a478bee46e88-3535bf8b3e0so3698030eec.0
-        for <opensbi@lists.infradead.org>; Sun, 01 Nov 2026 19:47:40 -0800 (PST)
+	Mon, 02 Nov 2026 04:34:23 +0000
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A23v7cG2752931
+	for <opensbi@lists.infradead.org>; Mon, 2 Nov 2026 04:34:18 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=hupoeRpCSEm
+	OrkwqJQtyFN7RKikmPsVDDW+gV2BX60g=; b=RsJJTEY528yeI7T4tBbTdgooVPk
+	RiIQnzA0v30emNXLY94hg6fuRgD4KMWqUoytdbNkDXwKrAmIWgdEr8Ru3BI0324n
+	OvwaLWHCHLbGcwNIzX5JbPCK4P6gp4yLlqHB+dCi0vhJdG6vlBtNx0fDKxyjFuel
+	DO/xt51E3AZjsj5yevgs4z92RQ9DABlNi1fspyLmgh5vKvOGccLr6Ery1ofqhDvT
+	HFAa4MauWPreX3EUOh7nOByX1NQg+nfyUUIh3UTlehh9OhyfJtta7JOyASeWteYg
+	gmI9uzmtig+iNkhUaWIB20lhQkIOqjJ8SEWWiji1jj1o0W3vq0vITULD/Rw==
+Received: from mail-dl1-f71.google.com (mail-dl1-f71.google.com [74.125.82.71])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hpg200k3f-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Mon, 02 Nov 2026 04:34:18 +0000 (GMT)
+Received: by mail-dl1-f71.google.com with SMTP id a92af1059eb24-14373747468so2831332c88.1
+        for <opensbi@lists.infradead.org>; Sun, 01 Nov 2026 20:34:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793591260; x=1794196060; darn=lists.infradead.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+        d=oss.qualcomm.com; s=google; t=1793594057; x=1794198857; darn=lists.infradead.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=+71kFN+KKN/GikiF7lgn6sCYkDlVVeEntbUJTij6GqU=;
-        b=kpIdIKvO42TD8tdyuZmItLqa+in86f7MsBoPmnU/8l2gKvxlGd2VKX44cQksF0GW4Q
-         BNl4ENsmiG7uSXeLbFnk/jVTYFeUgpVEyAQk5KCjK+bGmcY6HWXWrzsLwdu9XT90cOhD
-         pvd5GJNfsOeoVZETlisaaUAQBGcJ5bSWWQAJCSv0x06Iu6PCcxPEbhGG8yjTGcOxCcnm
-         eX5Ef8BXiz4AWQKQvNOAeHj7NW8W257kc5sk16y2diTCntcNswYzadMgqqImSskHfJ5a
-         ICTAIqF1Eyauccg6ZxuxWHbdybMKyR0tdp4292PixWXeftLT3WsKmjo8TnD3CVMxmk/2
-         Zxyg==
+        bh=hupoeRpCSEmOrkwqJQtyFN7RKikmPsVDDW+gV2BX60g=;
+        b=imrt6u4a/oOTnBNoeSFMTsmrYRTdF5mRZ7aWZKY/Yo60YfEEyNCV4W4qYO/WJb5svR
+         C1khd3ZI28vJhEXt4HFzoX/CgteIhITZk+PI3CF9Yo+q5VdW/gsA+mM7yIk6R/00VNjs
+         hUacOqcB3QH/NXVKzP+AD5HM0277sExPTP//exWNso93dtOpR8dvJ/+EkwLbShGSRoxs
+         O1Km5MirWHBpwmQeqKN3+Z6tIi2K72apkbmQSjQAKkLrCwVupFUKUBHjadaQ4mUHz3Za
+         jutitoBTYFXcsOrDGmoVIljmDfBK+8uirYjDm73hzaQ3Iwyx1/2I7CU3h0/r/95JJEFw
+         FTtw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793591260; x=1794196060;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=+71kFN+KKN/GikiF7lgn6sCYkDlVVeEntbUJTij6GqU=;
-        b=0u1VYnBXTJ7WYYZfEeVKXBWKCBgA13TPmL0PqWmzgS160lAqzOBs7fr/e57uNtQ13/
-         GfYOenykflgr6xTQj/aZT+0b/MRyb14j6WYkPZPQVaYcS5wWpNUspJ59cQmHQ4WnOylm
-         0VK1N/yalqVbgmgyWRQVq4sVaSwdes+mynCo1ass2ygsArPQkhTht6NT0sJTg7aC6agZ
-         Hgy3WyJ9cnQ+pbdFmtTXlbk6rupIk8VXjNpnUOHY8r9Pd8rqLeXaV/JQn0OCQoPiXcWi
-         DjCj3Pseeac193ibE6sdQUw9M37sunC7UVISjtcL2zZfaXhCIPau7YNMuS+xk2EFElec
-         ROZQ==
-X-Gm-Message-State: AFq9FYJ+hWQYLSqGYp3nEb6C0quMoOi53k9VZbafipJdJ5JsOp+IdEQJ
-	rByGtOOJSVvIH3+bVjwZuWqw0iWDfaDzMA6Oezo878fkguX3/AWmT35QHuE/xehW4w4=
-X-Gm-Gg: AYBFou3Hdg74SY2ONkmWnOimIbE08Tq7sxdDEFZgZlEV+nSjfgeDEXO3bxMhFZNEyl2
-	F2dczvgHbRKe+WOaBQoM+dyDEMVvbEKe2zmdSN5Bz+olgkQautyeGTn6qFdrulhZFPzl/0rKu/2
-	XxqpCLG+brksYkt/F3FA9grAR9vrwh6daqRdiy1EF5ci4b6y2mXXL59DDK+bgGF3/+cc/KfnI5l
-	qML4vVPY9JtluvZiPEMf21U1YgUBzMht9pxqTfkrEy2GuERM1KqD3Du6GcCihwxJt4D6wUEyXhn
-	ghoOlEY8gF8GTyQez9TDy4f7h+tBiOF2G1KbMfE+qeYv0BbXOBPhyW/w3d1SKtBz5OvVifTPjo0
-	Vit0A5qh8GPvOovyJFQFSFpFCTNlww1isbMYSA28Fr3qKW9XQwyBQlZizgkxbv/91ZxZ56fhqyw
-	yA2W1/Lrl0jnBYsVTkU2fcA7N2Lgo8qurOSMFtJNlPdcHPacDEMNgVx3AjuKzc8XfWxc5mUz6yr
-	A8WTlrfS/ctSpeRV/cymQpWlJ2kCi+7KRYe1zpPp99ETof9sFc/rN6eu96pAJDnrSgMQJx9QiUj
-	f7D4J9PhSuHQ4k3IM5FcMxCzVf9jy0B4zfjupGsKxBvHU9W8DAJeNMlEnxcCe9tlRpoSRwwMzKU
-	iuZpwdRMhGrDhTQU7bj84E/xT/DjTAGKYYK+/1iLE0rPAOhEC
-X-Received: by 2002:a05:7022:2522:b0:185:b157:f271 with SMTP id a92af1059eb24-1ac5d2c58cfmr17931225c88.23.1793591259415;
-        Sun, 01 Nov 2026 19:47:39 -0800 (PST)
-Received: from sw07.internal.sifive.com ([4.53.31.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a428fa380sm30308670eec.12.2026.11.01.19.47.38
+        d=1e100.net; s=20260707; t=1793594057; x=1794198857;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=hupoeRpCSEmOrkwqJQtyFN7RKikmPsVDDW+gV2BX60g=;
+        b=JR1nBuX8q9SikRAKiBnmpwIT0fR+ms4LlzZ7D8qt/kbJ4vDWbIDBlKQgvZpok7uxRi
+         gq9zT18V5sQHEmQGwFTDiJW90zUru2BfwHuiR+JAwEuIJEQQgKgWWwIIMTDlAywoC0T5
+         V5mGd3gkswEBfxZSauJC4dDUY/qkxyMQ5tbdrBLOtl4kS2s9YcE5JDrS6ZSLRova8WbT
+         aKiBrf61jZMCaegr7yACKWdpXKdtAFgkCR79AZ6dRMD7NvRQB5L1vDxfebJPwJcT/xNF
+         PJqmJIrOpxAb/py3ARgakmvvnKxnX46fK/w41CJVDTWA6aShSZRa4sQbRDfNIb+aYB1z
+         +Exw==
+X-Gm-Message-State: AFq9FYL6Q8wzr3OhSoI2T+OM5u/82Xhyw6/sJ6QYwQNVUH5upJwkC4OL
+	6u6M3OjdOR86JzVbR8+NxqP7Q/vFq3hoTgAuiHQ4ZNgGvpfg6bTzXxZpaoRDiHieb2zKXfifYqV
+	rqUQtWlrXfbfwXX0mcDcSpoe38hixWVuCqfE3LX9chywwg72vip29qsK6VwbaHCCiOP5lDT6FGw
+	==
+X-Gm-Gg: AYBFou0Q1Q6Kc+5qWDMkC9eQLO9JP8JRwyJ2DEli4Tn47IBKKqnv/HtNQlBxalo9rtB
+	wjUAUuI2yghmD2XrWcnjUpkPzCPIQJhmFlNAqKr/roiztUyMhnefLEL0vvR3tfqCmSauNVuDueI
+	bLg2s6lguLRmu9Gf4IxGuAenN0Tkks4J/8VQ+n1x7IFZVYdsnqRiR+IZXN2LkuXE7AidLw9mPt9
+	4x1e1+1MwBOBFoEDvILBL5KeQmA4nagAzTkurO56TcIhzD9atu0HNJwXdK1sadspuC8GsmUfrJ/
+	Jl9O0ybBA2zntYeJTlQnZ0tQ+77PVUH83eVa8XC1l6Z4ZWRkTqmTyEnGoe0TNZbD0AMEf6nRWgO
+	licHR4nnZSTM/a7RKS4tq8GnDjC3wTzfS/JDyMmeBS85SJgsYCDsA6H/fGMOAivGq3/VdUKbbrR
+	u60XHe1j3iuGtpTVTrkZofkakS7+9CJSIcOPalMvRlfwDmslSFthBQ1N2Mj0BC4A1jzPCkJQ==
+X-Received: by 2002:a05:7023:903:b0:17f:7280:1332 with SMTP id a92af1059eb24-1ac5c92f6e4mr14891090c88.40.1793594056671;
+        Sun, 01 Nov 2026 20:34:16 -0800 (PST)
+X-Received: by 2002:a05:7023:903:b0:17f:7280:1332 with SMTP id a92af1059eb24-1ac5c92f6e4mr14891050c88.40.1793594055871;
+        Sun, 01 Nov 2026 20:34:15 -0800 (PST)
+Received: from hu-rahupath-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1aed79b3dfcsm28014910c88.12.2026.11.01.20.34.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Nov 2026 19:47:38 -0800 (PST)
-From: Nick Hu <nick.hu@sifive.com>
-Date: Sun, 01 Nov 2026 19:47:19 -0800
-Subject: [PATCH 5/5] lib: utils/irqchip: Add RPMI system MSI driver
+        Sun, 01 Nov 2026 20:34:15 -0800 (PST)
+From: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
+To: opensbi@lists.infradead.org
+Cc: rahul.pathak@oss.qualcomm.com, rahul@summations.net
+Subject: [RFC PATCH v7 1/6] lib: sbi_domain: Add finalize callback for per-domain state
+Date: Mon,  2 Nov 2026 10:03:52 +0530
+Message-ID: <20261102043400.287938-2-rahul.pathak@oss.qualcomm.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261102043400.287938-1-rahul.pathak@oss.qualcomm.com>
+References: <20261102043400.287938-1-rahul.pathak@oss.qualcomm.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Message-Id: <20261101-dev-nickh-msysmsi-dev-upstream-v1-5-117b2e075be0@sifive.com>
-References: <20261101-dev-nickh-msysmsi-dev-upstream-v1-0-117b2e075be0@sifive.com>
-In-Reply-To: <20261101-dev-nickh-msysmsi-dev-upstream-v1-0-117b2e075be0@sifive.com>
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org, greentime.hu@sifive.com, 
- Nick Hu <nick.hu@sifive.com>
-X-Mailer: b4 0.16.0
+X-Proofpoint-GUID: RdMjcUvqtg0-kAbT_pNcAzW2_H8R3p78
+X-Authority-Analysis: v=2.4 cv=fZY4WEQF c=1 sm=1 tr=0 ts=6ae812ca cx=c_pps
+ a=JYo30EpNSr/tUYqK9jHPoA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22 a=EUspDBNiAAAA:8
+ a=A3s7GLJBcYfuUOYuCAAA:9 a=Fk4IpSoW4aLDllm1B1p-:22
+X-Proofpoint-ORIG-GUID: RdMjcUvqtg0-kAbT_pNcAzW2_H8R3p78
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTAyMDAxNyBTYWx0ZWRfX9jrKi9V8PN/8
+ 21nKO0Pyy0OwSjyut6JpVd30HwQeL/+oG7K4HiI6BEcFHeaKbTbUMb6ZVCo5zaUQA3GgAcr8Knb
+ LpqT0cHYJiQm299aBK2bDMKNovpUAyOsojf21v01qslCJYUgJIPkSItGE/gDbikLrknuOuT82gk
+ CB/+ROw9kp6WCGb4/t9yd4O7gFID1iDiVYEbnAuAY8dttoAPHl1DooTnkeqQGd3N7tJ7g2ij/zg
+ ZfwcTjpAsEtdfh/CZtfvRCNuirMxtUONytOLaPccW/8kTk1TJU9MWEgxN1KGSLYvl4iAlCcResY
+ agJY3JDbjHCCYQlqdnLqXhaShk3dtvTIP5GmydMavGVM/W1o0ADa4pRBOFaBo5UPn+EjfbThR5K
+ gnMpCyMAsKelmqLCH0/+apGqH4OF7W5Y0o5t6G2ULrZV/LbTvmOJ0y6f64qZbOfmxoUlceTW2tL
+ VwF9w1YOLP6OmdQVD1w==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTAyMDAxNyBTYWx0ZWRfX0ZIkBtmrd5WK
+ FUBTGpCvWd+v12SwwSCCzwoZoupJjC5nIjnOpcamt+gS5FimES1HIUmPAMItZs8QQAFdzrp6tM4
+ TFnU8SizOWtRLOVkKyj8dcuhyH17hVc=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-02_02,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 spamscore=0 impostorscore=0 adultscore=0 phishscore=0
+ clxscore=1015 malwarescore=0 lowpriorityscore=0 bulkscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2611020017
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261101_194740_829183_03AF7D02 
-X-CRM114-Status: GOOD (  27.11  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261101_203419_515108_5B2E4E3C 
+X-CRM114-Status: GOOD (  19.61  )
+X-Spam-Score: -2.8 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -109,528 +151,131 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-Add an irqchip driver for the RPMI System MSI service group. The
-platform microcontroller exposes system MSI sources, and this driver
-routes them to the M-mode IMSIC as regular MSIs so they can be handled
-through the generic sbi_irqchip framework.
+Per-domain state is registered via sbi_domain_state in state_setup()
+but during that time the domain memory regions are not final.
+Add optional state_finalize() callback which is called
+from sbi_domain_finalize for each domain after all domains are
+registered and their memory regions are final.
 
-For each system MSI hwirq that is set up, the driver:
- - allocates an MSI vector on the parent IMSIC and, once the IMSIC
-   composes the MSI message, programs it into the microcontroller with
-   SYSMSI_SRV_SET_MSI_TARGET,
- - forwards affinity changes to the parent IMSIC,
- - masks/unmasks both the parent IMSIC vector and the RPMI MSI state
-   with SYSMSI_SRV_SET_MSI_STATE,
- - marks the hwirq as denied in the shared bitmap so it is no longer
-   exposed through MPXY, restoring the previous state on cleanup.
-
-The P2A doorbell index reported by the service group is saved in
-rpmi_sysmsi_data, and setup requests for it are rejected currently.
-
-Also add an FDT driver matching "riscv,rpmi-system-msi". It looks up
-the IMSIC through "msi-parent" and only claims the node if that IMSIC
-targets M-mode. In that case it requests the mailbox channel, registers
-the irqchip, and registers an FDT fixup that disables the node in the
-DT passed to the next boot stage. The driver is selected by the new
-FDT_IRQCHIP_RPMI_SYSMSI Kconfig option, which is enabled in the generic
-platform defconfig. A new SBI_IRQCHIP_CAPS_RPMI_SYSMSI capability bit
-identifies this irqchip type.
-
-Signed-off-by: Nick Hu <nick.hu@sifive.com>
+Signed-off-by: Rahul Pathak <rahul.pathak@oss.qualcomm.com>
 ---
- include/sbi/sbi_irqchip.h                   |   1 +
- include/sbi_utils/irqchip/rpmi_sysmsi.h     |   2 +
- lib/utils/irqchip/Kconfig                   |   6 +
- lib/utils/irqchip/fdt_irqchip_rpmi_sysmsi.c | 119 +++++++++++++
- lib/utils/irqchip/objects.mk                |   3 +
- lib/utils/irqchip/rpmi_sysmsi.c             | 263 ++++++++++++++++++++++++++++
- platform/generic/configs/defconfig          |   1 +
- 7 files changed, 395 insertions(+)
+ include/sbi/sbi_domain_state.h | 22 ++++++++++++++++++++++
+ lib/sbi/sbi_domain.c           | 16 ++++++++++++++++
+ lib/sbi/sbi_domain_state.c     | 25 +++++++++++++++++++++++++
+ 3 files changed, 63 insertions(+)
 
-diff --git a/include/sbi/sbi_irqchip.h b/include/sbi/sbi_irqchip.h
-index f5dbf1c7..5d585f24 100644
---- a/include/sbi/sbi_irqchip.h
-+++ b/include/sbi/sbi_irqchip.h
-@@ -40,6 +40,7 @@ struct sbi_irqchip_device {
- 	/** Capabilities of this irqchip */
- #define SBI_IRQCHIP_CAPS_WIRED		BIT(0)
- #define SBI_IRQCHIP_CAPS_MSI		BIT(1)
-+#define SBI_IRQCHIP_CAPS_RPMI_SYSMSI	BIT(2)
- 	unsigned long caps;
- 
- 	/** Number of hardware IRQs of this irqchip */
-diff --git a/include/sbi_utils/irqchip/rpmi_sysmsi.h b/include/sbi_utils/irqchip/rpmi_sysmsi.h
-index 90825557..e1d10e50 100644
---- a/include/sbi_utils/irqchip/rpmi_sysmsi.h
-+++ b/include/sbi_utils/irqchip/rpmi_sysmsi.h
-@@ -15,9 +15,11 @@ struct rpmi_sysmsi_data {
- 	unsigned long *sys_msi_denied_bmap;
- 	u32 sys_num_msi;
- 	u32 ref_cnt;
-+	u32 p2a_db_index;
- };
- 
- void rpmi_sysmsi_cleanup(struct rpmi_sysmsi_data *data);
- int rpmi_sysmsi_setup(struct mbox_chan *chan, struct rpmi_sysmsi_data **out_data);
-+int irqchip_rpmi_sysmsi_setup(struct mbox_chan *chan, u32 id, u32 imsic_id);
- 
- #endif
-diff --git a/lib/utils/irqchip/Kconfig b/lib/utils/irqchip/Kconfig
-index 03f297dc..152dcc6e 100644
---- a/lib/utils/irqchip/Kconfig
-+++ b/lib/utils/irqchip/Kconfig
-@@ -24,6 +24,12 @@ config FDT_IRQCHIP_PLIC
- 	select IRQCHIP_PLIC
- 	default n
- 
-+config FDT_IRQCHIP_RPMI_SYSMSI
-+	bool "RPMI SYSMSI Interrupt Controller (RPMI SYSMSI) FDT driver"
-+	depends on FDT_MAILBOX && FDT_IRQCHIP_IMSIC && RPMI_MAILBOX
-+	select RPMI_SYSMSI
-+	default n
+diff --git a/include/sbi/sbi_domain_state.h b/include/sbi/sbi_domain_state.h
+index 72030380b357..6528a95b9b56 100644
+--- a/include/sbi/sbi_domain_state.h
++++ b/include/sbi/sbi_domain_state.h
+@@ -40,6 +40,18 @@ struct sbi_domain_state {
+ 	/** Optional callback to setup domain state */
+ 	int (*state_setup)(struct sbi_domain *dom,
+ 			  struct sbi_domain_state *state, void *state_ptr);
++	/**
++	 * Optional callback to finalize domain state
++	 *
++	 * Called for each domain from sbi_domain_finalize() after all
++	 * domains are registered and memory regions are final.
++	 *
++	 * State from the domain memory regions must be setup here instead
++	 * of state_setup()
++	 */
++	int (*state_finalize)(struct sbi_domain *dom,
++			      struct sbi_domain_state *state, void *state_ptr);
 +
- endif
+ 	/** Optional callback to cleanup domain state */
+ 	void (*state_cleanup)(struct sbi_domain *dom,
+ 			     struct sbi_domain_state *state, void *state_ptr);
+@@ -64,6 +76,16 @@ void *sbi_domain_state_ptr(struct sbi_domain *dom, struct sbi_domain_state *stat
+  */
+ int sbi_domain_setup_state(struct sbi_domain *dom);
  
- config IRQCHIP_APLIC
-diff --git a/lib/utils/irqchip/fdt_irqchip_rpmi_sysmsi.c b/lib/utils/irqchip/fdt_irqchip_rpmi_sysmsi.c
-new file mode 100644
-index 00000000..7e4ac394
---- /dev/null
-+++ b/lib/utils/irqchip/fdt_irqchip_rpmi_sysmsi.c
-@@ -0,0 +1,119 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
++/**
++ * Finalize all domain state for a domain
++ * @param dom pointer to domain
 + *
-+ * Copyright (c) 2026 SiFive Inc.
++ * @return 0 on success and negative error code on failure
 + *
-+ * Authors:
-+ *   Nick Hu <nick.hu@sifive.com>
++ * Note: This function is used internally within domain framework.
 + */
++int sbi_domain_finalize_state(struct sbi_domain *dom);
 +
-+#include <libfdt.h>
-+#include <sbi/sbi_console.h>
-+#include <sbi/sbi_error.h>
-+#include <sbi_utils/fdt/fdt_fixup.h>
-+#include <sbi_utils/fdt/fdt_helper.h>
-+#include <sbi_utils/irqchip/imsic.h>
-+#include <sbi_utils/irqchip/rpmi_sysmsi.h>
-+#include <sbi_utils/mailbox/fdt_mailbox.h>
-+#include <sbi_utils/mailbox/rpmi_msgprot.h>
-+
-+static int fdt_rpmi_sysmsi_find_imsic(const void *fdt, int nodeoff, struct imsic_data *imsic)
-+{
-+	const fdt32_t *val;
-+	int noff, len;
-+
-+	val = fdt_getprop(fdt, nodeoff, "msi-parent", &len);
-+	if (!val || len < sizeof(fdt32_t))
-+		return SBI_ENODEV;
-+
-+	noff = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*val));
-+	if (noff < 0)
-+		return SBI_ENODEV;
-+
-+	return fdt_parse_imsic_node(fdt, noff, imsic);
-+}
-+
-+static void fdt_rpmi_sysmsi_do_fixup(struct fdt_general_fixup *f, void *fdt)
-+{
-+	const int status_size = sizeof(struct fdt_property) +
-+				ROUNDUP(sizeof("disabled"), FDT_TAGSIZE) +
-+				sizeof("status");
-+	struct imsic_data imsic;
-+	int noff = -1, rc;
-+
-+	while ((noff = fdt_node_offset_by_compatible(fdt, noff, "riscv,rpmi-system-msi")) >= 0) {
-+
-+		if (!fdt_node_is_enabled(fdt, noff))
-+			continue;
-+		if (fdt_rpmi_sysmsi_find_imsic(fdt, noff, &imsic))
-+			continue;
-+		if (!imsic.targets_mmode)
-+			continue;
-+
-+		rc = fdt_open_into(fdt, fdt, fdt_totalsize(fdt) + status_size);
-+		if (rc < 0)
-+			return;
-+
-+		rc = fdt_setprop_string(fdt, noff, "status", "disabled");
-+		if (rc)
-+			sbi_printf("%s: failed to disable %s (%d)\n",
-+				   __func__, fdt_get_name(fdt, noff, NULL), rc);
-+	}
-+}
-+
-+static struct fdt_general_fixup rpmi_sysmsi_fixup = {
-+	.name = "rpmi-sysmsi-fixup",
-+	.do_fixup = fdt_rpmi_sysmsi_do_fixup,
-+};
-+
-+static int fdt_rpmi_sysmsi_cold_init(const void *fdt, int nodeoff,
-+				     const struct fdt_match *match)
-+{
-+	struct imsic_data imsic;
-+	struct mbox_chan *chan;
-+	int rc;
-+
-+	rc = fdt_rpmi_sysmsi_find_imsic(fdt, nodeoff, &imsic);
-+	if (rc)
-+		return rc;
-+
-+	if (!imsic.targets_mmode)
-+		return 0;
-+
-+	rc = imsic_data_check(&imsic);
-+	if (rc)
-+		return rc;
-+
-+	rc = fdt_register_general_fixup(&rpmi_sysmsi_fixup);
-+	if (rc && rc != SBI_EALREADY)
-+		return rc;
-+
-+	rc = fdt_mailbox_request_chan(fdt, nodeoff, 0, &chan);
-+	if (rc)
-+		return SBI_ENODEV;
-+
-+	if (chan->chan_args[0] != RPMI_SRVGRP_SYSTEM_MSI) {
-+		rc = SBI_EINVAL;
-+		goto free_chan;
+ /**
+  * Cleanup all domain state for a domain
+  * @param dom pointer to domain
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 42fe56324a94..0214c5d43bbf 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -947,6 +947,7 @@ int sbi_domain_startup(struct sbi_scratch *scratch, u32 cold_hartid)
+ int sbi_domain_finalize(struct sbi_scratch *scratch)
+ {
+ 	int rc;
++	struct sbi_domain *dom;
+ 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
+ 
+ 	/* Sanity checks */
+@@ -967,6 +968,21 @@ int sbi_domain_finalize(struct sbi_scratch *scratch)
+ 	 */
+ 	domain_finalized = true;
+ 
++	/*
++	 * Finalize per-domain state of each domain. Now all domains
++	 * are finalized already and their memory regions are final.
++	 * State which is derived from the domain memory regions is
++	 * set up below.
++	 */
++	sbi_domain_for_each(dom) {
++		rc = sbi_domain_finalize_state(dom);
++		if (rc) {
++			sbi_printf("%s: domain state finalize failed for %s"
++				   " (error %d)\n", __func__, dom->name, rc);
++			return rc;
++		}
 +	}
 +
-+	rc = irqchip_rpmi_sysmsi_setup(chan, nodeoff, imsic.unique_id);
-+	if (rc)
-+		goto free_chan;
-+
-+	return SBI_OK;
-+
-+free_chan:
-+	mbox_controller_free_chan(chan);
-+	return rc;
-+}
-+
-+static const struct fdt_match irqchip_rpmi_sysmsi_match[] = {
-+	{ .compatible = "riscv,rpmi-system-msi" },
-+	{ },
-+};
-+
-+const struct fdt_driver fdt_irqchip_rpmi_sysmsi = {
-+	.match_table = irqchip_rpmi_sysmsi_match,
-+	.init = fdt_rpmi_sysmsi_cold_init,
-+};
-diff --git a/lib/utils/irqchip/objects.mk b/lib/utils/irqchip/objects.mk
-index 3195a273..0e77c460 100644
---- a/lib/utils/irqchip/objects.mk
-+++ b/lib/utils/irqchip/objects.mk
-@@ -19,6 +19,9 @@ libsbiutils-objs-$(CONFIG_FDT_IRQCHIP_IMSIC) += irqchip/fdt_irqchip_imsic.o
- carray-fdt_irqchip_drivers-$(CONFIG_FDT_IRQCHIP_PLIC) += fdt_irqchip_plic
- libsbiutils-objs-$(CONFIG_FDT_IRQCHIP_PLIC) += irqchip/fdt_irqchip_plic.o
- 
-+carray-fdt_irqchip_drivers-$(CONFIG_FDT_IRQCHIP_RPMI_SYSMSI) += fdt_irqchip_rpmi_sysmsi
-+libsbiutils-objs-$(CONFIG_FDT_IRQCHIP_RPMI_SYSMSI) += irqchip/fdt_irqchip_rpmi_sysmsi.o
-+
- libsbiutils-objs-$(CONFIG_IRQCHIP_APLIC) += irqchip/aplic.o
- libsbiutils-objs-$(CONFIG_IRQCHIP_IMSIC) += irqchip/imsic.o
- libsbiutils-objs-$(CONFIG_IRQCHIP_PLIC) += irqchip/plic.o
-diff --git a/lib/utils/irqchip/rpmi_sysmsi.c b/lib/utils/irqchip/rpmi_sysmsi.c
-index d403ce17..67483deb 100644
---- a/lib/utils/irqchip/rpmi_sysmsi.c
-+++ b/lib/utils/irqchip/rpmi_sysmsi.c
-@@ -8,6 +8,7 @@
- #include <sbi/sbi_console.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_heap.h>
-+#include <sbi/sbi_irqchip.h>
- #include <sbi_utils/irqchip/rpmi_sysmsi.h>
- #include <sbi_utils/mailbox/rpmi_mailbox.h>
- 
-@@ -81,6 +82,7 @@ int rpmi_sysmsi_setup(struct mbox_chan *chan, struct rpmi_sysmsi_data **out_data
- 
- 	data->ref_cnt = 1;
- 	data->chan = chan;
-+	data->p2a_db_index = p2a_db_index;
- 	data->sys_num_msi = garesp.sys_num_msi;
- 	data->sys_msi_denied_bmap = sbi_zalloc(bitmap_estimate_size(data->sys_num_msi));
- 	if (!data->sys_msi_denied_bmap) {
-@@ -115,3 +117,264 @@ free_data:
- 	sbi_free(data);
- 	return rc;
+ 	return 0;
  }
-+
-+struct irqchip_rpmi_sysmsi {
-+	struct sbi_irqchip_device irqchip;
-+	struct rpmi_sysmsi_data *data;
-+	u32 imsic_id;
-+};
-+
-+struct sysmsi_hwirq_data {
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	u32 hwirq;
-+	u32 imsic_hwirq;
-+	bool mpxy_allow_on_clean;
-+};
-+
-+static void rpmi_sysmsi_write_msi(u32 imsic_hwirq,
-+				  const struct sbi_irqchip_msi_msg *msg, void *priv)
+ 
+diff --git a/lib/sbi/sbi_domain_state.c b/lib/sbi/sbi_domain_state.c
+index 2d1f30e32169..f8ccab693764 100644
+--- a/lib/sbi/sbi_domain_state.c
++++ b/lib/sbi/sbi_domain_state.c
+@@ -84,6 +84,31 @@ int sbi_domain_setup_state(struct sbi_domain *dom)
+ 	return 0;
+ }
+ 
++int sbi_domain_finalize_state(struct sbi_domain *dom)
 +{
-+	struct rpmi_sysmsi_set_msi_target_req smtreq;
-+	struct rpmi_sysmsi_set_msi_target_resp smtresp;
-+	struct sysmsi_hwirq_data *hwirq_data = priv;
++	struct sbi_domain_state *state;
++	void *state_ptr;
 +	int rc;
 +
-+	if (!msg->address_hi && !msg->address_lo && !msg->data)
-+		return;
-+
-+	smtreq.sys_msi_index = hwirq_data->hwirq;
-+	smtreq.sys_msi_address_low = msg->address_lo;
-+	smtreq.sys_msi_address_high = msg->address_hi;
-+	smtreq.sys_msi_data = msg->data;
-+	rc = rpmi_normal_request_with_status(hwirq_data->sysmsi_irqchip->data->chan,
-+					     RPMI_SYSMSI_SRV_SET_MSI_TARGET,
-+					     &smtreq, rpmi_u32_count(smtreq),
-+					     rpmi_u32_count(smtreq),
-+					     &smtresp, rpmi_u32_count(smtresp),
-+					     rpmi_u32_count(smtresp));
-+	if (rc)
-+		sbi_printf("%s: SYSMSI_SRV_SET_MSI_TARGET failed rc=%d\n", __func__, rc);
-+}
-+
-+static int rpmi_sysmsi_callback(u32 imsic_hwirq, void *priv)
-+{
-+	struct sysmsi_hwirq_data *hwirq_data = priv;
-+	int rc;
-+
-+	rc = sbi_irqchip_process_hwirq(&hwirq_data->sysmsi_irqchip->irqchip, hwirq_data->hwirq);
-+	if (rc && rc != SBI_ENOENT)
-+		sbi_printf("%s: imsic_hwirq=%lu failed rc=%d\n",
-+			   __func__, (unsigned long)imsic_hwirq, rc);
-+
-+	return rc;
-+}
-+
-+static int rpmi_sysmsi_hwirq_setup(struct sbi_irqchip_device *chip, u32 hwirq, u32 hwirq_flags)
-+{
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	struct sysmsi_hwirq_data *hwirq_data;
-+	struct sbi_irqchip_device *imsic;
-+	unsigned long *mpxy_denied_bmap;
-+	bool mpxy_allow_on_clean;
-+	u32 first_hwirq;
-+	int rc;
-+
-+	if (hwirq_flags != SBI_HWIRQ_FLAGS_NONE)
-+		return SBI_ENOTSUPP;
-+
-+	sysmsi_irqchip = container_of(chip, struct irqchip_rpmi_sysmsi, irqchip);
-+	if (hwirq == sysmsi_irqchip->data->p2a_db_index)
++	if (!dom)
 +		return SBI_EINVAL;
 +
-+	imsic = sbi_irqchip_find_device(sysmsi_irqchip->imsic_id);
-+	if (!imsic) {
-+		sbi_printf("%s: msi_parent is NULL hwirq=%lu\n", __func__, (unsigned long)hwirq);
-+		return SBI_EINVAL;
++	sbi_list_for_each_entry(state, &state_list, head) {
++		if (!state->state_finalize)
++			continue;
++
++		state_ptr = sbi_domain_state_ptr(dom, state);
++		if (!state_ptr)
++			continue;
++
++		rc = state->state_finalize(dom, state, state_ptr);
++		if (rc)
++			return rc;
 +	}
 +
-+	hwirq_data = sbi_zalloc(sizeof(*hwirq_data));
-+	if (!hwirq_data)
-+		return SBI_ENOMEM;
-+
-+	hwirq_data->sysmsi_irqchip = sysmsi_irqchip;
-+	hwirq_data->hwirq = hwirq;
-+
-+	/* Refuse the MPXY if the m-mode driver has registered it */
-+	mpxy_denied_bmap = sysmsi_irqchip->data->sys_msi_denied_bmap;
-+	mpxy_allow_on_clean = !bitmap_test(mpxy_denied_bmap, hwirq);
-+	bitmap_set(mpxy_denied_bmap, hwirq, 1);
-+
-+	rc = sbi_irqchip_register_msi(imsic, 1,
-+				      rpmi_sysmsi_write_msi, rpmi_sysmsi_callback,
-+				      hwirq_data, &first_hwirq);
-+	if (rc) {
-+		sbi_printf("%s: register_msi failed hwirq=%lu rc=%d\n",
-+			   __func__, (unsigned long)hwirq, rc);
-+		sbi_free(hwirq_data);
-+
-+		if (mpxy_allow_on_clean)
-+			bitmap_clear(mpxy_denied_bmap, hwirq, 1);
-+		return rc;
-+	}
-+
-+	hwirq_data->imsic_hwirq = first_hwirq;
-+	hwirq_data->mpxy_allow_on_clean = mpxy_allow_on_clean;
-+	sbi_irqchip_set_hwirq_priv(&sysmsi_irqchip->irqchip, hwirq, hwirq_data);
-+
-+	return SBI_OK;
++	return 0;
 +}
 +
-+static void rpmi_sysmsi_hwirq_cleanup(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct sysmsi_hwirq_data *hwirq_data = sbi_irqchip_get_hwirq_priv(chip, hwirq);
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	struct sbi_irqchip_device *parent;
-+
-+	if (!hwirq_data)
-+		return;
-+
-+	sysmsi_irqchip = hwirq_data->sysmsi_irqchip;
-+	if (hwirq_data->mpxy_allow_on_clean)
-+		bitmap_clear(sysmsi_irqchip->data->sys_msi_denied_bmap, hwirq, 1);
-+
-+	parent = sbi_irqchip_find_device(sysmsi_irqchip->imsic_id);
-+	sbi_irqchip_unregister_handler(parent, hwirq_data->imsic_hwirq, 1);
-+	sbi_irqchip_set_hwirq_priv(chip, hwirq, NULL);
-+	sbi_free(hwirq_data);
-+}
-+
-+static int rpmi_sysmsi_set_affinity(struct sbi_irqchip_device *chip, u32 hwirq, u32 hart_index)
-+{
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	struct sysmsi_hwirq_data *hwirq_data;
-+	struct sbi_irqchip_device *parent;
-+	int rc;
-+
-+	hwirq_data = sbi_irqchip_get_hwirq_priv(chip, hwirq);
-+	if (!hwirq_data)
-+		return SBI_EINVAL;
-+
-+	sysmsi_irqchip = hwirq_data->sysmsi_irqchip;
-+	parent = sbi_irqchip_find_device(sysmsi_irqchip->imsic_id);
-+	if (!parent) {
-+		sbi_printf("%s: msi_parent is NULL hwirq=%lu\n", __func__, (unsigned long)hwirq);
-+		return SBI_EINVAL;
-+	}
-+
-+	rc = sbi_irqchip_set_affinity(parent, hwirq_data->imsic_hwirq, hart_index);
-+	if (rc) {
-+		sbi_printf("%s: set affinity failed hwirq=%lu rc=%d\n",
-+			   __func__, (unsigned long)hwirq, rc);
-+		return rc;
-+	}
-+
-+	return SBI_OK;
-+}
-+
-+static void rpmi_sysmsi_hwirq_mask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct rpmi_sysmsi_set_msi_state_resp smsresp;
-+	struct rpmi_sysmsi_set_msi_state_req smsreq;
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	struct sysmsi_hwirq_data *hwirq_data;
-+	struct sbi_irqchip_device *parent;
-+	int rc;
-+
-+	hwirq_data = sbi_irqchip_get_hwirq_priv(chip, hwirq);
-+	if (!hwirq_data)
-+		return;
-+
-+	sysmsi_irqchip = hwirq_data->sysmsi_irqchip;
-+	parent = sbi_irqchip_find_device(sysmsi_irqchip->imsic_id);
-+	rc = sbi_irqchip_mask_hwirq(parent, hwirq_data->imsic_hwirq);
-+	if (rc && rc != SBI_EALREADY)
-+		sbi_printf("%s: mask parent hwirq fail rc=%d\n", __func__, rc);
-+
-+	smsreq.sys_msi_index = hwirq;
-+	smsreq.sys_msi_state = 0;
-+	rc = rpmi_normal_request_with_status(sysmsi_irqchip->data->chan,
-+					     RPMI_SYSMSI_SRV_SET_MSI_STATE,
-+					     &smsreq, rpmi_u32_count(smsreq),
-+					     rpmi_u32_count(smsreq),
-+					     &smsresp, rpmi_u32_count(smsresp),
-+					     rpmi_u32_count(smsresp));
-+	if (rc)
-+		sbi_printf("%s: SYSMSI_SRV_SET_MSI_STATE failed hwirq=%lu rc=%d\n",
-+			   __func__, (unsigned long)hwirq, rc);
-+}
-+
-+static void rpmi_sysmsi_hwirq_unmask(struct sbi_irqchip_device *chip, u32 hwirq)
-+{
-+	struct rpmi_sysmsi_set_msi_state_resp smsresp;
-+	struct rpmi_sysmsi_set_msi_state_req smsreq;
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	struct sysmsi_hwirq_data *hwirq_data;
-+	struct sbi_irqchip_device *parent;
-+	int rc;
-+
-+	hwirq_data = sbi_irqchip_get_hwirq_priv(chip, hwirq);
-+	if (!hwirq_data)
-+		return;
-+
-+	sysmsi_irqchip = hwirq_data->sysmsi_irqchip;
-+	parent = sbi_irqchip_find_device(sysmsi_irqchip->imsic_id);
-+	rc = sbi_irqchip_unmask_hwirq(parent, hwirq_data->imsic_hwirq);
-+	if (rc && rc != SBI_EALREADY)
-+		sbi_printf("%s: unmask parent hwirq fail rc=%d\n", __func__, rc);
-+
-+	smsreq.sys_msi_index = hwirq;
-+	smsreq.sys_msi_state = RPMI_SYSMSI_MSI_STATE_ENABLE;
-+	rc = rpmi_normal_request_with_status(sysmsi_irqchip->data->chan,
-+					     RPMI_SYSMSI_SRV_SET_MSI_STATE,
-+					     &smsreq, rpmi_u32_count(smsreq),
-+					     rpmi_u32_count(smsreq),
-+					     &smsresp, rpmi_u32_count(smsresp),
-+					     rpmi_u32_count(smsresp));
-+	if (rc)
-+		sbi_printf("%s: SYSMSI_SRV_SET_MSI_STATE failed hwirq=%lu rc=%d\n",
-+			   __func__, (unsigned long)hwirq, rc);
-+}
-+
-+static struct sbi_irqchip_device rpmi_sysmsi_irqchip_dev = {
-+	.hwirq_setup = rpmi_sysmsi_hwirq_setup,
-+	.hwirq_cleanup = rpmi_sysmsi_hwirq_cleanup,
-+	.hwirq_set_affinity = rpmi_sysmsi_set_affinity,
-+	.hwirq_mask = rpmi_sysmsi_hwirq_mask,
-+	.hwirq_unmask = rpmi_sysmsi_hwirq_unmask,
-+};
-+
-+int irqchip_rpmi_sysmsi_setup(struct mbox_chan *chan, u32 id, u32 imsic_id)
-+{
-+	struct irqchip_rpmi_sysmsi *sysmsi_irqchip;
-+	int rc;
-+
-+	sysmsi_irqchip = sbi_zalloc(sizeof(*sysmsi_irqchip));
-+	if (!sysmsi_irqchip)
-+		return SBI_ENOMEM;
-+
-+	rc = rpmi_sysmsi_setup(chan, &sysmsi_irqchip->data);
-+	if (rc) {
-+		sbi_printf("%s: rpmi_sysmsi_setup failed rc=%d\n", __func__, rc);
-+		goto free_irqchip;
-+	}
-+
-+	sysmsi_irqchip->imsic_id = imsic_id;
-+	sysmsi_irqchip->irqchip = rpmi_sysmsi_irqchip_dev;
-+	sysmsi_irqchip->irqchip.id = id;
-+	sysmsi_irqchip->irqchip.caps = SBI_IRQCHIP_CAPS_RPMI_SYSMSI;
-+	sysmsi_irqchip->irqchip.num_hwirq = sysmsi_irqchip->data->sys_num_msi;
-+
-+	sbi_hartmask_set_all(&sysmsi_irqchip->irqchip.target_harts);
-+	rc = sbi_irqchip_add_device(&sysmsi_irqchip->irqchip);
-+	if (rc) {
-+		sbi_printf("%s: sbi_irqchip_add_device failed rc=%d\n", __func__, rc);
-+		goto free_data;
-+	}
-+
-+	return SBI_OK;
-+free_data:
-+	rpmi_sysmsi_cleanup(sysmsi_irqchip->data);
-+free_irqchip:
-+	sbi_free(sysmsi_irqchip);
-+	return rc;
-+}
-diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
-index 98829884..97ca9d18 100644
---- a/platform/generic/configs/defconfig
-+++ b/platform/generic/configs/defconfig
-@@ -42,6 +42,7 @@ CONFIG_FDT_IRQCHIP=y
- CONFIG_FDT_IRQCHIP_APLIC=y
- CONFIG_FDT_IRQCHIP_IMSIC=y
- CONFIG_FDT_IRQCHIP_PLIC=y
-+CONFIG_FDT_IRQCHIP_RPMI_SYSMSI=y
- CONFIG_FDT_MAILBOX=y
- CONFIG_RPMI_MAILBOX=y
- CONFIG_FDT_MAILBOX_RPMI_SHMEM=y
-
+ void sbi_domain_cleanup_state(struct sbi_domain *dom)
+ {
+ 	struct sbi_domain_state *state;
 -- 
-2.43.7
+2.53.0
 
 
 -- 
