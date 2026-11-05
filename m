@@ -2,89 +2,66 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9C19606A336
-	for <opensbi@archiver.kernel.org>; Wed,  4 Nov 2026 16:09:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C6FD606A31B
+	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 01:40:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=nbABECVK;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=MkwMGUtG
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=uBifHxI1
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
 	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
 	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=eR2pQszukALUWgzEAEzT6oMkdDV64nixwvyayCxtEus=; b=nbABECVKLemJMjxcy34I159dbz
-	gQkYfPn45PwcIe4lh01CaKV6zqQfG7LqcaGeXsoQpdjI9JGqbmi5aJeIkcAZNEdrZ9SYiJMgZu7hT
-	Umo2zCoavGqmauS7MMuphrrbN71jfwtXk6E0bRnJtUPqIbMz0Ec3sGalql39BHLyEP8IXrJZLb+w5
-	0u3smHOXxpMzk9GhXJKz0zWcHSWp0ggHtlZfJKo6zwb5U7AEkvvNzt/ZuJ8EjukfnsH3FC/FGmOuh
-	x88N13VTcAFRE9hjlou1h9iOMR6IgSn2cMeEy/+aVHVq39U83gH+6YE9tF9hqmO7cJyM+a5ao/Xif
-	4n7Ipztw==;
+	bh=gH0CfrXKIDCicSi1gaRFh1IOb7yLUAl83tV+Y2ZdvmA=; b=uBifHxI1FeKX3B+EpYqXx6L+QC
+	24hHc6H+lsXtqcsYAvxVVKtdUc6lrzVYTG6YuTok6o+WZb9cIpFFTOG0W/M4KSb0vSf7wKPUh8AF8
+	FMwIMb//O9Us2lboAB3+7oR9INj8UXk+OuHZeybeqojrRmXJLM1z9CDO5NkaOvLFCRQuMhp1/HR28
+	QRxDbsgCVUcr7L4khHhRzfT3Iv7AdZr3EvGcpk7yKoF18rrmLFedbtca6lMbv7ebvJDCnbaaWAN+r
+	zL2Rry4F108taIZtjeOqbOXH9z3rfEzt6109PAbPXh3EGjD3C8CeiaeeU4fySaNyHki7lVWjVeJX2
+	OYezDxNQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOdYa-00000005tqT-0Z77;
-	Wed, 04 Nov 2026 16:09:48 +0000
-Received: from mail-wm1-x329.google.com ([2a00:1450:4864:20::329])
+	id 1xOmSk-00000007Uvm-0ePh;
+	Thu, 05 Nov 2026 01:40:22 +0000
+Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOdYX-00000005tpc-1E4T
+	id 1xOmSg-00000007UvK-0trV
 	for opensbi@lists.infradead.org;
-	Wed, 04 Nov 2026 16:09:46 +0000
-Received: by mail-wm1-x329.google.com with SMTP id 5b1f17b1804b1-4a549cd7fd2so8406005e9.0
-        for <opensbi@lists.infradead.org>; Wed, 04 Nov 2026 08:09:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793808583; x=1794413383; darn=lists.infradead.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Ybr5fXnOAA6wnbk8uXuORAGLUcOmz5/+marIMwiBbqA=;
-        b=MkwMGUtGKjx3pztb0zJUD1MSJC0W4h+aBEcLsp0BAfBEeD8rjEjzPS1WkiYiaY63gG
-         cp2hbQIudtIH6t8l/3UAsheLxcxtfiEHKtNZLVqbNYu7qTcKn+7Sstk8p6S7cG9eAAEm
-         hRqxyuFMTZ+MiaRlAAB6qRtE+8Mr9wf5DCuYmMH32fiNerAAbJVbm7QfZ23ICPICqEVT
-         aSvppiiftWv6OcWZvZzvz4h+Gs3/ey4Z7TiBbmFtmE+Bj74Mi+OZBQhdBCgZlrHE7O2z
-         1w2LrHa7+WHKziLSydAna+tMLFPD53JV+54pzX7oPIe5DIJnqUOu4Mdof1OmjGtN0og3
-         Rh5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793808583; x=1794413383;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Ybr5fXnOAA6wnbk8uXuORAGLUcOmz5/+marIMwiBbqA=;
-        b=b2RjnAHYRmF4Rj9XcwQxdGzpZd/bRxK/cfZch0Ml0sJpPBYFnYEKZXfJdFTVW1zUj4
-         9fo2nzwjWEybpX0TQP3t2/c1AwoKmp9w1iT6cLGNkvtdvc0rXyZqEe/oWdIli3oaYkA7
-         N7OvlGHK5o/r9lyGs3+3hzorutIGBQhum7qMsfCidSJuMT+3QGwM5vMNVERlzym6FUKJ
-         EyKrKqUve66h/1jqT1jehKExJES93dK8NKPwODlwgCh5EDIC+lNovsUfuOfUC68dAsVP
-         IQ4eWyzy2Sv5GgYUoMZ6EZf04aER1D0mt08J92b75WZC4B1R9amrcDqPcyNU4WoLVt7U
-         YqJg==
-X-Gm-Message-State: APuU4Z/ygnvQMY04MKMFPo8XKbqQ9evoWPfmtcBYpCLZQlp0f8fgf/+b
-	OGPm4LjprbNQjmm265L61ER8H8xR43EuNiB8bKruZMrscIO5BiV7ikwJQyAMhyCQ
-X-Gm-Gg: AYBFou0mTuSedjkrV6tfqHM4BO8WF6TpELhWf9YWa9DtiZZSyBUa2AB6w1ku5+EYqI4
-	disK+yq8Grtr7HWGLidS/1LvAFIuEZuRSz/5OSreVhpzGv+/WWEnoMDXqoMvIoHY7asS96w5Dnp
-	q93rciHMx/IW8lP84XYpW66aLrVLCyeDKSxQe4ZwusgcrrKDJxKadj7+kK7Yfw47jP14ImbB0KP
-	jY4xMneSfzqSpHJJtmhRYE/DhJ6T4odftjAR2zbm+iwZyJ51KC57hvW4718GsdiE6oSgQEr/my6
-	bw7AlQkZyLhS+SeIeuyYKKADQLZ5rI6P8CF4merQ4TY1ER7OajVjYIAW54eFc0oNzCfewJA+h4T
-	dXcEFJpYlHefGoLyE4a/AwOgpwLv1HDok94wCfBRtWWpTe/4qE6plUv61PvTMCmcwAS5zC5/XSJ
-	fJyCpGL+gv6/77cZvbuJx8sYCnAL989Y5I8BgUJwF8Te8Ju01/TNJ3szrHwaNDJUeSAVfHNyMLz
-	btMVSHpK01Af5DQxUWi2RXZNI3Qqba5uVEm0obf/DhuvMoeRv4WBykCjFXLf1HShVRL7OXnn7jJ
-	7tWqQVOnf0d2lLSjHCsRoX8Tf4uVpmpjHslNoFUz+aQ=
-X-Received: by 2002:a05:600c:1387:b0:4a1:88df:8a2a with SMTP id 5b1f17b1804b1-4ac1793e81cmr390807605e9.13.1793808582793;
-        Wed, 04 Nov 2026 08:09:42 -0800 (PST)
-Received: from ThinkBook16p-G6 ([2001:999:3401:b544:ec98:6ed2:549e:44d1])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b43d7b0727sm58907725e9.14.2026.11.04.08.09.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 08:09:41 -0800 (PST)
-From: Ahmed Fardi <ahmedfardi93@gmail.com>
+	Thu, 05 Nov 2026 01:40:21 +0000
+Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowABX8rd63utqetVVAA--.14237S2;
+	Thu, 05 Nov 2026 09:40:10 +0800 (CST)
+From: liutong <liutong@iscas.ac.cn>
 To: opensbi@lists.infradead.org
-Cc: Xianbin Zhu <xianbin.zhu@linux.spacemit.com>,
-	Troy Mitchell <troy.mitchell@linux.spacemit.com>,
-	Ahmed Fardi <ahmedfardi93@gmail.com>
-Subject: [PATCH] lib: utils/hsm: spacemit: wait for the PMU to take a wakeup request
-Date: Wed,  4 Nov 2026 18:09:37 +0200
-Message-ID: <20261104160937.54613-1-ahmedfardi93@gmail.com>
-X-Mailer: git-send-email 2.53.0
+Cc: cleger@rivosinc.com,
+	himanshu.chauhan@oss.qualcomm.com,
+	anup@brainfault.org
+Subject: [PATCH] lib: sbi: sse: fix shared memory double-fetch in sse_write_attrs
+Date: Thu,  5 Nov 2026 01:39:58 +0000
+Message-Id: <20261105013958.32686-1-liutong@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
+X-CM-TRANSID: zQCowABX8rd63utqetVVAA--.14237S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxuF1xCw1DtFW5uF1ruFWktFb_yoWrJr43pF
+	97KF9xKrZ5tayxtr9xAw48X3Zxu3yxJ3yaqF9IyF18ZF45AF1xu343t34jvr1Utr97AFWa
+	vayqqFy5ZFWDZFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUySb7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I2
+	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
+	jxv20xvEc7CjxVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I
+	8E87Iv6xkF7I0E14v26F4UJVW0owAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC
+	0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr1j6F
+	4UJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41l42xK82IYc2Ij64vIr41l
+	4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67
+	AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8I
+	cVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI
+	8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v2
+	6r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x07bYpBfUUUUU=
+X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261104_080945_357777_C0F92DBB 
-X-CRM114-Status: GOOD (  14.62  )
+X-CRM114-CacheID: sfid-20261104_174018_638661_CD63093B 
+X-CRM114-Status: GOOD (  16.82  )
 X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -98,83 +75,109 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	DKIM_ADSP_CUSTOM_MED,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-The PMU clears a hart's wakeup bit about 17 us after it is written. A
-second write before that replaces the pending request, so harts started
-back to back may never wake up (on a BPI-F3, harts 4-6 stayed off).
+sse_write_attrs() reads the attribute values from the S-mode shared
+memory in two passes: first to validate them, then to apply them.
+S-mode may write the shared memory between the passes, so a value that
+sse_event_set_attr_check() would have rejected can still be applied.
+For SBI_SSE_ATTR_PREFERRED_HART this leaves e->hartindex derived from
+a hart id that sse_event_set_hart_id_check() refused, which
+sbi_sse_enable() then resolves to a NULL scratch.
 
-Poll for the bit to clear, with a 1 ms timeout.
+Copy the attributes into a local array, unmap the shared memory right
+away, and run both passes against that copy.
 
-Signed-off-by: Ahmed Fardi <ahmedfardi93@gmail.com>
+The copy is a fixed size stack array. Its bound is currently guaranteed
+by sbi_sse_attr_check() in the only caller. Check attr_count here as
+well, so that the bound of the array does not depend on validation done
+in another function.
+
+Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
+Suggested-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+Signed-off-by: liutong <liutong@iscas.ac.cn>
 ---
-Tested on a Banana Pi BPI-F3 (K1) with OP-TEE starting harts 1-7 back to
-back: 5 of 8 harts came up before, 8 of 8 with this change. That test ran
-on OpenSBI 1.8; this patch is the same change applied to current master.
+Resent on its own from "[PATCH v3 0/3] lib: sbi: fix shared memory
+double-fetch in DBTR and SSE":
 
- lib/utils/hsm/fdt_hsm_spacemit.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+  https://lore.kernel.org/opensbi/20260910052958.3365324-4-liutong@iscas.ac.cn/
 
-diff --git a/lib/utils/hsm/fdt_hsm_spacemit.c b/lib/utils/hsm/fdt_hsm_spacemit.c
-index 4f76b99e..3ccb17db 100644
---- a/lib/utils/hsm/fdt_hsm_spacemit.c
-+++ b/lib/utils/hsm/fdt_hsm_spacemit.c
-@@ -11,6 +11,7 @@
- #include <sbi/riscv_io.h>
- #include <sbi/sbi_error.h>
- #include <sbi/sbi_hsm.h>
-+#include <sbi/sbi_timer.h>
- #include <spacemit/common.h>
- #include <spacemit/k1.h>
- #include <spacemit/k3.h>
-@@ -53,15 +54,27 @@ static inline void spacemit_k1_set_cpu_power(u32 hartid, bool enable)
- 	writel(value, cpu_idle_base);
+Himanshu NAKed that series on a debug trigger argument. This one is a
+different subsystem, so I would rather it be judged on its own; if the
+NAK was meant to cover it too, say so and I will drop it.
+
+The attribute that matters is PREFERRED_HART: winning the race stores a
+hart id that sse_event_set_hart_id_check() refused, e->hartindex becomes
+-1U, and sbi_sse_enable() then dereferences a NULL scratch. Measured on
+f6abdaf2 under QEMU MTTCG, -smp 2: unpatched, won in 6 rounds, and
+SSE_ENABLE then takes an M-mode load access fault (mcause=0x5,
+mtval=0x540); patched, 20000 rounds with no win.
+
+Unchanged from v3 apart from the commit message, which overstated the
+bound check: it covers attr_count only.
+ lib/sbi/sbi_sse.c | 27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
+
+diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
+index 767ea128..b3d35d65 100644
+--- a/lib/sbi/sbi_sse.c
++++ b/lib/sbi/sbi_sse.c
+@@ -1049,25 +1049,40 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
+ 	unsigned long attr = 0, val;
+ 	uint32_t id, end_id = base_attr_id + attr_count;
+ 	unsigned long *attrs = (unsigned long *)input_phys;
++	unsigned long local_attrs[SBI_SSE_ATTR_MAX];
++
++	/*
++	 * sbi_sse_attr_check() in the only caller already rejects a larger
++	 * count, but local_attrs is a fixed size stack array, so do not
++	 * rely on that for its bound.
++	 */
++	if (attr_count > SBI_SSE_ATTR_MAX)
++		return SBI_ERR_INVALID_PARAM;
+ 
+ 	sbi_hart_protection_temp_map_range(input_phys, sizeof(unsigned long) * attr_count);
+ 
++	/*
++	 * Snapshot the attributes so that the values checked below are the
++	 * ones applied, even though S-mode can keep writing the shared
++	 * memory.
++	 */
++	copy_attrs(local_attrs, attrs, attr_count);
++
++	sbi_hart_protection_temp_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
++
+ 	for (id = base_attr_id; id < end_id; id++) {
+-		val = attrs[attr++];
++		val = local_attrs[attr++];
+ 		ret = sse_event_set_attr_check(e, id, val);
+ 		if (ret)
+-			goto out;
++			return ret;
+ 	}
+ 
+ 	attr = 0;
+ 	for (id = base_attr_id; id < end_id; id++) {
+-		val = attrs[attr++];
++		val = local_attrs[attr++];
+ 		sse_event_set_attr(e, id, val);
+ 	}
+ 
+-out:
+-	sbi_hart_protection_temp_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
+-
+ 	return ret;
  }
  
--static void spacemit_k1_wakeup_cpu(u32 mpidr)
-+#define SPACEMIT_K1_WAKEUP_TIMEOUT_US	1000
-+
-+static int spacemit_k1_wakeup_cpu(u32 mpidr)
- {
- 	unsigned int *cpu_reset_base;
- 	unsigned int cur_hartid = current_hartid();
-+	unsigned int us;
- 
- 	cpu_reset_base =
- 		(unsigned int *)(unsigned long)k1_cpu_wakeup_reg[cur_hartid];
- 
- 	writel(1 << mpidr, cpu_reset_base);
-+
-+	/* Wait for the PMU to take the request: a new write would replace it */
-+	for (us = 0; us < SPACEMIT_K1_WAKEUP_TIMEOUT_US; us++) {
-+		if (!(readl(cpu_reset_base) & (1 << mpidr)))
-+			return 0;
-+		sbi_timer_udelay(1);
-+	}
-+
-+	return SBI_ETIMEDOUT;
- }
- 
- static void spacemit_k1_assert_cpu(void)
-@@ -78,9 +91,8 @@ static void spacemit_k1_deassert_cpu(unsigned int hartid)
- static int spacemit_k1_hart_start(unsigned int hartid, unsigned long saddr)
- {
- 	spacemit_k1_deassert_cpu(hartid);
--	spacemit_k1_wakeup_cpu(hartid);
- 
--	return 0;
-+	return spacemit_k1_wakeup_cpu(hartid);
- }
- 
- /*
+
+base-commit: f6abdaf25dfe0608277fc634f3927c1f184ede6d
 -- 
-2.53.0
+2.34.1
 
 
 -- 
