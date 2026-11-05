@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AF7C606D806
-	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 15:02:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31984606A31B
+	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 15:04:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=rHd1BJWZ;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=goXY+hwt
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=HM8dapfR;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=lcvXUwKT
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,85 +14,85 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=+UmNWjng7LAPnYO4z023I44ypAaY0vWtxfDv4++uqas=; b=rHd1BJWZmilvQG28x71aiB2Rl9
-	n974FiSkRFQi8V+0bPXx283crSps+nehBUaF/sj3hJkpR09qowqXPu5NrRi0DShOrh9fc5ozQB6B7
-	DfMAvLJTQ1warSkryOkJqtQl2pxgBdtvqyzJj+tI9TUabCCBoPU7TWe9gwxswx9susiBbbQyXaFXv
-	FJPTtJsCreOYzJLhSyHfEi7r9wg5qe3Ivozl5nRKdzr/OTlKF/4Mvrzli+5RZHhpGuaOstPp/Y5+q
-	FqJgp8UXSMV5a4x7gg7hugoNI+h0pWCzjtKyAcv0JZoih2OUeD3G6VxnqNbPR23TUQcMEUiLL8QIc
-	VDqjlv3Q==;
+	bh=YWNGvSm/VPz9A3R0F0C45y72iSf2J+tBiGy1/Mu8R9c=; b=HM8dapfR6POdmvegDiuv9VLRuE
+	yAmHYZr/sYAhRNCc2dQ1bji1AQFSlLFtVgBrRHnZRbPzuRP59kZz5H6/rSMLg3Jyc+EvJ2s1a7ZVV
+	Arq2O/Ukh7vcpTnchUIxIGtQgYbbJEygIiN39aOSIOfk1AiEgmSZYR1Vytw7CklrM0NVwMJtQCacO
+	3GORYWVoxPRzbYSdiE+1NobULhSihGWlG+C6DZzjFZt7Zp7vp9Dym8Zt44Vwfgx4ccqERXr0ioz7x
+	etX1mv6ObWUIOXYZLLThYOcdaZWIJ/eMCwWT88DRThw7QDrNF9wOcsgOOWlWjIpUxhb7Esmy0PoEv
+	hAvgffMg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOyyg-00000009M06-0UfV;
-	Thu, 05 Nov 2026 15:02:10 +0000
-Received: from mail-oo1-xc2a.google.com ([2607:f8b0:4864:20::c2a])
+	id 1xOz0t-00000009MHl-3nwu;
+	Thu, 05 Nov 2026 15:04:27 +0000
+Received: from mail-ot1-x32d.google.com ([2607:f8b0:4864:20::32d])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOyyb-00000009Lzf-3ohQ
+	id 1xOz0r-00000009MGj-0LwJ
 	for opensbi@lists.infradead.org;
-	Thu, 05 Nov 2026 15:02:08 +0000
-Received: by mail-oo1-xc2a.google.com with SMTP id 006d021491bc7-6df7f544919so1106881eaf.1
-        for <opensbi@lists.infradead.org>; Thu, 05 Nov 2026 07:02:05 -0800 (PST)
+	Thu, 05 Nov 2026 15:04:26 +0000
+Received: by mail-ot1-x32d.google.com with SMTP id 46e09a7af769-823b938464fso1379758a34.2
+        for <opensbi@lists.infradead.org>; Thu, 05 Nov 2026 07:04:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793890925; x=1794495725; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ooZThoT6EXCriVBh+oJ58QDeJJvvFwIpg9PkEEkJkB4=;
-        b=goXY+hwtLSOzsFWeZDAqr9OvJhWYR7LtCr4+HipjcSSQEYvp1tSUEsmHJwDY7KOlGl
-         31oPPjTkl/lZIO61cnIQ6Ze0Lx/ZNFibDJAzppR4i+VgLtrc/WzwNq/4kkM4a1eb0EWb
-         aSvnNmTcRtLMM8ygTYjLX//0bK2BVk+wvnglDYROb5XB3mwXXTOxy33NIJ6KV0UuBuDS
-         qTNawhPoy84NIXGrCE37e0nD0qxSfLYHxMO6PR5X5YvixPLPfOtFzgbbJOtRO7jqLcTB
-         wKap7Q9bP/0oc+U92StW2sGszpbqSLKu2MCtNrcnqGJwdAo0skc/Acl86GNaJnrVLKs/
-         f/JA==
+        d=sifive.com; s=google; t=1793891064; x=1794495864; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=JGToSn38P7KJGZqpDZEUyTPfE1rLNFQs62CpfGjQG7k=;
+        b=lcvXUwKTYj+gL4l44AfhemRnxMXHWmwMI1iFIAhTWauURIEVz8N5zbDQ8Pb0jJUHji
+         kDOP095jeqNqbcHPj2GFgtM+F9VMsojxmb+lHk2J6B0vQ2G4XRb43zn03B4T6liO63KL
+         XuG3YJh3lW6YL5UafPGtPyaYK9CK0pNl3u1j5ZIKU1sEwTgvJKKPvvAA1GaAnQurMyVs
+         zPZte5qqKoBz9Vxw/v8Dc4Xz7wPpwX4QHrTH5vlUBEYCS2s/Z+GvruQARDAtynN4K6RK
+         TT5W/56jY7pJkqPbKYDpUaNo1cP0vPSFTSGUh8e5gmNdebTYhqD6Rim+v2NHR7htBN/W
+         72qw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793890925; x=1794495725;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20260707; t=1793891064; x=1794495864;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=ooZThoT6EXCriVBh+oJ58QDeJJvvFwIpg9PkEEkJkB4=;
-        b=bzczsjlFYEvLPjVPgEAeF0/M7cIoC8SX/UvhhPY9g3fV0l4HFUqnd2VEgjOtRPf2cQ
-         hwk5LTAOFCASNzQw2RsHWJFt1esLw6R8DxTak9TjlUzuk82ntff3a6gdgx6MGFMcYIVQ
-         00slEJyVrqo8jOji8lJUTyz3dHGbauB8b+PPL8/h+nLEsVxvwlixj3T0md8fq8KJ7pCE
-         6V+Twb1/1LfXoPPgEVPtlxoVuGnOtOMu0v7ZgsFyOt2pHo54DK13dki0kI9a1ZzqJd0u
-         488eVUCMmzACkkcsN2Yo23rW5j4Y8JgSgmN3bp9eB7xA3IrbFuyg6zo2X9XkwbEDYxDS
-         pMnw==
-X-Forwarded-Encrypted: i=1; AKwUvBw+yUnm4DNNFR6RbQDID5VjTCVf0tLapqNAv9cr09g6gp6JUXctW7eBpXDpGTg0aynqpqxkzRnI@lists.infradead.org
-X-Gm-Message-State: APuU4Z+Tb60ZWnz6MPEQu3dwts3ZL5/Y5rj8g1Dp4Isu0Om1Jv4C1242
-	auRdllmtVyj6T9Xsh8KwlSNvw0b8N0oKo0D0WcguGlQuR/YmgkF4C9J2IjIAnE5ND0s=
-X-Gm-Gg: AYBFou2pfv7O4XZPj9w6tS26Q1rG73p1tHLEKIAkSY8d3Ues5//sipCXzyddkeiSQK8
-	icPc6Q6MUpxnWKZadTm/efY4yU20uXZub684a6dwdo1Gj8sENmL+Y1Wq2TF2yNpbrShqNlGFUea
-	FYD5BYpZcTNyBwWnyBJ/mDsuE0y+WqVLtpBbIow9BQjWU31tVtEFLTJUSYve68SD1bmv4rXFMn3
-	hM9wl/PY28q3GSRYrsgmjYwy8YdekQHSzlEW88I1RTfQCgqswcEChGJGSJgu+6uK5iYF+ucyraW
-	jSjgw+NhS359AaMEKUzDLDk3X0iF7BhA1X486I2HYYaHmVJHO7832ZxNivhwd+VLLjhNRHAngzF
-	6QT0oaZrpVhvwqT15f29Z4XbcQZm++XvysFfbY3ire9B/b0OG4r/jEU9RXucXK+G/g+qiXXfZSc
-	9GhJoO2Div5kAM005E2Mt4itXXMrtuSB1C2OIlBglZbe8X+VqMZElx8CjXg/R2N7AkHZUlDRWTZ
-	PtfZd3d2Dp01FU6evvx1C19A0+dnvTXvYolr9LowlNVHJxgWu15ct7h3UFjk7MXtotVg7fRf7MC
-	WJo1z1okNgCGhy4Gov4cYrokNS2lDU+DNonlMVP1fBuYb01jUcxu
-X-Received: by 2002:a05:6820:c3ca:b0:6dd:3534:478f with SMTP id 006d021491bc7-714f29fa946mr7386591eaf.73.1793890924639;
-        Thu, 05 Nov 2026 07:02:04 -0800 (PST)
+        bh=JGToSn38P7KJGZqpDZEUyTPfE1rLNFQs62CpfGjQG7k=;
+        b=VzgUVhbcrTamtGh1lTZGYv3ZWpHp9iu2oj3TVV58teAaRey1bFyDhR7t9ybVExfnhQ
+         mTE0H+4plsEsNTUHMNYp48IAJJg1nMG59FYDq2QiuXnizp2w6FVLfNzdC6LulyQepS7P
+         y/sbWYwkVfK7HZ6Yu2CJyggvGPR9c3Dvu2Fg7iQ1tSpR4q6pkHUPpz3zAMY3w2k06ipa
+         TuVvHNOxrK5a8sMHtKvGom/QKNoD7mvvOUEm9Wqu5JaCc7p7tOpsYQiM+C+0rYFAsU9O
+         QitUv0aTgbicJjFORa+3+YzgOGmBCjK4AGIe1P2RTG+JAsmUz6EPOzvlbWjSZIrFFcbM
+         Mjhw==
+X-Forwarded-Encrypted: i=1; AKwUvBz7eubAghxbiVYqWn+StntP/hGZXrmzuqBTVHmFY4yccRaqcDFMxz9adASkA/IBy8ea8cnWbsAH@lists.infradead.org
+X-Gm-Message-State: APuU4Z9NhL1L9R9/7Z3INctxHejtLZ0CpI13CE4g5fQukraCl9LZzPaI
+	9fWdiJfjh6UfR6YbdAXYa9jCPdOBAFoaUbYFGtRLnG99IepgYpcyNb1NLsw+Ca5vBt8=
+X-Gm-Gg: AYBFou2LGQD9CXi9Ig+1DPWN3YqvZEImz1jznIDLGz+DNrIaTfLJGMrOvK55leGEBn0
+	fSxKgDXnfUXsZ/nBJZ2esNtSlKXJe3HHMJPb+mKEEZQaeIncEw123axaex1sX9ReB6Z+8MnGYGf
+	iaYhCaLRMF+mZiTgZ5LVNXWjoEtRo8WKJ03mM0zgoBQASKaPmCe8hgBYKR6H5OO9KlEb4t8iDDt
+	1xG3gJRw5yC9HH62SWyRzDrB3ZQTQqYgr/LM1nwCsbYGl1b8LbmmFTizPKjFP0gCl7q+VGOnd4F
+	PUe2nBa9pqkFQEEWms1hmR9UVcuuQQBuV6CKlVWzlPy526XzVqWX8bzoDdzdl96MfvcPRbgecND
+	dl4S+WvXJyc8xqKvtVY1IN+Lw1kcmilB5LFZuP0LVCqWXEz09ZgzULhKmOMlZUvDwVLt53WxbQc
+	Q6PkrKo8UrxM6CGrw5E0DuG8Gm/el3cin2P/Mr9swJEdL8Yr8Nw62cJQw7EBI20UbJ1uW7MLua0
+	9NJYwzl0SejW3F8cXxbY3Ire41S2foFlt9rZ5ph+2hidxoh28VBATkw54U/BQZjliVOsMNkpLNb
+	RoOfXYDEi57zFP/tlOkhN52LTu17UTU=
+X-Received: by 2002:a05:6830:82f4:b0:81b:ac5b:ea17 with SMTP id 46e09a7af769-85d364871femr15058273a34.16.1793891063810;
+        Thu, 05 Nov 2026 07:04:23 -0800 (PST)
 Received: from [100.64.0.1] ([136.226.84.194])
-        by smtp.gmail.com with ESMTPSA id 006d021491bc7-716c1254321sm4148217eaf.4.2026.11.05.07.02.02
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-85ef3a1ac98sm4664270a34.1.2026.11.05.07.04.21
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 05 Nov 2026 07:02:04 -0800 (PST)
-Message-ID: <5562950a-e4b3-4fe1-ac7c-a3e5f6e5e7f1@sifive.com>
-Date: Thu, 5 Nov 2026 09:02:02 -0600
+        Thu, 05 Nov 2026 07:04:22 -0800 (PST)
+Message-ID: <a161c53f-eb48-465c-bffe-ab260654be4b@sifive.com>
+Date: Thu, 5 Nov 2026 09:04:21 -0600
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v3 1/6] lib: sbi: Preserve hypervisor and VS state
- across domain switches
+Subject: Re: [RFC PATCH v3 4/6] lib: sbi: Preserve S/VS indirect CSR selectors
 To: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>,
  opensbi@lists.infradead.org
 Cc: anup@brainfault.org, rkrcmar@qti.qualcomm.com
 References: <20261023070925.241680-1-theodoruswensanfebruanto025@gmail.com>
  <20261105044339.435711-1-theodoruswensanfebruanto025@gmail.com>
- <20261105044339.435711-2-theodoruswensanfebruanto025@gmail.com>
-From: Samuel Holland <samuel.holland@sifive.com>
+ <20261105044339.435711-5-theodoruswensanfebruanto025@gmail.com>
 Content-Language: en-US
-In-Reply-To: <20261105044339.435711-2-theodoruswensanfebruanto025@gmail.com>
+From: Samuel Holland <samuel.holland@sifive.com>
+In-Reply-To: <20261105044339.435711-5-theodoruswensanfebruanto025@gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261105_070206_013721_21075BDB 
-X-CRM114-Status: GOOD (  16.60  )
+X-CRM114-CacheID: sfid-20261105_070425_255182_2D741B52 
+X-CRM114-Status: GOOD (  16.00  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -115,183 +115,55 @@ X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
 On 2026-11-04 10:43 PM, Theodorus Wensan Februanto wrote:
-> Save outgoing VS state before modifying S/H interrupt configuration,
-> then restore incoming VS state after the H state exchange.
+> Preserve siselect when either Sscsrind or Smaia is available.
 > 
-> Preserve core H-extension CSRs, optional Smaia hypervisor interrupt
-> state, and Smstateen state-enable registers.
+> When H is implemented, also preserve vsiselect.
 > 
-> Include hvien, hvictl, hviprio1, hviprio2, and the RV32 VS interrupt
-> high-half CSRs.
+> This change preserves the selectors only. It does not save
+> the indirectly selected backing state or IMSIC files.
 > 
 > Link: https://github.com/riscv-software-src/opensbi/issues/433
+> 
 > Signed-off-by: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
 > ---
->  lib/sbi/sbi_domain_context.c | 112 +++++++++++++++++++++++++++++++++++
->  1 file changed, 112 insertions(+)
+>  lib/sbi/sbi_domain_context.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 > 
 > diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> index 987ac7fa..c34d4cbb 100644
+> index 89fd1647..fe7d98af 100644
 > --- a/lib/sbi/sbi_domain_context.c
 > +++ b/lib/sbi/sbi_domain_context.c
-> @@ -21,6 +21,42 @@
->  #include <sbi/sbi_vector.h>
->  #include <sbi/sbi_fp.h>
->  
-> +struct hart_context_hext {
-> +	unsigned long hstatus;
-> +	unsigned long hedeleg;
-> +	unsigned long hideleg;
-> +	unsigned long hie;
-> +	unsigned long hgeie;
-> +	u64 henvcfg;
-> +	unsigned long htval;
-> +	unsigned long htinst;
-> +	unsigned long hvip;
-> +	unsigned long hgatp;
-> +	/** Optional hypervisor state */
-> +	u64 hvien;
-> +	unsigned long hvictl;
-> +	u64 hviprio1;
-> +	u64 hviprio2;
-> +	u64 hstateen[4];
-> +#if __riscv_xlen == 32
-> +	unsigned long hidelegh;
-> +	unsigned long hviph;
-> +	unsigned long vsieh;
-> +	unsigned long vsiph;
-> +#endif
-> +	unsigned long hcounteren;
-> +	u64 htimedelta;
-> +	unsigned long vsstatus;
-> +	unsigned long vsie;
-> +	unsigned long vstvec;
-> +	unsigned long vsscratch;
-> +	unsigned long vsepc;
-> +	unsigned long vscause;
-> +	unsigned long vstval;
-> +	unsigned long vsip;
-> +	unsigned long vsatp;
-> +};
-> +
->  /** Context representation for a hart within a domain */
->  struct hart_context {
->  	/** Trap-related states such as GPRs, mepc, and mstatus */
-> @@ -44,6 +80,8 @@ struct hart_context {
->  	unsigned long sip;
->  	/** Supervisor address translation and protection register */
->  	unsigned long satp;
-> +
-> +	struct hart_context_hext hext;
->  	/** Counter-enable register */
->  	unsigned long scounteren;
->  	/** Supervisor environment configuration register */
-> @@ -131,6 +169,25 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
->  	sbi_hartmask_set_hartindex(hartindex, &target_dom->assigned_harts);
->  	spin_unlock(&target_dom->assigned_harts_lock);
->  
-> +	/* Save outgoing VS state before modifying S/H interrupt CSRs. */
-> +	if (misa_extension('H')) {
-> +		ctx->hext.vsstatus = csr_read(CSR_VSSTATUS);
-> +		ctx->hext.vsie = csr_read(CSR_VSIE);
-> +		ctx->hext.vstvec = csr_read(CSR_VSTVEC);
-> +		ctx->hext.vsscratch = csr_read(CSR_VSSCRATCH);
-> +		ctx->hext.vsepc = csr_read(CSR_VSEPC);
-> +		ctx->hext.vscause = csr_read(CSR_VSCAUSE);
-> +		ctx->hext.vstval = csr_read(CSR_VSTVAL);
-> +		ctx->hext.vsip = csr_read(CSR_VSIP);
-> +		ctx->hext.vsatp = csr_read(CSR_VSATP);
-> +#if __riscv_xlen == 32
-> +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
-> +			ctx->hext.vsieh = csr_read(CSR_VSIEH);
-> +			ctx->hext.vsiph = csr_read(CSR_VSIPH);
-> +		}
-> +#endif
-> +	}
-> +
->  	/* Save current CSR context and restore target domain's CSR context */
->  	ctx->sstatus	= csr_swap(CSR_SSTATUS, dom_ctx->sstatus);
->  	ctx->sie	= csr_swap(CSR_SIE, dom_ctx->sie);
-> @@ -141,6 +198,61 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
->  	ctx->stval	= csr_swap(CSR_STVAL, dom_ctx->stval);
->  	ctx->sip	= csr_swap(CSR_SIP, dom_ctx->sip);
->  	ctx->satp	= csr_swap(CSR_SATP, dom_ctx->satp);
-> +
-> +	if (misa_extension('H')) {
-> +		ctx->hext.hstatus = csr_swap(CSR_HSTATUS, dom_ctx->hext.hstatus);
-> +		ctx->hext.hedeleg = csr_swap(CSR_HEDELEG, dom_ctx->hext.hedeleg);
-> +		ctx->hext.hideleg = csr_swap(CSR_HIDELEG, dom_ctx->hext.hideleg);
-> +		ctx->hext.hie = csr_swap(CSR_HIE, dom_ctx->hext.hie);
-> +		ctx->hext.hgeie = csr_swap(CSR_HGEIE, dom_ctx->hext.hgeie);
-> +		ctx->hext.henvcfg = csr_swap64(CSR_HENVCFG, dom_ctx->hext.henvcfg);
+> @@ -96,6 +96,10 @@ struct hart_context {
+>  	struct hart_context_sstc sstc;
+>  	/** Supervisor counter inhibit configuration */
+>  	unsigned long scountinhibit;
+> +	/** Supervisor indirect CSR selector */
+> +	unsigned long siselect;
+> +	/** Virtual supervisor indirect CSR selector */
+> +	unsigned long vsiselect;
 
-OpenSBI supports hardware with H but not Sm1p12 (e.g. SiFive P550), so this CSR
-needs an extension check.
-
-Additionally, since the bits this CSR control if certain bits in senvcfg are
-writable or read-only zero, the save/restore of senvcfg needs to be split.
-
-> +		ctx->hext.htval = csr_swap(CSR_HTVAL, dom_ctx->hext.htval);
-> +		ctx->hext.htinst = csr_swap(CSR_HTINST, dom_ctx->hext.htinst);
-> +		ctx->hext.hvip = csr_swap(CSR_HVIP, dom_ctx->hext.hvip);
-> +		ctx->hext.hgatp = csr_swap(CSR_HGATP, dom_ctx->hext.hgatp);
-> +		ctx->hext.hcounteren = csr_swap(CSR_HCOUNTEREN, dom_ctx->hext.hcounteren);
-> +		ctx->hext.htimedelta = csr_swap64(CSR_HTIMEDELTA, dom_ctx->hext.htimedelta);
-
-Similarly, OpenSBI supports hardware with H but not Zicntr, in which case the
-htimedelta CSR is not implemented, and the delta is implemented via
-sbi_timer_get/set_delta().
-
-> +#if __riscv_xlen == 32
-> +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
-> +			ctx->hext.hidelegh = csr_swap(CSR_HIDELEGH,
-> +						dom_ctx->hext.hidelegh);
-> +			ctx->hext.hviph = csr_swap(CSR_HVIPH, dom_ctx->hext.hviph);
-> +		}
-> +#endif
-> +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
-
-Is it necessary to check for Smaia twice here?
+Should this go inside struct hart_context_hext?
 
 Regards,
 Samuel
 
-> +			ctx->hext.hvien = csr_swap64(CSR_HVIEN, dom_ctx->hext.hvien);
-> +			ctx->hext.hvictl = csr_swap(CSR_HVICTL, dom_ctx->hext.hvictl);
-> +			ctx->hext.hviprio1 = csr_swap64(CSR_HVIPRIO1, dom_ctx->hext.hviprio1);
-> +			ctx->hext.hviprio2 = csr_swap64(CSR_HVIPRIO2, dom_ctx->hext.hviprio2);
-> +		}
-> +
-> +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMSTATEEN)) {
-> +			ctx->hext.hstateen[0] = csr_swap64(CSR_HSTATEEN0,
-> +						dom_ctx->hext.hstateen[0]);
-> +			ctx->hext.hstateen[1] = csr_swap64(CSR_HSTATEEN1,
-> +						dom_ctx->hext.hstateen[1]);
-> +			ctx->hext.hstateen[2] = csr_swap64(CSR_HSTATEEN2,
-> +						dom_ctx->hext.hstateen[2]);
-> +			ctx->hext.hstateen[3] = csr_swap64(CSR_HSTATEEN3,
-> +						dom_ctx->hext.hstateen[3]);
-> +		}
-> +		/* Restore incoming VS state after H interrupt configuration. */
-> +		csr_write(CSR_VSSTATUS, dom_ctx->hext.vsstatus);
-> +		csr_write(CSR_VSIE, dom_ctx->hext.vsie);
-> +		csr_write(CSR_VSTVEC, dom_ctx->hext.vstvec);
-> +		csr_write(CSR_VSSCRATCH, dom_ctx->hext.vsscratch);
-> +		csr_write(CSR_VSEPC, dom_ctx->hext.vsepc);
-> +		csr_write(CSR_VSCAUSE, dom_ctx->hext.vscause);
-> +		csr_write(CSR_VSTVAL, dom_ctx->hext.vstval);
-> +		csr_write(CSR_VSIP, dom_ctx->hext.vsip);
-> +		csr_write(CSR_VSATP, dom_ctx->hext.vsatp);
-> +#if __riscv_xlen == 32
-> +		if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
-> +			csr_write(CSR_VSIEH, dom_ctx->hext.vsieh);
-> +			csr_write(CSR_VSIPH, dom_ctx->hext.vsiph);
-> +		}
-> +#endif
+>  
+>  	/** Float context state */
+>  	struct sbi_fp_context fp_ctx;
+> @@ -277,6 +281,13 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+>  	    (csr_read64(CSR_MENVCFG) & ENVCFG_CDE))
+>  		ctx->scountinhibit = csr_swap(CSR_SCOUNTINHIBIT,
+>  						 dom_ctx->scountinhibit);
+> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND) ||
+> +	    sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
+> +		ctx->siselect = csr_swap(CSR_SISELECT, dom_ctx->siselect);
+> +		if (misa_extension('H'))
+> +			ctx->vsiselect = csr_swap(CSR_VSISELECT,
+> +						 dom_ctx->vsiselect);
 > +	}
->  	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_10)
->  		ctx->scounteren = csr_swap(CSR_SCOUNTEREN, dom_ctx->scounteren);
->  	if (sbi_hart_priv_version(scratch) >= SBI_HART_PRIV_VER_1_12)
+>  
+>  	/* Eager context switch for float */
+>  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_F) ||
 
 
 -- 
