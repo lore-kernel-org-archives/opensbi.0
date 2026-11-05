@@ -2,67 +2,102 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C6FD606A31B
-	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 01:40:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7DB6606A31B
+	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 02:10:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=uBifHxI1
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=eXleF8Ns;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=gQ/fEbFB
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=gH0CfrXKIDCicSi1gaRFh1IOb7yLUAl83tV+Y2ZdvmA=; b=uBifHxI1FeKX3B+EpYqXx6L+QC
-	24hHc6H+lsXtqcsYAvxVVKtdUc6lrzVYTG6YuTok6o+WZb9cIpFFTOG0W/M4KSb0vSf7wKPUh8AF8
-	FMwIMb//O9Us2lboAB3+7oR9INj8UXk+OuHZeybeqojrRmXJLM1z9CDO5NkaOvLFCRQuMhp1/HR28
-	QRxDbsgCVUcr7L4khHhRzfT3Iv7AdZr3EvGcpk7yKoF18rrmLFedbtca6lMbv7ebvJDCnbaaWAN+r
-	zL2Rry4F108taIZtjeOqbOXH9z3rfEzt6109PAbPXh3EGjD3C8CeiaeeU4fySaNyHki7lVWjVeJX2
-	OYezDxNQ==;
+	bh=fIATIcYdJEDdJ6L7y+aysRCZikGNmUcXg7Xm9T5auFA=; b=eXleF8NsJP99ayBoxfs5c/NIxs
+	LK/kh/jHl/eD/chI/1625n3a1KGLVlppxoe2iCyBiKhUNZK5RITnZXCcliEYcQaW+uzagxPtcp9zG
+	KoD0ju6s7TQ1XArL/kAyvRb/QMvIUDS7f8qHklilUm5r70ZJND9kVwYj0EPhuUBqBaehY8BgMFna3
+	P+vDE1KzcXlEGHBGi4x7yg4gHNJfr7Al7JZKN264f6U9y6SDW+XZrqGNmCwoWKw5xao6PBsdg/Ja1
+	rgLBkIGcyAsC8yDuurEtZua7rrqePZTVRdYhGQ/28qshCMkH+Nd/5T91OxSHhFiIoJOPyf8oL81zX
+	M59uSMYQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOmSk-00000007Uvm-0ePh;
-	Thu, 05 Nov 2026 01:40:22 +0000
-Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
+	id 1xOmw5-00000007XIZ-0w2q;
+	Thu, 05 Nov 2026 02:10:41 +0000
+Received: from mail-pj1-x1033.google.com ([2607:f8b0:4864:20::1033])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOmSg-00000007UvK-0trV
+	id 1xOmw1-00000007XHb-2xRr
 	for opensbi@lists.infradead.org;
-	Thu, 05 Nov 2026 01:40:21 +0000
-Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-05 (Coremail) with SMTP id zQCowABX8rd63utqetVVAA--.14237S2;
-	Thu, 05 Nov 2026 09:40:10 +0800 (CST)
-From: liutong <liutong@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: cleger@rivosinc.com,
-	himanshu.chauhan@oss.qualcomm.com,
-	anup@brainfault.org
-Subject: [PATCH] lib: sbi: sse: fix shared memory double-fetch in sse_write_attrs
-Date: Thu,  5 Nov 2026 01:39:58 +0000
-Message-Id: <20261105013958.32686-1-liutong@iscas.ac.cn>
-X-Mailer: git-send-email 2.34.1
+	Thu, 05 Nov 2026 02:10:39 +0000
+Received: by mail-pj1-x1033.google.com with SMTP id 98e67ed59e1d1-3ada8bc2380so708609a91.3
+        for <opensbi@lists.infradead.org>; Wed, 04 Nov 2026 18:10:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sifive.com; s=google; t=1793844636; x=1794449436; darn=lists.infradead.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=qDKi7yTPHB32kCmZKUJCx7oxzg39xIZ0uiAQltcV4hs=;
+        b=gQ/fEbFB9qUa/tteieQJrMld4rnrjg7cJP06VbXA2asR6+Pd6kC0ZRNZtvvM1LchNn
+         z4ljHxq47UVxsyPc+sK9YU/N9bSBJvUkqn0We+eFZxjr7V4MD8o3r0+TMldXMH+XqG3U
+         l8mddVA+KHsENx+S3Mt69xqb36VTQhNXQMpRgHsbSNq/QqrE4UhTThmiZUILhgnXhKXK
+         IghmyW26vr69IgDMSrHOFX8MAsChk6IgfsKVhPOl20vwq9Ql0La7g0RQum2bAwsUAtcI
+         UlachhRmQ14gl3xk8Xb/w8cna0AO+wFBJyxt07QhcGsmluyCF80BDLoePt/kgd6tj4G7
+         MzYA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793844636; x=1794449436;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=qDKi7yTPHB32kCmZKUJCx7oxzg39xIZ0uiAQltcV4hs=;
+        b=UEjWvqo1OT8p33HF5B4DwEh42toDTrhOt4so3e78PJ2VAxNI+tg/Ss1JWGncZKxkR7
+         /abRlReIdaeh8yHAxJIuej+Suly+3Qvyz3UPAArGUIgVkoZFtEyLW1APCO1zPosE2T/I
+         cA3P9+LsVn3alsr7WQvd7vTlcaq6XmajEQDfBk3l8vGKA+4Fc9LOTe/1Zbmvl+nXDInH
+         Td/rQZ3gKJF7mqodUtB53Zie0Cf0GLKNzDPyq+TEJcMOiuNu19sLgO92Kr2sA8fl+RT9
+         Q8qoGggZvB9s+Y45kTZmVplA69ha3QcComaIqdj/IOvl3/hhEOtdsJVEXWxl/lYnq125
+         kqjA==
+X-Gm-Message-State: APuU4Z/74HrEyIdFRE3gpky0dThQb3VLL0mx0Q8TY+c8CvoSHhNS/1Sf
+	uhMpPtmIhTHDpFtgwkQyMzI26qJ9fkQRERLTw49vPjPtclsiWvndB9AlxU4kah1XkJY=
+X-Gm-Gg: AYBFou3j0T3RvSQ4RBxzx2hOYwqAaEeRF1mGxla2q++kkjHX1G8QchwoYFIlgHiztO1
+	s9ObOeFg6ZNVcVpZVy1JyuSAF9yjTVlQoK7qU4EWScldxO3VqbpQemPCx7P1oY4uBI95JZ5cXpn
+	VPFBlgfNyDwA3wMuKktt1D8L0WGm81rFCn9cTUq/ZBx53uu+ZiOt9OdhXToekbtHSrn2ITabj07
+	vxDkqJbxH6/NF9ruvoTkVq3Fcnw0U0hQDHP2Pm6+8W8s/LEloe2/GFjh/W/4/5oCqp3aJduiRy8
+	O7wvhjDuGfagcqNkfCrB/3CL8Yb/SnzszLiUo4zFJHgPOUa0IgdjrclV6eC0unUGzmFD+iiDML1
+	G02zVBqabRnQIHRt7OM1eF21m4y3AugH/jojiiKyE2YXLQuLtdeI67vjGpYFXyq4Hk5Q8qBbZ5a
+	kZeLpLxAxcVl2ICnX3Q5/Xwy1VtNW6htfaBOcOMaHm3AE15Dlj++jgcIR708usUciWwbzWHin2i
+	nXXGyvHq5NH1r/DZZ/PSCNu81kBCjS3VNux4+IZ7YpfgTrI5dx33xa9BKqAySZEVmQp+yc88G12
+	jz/BV7XXbPY1abNNJfyxofeJQpzgLmO3YNs58NYukHd6pXZm
+X-Received: by 2002:a17:90b:3807:b0:3ab:413:49bc with SMTP id 98e67ed59e1d1-3ae897994cfmr14314701a91.37.1793844636310;
+        Wed, 04 Nov 2026 18:10:36 -0800 (PST)
+Received: from plin-1878 ([136.226.240.181])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b096b52911sm2549920a91.3.2026.11.04.18.10.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 18:10:35 -0800 (PST)
+Date: Thu, 5 Nov 2026 10:10:29 +0800
+From: Yu-Chien Peter Lin <peter.lin@sifive.com>
+To: Radim Krcmar <rkrcmar@qti.qualcomm.com>
+Cc: "opensbi@lists.infradead.org" <opensbi@lists.infradead.org>,
+	"anup@brainfault.org" <anup@brainfault.org>,
+	"pawandeep.oza@oss.qualcomm.com" <pawandeep.oza@oss.qualcomm.com>,
+	"raymond.mao@riscstar.com" <raymond.mao@riscstar.com>,
+	"robin.randhawa@sifive.com" <robin.randhawa@sifive.com>,
+	"samuel.holland@sifive.com" <samuel.holland@sifive.com>,
+	"zong.li@sifive.com" <zong.li@sifive.com>,
+	"greentime.hu@sifive.com" <greentime.hu@sifive.com>,
+	opensbi <opensbi-bounces@lists.infradead.org>
+Subject: Re: [PATCH v3 9/9] docs: document WID DT properties
+Message-ID: <auvllcjA1ztGXUEW@plin-1878>
+References: <20261027083509.1076577-1-peter.lin@sifive.com>
+ <20261027083509.1076577-10-peter.lin@sifive.com>
+ <DMI6OBB8VVH2.3R7QIDD1FYPO2@qti.qualcomm.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID: zQCowABX8rd63utqetVVAA--.14237S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxuF1xCw1DtFW5uF1ruFWktFb_yoWrJr43pF
-	97KF9xKrZ5tayxtr9xAw48X3Zxu3yxJ3yaqF9IyF18ZF45AF1xu343t34jvr1Utr97AFWa
-	vayqqFy5ZFWDZFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUySb7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I2
-	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
-	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
-	jxv20xvEc7CjxVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I
-	8E87Iv6xkF7I0E14v26F4UJVW0owAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC
-	0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr1j6F
-	4UJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41l42xK82IYc2Ij64vIr41l
-	4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67
-	AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8I
-	cVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI
-	8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v2
-	6r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x07bYpBfUUUUU=
-X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
+Content-Disposition: inline
+In-Reply-To: <DMI6OBB8VVH2.3R7QIDD1FYPO2@qti.qualcomm.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261104_174018_638661_CD63093B 
-X-CRM114-Status: GOOD (  16.82  )
-X-Spam-Score: -1.9 (-)
+X-CRM114-CacheID: sfid-20261104_181037_754714_91E8D963 
+X-CRM114-Status: GOOD (  17.42  )
+X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -75,110 +110,54 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
+	SPF_PASS autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-sse_write_attrs() reads the attribute values from the S-mode shared
-memory in two passes: first to validate them, then to apply them.
-S-mode may write the shared memory between the passes, so a value that
-sse_event_set_attr_check() would have rejected can still be applied.
-For SBI_SSE_ATTR_PREFERRED_HART this leaves e->hartindex derived from
-a hart id that sse_event_set_hart_id_check() refused, which
-sbi_sse_enable() then resolves to a NULL scratch.
+Hi Radim,
 
-Copy the attributes into a local array, unmap the shared memory right
-away, and run both passes against that copy.
+On Fri, Oct 30, 2026 at 12:49:08PM +0000, Radim Krcmar wrote:
+> 2026-10-27T16:35:09+08:00, Yu-Chien Peter Lin <peter.lin@sifive.com>:
+> > Add "wid" and "widdeleg" properties to domain instance node
+> > documentation and example DT. Add a "Root Domain Node" section
+> > describing the "root" subnode under the domain configuration
+> > node for root domain WID configuration
+> >
+> > Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
+> > ---
+> > Change v2->v3:
+> > - Mark 'wid' property as mandatory when Smlwid is present for both root
+> >   and domain instance nodes.
+> > - Remove mention of M-mode WID fallback when 'wid' is absent.
+> > ---
+> > diff --git a/docs/domain_support.md b/docs/domain_support.md
+> > @@ -205,6 +225,13 @@ The DT properties of a domain instance DT node are as follows:
+> > +* **wid** (Mandatory if Smlwid is present) - The 32-bit World ID for
+> > +  lower-privilege modes (S/U-mode) for the domain instance. If the hart
+> > +  supports the Smlwid extension, this property must be provided.
+> 
+> WID CSR field with Smlwid is log_2(MXLEN)-bit.
+> 
+> > +* **widdeleg** (Optional) - The 64 bit World ID delegation bitmask for
+> 
+> mwiddeleg CSR with Smwiddeleg is MXLEN-bit.
+> 
+> BIT_ULL(dom->wid) in [6/9] is UB because DT parser allows WID above
+> MXLEN, but it's easy to blame the platform for that...
+> How much do we want to sanitize the DT?
 
-The copy is a fixed size stack array. Its bound is currently guaranteed
-by sbi_sse_attr_check() in the only caller. Check attr_count here as
-well, so that the bound of the array does not depend on validation done
-in another function.
+Indeed, I will refine the document and agreed we should be careful on
+processing inputs used by the security feature. Let me take some time
+to review the series.
 
-Fixes: c8cdf01d8f3a ("lib: sbi: Add support for Supervisor Software Events extension")
-Suggested-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Signed-off-by: liutong <liutong@iscas.ac.cn>
----
-Resent on its own from "[PATCH v3 0/3] lib: sbi: fix shared memory
-double-fetch in DBTR and SSE":
+Thanks,
+Peter Lin
 
-  https://lore.kernel.org/opensbi/20260910052958.3365324-4-liutong@iscas.ac.cn/
-
-Himanshu NAKed that series on a debug trigger argument. This one is a
-different subsystem, so I would rather it be judged on its own; if the
-NAK was meant to cover it too, say so and I will drop it.
-
-The attribute that matters is PREFERRED_HART: winning the race stores a
-hart id that sse_event_set_hart_id_check() refused, e->hartindex becomes
--1U, and sbi_sse_enable() then dereferences a NULL scratch. Measured on
-f6abdaf2 under QEMU MTTCG, -smp 2: unpatched, won in 6 rounds, and
-SSE_ENABLE then takes an M-mode load access fault (mcause=0x5,
-mtval=0x540); patched, 20000 rounds with no win.
-
-Unchanged from v3 apart from the commit message, which overstated the
-bound check: it covers attr_count only.
- lib/sbi/sbi_sse.c | 27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
-
-diff --git a/lib/sbi/sbi_sse.c b/lib/sbi/sbi_sse.c
-index 767ea128..b3d35d65 100644
---- a/lib/sbi/sbi_sse.c
-+++ b/lib/sbi/sbi_sse.c
-@@ -1049,25 +1049,40 @@ static int sse_write_attrs(struct sbi_sse_event *e, uint32_t base_attr_id,
- 	unsigned long attr = 0, val;
- 	uint32_t id, end_id = base_attr_id + attr_count;
- 	unsigned long *attrs = (unsigned long *)input_phys;
-+	unsigned long local_attrs[SBI_SSE_ATTR_MAX];
-+
-+	/*
-+	 * sbi_sse_attr_check() in the only caller already rejects a larger
-+	 * count, but local_attrs is a fixed size stack array, so do not
-+	 * rely on that for its bound.
-+	 */
-+	if (attr_count > SBI_SSE_ATTR_MAX)
-+		return SBI_ERR_INVALID_PARAM;
- 
- 	sbi_hart_protection_temp_map_range(input_phys, sizeof(unsigned long) * attr_count);
- 
-+	/*
-+	 * Snapshot the attributes so that the values checked below are the
-+	 * ones applied, even though S-mode can keep writing the shared
-+	 * memory.
-+	 */
-+	copy_attrs(local_attrs, attrs, attr_count);
-+
-+	sbi_hart_protection_temp_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
-+
- 	for (id = base_attr_id; id < end_id; id++) {
--		val = attrs[attr++];
-+		val = local_attrs[attr++];
- 		ret = sse_event_set_attr_check(e, id, val);
- 		if (ret)
--			goto out;
-+			return ret;
- 	}
- 
- 	attr = 0;
- 	for (id = base_attr_id; id < end_id; id++) {
--		val = attrs[attr++];
-+		val = local_attrs[attr++];
- 		sse_event_set_attr(e, id, val);
- 	}
- 
--out:
--	sbi_hart_protection_temp_unmap_range(input_phys, sizeof(unsigned long) * attr_count);
--
- 	return ret;
- }
- 
-
-base-commit: f6abdaf25dfe0608277fc634f3927c1f184ede6d
--- 
-2.34.1
-
+> 
+> Thanks.
 
 -- 
 opensbi mailing list
