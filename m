@@ -2,97 +2,98 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4669D606A31B
-	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 14:45:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CACF8606A329
+	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 14:47:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=IT7iW5T0;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=WlxJyBAE
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=eEu5xASk;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=CYiTntKN
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:To:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Cc:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
+	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=uTU+dP2kwm5VODSCEHGbVibg2pXchk6SCAXOsJjdld0=; b=IT7iW5T0Oba0zT0qKV6Fet2mWF
-	uERorU2UOtlhn65LatJFYzAhMpwMtCZ89sOg5qttPvHFqpIyQvmIuR9IB7NchtzkOkAPRstXMMD90
-	aPQF3/72mxdGuzaEFojCoMKq04GOKZjiqdCwnBiFbU4kvvWxTUv9BHJ+jFqdR7xSElm8Jj4Kf09mD
-	KI2VU5Rgaoa2uDQEQ16tbhCEslRrnsySUow5L2sUsqfoWoYuJ8lasY5VmMoL1u2ieGpba4fr1ZMfy
-	e2jzxBVCEYKOEghVjxwVK9o9zvjTgqMDuX6345x51Cvu9Z5hQVhHDem6zzOkdwJphvZ080o2/iFA6
-	6TTRbXWA==;
+	bh=xuMtu47O0l/Ko63jfuU4VCacHsNnAfRHl+AJ6J31U6Q=; b=eEu5xASkYSw0ZChDdDHqXpRLGJ
+	wUmEqBEM+65miS85JQ5mw7CFpJLYqfDJBsW0LBetQDvOufQy5/Y1dP6aIwBg++XwKE+aCd8M/HPJ7
+	rCSWEK7foeZTBK5bb8okKQEjhSX48bIx9hK+t9ymqVkds8U6Q2KoPTlITCdosqPPdnDedc8kuh5Qn
+	QNpMPRHPoovYnbRXbnHah/YRog66P0RbHhIUSs+zOW/5/6PJSzcI53fHvBLkKO1UxtIsGlGW2WoUR
+	ELDKohXrra2mQzDMBByJ2ZyX7vu4Ofyb+82lqBThxVY3yMB8AEuufTjPM1c6lkV7Y3QVhcjA4N30x
+	LTKxXPIQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOyiX-00000009K8u-1Gd2;
-	Thu, 05 Nov 2026 14:45:29 +0000
-Received: from mail-ot1-x32f.google.com ([2607:f8b0:4864:20::32f])
+	id 1xOykH-00000009KHD-2GSi;
+	Thu, 05 Nov 2026 14:47:17 +0000
+Received: from mail-oo1-xc36.google.com ([2607:f8b0:4864:20::c36])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOyiU-00000009K8V-1ox5
+	id 1xOykE-00000009KGr-0lYC
 	for opensbi@lists.infradead.org;
-	Thu, 05 Nov 2026 14:45:27 +0000
-Received: by mail-ot1-x32f.google.com with SMTP id 46e09a7af769-854e904005cso532608a34.1
-        for <opensbi@lists.infradead.org>; Thu, 05 Nov 2026 06:45:25 -0800 (PST)
+	Thu, 05 Nov 2026 14:47:15 +0000
+Received: by mail-oo1-xc36.google.com with SMTP id 006d021491bc7-7143451981fso1302807eaf.3
+        for <opensbi@lists.infradead.org>; Thu, 05 Nov 2026 06:47:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793889925; x=1794494725; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:to:subject:user-agent:mime-version:date
+        d=sifive.com; s=google; t=1793890033; x=1794494833; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=VrF+ItXgRkjLR0BVCJPKzEV3fi+XFhAgm4WCEzaXcwY=;
-        b=WlxJyBAEMJRH3z36811K128L/sSPY2cE1jTlXvTCfmMRzqMwTY/XMgZAGY50xAoB5i
-         niAgotjwgGEeX9UR26aSmzDqGPXXgwfkuqUrLMk6n3NyC1WD0ChyysGO3s+kKh3Zk+Tc
-         sok+aKfzV9sh8AGQKbCt7L5jSEj9z3XUXiy99y1pkvabtyeaUJLq1EcCNa+ERJZCe38G
-         LlS80vEDFfUE/LC7/dhSv9X+AZiOLl6x8TTr2jZt1oR3HZEzdCK56UuZDeK9Hbk6uCaK
-         UsvPtzvnycQRn/iSZOETlnAVvw5erLd6S9aueozwrh1il5Oholt4Dj5p4UmMfZ9w/Spl
-         XeEQ==
+        bh=fnO0lcLkLkw8FKRS0PpaksDKLUP4srxiPnuPtNFv4Cg=;
+        b=CYiTntKNVY19/D7bWQfrGjcJ0c2rzNU0MMhTPyVIO6mfHq1ZYpubzrTtT+65N+t/A9
+         b6Fs6iHAvg9uEGsfLxtLBXn/D1ntfMGageXckiQcs5AXRBZw7WX1PKNfi8ZvF7YGiXDs
+         BCGV2pKLCLf2Kuxql/coNxIgAu/6Tg3h9wNon1RquxjyRq9eVAxk8akD1y2s6B60cnst
+         4RptDmpDqghq5MrrYIhn0VC5ympGWDbD9CbwOu6cqArUJX9mx3lwe7pHpUn67gsbSA7L
+         gjaEw2oQppph2LeP8+fuf8rYrH56vFQ380Ap8h8fEbUJuKfTIeFlWVZjej6alRd+8Prf
+         RTUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793889925; x=1794494725;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:to:subject:user-agent:mime-version:date
+        d=1e100.net; s=20260707; t=1793890033; x=1794494833;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
          :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=VrF+ItXgRkjLR0BVCJPKzEV3fi+XFhAgm4WCEzaXcwY=;
-        b=H7FYU8YplgoAkej3oOx9mjDr3UO+CZElcvuC5s2AV0mEZ6Gtn3sXuYrHp83rn5IajZ
-         LcYelpaYUxhRra1Wd3GyYXTarPNU90ZUUG00C9hM7rRuGtqQxIYUfgIrNM/zTO/au1/H
-         N/uRDILKCAmX3XZyzBNPVPFhUtZEQnJxHfcmKyMDBk7Qu42bs9yK+K4jmoKKOARzuoc1
-         qiHfQP3s4kAPVjA691hkx63pK5pnOlBY2mtKVa5DdYhFRTe5I80FrH6FJOhXz3Cu7+fu
-         S0HK21l/GVsh8nggJjxoLgQaTMYrJy9xfka8uZhvtTEdAxiMeCEokpHOin/i2JtFn6Vt
-         /98g==
-X-Forwarded-Encrypted: i=1; AKwUvBxn+MQDqkZ1T1piaoaqiwspECKkuAKnVmNrEGpE9FQeSKTO8iRy+WTAJaFHVSupwQ2sZ8oLr+Gy@lists.infradead.org
-X-Gm-Message-State: APuU4Z/b2r3ZUd6LM3w+0y3w2bYmXfk+eWg1oZ1/5ff8FzdlMjBSQBBC
-	tnKe2IwLNJqb4GKdfNgcV3YmUeeMKs57FvXpRVvlxTASe0zCTbPaibbcsGaKFpcwaieAXg1xzvp
-	o85tw
-X-Gm-Gg: AYBFou0NiNBGwtOltYlBLrFwtMGgmy7bVAl6uokf/+0VcLIpWT2Xx4Z7cff+iKQQjRC
-	WIStr/XnZwCgn6alsxXZpokKpTI92shCn1zNMTW92OJQ0mFz4qaLsWc0Qy83KVhQdYCGaftRkwM
-	wpM5FXdCoaD+qPlgS7ky42jvsqMqMybOb7HguvKWRkSm59VmjHzloJdvyQ/wPhDgkCEve21vDO6
-	hjYTNHxV2x+HMjadqxRfJCN13Iznziw5tonEk/BFBEPMvyM2s24/noDANeLkujRQzF6XjbOT7zR
-	y7vCjyeEYNqYnfO7WFMwbNYAxgJE/gDjvBuko6J+DyTik3L6DBSbom3oJYi4hB1co5Ddnpumieb
-	7ttjzBkJq01E19NLCwd2kR/3SAd6LzzZi/kWD/XP6a5O7tcChj1xY8j8GTpk2A3s/2jlZK+NFDm
-	Me1ep5LTRrLt0YZEJ9c3MtgZu0oT1wITgfmw6OlEpVWflB2E9r/+/aaQPV4J72/cExLwi6EvPqz
-	E3zKc+R5jdpllkGN2c7g8cIFYzKJkp5t7VInQTi66QsqEyGv2QvSl6rUrTCh6r61dWiEIEVz8pZ
-	QDs5t4DlojEQOE7pUYRCd2Ok3RekgkiLIjQwlxBOpp29xlrzWyTnRxNbFvfep5bsLGrNKwfjlw=
-	=
-X-Received: by 2002:a05:6808:1691:b0:4b8:4703:db90 with SMTP id 5614622812f47-567be4a7da3mr1654396b6e.25.1793889924889;
-        Thu, 05 Nov 2026 06:45:24 -0800 (PST)
+        bh=fnO0lcLkLkw8FKRS0PpaksDKLUP4srxiPnuPtNFv4Cg=;
+        b=kLjwLVarzWKFqbalp56gfZ4OUlTz5D8S9ovVKAD535u5vLacfMI/VFMoo1W7lcZ7Z3
+         XVVo2J1Kl8TLncsKrhz3TnSRCNq/wT84pD1NR31CGhPVs2kGc9LGr0zJgnEgsO9j0wq3
+         cpXmz6RnueJxSgCp87LqYRp9o5BFsOL2T5gQnWnUOkQ9iy4Y1C3IStN0we8AHJRQdTbX
+         f3ue0tSb5ML7IFku/dW64i10OHbj3htC7+aJG2Ux3d1vxso4EfN0P+sN9hUySHsXc6tQ
+         hSqxE8+JkPY+ZkA/R2DPVZUHf0TIs7EiZBjsPZf3hL73JvoTHaHCcUzLH2GWQeHcGfAI
+         XaxA==
+X-Forwarded-Encrypted: i=1; AKwUvBzf8E+kFNT5IGTSCk9sZrjV+cqdlI1XexcRKfB/6wxje+MIVlGTcWjMTDhdaSx3DV5i9hwD98W7@lists.infradead.org
+X-Gm-Message-State: APuU4Z8OoVSoLFjGaWxS/MI5LfAmltlQWPhzjqiGaqcHKXA2d2wZ1vAD
+	/vLP6CtZXxDFtNKG49s1i6z7XWlGsIea4Tc69jIS3WBATrWWFZTUIdH40Z7+P7WruhYquI6ZNyt
+	+kj+v
+X-Gm-Gg: AYBFou1xkEO6GQNmWf12kdjlwp6X2YZI5sHkIGhtHt98z9w38B6qROQO/jIY1bb2CbD
+	d8oh/sgES5SX6RUfDjpPMXCgSVSk2s4sA0S/Ch6P/DKIKgMhiGrWUzZDY8NEoLosqEh+cD+poyt
+	FJEUeTJHAR95boVBUAohcEYXQqzEsXByNmadelObAp06HvQ9OgCfVr5T+/bf7L+L/gEm0A/+EZO
+	h1GBL6+gxFr3IAU2oETHyRw0tE3q6RX4vkEvz9ekGm4ZiDSQKNkausm3tKTm127wgKJaGmMLpTI
+	a4x1FuBvoJpLLmrOOHDJCuPPxEg8kqIN19JA4NkqJvSJOqOxSHf4Deq7uNoa1tpC3Doxqq0Etxg
+	aASf1Ua2zvTTju7sNnzsf7rQkriFzFEDiJFM2OflSqL3k7YtAzlMo1nZ5/XmTqOH/K8oHO88IWb
+	lGWqvoAFJ57v4WW3MQh7X7cYhI94G8kl043i7EoHRqSwNJEPRgRKTYXz1hhKMWOJuu5byX3/YmE
+	z+yhWePX2+0wiz9Vp72d9SeJMaCcvW0IX2bmipiMYxzFClkQiggjfkYnoPJWr3clDUxC8tvolDC
+	DnU6Pzm/0B1sLtmOxC/p52x94MWW9Vk=
+X-Received: by 2002:a05:6820:828:b0:6d8:28f1:140e with SMTP id 006d021491bc7-714f290f510mr10366266eaf.24.1793890032824;
+        Thu, 05 Nov 2026 06:47:12 -0800 (PST)
 Received: from [100.64.0.1] ([136.226.84.194])
-        by smtp.gmail.com with ESMTPSA id 5614622812f47-567a9f9115csm4543631b6e.11.2026.11.05.06.45.22
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-716c1308c96sm4220105eaf.11.2026.11.05.06.47.12
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 05 Nov 2026 06:45:23 -0800 (PST)
-Message-ID: <f0e12881-75ac-4899-8225-2937c3191532@sifive.com>
-Date: Thu, 5 Nov 2026 08:45:22 -0600
+        Thu, 05 Nov 2026 06:47:12 -0800 (PST)
+Message-ID: <121d52eb-2d73-45b5-9fc1-343cf7151b29@sifive.com>
+Date: Thu, 5 Nov 2026 08:47:11 -0600
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v2 3/8] lib: sbi: Preserve Sstc timer state across
+Subject: Re: [RFC PATCH v3 2/6] lib: sbi: Preserve Sstc timer state across
  domain switches
 To: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>,
  opensbi@lists.infradead.org
+Cc: anup@brainfault.org, rkrcmar@qti.qualcomm.com
 References: <20261023070925.241680-1-theodoruswensanfebruanto025@gmail.com>
- <20261023070925.241680-4-theodoruswensanfebruanto025@gmail.com>
-Content-Language: en-US
+ <20261105044339.435711-1-theodoruswensanfebruanto025@gmail.com>
+ <20261105044339.435711-3-theodoruswensanfebruanto025@gmail.com>
 From: Samuel Holland <samuel.holland@sifive.com>
-In-Reply-To: <20261023070925.241680-4-theodoruswensanfebruanto025@gmail.com>
+Content-Language: en-US
+In-Reply-To: <20261105044339.435711-3-theodoruswensanfebruanto025@gmail.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261105_064526_566564_683460A7 
-X-CRM114-Status: GOOD (  17.87  )
+X-CRM114-CacheID: sfid-20261105_064714_326725_A7FAF127 
+X-CRM114-Status: GOOD (  18.20  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -114,7 +115,10 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-On 2026-10-23 2:09 AM, Theodorus Wensan Februanto wrote:
+(sorry for the duplicate mail -- I didn't see v3 because it was wasn't a
+separate thread, since you sent it as a reply to v2)
+
+On 2026-11-04 10:43 PM, Theodorus Wensan Februanto wrote:
 > The Sstc extension provides a supervisor timer comparison register.
 > Without preserving this value, another domain can replace the
 > previous domain's timer deadline.
@@ -143,10 +147,10 @@ On 2026-10-23 2:09 AM, Theodorus Wensan Februanto wrote:
 >  
 >  /* Virtual Interrupts and Interrupt Priorities (H-extension with AIA) */
 > diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> index 79419edc..33c19d04 100644
+> index c34d4cbb..d2490483 100644
 > --- a/lib/sbi/sbi_domain_context.c
 > +++ b/lib/sbi/sbi_domain_context.c
-> @@ -52,6 +52,11 @@ struct hart_context_hext {
+> @@ -57,6 +57,11 @@ struct hart_context_hext {
 >  	unsigned long vsatp;
 >  };
 >  
@@ -158,7 +162,7 @@ On 2026-10-23 2:09 AM, Theodorus Wensan Februanto wrote:
 >  /** Context representation for a hart within a domain */
 >  struct hart_context {
 >  	/** Trap-related states such as GPRs, mepc, and mstatus */
-> @@ -83,6 +88,7 @@ struct hart_context {
+> @@ -88,6 +93,7 @@ struct hart_context {
 >  	unsigned long senvcfg;
 >  	/** Supervisor resource management configuration register */
 >  	unsigned long srmcfg;
@@ -166,7 +170,7 @@ On 2026-10-23 2:09 AM, Theodorus Wensan Februanto wrote:
 >  
 >  	/** Float context state */
 >  	struct sbi_fp_context fp_ctx;
-> @@ -231,6 +237,12 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
+> @@ -259,6 +265,12 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
 >  		ctx->senvcfg	= csr_swap(CSR_SENVCFG, dom_ctx->senvcfg);
 >  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSQOSID))
 >  		ctx->srmcfg	= csr_swap(CSR_SRMCFG, dom_ctx->srmcfg);
@@ -188,7 +192,7 @@ Samuel
 >  
 >  	/* Eager context switch for float */
 >  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_F) ||
-> @@ -292,6 +304,9 @@ static int hart_context_init(u32 hartindex)
+> @@ -320,6 +332,9 @@ static int hart_context_init(u32 hartindex)
 >  		if (!ctx)
 >  			return SBI_ENOMEM;
 >  
