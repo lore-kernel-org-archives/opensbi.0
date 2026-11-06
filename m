@@ -2,98 +2,71 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31984606A31B
-	for <opensbi@archiver.kernel.org>; Thu,  5 Nov 2026 15:04:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0DCC606C3F5
+	for <opensbi@archiver.kernel.org>; Fri,  6 Nov 2026 09:41:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=HM8dapfR;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=lcvXUwKT
+	dkim=pass (2048-bit key, unprotected) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=E21H4YS3
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:
-	Subject:MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:CC
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=YWNGvSm/VPz9A3R0F0C45y72iSf2J+tBiGy1/Mu8R9c=; b=HM8dapfR6POdmvegDiuv9VLRuE
-	yAmHYZr/sYAhRNCc2dQ1bji1AQFSlLFtVgBrRHnZRbPzuRP59kZz5H6/rSMLg3Jyc+EvJ2s1a7ZVV
-	Arq2O/Ukh7vcpTnchUIxIGtQgYbbJEygIiN39aOSIOfk1AiEgmSZYR1Vytw7CklrM0NVwMJtQCacO
-	3GORYWVoxPRzbYSdiE+1NobULhSihGWlG+C6DZzjFZt7Zp7vp9Dym8Zt44Vwfgx4ccqERXr0ioz7x
-	etX1mv6ObWUIOXYZLLThYOcdaZWIJ/eMCwWT88DRThw7QDrNF9wOcsgOOWlWjIpUxhb7Esmy0PoEv
-	hAvgffMg==;
+	bh=qzJHH36WdKoikmX3WU+rHuE0tQGu7PhlN/v7NHJ3KlQ=; b=E21H4YS37A4n9aX/jcIjusevss
+	O0miNFMwaPhC+xE207Di1WPCfkpdG1XfB8JGThZIOzk/sS14gu6ByAeLqAmJbLaQ3eojerI4H2oGe
+	RHkvKJBgLWIf1LufR8yBAF9eif0F/eVcVn+5WS2LHekHPp++opDR7+G4RVpnoPB6tiDh0ILF0WwL8
+	4PsVYzlFtgrOEaJ6s/fb5VClMqwih20N+uMh9xYaHhqHMRdej5bDmt+eG1eIS8tPQ0JqXbGG7xre8
+	hlvbUHy5qoA4+TQ+1IRXuYvoHjn4kmXFmam4p+PMA1pRXPGorao/wdMdI6gvCDdyu1bwmphbEej9h
+	4NqbLerw==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOz0t-00000009MHl-3nwu;
-	Thu, 05 Nov 2026 15:04:27 +0000
-Received: from mail-ot1-x32d.google.com ([2607:f8b0:4864:20::32d])
+	id 1xPGRi-0000000Bmks-1UU0;
+	Fri, 06 Nov 2026 09:41:18 +0000
+Received: from atcsqr.andestech.com ([220.128.198.184])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xOz0r-00000009MGj-0LwJ
+	id 1xPGRc-0000000Bmiy-3m62
 	for opensbi@lists.infradead.org;
-	Thu, 05 Nov 2026 15:04:26 +0000
-Received: by mail-ot1-x32d.google.com with SMTP id 46e09a7af769-823b938464fso1379758a34.2
-        for <opensbi@lists.infradead.org>; Thu, 05 Nov 2026 07:04:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1793891064; x=1794495864; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=JGToSn38P7KJGZqpDZEUyTPfE1rLNFQs62CpfGjQG7k=;
-        b=lcvXUwKTYj+gL4l44AfhemRnxMXHWmwMI1iFIAhTWauURIEVz8N5zbDQ8Pb0jJUHji
-         kDOP095jeqNqbcHPj2GFgtM+F9VMsojxmb+lHk2J6B0vQ2G4XRb43zn03B4T6liO63KL
-         XuG3YJh3lW6YL5UafPGtPyaYK9CK0pNl3u1j5ZIKU1sEwTgvJKKPvvAA1GaAnQurMyVs
-         zPZte5qqKoBz9Vxw/v8Dc4Xz7wPpwX4QHrTH5vlUBEYCS2s/Z+GvruQARDAtynN4K6RK
-         TT5W/56jY7pJkqPbKYDpUaNo1cP0vPSFTSGUh8e5gmNdebTYhqD6Rim+v2NHR7htBN/W
-         72qw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793891064; x=1794495864;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=JGToSn38P7KJGZqpDZEUyTPfE1rLNFQs62CpfGjQG7k=;
-        b=VzgUVhbcrTamtGh1lTZGYv3ZWpHp9iu2oj3TVV58teAaRey1bFyDhR7t9ybVExfnhQ
-         mTE0H+4plsEsNTUHMNYp48IAJJg1nMG59FYDq2QiuXnizp2w6FVLfNzdC6LulyQepS7P
-         y/sbWYwkVfK7HZ6Yu2CJyggvGPR9c3Dvu2Fg7iQ1tSpR4q6pkHUPpz3zAMY3w2k06ipa
-         TuVvHNOxrK5a8sMHtKvGom/QKNoD7mvvOUEm9Wqu5JaCc7p7tOpsYQiM+C+0rYFAsU9O
-         QitUv0aTgbicJjFORa+3+YzgOGmBCjK4AGIe1P2RTG+JAsmUz6EPOzvlbWjSZIrFFcbM
-         Mjhw==
-X-Forwarded-Encrypted: i=1; AKwUvBz7eubAghxbiVYqWn+StntP/hGZXrmzuqBTVHmFY4yccRaqcDFMxz9adASkA/IBy8ea8cnWbsAH@lists.infradead.org
-X-Gm-Message-State: APuU4Z9NhL1L9R9/7Z3INctxHejtLZ0CpI13CE4g5fQukraCl9LZzPaI
-	9fWdiJfjh6UfR6YbdAXYa9jCPdOBAFoaUbYFGtRLnG99IepgYpcyNb1NLsw+Ca5vBt8=
-X-Gm-Gg: AYBFou2LGQD9CXi9Ig+1DPWN3YqvZEImz1jznIDLGz+DNrIaTfLJGMrOvK55leGEBn0
-	fSxKgDXnfUXsZ/nBJZ2esNtSlKXJe3HHMJPb+mKEEZQaeIncEw123axaex1sX9ReB6Z+8MnGYGf
-	iaYhCaLRMF+mZiTgZ5LVNXWjoEtRo8WKJ03mM0zgoBQASKaPmCe8hgBYKR6H5OO9KlEb4t8iDDt
-	1xG3gJRw5yC9HH62SWyRzDrB3ZQTQqYgr/LM1nwCsbYGl1b8LbmmFTizPKjFP0gCl7q+VGOnd4F
-	PUe2nBa9pqkFQEEWms1hmR9UVcuuQQBuV6CKlVWzlPy526XzVqWX8bzoDdzdl96MfvcPRbgecND
-	dl4S+WvXJyc8xqKvtVY1IN+Lw1kcmilB5LFZuP0LVCqWXEz09ZgzULhKmOMlZUvDwVLt53WxbQc
-	Q6PkrKo8UrxM6CGrw5E0DuG8Gm/el3cin2P/Mr9swJEdL8Yr8Nw62cJQw7EBI20UbJ1uW7MLua0
-	9NJYwzl0SejW3F8cXxbY3Ire41S2foFlt9rZ5ph+2hidxoh28VBATkw54U/BQZjliVOsMNkpLNb
-	RoOfXYDEi57zFP/tlOkhN52LTu17UTU=
-X-Received: by 2002:a05:6830:82f4:b0:81b:ac5b:ea17 with SMTP id 46e09a7af769-85d364871femr15058273a34.16.1793891063810;
-        Thu, 05 Nov 2026 07:04:23 -0800 (PST)
-Received: from [100.64.0.1] ([136.226.84.194])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-85ef3a1ac98sm4664270a34.1.2026.11.05.07.04.21
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 05 Nov 2026 07:04:22 -0800 (PST)
-Message-ID: <a161c53f-eb48-465c-bffe-ab260654be4b@sifive.com>
-Date: Thu, 5 Nov 2026 09:04:21 -0600
+	Fri, 06 Nov 2026 09:41:17 +0000
+Received: from mail.andestech.com (atcpcs54.andestech.com [10.0.1.154])
+	by Atcsqr.andestech.com with ESMTPS id 6A69eiMX038051
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Fri, 6 Nov 2026 17:40:44 +0800 (+08)
+	(envelope-from randolph@andestech.com)
+Received: from ATCPCS34.andestech.com (10.0.1.134) by atcpcs54.andestech.com
+ (10.0.1.154) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Fri, 6 Nov
+ 2026 17:40:44 +0800
+Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS34.andestech.com
+ (10.0.1.134) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Fri, 6 Nov
+ 2026 17:40:44 +0800
+From: Randolph <randolph@andestech.com>
+To: <opensbi@lists.infradead.org>
+CC: Anup Patel <anup@brainfault.org>,
+        Lad Prabhakar
+	<prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        =?UTF-8?q?Beno=C3=AEt=20Monin?=
+	<benoit.monin@bootlin.com>,
+        Randolph Lin <randolph.sklin@gmail.com>,
+        Randolph
+	<randolph@andestech.com>
+Subject: [PATCH] lib: utils/cache: andes_llcache: match andestech,ax45mp-cache
+Date: Fri, 6 Nov 2026 17:40:25 +0800
+Message-ID: <20261106094025.1734577-1-randolph@andestech.com>
+X-Mailer: git-send-email 2.34.1
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v3 4/6] lib: sbi: Preserve S/VS indirect CSR selectors
-To: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>,
- opensbi@lists.infradead.org
-Cc: anup@brainfault.org, rkrcmar@qti.qualcomm.com
-References: <20261023070925.241680-1-theodoruswensanfebruanto025@gmail.com>
- <20261105044339.435711-1-theodoruswensanfebruanto025@gmail.com>
- <20261105044339.435711-5-theodoruswensanfebruanto025@gmail.com>
-Content-Language: en-US
-From: Samuel Holland <samuel.holland@sifive.com>
-In-Reply-To: <20261105044339.435711-5-theodoruswensanfebruanto025@gmail.com>
+X-ClientProxiedBy: ATCPCS33.andestech.com (10.0.1.100) To
+ ATCPCS34.andestech.com (10.0.1.134)
+X-DKIM-Results: atcpcs54.andestech.com; dkim=none;
+X-DNSRBL: 
+X-SPAM-SOURCE-CHECK: pass
+X-MAIL: Atcsqr.andestech.com 6A69eiMX038051
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261105_070425_255182_2D741B52 
-X-CRM114-Status: GOOD (  16.00  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261106_014114_664738_4B80B911 
+X-CRM114-Status: GOOD (  10.67  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -106,64 +79,45 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-On 2026-11-04 10:43 PM, Theodorus Wensan Februanto wrote:
-> Preserve siselect when either Sscsrind or Smaia is available.
-> 
-> When H is implemented, also preserve vsiselect.
-> 
-> This change preserves the selectors only. It does not save
-> the indirectly selected backing state or IMSIC files.
-> 
-> Link: https://github.com/riscv-software-src/opensbi/issues/433
-> 
-> Signed-off-by: Theodorus Wensan Februanto <theodoruswensanfebruanto025@gmail.com>
-> ---
->  lib/sbi/sbi_domain_context.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/lib/sbi/sbi_domain_context.c b/lib/sbi/sbi_domain_context.c
-> index 89fd1647..fe7d98af 100644
-> --- a/lib/sbi/sbi_domain_context.c
-> +++ b/lib/sbi/sbi_domain_context.c
-> @@ -96,6 +96,10 @@ struct hart_context {
->  	struct hart_context_sstc sstc;
->  	/** Supervisor counter inhibit configuration */
->  	unsigned long scountinhibit;
-> +	/** Supervisor indirect CSR selector */
-> +	unsigned long siselect;
-> +	/** Virtual supervisor indirect CSR selector */
-> +	unsigned long vsiselect;
+The Linux binding for the AX45MP L2 cache controller,
+andestech,ax45mp-cache.yaml, uses the "andestech,ax45mp-cache"
+compatible, and the RZ/Five and QiLai device trees follow it. No
+binding defines "andestech,llcache", so this driver does not probe the
+L2 cache on these boards. OpenSBI then uses a generic cache device,
+which cannot flush or enable the cache.
 
-Should this go inside struct hart_context_hext?
+The AX45MP L2 cache controller has the registers this driver uses: the
+memory map bit in the config register, the init status bit in the
+control register, and the per-core CCTL command and status registers.
+Add the compatible to the match table.
 
-Regards,
-Samuel
+Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Randolph Lin <randolph@andestech.com>
+---
+ lib/utils/cache/fdt_andes_llcache.c | 1 +
+ 1 file changed, 1 insertion(+)
 
->  
->  	/** Float context state */
->  	struct sbi_fp_context fp_ctx;
-> @@ -277,6 +281,13 @@ static int switch_to_next_domain_context(struct hart_context *ctx,
->  	    (csr_read64(CSR_MENVCFG) & ENVCFG_CDE))
->  		ctx->scountinhibit = csr_swap(CSR_SCOUNTINHIBIT,
->  						 dom_ctx->scountinhibit);
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SSCSRIND) ||
-> +	    sbi_hart_has_extension(scratch, SBI_HART_EXT_SMAIA)) {
-> +		ctx->siselect = csr_swap(CSR_SISELECT, dom_ctx->siselect);
-> +		if (misa_extension('H'))
-> +			ctx->vsiselect = csr_swap(CSR_VSISELECT,
-> +						 dom_ctx->vsiselect);
-> +	}
->  
->  	/* Eager context switch for float */
->  	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_F) ||
+diff --git a/lib/utils/cache/fdt_andes_llcache.c b/lib/utils/cache/fdt_andes_llcache.c
+index 7a61b6ab..c32ff2aa 100644
+--- a/lib/utils/cache/fdt_andes_llcache.c
++++ b/lib/utils/cache/fdt_andes_llcache.c
+@@ -172,6 +172,7 @@ static int andes_llcache_probe(const void *fdt, int nodeoff, const struct fdt_ma
+ 
+ static const struct fdt_match andes_llcache_match[] = {
+ 	{ .compatible = "andestech,llcache" },
++	{ .compatible = "andestech,ax45mp-cache" },
+ 	{},
+ };
+ 
+-- 
+2.34.1
 
 
 -- 
