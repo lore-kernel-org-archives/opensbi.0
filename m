@@ -2,98 +2,108 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B8D606A31C
-	for <opensbi@archiver.kernel.org>; Tue, 10 Nov 2026 03:36:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5190B606B9CD
+	for <opensbi@archiver.kernel.org>; Tue, 10 Nov 2026 08:33:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=EwH/FUQP;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=sifive.com header.i=@sifive.com header.a=rsa-sha256 header.s=google header.b=Ma97+2/E
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=Qf6sZ1jC;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=Vyi9dYbh
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=Gbut0pTZ6kRasNli5oURG68irUL/aHIFbf4Z/SKdfwc=; b=EwH/FUQPHZCAtQssMSVrSGhDRJ
-	4gWj/OQjMf9WpLSiNnQtRcEBXo9J8eIX6G29PYG7I0gPCXzDDyEVEK2WLv2J5I+yN0ZlBaJX2FeyN
-	Om42yt631tg8D3c6v7VOdA4/321bLyGLfQEHye13iK82/VuCVuwl5fctuxttxUUfCI0ZNgXilyWU1
-	eEyfgytwu1fUW0S0NCmV2clCVAjE6XvllYfBAJjjWof6qLEE6DqN/r6J8H9A0aKWeevArXxi2GBf5
-	WfhOFSMMlb3JWjlkZ1yIS/PrrKdJ4cZfK9CO3UKoZ7aka0TqBIiG7/S+ORbKGwmnv0fcjxZUtf0gq
-	blO6l6oQ==;
+	bh=Fah+LF4qnJ6nXqVL7Ql3HO1z6fbm9BggQvKnoQ3sLGw=; b=Qf6sZ1jCqzeO0mtaLD2b2yKk4L
+	4SxGdJSMWQpFltV3utAof16Ly9FPOPnAa0a+rGU3NMS9udmGADFNHvizSsbWJ1EcOiFOxX2q1yzSH
+	cqzE57Uhce623n4Gg6Rb2jKMwpux9iTxRXF/T2117OEL4twRhLi42dPPZKf82xt/D8gSoyAyiRd7o
+	+GWkNBlB5yWmKAk+rQrQfP+7k8rw1g+XLPCnC9QIc34kEYXc1WUsUi/aZMbSyg7v6uDKs6TzBmtkS
+	AV/THhWvLiXozTN3fX9QeTzjXoYwCqDaQhJUL/FyHROpkVqYrjTPS+38TG9I07F5SM2xvQlRzQtDu
+	FnOuGgwg==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xQcek-00000002J91-3rj1;
-	Tue, 10 Nov 2026 03:36:22 +0000
-Received: from mail-pj1-x102d.google.com ([2607:f8b0:4864:20::102d])
+	id 1xQhIc-000000038I0-1ocU;
+	Tue, 10 Nov 2026 08:33:50 +0000
+Received: from mail-wm1-x32e.google.com ([2a00:1450:4864:20::32e])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xQcei-00000002J8W-1KDV
+	id 1xQhIZ-000000038Gz-3yEX
 	for opensbi@lists.infradead.org;
-	Tue, 10 Nov 2026 03:36:21 +0000
-Received: by mail-pj1-x102d.google.com with SMTP id 98e67ed59e1d1-3b155f50c24so1008376a91.3
-        for <opensbi@lists.infradead.org>; Mon, 09 Nov 2026 19:36:19 -0800 (PST)
+	Tue, 10 Nov 2026 08:33:49 +0000
+Received: by mail-wm1-x32e.google.com with SMTP id 5b1f17b1804b1-4a2167bd087so16780525e9.3
+        for <opensbi@lists.infradead.org>; Tue, 10 Nov 2026 00:33:45 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794299624; cv=none;
+        d=google.com; s=arc-20260327;
+        b=b6Tac71KbJ8c28fNPnlM3NiO0j1J3xbT4HGY58rlion4R9tUSdSgTgraxwtGh6Dv9I
+         vmhKhDYyJcRgyisS/zzh7O8PMT3mI/QCf9mBcNU2uC7Ttod9nqRh3dwWzXh3JcJhOrTM
+         4gadgc1p7ZxNTI47ANB6ztqpl/W7hnji2Qlp8QFANSSk1fvc1QDNz/YUEUKotau3UXVN
+         OJSeeFzY2ejs5at9OOCgeEEGx5I9zfpn6g+pJNXVl3UJLRBmitou3ktHNJ99TzoZ/lY5
+         Mq9XGS5CvTIScdZ56RizGLD2p7FpLB5YhJk8hPolqMnnF0ThHug6wjpqDh9tA/y0hq9p
+         FHTQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=4NKSZnDSAMOZz+dUo9d0cfVqkET2lcXgIP8D/pbi9Bw=;
+        fh=4xqYwAYwrKd10EBWbR5Irc/FjLW7+VnD52vHGQd/ZcE=;
+        b=pkCCOmL7cR41hfIxB10T0i+A9z5yclfaeFjXzW57dZHwFq3ouXLTU4jvWoG2KeSRIz
+         oCBAsc3P2S4OPQMeVEgM6h8gW7v0O2d1biCQiOgtbgFbmoFEIzQ0r2ilbimdzkMWNKbP
+         QJVAuun6w+g3UO3BwkdVFkOBvp1cekADhZo67g450k9fzhbOlAQE42hfQYxnI3O6LzkU
+         4/I9PN2+MZC7WLvMF7JZHwhLD+TgxCOOQaNwQWU6e2QunmZ+dJqnUtzQbJfD4IlCvXiG
+         /QAnkzfkXUGRH4wWOEYv3BaIgo7qSUim8ppqZrVuENBu8gCs8vwLVxv6Fqmawh/+k3El
+         AIaw==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1794281779; x=1794886579; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+        d=brainfault.org; s=google; t=1794299624; x=1794904424; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=r1YjunK+cepkWYMv0RtKVJKE1Ea7pHj943aZA4lWMoA=;
-        b=Ma97+2/ExAyWPDDjYc9l0nstmQs1W9mlLlDmjx4rH1ULWipxT+LLTJQPqIvEKRLs+m
-         60GCmOeGpKp5yG72Y/nsJZVq9EAniH6jVMSD3Sh6/QBlpmySDnb71Qc7bKJSKuqP6ijB
-         +fb8/tj0HdJsG0dJl/W2MwrqbRCswDNtH2DMHxc9gP8PWV3yYEihR1Bl/mArRWg/RklR
-         7DmHifFPgTAkIxeYVdyov9+nwCTU2/jANh/+y+Ie8TNokbgqcoLzI216faWZOE46/TQV
-         gqxNmwD1VecVom72T6XkUrgb/15I+HPSu6CzheNTywCkXoO4X6vN04kgNUwX35bv2PRn
-         dxOw==
+        bh=4NKSZnDSAMOZz+dUo9d0cfVqkET2lcXgIP8D/pbi9Bw=;
+        b=Vyi9dYbhj5cDJ8MzyLw/EsgXkTMvNCL5e8T62gldhCNCrUrtS5DkUMBLgncdINIzOY
+         RWbzjzaDmjVj1VVkOOfsqoeNSQSIJFd507HpWOPmWoXaSHJVb8fV2+0mhufQSFK++5gO
+         yB0980urbky0Dwcdh2um7XtDZ5Xuw7dqBg5K3BsSpoE2LQ7d6rPCIlssr5iZD/5f2mmu
+         MnyskdL3jXKFESZ4JSkxwnvdttN6k8uB4jVmOfWfg8NEt1dPfuHAh0LTJahRWfkheqP1
+         wGAFWV5oStYEGl+OgG2jbM6ri5946ZQaSZ5UgfIpbBQl8M9wwBVUgVNHgbp79ejV4NrV
+         HjPw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794281779; x=1794886579;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1794299624; x=1794904424;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=r1YjunK+cepkWYMv0RtKVJKE1Ea7pHj943aZA4lWMoA=;
-        b=xGNES2gL3wif2zYdlHVd7sThMIOozHHfgjtmiSQLcCJA7q+kKcyh2aVRDT8vYsY0dn
-         /xYxpIMlFruopndH6u4RpS2ByOtWuL1iivxJ/HywSXiccy7AvRNPPHXf85PwvO8gQrmg
-         rPGvaV+DgOKReVU9ByLZ/NTiwgXwK2HpNnbS89cDDI2X5n0zDoArcusRwir89JbuqtwW
-         DfS3SijK05ky+eT6OpB7WkFJ4SroCtOi4m2geggQ+ZFtTc7/cMrmvxYS2BdNfTZvarHT
-         iofQpHqoBjr9hfyIpQUpd1yYRcBTvRX7Arwx5jc0GJ4ydnEZr0nFYGRwLAkk7g0nKuon
-         Uo+g==
-X-Gm-Message-State: APuU4Z9mNTz0AfQhOnySxYY4RCut22g5MnPJF15q2LDIx+fMqJqgNh5t
-	q57AZHI05NQEyuBrnn+Ny8JfZntTNjeagBsQby4iMGRLnQReCM9e7Ay266ccfJstJbQrEhIlpky
-	lbFXLhicdpd+nyfcMECY8dSQ42cUySKLMGSg/wgHtp7pIy0aD0S3iOaUZlrKWMOMX94PANs1X/W
-	vVMgzItLBQbK+bE71kLNYw0NbqK7CYo4/LjTqTSnifOkOzwR5CwNk=
-X-Gm-Gg: AYBFou2DE15IXL3mwyy5NzTCRKutz3sd0uhmeTbJumgOCe9TDH8IDpNh7+UccFtfgUl
-	B6lagjf/ulMSS+4uWDnFMi8ICX5Xqo+yK/s53RuZqo4LqBeYQtO3mDI1N74NqdlQWpA6WFE8UQS
-	Y1jr9MkBXR4ajv5NCOvki0YkiLgcxUIf7HJAqY9Bk0AACSIKqF5/ttYvZ61zowiQQ4ER2CdFz6M
-	OuiHueBpHt0xrbYUcB4i+1LUG0kuZ8JUi0Ku/h5KA5Kq3VkZShWK0sm2yoWldcOUoE12MbZb6LX
-	bH7Qlo1b6b449lRy8dw6l3NJkOqmEs4jXd/SjuIherPWNeSFMu4TD5ZE01cF6JsYGzlY+q1Unzu
-	8Cb9nnb7909wMcWtCeXIhVZJZUhBfKM+RmOPZ7ninXWq3mFPrCNBCusBGKsNKxVKeLRSR7OYz8u
-	fnL3LD0EKoMCgR1FSPTgg6G+L3DMbr3+he1XEAxAnuqQkDvs4jWOBacypiefwrnOir5KkFMuLBv
-	/Ab8hC/1f5idHFXRBOLmnrkGIZ74idFIg8RtnLaHPnlahoti+cne7DAmb3e+130TPWmvvdiyRkQ
-	W1O/IMwvwALDn7JzHiI3QfHJ2bs=
-X-Received: by 2002:a17:90b:3b85:b0:3ab:36c4:b500 with SMTP id 98e67ed59e1d1-3b166ae79a3mr1750881a91.5.1794281778535;
-        Mon, 09 Nov 2026 19:36:18 -0800 (PST)
-Received: from plin-1878 ([136.226.240.177])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b16779d58csm1983833a91.1.2026.11.09.19.36.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Nov 2026 19:36:17 -0800 (PST)
-Date: Tue, 10 Nov 2026 11:36:13 +0800
-From: Yu-Chien Peter Lin <peter.lin@sifive.com>
-To: opensbi@lists.infradead.org
-Cc: anup@brainfault.org, pawandeep.oza@oss.qualcomm.com,
-	rkrcmar@qti.qualcomm.com, raymond.mao@riscstar.com,
-	robin.randhawa@sifive.com, samuel.holland@sifive.com,
-	zong.li@sifive.com, greentime.hu@sifive.com
-Subject: Re: [PATCH v4 6/9] lib: sbi_hart_worlds: Implement WID hart
- protection backend
-Message-ID: <avKRLbO16dsWLmIl@plin-1878>
-References: <20261030104518.3297875-1-peter.lin@sifive.com>
- <20261030104518.3297875-7-peter.lin@sifive.com>
+        bh=4NKSZnDSAMOZz+dUo9d0cfVqkET2lcXgIP8D/pbi9Bw=;
+        b=kpU0ju5Ur3bP/0VKL7Q2eAMmYmlKmb0AhYBw5tPvD+Xuj7nihqIE+imPlGHm9BOzDz
+         CoCup3+4NtP96wrRI+MRWrALT1WnsshpjJgjcwsM6cc22oRXpSF/Fk2TOhZX+myb+Fyn
+         4gqrLsddF4DhPJE8UBeMQtkzJ5GMDTydXqvdZTw79Br/JuC4T3o4lJlTCk8HmatY62+w
+         69kwKFrwISuopcGY9BgKCbW3aNWeTOK3qgUd3vB350xmQ6nhIbxKLPaRMtnpKNfXVs1f
+         FbVbHNg7pWTSut3MeabpoVQmEUZzw85dcMWa63jaI+QrE70JcU+B9y7CyC4zyt7rNWcW
+         uwxQ==
+X-Gm-Message-State: APuU4Z+7ve8GctSnv4/QoFewnxCHXo1dYzhlp5hrRC8fin4W+HEPuYOr
+	5vVS/ATH98IO4dhHxU0vPD0C2nqkSDBqrO3pQ5JWLRsAoG4WSnhED0nfFzbbK6tVMli9yMR5far
+	4U42pcoIbkjL6c5izXIbo9O4B5GIckeoQ5mueb09V2/ivZTm3koYo4Ek=
+X-Gm-Gg: AYBFou0E7hM9uvaBnsAVvmQ8cIrG5WYQvu0EwQ68qagqntniSaeCDeTh/aL7crnRwUH
+	zB3L4D/zDnJImbicNEqB9OgPAqxDzv5aXaVAL08GFY8yZUGemWiSlpDAU/q2Tsb7TA/ru0BR8o3
+	FcEprbkKJB325fmyaUBEPBIJxbDtixyBVeQ/u9g5Nm2IO/eXkbcb2ocQfZvCqERiSIdvuB+cuCw
+	lKUQJC+jlH5NRXL3x149ks5IuXP0PvJFkcYXYOwTKofdh0HlsFFoHJykz26OsXNP+NYBLPmJZvc
+	D2AMwdD4ziC+RQL/g6aUKl8WWoJrb+pkhfqbT+KFX2ZCqZhDSNp7Azbo5wQtuOxpo4Tcf9z/z0T
+	Ry3fqQh5cRmzj7Q5wVlKJ6HYXJeTO+Cqakfvtllu8F7RczTy7Krk/vIEdCWnXykUGQS3/I8GRIt
+	fr1VCR22hBcYaX7yRdi0Bfsuw958s7oQJy2KnQLAfiltMEGAMvelG/ibw=
+X-Received: by 2002:a05:600c:3e88:b0:4a0:4a8:d444 with SMTP id
+ 5b1f17b1804b1-4ba0235a214mr25670055e9.33.1794299623892; Tue, 10 Nov 2026
+ 00:33:43 -0800 (PST)
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20261030104518.3297875-7-peter.lin@sifive.com>
+References: <20261107060325.1117887-1-himanshu.chauhan@oss.qualcomm.com>
+In-Reply-To: <20261107060325.1117887-1-himanshu.chauhan@oss.qualcomm.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 10 Nov 2026 14:03:31 +0530
+X-Gm-Features: AclHuK977huuuPhugizjVGdJM34KnN5T0PEC9ak9ecol8xovQ9dbbzyFZm6sgbo
+Message-ID: <CAAhSdy0G3pjzQ_3qHwQZzBq3VWyAE+1vRROX5=5k=xiT8c6D_A@mail.gmail.com>
+Subject: Re: [PATCH] lib: sbi: fix trigger read range check
+To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261109_193620_396115_71B55D19 
-X-CRM114-Status: GOOD (  27.65  )
+X-CRM114-CacheID: sfid-20261110_003348_232881_26A43962 
+X-CRM114-Status: GOOD (  17.69  )
 X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -104,8 +114,8 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
@@ -114,272 +124,35 @@ X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-On Fri, Oct 30, 2026 at 06:45:15PM +0800, Yu-Chien Peter Lin wrote:
-> Introduce a WID-based hart protection backend that switches World ID
-> configurations across domains.
-> 
-> Access to slwid is gated by mwiddeleg (Sswid), which means slwid cannot
-> be handled by generic hart_context save/restore. Instead, manage slwid as
-> domain state with explicit sequencing:
-> 
-> - configure:
->   - Validate and program mlwid and mwiddeleg according to domain policy
->     and platform constraints (pmlwidlist/mlwidlist).
->   - Restore slwid after mwiddeleg is enabled.
-> - unconfigure:
->   - Save slwid prior to clearing mwiddeleg.
->   - Reset mwiddeleg to 0 to disable Sswid.
-> 
-> Signed-off-by: Yu-Chien Peter Lin <peter.lin@sifive.com>
-> Reviewed-by: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
-> Reviewed-by: Anup Patel <anup@brainfault.org>
-> ---
->  include/sbi/sbi_hart_worlds.h |  24 ++++
->  lib/sbi/objects.mk            |   1 +
->  lib/sbi/sbi_hart.c            |   5 +
->  lib/sbi/sbi_hart_worlds.c     | 210 ++++++++++++++++++++++++++++++++++
->  4 files changed, 240 insertions(+)
->  create mode 100644 include/sbi/sbi_hart_worlds.h
->  create mode 100644 lib/sbi/sbi_hart_worlds.c
-> 
-> diff --git a/include/sbi/sbi_hart_worlds.h b/include/sbi/sbi_hart_worlds.h
-> new file mode 100644
-> index 00000000..91b11023
-> --- /dev/null
-> +++ b/include/sbi/sbi_hart_worlds.h
-> @@ -0,0 +1,24 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2026 SiFive Inc.
-> + */
-> +
-> +#ifndef __SBI_HART_WORLDS_H__
-> +#define __SBI_HART_WORLDS_H__
-> +
-> +struct sbi_scratch;
-> +
-> +/**
-> + * Initialize WID hart protection for current HART
-> + *
-> + * Registers the WID protection mechanism if Smlwid
-> + * extension is present.
-> + *
-> + * @param scratch pointer to scratch space of current HART
-> + *
-> + * @return 0 on success and negative error code on failure
-> + */
-> +int sbi_hart_worlds_init(struct sbi_scratch *scratch);
-> +
-> +#endif /* __SBI_HART_WORLDS_H__ */
-> diff --git a/lib/sbi/objects.mk b/lib/sbi/objects.mk
-> index ae27d0c5..355ae6e9 100644
-> --- a/lib/sbi/objects.mk
-> +++ b/lib/sbi/objects.mk
-> @@ -77,6 +77,7 @@ libsbi-objs-y += sbi_fwft.o
->  libsbi-objs-y += sbi_hart.o
->  libsbi-objs-y += sbi_hart_pmp.o
->  libsbi-objs-y += sbi_hart_protection.o
-> +libsbi-objs-y += sbi_hart_worlds.o
->  libsbi-objs-y += sbi_heap.o
->  libsbi-objs-y += sbi_math.o
->  libsbi-objs-y += sbi_hfence.o
-> diff --git a/lib/sbi/sbi_hart.c b/lib/sbi/sbi_hart.c
-> index 611c97bf..f7408f51 100644
-> --- a/lib/sbi/sbi_hart.c
-> +++ b/lib/sbi/sbi_hart.c
-> @@ -17,6 +17,7 @@
->  #include <sbi/sbi_error.h>
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_hart_pmp.h>
-> +#include <sbi/sbi_hart_worlds.h>
->  #include <sbi/sbi_platform.h>
->  #include <sbi/sbi_pmu.h>
->  #include <sbi/sbi_string.h>
-> @@ -742,6 +743,10 @@ int sbi_hart_init(struct sbi_scratch *scratch, bool cold_boot)
->  		rc = sbi_hart_pmp_init(scratch);
->  		if (rc)
->  			return rc;
-> +
-> +		rc = sbi_hart_worlds_init(scratch);
-> +		if (rc)
-> +			return rc;
->  	}
->  
->  	return sbi_hart_reinit(scratch);
-> diff --git a/lib/sbi/sbi_hart_worlds.c b/lib/sbi/sbi_hart_worlds.c
-> new file mode 100644
-> index 00000000..6f582bd2
-> --- /dev/null
-> +++ b/lib/sbi/sbi_hart_worlds.c
-> @@ -0,0 +1,210 @@
-> +/*
-> + * SPDX-License-Identifier: BSD-2-Clause
-> + *
-> + * Copyright (c) 2026 SiFive Inc.
-> + */
-> +
-> +#include <sbi/riscv_encoding.h>
-> +#include <sbi/sbi_bitops.h>
-> +#include <sbi/sbi_console.h>
-> +#include <sbi/sbi_domain.h>
-> +#include <sbi/sbi_error.h>
-> +#include <sbi/sbi_hart.h>
-> +#include <sbi/sbi_hart_protection.h>
-> +#include <sbi/sbi_hart_worlds.h>
-> +#include <sbi/sbi_scratch.h>
-> +
-> +/**
-> + * Initialize the per-hart slwid values of a domain using
-> + * the lowest delegated WID as the initial value.
-> + *
-> + * S-mode OS should choose the desire slwid for it's
-> + * U-mode.
-> + */
-> +static int sbi_hart_worlds_state_setup(struct sbi_domain *dom,
-> +				       struct sbi_domain_state *state,
-> +				       void *state_ptr)
-> +{
-> +	unsigned long widdeleg = dom->widdeleg;
-> +	unsigned long *slwid = state_ptr;
-> +	unsigned long init_wid;
-> +
-> +	if (!widdeleg)
-> +		return SBI_OK;
-> +
-> +	init_wid = sbi_ffs(widdeleg);
-> +	sbi_for_each_hartindex(i)
-> +		slwid[i] = init_wid;
-> +
-> +	return SBI_OK;
-> +}
-> +
-> +static struct sbi_domain_state wid_state = {
-> +	.state_setup = sbi_hart_worlds_state_setup,
-> +};
-> +
-> +static unsigned long *sbi_hart_worlds_slwid_ptr(struct sbi_domain *dom)
-> +{
-> +	unsigned long *slwid;
-> +
-> +	slwid = sbi_domain_state_ptr(dom, &wid_state);
-> +	if (!slwid || !sbi_hartindex_valid(current_hartindex()))
-> +		return NULL;
-> +
-> +	return &slwid[current_hartindex()];
-> +}
-> +
-> +static int hart_worlds_validate_wid(struct sbi_scratch *scratch,
-> +				    struct sbi_domain *dom,
-> +				    unsigned long mlwidlist)
-> +{
-> +	struct sbi_hart_features *hf = sbi_hart_features_ptr(scratch);
-> +
-> +	if (hf->has_pmlwidlist && !(hf->pmlwidlist & BIT_ULL(dom->wid))) {
-> +		sbi_printf("%s: domain%d WID %u not permitted by"
-> +			   " pmlwidlist\n",
-> +			   __func__, dom->index, dom->wid);
-> +		return SBI_EINVAL;
-> +	}
-> +
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWIDLIST) &&
-> +	    !(mlwidlist & BIT_ULL(dom->wid))) {
-> +		sbi_printf("%s: domain%d WID %u not permitted by"
-> +			   " mlwidlist 0x%lx\n",
-> +			   __func__, dom->index, dom->wid, mlwidlist);
-> +		return SBI_EINVAL;
-> +	}
-> +
-> +	return SBI_OK;
-> +}
-> +
-> +/*
-> + * Validate that a domain's widdeleg value, parsed from the
-> + * "widdeleg" DT property, is permitted on this hart.
-> + *
-> + * mwiddeleg is a M-mode WARL register, so an S-mode OS must rely
-> + * on the "widdeleg" DT property to determine which WIDs it may
-> + * delegate to U-mode via slwid. If pmwidlist or mlwidlist silently
-> + * filters out any of those WIDs, the S-mode OS's view of the WIDs
-> + * available for delegation would be incorrect. Treat this mismatch
-> + * as a misconfiguration.
-> + */
-> +static int hart_worlds_validate_widdeleg(struct sbi_scratch *scratch,
-> +					 struct sbi_domain *dom,
-> +					 unsigned long mlwidlist)
-> +{
-> +	struct sbi_hart_features *hf = sbi_hart_features_ptr(scratch);
-> +	unsigned long widdeleg = dom->widdeleg;
-> +
-> +	if (!widdeleg)
-> +		return SBI_OK;
-> +
-> +	if (hf->has_pmlwidlist && (widdeleg & ~hf->pmlwidlist)) {
-> +		sbi_printf("%s: domain%d widdeleg 0x%lx has WID(s)"
-> +			   " outside pmlwidlist 0x%lx\n",
-> +			   __func__, dom->index, widdeleg,
-> +			   (unsigned long)hf->pmlwidlist);
-> +		return SBI_EINVAL;
-> +	}
-> +
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWIDLIST) &&
-> +	    (widdeleg & ~mlwidlist)) {
-> +		sbi_printf("%s: domain%d widdeleg 0x%lx has WID(s)"
-> +			   " outside mlwidlist 0x%lx\n",
-> +			   __func__, dom->index, widdeleg, mlwidlist);
-> +		return SBI_EINVAL;
-> +	}
-> +
-> +	return SBI_OK;
-> +}
-> +
-> +static int sbi_hart_worlds_configure(struct sbi_scratch *scratch,
-> +				     struct sbi_domain *dom)
-> +{
-> +	unsigned long *slwid = NULL;
-> +	unsigned long mlwidlist = 0;
-> +	int rc;
-> +
-> +	if (!sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWID))
-> +		return SBI_OK;
-> +
-> +	if (sbi_hart_has_extension(scratch, SBI_HART_EXT_SMLWIDLIST))
-> +		mlwidlist = csr_read(CSR_MLWIDLIST);
-> +
-> +	rc = hart_worlds_validate_wid(scratch, dom, mlwidlist);
-> +	if (rc)
-> +		return rc;
-> +
-> +	csr_write(CSR_MLWID, dom->wid);
-
-Need to validate widdelg and bail out before updating mlwid, so mlwid
-isn't left holding an invalid target world state on failure. Will fix
-in PATCHv5.
-
-Regards,
-Peter Lin
-
-> +	rc = hart_worlds_validate_widdeleg(scratch, dom, mlwidlist);
-> +	if (rc)
-> +		return rc;
-> +
-> +	/*
-> +	 * Enable Sswid before restoring slwid. A zero mwiddeleg
-> +	 * disables access to slwid, so the order here is required.
-> +	 */
-> +	csr_write(CSR_MWIDDELEG, dom->widdeleg);
-> +
-> +	if (dom->widdeleg) {
-> +		slwid = sbi_hart_worlds_slwid_ptr(dom);
-> +		if (!slwid)
-> +			return SBI_EINVAL;
-> +		csr_write(CSR_SLWID, *slwid);
-> +	}
-> +
-> +	return SBI_OK;
-> +}
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gU2F0LCBOb3YgNywgMjAyNiBhdCAxMTozM+KAr0FNIEhpbWFuc2h1IENoYXVoYW4KPGhpbWFu
+c2h1LmNoYXVoYW5Ab3NzLnF1YWxjb21tLmNvbT4gd3JvdGU6Cj4KPiBzYmlfZGJ0cl9yZWFkX3Ry
+aWcoKSByZWplY3RzIHJhbmdlcyBlbmRpbmcgZXhhY3RseSBhdCB0b3RhbF90cmlncwo+IGJlY2F1
+c2UgaXQgdHJlYXRzIHRyaWdfaWR4X2Jhc2UgKyB0cmlnX2NvdW50ID09IHRvdGFsX3RyaWdzIGFz
+Cj4gb3V0IG9mIHJhbmdlLiBUaGlzIGJyZWFrcyB0aGUgY29ybmVyIGNhc2Ugd2hlcmUgc3VwZXJ2
+aXNvcgo+IHNvZnR3YXJlIHJlYWRzIHRoZSBsYXN0IHRyaWdnZXIgYnkgYXNraW5nIGZvciBiYXNl
+IHRvdGFsX3RyaWdzIC0gMQo+IGFuZCBjb3VudCAxLgo+Cj4gVmFsaWRhdGUgdGhlIGJhc2UgZmly
+c3QsIHRoZW4gY29tcGFyZSB0cmlnX2NvdW50IGFnYWluc3QKPiB0b3RhbF90cmlncyAtIHRyaWdf
+aWR4X2Jhc2UuIFRoaXMgcGVybWl0cyBleGFjdC1lbmQgcmFuZ2VzIGFuZCBhdm9pZHMKPiByZWx5
+aW5nIG9uIHVuc2lnbmVkIGFkZGl0aW9uIHRoYXQgY291bGQgb3ZlcmZsb3cgZm9yIGEgYmFkIGNv
+dW50Lgo+Cj4gU2lnbmVkLW9mZi1ieTogSGltYW5zaHUgQ2hhdWhhbiA8aGltYW5zaHUuY2hhdWhh
+bkBvc3MucXVhbGNvbW0uY29tPgoKR29vZCBjYXRjaCBidXQgRml4ZXMgdGFncyBhcmUgbWlzc2lu
+Zy4gSSB3aWxsIGFkZCBhdCB0aGUgdGltZSBvZiBtZXJnaW5nLgoKQWxzbywgdHJpZ19jb3VudCBj
+YW4gZXF1YWwgdG8gdG90YWxfdHJpZ3MgaW4gc2JpX2RidHJfaW5zdGFsbF90cmlnKCkgYW5kCnNi
+aV9kYnRyX3VwZGF0ZV90cmlnKCkgc28gaGF2ZSBzcXVhc2hlZCBhcHByb3ByaWF0ZSBmaXggZm9y
+IHRoZXNlCmZ1bmN0aW9ucyBpbiB0aGlzIHBhdGNoIGFzIHdlbGwuCgpSZXZpZXdlZC1ieTogQW51
+cCBQYXRlbCA8YW51cEBicmFpbmZhdWx0Lm9yZz4KClRoYW5rcywKQW51cAoKPiAtLS0KPiAgbGli
+L3NiaS9zYmlfZGJ0ci5jIHwgMiArLQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyks
+IDEgZGVsZXRpb24oLSkKPgo+IGRpZmYgLS1naXQgYS9saWIvc2JpL3NiaV9kYnRyLmMgYi9saWIv
+c2JpL3NiaV9kYnRyLmMKPiBpbmRleCA1ZjY2YjY0MS4uOTY3ZDZhZjcgMTAwNjQ0Cj4gLS0tIGEv
+bGliL3NiaS9zYmlfZGJ0ci5jCj4gKysrIGIvbGliL3NiaS9zYmlfZGJ0ci5jCj4gQEAgLTY0OSw3
+ICs2NDksNyBAQCBpbnQgc2JpX2RidHJfcmVhZF90cmlnKHVuc2lnbmVkIGxvbmcgc21vZGUsCj4g
+ICAgICAgICAgICAgICAgIHJldHVybiBTQklfRVJSX0ZBSUxFRDsKPgo+ICAgICAgICAgaWYgKHRy
+aWdfaWR4X2Jhc2UgPj0gaHMtPnRvdGFsX3RyaWdzIHx8Cj4gLSAgICAgICAgICAgdHJpZ19jb3Vu
+dCA+PSBocy0+dG90YWxfdHJpZ3MgLSB0cmlnX2lkeF9iYXNlKQo+ICsgICAgICAgICAgIHRyaWdf
+Y291bnQgPiBocy0+dG90YWxfdHJpZ3MgLSB0cmlnX2lkeF9iYXNlKQo+ICAgICAgICAgICAgICAg
+ICByZXR1cm4gU0JJX0VSUl9CQURfUkFOR0U7Cj4KPiAgICAgICAgIGlmIChzYmlfZGJ0cl9zaG1l
+bV9kaXNhYmxlZChocykpCj4gLS0KPiAyLjQzLjAKPgo+Cj4gLS0KPiBvcGVuc2JpIG1haWxpbmcg
+bGlzdAo+IG9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IGh0dHA6Ly9saXN0cy5pbmZyYWRl
+YWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQoKLS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0
+Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
