@@ -2,62 +2,71 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0F2D606A327
-	for <opensbi@archiver.kernel.org>; Thu, 12 Nov 2026 08:04:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E124606A323
+	for <opensbi@archiver.kernel.org>; Thu, 12 Nov 2026 09:13:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=FBwwRDNx;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=126.com header.i=@126.com header.a=rsa-sha256 header.s=s110527 header.b=Xg/j43v2
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=WzMArexB
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=NopTGcvBCj8W/paHbobUz9cC9YzhYkUkvZmA6DODsbo=; b=FBwwRDNx1Yj6dq/qRhAOO72/89
-	kvnLP4mqHHPxD1xvRK/fpufDCJEG9+vSazqCzGF4Hc75kP5XmlRw4PsITvpZGs5JMNlXSMgjqNKwQ
-	5sKGXZ/YIYPV5fDQtvVbKmcaK75+fYty3GmtP/sLTOmDgGG8JZMOCXpWraTBgKRxxpfdSI2R3//LD
-	8zfjH+b5aLgIIvb6JE1CilurIljesJy+Tg3vrr+wFjrNf9jzau6uZqdgSfju3k24+/fS9GtxUP8UF
-	n7hKdtvtZdXV0ZR5bghhb9MvJSmOX9CNk1o/x//hIq8twkDRBTDVJ6uD+QtEckBhiE1mX5SrJx5Oo
-	7eldwn2w==;
+	bh=aEvuQjvpTP9VQXj/DNh66wfXKAgJeJAuhuyl4X9J1fY=; b=WzMArexBHdz/WWphCcbawk5bR6
+	qLLKyh/emIfsvWlpOLXC5Z5zhuXoZTjRBsO2dNqm+mXlCyqcjGRQVjIh3TPqcIv/zL4mmUVS+GDxg
+	ZmdIuDqnIEMg8kCaOk619JdEGA+dn0NnP8YGnMYcYDWVCHXYN2MlaRdkXNRc6zAtpQv6qMwjW7MuD
+	iVssmjsG9sulBylfreW0E6m1G3MyY1UYoa4XUYaSprViUrSj4sC9nxe0fUcfXir17J5PJWL8K8l3L
+	w0jFSZVsDFBckNPeLbanHZjr4vKV2vBCM5fu7m7jKsBvGcxi2TMLRdlaqenx7rDGJCm25rbVnXo84
+	GbiTJUfQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xRPn4-000000091Dx-2J7o;
-	Thu, 12 Nov 2026 08:04:14 +0000
-Received: from m16.mail.126.com ([117.135.210.7])
+	id 1xRQsF-00000009JoR-1Zzx;
+	Thu, 12 Nov 2026 09:13:39 +0000
+Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xRPmZ-0000000913q-0qCU
+	id 1xRQsB-00000009JnL-0eH8
 	for opensbi@lists.infradead.org;
-	Thu, 12 Nov 2026 08:03:48 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
-	MIME-Version; bh=RyQ9dzfk3gsJ3zoJK/5i3o0TA+emwtQrjPBweJThXfI=;
-	b=Xg/j43v2BaDp6mo4hWhTbYt0L63rojTaKNpPT5sFSH8muTcx0OtrW+BxMrkmTj
-	AdX8HVRwYz0gAEZmUWn2mfInHIE8u9GX+wYtoJxPEYT0Bh1EaENN/VH+GySjPGvg
-	2i2CcLW/xwbLKllkEPPThnR0Yo0D17MirUTwY8MLaVr9g=
-Message-ID: <ed4015c1beede6efeb899735ce1006cd51ab7269.camel@126.com>
-Subject: Re: [PATCH] platform: generic: spacemit: k3: deny S-mode access to
- the reset vectors
-From: Xiang W <wxjstz@126.com>
-To: liutong <liutong@iscas.ac.cn>, opensbi@lists.infradead.org
-Cc: troy.mitchell@linux.spacemit.com, xianbin.zhu@linux.spacemit.com, 
-	anup@brainfault.org, gaohan@iscas.ac.cn
-Date: Thu, 12 Nov 2026 15:59:32 +0800
-In-Reply-To: <20261103094415.3007814-1-liutong@iscas.ac.cn>
-References: <20261103094415.3007814-1-liutong@iscas.ac.cn>
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	Thu, 12 Nov 2026 09:13:38 +0000
+Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowAAnwrc5g_Vqv+H1AA--.48761S2;
+	Thu, 12 Nov 2026 17:13:29 +0800 (CST)
+From: liutong <liutong@iscas.ac.cn>
+To: opensbi@lists.infradead.org,
+	Xiang W <wxjstz@126.com>
+Cc: gaohan@iscas.ac.cn,
+	troy.mitchell@linux.spacemit.com,
+	xianbin.zhu@linux.spacemit.com,
+	anup@brainfault.org
+Subject: Re: [PATCH] platform: generic: spacemit: k3: deny S-mode access to the reset vectors
+Date: Thu, 12 Nov 2026 09:13:16 +0000
+Message-Id: <20261112091316.4067761-1-liutong@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <ed4015c1beede6efeb899735ce1006cd51ab7269.camel@126.com>
+References: <20261103094415.3007814-1-liutong@iscas.ac.cn> <ed4015c1beede6efeb899735ce1006cd51ab7269.camel@126.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID: _____wDn72zlcfVqACiwDg--.35642S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW3JFW7KFW7tr43CFW3tr1rtFb_yoW7WFykpF
-	4j9Fs3Ww48Gr4a9F4xZFnrZa1fuwsagr4UZr1DZ3yUAws8urWIgr4kA3Z0yFykur48Jw4Y
-	9FnFq34UuFs0qFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRZvtZUUUUU=
-X-CM-SenderInfo: pz0m23b26rjloofrz/xtbBsgWt52r1ceVY5wAA3J
+X-CM-TRANSID: zQCowAAnwrc5g_Vqv+H1AA--.48761S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxXr47uF13JF4fJrWDCFWkXrb_yoW5Wr1UpF
+	W3Gr13Crs7CrZ2vw1xuw4xC34kAan3Ja4DGFy5Ary8Aws8Wry29FW8t3Z5Aa47Cr1fXF1Y
+	gr4Utw1kuan8ZaDanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkab7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I2
+	0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+	A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
+	jxv20xvEc7CjxVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4
+	A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IE
+	w4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jw0_WrylYx0Ex4A2jsIE14v26F4UJVW0ow
+	Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lc7CjxVAaw2AFwI0_JF0_Jw1l
+	42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJV
+	WUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIYrxkI7VAK
+	I48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r
+	4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY
+	6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x07bn-erUUUUU=
+X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261112_000344_151972_9E6555D1 
-X-CRM114-Status: GOOD (  28.98  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261112_011335_602480_41982EB0 
+X-CRM114-Status: GOOD (  15.73  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -67,112 +76,86 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_EF,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
 	autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-5ZyoIDIwMjYtMTEtMDPkuoznmoQgMDk6NDQgKzAwMDDvvIxsaXV0b25n5YaZ6YGT77yaCj4gc3Bh
-Y2VtaXRfazNfcHJlX2luaXQoKSBwcm9ncmFtcyB0aGUgcGVyLWNsdXN0ZXIgcmVzZXQgdmVjdG9y
-IHJlZ2lzdGVycwo+IHdpdGggdGhlIHdhcm0gYm9vdCBlbnRyeSBwb2ludCwgc28gYSBoYXJ0IHRo
-YXQgaXMgcG93ZXJlZCBiYWNrIG9uCj4gcmVzdW1lcyBpbiBNLW1vZGUgYXQgdGhhdCBhZGRyZXNz
-LiBUaGUgcmVnaXN0ZXJzIHNpdCBpbiBvcmRpbmFyeSBNTUlPCj4gYW5kIHRoZSBLMyBzdXBwb3J0
-IHJlZ2lzdGVycyBubyBtZW1vcnkgcmVnaW9uIGNvdmVyaW5nIHRoZW0sIHNvIHRoZXkKPiBmYWxs
-IHRvIHRoZSByb290IGRvbWFpbidzIGFsbG93LWV2ZXJ5dGhpbmcgcmVnaW9uIGFuZCBTLW1vZGUg
-Y2FuIHdyaXRlCj4gdGhlbS4gUy1tb2RlIGNhbiB0aGVuIHBvaW50IGEgY2x1c3RlcidzIHJlc2V0
-IHZlY3RvciBhdCBpdHMgb3duIGNvZGUKPiBhbmQgaGF2ZSB0aGF0IGNvZGUgcnVuIGluIE0tbW9k
-ZSB0aGUgbmV4dCB0aW1lIHRoZSBjbHVzdGVyIGlzIHBvd2VyZWQKPiB1cC4KPiAKPiBBZGQgYSBy
-b290IGRvbWFpbiByZWdpb24gb3ZlciB0aGUgbmF0dXJhbGx5IGFsaWduZWQgMUtCIGJsb2NrIGF0
-Cj4gMHhkNDI4MmMwMCwgd2hpY2ggY29udGFpbnMgYWxsIGZvdXIgcmVzZXQgdmVjdG9yIHJlZ2lz
-dGVyIHBhaXJzLCB3aXRoCj4gTS1tb2RlLW9ubHkgcGVybWlzc2lvbnMuIEl0IHNvcnRzIGJlZm9y
-ZSB0aGUgYWxsb3ctZXZlcnl0aGluZyByZWdpb24KPiBhbmQgc28gdGFrZXMgYSBsb3dlciBQTVAg
-ZW50cnkgaW5kZXguIFRoZSBBUE1VIHJlZ2lzdGVycyBsaXZlIGJlbG93Cj4gdGhhdCBibG9jayBh
-bmQgYXJlIGxlZnQgYWxvbmUsIHNvIFMtbW9kZSBrZWVwcyB0aGUgYWNjZXNzIGl0IHVzZXMgZm9y
-Cj4gY29yZSBpZGxlIGFuZCB3YWtldXAuCj4gCj4gU3BhY2VNaXQncyBvd24gazMtYnItdjEuMC55
-IGJyYW5jaCBhbHJlYWR5IHByb3RlY3RzIHRoaXMgYWRkcmVzcyByYW5nZQo+IGluIHNwYWNlbWl0
-X2szLmMsIGFzIHBhcnQgb2YgYSBsYXJnZXIgcGFnZTsgdGhlIHByb3RlY3Rpb24gd2FzIG5vdAo+
-IGNhcnJpZWQgb3ZlciB3aGVuIEszIHN1cHBvcnQgd2FzIHVwc3RyZWFtZWQuCj4gCj4gU2lnbmVk
-LW9mZi1ieTogbGl1dG9uZyA8bGl1dG9uZ0Bpc2Nhcy5hYy5jbj4KPiAtLS0KPiAKPiBGb3VuZCB3
-aGlsZSBhdWRpdGluZyB0aGUgREJUUiBzaGFyZWQgbWVtb3J5IHBhdGhzOyB0aGUgcmVzZXQgdmVj
-dG9yCj4gcmVnaXN0ZXJzIHR1cm5lZCB1cCBiZWNhdXNlIHRoZXkgc2l0IGluIHRoZSBzYW1lIE1N
-SU8gcGFnZSB0aGUgU3BhY2VNaXQKPiBwb3dlciBtYW5hZ2VtZW50IGNvZGUgdG91Y2hlcy4KPiAK
-PiBXaHkgdGhpcyByYW5nZSBhbmQgbm90IHRoZSB3aG9sZSBwYWdlLiBTcGFjZU1pdCdzIGszLWJy
-LXYxLjAueSBicmFuY2gKPiBwcm90ZWN0cyAweGQ0MjgyMDAwIC4uIDB4ZDQyODJmZmYgaW4gc3Bh
-Y2VtaXRfazMuYzoKPiAKPiDCoCByYyA9IHNiaV9kb21haW5fcm9vdF9hZGRfbWVtcmFuZ2UoUkVH
-SVNURVJfUFJFU0VSVkFUSU9OX0JBU0UsCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBSRUdJU1RFUl9QUkVTRVJW
-QVRJT05fU0laRSwgUEFHRV9TSVpFLAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgU0JJX0RPTUFJTl9NRU1SRUdJ
-T05fTV9SV1gpOwo+IAo+IFRoYXQgY292ZXJzIHRoZSBBUE1VIGJsb2NrIGF0IDB4ZDQyODI4MDAg
-YXMgd2VsbC4gVGFraW5nIG9ubHkgdGhlIDFLQgo+IGJsb2NrIGF0IDB4ZDQyODJjMDAga2VlcHMg
-ZXZlcnkgcmVzZXQgdmVjdG9yIHJlZ2lzdGVyIGluc2lkZSBpdDoKPiAKPiDCoCBDMCAweGQ0Mjgy
-ZGIwL2RiNMKgwqAgQzEgMHhkNDI4MmViMC9lYjQKPiDCoCBDMiAweGQ0MjgyZmU4L2ZlY8KgwqAg
-QzMgMHhkNDI4MmU2MC9lNjQKPiAKPiB3aGlsZSB0aGUgaGlnaGVzdCBBUE1VIHJlZ2lzdGVyIGlu
-IHVzZSBoZXJlIGlzIFBNVV9BUF9CQVNFICsgMHgzNmMgPQo+IDB4ZDQyODJiNmMsIGJlbG93IHRo
-ZSBibG9jay4gUy1tb2RlIHRoZXJlZm9yZSBrZWVwcyB0aGUgQVBNVSBhY2Nlc3MgaXQKPiBuZWVk
-cy4gVGhhdCBzZWVtZWQgd29ydGggcHJlc2VydmluZyBhZnRlcgo+IDRjNWQ5ZDlmICgibGliOiB1
-dGlscy9hbmRlczogYWRkIHRoZSBTTVUgYW5kIExMQyByZWdpc3RlcnMgdG8gdGhlIHJvb3QKPiBk
-b21haW4iKSwgd2hlcmUgZGVueWluZyBTLW1vZGUgaXRzIHBvd2VyIG1hbmFnZW1lbnQgcmVnaXN0
-ZXJzIGJyb2tlCj4gc3VzcGVuZCBhbmQgcmVzdW1lLgo+IAo+IFRoZSBibG9jayBpcyBuYXR1cmFs
-bHkgYWxpZ25lZCwgc28gaXQgbmVlZHMgb25lIFBNUCBlbnRyeS4KPiAKPiBWZXJpZmllZCBieSBi
-dWlsZGluZyBmb3IgZ2VuZXJpYyAoUlY2NCBhbmQgUlYzMikgYW5kIGJvb3RpbmcgcWVtdSB2aXJ0
-LAo+IHdoZXJlIHRoZSBLMyBlYXJseV9pbml0IGRvZXMgbm90IHJ1biBhbmQgdGhlIHJvb3QgcmVn
-aW9uIGxpc3QgaXMKPiB1bmNoYW5nZWQuIEkgZG8gbm90IGhhdmUgSzMgaGFyZHdhcmUgcnVubmlu
-ZyBhbiB1cHN0cmVhbSBidWlsZCB0bwo+IGNvbmZpcm0gdGhlIHJlZ2lvbiBhcHBlYXJzIGFuZCB0
-aGF0IGlkbGUgYW5kIHdha2V1cCBzdGlsbCB3b3JrOyBpZgo+IHNvbWVvbmUgb24gdGhlIFNwYWNl
-TWl0IHNpZGUgY2FuIGNoZWNrIHRoYXQsIEkgd291bGQgYXBwcmVjaWF0ZSBpdC4KPiAKPiBOb3Qg
-YWRkcmVzc2VkIGhlcmU6IHBsYXRmb3JtL2dlbmVyaWMvc3BhY2VtaXQvazEuYyBwcm9ncmFtcwo+
-IEMwL0MxX1JWQkFERFIgaW4gc3BhY2VtaXRfazFfcHJlX2luaXQoKSB0aGUgc2FtZSB3YXksIGF0
-IGFkZHJlc3NlcyBpbgo+IHRoZSBzYW1lIHdpbmRvdywgYW5kIHJlZ2lzdGVycyBubyByZWdpb24g
-ZWl0aGVyLiBJdCBsb29rcyBsaWtlIHRoZSBzYW1lCj4gZ2FwLCBidXQgdGhlIEsxIHZlbmRvciBi
-cmFuY2ggaXMgbm90IHRoZSBvbmUgSSBjb21wYXJlZCBhZ2FpbnN0LCBzbyBJCj4gaGF2ZSBsZWZ0
-IGl0IGZvciBzb21lb25lIHdobyBrbm93cyB0aGF0IHBhcnQuCj4gCj4gwqBwbGF0Zm9ybS9nZW5l
-cmljL2luY2x1ZGUvc3BhY2VtaXQvazMuaCB8wqAgOSArKysrKysrKysKPiDCoHBsYXRmb3JtL2dl
-bmVyaWMvc3BhY2VtaXQvazMuY8KgwqDCoMKgwqDCoMKgwqAgfCAxNiArKysrKysrKysrKysrKy0t
-Cj4gwqAyIGZpbGVzIGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4g
-Cj4gZGlmZiAtLWdpdCBhL3BsYXRmb3JtL2dlbmVyaWMvaW5jbHVkZS9zcGFjZW1pdC9rMy5oIGIv
-cGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL3NwYWNlbWl0L2szLmgKPiBpbmRleCBmNDQ0ZDA2NC4u
-ZTk1ODBlY2IgMTAwNjQ0Cj4gLS0tIGEvcGxhdGZvcm0vZ2VuZXJpYy9pbmNsdWRlL3NwYWNlbWl0
-L2szLmgKPiArKysgYi9wbGF0Zm9ybS9nZW5lcmljL2luY2x1ZGUvc3BhY2VtaXQvazMuaAo+IEBA
-IC0xMDgsNiArMTA4LDE1IEBACj4gwqAJCQkJCQkgUE1VX0NYX0lETEVfTVBfU0NVX1NSQU1fUFdS
-RFdOIHwgXAo+IMKgCQkJCQkJIFBNVV9DWF9JRExFX0FDTkFDVE1fSFdfQ1RSTCkKPiDCoAo+ICsv
-Kgo+ICsgKiBBbGwgZm91ciBwZXItY2x1c3RlciByZXNldCB2ZWN0b3IgcmVnaXN0ZXIgcGFpcnMg
-ZmFsbCBpbnNpZGUgdGhpcwo+ICsgKiBuYXR1cmFsbHkgYWxpZ25lZCAxS0IgYmxvY2suIFRoZSBB
-UE1VIHJlZ2lzdGVycyBzaXQgYmVsb3cgaXQgYW5kIGFyZQo+ICsgKiBkZWxpYmVyYXRlbHkgbGVm
-dCBvdXQsIHNvIFMtbW9kZSBrZWVwcyB0aGUgYWNjZXNzIGl0IHVzZXMgZm9yIGNvcmUKPiArICog
-aWRsZSBhbmQgd2FrZXVwLgo+ICsgKi8KPiArI2RlZmluZSBLM19SRVNFVF9WRUNUT1JfQkFTRQkJ
-CTB4ZDQyODJjMDAKPiArI2RlZmluZSBLM19SRVNFVF9WRUNUT1JfU0laRQkJCTB4NDAwCj4gKwo+
-IMKgLyogYm9vdCBlbnRyeSBmb3IgQTEwMCBjbHVzdGVycyAqLwo+IMKgI2RlZmluZSBDMl9SVkJB
-RERSX0xPX0FERFIJCQkoMHhkNDI4MmMwMCArIDB4M2U4KQo+IMKgI2RlZmluZSBDMl9SVkJBRERS
-X0hJX0FERFIJCQkoMHhkNDI4MmMwMCArIDB4M2VjKQo+IGRpZmYgLS1naXQgYS9wbGF0Zm9ybS9n
-ZW5lcmljL3NwYWNlbWl0L2szLmMgYi9wbGF0Zm9ybS9nZW5lcmljL3NwYWNlbWl0L2szLmMKPiBp
-bmRleCA3OTIyYWIxMS4uOTA0ODY3OGQgMTAwNjQ0Cj4gLS0tIGEvcGxhdGZvcm0vZ2VuZXJpYy9z
-cGFjZW1pdC9rMy5jCj4gKysrIGIvcGxhdGZvcm0vZ2VuZXJpYy9zcGFjZW1pdC9rMy5jCj4gQEAg
-LTEwLDYgKzEwLDcgQEAKPiDCoCNpbmNsdWRlIDxwbGF0Zm9ybV9vdmVycmlkZS5oPgo+IMKgI2lu
-Y2x1ZGUgPHNiaS9yaXNjdl9hc20uaD4KPiDCoCNpbmNsdWRlIDxzYmkvcmlzY3ZfaW8uaD4KPiAr
-I2luY2x1ZGUgPHNiaS9zYmlfZG9tYWluLmg+Cj4gwqAjaW5jbHVkZSA8c2JpL3NiaV9oZmVuY2Uu
-aD4KPiDCoCNpbmNsdWRlIDxzYmkvc2JpX3RsYi5oPgo+IMKgI2luY2x1ZGUgPHNwYWNlbWl0L2sz
-Lmg+Cj4gQEAgLTk2LDggKzk3LDE5IEBAIHN0YXRpYyB2b2lkIHNwYWNlbWl0X2szX3ByZV9pbml0
-KHZvaWQpCj4gwqAKPiDCoHN0YXRpYyBpbnQgc3BhY2VtaXRfazNfZWFybHlfaW5pdChib29sIGNv
-bGRfYm9vdCkKPiDCoHsKPiAtCWlmIChjb2xkX2Jvb3QpCj4gLQkJc3BhY2VtaXRfazNfcHJlX2lu
-aXQoKTsKPiArCWludCByYzsKPiArCj4gKwlpZiAoIWNvbGRfYm9vdCkKPiArCQlyZXR1cm4gZ2Vu
-ZXJpY19lYXJseV9pbml0KGNvbGRfYm9vdCk7Cj4gKwo+ICsJc3BhY2VtaXRfazNfcHJlX2luaXQo
-KTsKPiArCj4gKwlyYyA9IHNiaV9kb21haW5fcm9vdF9hZGRfbWVtcmFuZ2UoSzNfUkVTRVRfVkVD
-VE9SX0JBU0UsCj4gKwkJCQkJwqAgSzNfUkVTRVRfVkVDVE9SX1NJWkUsCj4gKwkJCQkJwqAgSzNf
-UkVTRVRfVkVDVE9SX1NJWkUsCj4gKwkJCQkJwqAgU0JJX0RPTUFJTl9NRU1SRUdJT05fTV9SV1gp
-OwoKSGksCgpJIGhhdmUgYSBxdWVzdGlvbiByZWdhcmRpbmcgdGhpcyBwYXRjaC4KCk15IGNvbGxl
-YWd1ZSBIYW4gR2FvIDxnYW9oYW5AaXNjYXMuYWMuY24+IGhhcyBhY2Nlc3MgdG8gYSBLMwpwbGF0
-Zm9ybSBhbmQgdGVzdGVkIGl0LiBUaGUgUE1QIGdyYW51bGFyaXR5IG9uIEszIGlzIDQgS2lCLCAK
-c28gYSBtYXBwaW5nIHNpemUgc21hbGxlciB0aGFuIHRoYXQgd2lsbCBiZSBpZ25vcmVkLgoKQ291
-bGQgeW91IGNsYXJpZnkgaG93IHRoaXMgY2FzZSBzaG91bGQgYmUgaGFuZGxlZD8KCkJlc3QgcmVn
-YXJkcywKWGlhbmcgVwoKPiArCWlmIChyYykKPiArCQlyZXR1cm4gcmM7Cj4gwqAKPiDCoAlyZXR1
-cm4gZ2VuZXJpY19lYXJseV9pbml0KGNvbGRfYm9vdCk7Cj4gwqB9Cj4gCj4gYmFzZS1jb21taXQ6
-IDJjNzc4OGU0YzNlZmE2M2Q2NzBlZTkwNDAyZGFjMmE5Nzk5ZDBiZDcKPiAtLSAKPiAyLjM0LjEK
-PiAKCgotLSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
+On Thu, 12 Nov 2026 07:59:32 +0000, Xiang W wrote:
+> The PMP granularity on K3 is 4 KiB, so a mapping size smaller than
+> that will be ignored.
+>
+> Could you clarify how this case should be handled?
+
+Thanks, and thanks to Han Gao for putting it on hardware. You are
+right.
+
+The region order comes out of sbi_domain_memregion_init() without
+reference to the PMP granularity, and both protection backends then
+drop a region whose order is below it:
+
+	if (pmp_log2gran <= reg->order && pmp_addr < pmp_addr_max)
+		...program the entry...
+	else
+		sbi_printf("Can not configure pmp for domain %s ...
+
+(lib/sbi/sbi_hart_pmp.c:209 and :390). So with a 4 KiB granularity the
+1 KiB region in my patch is never programmed and the firmware boots on
+with one line printed. The patch was a no-op on your board. I had only
+tested on qemu virt, where the granularity is 4 bytes and any size
+passes.
+
+Rounding up to the page is not a fix either, and this is the part I had
+wrong. The page at 0xd4282000 also holds the APMU block, which upstream
+Linux drives directly from S-mode:
+
+	syscon_apmu: system-controller@d4282800 {
+		compatible = "spacemit,k3-syscon-apmu";
+		reg = <0x0 0xd4282800 0x0 0x400>;
+		#clock-cells = <1>;
+		#power-domain-cells = <1>;
+	};
+
+(arch/riscv/boot/dts/spacemit/k3.dtsi, with drivers/clk/spacemit/ccu-k3.c
+behind it). Denying S-mode the page on its own would take out the clock,
+reset and power domain provider for the whole board.
+
+SpaceMit's k3-br-v1.0.y does not only register the region. It also
+installs emulate_load and emulate_store, which translate the faulting
+S-mode address and perform the access in M-mode, except for an
+m_only_ranges list that it refuses to emulate - and that list is exactly
+the four RVBADDR pairs plus the PMU CAP and CX idle and wakeup
+registers. The comment on the barriers in that emulator names the kernel
+CCU driver's recalc_rate loop, so the S-mode traffic is expected there by
+design. Upstream already has the hooks for that
+(sbi_platform_operations.emulate_load and emulate_store), although no
+in-tree platform uses them yet.
+
+That two part shape is what makes the protection safe on that branch,
+and my patch carried over only the first part. I am dropping it rather
+than sending a v2 that would break clocks.
+
+Troy, Xianbin: would you be interested in upstreaming that protection
+from k3-br-v1.0.y?
+
+One smaller thing this exposed, separate from K3: a region below the PMP
+granularity is dropped with a single printf and boot continues, so a
+platform author gets no signal that the protection they registered is
+not in effect. That is how I missed it. Whether it should be louder, or
+rounded up, looks like its own discussion and I did not want to fold it
+into this thread.
+
+Thanks again for catching this before it went in.
+
+liutong
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
