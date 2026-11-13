@@ -2,90 +2,140 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6267E606A31C
-	for <opensbi@archiver.kernel.org>; Thu, 12 Nov 2026 14:42:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DA85606A321
+	for <opensbi@archiver.kernel.org>; Fri, 13 Nov 2026 04:57:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=AaINaLXm;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.a=rsa-sha256 header.s=mxsw2412 header.b=NONQ5PHJ
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=vj4BGk7I;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=J2uMXlDG;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=No0/1QTX
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	List-Subscribe:List-Help:List-Post:List-Archive:List-Unsubscribe:List-Id:
-	In-Reply-To:References:To:From:Subject:Cc:Message-Id:Date:Mime-Version:
-	Reply-To:Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date
-	:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=V9eyRFf5dGAOPjhlvIdoj32fs5UZZso97pSzl2Cwasg=; b=AaINaLXmzHLmEZjBU+3d1l4c2u
-	MbD7VzP77/OFjxim8mLBk/Zpk9N9LvmRvr7nJOI1KtH1SCCCCFrBMfyqEcJKcIMdkdHFYiK/I+I8H
-	4CF3nB1GW0MqgVnLDywrHrV5aSclo3JQDUIaGokKVlA/9oGrnrF5i6we/fyUxLt2FEOVXgEZHqYNZ
-	deCVIVCjKKCQLFze/qX5Z3ArxzTXcHDtoZm+X/qqOSaX/8AtoMlr7H1utGbXcGLoD27VdQ6EsfAbs
-	5+2GgT7nMG1KLi5faeBmz0GqZJvtJImtyiDue8nEpjNiTIFQ6xSHFHXzEHXssi4sQHzYZA0I/QlW2
-	cztR+qwA==;
+	bh=g8mhmDY/6U8ooTRU4aSmr7keVKG+SmzbEMpX2xBFyIY=; b=vj4BGk7IX6QE0JwPe+PT1ae8tJ
+	CjQaVamE0uhrC1kvUTP0R5mcU97uPH3lxOPG+AZqtlnnB2179RWrbL8Q/HAaLEUtpcPst4aeEhK7F
+	CKCtu5N77+odu7yEiIFbVKvclUHc8XR+hl3Ya8gkhhG2XgVQ5rj7JyFYkulttjtXk6omp/D3REpXX
+	qW+J3lh8W96cBIg2J/ckj06Y+axeid/ob7mmHDEgnSlmU9DCC4EoDSuyFqk4YS+s0WBgH18dHBRw6
+	LYMcpGEPFte3vX/DX6j77h8GcFnpERhIWnE2m+exaycVtQDgIwQ//GdC9wJl3v5TAF+kyaHFrVgMU
+	C/WBCgSQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xRW0q-0000000AIq3-0gjI;
-	Thu, 12 Nov 2026 14:42:52 +0000
-Received: from smtpbgjp3.qq.com ([54.92.39.34])
+	id 1xRjLn-0000000Bew7-0aqe;
+	Fri, 13 Nov 2026 04:57:23 +0000
+Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xRW0k-0000000AImt-128T
+	id 1xRjLk-0000000Bevh-3Gmu
 	for opensbi@lists.infradead.org;
-	Thu, 12 Nov 2026 14:42:50 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
-	s=mxsw2412; t=1794494545;
-	bh=izpG6GdX4ONAsRLhktGZCElk9ZbTt5RUuO4cQdY86b0=;
-	h=Mime-Version:Date:Message-Id:Subject:From:To;
-	b=NONQ5PHJVXGuTrHAqyAEcKLMZyMpCWq83TcwsNFwGAshkj5qJ6WaUJF8Avc1L2Hmp
-	 oeqsl5c7rGekB4bxLgG5tkJ0ZR4uf6Iqao1UYB9qIXoQoPi8jKrSE0s+K/LQ69/Vml
-	 w31eXJm18wKdnPEb7hgd3aHFcOwhm8Qw0XSD8lpw=
-X-QQ-mid: esmtpgz16t1794494541t153a7ec0
-X-QQ-Originating-IP: WKuEaBiqh1XR07rwTNn8HEmWDjeOrRHOG5eYrbXauhw=
-Received: from = ( [183.48.247.191])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Thu, 12 Nov 2026 22:42:20 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 4574130496544528901
-EX-QQ-RecipientCnt: 7
+	Fri, 13 Nov 2026 04:57:21 +0000
+Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AD2K1KJ4120216
+	for <opensbi@lists.infradead.org>; Fri, 13 Nov 2026 04:57:19 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=qcppdkim1; bh=a9+bJcc5cXleJfXzO+R43eP9
+	KPHrzUU1zGQS8LHawnU=; b=J2uMXlDGLlZMmdW+T43LS+7TURqdA6uoIrqfQTE7
+	QMvaPd5O2AmQzDh16fW/VbTespwXlhEGzhj/3NC56+e/xdtgLH9RHvsyVT0lDCGt
+	Zund0CP5Ky79KpOzuEd7d24Zy168tANSPftzm67xdrQ3EY+KqcduUFSmEqJt6Iac
+	sLS8D5yN+1RGNsB5eXkuRelFP35VVnyPjYT+rjixdnjw4i+W4AeZbcvDoNuPsgGL
+	7aD64bba6uEdE+2NVaqLz6JMaqWT0HcRHZDgC2rfj9iaqIAS+34r89nDwGaELQ7Q
+	ceVbBJKNY1oueiDl9ErzJpsZ5RdpC1GGhclJTRAhBBBelA==
+Received: from mail-dl1-f71.google.com (mail-dl1-f71.google.com [74.125.82.71])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hwbx33g61-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <opensbi@lists.infradead.org>; Fri, 13 Nov 2026 04:57:19 +0000 (GMT)
+Received: by mail-dl1-f71.google.com with SMTP id a92af1059eb24-139b62317d0so2151333c88.0
+        for <opensbi@lists.infradead.org>; Thu, 12 Nov 2026 20:57:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1794545838; x=1795150638; darn=lists.infradead.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=a9+bJcc5cXleJfXzO+R43eP9KPHrzUU1zGQS8LHawnU=;
+        b=No0/1QTXrdk2apkq2nmONwz696dqbknvKTvasoADxJOL6ZISG+vVXdBWzLeboWyHAX
+         d/ox1r/tWp0c756I4J5fvGhAl91S4PsGBlNGwKLCYhXJ+PGkwVTswosofv+I1dZCb7Xu
+         1fAiePFa2a9oNuoPxKMQgiPixWYN6pw1B7UVyB8mw+QEs6gkAH9n1zMm/F2pa421yFig
+         Vig9Yq1y+jhHb9Z6voWhC6HdfQvToYv0juvtGZl1eHruxGE/9BhABQ0MZQESUOzEddfK
+         VKkNmucuz7QzFbM5e29iiiN9mrbuNHubv3H8XBqCZpNMGF2DcH+NehguPvFHEkNpo9MZ
+         mxiA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794545838; x=1795150638;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=a9+bJcc5cXleJfXzO+R43eP9KPHrzUU1zGQS8LHawnU=;
+        b=qz9d53JUFlmg9qTLX6nNFznk1j1AgDQfQfTdy3/E45Ya0uMxSH4JQTar2cCAEwxd1O
+         fVHuKLGTGADwZzZb/abteM7BNMD+4nrA7uU/6ic3O7bL/Adhfj1ymotS59ckW1+RU52H
+         rUPwQxRE2sp+fUdm6ZsMNNRXd+Rv0Ca5pN1quGZKDd97iPnJixzXjvyP59YGRS9vdCRq
+         zvQAY7O8LM+MdNN55xylYn4T/J3givOQB0DvZteHwZRaf/U47bvM8TtrlIrrneiwLu+d
+         2WXCshvDAiucGkD0xEzTYEtjTck5S8R5BUTxpZ4DszoaXdY9DYGt41YKL6De6jhQ2bUU
+         ZknA==
+X-Gm-Message-State: APuU4Z9G5TNpdFF/G7Kfh1Y+skMQrIKeV52K5VH6gwzJgsOHXrI1KAGq
+	BGB4G2i+yqGuYz3oRZWVXDT3qpOFhOYgg0rl2Wf7GsAbXOKgEs6n6Ff5zYGMjL0qbgIDlv09s5q
+	SrQ4yy0jCXMt17YYE+tyBQBRWwnanpaPK07z7uznn0sziNHwdAqk74cHmiNDsuZKNJn+uefyGgQ
+	==
+X-Gm-Gg: AYBFou0HdKUJND2jCGC05/itNw/RL0k/nxpO6JU9yDOUYXZDvlhhixWHKunbDs+fH75
+	GanpsgaXCavrT7+mp5JAHM4xYizFqEuoJM/BFGlcbnwukGyKMpd2+kUciZ+ma994pfJ4s1OLKvk
+	VLj0pH47Z7TgU2p1n/YDdE24QAmhstPRV+zadM3R2JIvIWwS20r5DzxBwrRMRUKP5MLVmMav6gl
+	DF1bs0nLmuizpz5CzFu20y9X96EafaDjmf0UShzUKoXbUrEoYNFTUgrazwCbgEpZwAW4PJR9yG+
+	RO7UbAOgn/m3j/X7PnDU6ZHsCkbDjV+WqFNSglFiHLBfxoP8dwPDuvAdWcKvdoGzxlgmZv/DR4i
+	ex+TEkm/QfIdnz19i6E5FwujEVTWr6gyhA1I31b0rAcX4+RrnbEbzTWV9H2kzOJRU2syI/BEU5R
+	YRRbN6oGT2Vhp6uznU01yy8VAsc0I+TDvPyFfFjna1qkHjMtPRroWi0BQH5p2jP1t5fQjvcThvR
+	Q==
+X-Received: by 2002:a05:7022:f50a:b0:1a4:c892:b130 with SMTP id a92af1059eb24-1b5031152eamr1388256c88.15.1794545838153;
+        Thu, 12 Nov 2026 20:57:18 -0800 (PST)
+X-Received: by 2002:a05:7022:f50a:b0:1a4:c892:b130 with SMTP id a92af1059eb24-1b5031152eamr1388239c88.15.1794545837506;
+        Thu, 12 Nov 2026 20:57:17 -0800 (PST)
+Received: from hu-himchau-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b50316d9c2sm3371379c88.7.2026.11.12.20.57.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Nov 2026 20:57:17 -0800 (PST)
+Date: Fri, 13 Nov 2026 10:27:12 +0530
+From: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+To: liutong <liutong@iscas.ac.cn>
+Cc: opensbi@lists.infradead.org, anup@brainfault.org, npiggin@gmail.com
+Subject: Re: [PATCH] lib: sbi: dbtr: validate trigger configuration in
+ update_trig
+Message-ID: <avaYqKgR8gzFEX3I@hu-himchau-blr.qualcomm.com>
+References: <20261103081001.2948003-1-liutong@iscas.ac.cn>
 X-Archived-By: <archiver.kernel.org>
-Mime-Version: 1.0
-Date: Thu, 12 Nov 2026 14:42:19 +0000
-Message-Id: <DMTB82JMZZAU.33S91ICSKQJA@linux.spacemit.com>
-Cc: <gaohan@iscas.ac.cn>, <troy.mitchell@linux.spacemit.com>,
- <xianbin.zhu@linux.spacemit.com>, <anup@brainfault.org>
-Subject: Re: [PATCH] platform: generic: spacemit: k3: deny S-mode access to
- the reset vectors
-From: "Troy Mitchell" <troy.mitchell@linux.spacemit.com>
-To: "liutong" <liutong@iscas.ac.cn>, <opensbi@lists.infradead.org>, "Xiang
- W" <wxjstz@126.com>
-X-Mailer: aerc 0.21.0-reader-ipc4
-References: <20261103094415.3007814-1-liutong@iscas.ac.cn>
- <ed4015c1beede6efeb899735ce1006cd51ab7269.camel@126.com>
- <20261112091316.4067761-1-liutong@iscas.ac.cn>
-In-Reply-To: <20261112091316.4067761-1-liutong@iscas.ac.cn>
-X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpgz:linux.spacemit.com:qybglogicsvrgz:qybglogicsvrgz3a-0
-X-QQ-XMAILINFO: MVrgqrYyvdm9WKi5tz5kUfcK2kx3zRyR6bMo4nj9MQ7U5ExHeGBF6wbi
-	2QHfeP3tab0w4EF0y8ZyUhsMLwWcWeAH9uWQa6BOlAVVBea9tRyFMizf6kW3BsCpbKgRTC6
-	ZJYNt6nCmjfyi+Y9Y9/tHoo+DV317Yuckt1VW3/Bd9W9ntExZ20xywAoWBJ3sT1Xj0iHnmo
-	vPOI0MWLyz1iuAJK3Rkzc8P6cdztmH5jRHwHM0FWqpkGHFEqNF3H1ME3wYlVA2g7ZwpwjSs
-	6GCGXvJHNGt+5eizkYKIkwjemRBcQJ0WTuaRxpGdxm4Snm1Ha31s4Yk7kNRSxkmcxXzatLc
-	SjX0f9TQFSkcbqYRg0m9sZvz/lkZP0mUYvg5nlLa41FaRnNtoNXrKAzazNTicbLahaSzLHD
-	POaPJqwmHnKKE/bx2pq7Uh56s/3YRABV92hh5EgBTSRVAgKXIvZXEaJqG+s/fvHymC4grjQ
-	5y2GafcNSt/ypvrFL+ekozG0oMiR/gGsikYQLCNYPB0/TUn3S1ipW8XzWcwwMaAKRVmuA69
-	pViP12os6fWraXIVD+V8uzDFW60JyGkQnHt1HxT3kZTcFLEaKy1ciYjkF4wgbNBYI2BWPeu
-	OCR0vlAotncj1PLOyBE+83JuFFNah9e8kK+T7wGA4AEA7iZPt+7O3zcsy3532WeS0RM737Q
-	SznBSh3XTX7yChqXxQ1ePSq/7vg0OFECdbK++tRmtzkzbg8zbiupo1UWusp8F5dUkQwo3qz
-	KloIqnwa9+McWNlflTn49PwxhgkIm20pZbSMeOxwgUG5OoYebUgJ8S/Y7JJJ5hIYb9K3rhK
-	fyV8zzctQfw1+rwFcxwWAaorjNaDB09j81OzLBqum2dGe0oASyyeX2r5feRUizwlbiocZrL
-	jxKPIr7QElh6oJoS1u6y0JBxfcUGyaQoEbY8IxsULI/6WBZ6brYEw1+SInmtgauGbrEoMOH
-	CgtWNOD6nnYjfDyS6l7ZyvlcsF+YmObS+HzbsJB5uIHq9qx5VS2qp5QRmu9kdc+Q5RzIH7R
-	aTnm0yT/3bna8IbEAl6K8LcgLVswsJ/YJ6LCKMTPbWqk9vFasNDiT06ays2KWf7j7NPtHrV
-	jIezCvzosXC4zNaXxt+O5VRuK2LLl608nUIAskrsc2KeqPEjlqxriljudzSY1Crqg==
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
-X-QQ-RECHKSPAM: 0
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20261103081001.2948003-1-liutong@iscas.ac.cn>
+X-Authority-Analysis: v=2.4 cv=S+5MU4sP c=1 sm=1 tr=0 ts=6af698af cx=c_pps
+ a=JYo30EpNSr/tUYqK9jHPoA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
+ a=kj9zAlcOel0A:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=eoimf2acIAo5FJnRuUoq:22
+ a=pGLkceISAAAA:8 a=6k0YY9uXW2mkjXBALfwA:9 a=CjuIK1q_8ugA:10
+ a=Fk4IpSoW4aLDllm1B1p-:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTEzMDAxOSBTYWx0ZWRfX96Jgnvb/Vb7u
+ VO68mYhIFUWv3SFzNlMy1ZSfMnvX3RemRBBgMCqt3pZSsEZ+ul+4cWaSjZVNsgapErnjYnSHc1o
+ YsnejQYvm0vVVp+Mrt8s35PEJxj/n8u9VpdCFL2OUWkx1H5lU6Zp8TR9atjF/dLrAwPOLLODRAJ
+ PrQEXXgNz7ctixVC3n6xNTjVfqjBD+RrYOdHcqJmpkSnv0LOIgEFZJdViXC7LNDcX11w+K2O4Zj
+ 68oz2Ljnxbga1H/Zi8AcN3SY3D0ms6eysUOB/q0QEcei+lLBT8IwN9L9JxYY42SWQ9j8mD34kAV
+ bvQTSGdMHATNNc8rlB9rIsHciVzHtz5ZBbkuDCAR9JWOPO5kxqkXN3dm4d+6cgfsj5/mV2z8F/a
+ e97MsjQZploM6m3fWG8gWqy48KVd0zkbbg4B9/7dPSQT3gSDvyysEgPpQbOayWnEmBB+39vBrCb
+ R760Q9oUfzhhajtrwKQ==
+X-Proofpoint-ORIG-GUID: CNSckdLI8tx2hXCyBB357R32Z_pgXjTh
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTEzMDAxOSBTYWx0ZWRfX3lbRRUCvImjG
+ tBnchiNhhGfMo2EohVFaNgWytSdS4yAuRMvqA9jIcGZSgPboz64WgG+fQEs6Xsm9A/LBLN2mEgj
+ oviT9U7bkt7GqlnmdHy8rwcfoYfGwzo=
+X-Proofpoint-GUID: CNSckdLI8tx2hXCyBB357R32Z_pgXjTh
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-13_01,2026-11-11_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 bulkscore=0 clxscore=1015 phishscore=0 malwarescore=0
+ adultscore=0 spamscore=0 suspectscore=0 impostorscore=0 lowpriorityscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611130019
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261112_064246_951676_98C96251 
-X-CRM114-Status: GOOD (  30.95  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261112_205720_831473_B6A6F48A 
+X-CRM114-Status: GOOD (  55.25  )
+X-Spam-Score: -2.8 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -95,129 +145,190 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1154190550941122693=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
---===============1154190550941122693==
-Content-Type: multipart/signed;
- boundary=6699d6df6755ff7133efaa68643e535e90c13e0a47ab98401c9ba0b46eeb;
- micalg=pgp-sha512; protocol="application/pgp-signature"
+Hi Liutong,
 
---6699d6df6755ff7133efaa68643e535e90c13e0a47ab98401c9ba0b46eeb
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
+There are some gaps.
 
-On Thu Nov 12, 2026 at 9:13 AM GMT, liutong wrote:
-> On Thu, 12 Nov 2026 07:59:32 +0000, Xiang W wrote:
->> The PMP granularity on K3 is 4 KiB, so a mapping size smaller than
->> that will be ignored.
->>
->> Could you clarify how this case should be handled?
->
-> Thanks, and thanks to Han Gao for putting it on hardware. You are
-> right.
->
-> The region order comes out of sbi_domain_memregion_init() without
-> reference to the PMP granularity, and both protection backends then
-> drop a region whose order is below it:
->
-> 	if (pmp_log2gran <=3D reg->order && pmp_addr < pmp_addr_max)
-> 		...program the entry...
-> 	else
-> 		sbi_printf("Can not configure pmp for domain %s ...
->
-> (lib/sbi/sbi_hart_pmp.c:209 and :390). So with a 4 KiB granularity the
-> 1 KiB region in my patch is never programmed and the firmware boots on
-> with one line printed. The patch was a no-op on your board. I had only
-> tested on qemu virt, where the granularity is 4 bytes and any size
-> passes.
->
-> Rounding up to the page is not a fix either, and this is the part I had
-> wrong. The page at 0xd4282000 also holds the APMU block, which upstream
-> Linux drives directly from S-mode:
->
-> 	syscon_apmu: system-controller@d4282800 {
-> 		compatible =3D "spacemit,k3-syscon-apmu";
-> 		reg =3D <0x0 0xd4282800 0x0 0x400>;
-> 		#clock-cells =3D <1>;
-> 		#power-domain-cells =3D <1>;
-> 	};
->
-> (arch/riscv/boot/dts/spacemit/k3.dtsi, with drivers/clk/spacemit/ccu-k3.c
-> behind it). Denying S-mode the page on its own would take out the clock,
-> reset and power domain provider for the whole board.
->
-> SpaceMit's k3-br-v1.0.y does not only register the region. It also
-> installs emulate_load and emulate_store, which translate the faulting
-> S-mode address and perform the access in M-mode, except for an
-> m_only_ranges list that it refuses to emulate - and that list is exactly
-> the four RVBADDR pairs plus the PMU CAP and CX idle and wakeup
-> registers. The comment on the barriers in that emulator names the kernel
-> CCU driver's recalc_rate loop, so the S-mode traffic is expected there by
-> design. Upstream already has the hooks for that
-> (sbi_platform_operations.emulate_load and emulate_store), although no
-> in-tree platform uses them yet.
->
-> That two part shape is what makes the protection safe on that branch,
-> and my patch carried over only the first part. I am dropping it rather
-> than sending a v2 that would break clocks.
->
-> Troy, Xianbin: would you be interested in upstreaming that protection
-> from k3-br-v1.0.y?
+On Tue, Nov 03, 2026 at 08:10:01AM +0000, liutong wrote:
+> sbi_dbtr_update_trig() programs a new tdata1 into an already installed
+> trigger without checking it. sbi_dbtr_install_trig() runs
+> dbtr_trigger_valid() on the configuration it is given, which refuses a
+> tdata1 that sets the mcontrol6 M bit, because such a trigger fires
+> while the hart is in M-mode. Update has no equivalent check, so S-mode
+> can install a trigger that install accepts and then set that bit on it
+> with an update. No race is needed: the two calls succeed in sequence
+> and the bit is written to CSR_TDATA1 without being checked.
+> 
+> dbtr_trigger_valid() also refuses the DMODE bit. That one is not
+> reachable this way, since tdata1.dmode is writable only from Debug
+> Mode, but the check covers both.
+> 
+> Check the configuration before the trigger is reprogrammed, and copy
+> it out of the shared memory once so that the validity check, the
+> hardware support check and the value finally written to the CSRs all
+> see the same configuration rather than separate re-reads of memory
+> S-mode can still write. The copy also lets the mapping be released
+> before the trigger is programmed.
+> 
+> SBI v3.0 section 19.5 defines SBI_ERR_INVALID_PARAM for an invalid
+> trigger configuration entry. Install reports an unknown trigger type
+> as SBI_ERR_FAILED instead, from a separate dbtr_trigger_supported()
+> call that this patch does not add to update, so the two paths differ
+> for that input.
+> 
+> dbtr_trigger_valid() rejects a type it does not recognise, so an
+> unknown type in the new tdata1, including a zero tdata1, is refused
+> here as it already was on install. It does not check the new type
+> against the one the trigger was installed with, nor against the
+> trigger's type_mask, so update still accepts a change of type that
+> install would not have allowed in the first place.
+> 
+> This does not address the equivalent problem in sbi_dbtr_install_trig(),
+> where the value passed to dbtr_trigger_valid() and the value later
+> programmed come from separate reads of the shared memory. The
+> escalation stays reachable there until that is fixed separately.
+> 
+> Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
+> Reported-by: Nicholas Piggin <npiggin@gmail.com>
+> Signed-off-by: liutong <liutong@iscas.ac.cn>
+> ---
+> 
+> Prior art: Nicholas Piggin reported the same gap and posted a fix in
+> "[PATCH 07/18] dbtr: Check for invalid and unsupported triggers in
+> update" (20260313051948.4017134-8-npiggin@gmail.com). That series is
+> marked changes-requested in patchwork and has had no v2 in seven
+> months, and 07/18 depends on earlier patches in it, so this is a
+> standalone version against current master. His version also calls
+> dbtr_trigger_supported(), which is what gives install its
+> SBI_ERR_FAILED for an unknown type.
+> 
+> Measured under QEMU 11.1.0-rc3, -M virt -cpu rv64,debug=on, one hart,
+> no race, OpenSBI at c9a7d009:
+> 
+>   install benign (M=0)   : err=0, CSR_TDATA1 = 0x6000000000000014
+>   update to M=1          : err=0, CSR_TDATA1 = 0x6000000000000054
+>   after this patch       : err=-3, CSR_TDATA1 unchanged
+>   benign update          : still applied
+> 
+> Aimed at an address OpenSBI executes, such a trigger takes a
+> breakpoint in M-mode on the next ecall; an M-mode trap cannot be
+> redirected, so it ends in sbi_trap_error() and sbi_hart_hang(). The
+> other hart keeps running, so it is not a machine kill.
+> 
+> Adjacent problems this patch deliberately leaves alone, listed so they
+> are not assumed fixed:
+> 
+> - sbi_dbtr_install_trig() has the same split between the validated
+>   read and the programmed read. With a second hart rewriting the
+>   entry I get the M bit into CSR_TDATA1 within a few rounds. I have a
+>   tested patch that moves the check into dbtr_trigger_setup() so one
+>   check covers both paths, but it restructures install_trig and I did
+>   not want to put that in the same patch. Happy to send it if the
+>   approach is wanted.
+> - In that same loop, sbi_alloc_trigger() returning NULL leads to
+>   xmit->idx = cpu_to_lle(trig->index) on a NULL trig. The comment says
+>   the dry-run makes allocation infallible, but the dry-run reads the
+>   entry separately.
+> - sbi_dbtr_update_trig() reports no index for the failing entry, since
+>   it has no out parameter, and this patch adds another failure exit to
+>   it. Install sets *out on every failure. Changing the signature felt
+>   out of scope here; David E. Garcia Porras's DBTR error code series
+>   already proposes it.
+> - update applies entries one at a time, so a refused entry leaves the
+>   ones before it reprogrammed. That is pre-existing and already
+>   reachable through the trig_idx check.
+> 
+>  lib/sbi/sbi_dbtr.c | 29 +++++++++++++++++++++--------
+>  1 file changed, 21 insertions(+), 8 deletions(-)
+> 
+> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+> index 5f66b641..5cb494f0 100644
+> --- a/lib/sbi/sbi_dbtr.c
+> +++ b/lib/sbi/sbi_dbtr.c
+> @@ -853,7 +853,8 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+>  int sbi_dbtr_update_trig(unsigned long smode,
+>  			 unsigned long trig_count)
+>  {
+> -	unsigned long trig_idx;
+> +	unsigned long trig_idx, tdata1;
+> +	struct sbi_dbtr_data_msg local;
+>  	struct sbi_dbtr_trigger *trig;
+>  	union sbi_dbtr_shmem_entry *entry;
+>  	void *shmem_base = NULL;
+> @@ -897,22 +898,34 @@ int sbi_dbtr_update_trig(unsigned long smode,
+>  			return SBI_ERR_FAILED;
+>  		}
+>  
+> -		if ((entry->data.tdata2 && !tdata2_impl) ||
+> -		    (entry->data.tdata3 && !tdata3_impl)) {
+> +		/*
+> +		 * Copy the entry once. S-mode can rewrite the shared
+> +		 * memory at any time, so the configuration that is
+> +		 * checked here has to be the one that is programmed.
+> +		 */
+> +		local = entry->data;
+> +		tdata1 = lle_to_cpu(local.tdata1);
+> +
+> +		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(tdata1), tdata1)) {
+> +			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
+> +			return SBI_ERR_INVALID_PARAM;
+> +		}
 
-Yes, I'd be happy to take this over.
+The SBI update rule states that trig_tdata1.type and trig_tdata1.chain must match the originally installed trigger.
+The update function still allows the caller to change tdata1.type without checking whether the already allocated
+hardware trigger slot supports that type. The S-mode can update an existing trigger slot into a different trigger
+type/chain configuration. Install does similar check through trig->type_mask.
 
-Anup and Xiang, would you be open to this approach (using emulate_load or
-emulate_store for the shared page)? If so, I can send out an RFC first
-to get your feedback.
->
-> One smaller thing this exposed, separate from K3: a region below the PMP
-> granularity is dropped with a single printf and boot continues, so a
-> platform author gets no signal that the protection they registered is
-> not in effect. That is how I missed it. Whether it should be louder, or
-> rounded up, looks like its own discussion and I did not want to fold it
-> into this thread.
->
-> Thanks again for catching this before it went in.
->
-> liutong
+The updates where the new tdata1.type is not present in trig->type_mask must be rejected.
 
+> +
+> +		if ((local.tdata2 && !tdata2_impl) ||
+> +		    (local.tdata3 && !tdata3_impl)) {
+>  			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
+>  			return SBI_ERR_NOT_SUPPORTED;
+>  		}
+>  
+> -		if (!dbtr_trigger_hw_supported(trig->index,
+> -					       lle_to_cpu(entry->data.tdata1),
+> -					       lle_to_cpu(entry->data.tdata2),
+> -					       lle_to_cpu(entry->data.tdata3))) {
+> +		if (!dbtr_trigger_hw_supported(trig->index, tdata1,
+> +					       lle_to_cpu(local.tdata2),
+> +					       lle_to_cpu(local.tdata3))) {
 
---=20
-Troy Mitchell
+dbtr_trigger_hw_supported() returns true when there is no platform callback. It is not enough.
 
-
---6699d6df6755ff7133efaa68643e535e90c13e0a47ab98401c9ba0b46eeb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iJcEABYKAD8WIQSL4Ay2cExaPXAQcU2YCe+A+TM0LwUCavXQSyEcdHJveS5taXRj
-aGVsbEBsaW51eC5zcGFjZW1pdC5jb20ACgkQmAnvgPkzNC+66QEAuO2KhjxkoNcq
-Lgsp3z2v1RogVEb8HJS530TlpOpae94A/jNSMYtnTMY03iW/pEV1yHoxl4NlXubt
-9Rtjf4viyuYD
-=81pB
------END PGP SIGNATURE-----
-
---6699d6df6755ff7133efaa68643e535e90c13e0a47ab98401c9ba0b46eeb--
+Regards
+Himanshu
 
 
---===============1154190550941122693==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>  			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
+>  			return SBI_ERR_NOT_SUPPORTED;
+>  		}
+>  
+> -		dbtr_trigger_setup(trig, &entry->data);
+>  		sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
+> +		dbtr_trigger_setup(trig, &local);
+>  		dbtr_trigger_enable(trig);
+>  	}
+>  
+> 
+> base-commit: 2c7788e4c3efa63d670ee90402dac2a9799d0bd7
+> -- 
+> 2.34.1
+> 
 
 -- 
 opensbi mailing list
 opensbi@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/opensbi
-
---===============1154190550941122693==--
-
