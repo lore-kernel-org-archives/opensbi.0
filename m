@@ -2,62 +2,64 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1B68606A321
-	for <opensbi@archiver.kernel.org>; Fri, 13 Nov 2026 09:33:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B05606A336
+	for <opensbi@archiver.kernel.org>; Fri, 13 Nov 2026 09:34:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=k4zR/o9D
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=b+YaD8RU
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:Cc:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:To
-	:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=0Uj7f/uO2jXxHISVS9+TL712XAD/36R+A6GmHv7GY2k=; b=k4zR/o9De+0JwwuBWVq9Hy8n2r
-	OQRcYcm5wMsQ2WHcwB/df2vYL76gh1BgJ6IHYYs9cSjEnqPM2Vu0kkB3X6KYibITlH8in7eA+8pFc
-	MSVqiKBAwhMMVZOrmlEgHIvGfq713DX3xK9YRyl4yEBBaGwK94FSjRa2lITH5j5V1M2CCPRXu8lzt
-	wnFsJMzh6CPjbEi4KpwKCPgbt7Y8CW/f4aFIArvG5LsL9QEIfy3weO+8ZobyKKuvQTLeUd53nqbOh
-	k/HDt/A7Y8rCnDNT7mC+1dSvFCYUyX3X7qy2C57N6MDx8XFYogKAHGOHl5xo4FpxoAy5dgcZHycPj
-	Q1ZfegGg==;
+	bh=iOlKua11Ak9PXt0CfTXm+8vb5qHAhqy/WR4hpJ8kfsA=; b=b+YaD8RUy47Hp6C8uAHPtzP1Uo
+	QZxRHVHVkmEuPJQxOfKLhVLkVyzsbnWcbM3lfeUMGLlhA7vnrJ3d2JrO1vNpxlmW2Ui64+g8AA2iY
+	QoTvPokkd4zD4JLmGje68rRglYCSE9R9NmcthqQlNErmeP6Lm4GT7j8TRdqbPehSbuQJqEq+ff5lk
+	r7dMkW3S2NypKlQuSlb3tkX2mhcPAZi3Eq2i1vsz22yPoQnKHy5S6N0WMkLysbuApDrLleMU4zBGs
+	G6pX3e8aq8a+fs88hvZ/sLA7Tm981HPwNwOqYuhmDhLFnE5OEd+bOPgtG4sVTgsZomCo3m64Srof/
+	pQJHJ87Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xRnfM-0000000CEHH-0QNV;
-	Fri, 13 Nov 2026 09:33:52 +0000
+	id 1xRnfW-0000000CEJc-1Hoy;
+	Fri, 13 Nov 2026 09:34:02 +0000
 Received: from atcsqr.andestech.com ([220.128.198.184])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xRnfI-0000000CEGa-26s0
+	id 1xRnfS-0000000CEIn-3BqP
 	for opensbi@lists.infradead.org;
-	Fri, 13 Nov 2026 09:33:50 +0000
-Received: from mail.andestech.com (atcpcs54.andestech.com [10.0.1.154])
-	by Atcsqr.andestech.com with ESMTPS id 6AD9WJ3J020970
+	Fri, 13 Nov 2026 09:34:00 +0000
+Received: from mail.andestech.com (atcpcs55.andestech.com [10.0.1.155])
+	by Atcsqr.andestech.com with ESMTPS id 6AD9WJVh020972
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Fri, 13 Nov 2026 17:32:19 +0800 (+08)
+	Fri, 13 Nov 2026 17:32:20 +0800 (+08)
 	(envelope-from randolph@andestech.com)
-Received: from ATCPCS34.andestech.com (10.0.1.134) by atcpcs54.andestech.com
- (10.0.1.154) with Microsoft SMTP Server (version=TLS1_2,
+Received: from ATCPCS34.andestech.com (10.0.1.134) by atcpcs55.andestech.com
+ (10.0.1.155) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Fri, 13 Nov
- 2026 17:32:19 +0800
+ 2026 17:32:20 +0800
 Received: from swlinux02.andestech.com (10.0.15.183) by ATCPCS34.andestech.com
  (10.0.1.134) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Fri, 13 Nov
  2026 17:32:19 +0800
 From: Randolph Lin <randolph@andestech.com>
 To: <opensbi@lists.infradead.org>
-Subject: [RFC PATCH 0/5] lib: utils: add a PMA framework and set PMA regions from the DT
-Date: Fri, 13 Nov 2026 17:32:07 +0800
-Message-ID: <20261113093212.3816428-1-randolph@andestech.com>
+Subject: [RFC PATCH 2/5] lib: utils/pma: set PMA regions from the device tree
+Date: Fri, 13 Nov 2026 17:32:09 +0800
+Message-ID: <20261113093212.3816428-3-randolph@andestech.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20261113093212.3816428-1-randolph@andestech.com>
+References: <20261113093212.3816428-1-randolph@andestech.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-ClientProxiedBy: ATCPCS33.andestech.com (10.0.1.100) To
  ATCPCS34.andestech.com (10.0.1.134)
-X-DKIM-Results: atcpcs54.andestech.com; dkim=none;
+X-DKIM-Results: atcpcs55.andestech.com; dkim=none;
 X-DNSRBL: 
 X-SPAM-SOURCE-CHECK: pass
-X-MAIL: Atcsqr.andestech.com 6AD9WJ3J020970
+X-MAIL: Atcsqr.andestech.com 6AD9WJVh020972
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261113_013348_901672_6C4639AF 
-X-CRM114-Status: GOOD (  14.56  )
+X-CRM114-CacheID: sfid-20261113_013359_282882_3383CA21 
+X-CRM114-Status: GOOD (  24.39  )
 X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -73,88 +75,320 @@ Cc: Anup Patel <anup@brainfault.org>, Lad
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-SoCs from several vendors use Andes cores with programmable physical
-memory attributes (PMA), and each sets its boot-time regions in its own
-platform code: RZ/Five from Renesas and MT2824 from Metanoia from C
-tables, and QiLai from Andes with andes_sbi_set_pma() calls. So each new
-board needs its own platform file. This series adds a small PMA
-framework in lib/utils/pma, and lets a board describe the regions in a
-"riscv,pma-regions" DT node instead. The Andes AE350 platform is the
-first user.
+Add fdt_pma_init(), which reads the PMA regions from a
+"riscv,pma-regions" DT node, so that a board describes them without
+its own platform code.
 
-Patch 1 adds the framework: a platform registers a PMA device, the cold
-boot hart adds the regions, and every hart sets them. Patch 2 parses the
-DT node and calls the framework from generic_final_init(). Patch 3 adds
-a PMA device for Andes PPMA, and patch 4 registers it on AE350. Patch 5
-documents the DT node.
+Each subnode describes a region with "base", "order" and "attr". As with
+PMP regions, the order gives the size, so a region is always NAPOT.
+"attr" holds the PMA_* attributes. The cold boot hart parses the node
+and then deletes it, like the other OpenSBI configuration nodes. Every
+hart then sets the regions.
 
-The attributes reuse the encoding of the flags in the
-"riscv,physical-memory-regions" DT binding that Samuel Holland proposed
-for Linux [1], limited to the memory type bits. Each vendor encodes PMAs
-differently, so the PMA device maps the attributes to its own format and
-rejects the ones it cannot set. Bits 19:16, which that encoding does not
-use, choose among the memory types that a device offers for the same
-attributes: bufferable, write-through, and the allocation. With them,
-the Andes PPMA device can select every MTYP of pmaxcfg.
+The generic platform calls it from generic_final_init() on every hart.
+Without the node, it does nothing. With the node but no PMA device, the
+boot fails with a message that says so, because S-mode would otherwise
+use the regions with the wrong attributes. The cold boot hart prints
+each region and what its attributes mean, because S-mode cannot see the
+node. A hart that fails to set the regions prints its hart ID and the
+error.
 
-I tested the framework on QEMU virt, with 4 harts and a test PMA device:
-every hart sets the regions, and an invalid, overlapping or extra region
-stops the boot.
-
-Open questions:
-
-1. Should the framework live in lib/utils, or stay in the Andes
-   platform code until another vendor needs a PMA device?
-
-2. The DT node uses the "riscv,pma-regions" compatible, but no RISC-V
-   specification defines it. Would "opensbi,pma-regions" be better?
-
-3. "attr" reuses bits 15:8 of the flags in the proposed
-   "riscv,physical-memory-regions" binding [1], and adds bits 19:16 for
-   bufferable, write-through and allocation. Is it fine to reuse an
-   encoding that Linux has not merged yet, and to extend it?
-
-[1] https://lore.kernel.org/all/20251113014656.2605447-20-samuel.holland@sifive.com/
-
-Randolph Lin (5):
-  lib: utils: add a PMA framework
-  lib: utils/pma: set PMA regions from the device tree
-  platform: generic/andes: add a PMA device for PPMA
-  platform: generic/andes: ae350: register the Andes PMA device
-  docs: describe the PMA regions DT node
-
- docs/opensbi_config.md                     |  85 +++++++++++
- docs/platform/andes-ae350.md               |  39 +++++
- include/sbi_utils/pma/fdt_pma.h            |  33 ++++
- include/sbi_utils/pma/pma.h                | 119 +++++++++++++++
- lib/utils/Kconfig                          |   2 +
- lib/utils/pma/Kconfig                      |  15 ++
- lib/utils/pma/fdt_pma.c                    | 167 +++++++++++++++++++++
- lib/utils/pma/objects.mk                   |   9 ++
- lib/utils/pma/pma.c                        |  80 ++++++++++
- platform/generic/andes/Kconfig             |   1 +
- platform/generic/andes/ae350.c             |   4 +-
- platform/generic/andes/andes_pma.c         | 111 ++++++++++++++
- platform/generic/configs/defconfig         |   1 +
- platform/generic/include/andes/andes_pma.h |  11 ++
- platform/generic/platform.c                |   6 +
- 15 files changed, 682 insertions(+), 1 deletion(-)
+Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Randolph Lin <randolph@andestech.com>
+---
+ include/sbi_utils/pma/fdt_pma.h    |  33 ++++++
+ lib/utils/pma/Kconfig              |   6 ++
+ lib/utils/pma/fdt_pma.c            | 167 +++++++++++++++++++++++++++++
+ lib/utils/pma/objects.mk           |   2 +
+ platform/generic/configs/defconfig |   1 +
+ platform/generic/platform.c        |   6 ++
+ 6 files changed, 215 insertions(+)
  create mode 100644 include/sbi_utils/pma/fdt_pma.h
- create mode 100644 include/sbi_utils/pma/pma.h
- create mode 100644 lib/utils/pma/Kconfig
  create mode 100644 lib/utils/pma/fdt_pma.c
- create mode 100644 lib/utils/pma/objects.mk
- create mode 100644 lib/utils/pma/pma.c
 
-
-base-commit: 332798211e7232da60158b0545b23c61b5338516
+diff --git a/include/sbi_utils/pma/fdt_pma.h b/include/sbi_utils/pma/fdt_pma.h
+new file mode 100644
+index 00000000..3db12087
+--- /dev/null
++++ b/include/sbi_utils/pma/fdt_pma.h
+@@ -0,0 +1,33 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2026 Andes Technology Corporation
++ */
++
++#ifndef __FDT_PMA_H__
++#define __FDT_PMA_H__
++
++#include <sbi/sbi_types.h>
++
++#ifdef CONFIG_FDT_PMA
++
++/**
++ * Set the PMA regions in the "riscv,pma-regions" DT node
++ *
++ * The cold boot hart parses the node and then deletes it from the DT. The
++ * PMA settings are per hart, so every hart must call it.
++ *
++ * @param cold_boot cold init or warm init
++ *
++ * @return 0 on success or if the DT has no such node, or a negative error
++ *	   code on failure
++ */
++int fdt_pma_init(bool cold_boot);
++
++#else
++
++static inline int fdt_pma_init(bool cold_boot) { return 0; }
++
++#endif
++
++#endif
+diff --git a/lib/utils/pma/Kconfig b/lib/utils/pma/Kconfig
+index 73523ab0..a7666942 100644
+--- a/lib/utils/pma/Kconfig
++++ b/lib/utils/pma/Kconfig
+@@ -2,6 +2,12 @@
+ 
+ menu "PMA Support"
+ 
++config FDT_PMA
++	bool "FDT based PMA regions"
++	depends on FDT
++	select PMA
++	default n
++
+ config PMA
+ 	bool "PMA support"
+ 	default n
+diff --git a/lib/utils/pma/fdt_pma.c b/lib/utils/pma/fdt_pma.c
+new file mode 100644
+index 00000000..420678ef
+--- /dev/null
++++ b/lib/utils/pma/fdt_pma.c
+@@ -0,0 +1,167 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2026 Andes Technology Corporation
++ */
++
++#include <libfdt.h>
++#include <sbi/riscv_asm.h>
++#include <sbi/sbi_console.h>
++#include <sbi/sbi_error.h>
++#include <sbi_utils/fdt/fdt_helper.h>
++#include <sbi_utils/pma/fdt_pma.h>
++#include <sbi_utils/pma/pma.h>
++
++/*
++ * Each subnode describes a NAPOT region with "base" (the 64-bit physical
++ * address), "order" (the size as log2, i.e. size = BIT(order)) and "attr"
++ * (the PMA_* attributes).
++ */
++static int fdt_pma_parse_region(const void *fdt, int node,
++				struct pma_region *region)
++{
++	const fdt32_t *val;
++	u32 order;
++	u64 base;
++	int len;
++
++	val = fdt_getprop(fdt, node, "base", &len);
++	if (!val || len != 8)
++		return SBI_EINVAL;
++
++	base = fdt32_to_cpu(val[0]);
++	base = (base << 32) | fdt32_to_cpu(val[1]);
++	region->base = base;
++	if (region->base != base)
++		return SBI_EINVAL;
++
++	val = fdt_getprop(fdt, node, "order", &len);
++	if (!val || len != 4)
++		return SBI_EINVAL;
++
++	order = fdt32_to_cpu(*val);
++	if (order >= __riscv_xlen)
++		return SBI_EINVAL;
++
++	region->size = BIT(order);
++
++	val = fdt_getprop(fdt, node, "attr", &len);
++	if (!val || len != 4)
++		return SBI_EINVAL;
++
++	region->attr = fdt32_to_cpu(*val);
++
++	return 0;
++}
++
++static void fdt_pma_print_region(unsigned int i,
++				 const struct pma_region *region)
++{
++	u32 attr = region->attr;
++
++	sbi_printf("PMA Region%02u                : 0x%" PRILX "-0x%" PRILX
++		   " attr 0x%x\n", i, region->base,
++		   region->base + region->size - 1, attr);
++
++	sbi_printf("PMA Region%02u Type           : ", i);
++	if (attr & PMA_UNSAFE) {
++		sbi_printf("unsafe, accesses fault\n");
++		return;
++	}
++
++	switch (attr & PMA_ORDER_MASK) {
++	case PMA_ORDER_MEMORY:
++		sbi_printf("memory");
++		if (!(attr & PMA_READ_IDEMPOTENT))
++			sbi_printf(", non-idempotent reads");
++		if (!(attr & PMA_WRITE_IDEMPOTENT))
++			sbi_printf(", non-idempotent writes");
++		break;
++	default:
++		sbi_printf("I/O, %s ordering",
++			   (attr & PMA_ORDER_MASK) == PMA_ORDER_IO_STRONG ?
++			   "strong" : "relaxed");
++		if (attr & PMA_READ_IDEMPOTENT)
++			sbi_printf(", idempotent reads");
++		if (attr & PMA_WRITE_IDEMPOTENT)
++			sbi_printf(", idempotent writes");
++		break;
++	}
++
++	if (!(attr & PMA_CACHEABLE)) {
++		sbi_printf(", non-cacheable, %s\n",
++			   (attr & PMA_BUFFERABLE) ? "bufferable" : "non-bufferable");
++		return;
++	}
++
++	sbi_printf(", cacheable, %s, %s",
++		   (attr & PMA_COHERENT) ? "coherent" : "non-coherent",
++		   (attr & PMA_WRITE_THROUGH) ? "write-through" : "write-back");
++
++	switch (attr & PMA_NO_ALLOC) {
++	case 0:
++		sbi_printf(", read and write allocate\n");
++		break;
++	case PMA_NO_WRITE_ALLOC:
++		sbi_printf(", read allocate\n");
++		break;
++	case PMA_NO_READ_ALLOC:
++		sbi_printf(", write allocate\n");
++		break;
++	default:
++		sbi_printf(", no allocate\n");
++		break;
++	}
++}
++
++static int fdt_pma_parse(void *fdt)
++{
++	struct pma_region region;
++	int parent, node, rc;
++	unsigned int i = 0;
++
++	parent = fdt_node_offset_by_compatible(fdt, -1, "riscv,pma-regions");
++	if (parent < 0)
++		return 0;
++
++	fdt_for_each_subnode(node, fdt, parent) {
++		rc = fdt_pma_parse_region(fdt, node, &region);
++		if (!rc)
++			rc = pma_add_region(&region);
++		if (rc == SBI_ENODEV) {
++			sbi_printf("%s: no PMA device, cannot set region %s\n",
++				   __func__, fdt_get_name(fdt, node, NULL));
++			return rc;
++		}
++		if (rc) {
++			sbi_printf("%s: failed to add region %s (error %d)\n",
++				   __func__, fdt_get_name(fdt, node, NULL), rc);
++			return rc;
++		}
++
++		fdt_pma_print_region(i++, &region);
++	}
++
++	/* Like the other OpenSBI configuration nodes, hide it from S-mode */
++	fdt_nop_node(fdt, parent);
++
++	return 0;
++}
++
++int fdt_pma_init(bool cold_boot)
++{
++	int rc;
++
++	if (cold_boot) {
++		rc = fdt_pma_parse(fdt_get_address_rw());
++		if (rc)
++			return rc;
++	}
++
++	rc = pma_setup_regions();
++	if (rc)
++		sbi_printf("%s: hart%u failed to set the PMA regions (error %d)\n",
++			   __func__, current_hartid(), rc);
++
++	return rc;
++}
+diff --git a/lib/utils/pma/objects.mk b/lib/utils/pma/objects.mk
+index a778d0b6..72cdd233 100644
+--- a/lib/utils/pma/objects.mk
++++ b/lib/utils/pma/objects.mk
+@@ -4,4 +4,6 @@
+ # Copyright (c) 2026 Andes Technology Corporation
+ #
+ 
++libsbiutils-objs-$(CONFIG_FDT_PMA) += pma/fdt_pma.o
++
+ libsbiutils-objs-$(CONFIG_PMA) += pma/pma.o
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 687b4c35..80188a32 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -46,6 +46,7 @@ CONFIG_FDT_IRQCHIP_PLIC=y
+ CONFIG_FDT_MAILBOX=y
+ CONFIG_RPMI_MAILBOX=y
+ CONFIG_FDT_MAILBOX_RPMI_SHMEM=y
++CONFIG_FDT_PMA=y
+ CONFIG_FDT_REGMAP=y
+ CONFIG_FDT_REGMAP_SYSCON=y
+ CONFIG_FDT_RESET=y
+diff --git a/platform/generic/platform.c b/platform/generic/platform.c
+index 1df0280d..bb0682b6 100644
+--- a/platform/generic/platform.c
++++ b/platform/generic/platform.c
+@@ -26,6 +26,7 @@
+ #include <sbi_utils/irqchip/fdt_irqchip.h>
+ #include <sbi_utils/irqchip/imsic.h>
+ #include <sbi_utils/mpxy/fdt_mpxy.h>
++#include <sbi_utils/pma/fdt_pma.h>
+ #include <sbi_utils/serial/fdt_serial.h>
+ #include <sbi_utils/serial/semihosting.h>
+ #include <sbi_utils/timer/fdt_timer.h>
+@@ -237,6 +238,11 @@ int generic_early_init(bool cold_boot)
+ int generic_final_init(bool cold_boot)
+ {
+ 	void *fdt = fdt_get_address_rw();
++	int rc;
++
++	rc = fdt_pma_init(cold_boot);
++	if (rc)
++		return rc;
+ 
+ 	if (!cold_boot)
+ 		return 0;
 -- 
 2.34.1
 
