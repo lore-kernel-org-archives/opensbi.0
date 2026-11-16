@@ -2,110 +2,51 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17BD606A31C
-	for <opensbi@archiver.kernel.org>; Mon, 16 Nov 2026 03:57:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84B4B606A31C
+	for <opensbi@archiver.kernel.org>; Mon, 16 Nov 2026 12:41:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=JOvMXTK4;
-	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=GfxKLaQW
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=4qGoRjJC
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
-	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=czYSIRMhUihCT2gyXOFl7pNESuIeTwD1vOp4am2vUSE=; b=JOvMXTK4KDxhypAGmaYAauv33r
-	h5qJjmzwg9lYdIkzJ3ny/Ox/kYNZKy5sc04b/F2qqUvD53Hat25sbKdjYOSo1qK6HtgZ0C4W+G/+d
-	8b7Kwt5Uj0b+9PPMRe51QBc5CBTsGdRmA6lUvR9V7Ww9LtM9hxXyEPmHZSbeAXHwrK8+bGEEKBpG/
-	DuvfSPdkLErKyAIpxm/jMaUS2TAfayBrxZZ4vbTjD0JgZ+xUNKxHP0bRGETKCGV2semDzOaMCKc8o
-	jrpOrX6j+pJHgezyWHblQZ7bmzCIFYKJDaXM3XdoGYkvDyyk8lClPfBMcr8gnJC5efjpWZr3a7KIF
-	sPQefmxw==;
+	bh=G9cfibHSgK7u0AnTbacP4vReQLQ8PK21fCTiytLtU10=; b=4qGoRjJCjzUXNRIHi0Nl9lB07d
+	s+Vsn0dc7uUnrZVcMMuI9o+mrtXKBFy/OTpr3z2By7NnM4vucBUJ6h/QByjJd5OLNu7nBkYBsX4X5
+	F/jo7zsBV+GVOjUizTHonYiK4TgmXZhHqaKz97zkif5KimOmBAJnl7idTzy1VA8nRD6ZGPjqCy4jX
+	eN4cPFyAEkXFxm/ZgOjZb1UmEmsYSjAz98eA28coHepkGzrc6gUCLsodXmWVSgZzXU7RtB324S8mD
+	a2HNJEXussti8LXpmNuHWO2yA1e0ri+eUPvM5VdmpEqylhGoVWyRWOcgQMrLEDgit2c5XQuL0jg/n
+	+W/KUejQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xSnqX-0000000157B-032D;
-	Mon, 16 Nov 2026 03:57:33 +0000
-Received: from mail-wr1-x42a.google.com ([2a00:1450:4864:20::42a])
+	id 1xSw1s-00000002Rav-23XG;
+	Mon, 16 Nov 2026 12:41:48 +0000
+Received: from outgoing2021.csail.mit.edu ([128.30.2.78])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xSnqU-0000000156o-1UPq
+	id 1xSw1n-00000002RYx-430B
 	for opensbi@lists.infradead.org;
-	Mon, 16 Nov 2026 03:57:31 +0000
-Received: by mail-wr1-x42a.google.com with SMTP id ffacd0b85a97d-48dee593f18so3146195f8f.3
-        for <opensbi@lists.infradead.org>; Sun, 15 Nov 2026 19:57:29 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794801448; cv=none;
-        d=google.com; s=arc-20260327;
-        b=oNaGGJgO2kqBEe8ytW6eATYgG/r3KjDPdtSHCT4ATO+HJM5zJrowS0qG8VlMhh187q
-         M1U41VCZZK48mjVpmTi6uwjUaNGxD5IOYxfXmOZFcXS9BgDmfjslpDxwK+U7ypf2Lg9o
-         5fZFmoEjX9WOHWh79gKQpvTj5BplR8FG5tB2SGwxsjBn8o5x8x7KAQV2GEyclzBkxJjB
-         gVVK/KoyH8iuU8/78Hcdtg1n1+1rQZSeUChVn9B6/5mYsH0WrUNmjiyqpQkjinmxTIg1
-         HY3eTxUC0I6FbKooNc9DOJ7kufKnHigB9bcxd2IsGKisGXxYuwFLRD9KrV4ON7Acmsq8
-         DcjQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=oqIHBAi+kpADTA2aWIoT9X2jwQWlNDbem03MVJAewVs=;
-        fh=ZS5wY3UKuY+q37ts0swsaTQEPnFQSAUUS7y0rZPuQHw=;
-        b=oX5GUMeav/VCZrhSbeWQXRbZGZ5TJe6OjdjXF4Sq+FKe9uNffZObUBaKsZfHVGoxk9
-         XsrPTTJgF//bNV8mkbK3Z2NGGvflDF16uaAJZku08n0RurfWYh98MZC/ykecJaLRxJNJ
-         ciA2TTaspw1HxhsPMOSJdrgvx2g6BhKiFeENKRWyR4AwL494/vE2QrpB2ttjhDPSAZWM
-         WumbHkcewFywW+UL/o3FfPUeg7NEeHNneVqQ1RBAuWD6ocMkJ7tUbVYvgBvC6ILM8jjz
-         9OjCWe4BnKRygmg9G7bondFJjuZu4zLs+tmDPw52QnPF7LCK5Vl0biKsAEWBdLE5p3lY
-         YUOA==;
-        darn=lists.infradead.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault.org; s=google; t=1794801448; x=1795406248; darn=lists.infradead.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=oqIHBAi+kpADTA2aWIoT9X2jwQWlNDbem03MVJAewVs=;
-        b=GfxKLaQWSr81EBCKyWBlC5ejjXjmMIWbcfaC4hFEJYADGVt80W9Tp3Qf7/IycWyUje
-         V6SJNCOByctZQkIRVecW96cOlTOAa6Wi+Sy3I0iiqzoABZsz59HqkDxzjhXPOgds2KiY
-         VmAO/cnHi1KnzaoBoAaMhCDpj/AbnerjZrzn1nVHbti576bfFVaEd62FO06eO5hctrxR
-         L/EwgjNMdJDIZ/qXj9F7jJl3YZi6lGJ/CcU1hL1FZNQcGnP1DjWOVvbuokyPPqkXNzgI
-         t4FU+oz/mQx/6HpYLJj5FJWzNTRNieyUJtr1G+SbBWX3VoKOOWytMT2uT+G4Q84TdpwT
-         xdPQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794801448; x=1795406248;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=oqIHBAi+kpADTA2aWIoT9X2jwQWlNDbem03MVJAewVs=;
-        b=YdrcTWR2ZJN2IPaPnBrwr2tnxOTcPzunDM97R1doYeYapKS2tbzTKPSBF7fz2YQnH0
-         JcpR9UW6kHTlbOzAV0OWFUZMd56AuWaUxpKLSgbsUPRW1RJJt3zDyADC6xU0vJh0t264
-         QHvhE2Qg4L6s7pL+uhS38n4XqFyqSnH1Ad7tUJei0KuxGQrNQ61gc8WxZu0SQCG/2fXZ
-         LpfY+Y+va4vnJPo7kf0FrtX0QBqNXCa9mS9XY67Z3WJx6ETl/J6fd+P5+vFzPmCPMuHd
-         61ORnVGw2v/Js32bra95yV/2kK4ZtW2tlz7w3vGvHCDRz2NMdvmGkEX9CZn7d85cOt3L
-         FfEw==
-X-Gm-Message-State: APuU4Z/AYSG+XHJfBvY5HhJsRrwvBA7BeL8BfEDfQgohaL0DORQmtlqe
-	rJAy2y2fYxh64gcLrrk48QGCgTMjdIGptTQMAF1Y/p5auoJ38hOFjoQMssyM3PUs+ULsxUjRTDe
-	Bt5/AKb3YVOL33XSFog0uZJ6S6qR+AFyj59Lkf77qyw==
-X-Gm-Gg: AYBFou1hx6Qnm3rOd1m5EKAtxSDEvqRvIDPaDmGr/hzCss2Ff7HnWHzpdqKuKeoj1LE
-	N+jkHttWzS8froR+XbZFNDICOrY9jwxbIhyaLHoRs210I+jQNKwficjFYwbEn5f2PrPEAml9xRl
-	Q+cyVgF5zuFiqf3n7BcfsI6SilCosG79TYfitIs+Y1KeYkK+wLC3cLHNyoQmFX76tzekTU/g4kZ
-	Dib1S7KIBrVSQ6nxUHzaAdKSqcnHbfR+vg8qeJ4gKXSmpVe2rOzU5S4Dy2vRTJy+T+VyJLQyUSV
-	rjMS9ZfJJqHhXEPcYcQwEg6Wr/cAFQtfczi2YPtGjRQaSR4AxjvAUeIuBB7tNCc5YRuMG3sHnTe
-	038MjBc8rw9dzWvezXFkf1FJEFLnL3aKz0yLfKuNRSKxUsLH32o0YLzLLmWZpOiyKgmI8wAmqCk
-	fq1WtTY+bgZOrCi0u9YwUvFdRSPoKxsTjjyaXBx0YMjLCHQbQrReLYAPk=
-X-Received: by 2002:a05:6000:290b:b0:499:9ffc:59bd with SMTP id
- ffacd0b85a97d-49c70a0ee43mr19845854f8f.30.1794801447506; Sun, 15 Nov 2026
- 19:57:27 -0800 (PST)
+	Mon, 16 Nov 2026 12:41:47 +0000
+Received: from escalante.csail.mit.edu ([128.52.128.198])
+	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
+	(envelope-from <nickolai@csail.mit.edu>)
+	id 1xSw1l-006ISd-GU;
+	Mon, 16 Nov 2026 07:41:41 -0500
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+To: Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org,
+	Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: [PATCH] lib: sbi: Add read-write locks
+Date: Mon, 16 Nov 2026 07:41:41 -0500
+Message-ID: <20261116124141.51756-1-nickolai@csail.mit.edu>
+X-Mailer: git-send-email 2.53.0
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-References: <20261006193630.735611-1-nickolai@csail.mit.edu>
- <CAAhSdy1VZSuvO0fhxJqrR8w+P5O7DL3xWb6st3mMw8__WPhAzQ@mail.gmail.com> <CADGQE7FDVSPvrLuGbyb8OO=EFk9tne9W2NQ7Ot9hLjRiT0duxA@mail.gmail.com>
-In-Reply-To: <CADGQE7FDVSPvrLuGbyb8OO=EFk9tne9W2NQ7Ot9hLjRiT0duxA@mail.gmail.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 16 Nov 2026 09:27:16 +0530
-X-Gm-Features: AclHuK8RCnx3Qy9aydznI-aqFR_gkLT9Qf-05qB2CM-dNXXJoYLt7esP-QFtTxk
-Message-ID: <CAAhSdy2A0+5EtxRAue65eS8zayw-+CoSxh5aMF6ZFQg9+nt=rQ@mail.gmail.com>
-Subject: Re: [PATCH] lib: sbi: Order the publication of IPI device nodes
-To: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Cc: opensbi@lists.infradead.org
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261115_195730_416635_B80E26F9 
-X-CRM114-Status: GOOD (  11.68  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261116_044144_085553_EDEB1A7B 
+X-CRM114-Status: GOOD (  17.71  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -115,32 +56,324 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-T24gTW9uLCBOb3YgMTYsIDIwMjYgYXQgNzo0OeKAr0FNIE5pY2tvbGFpIFplbGRvdmljaAo8bmlj
-a29sYWlAY3NhaWwubWl0LmVkdT4gd3JvdGU6Cj4KPiBPbiBXZWQsIE5vdiA0LCAyMDI2IGF0IDE6
-MjHigK9BTSBBbnVwIFBhdGVsIDxhbnVwQGJyYWluZmF1bHQub3JnPiB3cm90ZToKPiA+IFRoaXMg
-bG9va3MgdW5tYWludGFpbmFibGUuCj4gPgo+ID4gV2h5IG5vdCBpbnRyb2R1Y2UgcmVhZC13cml0
-ZSBzcGlubG9jayBhbmQgdXNlIHRoYXQgdG8KPiA+IHByb3RlY3QgaXBpX2Rldl9ub2RlX2xpc3Qg
-PyBCYXNpY2FsbHksIHNiaV9pcGlfYWRkX2RldmljZSgpCj4gPiB3aWxsIHRha2Ugd3JpdGUtbG9j
-ayB3aGVyZWFzIHNiaV9pcGlfcmF3X2NsZWFyKCkgYW5kCj4gPiBzYmlfaXBpX3Jhd19zZW5kKCkg
-d2lsbCB0YWtlIHJlYWQtbG9jay4KPgo+IEZhaXIgZW5vdWdoOyBJIHdhcyB3cm9uZ2x5IGFzc3Vt
-aW5nIHRoZSBjb2RlIHdhcyB3cml0dGVuIGxvY2stZnJlZSBvbgo+IHB1cnBvc2UuICBEbyB5b3Ug
-dGhpbmsgaXQncyB3b3J0aCBhZGRpbmcgYSByd2xvY2sgaW1wbGVtZW50YXRpb24gdG8KPiBPcGVu
-U0JJIGZvciB0aGlzPyAgQWx0ZXJuYXRpdmVseSwgaXQgd291bGQgYmUgZWFzeSB0byBncmFiIGEg
-cmVndWxhcgo+IHNwaW5sb2NrIGluIHRoZSByZWxldmFudCBmdW5jdGlvbnMuJwoKSW4gYWRkaXRp
-b24gdG8gSVBJcywgdGhlcmUgYXJlIG90aGVyIGFyZWFzIGluIE9wZW5TQkkgd2hpY2ggY2FuCmJl
-bmVmaXQgZnJvbSByd2xvY2tzIHNvIEkgdGhpbmsgd2Ugc2hvdWxkIGRlZmluZXRseSBoYXZlIHJ3
-bG9jawppbXBsZW1lbnRhdGlvbiBpbiBPcGVuU0JJIHdoZXJlOgoxKSByZWFkX2xvY2soKSBvbmx5
-IHNwaW5zIGlmIHNvbWVvbmUgaGFzIHRha2VuIHdyaXRlIGxvY2sKMikgd3JpdGVfbG9jaygpIHNw
-aW5zIGlmIHNvbWVvbmUgaGFzIHRha2VuIHJlYWQvd3JpdGUgbG9jawoKUmVnYXJkcywKQW51cAoK
-LS0gCm9wZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
-Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+Add rwlock_t with read_lock()/read_unlock(), write_lock()/write_unlock()
+and trylock variants. Readers share the lock and a writer has it alone.
+Writers have priority, so a stream of readers cannot hold one off.
+
+The lock word holds a writer bit and a reader count. A writer sets the
+bit, which turns new readers away, and waits for the readers already
+in to leave. A reader does not touch the count while the bit is set;
+otherwise it adds itself and backs out if a writer set the bit in the
+meantime. This needs only fetch-and-add/or/and, which map to AMOs with
+A or Zaamo and to LR/SC loops with Zalrsc, as in spin_lock().
+
+Add SBIUnit cases for both modes and for a reader meeting a waiting
+writer.
+
+Suggested-by: Anup Patel <anup@brainfault.org>
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+---
+
+Notes:
+    Tested on QEMU virt: the SBIUnit locks suite passes; an 8-hart stress
+    run at boot (mixed readers and writers) shows no exclusion violations;
+    with 7 harts looping on read_trylock(), a writer gets through, where a
+    reader-preferring version starves it. Built for rv32 and rv64 with
+    clang and GCC; the lock code also builds for Zaamo-only and
+    Zalrsc-only ISA strings. The fence and .aqrl ordering was checked with
+    litmus tests against the RISC-V memory model.
+    
+    This patch was written with the assistance of an AI agent.
+
+ include/sbi/riscv_locks.h        |  36 +++++++++
+ include/sbi/sbi_visibility.h     |   4 +
+ lib/sbi/riscv_locks.c            | 134 +++++++++++++++++++++++++++++++
+ lib/sbi/tests/riscv_locks_test.c |  46 +++++++++++
+ 4 files changed, 220 insertions(+)
+
+diff --git a/include/sbi/riscv_locks.h b/include/sbi/riscv_locks.h
+index a0a34c04..bb1fea48 100644
+--- a/include/sbi/riscv_locks.h
++++ b/include/sbi/riscv_locks.h
+@@ -42,4 +42,40 @@ void spin_lock(spinlock_t *lock) ACQUIRE(*lock) MUST_NOT_HOLD(*lock);
+ 
+ void spin_unlock(spinlock_t *lock) RELEASE(*lock);
+ 
++/*
++ * Readers share the lock; a writer has it alone. Writers have priority:
++ * once a writer waits for the lock, new readers wait until it has
++ * released it. So a hart must not take a read lock it already holds.
++ */
++typedef struct {
++	/* RWLOCK_WRITER while a writer holds or waits for it, plus readers */
++	u32 val;
++} CAPABILITY("rwlock") rwlock_t;
++
++#define RWLOCK_WRITER		(1u << 31)
++
++#define __RW_LOCK_UNLOCKED	\
++	(rwlock_t) { 0 }
++
++#define RW_LOCK_INIT(x)	\
++	x = __RW_LOCK_UNLOCKED
++
++#define RW_LOCK_INITIALIZER	\
++	__RW_LOCK_UNLOCKED
++
++#define DEFINE_RW_LOCK(x)	\
++	rwlock_t RW_LOCK_INIT(x)
++
++bool read_trylock(rwlock_t *lock) TRY_ACQUIRE_SHARED(true, *lock);
++
++void read_lock(rwlock_t *lock) ACQUIRE_SHARED(*lock) MUST_NOT_HOLD(*lock);
++
++void read_unlock(rwlock_t *lock) RELEASE_SHARED(*lock);
++
++bool write_trylock(rwlock_t *lock) TRY_ACQUIRE(true, *lock);
++
++void write_lock(rwlock_t *lock) ACQUIRE(*lock) MUST_NOT_HOLD(*lock);
++
++void write_unlock(rwlock_t *lock) RELEASE(*lock);
++
+ #endif
+diff --git a/include/sbi/sbi_visibility.h b/include/sbi/sbi_visibility.h
+index 993561ef..503249f4 100644
+--- a/include/sbi/sbi_visibility.h
++++ b/include/sbi/sbi_visibility.h
+@@ -27,9 +27,13 @@
+ #define PT_GUARDED_BY(x) TSA_ATTR(pt_guarded_by(x))
+ #define ACQUIRE(...) TSA_ATTR(acquire_capability(__VA_ARGS__))
+ #define RELEASE(...) TSA_ATTR(release_capability(__VA_ARGS__))
++#define ACQUIRE_SHARED(...) TSA_ATTR(acquire_shared_capability(__VA_ARGS__))
++#define RELEASE_SHARED(...) TSA_ATTR(release_shared_capability(__VA_ARGS__))
+ #define MUST_HOLD(...) TSA_ATTR(requires_capability(__VA_ARGS__))
+ #define MUST_NOT_HOLD(...) TSA_ATTR(locks_excluded(__VA_ARGS__))
+ #define TRY_ACQUIRE(b, ...) TSA_ATTR(try_acquire_capability(b, __VA_ARGS__))
++#define TRY_ACQUIRE_SHARED(b, ...) \
++	TSA_ATTR(try_acquire_shared_capability(b, __VA_ARGS__))
+ #define NO_THREAD_SAFETY_ANALYSIS TSA_ATTR(no_thread_safety_analysis)
+ 
+ #endif
+diff --git a/lib/sbi/riscv_locks.c b/lib/sbi/riscv_locks.c
+index fa624a94..03040747 100644
+--- a/lib/sbi/riscv_locks.c
++++ b/lib/sbi/riscv_locks.c
+@@ -88,3 +88,137 @@ void spin_unlock(spinlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
+ {
+ 	__smp_store_release(&lock->owner, lock->owner + 1);
+ }
++
++#if !defined(__riscv_atomic) && !defined(__riscv_zaamo) && !defined(__riscv_zalrsc)
++#error "need A or Zaamo or Zalrsc"
++#endif
++
++/* Atomic fetch-and-add/or/and on the lock word, returning the old value */
++static u32 rwlock_fetch_add(rwlock_t *lock, u32 v)
++{
++	u32 old;
++#if defined(__riscv_atomic) || defined(__riscv_zaamo)
++	__asm__ __volatile__("	amoadd.w.aqrl	%0, %2, %1\n"
++			     : "=r"(old), "+A"(lock->val)
++			     : "r"(v)
++			     : "memory");
++#else
++	u32 tmp;
++
++	__asm__ __volatile__("1:	lr.w.aqrl	%0, %2\n"
++			     "	add	%1, %0, %3\n"
++			     "	sc.w.aqrl	%1, %1, %2\n"
++			     "	bnez	%1, 1b\n"
++			     : "=&r"(old), "=&r"(tmp), "+A"(lock->val)
++			     : "r"(v)
++			     : "memory");
++#endif
++	return old;
++}
++
++static u32 rwlock_fetch_or(rwlock_t *lock, u32 v)
++{
++	u32 old;
++#if defined(__riscv_atomic) || defined(__riscv_zaamo)
++	__asm__ __volatile__("	amoor.w.aqrl	%0, %2, %1\n"
++			     : "=r"(old), "+A"(lock->val)
++			     : "r"(v)
++			     : "memory");
++#else
++	u32 tmp;
++
++	__asm__ __volatile__("1:	lr.w.aqrl	%0, %2\n"
++			     "	or	%1, %0, %3\n"
++			     "	sc.w.aqrl	%1, %1, %2\n"
++			     "	bnez	%1, 1b\n"
++			     : "=&r"(old), "=&r"(tmp), "+A"(lock->val)
++			     : "r"(v)
++			     : "memory");
++#endif
++	return old;
++}
++
++static u32 rwlock_fetch_and(rwlock_t *lock, u32 v)
++{
++	u32 old;
++#if defined(__riscv_atomic) || defined(__riscv_zaamo)
++	__asm__ __volatile__("	amoand.w.aqrl	%0, %2, %1\n"
++			     : "=r"(old), "+A"(lock->val)
++			     : "r"(v)
++			     : "memory");
++#else
++	u32 tmp;
++
++	__asm__ __volatile__("1:	lr.w.aqrl	%0, %2\n"
++			     "	and	%1, %0, %3\n"
++			     "	sc.w.aqrl	%1, %1, %2\n"
++			     "	bnez	%1, 1b\n"
++			     : "=&r"(old), "=&r"(tmp), "+A"(lock->val)
++			     : "r"(v)
++			     : "memory");
++#endif
++	return old;
++}
++
++static u32 rwlock_read(rwlock_t *lock)
++{
++	return *(volatile u32 *)&lock->val;
++}
++
++bool read_trylock(rwlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
++{
++	/* Leave the count alone while a writer holds or waits for the lock */
++	if (rwlock_read(lock) & RWLOCK_WRITER)
++		return false;
++	if (!(rwlock_fetch_add(lock, 1) & RWLOCK_WRITER))
++		return true;
++
++	/* A writer set its bit after the check above */
++	rwlock_fetch_add(lock, -1);
++	return false;
++}
++
++void read_lock(rwlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
++{
++	while (!read_trylock(lock))
++		;
++}
++
++void read_unlock(rwlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
++{
++	rwlock_fetch_add(lock, -1);
++}
++
++bool write_trylock(rwlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
++{
++	u32 old = rwlock_fetch_or(lock, RWLOCK_WRITER);
++
++	if (old & RWLOCK_WRITER)
++		return false;
++	if (!old)
++		return true;
++
++	/* Readers hold the lock and this must not wait for them */
++	rwlock_fetch_and(lock, ~RWLOCK_WRITER);
++	return false;
++}
++
++void write_lock(rwlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
++{
++	/* Claim the writer bit, which keeps new readers out */
++	while (rwlock_fetch_or(lock, RWLOCK_WRITER) & RWLOCK_WRITER) {
++		while (rwlock_read(lock) & RWLOCK_WRITER)
++			;
++	}
++
++	/* Wait for the readers that got in before the bit was set */
++	while (rwlock_read(lock) & ~RWLOCK_WRITER)
++		;
++	RISCV_FENCE(r, rw);
++}
++
++void write_unlock(rwlock_t *lock) NO_THREAD_SAFETY_ANALYSIS
++{
++	/* Not a plain store: a failing reader may have the count raised */
++	rwlock_fetch_and(lock, ~RWLOCK_WRITER);
++}
+diff --git a/lib/sbi/tests/riscv_locks_test.c b/lib/sbi/tests/riscv_locks_test.c
+index 2cbba3da..3f8bfde7 100644
+--- a/lib/sbi/tests/riscv_locks_test.c
++++ b/lib/sbi/tests/riscv_locks_test.c
+@@ -34,10 +34,56 @@ static void spin_trylock_success(struct sbiunit_test_case *test)
+ 	spin_unlock(&test_lock);
+ }
+ 
++static rwlock_t test_rwlock = RW_LOCK_INITIALIZER;
++
++static void read_lock_shared(struct sbiunit_test_case *test)
++	NO_THREAD_SAFETY_ANALYSIS
++{
++	read_lock(&test_rwlock);
++	SBIUNIT_EXPECT(test, read_trylock(&test_rwlock));
++	SBIUNIT_EXPECT(test, !write_trylock(&test_rwlock));
++	read_unlock(&test_rwlock);
++	SBIUNIT_EXPECT(test, !write_trylock(&test_rwlock));
++	read_unlock(&test_rwlock);
++
++	SBIUNIT_ASSERT(test, write_trylock(&test_rwlock));
++	write_unlock(&test_rwlock);
++}
++
++static void write_lock_exclusive(struct sbiunit_test_case *test)
++	NO_THREAD_SAFETY_ANALYSIS
++{
++	write_lock(&test_rwlock);
++	SBIUNIT_EXPECT(test, !read_trylock(&test_rwlock));
++	SBIUNIT_EXPECT(test, !write_trylock(&test_rwlock));
++	write_unlock(&test_rwlock);
++
++	SBIUNIT_ASSERT(test, read_trylock(&test_rwlock));
++	read_unlock(&test_rwlock);
++}
++
++static void read_trylock_writer_waiting(struct sbiunit_test_case *test)
++	NO_THREAD_SAFETY_ANALYSIS
++{
++	read_lock(&test_rwlock);
++
++	/* What a writer waiting for this reader leaves in the lock word */
++	test_rwlock.val |= RWLOCK_WRITER;
++	SBIUNIT_EXPECT(test, !read_trylock(&test_rwlock));
++	SBIUNIT_EXPECT_EQ(test, test_rwlock.val, RWLOCK_WRITER | 1);
++	test_rwlock.val &= ~RWLOCK_WRITER;
++
++	read_unlock(&test_rwlock);
++	SBIUNIT_ASSERT_EQ(test, test_rwlock.val, 0);
++}
++
+ static struct sbiunit_test_case locks_test_cases[] = {
+ 	SBIUNIT_TEST_CASE(spin_lock_test),
+ 	SBIUNIT_TEST_CASE(spin_trylock_fail),
+ 	SBIUNIT_TEST_CASE(spin_trylock_success),
++	SBIUNIT_TEST_CASE(read_lock_shared),
++	SBIUNIT_TEST_CASE(write_lock_exclusive),
++	SBIUNIT_TEST_CASE(read_trylock_writer_waiting),
+ 	SBIUNIT_END_CASE,
+ };
+ 
+
+base-commit: ed70256dd22c09962d146e433834239825ef0616
+-- 
+2.53.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
