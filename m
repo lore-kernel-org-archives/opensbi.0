@@ -2,69 +2,54 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DB66606A332
-	for <opensbi@archiver.kernel.org>; Sun, 15 Nov 2026 16:38:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D182606A31C
+	for <opensbi@archiver.kernel.org>; Mon, 16 Nov 2026 02:15:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=FeebX94H
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=Keoyqi+J
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=noDAnRGZEapfwyPKK5XWlWyRA5hRnQBKOgdF4IJlqM4=; b=FeebX94HrDfyRs2wm6zJN/hGKz
-	G1ni0dj14hvGYUugcVLx+y2NN7hgw4DhebyS7G3A+yz9KwZ4VlndIOOO077c+AkIRt04XWqRycp5h
-	BUum3QHVt6camoeYTLaiamvn6L2knxT/frK+gDdfNAG/JdU0pvVYHptk2/PdXFnJkgbEEX3KYtbJ6
-	bwlICBt9mA7mnDA8as8py7g/QOrpgtRRc+y2U8uDWDN0UoxThjT3hFsm19vQaR0VNJrtb9NjC2lvR
-	6PStjIlpdJE4htGEuP/L/G6b1xC7S0xsBGRaJBeyKqgz0LffYd0cyjeKlZtHt/Ir8Px7wQwYIGfdg
-	gXQJTmQg==;
+	bh=ID4hxqowiecpbzkzYmms8yJOhGiPGRMfCmyBTKSK2O4=; b=Keoyqi+JuFGtRdRfanziPsGG8s
+	rJ6VHEzRz5ZwAUHS7vq92xX/TXWnocno6UWcAXTcUhlacok9GNkYF1V25BvWmP/fZERhjJR9O8VBi
+	Neq4CXJyDwafaz5ljr2RMvrymJSE9rI8GaR9izHYg47dHOoc6LmD/tDUGYO4/cma5aFSMtKj0LHXb
+	jSCXIkQnRn3S4ZDnIQ9BN32n6xTT2oizVTfH7sYBhcd6QPUS2m5k2B8v0h47snOo4A2XEnzSkTGWh
+	Tuj2xCGRR+sjxWL1J6X+M2mq5B+gsl8Mrd8V42E+QJKOM/LoGDCWIffw3nljKb/NHHBpqv9VFEJlC
+	Kjtgym6Q==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xSdEr-00000000Cll-2MO8;
-	Sun, 15 Nov 2026 16:37:57 +0000
-Received: from smtp21.cstnet.cn ([159.226.251.21] helo=cstnet.cn)
+	id 1xSmFH-00000000vOu-31d8;
+	Mon, 16 Nov 2026 02:14:59 +0000
+Received: from outgoing2021.csail.mit.edu ([128.30.2.78])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xSdEm-00000000Cju-27Ar
+	id 1xSmFE-00000000vOM-18WV
 	for opensbi@lists.infradead.org;
-	Sun, 15 Nov 2026 16:37:55 +0000
-Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-01 (Coremail) with SMTP id qwCowAD3IPva3_lqkhoOAQ--.1207S2;
-	Mon, 16 Nov 2026 00:37:46 +0800 (CST)
-From: liutong <liutong@iscas.ac.cn>
-To: opensbi@lists.infradead.org
-Cc: himanshu.chauhan@oss.qualcomm.com,
-	anup@brainfault.org,
-	npiggin@gmail.com,
-	liutong <liutong@iscas.ac.cn>
-Subject: [PATCH v2] lib: sbi: dbtr: validate trigger configuration in update_trig
-Date: Sun, 15 Nov 2026 16:37:32 +0000
-Message-Id: <20261115163732.746589-1-liutong@iscas.ac.cn>
-X-Mailer: git-send-email 2.34.1
+	Mon, 16 Nov 2026 02:14:57 +0000
+Received: from escalante.csail.mit.edu ([128.52.128.198])
+	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
+	(envelope-from <nickolai@csail.mit.edu>)
+	id 1xSmFA-0049JT-Hu;
+	Sun, 15 Nov 2026 21:14:52 -0500
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+To: Anup Patel <anup@brainfault.org>
+Cc: opensbi@lists.infradead.org,
+	Nickolai Zeldovich <nickolai.zeldovich@gmail.com>,
+	Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: [PATCH v2] lib: sbi: Refresh the memregion count after sanitize_domain()
+Date: Sun, 15 Nov 2026 21:14:52 -0500
+Message-ID: <20261116021452.49828-1-nickolai@csail.mit.edu>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261006193637.735638-1-nickolai@csail.mit.edu>
+References: <20261006193637.735638-1-nickolai@csail.mit.edu>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID: qwCowAD3IPva3_lqkhoOAQ--.1207S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxCFyUGw48WFyxAFW3CFykZrb_yoWrZr13pF
-	yrCFy7KrZ2qryUtrWIv3W8Aryruw48t34Ut3929rykta9rZw1xAr1ay3s5XFy8Kr95uF1j
-	ya4jqF4j9Fs8ZaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUkl14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r4j6r
-	4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr0_Cr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCY1x0262kKe7AKxVWU
-	AVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14
-	v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkG
-	c2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI
-	0_Jr0_Gr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4U
-	MIIF0xvEx4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUjnmRUUUUU
-	U==
-X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261115_083752_936847_9B76A69F 
-X-CRM114-Status: GOOD (  12.70  )
-X-Spam-Score: -4.2 (----)
+X-CRM114-CacheID: sfid-20261115_181456_415600_196DCE81 
+X-CRM114-Status: GOOD (  10.86  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -84,116 +69,59 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-sbi_dbtr_update_trig() writes the caller's tdata1 to the trigger CSRs
-without validating it, so S-mode can install a trigger that install_trig
-accepts and then set the mcontrol6 M bit on it with an update, making it
-fire in M-mode. No race is involved. dbtr_trigger_hw_supported() does
-not cover this: it returns true when the platform has no
-trigger_supported callback.
+From: Nickolai Zeldovich <nickolai.zeldovich@gmail.com>
 
-The entry is also re-read from the shared memory, so the value validated
-need not be the one programmed.
+add_memregion() counts the regions once before its sort-and-merge loop,
+but sanitize_domain() in that loop removes regions covered by another
+one. The merge step's sbi_memmove() then uses the stale count and
+copies slots past the terminating entry. Those slots still hold copies
+of the old terminator and lie inside regions[], so the table comes out
+right today, but only by accident.
 
-Copy the entry once, drop the mapping, and run the checks against the
-copy. Also reject a tdata1 whose type is not set in trig->type_mask,
-the capability the hardware slot was allocated for.
+Recount the regions after each sanitize_domain().
 
-Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
-Reported-by: Nicholas Piggin <npiggin@gmail.com>
-Signed-off-by: liutong <liutong@iscas.ac.cn>
+Fixes: 0d5629381731 ("lib: sbi: Fix sbi_domain_root_add_memregion() for merging memregions")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 ---
-Changes in v2:
-- Reject a tdata1 whose type is not set in trig->type_mask.
-- Link to v1:
-  https://lore.kernel.org/opensbi/20261103081001.2948003-1-liutong@iscas.ac.cn/
 
-SBI v3.0 also requires tdata1.chain to be preserved across an update.
-That needs a record of the tdata1 the trigger was installed with, and
-trig->tdata1 is not one: sbi_dbtr_read_trig() refreshes it from the CSR,
-which the hardware may have normalised. Left out of this patch.
- lib/sbi/sbi_dbtr.c | 46 ++++++++++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+Notes:
+    Changes in v2:
+    - Rebased onto the add_memregion() rework (145bd4cc, c4f098bf), where
+      the count is the local memregs_count. v1 was based on the master of
+      the time (8740e0a3); the root_memregs_count it changed was the local
+      variable added by de376252, not the removed global.
+    - Shorter source comment and message.
+    
+    v1: https://lore.kernel.org/r/20261006193637.735638-1-nickolai@csail.mit.edu
+    
+    Tested on QEMU virt with a test-only uart8250 change that also adds a
+    64 KiB range covering the console page: without the patch,
+    add_memregion() merges with a count of 7 for 6 live regions; with it,
+    the counts always match. The final region table is the same.
+    
+    This patch was written with the assistance of an AI agent.
 
-diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
-index c97e625f..9b5d2561 100644
---- a/lib/sbi/sbi_dbtr.c
-+++ b/lib/sbi/sbi_dbtr.c
-@@ -856,7 +856,8 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
- int sbi_dbtr_update_trig(unsigned long smode,
- 			 unsigned long trig_count)
- {
--	unsigned long trig_idx;
-+	unsigned long trig_idx, tdata1;
-+	union sbi_dbtr_shmem_entry local;
- 	struct sbi_dbtr_trigger *trig;
- 	union sbi_dbtr_shmem_entry *entry;
- 	void *shmem_base = NULL;
-@@ -885,37 +886,42 @@ int sbi_dbtr_update_trig(unsigned long smode,
- 	tdata3_impl = tdata_implemented(CSR_TDATA3);
+ lib/sbi/sbi_domain.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/sbi/sbi_domain.c b/lib/sbi/sbi_domain.c
+index 42fe5632..f711f6bc 100644
+--- a/lib/sbi/sbi_domain.c
++++ b/lib/sbi/sbi_domain.c
+@@ -835,6 +835,9 @@ static int add_memregion(struct sbi_domain *dom, const struct sbi_domain_memregi
+ 			return rc;
+ 		}
  
- 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
-+		/*
-+		 * Take a copy and drop the mapping. S-mode can rewrite the
-+		 * shared memory at any time, so every check below and the
-+		 * value finally programmed must come from the same copy.
-+		 */
- 		sbi_hart_protection_temp_map_range((unsigned long)entry, sizeof(*entry));
--		trig_idx = entry->id.idx;
-+		local = *entry;
-+		sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
- 
--		if (trig_idx >= hs->total_trigs) {
--			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
-+		trig_idx = local.id.idx;
-+		if (trig_idx >= hs->total_trigs)
- 			return SBI_ERR_INVALID_PARAM;
--		}
- 
- 		trig = INDEX_TO_TRIGGER(trig_idx);
- 
--		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED))) {
--			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
-+		if (!(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
- 			return SBI_ERR_FAILED;
--		}
- 
--		if ((entry->data.tdata2 && !tdata2_impl) ||
--		    (entry->data.tdata3 && !tdata3_impl)) {
--			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
-+		tdata1 = lle_to_cpu(local.data.tdata1);
++		/* sanitize_domain() may have removed covered regions */
++		memregs_count = sbi_domain_used_memregions(dom);
 +
-+		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(tdata1), tdata1))
-+			return SBI_ERR_INVALID_PARAM;
-+
-+		if (!__test_bit(TDATA1_GET_TYPE(tdata1), &trig->type_mask))
-+			return SBI_ERR_INVALID_PARAM;
-+
-+		if ((local.data.tdata2 && !tdata2_impl) ||
-+		    (local.data.tdata3 && !tdata3_impl))
- 			return SBI_ERR_NOT_SUPPORTED;
--		}
- 
--		if (!dbtr_trigger_hw_supported(trig->index,
--					       lle_to_cpu(entry->data.tdata1),
--					       lle_to_cpu(entry->data.tdata2),
--					       lle_to_cpu(entry->data.tdata3))) {
--			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
-+		if (!dbtr_trigger_hw_supported(trig->index, tdata1,
-+					       lle_to_cpu(local.data.tdata2),
-+					       lle_to_cpu(local.data.tdata3)))
- 			return SBI_ERR_NOT_SUPPORTED;
--		}
- 
--		dbtr_trigger_setup(trig, &entry->data);
--		sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
-+		dbtr_trigger_setup(trig, &local.data);
- 		dbtr_trigger_enable(trig);
- 	}
- 
+ 		/* Merge consecutive memregions with same order and flags */
+ 		reg_merged = false;
+ 		sbi_domain_for_each_memregion(dom, nreg) {
 
 base-commit: ed70256dd22c09962d146e433834239825ef0616
 -- 
-2.34.1
+2.53.0
 
 
 -- 
