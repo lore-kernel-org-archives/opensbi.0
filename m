@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6CC606A31C
-	for <opensbi@archiver.kernel.org>; Tue, 17 Nov 2026 18:48:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8E30606A31C
+	for <opensbi@archiver.kernel.org>; Tue, 17 Nov 2026 18:48:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=pOrr+qYK;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=XloHXhSy
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=wzdhFVbb;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Fi9isDIX
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,53 +14,52 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=o/GbTSsjJ2Ah5PqyTUaJ0LcJ7rS+y0wZvhYhqUGFbI0=; b=pOrr+qYKw/qfiSaalQ4TyIPgjm
-	0ENIxfMlAcP5IIIkE9PjnD9lI0UGiIqdP6E8ZW7/YxDZacun1avezQ1FxCtl10LwueUHnyYqjd+0F
-	sEYhVsTcPV7rgmAdB7KgjOO7UzHSLRRZWzR78rNrUbIHR0ENHw52wHSgstbAB/5Sq+knyOy8nTN82
-	QWUFdDEhXcUvHM8UbTmTAZVjS5DpYCzk+pyR6y8+maMjA875LK4+SVtvYQERSYgGJWMQ3wuLN++1X
-	RSa292JaK5xyIIdc/x0QdzFebTdB5glQCpAvXSvOZ30yca1yraAt2YJ5GrPNXF4TXxCrWMBvpPKLf
-	oEXorXLg==;
+	bh=XGX5SBYZwYdurGaPRYZGInh/Yqjaepwvm9boBSLl7dE=; b=wzdhFVbbaPPMTLjuSzV0EWqfkq
+	1mtgpWB42jCYjjktrUoSbo4bvm5lrtOBOTTSCGRfhGd1LkctIrCi6scp3SOv8VkDVhtj+QaUN6cpK
+	MQeuDVhf1XBxDMyJ5rQ4dhAneQ0Y/2q5p/2HjZY7wRTOZeyEddKDPJd0f3Pwd8ceDXLU6ypGTHU7M
+	a8HsYZhM9C3FNNMVAgq38x8g3LJl+Hil2oFBVLaiXQRtGhCD1bPEva3fU7LhmWX+ZPvBr6+p3ALTo
+	az3QWnvRCdf6+c+7JMDiiO4BQXGK+0YA+vnA33m44SEiEqIA15f9qGMiZ/e4FCckB7GRVF94N6Y7r
+	N7fMET1w==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xTOEg-00000006nTZ-44K9;
-	Tue, 17 Nov 2026 18:48:54 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1xTOEi-00000006nUR-0ktU;
+	Tue, 17 Nov 2026 18:48:56 +0000
+Received: from mx0b-0031df01.pphosted.com ([205.220.180.131])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xTOEf-00000006nSo-0f8d
+	id 1xTOEf-00000006nSp-32BT
 	for opensbi@lists.infradead.org;
-	Tue, 17 Nov 2026 18:48:54 +0000
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHFQZN04169845;
+	Tue, 17 Nov 2026 18:48:55 +0000
+Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHGUIWF1140032;
 	Tue, 17 Nov 2026 18:48:52 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	kR8kKm37uqEfx4eVuHkeSL3KAjbYptl2CHJG+tdMzYY=; b=XloHXhSy2q6yQaK3
-	zmYIhRsD/XINwHnjY8QUkDNPdl/Ubd6nM/3aFDWTaTqMdrqnvr4P2L3mZsaHlYLa
-	EQlBcAC/rwkcxel03XF7gskS+kkj5iWbc9rODmF/EPkpv/a+O1ojI/pgHU3zmaiW
-	e/hu/o55ymQJ5j2yVWEbqPhJOiJD62XeZUxuMFzV7if7Aasyo6AmHdKazpoXBKF1
-	tac+P8IJBcErAt0A3N6kSHXi0Nq6Pt58F4tH+A0HXvyDnPbcCsEZKkPH3/cF8v5J
-	d6JS1BLNAL/N7ZtLiLIluFJp801KzU2PnWxLCAf+AHxCEsVqNJzaFPf/faUeFUIX
-	wY6+5A==
+	cc:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=qcppdkim1; bh=qS8Ncds24VD
+	ZHmUJ6ihX9khTyFzI47O+sQFiXyTvp44=; b=Fi9isDIXIUAEwoljTCfvDb75PvL
+	tBjERde6U8QazO7inLosQyUPME8epOEW3IGhTtlOEBCJ8o05y7bi9g9yIF05eM/T
+	Z5U4EJSvImvs49HhlpQmEOkt5W4xJFmHjOQtfpkLkOuY21G7lx432AWZuYNPHRQl
+	jwlCHKePh44JZlxycXGR5xIEYGbF18CzjkQbCuWwUF/Qn/Ldqxbu5JUSVviujvTB
+	yrQgMc5Rjs2DWRZp1JP0fsSbThLoCyu+eTv+ZRGgqA+4VpiJcG6b0PJ5cOIPbgMF
+	O5WVoWB8s623vfSgQSn7PsnHW18SZyWv+6TklnvWbguYdS3r40+UQMYLusQ==
 Received: from nalasppmta01.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j0hve3336-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j0hkd33p0-1
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Tue, 17 Nov 2026 18:48:51 +0000 (GMT)
+	Tue, 17 Nov 2026 18:48:52 +0000 (GMT)
 Received: from pps.filterd (nalasppmta01.qualcomm.com [127.0.0.1])
-	by NALASPPMTA01.qualcomm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHIaUun3041138;
+	by NALASPPMTA01.qualcomm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHImpHI3060189;
 	Tue, 17 Nov 2026 18:48:51 GMT
 Received: from hu-devc-lv-u24-a.qualcomm.com (hu-poza-lv.qualcomm.com [10.81.92.230])
-	by NALASPPMTA01.qualcomm.com (PPS) with ESMTPS id 6AHIjpKb3055243
+	by NALASPPMTA01.qualcomm.com (PPS) with ESMTPS id 6AHIjoRZ3055232
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
 	Tue, 17 Nov 2026 18:45:51 +0000 (GMT)
 Received: by hu-devc-lv-u24-a.qualcomm.com (Postfix, from userid 467151)
-	id D1B2924D66; Tue, 17 Nov 2026 10:45:50 -0800 (PST)
+	id CCA0A24CEF; Tue, 17 Nov 2026 10:45:50 -0800 (PST)
 From: Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
 To: opensbi@lists.infradead.org, Anup Patel <anup@brainfault.org>
 Cc: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
-Subject: [PATCH v9 5/7] docs: add OpenSBI domain bridge documentation
-Date: Tue, 17 Nov 2026 10:45:44 -0800
-Message-ID: <20261117184547.1145243-6-pawandeep.oza@oss.qualcomm.com>
+Subject: [PATCH v9 4/7] sbi_utils: mpxy:: Add MPXY RPMI bridge MM driver
+Date: Tue, 17 Nov 2026 10:45:43 -0800
+Message-ID: <20261117184547.1145243-5-pawandeep.oza@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261117184547.1145243-1-pawandeep.oza@oss.qualcomm.com>
 References: <20261117184547.1145243-1-pawandeep.oza@oss.qualcomm.com>
@@ -69,35 +68,34 @@ MIME-Version: 1.0
 X-Proofpoint-Reinject: loops=2 maxloops=12
 X-QCInternal: smtphost
 X-QCInternal: smtphost
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA3NCBTYWx0ZWRfX4tWp5AgW4BYK
- a7kR+vcILwTmHH+UX7PBmYC5DPQ6zmPfnXjH7Kc7ZLd7BTYPQIPibm/5hpZjZnAKpcG+2YR8ESm
- NtR2rJe1HDIFf3cNb7KiOa7PlADUIws=
-X-Proofpoint-GUID: TGkiIBVVMtPjBl_o4k_g86zZ87CF95-J
-X-Proofpoint-ORIG-GUID: TGkiIBVVMtPjBl_o4k_g86zZ87CF95-J
-X-Authority-Analysis: v=2.4 cv=dqhOmFg4 c=1 sm=1 tr=0 ts=6afca193 cx=c_pps
+X-Authority-Analysis: v=2.4 cv=eqFKXYpX c=1 sm=1 tr=0 ts=6afca194 cx=c_pps
  a=ouPCqIW2jiPt+lZRy3xVPw==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=YMgV9FUhrdKAYTUUvYB2:22 a=EUspDBNiAAAA:8
- a=Q9Fa-HXte_jwVOwkNXMA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA3NCBTYWx0ZWRfX0EtkNZbhDFgR
- qdnH70uBRLgDGKU6gcYN0wB+6GLzQT24jltVWfB9gv74NyI0+VA3GQyaC/T7VBgusiOaRe7Trpm
- ULhqJGe6e8QPc+/aSxpxfaTwti8Tw1YSQld/1Iu/afTICLumwzU2ZhPqtkausrws5msS7Mrzt+R
- E2iI6YwSnzZ5RYUcaZ5D9IsYJOtm8oPEU0Ylsuwv1Zj8zyDvady6n4tVLsJTHd3SxdN2fzw3vw6
- M7lSHMV2bNj/xcv4IzDjIRGVE9Kur7/Vt0Ow9mcYhRJd4gLKLktLXvhfXalYUgXSPn69QXdzVU0
- 998XN3OdKFEBGWqpPglKCFoILGXNbUQ4FCfc/afEJ4yq0BZsEREfDeksnQyc5WyYnZh2/ZI/xIU
- DYgBODTgD0TvlYoi/vKYSd406UgsS7DK/vDVNKIf9zXXJGrShc/PP5e4QE2aeaR5s5heYm2TCkB
- wfHqzoa6IUKo0Bvm8vQ==
+ a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=gowsoOTTUOVcmtlkKump:22 a=EUspDBNiAAAA:8 a=Q_dzR9o_rVEMywmJ5KMA:9
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA3NCBTYWx0ZWRfXxhqEI//n+Ifb
+ nDihQZqYdfw+GaXgmSVRMDqqsdHJgMvCGWHBIOUIukXXi495VpqBFoGa1mJNwehDdvRwzv8uGH+
+ Qu76fnMp/3BvSnLsfAh3lmwMGk0WqVQ=
+X-Proofpoint-GUID: 8m_rhZ32lriAB1dHAU--CEer5ZcWioe6
+X-Proofpoint-ORIG-GUID: 8m_rhZ32lriAB1dHAU--CEer5ZcWioe6
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA3NCBTYWx0ZWRfX0C2sovBi+Uz2
+ /AGQoyZ8+tCYvK/majClna+BHzY++ZlsxQ2CpFTOJ44LDlI3+JHcQCu37AJz/kgdswJxYT1dGPl
+ x6SpzPSOQ2m9NxBGvUfcpe+UVc3RFUjAKZFKPyWq44vt2pVupDhJfz8QrTo8esHEoqH7qHMTekc
+ kLOOVBPGwNEwEcb31X4AnBPCmcrrROmBf57gFpuKwyfRvnT/ctmW22wXDET5KI7NIfakPw/MaiX
+ H7VwifuMkfZb76uPkaHg/ujCp43ze7mv99tadM1qe9ldQBzPIpLnaGpW3oUyaqOsIxFxsZbM/hS
+ N6GYx99eabeXMHH4NIaG359Qjd/rCpDx5RkncB5QpVHH+ctgiqU+QbSf4eECb9nDLZWHcdbMTYc
+ aze72Y7CKlMKSLEHicVjAoaZyquqZan8o+99PE0yE43sTBeMGZeFgvCSu+eGDmhGp/a/ytNiKZi
+ sWU1bg9xI/pzDZCClNw==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-17_03,2026-11-16_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 priorityscore=1501 lowpriorityscore=0 clxscore=1015 phishscore=0
- bulkscore=0 malwarescore=0 adultscore=0 impostorscore=0 suspectscore=0
+ clxscore=1015 phishscore=0 impostorscore=0 malwarescore=0 priorityscore=1501
+ adultscore=0 spamscore=0 lowpriorityscore=0 suspectscore=0 bulkscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
  reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611170074
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261117_104853_220190_56174EBE 
-X-CRM114-Status: GOOD (  22.01  )
+X-CRM114-CacheID: sfid-20261117_104853_886907_C78842F9 
+X-CRM114-Status: GOOD (  21.50  )
 X-Spam-Score: -2.7 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -108,8 +106,8 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
 X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
@@ -118,130 +116,289 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-RnJvbTogT3phIFBhd2FuZGVlcCA8cGF3YW5kZWVwLm96YUBvc3MucXVhbGNvbW0uY29tPgoKRG9j
-dW1lbnQgdGhlIE1QWFktYmFzZWQgaW50ZXItZG9tYWluIGNvbW11bmljYXRpb24gYnJpZGdlLCBp
-dHMgZGV2aWNlCnRyZWUgYmluZGluZ3MsIGFuZCBhbiBleGFtcGxlIGNvbmZpZ3VyYXRpb24uIExp
-bmsgdGhlIG5ldyBkb2N1bWVudGF0aW9uCmZyb20gZG9jcy9kb21haW5fc3VwcG9ydC5tZC4KClNp
-Z25lZC1vZmYtYnk6IE96YSBQYXdhbmRlZXAgPHBhd2FuZGVlcC5vemFAb3NzLnF1YWxjb21tLmNv
-bT4KLS0tCiBkb2NzL2RvbWFpbl9icmlkZ2UubWQgIHwgMTYyICsrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrCiBkb2NzL2RvbWFpbl9zdXBwb3J0Lm1kIHwgICA3ICsrCiAy
-IGZpbGVzIGNoYW5nZWQsIDE2OSBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgZG9j
-cy9kb21haW5fYnJpZGdlLm1kCgpkaWZmIC0tZ2l0IGEvZG9jcy9kb21haW5fYnJpZGdlLm1kIGIv
-ZG9jcy9kb21haW5fYnJpZGdlLm1kCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAw
-Li43MWZlYWNlMwotLS0gL2Rldi9udWxsCisrKyBiL2RvY3MvZG9tYWluX2JyaWRnZS5tZApAQCAt
-MCwwICsxLDE2MiBAQAorT3BlblNCSSBEb21haW4gQnJpZGdlIFN1cHBvcnQKKz09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PQorCitPcGVuU0JJIGRvbWFpbiBicmlkZ2Ugc3VwcG9ydCBlbmFi
-bGVzIGludGVyLWRvbWFpbiBjb21tdW5pY2F0aW9uIGJldHdlZW4KK2RvbWFpbnMgdGhhdCBzaGFy
-ZSBhIHBoeXNpY2FsIEhBUlQuIEl0IGJ1aWxkcyBvbiBPcGVuU0JJ4oCZcyBkb21haW4gY29udGV4
-dAorc3dpdGNoaW5nIG1lY2hhbmlzbSBhbmQgdGhlIFNCSSBNUFhZIChNZXNzYWdlIFByb3h5KSBl
-eHRlbnNpb24gdG8gZm9yd2FyZAorbWVzc2FnZXMgYmV0d2VlbiBkb21haW5zLgorCitUaGlzIHN1
-cHBvcnQgaW50cm9kdWNlcyB0aHJlZSBjYXBhYmlsaXRpZXM6CisKKyAgMS4gQSBkb21haW4gcmVn
-aXN0cmF0aW9uIG5vdGlmaWVyIG1lY2hhbmlzbQorICAyLiBEZWZpbml0aW9ucyBmb3IgdGhlIFJQ
-TUkgUkVRVUVTVF9GT1JXQVJEIHNlcnZpY2UgZ3JvdXAKKyAgMy4gQW4gRkRULWNvbmZpZ3VyZWQg
-TVBYWSBicmlkZ2UgZHJpdmVyIGZvciBpbnRlci1kb21haW4gbWVzc2FnZSBwYXNzaW5nCisKK1Ro
-ZSBicmlkZ2UgY2FuIGhhdmUgb25lIGRlc3RpbmF0aW9uIGFuZCBtdWx0aXBsZSBzb3VyY2VzLiBT
-b3VyY2UgZHJpdmVycworcHJvdmlkZSBwcm90b2NvbC1zcGVjaWZpYyBoYW5kbGluZyBmb3IgbWVz
-c2FnZXMgZm9yd2FyZGVkIHRocm91Z2ggdGhlIGJyaWRnZS4KK0ZvciBleGFtcGxlLCBzZXBhcmF0
-ZSBkcml2ZXJzIGNhbiBzdXBwb3J0IE1hbmFnZW1lbnQgTW9kZSAoTU0pIG9yIFRFRS1yZWxhdGVk
-CitzZXJ2aWNlcy4KKworTW90aXZhdGlvbgorLS0tLS0tLS0tLQorCitBIHN5c3RlbSBtYXkgcnVu
-IG11bHRpcGxlIGRvbWFpbnMgb24gdGhlIHNhbWUgcGh5c2ljYWwgSEFSVOKAlGZvciBleGFtcGxl
-LCBhCit0cnVzdGVkIGRvbWFpbiBhbmQgYW4gdW50cnVzdGVkIGRvbWFpbi4gT3BlblNCSeKAmXMg
-ZG9tYWluIGNvbnRleHQgc3dpdGNoaW5nCitwcm92aWRlcyBhIHdheSB0byBzd2l0Y2ggZXhlY3V0
-aW9uIGJldHdlZW4gdGhlc2UgZG9tYWlucywgYnV0IGRvbWFpbnMgYWxzbyBuZWVkCithIGNvbnRy
-b2xsZWQgd2F5IHRvIGV4Y2hhbmdlIHJlcXVlc3RzIGFuZCByZXNwb25zZXMuCisKK1RoZSBNUFhZ
-IGJyaWRnZSBwcm92aWRlcyB0aGlzIGNvbW11bmljYXRpb24gcGF0aC4gSXQgdXNlcyBkb21haW4g
-Y29udGV4dAorc3dpdGNoaW5nIHRvIHRyYW5zZmVyIGNvbnRyb2wgYmV0d2VlbiB0aGUgc291cmNl
-IGFuZCBkZXN0aW5hdGlvbiBkb21haW5zLCBhbmQKK3RoZSBSUE1JIFJFUVVFU1RfRk9SV0FSRCBz
-ZXJ2aWNlIGdyb3VwIHRvIHJlcHJlc2VudCBmb3J3YXJkZWQgcmVxdWVzdHMuCisKK0JyaWRnZSBN
-b2RlbAorLS0tLS0tLS0tLS0tCisKK0EgYnJpZGdlIGNvbnNpc3RzIG9mOgorCisgIC0gRGVzdGlu
-YXRpb24KKyAgICAgIFRoZSBkb21haW4gdGhhdCByZWNlaXZlcyBhbmQgaGFuZGxlcyBmb3J3YXJk
-ZWQgcmVxdWVzdHMuIFRoZSBicmlkZ2UKKyAgICAgIHJlZ2lzdGVycyBhIGRlc3RpbmF0aW9uIE1Q
-WFkgY2hhbm5lbCBpbiB0aGlzIGRvbWFpbi4KKworICAtIFNvdXJjZXMKKyAgICAgIE9uZSBvciBt
-b3JlIHByb3RvY29sIGVuZHBvaW50cyB0aGF0IHN1Ym1pdCByZXF1ZXN0cyB0byB0aGUgZGVzdGlu
-YXRpb24uCisgICAgICBFYWNoIHNvdXJjZSBoYXMgaXRzIG93biBkb21haW4gYW5kIE1QWFkgY2hh
-bm5lbC4KKworICAtIFNvdXJjZSBkcml2ZXJzCisgICAgICBQcm90b2NvbC1zcGVjaWZpYyBkcml2
-ZXJzIHRoYXQgdHJhbnNsYXRlIHJlcXVlc3RzIGFuZCByZXNwb25zZXMgYmV0d2VlbgorICAgICAg
-dGhlIHNvdXJjZSBwcm90b2NvbCBhbmQgdGhlIGJyaWRnZeKAmXMgcmVxdWVzdC1mb3J3YXJkaW5n
-IG1lY2hhbmlzbS4KKworVGhlIGJyaWRnZeKAmXMgZGVzdGluYXRpb24gYW5kIHNvdXJjZSBjaGFu
-bmVscyBhcmUgcmVnaXN0ZXJlZCB3aGVuIHRoZWlyCithc3NvY2lhdGVkIGRvbWFpbnMgYmVjb21l
-IGF2YWlsYWJsZS4gQSBkb21haW4gcmVnaXN0cmF0aW9uIG5vdGlmaWVyIGFsbG93cyB0aGUKK2Jy
-aWRnZSBkcml2ZXIgdG8gcmVzcG9uZCB0byBkb21haW4gcmVnaXN0cmF0aW9uIGFuZCBlc3RhYmxp
-c2ggdGhlIHJlbGV2YW50CitjaGFubmVscyBhdCBydW50aW1lLgorCitBdCBhIGhpZ2ggbGV2ZWws
-IGNvbW11bmljYXRpb24gcHJvY2VlZHMgYXMgZm9sbG93czoKKworICAxLiBBIHNvdXJjZSBzZW5k
-cyBhIG1lc3NhZ2UgdGhyb3VnaCBpdHMgTVBYWSBjaGFubmVsLgorICAyLiBUaGUgYnJpZGdlIGFu
-ZCBzb3VyY2UgZHJpdmVyIHByZXBhcmUgdGhlIHJlcXVlc3QgZm9yIGZvcndhcmRpbmcuCisgIDMu
-IE9wZW5TQkkgc3dpdGNoZXMgZXhlY3V0aW9uIHRvIHRoZSBkZXN0aW5hdGlvbiBkb21haW4uCisg
-IDQuIFRoZSBkZXN0aW5hdGlvbiByZXRyaWV2ZXMgYW5kIGhhbmRsZXMgdGhlIGZvcndhcmRlZCBy
-ZXF1ZXN0LgorICA1LiBUaGUgcmVzcG9uc2UgaXMgY29tcGxldGVkIGFuZCByZXR1cm5lZCB0byB0
-aGUgb3JpZ2luYXRpbmcgc291cmNlLgorCitGRFQgQmluZGluZ3MKKy0tLS0tLS0tLS0tLQorCitU
-aGUgYnJpZGdlIGlzIGRlc2NyaWJlZCBpbiB0aGUgZGV2aWNlIHRyZWUuIFRoZSBicmlkZ2Ugbm9k
-ZSBpZGVudGlmaWVzIHRoZQorZGVzdGluYXRpb24gZG9tYWluIGFuZCBpdHMgTVBYWSBjaGFubmVs
-LiBFYWNoIGNoaWxkIHNvdXJjZSBub2RlIGlkZW50aWZpZXMgYQorc291cmNlIGRyaXZlciwgc291
-cmNlIGRvbWFpbiwgYW5kIHNvdXJjZSBNUFhZIGNoYW5uZWwuCisKK0JyaWRnZSBOb2RlCistLS0t
-LS0tLS0tLQorCitUaGUgYnJpZGdlIG5vZGUgaGFzIHRoZSBmb2xsb3dpbmcgcHJvcGVydGllczoK
-KworICAtIGNvbXBhdGlibGUgKE1hbmRhdG9yeSkKKyAgICAgIFRoZSBicmlkZ2UgY29tcGF0aWJs
-ZSBzdHJpbmc6CisgICAgICAib3BlbnNiaSxycG1pLW1weHktcmVxZndkLWJyaWRnZSIKKworICAt
-IHJpc2N2LGRvbWFpbiAoTWFuZGF0b3J5KQorICAgICAgUGhhbmRsZSBvZiB0aGUgZGVzdGluYXRp
-b24gZG9tYWluLgorCisgIC0gcmlzY3Ysc2JpLW1weHktY2hhbm5lbC1pZCAoTWFuZGF0b3J5KQor
-ICAgICAgTVBYWSBjaGFubmVsIElEIHJlZ2lzdGVyZWQgZm9yIHRoZSBkZXN0aW5hdGlvbi4KKwor
-U291cmNlIE5vZGUKKy0tLS0tLS0tLS0tCisKK0VhY2ggc291cmNlIGlzIHJlcHJlc2VudGVkIGJ5
-IGEgY2hpbGQgbm9kZSBvZiB0aGUgYnJpZGdlIG5vZGUgYW5kIGhhcyB0aGUKK2ZvbGxvd2luZyBw
-cm9wZXJ0aWVzOgorCisgIC0gY29tcGF0aWJsZSAoTWFuZGF0b3J5KQorICAgICAgSWRlbnRpZmll
-cyB0aGUgc291cmNlIGRyaXZlci4gVGhlIGNvbXBhdGlibGUgc3RyaW5nIHNlbGVjdHMgdGhlCisg
-ICAgICBwcm90b2NvbC1zcGVjaWZpYyBkcml2ZXIuCisKKyAgLSByaXNjdixkb21haW4gKE1hbmRh
-dG9yeSkKKyAgICAgIFBoYW5kbGUgb2YgdGhlIHNvdXJjZSBkb21haW4uCisKKyAgLSByaXNjdixz
-YmktbXB4eS1jaGFubmVsLWlkIChNYW5kYXRvcnkpCisgICAgICBNUFhZIGNoYW5uZWwgSUQgcmVn
-aXN0ZXJlZCBmb3IgdGhlIHNvdXJjZS4KKworQSBicmlkZ2UgY2FuIGNvbnRhaW4gbXVsdGlwbGUg
-c291cmNlIG5vZGVzLCBlYWNoIHdpdGggaXRzIG93biBjb21wYXRpYmxlCitzdHJpbmcsIGRvbWFp
-biwgYW5kIGNoYW5uZWwgSUQuCisKK0V4YW1wbGUKKy0tLS0tLS0KKworICAgIGJyaWRnZTA6IHVu
-dHJ1c3RlZC10by10cnVzdGVkLWJyaWRnZSB7CisgICAgICAgIGNvbXBhdGlibGUgPSAib3BlbnNi
-aSxycG1pLW1weHktcmVxZndkLWJyaWRnZSI7CisgICAgICAgIHJpc2N2LGRvbWFpbiA9IDwmdGRv
-bWFpbj47CisgICAgICAgIHJpc2N2LHNiaS1tcHh5LWNoYW5uZWwtaWQgPSA8MHgyPjsKKworICAg
-ICAgICBzb3VyY2UwIHsKKyAgICAgICAgICAgIGNvbXBhdGlibGUgPSAib3BlbnNiaSxycG1pLW1w
-eHktcmVxZndkLW1tIjsKKyAgICAgICAgICAgIHJpc2N2LGRvbWFpbiA9IDwmdWRvbWFpbj47Cisg
-ICAgICAgICAgICByaXNjdixzYmktbXB4eS1jaGFubmVsLWlkID0gPDB4MT47CisgICAgICAgIH07
-CisKKyAgICAgICAgc291cmNlMSB7CisgICAgICAgICAgICBjb21wYXRpYmxlID0gIm9wZW5zYmks
-cnBtaS1tcHh5LXJlcWZ3ZC10ZWUiOworICAgICAgICAgICAgcmlzY3YsZG9tYWluID0gPCZ1ZG9t
-YWluPjsKKyAgICAgICAgICAgIHJpc2N2LHNiaS1tcHh5LWNoYW5uZWwtaWQgPSA8MHgzPjsKKyAg
-ICAgICAgfTsKKyAgICB9OworCitJbiB0aGlzIGV4YW1wbGUsIHRoZSB0cnVzdGVkIGRvbWFpbiBp
-cyB0aGUgYnJpZGdlIGRlc3RpbmF0aW9uLiBUaGUgdW50cnVzdGVkCitkb21haW4gcHJvdmlkZXMg
-dHdvIHNvdXJjZXM6IG9uZSBmb3IgTU0gcmVxdWVzdHMgYW5kIG9uZSBmb3IgVEVFIHJlcXVlc3Rz
-LgorCitTb3VyY2UgRHJpdmVycworLS0tLS0tLS0tLS0tLS0KKworQSBzb3VyY2UgZHJpdmVyIGhh
-bmRsZXMgcHJvdG9jb2wtc3BlY2lmaWMgcmVxdWVzdCBhbmQgcmVzcG9uc2UgcHJvY2Vzc2luZyBm
-b3IKK2EgYnJpZGdlIHNvdXJjZS4gRHJpdmVycyBhcmUgc2VsZWN0ZWQgYnkgbWF0Y2hpbmcgdGhl
-aXIgY29tcGF0aWJsZSBzdHJpbmcKK2FnYWluc3QgdGhlIHNvdXJjZSBub2RlIGluIHRoZSBGRFQu
-CisKK0Egc291cmNlIGRyaXZlciBpcyBleHBlY3RlZCB0byBwcm92aWRlIHRoZSBvcGVyYXRpb25z
-IHJlcXVpcmVkIGJ5IHRoZSBicmlkZ2UKK2ZvciB0cmFuc2ZlcnJpbmcgYSByZXF1ZXN0IGFuZCBj
-b21wbGV0aW5nIGl0cyByZXNwb25zZS4gVGhpcyBsZXRzIG11bHRpcGxlCitwcm90b2NvbHMgdXNl
-IHRoZSBzYW1lIGJyaWRnZSBpbmZyYXN0cnVjdHVyZSB3aGlsZSBrZWVwaW5nIHRoZWlyIHNlcnZp
-Y2UKK21ldGFkYXRhIGFuZCBtZXNzYWdlIGhhbmRsaW5nIGluIHNlcGFyYXRlIGRyaXZlcnMuCisK
-K0ZvciBleGFtcGxlLCBhbiBNTSBzb3VyY2UgZHJpdmVyIGNhbiByZWdpc3RlciB0aGUgTU0gc2Vy
-dmljZSBncm91cCBhbmQgaGFuZGxlCitpdHMgcmVxdWVzdCBhbmQgcmVzcG9uc2UgZm9ybWF0cywg
-d2hpbGUgYSBURUUgc291cmNlIGRyaXZlciBjYW4gcHJvdmlkZQorY29ycmVzcG9uZGluZyBoYW5k
-bGluZyBmb3IgVEVFIHNlcnZpY2VzLgorCitEb21haW4gQnJpZGdlIEVmZmVjdHMKKy0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQorCitTb21lIG5vdGV3b3J0aHkgZWZmZWN0cyBvZiB1c2luZyBhIGRvbWFp
-biBicmlkZ2UgYXJlOgorCisgIC0gQSBicmlkZ2UgcHJvdmlkZXMgYW4gZXhwbGljaXQgbWVzc2Fn
-ZS1wYXNzaW5nIHBhdGggYmV0d2VlbiBjb25maWd1cmVkCisgICAgc291cmNlIGFuZCBkZXN0aW5h
-dGlvbiBkb21haW5zLgorCisgIC0gVGhlIGRlc3RpbmF0aW9uIGhhbmRsZXMgZm9yd2FyZGVkIHdv
-cmsgaW4gaXRzIG93biBkb21haW4gY29udGV4dC4KKworICAtIE11bHRpcGxlIHNvdXJjZXMgY2Fu
-IHVzZSBhIHNpbmdsZSBkZXN0aW5hdGlvbiwgd2l0aCBlYWNoIHNvdXJjZSBzZWxlY3RlZAorICAg
-IGFuZCBjb25maWd1cmVkIGluZGVwZW5kZW50bHkuCisKKyAgLSBUaGUgYnJpZGdlIHJlbGllcyBv
-biBPcGVuU0JJIGRvbWFpbiBjb250ZXh0IHN3aXRjaGluZzsgaXQgZG9lcyBub3QgaXRzZWxmCisg
-ICAgY2hhbmdlIHRoZSBtZW1vcnkgcGVybWlzc2lvbnMgb3IgaXNvbGF0aW9uIHJ1bGVzIGNvbmZp
-Z3VyZWQgZm9yIHRoZQorICAgIGRvbWFpbnMuCisKKyAgLSBUaGUgRkRUIGNvbmZpZ3VyYXRpb24g
-aWRlbnRpZmllcyB0aGUgcGFydGljaXBhdGluZyBkb21haW5zIGFuZCBNUFhZCisgICAgY2hhbm5l
-bHM7IHNvdXJjZSBkcml2ZXJzIGRlZmluZSB0aGUgcHJvdG9jb2wtc3BlY2lmaWMgYmVoYXZpb3Iu
-CisKZGlmZiAtLWdpdCBhL2RvY3MvZG9tYWluX3N1cHBvcnQubWQgYi9kb2NzL2RvbWFpbl9zdXBw
-b3J0Lm1kCmluZGV4IDUxNzM3MjE4Li44NmEyNWYyMiAxMDA2NDQKLS0tIGEvZG9jcy9kb21haW5f
-c3VwcG9ydC5tZAorKysgYi9kb2NzL2RvbWFpbl9zdXBwb3J0Lm1kCkBAIC0yMTcsNiArMjE3LDEz
-IEBAIEF0IHJ1bnRpbWUsIHRoZSBhc3NpZ25tZW50IG9mIGEgSEFSVCBjYW4gY2hhbmdlIGZyb20g
-b25lIGRvbWFpbiB0bwogYW5vdGhlciBkb21haW4gYXMgbG9uZyBhcyB0aGUgSEFSVCBpcyBsaXN0
-ZWQgaW4gcG9zc2libGUgSEFSVHMgb2YKIGJvdGggZG9tYWlucy4KIAorIyMjIEludGVyZG9tYWlu
-IENvbW11bmljYXRpb24KKworKiAqW0RPTUFJTl9CUklER0VdKjogVGhlIE9wZW5TQkkgZG9tYWlu
-IGJyaWRnZSBhbmQgaXRzIGRldmljZSB0cmVlIGJpbmRpbmdzCisgIGFyZSBkZXNjcmliZWQgaW4g
-bW9yZSBkZXRhaWwgaW4gdGhlIGZpbGUgKmRvbWFpbl9icmlkZ2UubWQqLgorCitbRE9NQUlOX0JS
-SURHRV06IGRvbWFpbl9icmlkZ2UubWQKKwogIyMjIERvbWFpbiBDb25maWd1cmF0aW9uIE9ubHkg
-QWNjZXNzaWJsZSB0byBPcGVuU0JJCiAKIFRoZSBzb2Z0d2FyZSBydW5uaW5nIGluc2lkZSBhIGRv
-bWFpbiBpbnN0YW5jZSBzaG91bGQgb25seSBiZSBhd2FyZSBvZgotLSAKMi40My4wCgoKLS0gCm9w
-ZW5zYmkgbWFpbGluZyBsaXN0Cm9wZW5zYmlAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
-dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL29wZW5zYmkK
+From: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+
+Add the MPXY MM source driver for forwarding RPMI Management Mode
+requests through the MPXY request-forwarding bridge.
+
+The driver:
+
+- Registers the `opensbi,rpmi-mpxy-reqfwd-mm` FDT-compatible source.
+- Defines MM service metadata for get attributes and communicate services.
+- Builds request-forwarding responses for MM GET_ATTRIBUTES and
+  COMMUNICATE requests.
+- Handles MM response completion and copies response payloads back to the
+  source buffer.
+- Extracts and stores the MM shared-memory address and size from the
+  GET_ATTRIBUTES response.
+- Registers the MM source with the Management Mode RPMI service group.
+
+Signed-off-by: Oza Pawandeep <pawandeep.oza@oss.qualcomm.com>
+---
+ lib/utils/mpxy/Kconfig                   |   7 +
+ lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c | 207 +++++++++++++++++++++++
+ lib/utils/mpxy/objects.mk                |   2 +
+ platform/generic/configs/defconfig       |   1 +
+ 4 files changed, 217 insertions(+)
+ create mode 100644 lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c
+
+diff --git a/lib/utils/mpxy/Kconfig b/lib/utils/mpxy/Kconfig
+index bbf85be6..c4041358 100644
+--- a/lib/utils/mpxy/Kconfig
++++ b/lib/utils/mpxy/Kconfig
+@@ -46,6 +46,13 @@ config FDT_MPXY_RPMI_BRIDGE
+ 	bool "MPXY bridge driver for interdomain communication"
+ 	default n
+ 
++if FDT_MPXY_RPMI_BRIDGE
++
++config FDT_MPXY_RPMI_BRIDGE_MM
++	bool "MPXY rpmi bridge mm driver for interdomain communication"
++	default n
++
++endif
+ 
+ endif
+ 
+diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c b/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c
+new file mode 100644
+index 00000000..55b31872
+--- /dev/null
++++ b/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c
+@@ -0,0 +1,207 @@
++/*
++ * SPDX-License-Identifier: BSD-2-Clause
++ *
++ * Copyright (c) 2026 Qualcomm, Inc
++ *
++ * Authors:
++ *   Pawandeep Oza <pawandeep.oza@oss.qualcomm.com>
++ */
++
++#include <sbi_utils/mpxy/fdt_mpxy.h>
++#include <sbi_utils/mpxy/fdt_mpxy_bridge.h>
++#include <sbi_utils/mpxy/fdt_mpxy_rpmi.h>
++#include <sbi_utils/mailbox/rpmi_mailbox.h>
++
++static struct mpxy_rpmi_service_data mm_srvcdata[] = {
++	[0] = {
++		.id = RPMI_MM_SRV_ENABLE_NOTIFICATION,
++		.min_tx_len = sizeof(struct rpmi_enable_notification_req),
++		.max_tx_len = sizeof(struct rpmi_enable_notification_req),
++		.min_rx_len = sizeof(struct rpmi_enable_notification_resp),
++		.max_rx_len = sizeof(struct rpmi_enable_notification_resp),
++	},
++	[1] = {
++		.id = RPMI_MM_SRV_GET_ATTRIBUTES,
++		.min_tx_len = 0,
++		.max_tx_len = 0,
++		.min_rx_len = sizeof(struct rpmi_mm_get_attributes_rsp),
++		.max_rx_len = sizeof(struct rpmi_mm_get_attributes_rsp),
++	},
++	[2] = {
++		.id = RPMI_MM_SRV_COMMUNICATE,
++		.min_tx_len = sizeof(struct rpmi_mm_communicate_req),
++		.max_tx_len = sizeof(struct rpmi_mm_communicate_req),
++		.min_rx_len = sizeof(struct rpmi_mm_communicate_rsp),
++		.max_rx_len = sizeof(struct rpmi_mm_communicate_rsp),
++	},
++};
++
++static struct rpmi_mm_shmem_info {
++	u64 addr;
++	u32 size;
++} mm_shmem;
++
++static int mpxy_rpmi_build_reqfwd_resp(struct mpxy_bridge_src_ctx *src,
++				       struct mpxy_bridge_dst_ctx *dst,
++				       const u8 *data, u32 data_len)
++{
++	struct rpmi_request_forward_resp *resp;
++	u32 hdr_len = sizeof(struct rpmi_message_header);
++	u32 avail;
++	u32 offset;
++	u32 returned;
++	int ret = SBI_OK;
++
++	do {
++		resp   = (struct rpmi_request_forward_resp *)dst->respbuf;
++		offset = dst->start_index;
++		avail  = dst->resp_bufsize - sizeof(*resp);
++
++		if (offset > data_len) {
++			ret = SBI_EINVAL;
++			break;
++		}
++
++		if (offset == 0) {
++			if (avail <= hdr_len) {
++				ret = SBI_EINVAL;
++				break;
++			}
++			avail -= hdr_len;
++		}
++
++		returned = data_len - offset;
++		if (returned > avail)
++			returned = avail;
++
++		resp->status = RPMI_SUCCESS;
++
++		if (offset == 0) {
++			sbi_memcpy(resp->data, (u8 *)&src->header, hdr_len);
++			sbi_memcpy(resp->data + hdr_len, data, returned);
++			resp->returned     = hdr_len + returned;
++			resp->remaining    = data_len - returned;
++			*dst->resp_len_ptr = sizeof(*resp) + hdr_len + returned;
++		} else {
++			sbi_memcpy(resp->data, data + offset, returned);
++			resp->returned     = returned;
++			resp->remaining    = data_len - offset - returned;
++			*dst->resp_len_ptr = sizeof(*resp) + returned;
++		}
++	} while (0);
++
++	if (ret) {
++		resp->status = RPMI_ERR_INVALID_PARAM;
++		resp->returned = 0;
++		resp->remaining = 0;
++	}
++
++	return ret;
++}
++
++static int mpxy_rpmi_mm_xfer(struct mpxy_bridge_src_ctx *src,
++			     struct mpxy_bridge_dst_ctx *dst)
++{
++	if (!src || !src->msgbuf || !dst || !dst->respbuf || !dst->resp_len_ptr)
++		return SBI_EINVAL;
++
++	switch (src->header.service_id) {
++		case RPMI_MM_SRV_GET_ATTRIBUTES:
++			return mpxy_rpmi_build_reqfwd_resp(src, dst, NULL,
++			mm_srvcdata[RPMI_MM_SRV_GET_ATTRIBUTES - 1].min_tx_len);
++
++		case RPMI_MM_SRV_COMMUNICATE:
++			return mpxy_rpmi_build_reqfwd_resp(src, dst, (const u8 *)src->msgbuf,
++				mm_srvcdata[RPMI_MM_SRV_COMMUNICATE - 1].min_tx_len);
++
++		default:
++			return SBI_ENOTSUPP;
++	}
++}
++
++static int mpxy_rpmi_get_payload(void *msgbuf, u32 msg_len,
++				 const u8 **payload, u32 *payload_len)
++{
++	struct rpmi_message_header *hdr;
++	u32 len;
++
++	hdr = (struct rpmi_message_header *)msgbuf;
++	len = (u32)le16_to_cpu(hdr->datalen);
++
++	*payload = (const u8 *)msgbuf + sizeof(struct rpmi_message_header);
++	*payload_len = len;
++
++	return SBI_OK;
++}
++
++static int mpxy_rpmi_copy_payload(struct mpxy_bridge_src_ctx *src,
++				   const u8 *payload, u32 payload_len)
++{
++	sbi_memcpy((u8 *)src->respbuf, payload, payload_len);
++	src->resp_length = payload_len;
++
++	return SBI_OK;
++}
++
++static int mpxy_rpmi_mm_complete(struct mpxy_bridge_src_ctx *src,
++				  void *msgbuf, u32 msg_len)
++{
++	const u8 *payload;
++	u32 payload_len;
++	int ret;
++
++	ret = mpxy_rpmi_get_payload(msgbuf, msg_len,
++				    &payload, &payload_len);
++	if (ret)
++		return ret;
++
++	switch (src->header.service_id) {
++		case RPMI_MM_SRV_GET_ATTRIBUTES:
++			struct rpmi_mm_get_attributes_rsp *attr_rsp;
++			attr_rsp = 	(struct rpmi_mm_get_attributes_rsp *)payload;
++
++			mm_shmem.addr = ((u64)le32_to_cpu(attr_rsp->mma.shmem_addr_hi) << 32) |
++				(u64)le32_to_cpu(attr_rsp->mma.shmem_addr_lo);
++			mm_shmem.size = le32_to_cpu(attr_rsp->mma.shmem_size);
++			attr_rsp->status = RPMI_SUCCESS;
++			break;
++
++		case RPMI_MM_SRV_COMMUNICATE:
++			break;
++
++		default:
++			return SBI_ENOTSUPP;
++	}
++
++	ret = mpxy_rpmi_copy_payload(src, payload, payload_len);
++	if (ret)
++		return ret;
++
++	return SBI_OK;
++}
++
++static const struct mpxy_bridge_source_ops mm_ops = {
++	.xfer    = mpxy_rpmi_mm_xfer,
++    .complete  = mpxy_rpmi_mm_complete,
++};
++
++static const struct fdt_match mm_match[] = {
++	{
++		.compatible = "opensbi,rpmi-mpxy-reqfwd-mm",
++	},
++	{ }
++};
++
++static int mpxy_rpmi_mm_probe(const void *fdt, int nodeoff,
++		   const struct fdt_match *match)
++{
++	(void)match;
++
++	return mpxy_bridge_register_source(fdt, nodeoff, &mm_ops, mm_srvcdata,
++					array_size(mm_srvcdata), RPMI_SRVGRP_MANAGEMENT_MODE);
++}
++
++const struct mpxy_bridge_source_driver fdt_mpxy_rpmi_bridge_mm = {
++	.match_table = mm_match,
++	.probe = mpxy_rpmi_mm_probe,
++};
+diff --git a/lib/utils/mpxy/objects.mk b/lib/utils/mpxy/objects.mk
+index 488116da..6fc68099 100644
+--- a/lib/utils/mpxy/objects.mk
++++ b/lib/utils/mpxy/objects.mk
+@@ -37,3 +37,5 @@ carray-fdt_mpxy_drivers-$(CONFIG_FDT_MPXY_RPMI_BRIDGE) += fdt_mpxy_rpmi_bridge
+ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_BRIDGE) += mpxy/fdt_mpxy_rpmi_bridge.o
+ libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_BRIDGE) += mpxy/fdt_mpxy_rpmi_bridge_sources.carray.o
+ 
++carray-fdt_mpxy_rpmi_bridge_sources-$(CONFIG_FDT_MPXY_RPMI_BRIDGE_MM) += fdt_mpxy_rpmi_bridge_mm
++libsbiutils-objs-$(CONFIG_FDT_MPXY_RPMI_BRIDGE_MM) += mpxy/fdt_mpxy_rpmi_bridge_mm.o
+\ No newline at end of file
+diff --git a/platform/generic/configs/defconfig b/platform/generic/configs/defconfig
+index 8b42446f..750ad5a9 100644
+--- a/platform/generic/configs/defconfig
++++ b/platform/generic/configs/defconfig
+@@ -88,4 +88,5 @@ CONFIG_FDT_MPXY_RPMI_SYSMSI=y
+ CONFIG_FDT_MPXY_RPMI_MM=y
+ CONFIG_FDT_MPXY_RPMI_LOGGING=y
+ CONFIG_FDT_MPXY_RPMI_BRIDGE=y
++CONFIG_FDT_MPXY_RPMI_BRIDGE_MM=y
+ 
+-- 
+2.43.0
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
