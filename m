@@ -2,11 +2,11 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13A31606A334
-	for <opensbi@archiver.kernel.org>; Thu, 19 Nov 2026 16:55:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B2C606A326
+	for <opensbi@archiver.kernel.org>; Thu, 19 Nov 2026 16:55:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=iO9NygOc;
-	dkim=temperror header.d=mobileye.com header.i=@mobileye.com header.a=rsa-sha256 header.s=MoEyIP header.b=H9GLNe6S
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=WB+8mbwW;
+	dkim=temperror header.d=mobileye.com header.i=@mobileye.com header.a=rsa-sha256 header.s=MoEyIP header.b=sSqkaq1q
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
@@ -14,52 +14,52 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	:MIME-Version:Subject:Date:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=1cYd6XEh8K33E4A+ypZg3pNBAv2u0tvsDOO8y5lxFDY=; b=iO9NygOcMEelRJM2kab5Odtjsz
-	+95njeAvce7xZZ/QX57A+6HlRlsc2TE+FNKMb/mGJsXOU/owzcnrtnG3Y2tMtUpz6TtIJNekJpEal
-	0MZcihrAa9mimb2HaVwVPQQ1hu1+OKp68+FOQoTCIl96EIZ3iFRkFI5ZEQcWhsI/cZ854BUJzbZSd
-	AJchhKM0oWYBhrLXeuhA9DNrX8X24aWZ5nq/egKaM2lGzPa6NNwwzT42lsQ8HqcC8hdR/ziyjOVCR
-	BIJ5D2x29TOxEYfcHKEo1eGmEqkLTevYqMtR8hglAC4ZgD1wA1SK7S1qFjEySN344iVGnhZRM/ZUh
-	R4+tbBkA==;
+	bh=zQZJJLyqYyQAvmnzRtTzfhnnbOk5HS9RQp6PlggM8mg=; b=WB+8mbwWBkytJ9CFBCCzODEuIJ
+	jbOeuMXxkgDxiAjZbVF97xS3EAb8EAWbdO6yP7Nhy7CNhdXsw5HDwqR28B/1JNRTeOVLdJf8MoMnN
+	MyA7KGriBytXfJW0crmcac/KlzTJo1DaxZDKk3V4R+SewacWgxXoGfcEow6J5FyBP3HFwN084y+Nk
+	3C5M27oUjRcHYpn29w+68uqmAKwnyLMMPnAERUJqoMRdKGNKvSEwinM31+lOFDeX5nsONml9TsKDA
+	aYxZcJc2lgXAfCUnKx9XJFa58243L1RPJ0/6ysRPLcNVgGcjzH2+ghVrrpSuKWsQMpRPT6Mn0pAN+
+	AmYg9stA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xU5PZ-0000000Ck1W-2B2a;
-	Thu, 19 Nov 2026 16:55:01 +0000
-Received: from esa3.hc555-34.eu.iphmx.com ([207.54.77.50])
-	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xU5PV-0000000Cjz1-2qTV
-	for opensbi@lists.infradead.org;
+	id 1xU5PY-0000000Ck0l-1Tz4;
 	Thu, 19 Nov 2026 16:55:00 +0000
+Received: from esa2.hc555-34.eu.iphmx.com ([23.90.104.147])
+	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
+	id 1xU5PV-0000000Cjyx-1iHk
+	for opensbi@lists.infradead.org;
+	Thu, 19 Nov 2026 16:54:59 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=mobileye.com; i=@mobileye.com; q=dns/txt; s=MoEyIP;
-  t=1795107297; x=1826643297;
+  t=1795107305; x=1826643305;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=N901Q0u3KDtzG64eOG9YNUPaGa5G60HjFtHVNbHw2a4=;
-  b=H9GLNe6SZWr3FKFXF8vcdt6J7l0irN7wjbiJ/rEgBMClYrDOy1xjhs34
-   DWzKGQ7Y9py5HPtqTVlx2M87nqFHDz3uNat3OYFIQ/rCwKW0ngReA0K7J
-   Z5dotZUN8ryB01WQw/atQHcArHCB+aea/iloOtaRQ6UB5Xjq7OB7Doi0N
-   lW9UX1TtIydNKuyXZ6R5BEZ7wIZpg9EKDb+w5FE3CVVxsRdFadWcGgJJ7
-   17TBfdjT07eDiE250s/0ZGeYsQ07FTcpECT1ovvRRavHYYt52hsn1FNKd
-   3ilat65WPbP+5lS5V+RuMn2cqBbAKki7KwBs00G3aZVBfd/C6WputhTk9
+  bh=6ueI9Lg5lwugLDaIUhWH508OX+v9/7wKTzKtKCjGPdQ=;
+  b=sSqkaq1qBN1YYcQQ5vNOHQub2F286cJnldB9e8H/ssuMXTLZ+Ybm63Jc
+   7OLA8dvKdH5Kpg/fXRlDctsQVuhqX2xwaS+0qtNBaOvQVEHlhZcDwYpqG
+   gWE/jgoYMMQvmp+Mu9VxsXycstd3DNhw2KgDUoLdXa0FtWVGHuPNk3y4C
+   piBVBRk+Hq306D7/UpSm/jfzNq0tkCi+IXod7TV1D/+XLCWmXlR0a6Tqp
+   N/2j5M/Q087XWdiF5/a54C0A1mHUtKQ3ackKLUJWO2weP++0lkoC2Y/r5
+   6LF+lv6cu3mAkA4pDRu5FyC2MTHM+vz07ULQfBVw85fWN8gE5vKoVwpsQ
    g==;
-X-CSE-ConnectionGUID: LInLnaNIQ0W8k8b4+e+5/A==
-X-CSE-MsgGUID: 8Xc3nmwPQz2x2UDMLe/Cng==
+X-CSE-ConnectionGUID: NpQ8fWJjQ8qMaypYElXkkA==
+X-CSE-MsgGUID: DBnXdt9jQq6a1DrUCA23tA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from unknown (HELO ces03_data.me-corp.lan) ([146.255.191.134])
-  by esa3.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2026 18:54:55 +0200
-X-CSE-ConnectionGUID: xRlYrjcURJ+9kFDnyXIMGQ==
-X-CSE-MsgGUID: 6xYfSgrIRm2RIx9wVWQ/XA==
+Received: from unknown (HELO ces01_data.me-corp.lan) ([146.255.191.134])
+  by esa2.hc555-34.eu.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2026 18:55:00 +0200
+X-CSE-ConnectionGUID: XJQsD3qpSrG65KkURy0C/g==
+X-CSE-MsgGUID: 6lH+S6OPQ6iRaf3wdUSefA==
 Received: from unknown (HELO epgd071.me-corp.lan) ([10.154.54.3])
-  by ces03_data.me-corp.lan with SMTP; 19 Nov 2026 19:03:00 +0200
-Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Thu, 19 Nov 2026 18:54:52 +0200
+  by ces01_data.me-corp.lan with SMTP; 19 Nov 2026 19:03:14 +0200
+Received: by epgd071.me-corp.lan (sSMTP sendmail emulation); Thu, 19 Nov 2026 18:54:51 +0200
 From: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Date: Thu, 19 Nov 2026 18:54:43 +0200
-Subject: [PATCH RESEND 2/2] platform: generic: mips: p8700: Emulate S-mode
- access to CM PMU registers
+Date: Thu, 19 Nov 2026 18:54:42 +0200
+Subject: [PATCH RESEND 1/2] lib: sbi: Add sbi_va_to_pa() to translate
+ S/U-mode addresses
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Message-Id: <20261119-p8700-cm-pmu-v1-2-5cfe67c6b2db@mobileye.com>
+Message-Id: <20261119-p8700-cm-pmu-v1-1-5cfe67c6b2db@mobileye.com>
 References: <20261119-p8700-cm-pmu-v1-0-5cfe67c6b2db@mobileye.com>
 In-Reply-To: <20261119-p8700-cm-pmu-v1-0-5cfe67c6b2db@mobileye.com>
 To: Anup Patel <anup@brainfault.org>, Atish Patra <atishp@rivosinc.com>, 
@@ -71,8 +71,8 @@ Cc: Andrew Jones <ajones@ventanamicro.com>, opensbi@lists.infradead.org,
  Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 X-Mailer: b4 0.16.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261119_085458_011074_2E426FFF 
-X-CRM114-Status: GOOD (  28.17  )
+X-CRM114-CacheID: sfid-20261119_085457_768419_748A2A49 
+X-CRM114-Status: GOOD (  20.71  )
 X-Spam-Score: -4.0 (----)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -93,239 +93,221 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-The CM3 performance counter registers (GCR.Debug block at offset 0x900)
-are used by the Linux mips_p8700_cm_pmu driver, but they share a PMP
-granule with GCR registers that must stay M-mode only, so the whole GCR
-block is closed to S-mode. S-mode loads and stores to it therefore trap
-to M-mode as access faults.
+Trap handlers that act on behalf of a lower privilege mode, such as
+platform load/store access fault emulators, receive the faulting
+address as a virtual address of the trapped context (mtval). To decide
+what was actually accessed they need the physical address, and RISC-V
+has no instruction to translate an address on behalf of another mode.
 
-Implement the emulate_load/emulate_store platform hooks in a new
-p8700_access.c. The faulting S-mode virtual address is translated with
-sbi_va_to_pa(), checked to be a naturally aligned 32 or 64-bit
-access fully inside the PMU register range of one of the CM instances
-described by p8700_cm_info, and then performed on behalf of S-mode.
-A cheap page-offset check rejects anything outside the PMU window
-before the page table walk. All other accesses are refused and
-redirected to S-mode as a genuine access fault.
+Add sbi_va_to_pa() which walks the page tables referenced by
+satp using plain M-mode physical loads, so it is unaffected by the PMP
+restrictions applied to S-mode. It supports Sv32 on RV32 and
+Sv39/Sv48/Sv57 on RV64, handles superpages, and masks the Svpbmt and
+Svnapot bits out of the PPN. Every PTE address is checked against the
+current domain before being dereferenced so a corrupt page table
+cannot cause a nested M-mode fault. Translation for VS/VU-mode
+(two-stage) is not supported and returns SBI_ENOTSUPP.
 
-Add the PMU register offsets to p8700.h, mirroring the Linux driver,
-and hook the emulators up for eyeq7h.
+Add the corresponding satp and PTE field definitions to
+riscv_encoding.h.
 
 Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
 ---
- platform/generic/include/mips/p8700.h |  34 +++++++++
- platform/generic/mips/eyeq7h.c        |   2 +
- platform/generic/mips/objects.mk      |   2 +-
- platform/generic/mips/p8700_access.c  | 126 ++++++++++++++++++++++++++++++++++
- 4 files changed, 163 insertions(+), 1 deletion(-)
+ include/sbi/riscv_encoding.h | 28 ++++++++++++++++
+ include/sbi/sbi_unpriv.h     | 23 +++++++++++++
+ lib/sbi/sbi_unpriv.c         | 78 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 129 insertions(+)
 
-diff --git a/platform/generic/include/mips/p8700.h b/platform/generic/include/mips/p8700.h
-index e64c62e17037..95144cf81152 100644
---- a/platform/generic/include/mips/p8700.h
-+++ b/platform/generic/include/mips/p8700.h
-@@ -179,6 +179,22 @@ extern const struct p8700_cm_info *p8700_cm_info;
- #define GCR_MMIO_BOTTOM_DIS_RQ_LIM	BIT(1)
- #define GCR_MMIO_BOTTOM_EN		BIT(0)
+diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
+index ffe7666c176b..367a8eb55649 100644
+--- a/include/sbi/riscv_encoding.h
++++ b/include/sbi/riscv_encoding.h
+@@ -127,12 +127,32 @@
+ #define PRV_M				_UL(3)
  
-+/*
-+ * GCR.Debug performance counter (CM PMU) registers, offsets from GCR base.
-+ * Keep in sync with linux/drivers/perf/mips_p8700_cm_pmu.c.
-+ */
-+#define GCR_PC_CTL			0x0900
-+#define GCR_PC_OV			0x0920
-+#define GCR_PC_EVENT			0x0930
-+#define GCR_PC_CYCL			0x0980
-+#define GCR_PC_QUAL0			0x0990
-+#define GCR_PC_CNT0			0x0998
-+#define GCR_PC_COUNTER_STRIDE		0x10
-+#define GCR_PC_MAX_PROG_COUNTERS	2
-+/* Range of the PMU block that S-mode is allowed to access via emulation */
-+#define GCR_PMU_OFFSET			GCR_PC_CTL
-+#define GCR_PMU_SIZE			0x100
-+
- /* CPC Block offsets */
- #define CPC_PWRUP_CTL		0x0030
- #define CPC_TIMECTL		0x0058
-@@ -224,4 +240,22 @@ int mips_p8700_add_memranges(void);
- struct fdt_match;
- int mips_p8700_platform_init(const void *fdt, int nodeoff, const struct fdt_match *match);
+ #define SATP32_MODE			_UL(0x80000000)
++#define SATP32_MODE_SHIFT		31
+ #define SATP32_ASID			_UL(0x7FC00000)
+ #define SATP32_PPN			_UL(0x003FFFFF)
+ #define SATP64_MODE			_ULL(0xF000000000000000)
++#define SATP64_MODE_SHIFT		60
+ #define SATP64_ASID			_ULL(0x0FFFF00000000000)
+ #define SATP64_PPN			_ULL(0x00000FFFFFFFFFFF)
  
-+/*
-+ * S-mode access to CM PMU registers (p8700_access.c). The GCR block is
-+ * PMP-protected from S-mode; S-mode accesses trap to M-mode and are
-+ * emulated by these platform hooks for the PMU register range only.
++/* Page table entry */
++#define PTE_V				_UL(0x001)
++#define PTE_R				_UL(0x002)
++#define PTE_W				_UL(0x004)
++#define PTE_X				_UL(0x008)
++#define PTE_U				_UL(0x010)
++#define PTE_G				_UL(0x020)
++#define PTE_A				_UL(0x040)
++#define PTE_D				_UL(0x080)
++#define PTE_PPN_SHIFT			10
++/* Sv32: PPN is bits 31:10 */
++#define PTE32_PPN_MASK			_UL(0x003FFFFF)
++/* Sv39/48/57: PPN is bits 53:10; excludes Svpbmt (62:61) and Svnapot (63) */
++#define PTE64_PPN_MASK			_ULL(0x00000FFFFFFFFFFF)
++/* VPN field width per page table level */
++#define PTE32_VPN_BITS			10
++#define PTE64_VPN_BITS			9
++
+ #define SATP_MODE_OFF			_UL(0)
+ #define SATP_MODE_SV32			_UL(1)
+ #define SATP_MODE_SV39			_UL(8)
+@@ -176,6 +196,10 @@
+ #define MSTATUS_SD			MSTATUS64_SD
+ #define SSTATUS_SD			SSTATUS64_SD
+ #define SATP_MODE			SATP64_MODE
++#define SATP_MODE_SHIFT			SATP64_MODE_SHIFT
++#define SATP_PPN			SATP64_PPN
++#define PTE_PPN_MASK			PTE64_PPN_MASK
++#define PTE_VPN_BITS			PTE64_VPN_BITS
+ 
+ #define HGATP_PPN			HGATP64_PPN
+ #define HGATP_VMID_SHIFT		HGATP64_VMID_SHIFT
+@@ -185,6 +209,10 @@
+ #define MSTATUS_SD			MSTATUS32_SD
+ #define SSTATUS_SD			SSTATUS32_SD
+ #define SATP_MODE			SATP32_MODE
++#define SATP_MODE_SHIFT			SATP32_MODE_SHIFT
++#define SATP_PPN			SATP32_PPN
++#define PTE_PPN_MASK			PTE32_PPN_MASK
++#define PTE_VPN_BITS			PTE32_VPN_BITS
+ 
+ #define HGATP_PPN			HGATP32_PPN
+ #define HGATP_VMID_SHIFT		HGATP32_VMID_SHIFT
+diff --git a/include/sbi/sbi_unpriv.h b/include/sbi/sbi_unpriv.h
+index be2196267413..245ad4a6e817 100644
+--- a/include/sbi/sbi_unpriv.h
++++ b/include/sbi/sbi_unpriv.h
+@@ -14,6 +14,7 @@
+ 
+ struct sbi_scratch;
+ struct sbi_trap_info;
++struct sbi_trap_regs;
+ 
+ #define DECLARE_UNPRIVILEGED_LOAD_FUNCTION(type)           \
+ 	type sbi_load_##type(const type *addr,             \
+@@ -44,4 +45,26 @@ void sbi_store_loop(u8 *buffer, ulong addr, ulong len,
+ 
+ ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap);
+ 
++/**
++ * Translate a virtual address of the trapped S/U-mode context into a
++ * physical address by walking the page tables referenced by satp.
++ *
++ * Intended for trap handlers (e.g. load/store access fault emulation)
++ * that need to know which physical address a lower privilege mode
++ * tried to access. The walk is done with plain M-mode physical loads,
++ * so it is not affected by the PMP restrictions applied to S-mode.
++ *
++ * @param regs trap registers of the trapped context, used to determine
++ *             the previous privilege mode
++ * @param va virtual address in the trapped context
++ * @param pa output physical address
++ *
++ * @return 0 on success,
++ *         SBI_EINVAL if the trapped context was M-mode,
++ *         SBI_ENOTSUPP for VS/VU-mode (two-stage translation) or an
++ *         unsupported satp mode,
++ *         SBI_EINVALID_ADDR if the walk hits an invalid or unreadable PTE
 + */
-+union sbi_ldst_data;
-+struct sbi_trap_context;
-+
-+/** platform specific handler to fixup load fault
-+ *  Refer to comments at sbi_platform_emulate_load */
-+int mips_p8700_emulate_load(ulong insn, int rlen, ulong addr, union sbi_ldst_data *out_val,
-+			    struct sbi_trap_context *tcntx);
-+
-+/** platform specific handler to fixup store fault
-+ *  Refer to comments at sbi_platform_emulate_store */
-+int mips_p8700_emulate_store(ulong insn, int wlen, ulong addr, union sbi_ldst_data in_val,
-+			     struct sbi_trap_context *tcntx);
++int sbi_va_to_pa(const struct sbi_trap_regs *regs, ulong va, ulong *pa);
 +
  #endif
-diff --git a/platform/generic/mips/eyeq7h.c b/platform/generic/mips/eyeq7h.c
-index f08b51972236..5cc05542ff7f 100644
---- a/platform/generic/mips/eyeq7h.c
-+++ b/platform/generic/mips/eyeq7h.c
-@@ -458,6 +458,8 @@ static int eyeq7h_platform_init(const void *fdt, int nodeoff, const struct fdt_m
- 	generic_platform_ops.final_init = eyeq7h_final_init;
- 	generic_platform_ops.nascent_init = eyeq7h_nascent_init;
- 	generic_platform_ops.pmp_set = mips_p8700_pmp_set;
-+	generic_platform_ops.emulate_load = mips_p8700_emulate_load;
-+	generic_platform_ops.emulate_store = mips_p8700_emulate_store;
+diff --git a/lib/sbi/sbi_unpriv.c b/lib/sbi/sbi_unpriv.c
+index 60becedc2ea4..028d5074fbb8 100644
+--- a/lib/sbi/sbi_unpriv.c
++++ b/lib/sbi/sbi_unpriv.c
+@@ -9,6 +9,8 @@
  
- 	return 0;
- }
-diff --git a/platform/generic/mips/objects.mk b/platform/generic/mips/objects.mk
-index 14524aadc12f..77278d434720 100644
---- a/platform/generic/mips/objects.mk
-+++ b/platform/generic/mips/objects.mk
-@@ -5,7 +5,7 @@
- ifeq ($(PLATFORM_RISCV_XLEN), 64)
- carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700_EYEQ7H) += mips_p8700_eyeq7h
- carray-platform_override_modules-$(CONFIG_PLATFORM_MIPS_P8700_BOSTON) += mips_p8700_boston
--platform-objs-$(CONFIG_CPU_MIPS_P8700) += mips/p8700.o mips/mips_warm_boot.o
-+platform-objs-$(CONFIG_CPU_MIPS_P8700) += mips/p8700.o mips/p8700_access.o mips/mips_warm_boot.o
- platform-objs-$(CONFIG_PLATFORM_MIPS_P8700_EYEQ7H) += mips/eyeq7h.o
- platform-objs-$(CONFIG_PLATFORM_MIPS_P8700_BOSTON) += mips/boston.o
- endif
-diff --git a/platform/generic/mips/p8700_access.c b/platform/generic/mips/p8700_access.c
-new file mode 100644
-index 000000000000..004d21f45552
---- /dev/null
-+++ b/platform/generic/mips/p8700_access.c
-@@ -0,0 +1,126 @@
-+/*
-+ * SPDX-License-Identifier: BSD-2-Clause
-+ *
-+ * Copyright (c) 2026 Mobileye
-+ *
-+ * S-mode access to selected CM (GCR) registers.
-+ *
-+ * The CM PMU registers share a PMP granule with M-mode only GCR registers,
-+ * so the whole GCR block is closed for S-mode by PMP. S-mode loads/stores
-+ * to it trap into M-mode as access faults, and sbi_trap_ldst.c forwards
-+ * them here. We translate the faulting S-mode virtual address to a
-+ * physical address, check that it falls in the PMU register range of one
-+ * of the CM instances and, if so, perform the access on behalf of S-mode.
-+ * Anything else is rejected and redirected to S-mode as a real fault.
-+ */
-+
-+#include <sbi/riscv_io.h>
+ #include <sbi/riscv_encoding.h>
+ #include <sbi/sbi_bitops.h>
++#include <sbi/sbi_domain.h>
 +#include <sbi/sbi_error.h>
-+#include <sbi/sbi_trap_ldst.h>
-+#include <sbi/sbi_unpriv.h>
-+#include <mips/p8700.h>
+ #include <sbi/sbi_hart.h>
+ #include <sbi/sbi_scratch.h>
+ #include <sbi/sbi_string.h>
+@@ -253,3 +255,79 @@ ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap)
+ 
+ 	return insn;
+ }
 +
-+/**
-+ * Check whether an access of @len bytes at physical address @pa is an
-+ * access to the CM PMU registers of one of the CM instances.
-+ */
-+static bool p8700_smode_reg_allowed(ulong pa, int len)
++int sbi_va_to_pa(const struct sbi_trap_regs *regs, ulong va, ulong *pa)
 +{
-+	unsigned int i;
-+	ulong off;
++	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
++	ulong satp, ppn, pte, pte_pa, mask;
++	int levels, lvl;
 +
-+	if (!p8700_cm_info)
-+		return false;
++	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
++		return SBI_EINVAL;
++	/* VS/VU-mode would need a two-stage (vsatp + hgatp) walk */
++	if (sbi_regs_from_virt(regs))
++		return SBI_ENOTSUPP;
 +
-+	/* Only naturally aligned 32/64-bit accesses, as the PMU driver does */
-+	if ((len != 4 && len != 8) || (pa & (len - 1)))
-+		return false;
++	satp = csr_read(CSR_SATP);
++	switch ((satp & SATP_MODE) >> SATP_MODE_SHIFT) {
++	case SATP_MODE_OFF:
++		*pa = va;
++		return SBI_OK;
++#if __riscv_xlen == 32
++	case SATP_MODE_SV32:
++		levels = 2;
++		break;
++#else
++	case SATP_MODE_SV39:
++		levels = 3;
++		break;
++	case SATP_MODE_SV48:
++		levels = 4;
++		break;
++	case SATP_MODE_SV57:
++		levels = 5;
++		break;
++#endif
++	default:
++		return SBI_ENOTSUPP;
++	}
 +
-+	for (i = 0; i < p8700_cm_info->num_cm; i++) {
-+		if (pa < p8700_cm_info->gcr_base[i])
++	/*
++	 * M-mode runs with MPRV=0 so the dereferences below are physical
++	 * loads. The hardware has already walked these tables to produce
++	 * the trap, so the PTEs we read are the ones it used.
++	 */
++	ppn = satp & SATP_PPN;
++	for (lvl = levels - 1; lvl >= 0; lvl--) {
++		pte_pa = (ppn << PAGE_SHIFT) +
++			 (((va >> (PAGE_SHIFT + PTE_VPN_BITS * lvl)) &
++			   ((1UL << PTE_VPN_BITS) - 1)) * sizeof(ulong));
++
++		/*
++		 * Never dereference memory the trapped mode itself could not
++		 * read: a bogus pointer here would be a nested M-mode fault.
++		 */
++		if (!sbi_domain_check_addr(dom, pte_pa, PRV_S, SBI_DOMAIN_READ))
++			return SBI_EINVALID_ADDR;
++
++		pte = *(volatile ulong *)pte_pa;
++		if (!(pte & PTE_V) || ((pte & PTE_W) && !(pte & PTE_R)))
++			return SBI_EINVALID_ADDR;
++
++		ppn = (pte >> PTE_PPN_SHIFT) & PTE_PPN_MASK;
++		if (!(pte & (PTE_R | PTE_X)))
 +			continue;
-+		off = pa - p8700_cm_info->gcr_base[i];
-+		if (off >= GCR_PMU_OFFSET && off + len <= GCR_PMU_OFFSET + GCR_PMU_SIZE)
-+			return true;
++
++		/* Leaf PTE. For a superpage the low PPN bits come from VA. */
++		mask = (1UL << (PAGE_SHIFT + PTE_VPN_BITS * lvl)) - 1;
++		if (ppn & (mask >> PAGE_SHIFT))
++			return SBI_EINVALID_ADDR;
++		/* Physical address must fit in ulong (matters for Sv32) */
++		if (ppn >> (__riscv_xlen - PAGE_SHIFT))
++			return SBI_ENOTSUPP;
++		*pa = ((ppn << PAGE_SHIFT) & ~mask) | (va & mask);
++		return SBI_OK;
 +	}
 +
-+	return false;
-+}
-+
-+/*
-+ * Fast reject: the page offset is translation invariant, so if it cannot
-+ * be a PMU register there is no point in walking the page tables.
-+ */
-+static bool p8700_page_off_may_be_pmu(ulong va)
-+{
-+	ulong off = va & ~PAGE_MASK;
-+
-+	return off >= GCR_PMU_OFFSET && off < GCR_PMU_OFFSET + GCR_PMU_SIZE;
-+}
-+
-+int mips_p8700_emulate_load(ulong insn, int rlen, ulong addr,
-+			    union sbi_ldst_data *out_val,
-+			    struct sbi_trap_context *tcntx)
-+{
-+	ulong pa;
-+	int rc;
-+
-+	/* rlen == 0 is a vector/custom instruction; not supported */
-+	if (!rlen)
-+		return SBI_ENOTSUPP;
-+	if (!p8700_page_off_may_be_pmu(addr))
-+		return SBI_EDENIED;
-+
-+	rc = sbi_va_to_pa(&tcntx->regs, addr, &pa);
-+	if (rc)
-+		return rc;
-+	if (!p8700_smode_reg_allowed(pa, rlen))
-+		return SBI_EDENIED;
-+
-+	switch (rlen) {
-+	case 4:
-+		out_val->data_u32 = readl_relaxed((void *)pa);
-+		break;
-+	case 8:
-+		out_val->data_u64 = readq_relaxed((void *)pa);
-+		break;
-+	default:
-+		return SBI_ENOTSUPP;
-+	}
-+
-+	/* >0: caller writes rd from out_val and advances mepc */
-+	return 1;
-+}
-+
-+int mips_p8700_emulate_store(ulong insn, int wlen, ulong addr,
-+			     union sbi_ldst_data in_val,
-+			     struct sbi_trap_context *tcntx)
-+{
-+	ulong pa;
-+	int rc;
-+
-+	if (!wlen)
-+		return SBI_ENOTSUPP;
-+	if (!p8700_page_off_may_be_pmu(addr))
-+		return SBI_EDENIED;
-+
-+	rc = sbi_va_to_pa(&tcntx->regs, addr, &pa);
-+	if (rc)
-+		return rc;
-+	if (!p8700_smode_reg_allowed(pa, wlen))
-+		return SBI_EDENIED;
-+
-+	switch (wlen) {
-+	case 4:
-+		writel_relaxed(in_val.data_u32, (void *)pa);
-+		break;
-+	case 8:
-+		writeq_relaxed(in_val.data_u64, (void *)pa);
-+		break;
-+	default:
-+		return SBI_ENOTSUPP;
-+	}
-+
-+	/* >0: caller advances mepc */
-+	return 1;
++	return SBI_EINVALID_ADDR;
 +}
 
 -- 
