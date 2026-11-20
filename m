@@ -2,68 +2,71 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98B06606A33B
-	for <opensbi@archiver.kernel.org>; Fri, 20 Nov 2026 13:23:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A46606A6B5
+	for <opensbi@archiver.kernel.org>; Fri, 20 Nov 2026 23:11:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=1cqlFgOu;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=Lh9dfKfv
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=0IzOFvF6;
+	dkim=fail reason="signature verification failed" (4096-bit key, unprotected) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=Sg1FreQU
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-ID:Date:Subject:Cc
-	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=+dDhhO9uq4K1kkAmKwxFYGXOXGlwSje27iAnnzVBoSU=; b=1cqlFgOuiOISQcyFFjtjvUw4rJ
-	7DD8IAXJG64BYYBWyxCmmADrT/dwOQAGU0RDpGMKHeivEu+bmFoErALZyc7i2XnPP99MlP7USDAWE
-	qzfWBCMNNftRXe7w9GFTbxiZIN28LDcRfCGx06WqNSU+lSMuUsliIOZdfaXp2HmwNpTFl3af6JV62
-	6h0sbOcqm0QOg/koQbgQJ18MVDWWGwFdxTTEMWET8yuUftu0sUnmlfd/HPPiFR7bAIWhE50OGPkkc
-	tYlTE4D2nMF/c72pbF24fbuKZcxW4+D7Dxiokhre3lancQBJp6HH6Xxl9nTwjfIRGSHrwUAhOXezC
-	mF3YdBnA==;
+	bh=INbVCUvkRvrR1tW2SmDo7FfnJJdJFETjwzgFCdQEZTw=; b=0IzOFvF6YaIf3h5p3WJRxOPUHe
+	FIMN2tUFt/69Zz0+p44NZq7CEa6laJlPuEvKv4T1wbAJBmtYeojkC4VdjO/War6xzwXKCoaMHM/a6
+	sIkMLyKYG1/8tbmqkqNJTEsc9g4FA7BEjXNcQ0nxis/n9yIOFSI12SoongvuGiLTR2fenNw0qUVyc
+	9Sw00ZT7eAolgCVUzq3/yyIvHPYynwfI1EDPEw7eJZkOuycQ5uIFuJqhmyqKYfnTrrIugkfxRJJAv
+	z4hEjK62uRHoSaYFpMF/RP+b3uZoJ/HK48h9kvnbj4YsIa9SmNRt2NV1oPUgEMlC1A7hEq0QG863X
+	zkA7b9eA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xUOao-0000000F5X4-1gvu;
-	Fri, 20 Nov 2026 13:23:54 +0000
-Received: from smtp-relay-canonical-1.canonical.com ([185.125.188.121])
+	id 1xUXlb-0000000GNqY-3XJu;
+	Fri, 20 Nov 2026 23:11:39 +0000
+Received: from smtp-relay-canonical-0.canonical.com ([185.125.188.120])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xUOac-0000000F5VC-3g2q
+	id 1xUXlX-0000000GNow-3rXp
 	for opensbi@lists.infradead.org;
-	Fri, 20 Nov 2026 13:23:44 +0000
-Received: from LT03.fritz.box (ip-084-119-040-110.um24.pools.vodafone-ip.de [84.119.40.110])
+	Fri, 20 Nov 2026 23:11:38 +0000
+Received: from LT03 (dynamic-176-006-022-220.176.6.pool.telefonica.de [176.6.22.220])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-relay-canonical-1.canonical.com (Postfix) with ESMTPSA id 3CB1E3F115;
-	Fri, 20 Nov 2026 13:23:40 +0000 (UTC)
+	by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 2B9FE42CDF;
+	Fri, 20 Nov 2026 23:11:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-	s=20251003; t=1795181020;
-	bh=OgbCSiD7nwYJlD9a2M5i4YNJl5BuWJMP7HxXqBpjPXo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version;
-	b=Lh9dfKfvNGnRSAUmFCHq36vG1p1mAL/3mL+Evd2I4U6mmjb08hwCHdn5zVNjuAMSF
-	 n7wCyIc3DgliDoJuQOvHtlAT/Npw6lS4couPZcoLeeVcJizsp4Em1X44rjZnEASILP
-	 FwKDaMRtxkn1oVHVqxY+9SYkbIIgO08ZLtE3sWmLp9RTB90OeCfbDoSkpO/fH+k3xa
-	 rLZ+pOEVAU4+TQa7IevykFV0gxHT37HpYJwIesyNh1ocL0LdYANGwrU+gJxHopO1ut
-	 K40jfS9VOVH/Z26vnyJSMF7bz7i87p7unKE8dPYBHkTMH28tJVzvd7VnGqRY873Gzd
-	 i3/jlTWpAEwSLl25iwlgvABO2vO/84RgsrI79NqCweWImccDUoI4brhJjiIxs6L4+X
-	 tqcJ65O/+HZfPiugYFmuCoyIWyt8HFI2RV6PKc4KIhB2/arAsUYWrNhZQKfShe4Mxo
-	 LdJjbJfe9fnaW5QpkMYrOT4jVMqYrOCH76O0RXxy8hk9UwYrKODZ+Y7bLnzkKSSjrm
-	 8PC+Yft4AIhvtTZjJE3hDFZdXDZwqBg24/fWAquaanXsgvtrk5MDs8+dymraayW29p
-	 13iD8GqR1CVvn52JvcZtf3RsTOrafanKRC9Z4ksmBKdfi8A59AxsWS/zJNVqaCEzbY
-	 hwCS2szs0e2zEpoTM7dBl7nc=
+	s=20251003; t=1795216294;
+	bh=n8mDqn8PwkQJPnMA869MVS7AWg5nGRBPRA7pJPW6r2Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version;
+	b=Sg1FreQUECTHrL6apGKeR8dJBoyiBH+arglM9fsXRHBFRhXNJcIPucsnMW6WqrMTA
+	 pTEg1ztEPC8LwxmbBYLoGtwrVER3NeyezuihSSMh3oB+wfdf4GhwyuNDJBDXlUP8zG
+	 GQiHHRUjZnvwaSDflYgmfrufxRKYNpiq/LhCuJJmkXcifQUlPu43Vv575EIsacs2x2
+	 vciYaqAx8SlEreeJ0farilvJWCGWHJZui5qc/BS6bo0kM9QerF2nDiGSG0bwYpJ6jr
+	 9YQwXj/sPeSZ/hNRpFvSiKHw+rOIhG3JwdsPQUoaWPP4zuvG8bklr6PYKpAQvql7KT
+	 OPYZRNwZJFdrYjq414ZrR2Nbf/8ONA1Xq9AgBwhOQsfOWCZWqSkbg0sXin3Gzq3eie
+	 vYBaRCF+QVKP3CKchJw2R6lnafXYAnYk16r9pFiWSMtOw47/YiNnGMdEB7TTqWPzKQ
+	 p+COQ4N25iH1TMHKEWzoybNDUgolHcIkN6yNC3uwwVt3akrRitvMWWFwBHl0WT91YC
+	 7qpm/Q0z0WHN8p47XoiMmmFD2kX24AumY8RdvvzRCM1diuFTWVQXb1yLjtNp0Y/AHT
+	 xBf0lVJ9bxyhpCpe2zHUPw+UTUFUftAhqn6+ht/U9I5LfAoRb84+sI9UtqJ8COlS6Q
+	 sJ5mo2jfQ5ve0Umic1p61C5o=
 From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 To: Atish Patra <atishp@atishpatra.org>,
 	Anup Patel <anup@brainfault.org>
 Cc: opensbi@lists.infradead.org,
 	Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-Subject: [PATCH 1/1] lib: utils: mpxy: mm: move attr_rsp before the first case
-Date: Fri, 20 Nov 2026 14:23:35 +0100
-Message-ID: <20261120132335.55713-1-heinrich.schuchardt@canonical.com>
+Subject: [PATCH 3/7] lib: sbi: dbtr: check the whole shared memory range in SETUP_SHMEM
+Date: Sat, 21 Nov 2026 00:11:15 +0100
+Message-ID: <20261120231119.90214-4-heinrich.schuchardt@canonical.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261120231119.90214-1-heinrich.schuchardt@canonical.com>
+References: <20261120231119.90214-1-heinrich.schuchardt@canonical.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261120_052343_182008_CC42F203 
-X-CRM114-Status: GOOD (  11.83  )
+X-CRM114-CacheID: sfid-20261120_151136_382190_5F4066CA 
+X-CRM114-Status: GOOD (  13.52  )
 X-Spam-Score: -4.4 (----)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
@@ -84,44 +87,53 @@ X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-The switch in mpxy_rpmi_mm_complete() declares attr_rsp right after
-a case label. A declaration after a label is only valid in C23, and
-the build uses -std=gnu11. GCC accepts it silently if not building with
--Wpedantic, but Clang stops with -Werror,-Wc23-extensions:
+The shared memory of the debug trigger extension is trig_max * (XLEN / 2)
+bytes long. The specification requires the SBI implementation to check
+that the whole physical memory range is accessible for the caller, see the
+chapter on the shared memory physical address range parameter.
 
-  fdt_mpxy_rpmi_bridge_mm.c:160:4: error: label followed by a
-  declaration is a C23 extension
+sbi_dbtr_setup_shmem() only tested the first address. A range that starts
+in memory of S-mode and reaches into memory protected by PMP was
+accepted. A later read of the triggers then makes M-mode write into the
+protected memory. A range at the top of the address space that wraps
+around was accepted too.
 
-so "make LLVM=1" fails for the generic platform.
+Use sbi_domain_check_addr_range() with the size of the shared memory. It
+also rejects a range that wraps around.
 
-Declare the variable at the start of the switch body, before the
-first case label. The scope is the same as before, the whole switch
-block, and the code is valid in C11. While at it, remove the stray
-tab after the assignment operator.
-
-Fixes: 37bde95c8c38 ("sbi_utils: mpxy:: Add MPXY RPMI bridge MM driver")
 Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 ---
- lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/sbi/sbi_dbtr.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c b/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c
-index 55b31872..29e3fca0 100644
---- a/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c
-+++ b/lib/utils/mpxy/fdt_mpxy_rpmi_bridge_mm.c
-@@ -156,9 +156,10 @@ static int mpxy_rpmi_mm_complete(struct mpxy_bridge_src_ctx *src,
- 		return ret;
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 53fcb0a2..fa0e5962 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -385,9 +385,20 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
+ 	if (shmem_phys_hi)
+ 		return SBI_EINVALID_ADDR;
  
- 	switch (src->header.service_id) {
-+		struct rpmi_mm_get_attributes_rsp *attr_rsp;
-+
- 		case RPMI_MM_SRV_GET_ATTRIBUTES:
--			struct rpmi_mm_get_attributes_rsp *attr_rsp;
--			attr_rsp = 	(struct rpmi_mm_get_attributes_rsp *)payload;
-+			attr_rsp = (struct rpmi_mm_get_attributes_rsp *)payload;
+-	if (dom && !sbi_domain_check_addr(dom,
+-		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
+-		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
++	/*
++	 * The shared memory is trig_max * (XLEN / 2) bytes. All of it has to be
++	 * readable and writable for the caller, not only its first byte,
++	 * otherwise a read of the triggers would write into memory that the
++	 * caller cannot access. A range that wraps around is rejected too.
++	 */
++	if (dom &&
++	    !sbi_domain_check_addr_range(dom,
++					 DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi,
++							      shmem_phys_lo),
++					 hart_state->total_trigs *
++						 sizeof(union sbi_dbtr_shmem_entry),
++					 smode,
++					 SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
+ 		return SBI_ERR_INVALID_ADDRESS;
  
- 			mm_shmem.addr = ((u64)le32_to_cpu(attr_rsp->mma.shmem_addr_hi) << 32) |
- 				(u64)le32_to_cpu(attr_rsp->mma.shmem_addr_lo);
+ 	hart_state->shmem.phys_lo = shmem_phys_lo;
 -- 
 2.53.0
 
