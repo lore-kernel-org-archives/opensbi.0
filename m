@@ -2,148 +2,110 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E95606A31E
-	for <opensbi@archiver.kernel.org>; Tue, 24 Nov 2026 08:16:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BBBB606A31E
+	for <opensbi@archiver.kernel.org>; Tue, 24 Nov 2026 08:26:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=t6Deh89T;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Q7hcVi12;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=L+rhu1QV
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=rcWUzXFu;
+	dkim=fail reason="signature verification failed" (4096-bit key, unprotected) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=HoJSOqQw
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
-	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:In-Reply-To:MIME-Version:References:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
+	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
+	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
+	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=Ono+xhUUtYnyQRc9rNQQqoC9WKOxWMxm02ZITlgSQAY=; b=t6Deh89TXIQvt2lselaMy3ZRIH
-	vKOc4cSlseFgyNLIIoCB0bhDXdLx9QAj/bJaXpf2lVtqdUkUOBiHxEUuCiw1Zdt9KDZ3Qrnoq5Bn/
-	eQ+d289VMwRUoT3OrWlsJk+lSkfriNemxzHl2S73502Q8YYJhmlrLhEd+pIgD15Xje7HSDLmP09n6
-	T6DrrFyQZDnQ0pm/zzpwFBPe8dDK/mAjRIdBy+nmghzZkRx0YP3I1r4Tk3sqwmKn5MPkxqw2oDD46
-	OVuQWxMaM/tQuXx/C7Im+vo9o9/wioE6ewsQ2DBA3OFAfCEtJhAUyVpDEgjYZtH52hm87q1bpxu8K
-	s4xIRKQA==;
+	bh=yGNd0/daWjnwCRU5MJMPb0iqRz63Mj8guxmcZl1vsLg=; b=rcWUzXFuUuZU4QBclphMENOEcq
+	0nRhzWgImW7Gfe2dUfUQ/6rGVlu6Rpbs0yWdlGko6a/UsFGEYV6EV2b6PO182AjBYYwTBvuFA2uEJ
+	WvMeWX97Xg+dz5EBYeD6zkMWHeY/AX+ahtwL86HF9UsPXd0ZX1BdIS+hqdDz3dz5uXXbYhXsACWnd
+	Z3Qwe2nCInvZIvxrqhFAsdUhmj8KG1WXk5Rux+4lrtBy4LbpCS2R821qGPyhq5K32EddZ+lgBxD5A
+	3S2U0xdNIKmKqLUMFkl4qYEAhDEZueTrtqB0JD3LrQKZ9axP0aIpcqcQQQ7GUQlxiPQP0DNWVZKUd
+	6tbW1daA==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVlhu-00000005rT3-3t83;
-	Tue, 24 Nov 2026 08:16:54 +0000
-Received: from mx0a-0031df01.pphosted.com ([205.220.168.131])
+	id 1xVlrc-00000005syi-1ta3;
+	Tue, 24 Nov 2026 08:26:56 +0000
+Received: from smtp-relay-internal-1.canonical.com ([185.125.188.123])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVlht-00000005rSi-02IZ
+	id 1xVlrY-00000005sy7-04OZ
 	for opensbi@lists.infradead.org;
-	Tue, 24 Nov 2026 08:16:54 +0000
-Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AO5m4BV2848365
-	for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 08:16:52 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=KuyCg1Pep/lDw7sQZ9kztixz
-	H6R6OVPSpoyfQF0UnCs=; b=Q7hcVi12W8NLq6EFArOvS9rpFgHIGI+6YNGlC23q
-	mCys4IzA0Hzz5CR2kvpAVcqe8NQWjfAseMHGPiekSJKjwM+O87AyGQb2qxDgkthR
-	Z5yrLz9of44P0fAZHAvLcbadSMyVyoNyqSLFUo08FnyEp6JkyRaRBH3AXL6BI6PC
-	ydX+nkeSirENvUKy889ttpOuDNQaRf4uYtjWVsiQaF0tc2NvCWTW3TX8n1C4lgJj
-	OCmjDHFwWF37jqSDWnet7vV6J5KhcBjeDj7WgJUe4VrN/j4xd6tz3CxHffOGqJdu
-	e9u2ChzVST9AUcQPl8KhACA84bl+EBGVCHk1/Rn7HJp58Q==
-Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j54rh8h43-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 08:16:52 +0000 (GMT)
-Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-383ec96a7deso4860638eec.1
-        for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 00:16:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1795508212; x=1796113012; darn=lists.infradead.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=KuyCg1Pep/lDw7sQZ9kztixzH6R6OVPSpoyfQF0UnCs=;
-        b=L+rhu1QVLjWzqmF1GAU+qdRIQEix5J4DTJ1gsaNvVCqjss7MWFzgTn5jMbjv4oPTwA
-         4H0KfP1pIqTPu6jKMtm7xD97R3hqIsEVL1Qmzpdr07xNm5ZTSa57yQyvZfPAayj/obwe
-         REPo4J0PtzBT7RMTfEHkZfETmJGzmfGJaaYnX4HyrBCT6xTvD1skSGjAMS9asku8BrMs
-         w3us5k9RMOq3aS3GU8XYpqrejJIhnirKb8DruZOp0E1bK16+uxVOt1z6UoF5D5x1CeDl
-         vjFHbfFNAjUzsSfCcY2ZLteOPniCogI33iYB8O4azVlddFGtycOqT21PUn5LpJwB93M4
-         2QrQ==
+	Tue, 24 Nov 2026 08:26:54 +0000
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com [209.85.221.72])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-internal-1.canonical.com (Postfix) with ESMTPS id 270FA3F4C8
+	for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 08:26:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+	s=20251003; t=1795508808;
+	bh=BAjZA0WXKuTuPaEOpElDdlYaCuJkAWxOOfGzUnKDdQo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type;
+	b=HoJSOqQwW/Yp3xHSVLiKFE0/21XvMVnz+UqXqJKK+hQdgpUCV4ynhIhB5buJ03ApV
+	 sFLhpNd0GzctRWyOtVLUmBVJuwv9WBm2p2DJOfrzag6sJ7yJmS/fL9U8NPumJKW1EQ
+	 PaRG7JvGcFwid/9rySswbUco38L217gXl+iqksBiPL49GVjKmyyc7It9JN9QoC6tiA
+	 a7pfFk6pMDFvUfxIqM6C+AKbgLnixggKne7FYswg3Jejoe9u3TAfBAJKXlus9dv1Yk
+	 +Pr5Yg9GXzGkodgwhVLty+2LrnHE19hyEWVQM0z4DSa2no5DjTfbr13K9WREaeFEFP
+	 j8oWoKlyNUp07pk2qbfGmqS970Mk0a2JicezSOpJp6QRt9zspQ/lQ/o7jUv5AeWudo
+	 womEKNIhwxmIYu8neWxsdkU2P26pRHIbVHSYAUmrM2GoTr/BafLqb756T+oBkeWep+
+	 yVMwA+Jthnu7oFS8rsYc29M4epYW830epLMnM7T9g6ZVCcFi7L9rSRDPur9c/EKomP
+	 b45K7TckIhXti86LZuJpFqrh3VGhL2zlGRsUtsN9NCx00GT+cRMPoJWOnsvbeEydv3
+	 Auo2vGQCUyoXZlrVH0l7a62QagHHp8ZIKjQe4sHu3MbySukUT5nCBPXOwby0+nIXlT
+	 2ywrc5SwKknuaW9ItFYw4qRc=
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-4a7c864000eso2411406f8f.0
+        for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 00:26:48 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795508212; x=1796113012;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=KuyCg1Pep/lDw7sQZ9kztixzH6R6OVPSpoyfQF0UnCs=;
-        b=0VVIqhkKzmeziQG5kQbVrVXIF1pzSLXI4IU5+iHeCEl8Mwxdhdv/gfWkdzSullFyJP
-         D1qdnv+NenaDNYSP6xW8xQuOW5Hpi+40MjpqbnQ0599cXbGZp4YqmVvZZ/pslzIlDrRC
-         14tixPzwuqA3cwhnmpo6mDcrVlQur42UoVJ7R8UyGrujkDeJ7mmNJCtJVKBOahDBWH+t
-         bxVVrNsuxju9lYKDm5/m5VCIE9YE1Qy5Mzazi6KzPd5XiA/NmF1ZpIJPFvYb8HV/z7Ns
-         QhiwRXqZUflFNQZQOHp3bZflpx0GawhX09e/AG9C9lll4Kit8f/WkwnX9vX/Q75k5mZh
-         3MCA==
-X-Forwarded-Encrypted: i=1; AL+hErHz54Fu/Air4oWcpOFup4dCLFq3ONHaGbRNGjPiZ60yKYhs3fo9B/ZuQRDn1cGKvLE9cNek5rFl@lists.infradead.org
-X-Gm-Message-State: APuU4Z9GHM88qOrO5+kYnXUeyvxN1VBxNn4G/Qm+5IIKihbLWBdsexk9
-	u2fL/jhGWI4DtK1an2zNm70i6pvphGjqR1mPD/11KDU4kozG2pCjGGvLunqWAW70QbRBmoxXFhi
-	r2FXyv7MH8ylu3fuwUxD4qYBfHpjr0mcX8cqGC9gPNZ4/wn7/pk5/01+NQR6bB7AdFA==
-X-Gm-Gg: AZFdTZezuZojmWyWZN455f6um8z/IeJLEvNShbge/jHQDEyMTHgeP2bc391GczgE2n4
-	bBMdWjnlIahWdNiKuyVTRazW0wKoCdHdzI0T1QaTf/7/4dz4u7JZ0nxgtD2vBvHD/B9sSlMOeSL
-	1YtxLGuXMarZJkrRCzQDEja06D32Rwcauf4Q+y5MamUuOFk6EibERl0aGMiVg1UdfJFq/WieegJ
-	Udpmyu0IrxOKbvr4SzPSagj1MVDHFsICdW6OvG+uImBBG0bt1pIqeCMC+Fju6k3Q2ukhzIMZu6T
-	0n8+1XiwK+/v349kP6VGmilnt5bzocJ0urs8z51yC1kOlE4f1A9J+1/GWOhDA95prhwybeKOVdY
-	ZgY6jTFL2i/moPT/+xYYk2Zd8IORFJ2buUqFaJaDPDeMbzIvjJTu61lPAXPt7GtF3rsTrCpbXSE
-	w6FRkj4RLxdbfKPYb0UYuCxxQXEAaqS+ncw8gHaY9HvsfnYJbHABMGxVXY4UItxJYWMZye7fMlX
-	Q==
-X-Received: by 2002:a05:7022:3c0e:b0:190:596:4071 with SMTP id a92af1059eb24-1b55689f722mr11867953c88.11.1795508211444;
-        Tue, 24 Nov 2026 00:16:51 -0800 (PST)
-X-Received: by 2002:a05:7022:3c0e:b0:190:596:4071 with SMTP id a92af1059eb24-1b55689f722mr11867933c88.11.1795508210823;
-        Tue, 24 Nov 2026 00:16:50 -0800 (PST)
-Received: from hu-himchau-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b55684c85fsm47840373c88.14.2026.11.24.00.16.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 00:16:50 -0800 (PST)
-Date: Tue, 24 Nov 2026 13:46:44 +0530
-From: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-To: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-Cc: Anup Patel <anup@brainfault.org>, Atish Patra <atishp@rivosinc.com>,
-        Bo Gan <ganboing@gmail.com>,
-        Samuel Holland <samuel.holland@sifive.com>,
-        =?iso-8859-1?Q?Cl=E9ment_L=E9ger?= <cleger@rivosinc.com>,
-        Xiang W <wxjstz@126.com>, Chao-ying Fu <icebergfu@gmail.com>,
-        =?iso-8859-1?Q?Beno=EEt?= Monin <benoit.monin@bootlin.com>,
-        Andrew Jones <ajones@ventanamicro.com>, opensbi@lists.infradead.org
-Subject: Re: [PATCH RESEND 1/2] lib: sbi: Add sbi_va_to_pa() to translate
- S/U-mode addresses
-Message-ID: <awVH7B2YuGrc2BH5@hu-himchau-blr.qualcomm.com>
-References: <20261119-p8700-cm-pmu-v1-0-5cfe67c6b2db@mobileye.com>
- <20261119-p8700-cm-pmu-v1-1-5cfe67c6b2db@mobileye.com>
+        d=1e100.net; s=20260707; t=1795508808; x=1796113608;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=BAjZA0WXKuTuPaEOpElDdlYaCuJkAWxOOfGzUnKDdQo=;
+        b=CA6m1XFSQgLgNIbvVz6f5USd5TO6MiKFdusShhvpmCfpQr5rEHqMQHyYpv0UD+5sdB
+         8UDtzZ2uigEKvvbHVxRo+Ez5BYSAt9YKhiEm5fj7fNkcfhGolQXTorGOmEVEN2uiWycb
+         p2VcbPqsVHCC/BUB5zvLJr/D7A1Xw6mcdqmmK8+a1OzkK7A1Z2fsR/dy6FgVm0SpG6Uk
+         TFt0QUyKuuBYWmewiqFoMTvNIXKNT0sZWd/DhinVE+An9bvNXBND8P8jXZ2sj+6p1ShB
+         /LOOppvg/LPaQ2FIqZAVl1E2EG57GVNxFTn8l7B34dr52Lk9p8MGgF/4ecXV+TMtpHvG
+         uecQ==
+X-Forwarded-Encrypted: i=1; AL+hErHLyK3j6aXiM1d1qbq0J0BscC2RIS08y60oQAcCk13QYwOPW33Qs9aNdXLjoT5XEsSSdkcb+0bw@lists.infradead.org
+X-Gm-Message-State: APuU4Z92b+46roHz7j+indW623hxWEDMV4P0boUPWSmz2MtIWBP9SCys
+	kEBXG8Ft1SWqn+6Pxd/a1Tifke7304Q2ZadfBcSTqFaF4j1L4COcbRtPawrQPFUK4yH3rYsXIJL
+	sFivcUj9bvtxWdEf0UY3UucDrsS+5DN1/hDoawQr4DrE18MWjCxAeVrQhQQu6mrSJA3L363aVMu
+	ePw/KL+mf1UZtO
+X-Gm-Gg: AZFdTZfGeAOTClDohdria01NIojgN6JHvYTazoL+ADTJ/AWsYwSphsQ1KMLP85eu51U
+	zH/95lYYxTesBiQ9azooaSZ4HDZ9CReY0mYsfQ09KdmpjhDgW2/3OQReZK2B+NKjiiJTlcP0zsF
+	OFaGT8U0EFIc00iO+ULROJKEO04kekymtNQWXk5E8WAJq/QtaCQ5jgfTbDJg2RNZXnm3G3sRxcd
+	5RIZBqECULUzrwhGtNmt4kcy8sR7SatIjwrIY2uDHE1r8c4pxPECcWzERYPlQlfPsgdWpmiAshO
+	BlL3f4Y3Wyi3bXflvANWg6MYXnBLr5ynoF2WLItOrihfgXtseVdrq7chGMFRCT0KlYcC/GNxGqf
+	Z3i5LhRfUQPeAFVfTnaSHgU47gSP4AcAkwV60wxGFDrfceasNerJD3jLSEuYf5zlxaQFBCRvhpJ
+	nLaUHrqa3WKfgOvydM/Id5ZacYYEANiPZkpmiuSTYkpvZkb3FHhFM+W8aYwRRXls1pj7xmyxe7
+X-Received: by 2002:a05:6000:22ca:b0:487:1662:cf4c with SMTP id ffacd0b85a97d-4abacfea532mr28872938f8f.7.1795508807684;
+        Tue, 24 Nov 2026 00:26:47 -0800 (PST)
+X-Received: by 2002:a05:6000:22ca:b0:487:1662:cf4c with SMTP id ffacd0b85a97d-4abacfea532mr28872892f8f.7.1795508807221;
+        Tue, 24 Nov 2026 00:26:47 -0800 (PST)
+Received: from ?IPV6:2a02:908:1242:30e0:1320:e0ed:cbe3:9c71? ([2a02:908:1242:30e0:1320:e0ed:cbe3:9c71])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab6a67fe48sm24398782f8f.23.2026.11.24.00.26.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 24 Nov 2026 00:26:46 -0800 (PST)
+Message-ID: <f64743b7-f481-4b59-89b8-3f2f4f6249cb@canonical.com>
+Date: Tue, 24 Nov 2026 09:26:45 +0100
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20261119-p8700-cm-pmu-v1-1-5cfe67c6b2db@mobileye.com>
-X-Authority-Analysis: v=2.4 cv=BKkmP1QG c=1 sm=1 tr=0 ts=6b0547f4 cx=c_pps
- a=cFYjgdjTJScbgFmBucgdfQ==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=kj9zAlcOel0A:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22
- a=JfrnYn6hAAAA:8 a=JvO64EORAAAA:8 a=mXVl3_jZ_ega548BAcoA:9 a=CjuIK1q_8ugA:10
- a=O8hF6Hzn-FEA:10 a=scEy_gLbYbu1JhEsrz4S:22 a=1CNFftbPRP8L7MoqJWF3:22
- a=Qz6KxWHdQ2_aS5WpiCfK:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDAzMiBTYWx0ZWRfX3rxaaL3ZNpbB
- RaSjNHz3eHedKV777kZuFSmzombyvqNU6HUpbOf87ofRL6fyVZsvbg1ltAUiPbw5d4CTHGoioXa
- 5LIezVsgjVw9hOlWFKedkTKCyh09s34=
-X-Proofpoint-GUID: YGP3wwH5cC6aOtcl3vuoIObN3wzodCPn
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDAzMiBTYWx0ZWRfX0pKRLQrF2IkQ
- mO+WYTQkoBHlaMH2+DAo3buvARPJu+cMwhIQZBZy2jN+0HzqyarYRIcXtgjpYRSDicK7THWDKjs
- RD/eJX1zyuHsD+Vkyrtwv8CVhyN6NHciTMsHEinvnjX7MpT5nxvBJxslhofADQWHgZUWHwUa+Ni
- /t/XfuTzLXRR/7aRR64oH4djemJkc3yHJaaQIs/BfwhX2Nf8wHjrOH6JlIEhjiaIQ/iRyhpZtRL
- 9DxN56wkEVMVq7ovuJQQ38LI0r+q2QlEZtRueYMLh9taqCVZF4jnoki4+ec/9b+ghIReABawXm0
- hs+kTGn//pvVJqegknyuUEeWqGaQWzI7pU0kW2Ppt3q5OXy5BiYpaSf2v0e2rze5/aPguH5CeEP
- eyDfQgNlvCPld+1o+NJ4EFKqFEKbcbDPyqPhIpXWRBeOFXEXt77W0OyKYzs43eLw9+CsxV3+nm7
- WX5Lzr1/WzaGs3l3ACQ==
-X-Proofpoint-ORIG-GUID: YGP3wwH5cC6aOtcl3vuoIObN3wzodCPn
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-24_01,2026-11-23_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 malwarescore=0 clxscore=1015 bulkscore=0 adultscore=0
- phishscore=0 spamscore=0 lowpriorityscore=0 impostorscore=0 suspectscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611240032
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/7] lib: sbi: dbtr: share trigger checks of install and
+ update
+To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
+Cc: Atish Patra <atishp@atishpatra.org>, Anup Patel <anup@brainfault.org>,
+ opensbi@lists.infradead.org, liutong <liutong@iscas.ac.cn>
+References: <20261120231119.90214-1-heinrich.schuchardt@canonical.com>
+ <20261120231119.90214-3-heinrich.schuchardt@canonical.com>
+ <awPuSu5ka-wI9eOE@hu-himchau-blr.qualcomm.com>
+Content-Language: en-US
+From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+In-Reply-To: <awPuSu5ka-wI9eOE@hu-himchau-blr.qualcomm.com>
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261124_001653_081669_EDF32598 
-X-CRM114-Status: GOOD (  35.33  )
-X-Spam-Score: -2.8 (--)
+X-CRM114-CacheID: sfid-20261124_002652_587036_E4CACFB8 
+X-CRM114-Status: GOOD (  38.30  )
+X-Spam-Score: -4.4 (----)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -153,268 +115,269 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-On Thu, Nov 19, 2026 at 06:54:42PM +0200, Vladimir Kondratiev wrote:
-> Trap handlers that act on behalf of a lower privilege mode, such as
-> platform load/store access fault emulators, receive the faulting
-> address as a virtual address of the trapped context (mtval). To decide
-> what was actually accessed they need the physical address, and RISC-V
-> has no instruction to translate an address on behalf of another mode.
+On 11/23/26 08:42, Himanshu Chauhan wrote:
+> On Sat, Nov 21, 2026 at 12:11:14AM +0100, Heinrich Schuchardt wrote:
+>> sbi_dbtr_install_trig() validates every trigger configuration before it
+>> programs any trigger. sbi_dbtr_update_trig() only checked the optional
+>> tdata2/tdata3 CSRs and the platform hook. It did not check that the
+>> trigger type is supported and it did not reject a tdata1 with the M or
+>> DMODE bit set, which install refuses. Supervisor software could
+>> therefore update an installed trigger into one that fires in M-mode or
+>> that is owned by the debug module.
+>>
+>> Move the checks of one configuration into dbtr_check_trigger_config()
+>> and call it from both functions. The checks and their order are the same
+>> as before for install. For update the configuration is additionally
+>> checked against the type mask of the trigger that is updated, instead of
+>> against any trigger of the hart.
+>>
+>> The helper reads tdata1, tdata2 and tdata3 from the shared memory once
+>> and uses the local copies for all checks.
+>>
+>> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
+>> ---
+>>   lib/sbi/sbi_dbtr.c | 114 +++++++++++++++++++++++----------------------
+>>   1 file changed, 59 insertions(+), 55 deletions(-)
+>>
+>> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+>> index 2108ca9e..53fcb0a2 100644
+>> --- a/lib/sbi/sbi_dbtr.c
+>> +++ b/lib/sbi/sbi_dbtr.c
+>> @@ -682,6 +682,55 @@ int sbi_dbtr_read_trig(unsigned long smode,
+>>   	return SBI_SUCCESS;
+>>   }
+>>   
+>> +/*
+>> + * Check the configuration of one trigger read from the shared memory.
+>> + *
+>> + * The same checks apply when a trigger is installed and when it is updated.
+>> + *
+>> + * @hs:		trigger state of the calling hart
+>> + * @trig:	trigger the configuration is meant for (update), or NULL if any
+>> + *		trigger of the hart may be used (install)
+>> + * @recv:	configuration to check
+>> + *
+>> + * SBI v3.0 sec 19.4 and 19.5 require SBI_ERR_NOT_SUPPORTED when a trigger
+>> + * programs a non-zero value into an unimplemented optional CSR. Only the
+>> + * "whole CSR unimplemented" case is caught here; WARL bits tied off inside an
+>> + * otherwise-implemented CSR are delegated to the device-specific
+>> + * trigger_supported() callback.
+>> + */
 > 
-> Add sbi_va_to_pa() which walks the page tables referenced by
-> satp using plain M-mode physical loads, so it is unaffected by the PMP
-> restrictions applied to S-mode. It supports Sv32 on RV32 and
-> Sv39/Sv48/Sv57 on RV64, handles superpages, and masks the Svpbmt and
-> Svnapot bits out of the PPN. Every PTE address is checked against the
-> current domain before being dereferenced so a corrupt page table
-> cannot cause a nested M-mode fault. Translation for VS/VU-mode
-> (two-stage) is not supported and returns SBI_ENOTSUPP.
+> You can drop the reference to SBI sections. Mention them in cover letter. The comment
+> has been copied from the preivous implementation of the in function check. It is
+> neither clear nor approriate to what exactly function is trying to achieve. Please
+> take a look and add information pertaining to the function's job.
+
+Hello Himanshu,
+
+thank you for reviewing.
+
+We should drop this patch in favor of Liutong's
+[PATCH v3 0/3] lib: sbi: fix shared memory double-fetch in DBTR and SSE
+
+Later patches in this series depend on the current patch and should be 
+reworked once Liutong's series has landed.
+
+Patch 1/7 seems not to conflict. With Liutong's work so maybe Anup can 
+pick it up.
+
+A major gap that we have with OpenSBI development is missing test support.
+
+https://gitlab.com/kvm-unit-tests/kvm-unit-tests.git has some tests but 
+the work there seems to have stalled. Only a small part of the SBI spec 
+is covered and the tests were too superficial to find the conformance 
+issues.
+
+The work on SBI in that projects seems to have stalled and would need to 
+be revived.
+
+Alternatively we could add testing directly into OpenSBI as sketched in
+https://github.com/riscv-software-src/opensbi/pull/437.
+
+@all:
+What are your thoughts about testing?
+
+Best regards
+
+Heinrich
+
 > 
-> Add the corresponding satp and PTE field definitions to
-> riscv_encoding.h.
+>> +static int dbtr_check_trigger_config(struct sbi_dbtr_hart_triggers_state *hs,
+>> +				     const struct sbi_dbtr_trigger *trig,
+>> +				     const struct sbi_dbtr_data_msg *recv,
+>> +				     bool tdata2_impl, bool tdata3_impl)
+>> +{
+>> +	/* Read the shared memory only once */
+>> +	unsigned long tdata1 = lle_to_cpu(recv->tdata1);
+>> +	unsigned long tdata2 = lle_to_cpu(recv->tdata2);
+>> +	unsigned long tdata3 = lle_to_cpu(recv->tdata3);
+>> +	unsigned long type = TDATA1_GET_TYPE(tdata1);
+>> +
+>> +	if (!dbtr_trigger_supported(type))
+>> +		return SBI_ERR_FAILED;
+>> +
+>> +	if (!dbtr_trigger_valid(type, tdata1))
+>> +		return SBI_ERR_INVALID_PARAM;
+>> +
+>> +	if ((tdata2 && !tdata2_impl) || (tdata3 && !tdata3_impl))
+>> +		return SBI_ERR_NOT_SUPPORTED;
+>> +
+>> +	if (trig) {
+>> +		if (!__test_bit(type, &trig->type_mask) ||
+>> +		    !dbtr_trigger_hw_supported(trig->index, tdata1, tdata2,
+>> +					       tdata3))
+>> +			return SBI_ERR_NOT_SUPPORTED;
+>> +	} else if (!dbtr_trigger_any_hw_supported(hs, tdata1, tdata2,
+>> +						  tdata3)) {
+>> +		return SBI_ERR_NOT_SUPPORTED;
+>> +	}
+>> +
+>> +	return SBI_SUCCESS;
+>> +}
+>> +
+>>   int sbi_dbtr_install_trig(unsigned long smode,
+>>   			  unsigned long trig_count, unsigned long *out)
+>>   {
+>> @@ -689,9 +738,8 @@ int sbi_dbtr_install_trig(unsigned long smode,
+>>   	union sbi_dbtr_shmem_entry *entry;
+>>   	struct sbi_dbtr_data_msg *recv;
+>>   	struct sbi_dbtr_id_msg *xmit;
+>> -	unsigned long ctrl;
+>>   	u32 claimed = 0;
+>> -	int slot;
+>> +	int slot, rc;
+>>   	struct sbi_dbtr_trigger *trig;
+>>   	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+>>   	bool tdata2_impl, tdata3_impl;
+>> @@ -710,52 +758,20 @@ int sbi_dbtr_install_trig(unsigned long smode,
+>>   	sbi_hart_protection_temp_map_range((unsigned long)shmem_base,
+>>   					   trig_count * sizeof(*entry));
+>>   
+>> -	/*
+>> -	 * SBI v3.0 sec 19.4 requires SBI_ERR_NOT_SUPPORTED when a trigger
+>> -	 * programs a non-zero value into an unimplemented optional CSR. Only
+>> -	 * the "whole CSR unimplemented" case is caught here; WARL bits tied
+>> -	 * off inside an otherwise-implemented CSR are delegated to the
+>> -	 * device-specific trigger_supported() callback via
+>> -	 * dbtr_trigger_any_hw_supported().
+>> -	 */
+>>   	tdata2_impl = tdata_implemented(CSR_TDATA2);
+>>   	tdata3_impl = tdata_implemented(CSR_TDATA3);
+>>   
+>>   	/* Check requested triggers configuration */
+>>   	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+>>   		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+>> -		ctrl = recv->tdata1;
+>>   
+>> -		if (!dbtr_trigger_supported(TDATA1_GET_TYPE(ctrl))) {
+>> +		rc = dbtr_check_trigger_config(hs, NULL, recv,
+>> +					       tdata2_impl, tdata3_impl);
+>> +		if (rc) {
+>>   			*out = _idx;
+>>   			sbi_hart_protection_temp_unmap_range((unsigned long)shmem_base,
+>>   							     trig_count * sizeof(*entry));
+>> -			return SBI_ERR_FAILED;
+>> -		}
+>> -
+>> -		if (!dbtr_trigger_valid(TDATA1_GET_TYPE(ctrl), ctrl)) {
+>> -			*out = _idx;
+>> -			sbi_hart_protection_temp_unmap_range((unsigned long)shmem_base,
+>> -							     trig_count * sizeof(*entry));
+>> -			return SBI_ERR_INVALID_PARAM;
+>> -		}
+>> -
+>> -		if ((recv->tdata2 && !tdata2_impl) ||
+>> -		    (recv->tdata3 && !tdata3_impl)) {
+>> -			*out = _idx;
+>> -			sbi_hart_protection_temp_unmap_range((unsigned long)shmem_base,
+>> -							     trig_count * sizeof(*entry));
+>> -			return SBI_ERR_NOT_SUPPORTED;
+>> -		}
+>> -
+>> -		if (!dbtr_trigger_any_hw_supported(hs,
+>> -						   lle_to_cpu(recv->tdata1),
+>> -						   lle_to_cpu(recv->tdata2),
+>> -						   lle_to_cpu(recv->tdata3))) {
+>> -			*out = _idx;
+>> -			sbi_hart_protection_temp_unmap_range((unsigned long)shmem_base,
+>> -							     trig_count * sizeof(*entry));
+>> -			return SBI_ERR_NOT_SUPPORTED;
+>> +			return rc;
+>>   		}
+>>   	}
+>>   
+>> @@ -867,6 +883,7 @@ int sbi_dbtr_update_trig(unsigned long smode,
+>>   	void *shmem_base = NULL;
+>>   	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+>>   	bool tdata2_impl, tdata3_impl;
+>> +	int rc;
+>>   
+>>   	hs = dbtr_thishart_state_ptr();
+>>   	if (!hs)
+>> @@ -880,12 +897,6 @@ int sbi_dbtr_update_trig(unsigned long smode,
+>>   	if (trig_count > hs->total_trigs)
+>>   		return SBI_ERR_BAD_RANGE;
+>>   
+>> -	/*
+>> -	 * SBI v3.0 sec 19.5 requires SBI_ERR_NOT_SUPPORTED when a trigger
+>> -	 * programs a non-zero value into an unimplemented optional CSR. Only
+>> -	 * the "whole CSR unimplemented" case is caught; WARL bits tied off
+>> -	 * inside an otherwise-implemented CSR are not.
+>> -	 */
+>>   	tdata2_impl = tdata_implemented(CSR_TDATA2);
+>>   	tdata3_impl = tdata_implemented(CSR_TDATA3);
+>>   
+>> @@ -905,18 +916,11 @@ int sbi_dbtr_update_trig(unsigned long smode,
+>>   			return SBI_ERR_FAILED;
+>>   		}
+>>   
+>> -		if ((entry->data.tdata2 && !tdata2_impl) ||
+>> -		    (entry->data.tdata3 && !tdata3_impl)) {
+>> +		rc = dbtr_check_trigger_config(hs, trig, &entry->data,
+>> +					       tdata2_impl, tdata3_impl);
+>> +		if (rc) {
+>>   			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
+>> -			return SBI_ERR_NOT_SUPPORTED;
+>> -		}
+>> -
+>> -		if (!dbtr_trigger_hw_supported(trig->index,
+>> -					       lle_to_cpu(entry->data.tdata1),
+>> -					       lle_to_cpu(entry->data.tdata2),
+>> -					       lle_to_cpu(entry->data.tdata3))) {
+>> -			sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
+>> -			return SBI_ERR_NOT_SUPPORTED;
+>> +			return rc;
+>>   		}
+>>   
+>>   		dbtr_trigger_setup(trig, &entry->data);
 > 
-> Signed-off-by: Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>
-> ---
->  include/sbi/riscv_encoding.h | 28 ++++++++++++++++
->  include/sbi/sbi_unpriv.h     | 23 +++++++++++++
->  lib/sbi/sbi_unpriv.c         | 78 ++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 129 insertions(+)
+> Liutong was trying to solve the same TOCTOU problem. It is under review and I had similar comments on that patch series.
+> Could you please take a look at that?
 > 
-> diff --git a/include/sbi/riscv_encoding.h b/include/sbi/riscv_encoding.h
-> index ffe7666c176b..367a8eb55649 100644
-> --- a/include/sbi/riscv_encoding.h
-> +++ b/include/sbi/riscv_encoding.h
-> @@ -127,12 +127,32 @@
->  #define PRV_M				_UL(3)
->  
->  #define SATP32_MODE			_UL(0x80000000)
-> +#define SATP32_MODE_SHIFT		31
->  #define SATP32_ASID			_UL(0x7FC00000)
->  #define SATP32_PPN			_UL(0x003FFFFF)
->  #define SATP64_MODE			_ULL(0xF000000000000000)
-> +#define SATP64_MODE_SHIFT		60
->  #define SATP64_ASID			_ULL(0x0FFFF00000000000)
->  #define SATP64_PPN			_ULL(0x00000FFFFFFFFFFF)
->  
-> +/* Page table entry */
-> +#define PTE_V				_UL(0x001)
-> +#define PTE_R				_UL(0x002)
-> +#define PTE_W				_UL(0x004)
-> +#define PTE_X				_UL(0x008)
-> +#define PTE_U				_UL(0x010)
-> +#define PTE_G				_UL(0x020)
-> +#define PTE_A				_UL(0x040)
-> +#define PTE_D				_UL(0x080)
-> +#define PTE_PPN_SHIFT			10
-> +/* Sv32: PPN is bits 31:10 */
-> +#define PTE32_PPN_MASK			_UL(0x003FFFFF)
-> +/* Sv39/48/57: PPN is bits 53:10; excludes Svpbmt (62:61) and Svnapot (63) */
-> +#define PTE64_PPN_MASK			_ULL(0x00000FFFFFFFFFFF)
-> +/* VPN field width per page table level */
-> +#define PTE32_VPN_BITS			10
-> +#define PTE64_VPN_BITS			9
-> +
->  #define SATP_MODE_OFF			_UL(0)
->  #define SATP_MODE_SV32			_UL(1)
->  #define SATP_MODE_SV39			_UL(8)
-> @@ -176,6 +196,10 @@
->  #define MSTATUS_SD			MSTATUS64_SD
->  #define SSTATUS_SD			SSTATUS64_SD
->  #define SATP_MODE			SATP64_MODE
-> +#define SATP_MODE_SHIFT			SATP64_MODE_SHIFT
-> +#define SATP_PPN			SATP64_PPN
-> +#define PTE_PPN_MASK			PTE64_PPN_MASK
-> +#define PTE_VPN_BITS			PTE64_VPN_BITS
->  
->  #define HGATP_PPN			HGATP64_PPN
->  #define HGATP_VMID_SHIFT		HGATP64_VMID_SHIFT
-> @@ -185,6 +209,10 @@
->  #define MSTATUS_SD			MSTATUS32_SD
->  #define SSTATUS_SD			SSTATUS32_SD
->  #define SATP_MODE			SATP32_MODE
-> +#define SATP_MODE_SHIFT			SATP32_MODE_SHIFT
-> +#define SATP_PPN			SATP32_PPN
-> +#define PTE_PPN_MASK			PTE32_PPN_MASK
-> +#define PTE_VPN_BITS			PTE32_VPN_BITS
->  
->  #define HGATP_PPN			HGATP32_PPN
->  #define HGATP_VMID_SHIFT		HGATP32_VMID_SHIFT
-> diff --git a/include/sbi/sbi_unpriv.h b/include/sbi/sbi_unpriv.h
-> index be2196267413..245ad4a6e817 100644
-> --- a/include/sbi/sbi_unpriv.h
-> +++ b/include/sbi/sbi_unpriv.h
-> @@ -14,6 +14,7 @@
->  
->  struct sbi_scratch;
->  struct sbi_trap_info;
-> +struct sbi_trap_regs;
->  
->  #define DECLARE_UNPRIVILEGED_LOAD_FUNCTION(type)           \
->  	type sbi_load_##type(const type *addr,             \
-> @@ -44,4 +45,26 @@ void sbi_store_loop(u8 *buffer, ulong addr, ulong len,
->  
->  ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap);
->  
-> +/**
-> + * Translate a virtual address of the trapped S/U-mode context into a
-> + * physical address by walking the page tables referenced by satp.
-> + *
-> + * Intended for trap handlers (e.g. load/store access fault emulation)
-> + * that need to know which physical address a lower privilege mode
-> + * tried to access. The walk is done with plain M-mode physical loads,
-> + * so it is not affected by the PMP restrictions applied to S-mode.
-> + *
-> + * @param regs trap registers of the trapped context, used to determine
-> + *             the previous privilege mode
-> + * @param va virtual address in the trapped context
-> + * @param pa output physical address
-> + *
-> + * @return 0 on success,
-> + *         SBI_EINVAL if the trapped context was M-mode,
-> + *         SBI_ENOTSUPP for VS/VU-mode (two-stage translation) or an
-> + *         unsupported satp mode,
-> + *         SBI_EINVALID_ADDR if the walk hits an invalid or unreadable PTE
-> + */
-> +int sbi_va_to_pa(const struct sbi_trap_regs *regs, ulong va, ulong *pa);
-> +
->  #endif
-> diff --git a/lib/sbi/sbi_unpriv.c b/lib/sbi/sbi_unpriv.c
-> index 60becedc2ea4..028d5074fbb8 100644
-> --- a/lib/sbi/sbi_unpriv.c
-> +++ b/lib/sbi/sbi_unpriv.c
-> @@ -9,6 +9,8 @@
->  
->  #include <sbi/riscv_encoding.h>
->  #include <sbi/sbi_bitops.h>
-> +#include <sbi/sbi_domain.h>
-> +#include <sbi/sbi_error.h>
->  #include <sbi/sbi_hart.h>
->  #include <sbi/sbi_scratch.h>
->  #include <sbi/sbi_string.h>
-> @@ -253,3 +255,79 @@ ulong sbi_get_insn(ulong mepc, struct sbi_trap_info *trap)
->  
->  	return insn;
->  }
-> +
-> +int sbi_va_to_pa(const struct sbi_trap_regs *regs, ulong va, ulong *pa)
-> +{
-> +	const struct sbi_domain *dom = sbi_domain_thishart_ptr();
-> +	ulong satp, ppn, pte, pte_pa, mask;
-> +	int levels, lvl;
-> +
-> +	if (sbi_mstatus_prev_mode(regs->mstatus) == PRV_M)
-> +		return SBI_EINVAL;
-> +	/* VS/VU-mode would need a two-stage (vsatp + hgatp) walk */
-> +	if (sbi_regs_from_virt(regs))
-> +		return SBI_ENOTSUPP;
-> +
-> +	satp = csr_read(CSR_SATP);
-> +	switch ((satp & SATP_MODE) >> SATP_MODE_SHIFT) {
-> +	case SATP_MODE_OFF:
-> +		*pa = va;
-> +		return SBI_OK;
-> +#if __riscv_xlen == 32
-> +	case SATP_MODE_SV32:
-> +		levels = 2;
-> +		break;
-> +#else
-> +	case SATP_MODE_SV39:
-> +		levels = 3;
-> +		break;
-> +	case SATP_MODE_SV48:
-> +		levels = 4;
-> +		break;
-> +	case SATP_MODE_SV57:
-> +		levels = 5;
-> +		break;
-> +#endif
-> +	default:
-> +		return SBI_ENOTSUPP;
-> +	}
-> +
-> +	/*
-> +	 * M-mode runs with MPRV=0 so the dereferences below are physical
-> +	 * loads. The hardware has already walked these tables to produce
-> +	 * the trap, so the PTEs we read are the ones it used.
-> +	 */
-> +	ppn = satp & SATP_PPN;
-> +	for (lvl = levels - 1; lvl >= 0; lvl--) {
-> +		pte_pa = (ppn << PAGE_SHIFT) +
-> +			 (((va >> (PAGE_SHIFT + PTE_VPN_BITS * lvl)) &
-> +			   ((1UL << PTE_VPN_BITS) - 1)) * sizeof(ulong));
-> +
-> +		/*
-> +		 * Never dereference memory the trapped mode itself could not
-> +		 * read: a bogus pointer here would be a nested M-mode fault.
-> +		 */
-> +		if (!sbi_domain_check_addr(dom, pte_pa, PRV_S, SBI_DOMAIN_READ))
-> +			return SBI_EINVALID_ADDR;
-> +
-> +		pte = *(volatile ulong *)pte_pa;
-> +		if (!(pte & PTE_V) || ((pte & PTE_W) && !(pte & PTE_R)))
-> +			return SBI_EINVALID_ADDR;
-> +
-> +		ppn = (pte >> PTE_PPN_SHIFT) & PTE_PPN_MASK;
-> +		if (!(pte & (PTE_R | PTE_X)))
-> +			continue;
-> +
-> +		/* Leaf PTE. For a superpage the low PPN bits come from VA. */
-> +		mask = (1UL << (PAGE_SHIFT + PTE_VPN_BITS * lvl)) - 1;
-> +		if (ppn & (mask >> PAGE_SHIFT))
-> +			return SBI_EINVALID_ADDR;
-> +		/* Physical address must fit in ulong (matters for Sv32) */
-> +		if (ppn >> (__riscv_xlen - PAGE_SHIFT))
-> +			return SBI_ENOTSUPP;
-> +		*pa = ((ppn << PAGE_SHIFT) & ~mask) | (va & mask);
-> +		return SBI_OK;
-> +	}
-> +
-> +	return SBI_EINVALID_ADDR;
-> +}
->
-Hi Vladimir,
-
-I am concerned about the security implications of introducing a generic S-mode page table walker in OpenSBI.
-There are multiple boundary-crossing concerns here. First, S-mode owns and manages its page tables, while
-M-mode has historically treated them as opaque supervisor-managed data structures. This helper changes that
-model by having M-mode interpret and act upon S-mode translation metadata.
-
-More importantly, this establishes a trust relationship where a less-privileged mode is effectively supplying
-metadata that may influence subsequent M-mode memory accesses. Even if the current use case is safe, it becomes
-easier for future code to make M-mode access decisions based on supervisor-controlled page table contents.
-
-Beyond the security model concerns, this implementation does not appear to fully reproduce architectural address
-translation behavior. It is missing several important checks such as A/D bits, MXR, SUM, canonical address validation,
-and access-type-specific permission checks for load, store, and instruction fetch accesses. As a result, the software
-walk may succeed in cases where hardware would have generated a page fault.
-
-There is also a correctness concern around TOCTOU races. The implementation assumes that the page tables being walked
-are the same ones used by hardware when the original fault occurred. However, page tables may be modified concurrently
-by another hart after the fault is taken, meaning the software walk can observe a different translation than the one
-that triggered the trap. This introduces both correctness and security concerns.
-
-For now, I would push back on this patch series. There would be better ways to achieve the same.
-
-Regards
-Himanshu
-
-> -- 
-> 2.43.0
+> Regards
+> Himanshu
 > 
-> 
-> -- 
-> opensbi mailing list
-> opensbi@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/opensbi
+>> -- 
+>> 2.53.0
+>>
+>>
+>> -- 
+>> opensbi mailing list
+>> opensbi@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/opensbi
+
 
 -- 
 opensbi mailing list
