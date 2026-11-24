@@ -2,111 +2,112 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A3DB606B72A
-	for <opensbi@archiver.kernel.org>; Tue, 24 Nov 2026 09:48:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 372F2606A321
+	for <opensbi@archiver.kernel.org>; Tue, 24 Nov 2026 09:57:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=MYYvymIZ;
-	dkim=fail reason="signature verification failed" (4096-bit key, unprotected) header.d=canonical.com header.i=@canonical.com header.a=rsa-sha256 header.s=20251003 header.b=gotvApA9
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=TP7INTAl;
+	dkim=fail reason="signature verification failed" (2048-bit key, unprotected) header.d=brainfault.org header.i=@brainfault.org header.a=rsa-sha256 header.s=google header.b=FFo1y8Hx
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lists.infradead.org; s=bombadil.20210309; h=Sender:Content-Type:
-	Content-Transfer-Encoding:List-Subscribe:List-Help:List-Post:List-Archive:
-	List-Unsubscribe:List-Id:In-Reply-To:From:References:Cc:To:Subject:
-	MIME-Version:Date:Message-ID:Reply-To:Content-ID:Content-Description:
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:Cc:To:Subject:Message-ID:Date:From:
+	In-Reply-To:References:MIME-Version:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=IUNSRi2BE4KTWSWYubxodr85k5QfYTlOHyK0YYfLatE=; b=MYYvymIZNR+h4DREIXFt7g2On4
-	HAmWuVlTI5tQ5YreiTTlUjxA5+NvDlIwGt/d6kla9gLxOwre6znNBjw7/2IgXwBbvHh8sdVTpe8gP
-	ycVKeaeNAZRbAWxjQkxWUB+vBjDQfojMhec5ejAehjzBhGEOPpv0wZ/wZ5qz7ceCFC0jcGvrjVorx
-	tTJxrLgPf7T+wgK1TMSb4DDD+farUNV22Qa6t1NuJxAOsGR0tKBNIy2esYhqo1fJZcNAssucF3OeM
-	arEV3/LeB2nWWdsUmuPYp9PcUaen3uIoTTsc1GKA6M9CPL+wHBTH5ScFMb8ynoVWuHFihBn3FGLx5
-	Wsjz+wGA==;
+	bh=+efYE64UOfUJQTaH74s7VpK73Y3qdPGGMbWtlFR5ui0=; b=TP7INTAlhXPZlxM/2EdcujyfRS
+	GJb63q1I19+ywQNWhgKPBUwr2btE2fGL55HWk/ArYJ+RByUbLCnBOvvd9FTUbx00crhN2XckjRbQa
+	sT27XgduhtBC880ze3Jlv3lurHKBvkImNikR3p/TRl2Ykx4zNV6eBtXvAqLpxguBV/0WfaOXsFw06
+	cNY/qebBye1vopAFbzbarbLwLAUl+y872peClKxnorF/6DYE2Jp542Jz0v78hcJhc9YtGqc8neqlT
+	BxQuqPGFjInQiLvCNrhDiNk9pkoLfRx0VyDXzmDYGeG81HVqc+WeiGhNbi3Kpgn/5+1rGlxYU9ciR
+	bPSma7ZQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVn8h-000000067EC-0fRC;
-	Tue, 24 Nov 2026 09:48:39 +0000
-Received: from smtp-relay-internal-0.canonical.com ([185.125.188.122])
+	id 1xVnHN-000000069vz-0nep;
+	Tue, 24 Nov 2026 09:57:37 +0000
+Received: from mail-wm1-x32e.google.com ([2a00:1450:4864:20::32e])
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVn8T-0000000678t-2zH8
+	id 1xVnH9-000000069oB-3q0B
 	for opensbi@lists.infradead.org;
-	Tue, 24 Nov 2026 09:48:31 +0000
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com [209.85.128.71])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 33CB23F78C
-	for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 09:48:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-	s=20251003; t=1795513703;
-	bh=ADQxnjXPsvrExU4FDCcfxhmJ8HsmuITCJibxD8ROBNs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type;
-	b=gotvApA9hMqaOxOWbxMkDsto90u/+e3vay3MxQHNVh4wjl/p18VoeIZmOiHYE9ge9
-	 t6GeSgVWpAAK53M26wUR0zVLAGIbVHr0gsykSLnGQPduoPTyoGrU9ozEH4ni7wV4AG
-	 LNcUZMv/Etqhe+En8UKJ0jZsOFIF2WOHdvspvqaBRAjJ07FZcT5DegXXFupatQ6pTo
-	 6gP5MJD9w5OsyKhuXjRIRI8bBddA3bUpAFlAUZ0L/QZRb6qtYZxA3pRL344bNwj6XV
-	 Tata/HkJ7wJTIa1rteD1KrN4MeJFKmFypOG75deBjS+kvDSHrJvpRcNYrF+qjcITRP
-	 uHHz5Sm2ZKEEVL9sD3o2zyvJlOIcJVE/L5NwZKQJw30fvSn8NwmSHNeTZ2DQ8goSn7
-	 7K/Tfp9U2szPmBB1yBmGRKkMCsv/ex0m8oM1lHB67kpszXwqffizPER+sqxOK78WIi
-	 vYb6xqccJ1dLNMZ+X4TdXRa0WYopZX6qs+Vurd1hizI+a10GEgMHbqYfgfQ4XMBl91
-	 AUsc7H8xZFAIwnoI2oDTWBkk4ATBF5jMoC7LBnTcOTJUdU4LnjAGHuIwwU623vReDk
-	 AlIFc01yD7bHTJdz8k+44kJF/rRYQOGSc1XB+ysGcu3E+3+/qQrtu5uDf88rd2XKx3
-	 bif9V4cvdaIoy2P8Y6noUzl0=
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4ba078abd78so27641775e9.1
-        for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 01:48:23 -0800 (PST)
+	Tue, 24 Nov 2026 09:57:35 +0000
+Received: by mail-wm1-x32e.google.com with SMTP id 5b1f17b1804b1-4a3517554f7so39395605e9.2
+        for <opensbi@lists.infradead.org>; Tue, 24 Nov 2026 01:57:23 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795514242; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ieNW4kocVUcf6avCThUBbK3GIXUOai/3+EruPmGDx3DlrNFL/FmjxaMhy4nAbH2NFB
+         DigBad8pRU+r4HHuL+oxMdLqr3omjKg8c17hwY1S9zOaHY06Wp9gGz6RVGPIWrC2fxks
+         q4IR4pHtqz/i9ycFQRT9rsOl11zfUdFE/xjj384ghV27npgy4zOCvJbCFFu4+3I4IDgi
+         8PuNi/yCF9RRJ/fb5ZHB798zxOgZHtoSPH8QUnsvxqX+v9XJ8T/y15rYalTrERjxBeCq
+         EL6QOlVempUdDzlLc7CYKxh82yixgG9lweW4SzH5JwOM6uxnyeJ2Jt0wOTXU3SZ39FAC
+         FGvA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Qtx9i8WwVG6SswLlHdKLJoZrLfmyLIpVhLoZb9c/HX4=;
+        fh=s0V2QxfkZ31uI08A+gYD94xQ3QEn9NHnxJRAVF9iZzc=;
+        b=pn9zr0hWdu1sbumXork2WTiYWc8S1IXTC6APKm2xRfT9o30fdxoqZ1n2WcjdjYxy+X
+         xISjIsdrKSHB7KQfdPM8WgDQH2US1I6ClWUAIxnAfZOK1IAilJcB3CrPCM8HT/6Lec3+
+         ikP3xN5fW/dELZfqiSANJ/oDDUPALHwRQhoqTE2lo3jtiS3l9iLLTirjoi2ZFEhJv8Hd
+         rLVyROUL4OTw96HmBrN2M8c0iGTIMEAqUKLHIPT7/fDuCVeuP62m3Zqs8RpxYeQHO28c
+         +6iInWAH6ETOt9bouapWzmLya666udAL9b6NqFo0W75CMJirRSE6seqc5stbZuqzdNq7
+         /Z4A==;
+        darn=lists.infradead.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brainfault.org; s=google; t=1795514242; x=1796119042; darn=lists.infradead.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Qtx9i8WwVG6SswLlHdKLJoZrLfmyLIpVhLoZb9c/HX4=;
+        b=FFo1y8Hxtz5dD7RuouAxqQb4MT7C4p5/+vslXomKYovdtqAviSiN/2K/bsuSEuOfas
+         V5V5XUK+Fg2gm5VM/uakb9mJ3Mz/Qw+Lz7pjzrfKvNfNXqqPK3ASq/H98n7I2xXCs+Cz
+         tBUTUnX5IKc36e4xDKYAdTDR1xRpE3jl/Cga6Ticxq3bYDZCUgUm6gVQJZGpG9EbMgpX
+         b4aWIdl+e3vvSx3/RSKxxHJcXiATHaknVjzAW5s7nPbM0xibkJWiR4JvETLOzQoESccc
+         PbqKf1h+bsB0p8FDvGZNV/VPLoaeMSCVXDpi7Bj/GnpShiMxEceSA65Oq4CCY6oV2wz0
+         6xzQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795513703; x=1796118503;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=ADQxnjXPsvrExU4FDCcfxhmJ8HsmuITCJibxD8ROBNs=;
-        b=L0bMwTwW4Yainj2gGEVNZwNw4ttbAgdRfjstHm0vGl+BSdcB9R1JP69o0OKPYhNu3T
-         F77Q72lQsJoiueexWknGqtSq1fRVtAyjiXRGnwFUfkOKGc55Ct3NT0+QSjTEpSP3NcAZ
-         uyhd+Vynst0uSUVXvHiwqgsPbOW6sVclSTxFYdV6+1EiDqSxofpm9li9ecNKElptfVgq
-         jyP+WqV5P7Wwx6iEXX4nJrC4piNL1yo4gBda5CRFnZDh/xvCk1QkF05ikRlHDuMVFi2F
-         ocVrhZmInGcnAEBvzqCYEHqHZq9g5A9KCVVEZdDhUIp2mve081KlEXtiEzD796E+yDOo
-         9Kgw==
-X-Forwarded-Encrypted: i=1; AL+hErFTY2fSlrmR5L3/0xUaSMF6xyvVLVp97U9OZGIujHCSSEssbLW13r6UaezpEuKRQc5ckl1rrRA/@lists.infradead.org
-X-Gm-Message-State: APuU4Z+PXdkUIULWRIcMHSlWKJ46g1aShlBKxcWe1u+W+BSW/vE8p4ud
-	fix+iYmRV7gz7gQ1Pfq73TXBrd7w7zuR/446+gSgg0drLjGrqOzjDA1YrbS0c78uvZwxrXQtI45
-	o3rIgiF3b2fk8fFbD2z7pBI+KmISan7XEhCHOlhcgXVz/wgwgjT6SmBAE1Ad+WgebwgM3WwZeaa
-	ppkzYK
-X-Gm-Gg: AZFdTZft6KXIykWXowrO0yRy6sxxMzDJ5LG9Tn5yVnHw6omXI0K4eM57/lvyH0O8Hsy
-	WUrpHZ1+Resb4/KBUDi+GsycUQ7qTgRubPqTG7qF0xXmv7xznlG4oU6EklQ9qVhc061GlpfhSm+
-	QzqglfzQdgh0T5H2sq8zcZE1We4K/H+4H6bMd1HX8rzyWJUFLJblJS2f+UHOJJ4rWyHxH2OoxX5
-	27tFlJFFIMM1V87Ab3bZmlN0KYlCcjGXWOe0Kf3VS6/bdOlTiCuUzuJ7B/fMi1M5IlJHXKQn3Go
-	07IH84LmekWpxa7nnFf4q32yxo0+pz8him7H9coq5sU1udVmUSYDPzsPlpK1qe7UuMmdtcRSKJL
-	2TEpECgVKpPPKRt3F1gSKtuXyDEHhoRPNuOmY7hp2SSuO6LEO7cBXFxEvZRy0LV9egQwRi1V6d7
-	Fmyxs3YDfpUeKw+7W5RwFZtAXSCsaef73utbJcMtGulJolteyN4GKirqTjvG9Wgtl41ZnnvQk=
-X-Received: by 2002:a05:600c:1c0e:b0:4a1:ddaa:571e with SMTP id 5b1f17b1804b1-4bb88824f38mr330722285e9.15.1795513702817;
-        Tue, 24 Nov 2026 01:48:22 -0800 (PST)
-X-Received: by 2002:a05:600c:1c0e:b0:4a1:ddaa:571e with SMTP id 5b1f17b1804b1-4bb88824f38mr330721795e9.15.1795513702412;
-        Tue, 24 Nov 2026 01:48:22 -0800 (PST)
-Received: from ?IPV6:2a02:908:1242:30e0:1320:e0ed:cbe3:9c71? ([2a02:908:1242:30e0:1320:e0ed:cbe3:9c71])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb884c3063sm431897675e9.15.2026.11.24.01.48.21
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 24 Nov 2026 01:48:21 -0800 (PST)
-Message-ID: <8e42c97a-11d1-4ab2-8ecb-3624b56ee944@canonical.com>
-Date: Tue, 24 Nov 2026 10:48:20 +0100
+        d=1e100.net; s=20260707; t=1795514242; x=1796119042;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Qtx9i8WwVG6SswLlHdKLJoZrLfmyLIpVhLoZb9c/HX4=;
+        b=hPqkRUDMIdMvG1xL8UrbhFnf4J5rj538oDJ4WYVw88IDXt3gW+cwXzw5B96YexApfd
+         qAJeSeWHDQHnnT78OfJ1pP7ATNdu7B8dF6ELONjrxq0FR0Zf1cenb6yETc14JAHQlvKl
+         Xkt5Ck/O6xn9SHqCedGwKrk5Ie840XJ83IYMW5h8jRhrYrpGk9rp3r7LXkNCMcZQ6vQw
+         AAVgjXA7U+X9UEzDXZY+NntRnySoC6+M94K7k19PhJOZkC/564oPqQrNvGAwMQ7j2amJ
+         7EYftYeovVoFoObWQBpLBtl+q40qza7gVXA4dor3Ia2Dtxx7+GkZ39eLeswxlwVYlIO3
+         TiAg==
+X-Gm-Message-State: APuU4Z8M5XkHTuKNIiuYX3Cx9kKuZfJEtPAOkIY/LStjBFrdSCceazvf
+	vDvr1rTsZdAENoT62CpnoLU19C18x2s2FlVf00SRa4UmokAheiBjgjfL1xY6EhmQgZX+/fzc4Xs
+	SdFdMudj7aoVMkVk2Cky6V91OqNl9ZMnMZBo3YZkWpg==
+X-Gm-Gg: AZFdTZcjlkB2g7N0AKK34oREoWChFxWZ2whb6KzbXDkOE1nUQhSNdE1zzxM/H3dCi2p
+	dRjLX1lP5hv4XCK0VZUwbNBDnTK4kUzBramxHkDse8odndJlLJ+J/kZKD+skYDBW03CDN0Ml8Z4
+	zNd7ePlmzmQ1VAFHJJ8qgKYO3ARzLSR13AFmt5swKjbpztMUnnNG0TFNZ0lli6SCtXXMnc7uy0R
+	/bk1MB2jTr9itp4he9OjdN7NyBXstvY6LQXWAHZFH7YOF+0xXUBx4XSE2x9krZpE6dc45DB/qy+
+	vXdDiLIe53PHO8PVF6ouB3ypmVb8w/Kw0hBDLec331V1wWA6Ax8NpOuw5M4ydtW8FPBi8f9F3fX
+	2JwTHZ4fA9wekpXdBRVoH5NjIOYFh7laayNY7Bp5VGVFc5vbvo6+bAFcvTHgllrXZyL13zHG/Wq
+	y3oHcOJV3on6Mdzgr7rF9++0VyV54ls98TVMLRYmNWwxWxqwibkHLLLmNzWnw5c7U7t0IjwDS96
+	V4A
+X-Received: by 2002:a05:600c:34c9:b0:4a3:5d64:df91 with SMTP id
+ 5b1f17b1804b1-4bb88810d28mr310460635e9.18.1795514241519; Tue, 24 Nov 2026
+ 01:57:21 -0800 (PST)
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 3/7] lib: sbi: dbtr: check the whole shared memory range
- in SETUP_SHMEM
-To: Anup Patel <anup@brainfault.org>,
- Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Cc: Atish Patra <atishp@atishpatra.org>, opensbi@lists.infradead.org,
- Pengpeng Hou <pengpeng@iscas.ac.cn>, liutong <liutong@iscas.ac.cn>
-References: <20261120231119.90214-1-heinrich.schuchardt@canonical.com>
- <20261120231119.90214-4-heinrich.schuchardt@canonical.com>
- <awP13Tc5cpXdRJIy@hu-himchau-blr.qualcomm.com>
-Content-Language: en-US
-From: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
-In-Reply-To: <awP13Tc5cpXdRJIy@hu-himchau-blr.qualcomm.com>
+References: <20261124041631.1049169-1-peter.lin@sifive.com> <20261124041631.1049169-5-peter.lin@sifive.com>
+In-Reply-To: <20261124041631.1049169-5-peter.lin@sifive.com>
+From: Anup Patel <anup@brainfault.org>
+Date: Tue, 24 Nov 2026 15:27:09 +0530
+X-Gm-Features: Aa3M54rTw9Gu68bxCyMD28gr9o-MPmFy4sY0fkT3Pwl3GyIfjJQzZJtX1c_gH68
+Message-ID: <CAAhSdy2LW+AEiq0pmoHHNWwTyL787t+BjNxhT3DAkk2xdkfF1Q@mail.gmail.com>
+Subject: Re: [PATCH v6 4/9] lib: sbi_hart: lock mwid CSR for RoT immutability
+To: Yu-Chien Peter Lin <peter.lin@sifive.com>
+Cc: opensbi@lists.infradead.org, pawandeep.oza@oss.qualcomm.com, 
+	rkrcmar@qti.qualcomm.com, raymond.mao@riscstar.com, robin.randhawa@sifive.com, 
+	samuel.holland@sifive.com, zong.li@sifive.com, greentime.hu@sifive.com
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261124_014828_323146_A6B713E0 
-X-CRM114-Status: GOOD (  21.81  )
-X-Spam-Score: -4.4 (----)
+X-CRM114-CacheID: sfid-20261124_015724_000787_3217B3DE 
+X-CRM114-Status: GOOD (  20.11  )
+X-Spam-Score: -2.1 (--)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -116,102 +117,58 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-15.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=4.0.1
+	SPF_PASS autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-On 11/23/26 09:14, Himanshu Chauhan wrote:
-> On Sat, Nov 21, 2026 at 12:11:15AM +0100, Heinrich Schuchardt wrote:
->> The shared memory of the debug trigger extension is trig_max * (XLEN / 2)
->> bytes long. The specification requires the SBI implementation to check
->> that the whole physical memory range is accessible for the caller, see the
->> chapter on the shared memory physical address range parameter.
-> "see the chapter..." can be dropped. But I am okay with this right now.
-> 
->>
->> sbi_dbtr_setup_shmem() only tested the first address. A range that starts
->> in memory of S-mode and reaches into memory protected by PMP was
->> accepted. A later read of the triggers then makes M-mode write into the
->> protected memory. A range at the top of the address space that wraps
-> 
-> This is a major gap you pointed out yet mentioned in a casual way. Thanks
-> for fixing this. I request you to throughly review commit logs as well.
-> 
->> around was accepted too.
->>
->> Use sbi_domain_check_addr_range() with the size of the shared memory. It
->> also rejects a range that wraps around.
->>
->> Signed-off-by: Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
->> ---
->>   lib/sbi/sbi_dbtr.c | 17 ++++++++++++++---
->>   1 file changed, 14 insertions(+), 3 deletions(-)
->>
->> diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
->> index 53fcb0a2..fa0e5962 100644
->> --- a/lib/sbi/sbi_dbtr.c
->> +++ b/lib/sbi/sbi_dbtr.c
->> @@ -385,9 +385,20 @@ int sbi_dbtr_setup_shmem(const struct sbi_domain *dom, unsigned long smode,
->>   	if (shmem_phys_hi)
->>   		return SBI_EINVALID_ADDR;
->>   
->> -	if (dom && !sbi_domain_check_addr(dom,
->> -		  DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi, shmem_phys_lo), smode,
->> -		  SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
->> +	/*
->> +	 * The shared memory is trig_max * (XLEN / 2) bytes. All of it has to be
->> +	 * readable and writable for the caller, not only its first byte,
->> +	 * otherwise a read of the triggers would write into memory that the
->> +	 * caller cannot access. A range that wraps around is rejected too.
->> +	 */
->> +	if (dom &&
->> +	    !sbi_domain_check_addr_range(dom,
->> +					 DBTR_SHMEM_MAKE_PHYS(shmem_phys_hi,
->> +							      shmem_phys_lo),
->> +					 hart_state->total_trigs *
->> +						 sizeof(union sbi_dbtr_shmem_entry),
->> +					 smode,
->> +					 SBI_DOMAIN_READ | SBI_DOMAIN_WRITE))
->>   		return SBI_ERR_INVALID_ADDRESS;
->>   
->>   	hart_state->shmem.phys_lo = shmem_phys_lo;
-> LGTM
-> 
-> Reviewed-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-
-The same change was already suggested by Pengpeng and reviewed positively in
-
-[PATCH] lib: sbi: dbtr: validate complete shared memory range
-https://lore.kernel.org/opensbi/CA+Ht8=ZJrfwk6DBk+Dyt71=2r66-N=WBbKnBu+npLekKUX45Sg@mail.gmail.com/
-
-The discussion with Liutong seemed to have ended in Liutong accepting 
-Pengpeng's patch.
-
-I wonder why Pengpeng's patch was not merged.
-
-Best regards
-
-Heinrich
-
-> 
->> -- 
->> 2.53.0
->>
->>
->> -- 
->> opensbi mailing list
->> opensbi@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/opensbi
-
-
--- 
-opensbi mailing list
-opensbi@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/opensbi
+T24gVHVlLCBOb3YgMjQsIDIwMjYgYXQgOTo0NuKAr0FNIFl1LUNoaWVuIFBldGVyIExpbiA8cGV0
+ZXIubGluQHNpZml2ZS5jb20+IHdyb3RlOgo+Cj4gTG9jayB0aGUgTS1tb2RlIFdvcmxkIElEICht
+d2lkKSBDU1IgZHVyaW5nIGhhcnQgcmUtaW5pdGlhbGl6YXRpb24KPiB0byBlbmZvcmNlIGltbXV0
+YWJpbGl0eSBvZiB0aGUgV0lEIGVzdGFibGlzaGVkIGJ5IHRoZSByb290LW9mLXRydXN0Lgo+Cj4g
+T3BlblNCSSBkb2VzIG5vdCBhc3NpZ24gdGhlIFdJRCB2YWx1ZSBpdHNlbGY7IGl0IG9ubHkgc2V0
+cyBNV0lEX0xPQ0sKPiB0byBmcmVlemUgdGhlIHZhbHVlIGVzdGFibGlzaGVkIGJ5IHByaW9yIFJv
+VCBzdGFnZS4gVGhlIE1XSURfTE9DSyBiaXQKPiBhdCBYTEVOLTEgaXMgc3RpY2t5IGFuZCBtYWtl
+cyB0aGUgQ1NSIHJlYWQtb25seSB1bnRpbCByZXNldCwgZW5mb3JjaW5nCj4gYSB0ZW1wb3JhbCBz
+ZWN1cml0eSBib3VuZGFyeSBwZXIgdGhlIFJJU0MtViBXb3JsZHMgc3BlY2lmaWNhdGlvbi4KPgo+
+IFNpZ25lZC1vZmYtYnk6IFl1LUNoaWVuIFBldGVyIExpbiA8cGV0ZXIubGluQHNpZml2ZS5jb20+
+Cj4gUmV2aWV3ZWQtYnk6IFBhd2FuZGVlcCBPemEgPHBhd2FuZGVlcC5vemFAb3NzLnF1YWxjb21t
+LmNvbT4KCkxHVE0uCgpSZXZpZXdlZC1ieTogQW51cCBQYXRlbCA8YW51cEBicmFpbmZhdWx0Lm9y
+Zz4KClJlZ2FyZHMsCkFudXAKCj4gLS0tCj4gQ2hhbmdlcyB2NS0+djY6Cj4gLSBBZGQgd2Fybmlu
+ZyBtZXNzYWdlIHdoZW4gcG13aWQgIT0gbXdpZCAoQW51cCkKPiAtLS0KPiAgbGliL3NiaS9zYmlf
+aGFydC5jIHwgMjcgKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2Vk
+LCAyNyBpbnNlcnRpb25zKCspCj4KPiBkaWZmIC0tZ2l0IGEvbGliL3NiaS9zYmlfaGFydC5jIGIv
+bGliL3NiaS9zYmlfaGFydC5jCj4gaW5kZXggZDg2YWJmMDcuLjhlOGY4NGNkIDEwMDY0NAo+IC0t
+LSBhL2xpYi9zYmkvc2JpX2hhcnQuYwo+ICsrKyBiL2xpYi9zYmkvc2JpX2hhcnQuYwo+IEBAIC00
+NjksNiArNDY5LDMxIEBAIHN0YXRpYyBpbnQgaGFydF9taHBtX2dldF9hbGxvd2VkX2JpdHModm9p
+ZCkKPiAgICAgICAgIHJldHVybiBudW1fYml0czsKPiAgfQo+Cj4gK3N0YXRpYyB2b2lkIHNtd2lk
+X2hhcnRfaW5pdChzdHJ1Y3Qgc2JpX3NjcmF0Y2ggKnNjcmF0Y2gpCj4gK3sKPiArICAgICAgIHN0
+cnVjdCBzYmlfaGFydF9mZWF0dXJlcyAqaGZlYXR1cmVzID0gc2JpX2hhcnRfZmVhdHVyZXNfcHRy
+KHNjcmF0Y2gpOwo+ICsgICAgICAgdW5zaWduZWQgbG9uZyBtd2lkOwo+ICsKPiArICAgICAgIGlm
+ICghc2JpX2hhcnRfaGFzX2V4dGVuc2lvbihzY3JhdGNoLCBTQklfSEFSVF9FWFRfU01XSUQpKQo+
+ICsgICAgICAgICAgICAgICByZXR1cm47Cj4gKwo+ICsgICAgICAgLyoKPiArICAgICAgICAqIE1X
+SUQgaXMgZXhwZWN0ZWQgdG8gaGF2ZSBiZWVuIHNldC9yZXN0b3JlZCBieSB0aGUgUm9UJ3MKPiAr
+ICAgICAgICAqIE0tbW9kZSBpbXBsZW1lbnRhdGlvbiBkdXJpbmcgYW4gZWFybGllciBib290L3Jl
+c3VtZSBzdGFnZS4KPiArICAgICAgICAqIExvY2sgaXQgdG8gcHJlc2VydmUgdGhlIFJvVC1kZWZp
+bmVkIFdJRCBhcyBpbW11dGFibGUuCj4gKyAgICAgICAgKgo+ICsgICAgICAgICogTVdJRCBtYXkg
+ZGlmZmVyIGZyb20gcG13aWQgaWYgdGhlIFJvVCBoYXMgZGVtb3RlZCBNLW1vZGUuCj4gKyAgICAg
+ICAgKi8KPiArICAgICAgIG13aWQgPSBjc3JfcmVhZChDU1JfTVdJRCkgJiB+TVdJRF9MT0NLOwo+
+ICsgICAgICAgaWYgKGhmZWF0dXJlcy0+aGFzX3Btd2lkICYmIG13aWQgIT0gaGZlYXR1cmVzLT5w
+bXdpZCkgewo+ICsgICAgICAgICAgICAgICBzYmlfcHJpbnRmKCJXQVJOSU5HOiAlczogaGFydCV1
+IG13aWQgKCVsdSkgZGlmZmVycyBmcm9tIgo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICIg
+cG13aWQgKCV1KVxuIiwgX19mdW5jX18sIGN1cnJlbnRfaGFydGlkKCksCj4gKyAgICAgICAgICAg
+ICAgICAgICAgICAgICAgbXdpZCwgaGZlYXR1cmVzLT5wbXdpZCk7Cj4gKyAgICAgICB9Cj4gKwo+
+ICsgICAgICAgY3NyX3NldChDU1JfTVdJRCwgTVdJRF9MT0NLKTsKPiArfQo+ICsKPiAgc3RhdGlj
+IGludCBzbXJubWlfaGFydF9pbml0KHN0cnVjdCBzYmlfc2NyYXRjaCAqc2NyYXRjaCkKPiAgewo+
+ICAgICAgICAgY29uc3Qgc3RydWN0IHNiaV9wbGF0Zm9ybSAqcGxhdDsKPiBAQCAtNzIxLDYgKzc0
+Niw4IEBAIGludCBzYmlfaGFydF9yZWluaXQoc3RydWN0IHNiaV9zY3JhdGNoICpzY3JhdGNoKQo+
+ICB7Cj4gICAgICAgICBpbnQgcmM7Cj4KPiArICAgICAgIHNtd2lkX2hhcnRfaW5pdChzY3JhdGNo
+KTsKPiArCj4gICAgICAgICByYyA9IHNtcm5taV9oYXJ0X2luaXQoc2NyYXRjaCk7Cj4gICAgICAg
+ICBpZiAocmMpCj4gICAgICAgICAgICAgICAgIHJldHVybiByYzsKPiAtLQo+IDIuNDMuNwo+Cgot
+LSAKb3BlbnNiaSBtYWlsaW5nIGxpc3QKb3BlbnNiaUBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
+Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vb3BlbnNiaQo=
