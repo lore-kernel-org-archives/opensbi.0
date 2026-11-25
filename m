@@ -2,90 +2,70 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40DF2606A321
-	for <opensbi@archiver.kernel.org>; Tue, 24 Nov 2026 15:57:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABC74606A31E
+	for <opensbi@archiver.kernel.org>; Wed, 25 Nov 2026 03:10:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=Yb9vkXvS;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=desiato.20200630 header.b=Va2XebU0
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=LoHUE70J
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
-	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:Cc
+	:To:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
 	List-Unsubscribe-Post:List-Owner;
-	bh=55Pn7XVZtk1IVUdWexjYSkexk+RSMOf7MqiK78ZqsFE=; b=Yb9vkXvSKL5UvjGXt4c9A6pV28
-	Y1KdBYuZhWA6ApjbJOK2hzw7YZRd7H8Zmx0/9anIe01qbPTBPNZqf2cEyYjpwIUzrJOi7IjW3NaLb
-	NxUox+SqbrJL/4l4JrDgEz7eWYCgrBS4GD9j3DYUyhKQCfQuJDiolAUR1zjfw80ihX5AF/Ht64+0H
-	tAMTBslQACYHTIHksv8HlBm60zYw58Nv69sz8o9H5nYaG83V5mCig8FjhhI6jF1GHwiXOxTUw9PID
-	2iTGRDQ9EzEkeZfgkIQuET2qDhxAqTHHFjJI5vDWq/8NIBILSqquWtRLAwIRJ793BgU3S7gPBzG+S
-	3o4wjkBA==;
+	bh=7GU/dNxmx9t8cbbm9o1ulGRavFcqJHhtg/PPUManuyQ=; b=LoHUE70Joa5mvEaFMq7eTFwJv2
+	+IxZX94qc1TVCh1dZEAoW19xgf5JhkSeOyU68m/fagvb5/ReJNMWlqPi5JaCk5t4Pbf3NGEBla0mW
+	ksPz//HQ3+bAcWlbKl4J4e+6jhZlruNKYlx766O537S3+/yEeqCy2UHK4CW6WTQE8/W/RM2S6Sbdu
+	P4R0dRA8UV5gTPTCBv8S+dET7I6BuJj4jkzAiPUXgTO/CkUbUTBSyExLEeM/lYsFYwJq8n8Wo9Tf3
+	p1QvTX6JDk7+LAVLyyPF3J8xMD3mnmishSqtHZiSTtB+wWXYJkkwk+cHao3OyI2RTZ/E+YGG1DbL7
+	RmAnQEgQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVsu3-00000007211-2tBV;
-	Tue, 24 Nov 2026 15:57:55 +0000
-Received: from desiato.infradead.org ([2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVssg-000000070iq-0gRi
-	for opensbi@bombadil.infradead.org;
-	Tue, 24 Nov 2026 15:56:35 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:MIME-Version
-	:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=zaUoqSC5c5Fzj/SN2JvyM/HpsSbTBwq4Yy8gYW7AHG0=; b=Va2XebU0N8HR2MREXjFhgiaoz2
-	dzETaNwfzTVzP+3Lb9t/N6r+ZXf0IfyTJXMSxH0UIqzPlYNqrns0WaTZQoU/ObvndTcZqaxzO6cd/
-	1lYXzCajKbkD+qPIU+L0ANrYaGcOE+DlCyNIFPHDQFZJ8814sRy5mTVJDUkm2qkc4099pY0AXSQp5
-	sLhabivq2F5PsxnJ6q5QGB5FmDrRRI1o26eBtMSUJpXdgjLoQaKVSxh8EnTWWcnPq0UpYRgICwdpn
-	IdMLLyyOKeNvkyAklDvPPy2N6KT2iOyGWOtnXEEodbvF883MlRCbMMk3rUlV6SGFNqqiPAdtBYK5T
-	QEtrCVKQ==;
+	id 1xW3OP-00000008HbQ-1iAy;
+	Wed, 25 Nov 2026 03:09:57 +0000
 Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
-	by desiato.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xVssc-00000004IuE-0lMM
+	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
+	id 1xW3OM-00000008Hb1-0QoB
 	for opensbi@lists.infradead.org;
-	Tue, 24 Nov 2026 15:56:28 +0000
+	Wed, 25 Nov 2026 03:09:55 +0000
 Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
-	by APP-05 (Coremail) with SMTP id zQCowADHYrieswVr1Q3YAQ--.7609S2;
-	Tue, 24 Nov 2026 23:56:14 +0800 (CST)
+	by APP-05 (Coremail) with SMTP id zQCowAA30rd6UQZr5pLiAQ--.17037S2;
+	Wed, 25 Nov 2026 11:09:46 +0800 (CST)
 From: liutong <liutong@iscas.ac.cn>
-To: heinrich.schuchardt@canonical.com
-Cc: pengpeng@iscas.ac.cn,
-	himanshu.chauhan@oss.qualcomm.com,
-	atishp@atishpatra.org,
-	anup@brainfault.org,
-	opensbi@lists.infradead.org,
-	liutong <liutong@iscas.ac.cn>
-Subject: Re: [PATCH 3/7] lib: sbi: dbtr: check the whole shared memory range in SETUP_SHMEM
-Date: Tue, 24 Nov 2026 15:55:58 +0000
-Message-Id: <20261124155558.3260520-1-liutong@iscas.ac.cn>
+To: opensbi@lists.infradead.org
+Cc: hchauhan@ventanamicro.com,
+	apatel@ventanamicro.com,
+	npiggin@gmail.com,
+	xypron.glpk@gmx.de,
+	liutong@iscas.ac.cn
+Subject: [PATCH] lib: sbi: dbtr: validate trigger configuration before writing CSR
+Date: Wed, 25 Nov 2026 03:09:30 +0000
+Message-Id: <20261125030930.3743680-1-liutong@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <8e42c97a-11d1-4ab2-8ecb-3624b56ee944@canonical.com>
-References: <20261120231119.90214-1-heinrich.schuchardt@canonical.com> <20261120231119.90214-4-heinrich.schuchardt@canonical.com> <awP13Tc5cpXdRJIy@hu-himchau-blr.qualcomm.com> <8e42c97a-11d1-4ab2-8ecb-3624b56ee944@canonical.com>
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID: zQCowADHYrieswVr1Q3YAQ--.7609S2
-X-Coremail-Antispam: 1UD129KBjvdXoW7JF1xCF1rCry5AFWrCrW3Jrb_yoW3Wrb_GF
-	y0vFykGas0qF4xWa10kr40vry7KayDuwnxJrnrZr4Sg343JFWkX3s8XrnY9F4xKw48KFWD
-	Kw4vgrZIkFy7ZjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUb48FF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s
-	1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0
-	cI8IcVAFwI0_Jw0_WrylYx0Ex4A2jsIE14v26F4UJVW0owAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkF7I0En4kS14v26r12
-	6r1DMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI
-	0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y
-	0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxV
-	W8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1l
-	IxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VU1pnQUUUUU
-	U==
+X-CM-TRANSID: zQCowAA30rd6UQZr5pLiAQ--.17037S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxCF45Wr43CrWDJr1kWFWfXwb_yoWrWr1UpF
+	WruFy5KrZ7tryjyrWxAay0gry5Zw48Jw45GrZF9ryvvas8Zr18Xr1aq34jqa4FgrykXF45
+	AF48tFWDCFsxXF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Cr
+	1j6rxdM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj
+	6xIIjxv20xvE14v26r1q6rW5McIj6I8E87Iv67AKxVW8Jr0_Cr1UMcvjeVCFs4IE7xkEbV
+	WUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AF
+	wI0_JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4
+	xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1D
+	MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I
+	0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWU
+	JVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x0JU6Hq
+	cUUUUU=
 X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261124_155626_536033_075BB2B0 
-X-CRM114-Status: UNSURE (   7.10  )
-X-CRM114-Notice: Please train this message.
-X-Spam-Score: -0.0 (/)
+X-CRM114-CacheID: sfid-20261124_190954_533983_C959E6AA 
+X-CRM114-Status: GOOD (  11.53  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -98,34 +78,128 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=4.0.1
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-On 11/24/26 10:48, Heinrich Schuchardt wrote:
-> I wonder why Pengpeng's patch was not merged.
+Move the validation of tdata1 to dbtr_trigger_enable(), where it is
+written to CSR_TDATA1. This prevents S-mode from modifying the trigger
+configuration between the validation pass and the install/enable pass,
+allowing an invalid configuration (with DMODE or M bit set) to reach
+the CSR.
 
-It has Himanshu's Reviewed-by from 3 September, and I withdrew my own
-competing patch on 9 September. It was not applied after that.
+The install pass reads the shared memory twice: once in the dry-run to
+allocate slots, and again during install to program them. S-mode can
+rewrite the entry in between. Validating at the CSR write point closes
+this window and covers all three callers: install_trig, enable_trig,
+and update_trig.
 
-Its second hunk has since been overtaken. That hunk added
+Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
+Reported-by: Nicholas Piggin <npiggin@gmail.com>
+Signed-off-by: liutong <liutong@iscas.ac.cn>
+---
+ lib/sbi/sbi_dbtr.c | 37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-	if (trig_count >= hs->total_trigs)
-		return SBI_ERR_BAD_RANGE;
-
-to install_trig, following the >= in the error tables of DBTR 19.4 and
-19.5; Pengpeng noted in the patch that the surrounding prose disagrees
-with those tables. ed70256dd22c ("lib: sbi: fix trigger
-read/update/install range check") took the other reading and uses > in
-read, install and update.
-
-So the setup_shmem hunk is what is left, and that is your 3/7. Please
-add a Link: to Pengpeng's patch.
-
-liutong
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 9b5d25617194..fa75ee356632 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -460,17 +460,25 @@ static inline void update_bit(unsigned long new, int nr, volatile unsigned long
+ 		__clear_bit(nr, addr);
+ }
+ 
+-static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
++static int dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+ {
+ 	unsigned long state;
+ 	unsigned long tdata1;
+ 
+ 	if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+-		return;
++		return SBI_ERR_FAILED;
+ 
+ 	state = trig->state;
+ 	tdata1 = trig->tdata1;
+ 
++	/*
++	 * Validate tdata1 before programming CSR. S-mode can modify the shared
++	 * memory between validation pass and install pass, allowing an invalid
++	 * configuration (with DMODE or M bit set) to reach CSR_TDATA1. Reject it here.
++	 */
++	if (!dbtr_trigger_valid(TDATA1_GET_TYPE(tdata1), tdata1))
++		return SBI_ERR_INVALID_PARAM;
++
+ 	switch (TDATA1_GET_TYPE(tdata1)) {
+ 	case RISCV_DBTR_TRIG_MCONTROL:
+ 		update_bit(state & RV_DBTR_BIT_MASK(TS, U),
+@@ -516,6 +524,8 @@ static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+ 	tdata_write_safe(CSR_TDATA2, trig->tdata2);
+ 	tdata_write_safe(CSR_TDATA3, trig->tdata3);
+ 	csr_write(CSR_TDATA1, trig->tdata1);
++
++	return SBI_SUCCESS;
+ }
+ 
+ static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
+@@ -785,6 +795,7 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 	for_each_trig_entry(shmem_base, trig_count, typeof(*entry), entry) {
+ 		recv = (struct sbi_dbtr_data_msg *)(&entry->data);
+ 		xmit = (struct sbi_dbtr_id_msg *)(&entry->id);
++		int ret;
+ 
+ 		/*
+ 		 * The dry-run above matched every requested configuration
+@@ -796,7 +807,13 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 					 lle_to_cpu(recv->tdata3));
+ 
+ 		dbtr_trigger_setup(trig,  recv);
+-		dbtr_trigger_enable(trig);
++		ret = dbtr_trigger_enable(trig);
++		if (ret != SBI_SUCCESS) {
++			*out = _idx;
++			sbi_hart_protection_temp_unmap_range((unsigned long)shmem_base,
++							     trig_count * sizeof(*entry));
++			return ret;
++		}
+ 		xmit->idx = cpu_to_lle(trig->index);
+ 
+ 	}
+@@ -847,7 +864,9 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+ 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+ 		trig = INDEX_TO_TRIGGER(idx);
+ 		sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
+-		dbtr_trigger_enable(trig);
++		int ret = dbtr_trigger_enable(trig);
++		if (ret != SBI_SUCCESS)
++			return ret;
+ 	}
+ 
+ 	return SBI_SUCCESS;
+@@ -921,8 +940,18 @@ int sbi_dbtr_update_trig(unsigned long smode,
+ 					       lle_to_cpu(local.data.tdata3)))
+ 			return SBI_ERR_NOT_SUPPORTED;
+ 
++<<<<<<< Updated upstream
+ 		dbtr_trigger_setup(trig, &local.data);
+ 		dbtr_trigger_enable(trig);
++=======
++		dbtr_trigger_setup(trig, &entry->data);
++		sbi_hart_protection_temp_unmap_range((unsigned long)entry, sizeof(*entry));
++		{
++			int ret = dbtr_trigger_enable(trig);
++			if (ret != SBI_SUCCESS)
++				return ret;
++		}
++>>>>>>> Stashed changes
+ 	}
+ 
+ 	return SBI_SUCCESS;
+-- 
+2.34.1
 
 
 -- 
