@@ -2,62 +2,72 @@ Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C1C606A31E
-	for <opensbi@archiver.kernel.org>; Thu, 26 Nov 2026 02:03:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7143606A323
+	for <opensbi@archiver.kernel.org>; Thu, 26 Nov 2026 02:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=H/TE1dsh;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=126.com header.i=@126.com header.a=rsa-sha256 header.s=s110527 header.b=aDuvnknl
+	dkim=pass (2048-bit key) header.d=lists.infradead.org header.i=@lists.infradead.org header.a=rsa-sha256 header.s=bombadil.20210309 header.b=xFVZj/ll
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
 	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
 	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
-	Date:Cc:To:From:Subject:Message-ID:Reply-To:Content-ID:Content-Description:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Unsubscribe-Post:List-Owner;
-	bh=pY/YWjKH2jU/O0zzff47pd2VI8oABQt1g7dbZRNITCo=; b=H/TE1dsh0/jV4XnmXldlN9LsMi
-	XS//cY4VD2vwbTv3NzeGP1P3+6z6pYNijzm/ZQEiEP6AKlM1eeTLombPlcfEQLdR+4HGtJjnAfFOi
-	6OefvBQ80E2JFBXHcsHIGXgJJYNJOq8PKpjFokczWGi3wB52/wIBQdPpYztcZx2Y3o12loj22DZYm
-	rPhFQOHrqxqHWyem3Uxy3w/jixx3bByW6ByWVVtq7Q7xmCAergkO0N57PQCtiJ4Me5TfMXIFZlBcz
-	MYZnbkiz8O1NgwSafP+GBIiDoDKKL9mLoOZbKHbktmnbb/8AK8pr5ER2e9lTGzobNdOHipGUT0Q7E
-	IQBzO/tg==;
+	bh=A+Ow5l3iA9XNlC8UmvjOWT2P5BbXI5kg9dYKXg1Hmdk=; b=xFVZj/llsE7XjZ5kJJOtkiVyv4
+	l6imsf9VAdHAvWZD4l/QsIAGKqd+KUymmsiWQh35J0svylHoAjCMQiVzNB9/orLlFvJDKMBqtXF3B
+	UX8qGgpIfF1nW+/EAWvL26HwAGkE44GR4B6p5m/uAZUM9uwAwR3dtxCdwAXhOh3j5KdPobpw1RhcH
+	BbZDGZ2rvnKRHsVQbfj59Zl4vQdWFO67GaFw16Mv7WUsNQzAACxq7JfTMAqXLnsJiTtQ+UplgpwlA
+	qHPgeLYS+fzkfNSDnKoxgvvMuyFibJEmunSnx4nklP5oMxOI4ZfKY0kCwrq6Xo/K8KM2vml4xd2/1
+	AgcAUuLQ==;
 Received: from localhost ([::1] helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtp (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xWOq4-0000000BqeD-32QR;
-	Thu, 26 Nov 2026 02:03:56 +0000
-Received: from m16.mail.126.com ([220.197.31.8])
+	id 1xWPUY-0000000BwCo-0oAM;
+	Thu, 26 Nov 2026 02:45:46 +0000
+Received: from smtp25.cstnet.cn ([159.226.251.25] helo=cstnet.cn)
 	by bombadil.infradead.org with esmtps (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xWOq1-0000000BqdF-1M6q
+	id 1xWPUQ-0000000BwBp-2ElJ
 	for opensbi@lists.infradead.org;
-	Thu, 26 Nov 2026 02:03:56 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=Message-ID:Subject:From:To:Date:Content-Type:
-	MIME-Version; bh=8PCRAiIs5mdSQL4Lj9OoD/m+3AVLxeuYA0/WryNAfM0=;
-	b=aDuvnknl75QihL6/AYa9EVu72DiIk9GuLH/eN1kaDg7k2gJo6i/EfIA+9OugUg
-	EyZcgN2DAdW79DuXsKaSjaOKvjauqYnqQqZfFg3lJsinnbFJJ9iLIhcKP6oke4YV
-	FMrSNq/lU7uqseSFmfEd7A2RsMplx12QpIn1njONwUmXo=
-Message-ID: <7dee27ddd273c5fe2fbee2427be6af63c91bc60c.camel@126.com>
-Subject: Re: [PATCH] lib: sbi: dbtr: validate trigger configuration before
- writing CSR
-From: Xiang W <wxjstz@126.com>
-To: liutong <liutong@iscas.ac.cn>, opensbi@lists.infradead.org
-Cc: hchauhan@ventanamicro.com, apatel@ventanamicro.com, npiggin@gmail.com, 
-	xypron.glpk@gmx.de
-Date: Thu, 26 Nov 2026 10:03:42 +0800
+	Thu, 26 Nov 2026 02:45:40 +0000
+Received: from f3f1baf57000.home.arpa (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowAAHpLlOnQdrIcL3AQ--.1173S2;
+	Thu, 26 Nov 2026 10:45:35 +0800 (CST)
+From: liutong <liutong@iscas.ac.cn>
+To: opensbi@lists.infradead.org
+Cc: hchauhan@ventanamicro.com,
+	apatel@ventanamicro.com,
+	npiggin@gmail.com,
+	xypron.glpk@gmx.de,
+	liutong@iscas.ac.cn
+Subject: [PATCH v2] lib: sbi: dbtr: validate trigger configuration before writing CSR
+Date: Thu, 26 Nov 2026 02:45:19 +0000
+Message-Id: <20261126024519.251642-1-liutong@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20261125030930.3743680-1-liutong@iscas.ac.cn>
 References: <20261125030930.3743680-1-liutong@iscas.ac.cn>
-User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Archived-By: <archiver.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID: QCkvCgDn7_t+kwdrIoZvEA--.49167S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxurykGFyfJry7Jry8Ww48WFg_yoWruF43pF
-	WruFy5KrZ7try7trWIvay8Kry5Zw48Jw1jgrZ29ryvva4qyr18JF1Sg34jva4rurykZF45
-	AF4YqFWDCFsIvF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0ziE_M3UUUUU=
-X-CM-SenderInfo: pz0m23b26rjloofrz/xtbBsx+g2msHk38-vQAA3U
+X-CM-TRANSID: zQCowAAHpLlOnQdrIcL3AQ--.1173S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxurW3XFW3uF13AFWUXF1rtFb_yoWrKw4kpF
+	ZY9FyUKrZ7try0kr4Iyay0gryagw48Jw45GrZF9340vas0yw18Gr1agw1jq3WruFykXF4U
+	A3y8tFWDCFsxXF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Cr
+	1j6rxdM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj
+	6xIIjxv20xvE14v26r1q6rW5McIj6I8E87Iv67AKxVW8Jr0_Cr1UMcvjeVCFs4IE7xkEbV
+	WUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AF
+	wI0_JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4
+	xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1D
+	MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I
+	0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWU
+	JVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x0JU6Hq
+	cUUUUU=
+X-CM-SenderInfo: xolx301qj6x2xfdvhtffof0/
 X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.9.0 (BSD) ) MR-646709E3 
-X-CRM114-CacheID: sfid-20261125_180353_830086_07207670 
-X-CRM114-Status: GOOD (  17.42  )
-X-Spam-Score: -2.1 (--)
+X-CRM114-CacheID: sfid-20261125_184538_982492_F0A7B3E1 
+X-CRM114-Status: GOOD (  13.22  )
+X-Spam-Score: -1.9 (-)
 X-BeenThere: opensbi@lists.infradead.org
 X-Mailman-Version: 2.1.34
 Precedence: list
@@ -67,97 +77,158 @@ List-Post: <mailto:opensbi@lists.infradead.org>
 List-Help: <mailto:opensbi-request@lists.infradead.org?subject=help>
 List-Subscribe: <http://lists.infradead.org/mailman/listinfo/opensbi>,
  <mailto:opensbi-request@lists.infradead.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: "opensbi" <opensbi-bounces@lists.infradead.org>
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_EF,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=4.0.1
+X-Spam-Status: No, score=-16.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_EF,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=4.0.1
 X-Spam-Checker-Version: SpamAssassin 4.0.1 (2024-03-26) on
 	aws-us-west-2-korg-listserv-alma10-1
 
-5ZyoIDIwMjYtMTEtMjXkuInnmoQgMDM6MDkgKzAwMDDvvIxsaXV0b25n5YaZ6YGT77yaCj4gTW92
-ZSB0aGUgdmFsaWRhdGlvbiBvZiB0ZGF0YTEgdG8gZGJ0cl90cmlnZ2VyX2VuYWJsZSgpLCB3aGVy
-ZSBpdCBpcwo+IHdyaXR0ZW4gdG8gQ1NSX1REQVRBMS4gVGhpcyBwcmV2ZW50cyBTLW1vZGUgZnJv
-bSBtb2RpZnlpbmcgdGhlIHRyaWdnZXIKPiBjb25maWd1cmF0aW9uIGJldHdlZW4gdGhlIHZhbGlk
-YXRpb24gcGFzcyBhbmQgdGhlIGluc3RhbGwvZW5hYmxlIHBhc3MsCj4gYWxsb3dpbmcgYW4gaW52
-YWxpZCBjb25maWd1cmF0aW9uICh3aXRoIERNT0RFIG9yIE0gYml0IHNldCkgdG8gcmVhY2gKPiB0
-aGUgQ1NSLgo+IAo+IFRoZSBpbnN0YWxsIHBhc3MgcmVhZHMgdGhlIHNoYXJlZCBtZW1vcnkgdHdp
-Y2U6IG9uY2UgaW4gdGhlIGRyeS1ydW4gdG8KPiBhbGxvY2F0ZSBzbG90cywgYW5kIGFnYWluIGR1
-cmluZyBpbnN0YWxsIHRvIHByb2dyYW0gdGhlbS4gUy1tb2RlIGNhbgo+IHJld3JpdGUgdGhlIGVu
-dHJ5IGluIGJldHdlZW4uIFZhbGlkYXRpbmcgYXQgdGhlIENTUiB3cml0ZSBwb2ludCBjbG9zZXMK
-PiB0aGlzIHdpbmRvdyBhbmQgY292ZXJzIGFsbCB0aHJlZSBjYWxsZXJzOiBpbnN0YWxsX3RyaWcs
-IGVuYWJsZV90cmlnLAo+IGFuZCB1cGRhdGVfdHJpZy4KPiAKPiBGaXhlczogOTdmMjM0ZjE1Yzk2
-ICgibGliOiBzYmk6IEludHJvZHVjZSB0aGUgU0JJIGRlYnVnIHRyaWdnZXJzIGV4dGVuc2lvbiBz
-dXBwb3J0IikKPiBSZXBvcnRlZC1ieTogTmljaG9sYXMgUGlnZ2luIDxucGlnZ2luQGdtYWlsLmNv
-bT4KPiBTaWduZWQtb2ZmLWJ5OiBsaXV0b25nIDxsaXV0b25nQGlzY2FzLmFjLmNuPgo+IC0tLQo+
-IMKgbGliL3NiaS9zYmlfZGJ0ci5jIHwgMzcgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrLS0tLQo+IMKgMSBmaWxlIGNoYW5nZWQsIDMzIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25z
-KC0pCj4gCj4gZGlmZiAtLWdpdCBhL2xpYi9zYmkvc2JpX2RidHIuYyBiL2xpYi9zYmkvc2JpX2Ri
-dHIuYwo+IGluZGV4IDliNWQyNTYxNzE5NC4uZmE3NWVlMzU2NjMyIDEwMDY0NAo+IC0tLSBhL2xp
-Yi9zYmkvc2JpX2RidHIuYwo+ICsrKyBiL2xpYi9zYmkvc2JpX2RidHIuYwo+IEBAIC00NjAsMTcg
-KzQ2MCwyNSBAQCBzdGF0aWMgaW5saW5lIHZvaWQgdXBkYXRlX2JpdCh1bnNpZ25lZCBsb25nIG5l
-dywgaW50IG5yLCB2b2xhdGlsZSB1bnNpZ25lZCBsb25nCj4gwqAJCV9fY2xlYXJfYml0KG5yLCBh
-ZGRyKTsKPiDCoH0KPiDCoAo+IC1zdGF0aWMgdm9pZCBkYnRyX3RyaWdnZXJfZW5hYmxlKHN0cnVj
-dCBzYmlfZGJ0cl90cmlnZ2VyICp0cmlnKQo+ICtzdGF0aWMgaW50IGRidHJfdHJpZ2dlcl9lbmFi
-bGUoc3RydWN0IHNiaV9kYnRyX3RyaWdnZXIgKnRyaWcpCj4gwqB7Cj4gwqAJdW5zaWduZWQgbG9u
-ZyBzdGF0ZTsKPiDCoAl1bnNpZ25lZCBsb25nIHRkYXRhMTsKPiDCoAo+IMKgCWlmICghdHJpZyB8
-fCAhKHRyaWctPnN0YXRlICYgUlZfREJUUl9CSVRfTUFTSyhUUywgTUFQUEVEKSkpCj4gLQkJcmV0
-dXJuOwo+ICsJCXJldHVybiBTQklfRVJSX0ZBSUxFRDsKPiDCoAo+IMKgCXN0YXRlID0gdHJpZy0+
-c3RhdGU7Cj4gwqAJdGRhdGExID0gdHJpZy0+dGRhdGExOwo+IMKgCj4gKwkvKgo+ICsJICogVmFs
-aWRhdGUgdGRhdGExIGJlZm9yZSBwcm9ncmFtbWluZyBDU1IuIFMtbW9kZSBjYW4gbW9kaWZ5IHRo
-ZSBzaGFyZWQKPiArCSAqIG1lbW9yeSBiZXR3ZWVuIHZhbGlkYXRpb24gcGFzcyBhbmQgaW5zdGFs
-bCBwYXNzLCBhbGxvd2luZyBhbiBpbnZhbGlkCj4gKwkgKiBjb25maWd1cmF0aW9uICh3aXRoIERN
-T0RFIG9yIE0gYml0IHNldCkgdG8gcmVhY2ggQ1NSX1REQVRBMS4gUmVqZWN0IGl0IGhlcmUuCj4g
-KwkgKi8KPiArCWlmICghZGJ0cl90cmlnZ2VyX3ZhbGlkKFREQVRBMV9HRVRfVFlQRSh0ZGF0YTEp
-LCB0ZGF0YTEpKQo+ICsJCXJldHVybiBTQklfRVJSX0lOVkFMSURfUEFSQU07Cj4gKwo+IMKgCXN3
-aXRjaCAoVERBVEExX0dFVF9UWVBFKHRkYXRhMSkpIHsKPiDCoAljYXNlIFJJU0NWX0RCVFJfVFJJ
-R19NQ09OVFJPTDoKPiDCoAkJdXBkYXRlX2JpdChzdGF0ZSAmIFJWX0RCVFJfQklUX01BU0soVFMs
-IFUpLAo+IEBAIC01MTYsNiArNTI0LDggQEAgc3RhdGljIHZvaWQgZGJ0cl90cmlnZ2VyX2VuYWJs
-ZShzdHJ1Y3Qgc2JpX2RidHJfdHJpZ2dlciAqdHJpZykKPiDCoAl0ZGF0YV93cml0ZV9zYWZlKENT
-Ul9UREFUQTIsIHRyaWctPnRkYXRhMik7Cj4gwqAJdGRhdGFfd3JpdGVfc2FmZShDU1JfVERBVEEz
-LCB0cmlnLT50ZGF0YTMpOwo+IMKgCWNzcl93cml0ZShDU1JfVERBVEExLCB0cmlnLT50ZGF0YTEp
-Owo+ICsKPiArCXJldHVybiBTQklfU1VDQ0VTUzsKPiDCoH0KPiDCoAo+IMKgc3RhdGljIHZvaWQg
-ZGJ0cl90cmlnZ2VyX2Rpc2FibGUoc3RydWN0IHNiaV9kYnRyX3RyaWdnZXIgKnRyaWcpCj4gQEAg
-LTc4NSw2ICs3OTUsNyBAQCBpbnQgc2JpX2RidHJfaW5zdGFsbF90cmlnKHVuc2lnbmVkIGxvbmcg
-c21vZGUsCj4gwqAJZm9yX2VhY2hfdHJpZ19lbnRyeShzaG1lbV9iYXNlLCB0cmlnX2NvdW50LCB0
-eXBlb2YoKmVudHJ5KSwgZW50cnkpIHsKPiDCoAkJcmVjdiA9IChzdHJ1Y3Qgc2JpX2RidHJfZGF0
-YV9tc2cgKikoJmVudHJ5LT5kYXRhKTsKPiDCoAkJeG1pdCA9IChzdHJ1Y3Qgc2JpX2RidHJfaWRf
-bXNnICopKCZlbnRyeS0+aWQpOwo+ICsJCWludCByZXQ7Cj4gwqAKPiDCoAkJLyoKPiDCoAkJICog
-VGhlIGRyeS1ydW4gYWJvdmUgbWF0Y2hlZCBldmVyeSByZXF1ZXN0ZWQgY29uZmlndXJhdGlvbgo+
-IEBAIC03OTYsNyArODA3LDEzIEBAIGludCBzYmlfZGJ0cl9pbnN0YWxsX3RyaWcodW5zaWduZWQg
-bG9uZyBzbW9kZSwKPiDCoAkJCQkJIGxsZV90b19jcHUocmVjdi0+dGRhdGEzKSk7Cj4gwqAKPiDC
-oAkJZGJ0cl90cmlnZ2VyX3NldHVwKHRyaWcswqAgcmVjdik7Cj4gLQkJZGJ0cl90cmlnZ2VyX2Vu
-YWJsZSh0cmlnKTsKPiArCQlyZXQgPSBkYnRyX3RyaWdnZXJfZW5hYmxlKHRyaWcpOwo+ICsJCWlm
-IChyZXQgIT0gU0JJX1NVQ0NFU1MpIHsKPiArCQkJKm91dCA9IF9pZHg7Cj4gKwkJCXNiaV9oYXJ0
-X3Byb3RlY3Rpb25fdGVtcF91bm1hcF9yYW5nZSgodW5zaWduZWQgbG9uZylzaG1lbV9iYXNlLAo+
-ICsJCQkJCQkJwqDCoMKgwqAgdHJpZ19jb3VudCAqIHNpemVvZigqZW50cnkpKTsKPiArCQkJcmV0
-dXJuIHJldDsKPiArCQl9Cj4gwqAJCXhtaXQtPmlkeCA9IGNwdV90b19sbGUodHJpZy0+aW5kZXgp
-Owo+IMKgCj4gwqAJfQo+IEBAIC04NDcsNyArODY0LDkgQEAgaW50IHNiaV9kYnRyX2VuYWJsZV90
-cmlnKHVuc2lnbmVkIGxvbmcgdHJpZ19pZHhfYmFzZSwKPiDCoAlmb3JfZWFjaF9zZXRfYml0X2Zy
-b20oaWR4LCAmdHJpZ19tYXNrLCBocy0+dG90YWxfdHJpZ3MpIHsKPiDCoAkJdHJpZyA9IElOREVY
-X1RPX1RSSUdHRVIoaWR4KTsKPiDCoAkJc2JpX2RwcmludGYoIiVzOiBlbmFibGUgdHJpZ2dlciAl
-bHVcbiIsIF9fZnVuY19fLCBpZHgpOwo+IC0JCWRidHJfdHJpZ2dlcl9lbmFibGUodHJpZyk7Cj4g
-KwkJaW50IHJldCA9IGRidHJfdHJpZ2dlcl9lbmFibGUodHJpZyk7Cj4gKwkJaWYgKHJldCAhPSBT
-QklfU1VDQ0VTUykKPiArCQkJcmV0dXJuIHJldDsKPiDCoAl9Cj4gwqAKPiDCoAlyZXR1cm4gU0JJ
-X1NVQ0NFU1M7Cj4gQEAgLTkyMSw4ICs5NDAsMTggQEAgaW50IHNiaV9kYnRyX3VwZGF0ZV90cmln
-KHVuc2lnbmVkIGxvbmcgc21vZGUsCj4gwqAJCQkJCcKgwqDCoMKgwqDCoCBsbGVfdG9fY3B1KGxv
-Y2FsLmRhdGEudGRhdGEzKSkpCj4gwqAJCQlyZXR1cm4gU0JJX0VSUl9OT1RfU1VQUE9SVEVEOwo+
-IMKgCj4gKzw8PDw8PDwgVXBkYXRlZCB1cHN0cmVhbQo+IMKgCQlkYnRyX3RyaWdnZXJfc2V0dXAo
-dHJpZywgJmxvY2FsLmRhdGEpOwo+IMKgCQlkYnRyX3RyaWdnZXJfZW5hYmxlKHRyaWcpOwo+ICs9
-PT09PT09Cj4gKwkJZGJ0cl90cmlnZ2VyX3NldHVwKHRyaWcsICZlbnRyeS0+ZGF0YSk7Cj4gKwkJ
-c2JpX2hhcnRfcHJvdGVjdGlvbl90ZW1wX3VubWFwX3JhbmdlKCh1bnNpZ25lZCBsb25nKWVudHJ5
-LCBzaXplb2YoKmVudHJ5KSk7Cj4gKwkJewo+ICsJCQlpbnQgcmV0ID0gZGJ0cl90cmlnZ2VyX2Vu
-YWJsZSh0cmlnKTsKPiArCQkJaWYgKHJldCAhPSBTQklfU1VDQ0VTUykKPiArCQkJCXJldHVybiBy
-ZXQ7Cj4gKwkJfQo+ICs+Pj4+Pj4+IFN0YXNoZWQgY2hhbmdlcwpIaSwKClRoaXMgcGF0Y2ggYXBw
-ZWFycyB0byBjb250YWluIHVucmVzb2x2ZWQgR2l0IGNvbmZsaWN0IG1hcmtlcnMgaW4gdGhlIGBk
-YnRyX3RyaWdnZXJfc2V0dXAoKWDCoApzZWN0aW9uIChgPDw8PDw8PCBVcGRhdGVkIHVwc3RyZWFt
-YCwgYD09PT09PT1gLCBhbmQgYD4+Pj4+Pj4gU3Rhc2hlZCBjaGFuZ2VzYCkuIEFzIHNlbnQswqAK
-dGhlc2UgbWFya2VycyBhcmUgbm90IHZhbGlkIEMgY29kZSBhbmQgd2lsbCBwcmV2ZW50IHRoZSBw
-YXRjaCBmcm9tIGFwcGx5aW5nL2J1aWxkaW5nIGNvcnJlY3RseS4KCkNvdWxkIHlvdSBwbGVhc2Ug
-cmVzb2x2ZSB0aGUgY29uZmxpY3QgYW5kIHJlc2VuZCB0aGUgcGF0Y2g/CgpUaGFua3MuCj4gwqAJ
-fQo+IMKgCj4gwqAJcmV0dXJuIFNCSV9TVUNDRVNTOwo+IC0tIAo+IDIuMzQuMQo+IAoKCi0tIApv
-cGVuc2JpIG1haWxpbmcgbGlzdApvcGVuc2JpQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xp
-c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9vcGVuc2JpCg==
+Move the validation of tdata1 to dbtr_trigger_enable(), where it is
+written to CSR_TDATA1. This prevents S-mode from modifying the trigger
+configuration between the validation pass and the install/enable pass,
+allowing an invalid configuration (with DMODE or M bit set) to reach
+the CSR.
+
+The install pass reads the shared memory twice: once in the dry-run to
+allocate slots, and again during install to program them. S-mode can
+rewrite the entry in between. Validating at the CSR write point closes
+this window and covers all three callers: install_trig, enable_trig,
+and update_trig.
+
+Fixes: 97f234f15c96 ("lib: sbi: Introduce the SBI debug triggers extension support")
+Reported-by: Nicholas Piggin <npiggin@gmail.com>
+Signed-off-by: liutong <liutong@iscas.ac.cn>
+---
+v1: https://lore.kernel.org/opensbi/20261125030930.3743680-1-liutong@iscas.ac.cn/
+v2: resolve the unresolved conflict markers accidentally included in v1's
+    update_trig hunk, add the missing forward declaration for
+    dbtr_trigger_valid(), and free the trigger allocated in install_trig
+    when the new check fails.
+
+Applies on top of
+
+  [PATCH v2] lib: sbi: dbtr: validate trigger configuration in update_trig
+  https://lore.kernel.org/opensbi/20261115163732.746589-1-liutong@iscas.ac.cn/
+
+Build-tested with PLATFORM=generic for RV64 and RV32.
+
+ lib/sbi/sbi_dbtr.c | 36 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
+
+diff --git a/lib/sbi/sbi_dbtr.c b/lib/sbi/sbi_dbtr.c
+index 9b5d25617194..d2617252f305 100644
+--- a/lib/sbi/sbi_dbtr.c
++++ b/lib/sbi/sbi_dbtr.c
+@@ -460,17 +460,27 @@ static inline void update_bit(unsigned long new, int nr, volatile unsigned long
+ 		__clear_bit(nr, addr);
+ }
+ 
+-static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
++static int dbtr_trigger_valid(unsigned long type, unsigned long tdata);
++
++static int dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+ {
+ 	unsigned long state;
+ 	unsigned long tdata1;
+ 
+ 	if (!trig || !(trig->state & RV_DBTR_BIT_MASK(TS, MAPPED)))
+-		return;
++		return SBI_ERR_FAILED;
+ 
+ 	state = trig->state;
+ 	tdata1 = trig->tdata1;
+ 
++	/*
++	 * Validate tdata1 before programming CSR. S-mode can modify the shared
++	 * memory between the validation pass and the install pass, allowing an
++	 * invalid configuration (with DMODE or M bit set) to reach CSR_TDATA1.
++	 */
++	if (!dbtr_trigger_valid(TDATA1_GET_TYPE(tdata1), tdata1))
++		return SBI_ERR_INVALID_PARAM;
++
+ 	switch (TDATA1_GET_TYPE(tdata1)) {
+ 	case RISCV_DBTR_TRIG_MCONTROL:
+ 		update_bit(state & RV_DBTR_BIT_MASK(TS, U),
+@@ -516,6 +526,8 @@ static void dbtr_trigger_enable(struct sbi_dbtr_trigger *trig)
+ 	tdata_write_safe(CSR_TDATA2, trig->tdata2);
+ 	tdata_write_safe(CSR_TDATA3, trig->tdata3);
+ 	csr_write(CSR_TDATA1, trig->tdata1);
++
++	return SBI_SUCCESS;
+ }
+ 
+ static void dbtr_trigger_disable(struct sbi_dbtr_trigger *trig)
+@@ -687,6 +699,7 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 	unsigned long ctrl;
+ 	u32 claimed = 0;
+ 	int slot;
++	int ret;
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs = NULL;
+ 	bool tdata2_impl, tdata3_impl;
+@@ -796,7 +809,14 @@ int sbi_dbtr_install_trig(unsigned long smode,
+ 					 lle_to_cpu(recv->tdata3));
+ 
+ 		dbtr_trigger_setup(trig,  recv);
+-		dbtr_trigger_enable(trig);
++		ret = dbtr_trigger_enable(trig);
++		if (ret != SBI_SUCCESS) {
++			sbi_free_trigger(trig);
++			*out = _idx;
++			sbi_hart_protection_temp_unmap_range((unsigned long)shmem_base,
++							     trig_count * sizeof(*entry));
++			return ret;
++		}
+ 		xmit->idx = cpu_to_lle(trig->index);
+ 
+ 	}
+@@ -839,6 +859,7 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+ 	unsigned long idx = trig_idx_base;
+ 	struct sbi_dbtr_trigger *trig;
+ 	struct sbi_dbtr_hart_triggers_state *hs;
++	int ret;
+ 
+ 	hs = dbtr_thishart_state_ptr();
+ 	if (!hs)
+@@ -847,7 +868,9 @@ int sbi_dbtr_enable_trig(unsigned long trig_idx_base,
+ 	for_each_set_bit_from(idx, &trig_mask, hs->total_trigs) {
+ 		trig = INDEX_TO_TRIGGER(idx);
+ 		sbi_dprintf("%s: enable trigger %lu\n", __func__, idx);
+-		dbtr_trigger_enable(trig);
++		ret = dbtr_trigger_enable(trig);
++		if (ret != SBI_SUCCESS)
++			return ret;
+ 	}
+ 
+ 	return SBI_SUCCESS;
+@@ -857,6 +880,7 @@ int sbi_dbtr_update_trig(unsigned long smode,
+ 			 unsigned long trig_count)
+ {
+ 	unsigned long trig_idx, tdata1;
++	int ret;
+ 	union sbi_dbtr_shmem_entry local;
+ 	struct sbi_dbtr_trigger *trig;
+ 	union sbi_dbtr_shmem_entry *entry;
+@@ -922,7 +946,9 @@ int sbi_dbtr_update_trig(unsigned long smode,
+ 			return SBI_ERR_NOT_SUPPORTED;
+ 
+ 		dbtr_trigger_setup(trig, &local.data);
+-		dbtr_trigger_enable(trig);
++		ret = dbtr_trigger_enable(trig);
++		if (ret != SBI_SUCCESS)
++			return ret;
+ 	}
+ 
+ 	return SBI_SUCCESS;
+-- 
+2.34.1
+
+
+-- 
+opensbi mailing list
+opensbi@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/opensbi
